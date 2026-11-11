@@ -279,6 +279,46 @@ public class CsBaselineSeeder {
     }
 
     /**
+     * Stores a SYSTEM DID and DSP base URL on a registered security server directly in the database. The
+     * management request path stores no pair, and this stack has no Issuer Service to publish one, so tests
+     * that edit or read a stored pair seed it here. Overwrites any pair already stored.
+     *
+     * @param serverId     security server identifier in {@code CS:class:code:serverCode} form
+     * @param systemDid    SYSTEM DID to store
+     * @param dspBaseUrl   DSP base URL to store
+     */
+    public void seedSystemPair(String serverId, String systemDid, String dspBaseUrl) {
+        var idParts = serverId.split(":");
+        var ownerClass = idParts[1];
+        var ownerCode = idParts[2];
+        var serverCode = idParts[3];
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("""
+                        UPDATE centerui.security_servers s SET system_did = ?, dsp_base_url = ?
+                        FROM centerui.security_server_clients o
+                        JOIN centerui.member_classes mc ON mc.id = o.member_class_id
+                        WHERE s.owner_id = o.id AND mc.code = ? AND o.member_code = ? AND s.server_code = ?
+                        """)) {
+            stmt.setString(1, systemDid);
+            stmt.setString(2, dspBaseUrl);
+            stmt.setString(3, ownerClass);
+            stmt.setString(4, ownerCode);
+            stmt.setString(5, serverCode);
+            if (stmt.executeUpdate() != 1) {
+                throw new IllegalStateException("Expected exactly one security server " + serverId);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to seed the SYSTEM pair of " + serverId, e);
+        }
+    }
+
+    /**
      * Seeds the bootstrap API key, initialises the CS if needed, and verifies the stack is reachable.
      * Called once per JVM before any test starts. All HTTP here is silent (no Allure attachment).
      */

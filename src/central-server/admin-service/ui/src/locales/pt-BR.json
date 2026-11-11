@@ -38,7 +38,24 @@
     "configuration_part_validation_failed": "Validação da parte da configuração falhou",
     "configuration_part_validator_not_found": "Validador da parte da configuração não encontrado",
     "csr_generation_failed": "Falha ao gerar CSR",
+    "did_foreign_system": "O DID não é o SYSTEM DID deste servidor seguro",
+    "did_held_by_another_server": "O DID já está em uso por outro servidor seguro",
+    "did_host_differs": "O host do DID deve corresponder ao endereço do servidor seguro",
+    "did_member_not_served": "O servidor seguro não atende a este membro",
+    "did_non_ascii_host": "O host do DID e do endereço do servidor seguro deve ser ASCII",
+    "did_not_canonical": "O DID não está em sua forma canônica",
+    "did_not_stored": "O servidor seguro não tem um DID armazenado para substituir",
+    "did_of_other_member": "O DID pertence a outro membro",
+    "did_too_long": "O DID é muito longo",
+    "did_undecodable": "O DID não pode ser decodificado",
+    "did_unparseable_server_address": "O endereço do servidor seguro não pode ser lido como um host",
+    "did_wrong_scheme": "O DID deve ser um DID did:web da versão v1",
     "double_file_extension": "Extensões duplas de arquivo não são permitidas",
+    "dsp_base_url_host_differs": "O host da URL base do DSP deve corresponder ao endereço do servidor seguro",
+    "dsp_base_url_malformed": "A URL base do DSP não é uma URL válida",
+    "dsp_base_url_non_ascii_host": "O host da URL base do DSP deve ser ASCII",
+    "dsp_base_url_not_canonical": "A URL base do DSP não está em sua forma canônica",
+    "dsp_base_url_not_https": "A URL base do DSP deve usar https",
     "error_activating_signing_key": "Erro ao ativar a chave de assinatura",
     "error_deleting_signing_key": "Erro ao excluir a chave de assinatura",
     "error_recreating_anchor": "Erro ao recriar o arquivo de âncora",
@@ -107,6 +124,7 @@
     "subsystem_not_found": "Subsistema com o código especificado não encontrado",
     "subsystem_not_registered_to_security_server": "Subsistema não está registrado neste servidor seguro",
     "subsystem_registered_and_cannot_be_deleted": "Não é possível excluir subsistema já registrado",
+    "system_pair_incomplete": "Informe o SYSTEM DID e a URL base do DSP juntos, ou nenhum dos dois",
     "timestamping_authority_not_found": "Autoridade de Carimbo de Tempo (TSA) não encontrada",
     "token_action_not_possible": "Ação com o token não permitida",
     "token_activation_failed": "Falha na ativação do token",
@@ -370,6 +388,7 @@
     "clientEnable": "Ativar cliente",
     "dialog": {
       "approve": {
+        "addressChangedNotify": "O endereço do servidor seguro {serverId} foi alterado para {address}. Informe o operador do servidor seguro, por exemplo por e-mail, para que ele possa identificar o servidor novamente.",
         "bodyMessage": "Deseja realmente aprovar a solicitação de gerenciamento ID {id} do servidor {serverId}?",
         "newMemberWarning": "O membro especificado ainda não existe. Ele será criado automaticamente ao aprovar esta solicitação.",
         "successMessage": "Solicitação de gerenciamento ID {id} do servidor {serverId} aprovada",
@@ -404,11 +423,26 @@
         "areYouSureUnregister": "Deseja realmente remover o Membro {memberCode} do servidor {serverCode} da configuração do sistema?",
         "confirmDelete": "Tem certeza de que deseja excluir o Membro {member} da configuração do sistema? Digite o código do membro para confirmar.",
         "deleteMember": "Excluir membro",
+        "editDid": {
+          "check": {
+            "not_resolved_fetch_failure": "O DID do membro não é resolvido: não foi possível obter o documento DID. Você ainda pode salvar.",
+            "not_resolved_id_mismatch": "O DID do membro não é resolvido: o documento DID pertence a outro DID. Você ainda pode salvar.",
+            "not_resolved_malformed_did": "O DID do membro não é resolvido: o documento DID está malformado. Você ainda pode salvar.",
+            "not_resolved_no_document": "O DID do membro não é resolvido: nenhum documento DID foi encontrado. Você ainda pode salvar.",
+            "resolved": "O DID do membro é resolvido.",
+            "resolver_unavailable": "Não foi possível verificar o DID do membro porque o Issuer Service está inacessível. Você ainda pode salvar."
+          },
+          "checkDid": "Verificar DID",
+          "success": "DID do membro atualizado com sucesso",
+          "title": "Editar DID do membro em {server}"
+        },
         "editMemberName": "Editar nome do Membro",
         "enterCode": "Digite o Código do Membro",
         "globalGroups": "Grupos Globais",
         "group": "Grupo",
         "memberDeleted": "Membro excluído com sucesso",
+        "memberDid": "DID do membro",
+        "memberDidStaleWarning": "O DID do membro não corresponde ao endereço do servidor seguro. Outros servidores usam o DID antigo para alcançar este membro.",
         "memberNameSaved": "Nome do membro salvo com sucesso",
         "memberSuccessfullyUnregistered": "Membro {memberCode} do servidor {serverCode} removido com sucesso",
         "ownedServers": "Servidores próprios",
@@ -462,11 +496,27 @@
       },
       "editAddress": {
         "addressField": "Endereço do servidor seguro",
+        "check": {
+          "not_resolved_fetch_failure": "O SYSTEM DID não é resolvido: não foi possível obter o documento DID. Você ainda pode salvar.",
+          "not_resolved_id_mismatch": "O SYSTEM DID não é resolvido: o documento DID pertence a outro DID. Você ainda pode salvar.",
+          "not_resolved_malformed_did": "O SYSTEM DID não é resolvido: o documento DID está malformado. Você ainda pode salvar.",
+          "not_resolved_no_document": "O SYSTEM DID não é resolvido: nenhum documento DID foi encontrado. Você ainda pode salvar.",
+          "resolved": "O SYSTEM DID é resolvido.",
+          "resolver_unavailable": "Não foi possível verificar o SYSTEM DID porque o Issuer Service está inacessível. Você ainda pode salvar."
+        },
+        "checkDid": "Verificar DID",
+        "dspBaseUrlField": "URL base do DSP",
+        "notify": "Informe o operador do servidor seguro sobre esta alteração, por exemplo por e-mail. O servidor seguro mantém seus próprios valores até que o operador o identifique novamente.",
+        "oldHostWarning": "O SYSTEM DID e a URL base do DSP ainda podem usar o host antigo. Altere-os também, ou deixe-os para o operador do servidor seguro identificar o servidor novamente.",
+        "publishedValues": "Valores publicados",
+        "publishedValuesHint": "A configuração global anuncia esses valores a outros servidores.",
         "success": "Endereço do servidor seguro atualizado com sucesso",
+        "systemDidField": "SYSTEM DID",
         "title": "Editar endereço do servidor seguro"
       }
     },
     "disabled": "Temporariamente desativado",
+    "dspBaseUrl": "URL base do DSP",
     "maintenanceMode": "Em modo de manutenção",
     "ownerClass": "Classe do Proprietário",
     "ownerCode": "Código do Proprietário",
@@ -496,6 +546,8 @@
       }
     },
     "serverCode": "Código do Servidor",
+    "staleValuesWarning": "O SYSTEM DID ou a URL base do DSP não corresponde ao endereço do servidor seguro. Outros servidores usam os valores antigos para alcançar este servidor. Edite os valores ou peça ao operador do servidor seguro que identifique o servidor novamente.",
+    "systemDid": "SYSTEM DID",
     "unregistered": "Não registrado"
   },
   "status": {
@@ -590,7 +642,7 @@
             "cache-period": "Por quanto tempo (em segundos) os resultados de verificação OCSP são armazenados em cache antes de serem reverificados."
           },
           "common-rpc": {
-            "use-tls": "Quando habilitado, o TLS mútuo é usado para a comunicação gRPC entre os serviços colocalizados do Servidor Central.",
+            "use-tls": "Somente para testes; nunca o desative em produção. Quando habilitado, o TLS mútuo é usado para a comunicação gRPC entre os serviços colocalizados do Servidor Central. Quando desabilitado, essa comunicação gRPC é em texto simples.",
             "certificate-provisioning": {
               "refresh-interval": "Com que frequência os serviços verificam se seu certificado TLS gRPC precisa ser renovado (ex.: 5H).",
               "wait-duration": "Atraso antes da primeira nova tentativa após uma falha ao carregar o certificado TLS gRPC do repositório de segredos (ex.: 5S).",

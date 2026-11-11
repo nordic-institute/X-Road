@@ -21,8 +21,9 @@ dependencies {
   api(libs.microprofile.config.api)
   api(libs.resilience4j.retry)
 
-  testFixturesImplementation(libs.quarkus.junit5)
+  testFixturesImplementation(libs.bouncyCastle.bcpkix)
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.assertj.core)
+  testImplementation(libs.junit.jupiter.params)
 }

@@ -33,6 +33,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.ManagementRequestsAdminClient;
@@ -44,7 +45,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.niis.xroad.cs.test.api.CsBaselineSeeder.BASELINE_MEMBER_CLASS;
 import static org.niis.xroad.cs.test.api.CsBaselineSeeder.INSTANCE_IDENTIFIER;
@@ -221,6 +224,285 @@ class SecurityServerApiTest extends CsApiTest {
                 client.updateSecurityServerAddress(
                         INSTANCE_IDENTIFIER + ":NONEXIST:nonexist:nonexist", "any-addr")
                         .statusCode(404));
+    }
+
+    @Test
+    void serverWithoutStoredPairShowsNeitherSystemDidNorDspBaseUrl(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0818", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0818", memberId));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.then("server details carry no SYSTEM pair", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("$", not(hasKey("system_did")))
+                        .body("$", not(hasKey("dsp_base_url")))
+                        .body("$", not(hasKey("system_pair_stale"))));
+    }
+
+    @Test
+    void modifySecurityServerAddressAndSystemPair(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0810", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0810", memberId));
+        Step.and("old SYSTEM pair stored", () ->
+                seeder.seedSystemPair(serverId, systemDid("ss-addr-0810"), dspBaseUrl("ss-addr-0810")));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.when("address and a pair at the new address are saved", () ->
+                client.updateSecurityServer(serverId, new SecurityServerEditDto()
+                                .serverAddress("new-addr-0810")
+                                .systemDid(systemDid("new-addr-0810"))
+                                .dspBaseUrl(dspBaseUrl("new-addr-0810")))
+                        .statusCode(200)
+                        .body("server_address", equalTo("new-addr-0810"))
+                        .body("system_did", equalTo(systemDid("new-addr-0810")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("new-addr-0810"))));
+
+        Step.then("server details return the new address and pair", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("new-addr-0810"))
+                        .body("system_did", equalTo(systemDid("new-addr-0810")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("new-addr-0810")))
+                        .body("system_pair_stale", equalTo(false)));
+    }
+
+    @Test
+    void addressOnlyEditKeepsTheStoredSystemPair(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0811", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0811", memberId));
+        Step.and("SYSTEM pair stored", () ->
+                seeder.seedSystemPair(serverId, systemDid("ss-addr-0811"), dspBaseUrl("ss-addr-0811")));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.when("only the address is saved", () ->
+                client.updateSecurityServerAddress(serverId, "new-addr-0811")
+                        .statusCode(200)
+                        .body("server_address", equalTo("new-addr-0811")));
+
+        Step.then("the stored pair is unchanged", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("new-addr-0811"))
+                        .body("system_did", equalTo(systemDid("ss-addr-0811")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("ss-addr-0811")))
+                        .body("system_pair_stale", equalTo(true)));
+    }
+
+    @Test
+    void refusedSystemPairEditNamesItsReasonAndStoresNothing(CsBaselineSeeder seeder) {
+        record RefusalCase(String name, String systemDid, String dspBaseUrl, String errorCode) {
+        }
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0812", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0812", memberId));
+        Step.and("SYSTEM pair stored", () ->
+                seeder.seedSystemPair(serverId, systemDid("ss-addr-0812"), dspBaseUrl("ss-addr-0812")));
+        var client = new SecurityServersAdminClient(session);
+        var newAddress = "new-addr-0812";
+        var memberDid = "did:web:" + newAddress + "%3A7183:v1:" + INSTANCE_IDENTIFIER + ":" + BASELINE_MEMBER_CLASS
+                + ":member0812";
+
+        var cases = List.of(
+                new RefusalCase("host of the SYSTEM DID differs", systemDid("other-addr-0812"),
+                        dspBaseUrl(newAddress), "did_host_differs"),
+                new RefusalCase("host of the DSP base URL differs", systemDid(newAddress),
+                        dspBaseUrl("other-addr-0812"), "dsp_base_url_host_differs"),
+                new RefusalCase("DID is not the server's own SYSTEM DID", memberDid,
+                        dspBaseUrl(newAddress), "did_foreign_system"),
+                new RefusalCase("DSP base URL is not https", systemDid(newAddress),
+                        "http://" + newAddress + ":8183/api/dsp", "dsp_base_url_not_https"));
+
+        for (var refusal : cases) {
+            Step.when(refusal.name() + " and the edit is refused", () ->
+                    client.updateSecurityServer(serverId, new SecurityServerEditDto()
+                                    .serverAddress(newAddress)
+                                    .systemDid(refusal.systemDid())
+                                    .dspBaseUrl(refusal.dspBaseUrl()))
+                            .statusCode(400)
+                            .body("error.code", equalTo(refusal.errorCode())));
+
+            Step.then("neither the address nor the pair is stored after: " + refusal.name(), () ->
+                    client.getSecurityServer(serverId)
+                            .statusCode(200)
+                            .body("server_address", equalTo("ss-addr-0812"))
+                            .body("system_did", equalTo(systemDid("ss-addr-0812")))
+                            .body("dsp_base_url", equalTo(dspBaseUrl("ss-addr-0812"))));
+        }
+    }
+
+    @Test
+    void systemDidHeldByAnotherServerRefusesTheEdit(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0813", BASELINE_MEMBER_CLASS));
+        var holderId = Step.and("holder server seeded", () -> seeder.seedSecurityServer(session, "0813a", memberId));
+        var editedId = Step.and("edited server seeded", () -> seeder.seedSecurityServer(session, "0813b", memberId));
+        Step.and("holder pair stored", () ->
+                seeder.seedSystemPair(holderId, systemDid("ss-addr-0813a"), dspBaseUrl("ss-addr-0813a")));
+        Step.and("edited server pair stored", () ->
+                seeder.seedSystemPair(editedId, systemDid("ss-addr-0813b"), dspBaseUrl("ss-addr-0813b")));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.when("the edited server is given the holder's address and pair", () ->
+                client.updateSecurityServer(editedId, new SecurityServerEditDto()
+                                .serverAddress("ss-addr-0813a")
+                                .systemDid(systemDid("ss-addr-0813a"))
+                                .dspBaseUrl(dspBaseUrl("ss-addr-0813a")))
+                        .statusCode(400)
+                        .body("error.code", equalTo("did_held_by_another_server")));
+
+        Step.then("the edited server keeps its address and pair", () ->
+                client.getSecurityServer(editedId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("ss-addr-0813b"))
+                        .body("system_did", equalTo(systemDid("ss-addr-0813b")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("ss-addr-0813b"))));
+    }
+
+    @Test
+    void halfPairIsRefusedAndStoresNothing(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0814", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0814", memberId));
+        Step.and("SYSTEM pair stored", () ->
+                seeder.seedSystemPair(serverId, systemDid("ss-addr-0814"), dspBaseUrl("ss-addr-0814")));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.when("only the SYSTEM DID is given", () ->
+                client.updateSecurityServer(serverId, new SecurityServerEditDto()
+                                .serverAddress("new-addr-0814")
+                                .systemDid(systemDid("new-addr-0814")))
+                        .statusCode(400)
+                        .body("error.code", equalTo("system_pair_incomplete")));
+
+        Step.and("only the DSP base URL is given", () ->
+                client.updateSecurityServer(serverId, new SecurityServerEditDto()
+                                .serverAddress("new-addr-0814")
+                                .dspBaseUrl(dspBaseUrl("new-addr-0814")))
+                        .statusCode(400)
+                        .body("error.code", equalTo("system_pair_incomplete")));
+
+        Step.then("neither the address nor the pair is stored", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("ss-addr-0814"))
+                        .body("system_did", equalTo(systemDid("ss-addr-0814")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("ss-addr-0814"))));
+    }
+
+    @Test
+    void pairForServerWithoutStoredPairIsRefusedAndTheAddressIsKept(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0815", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0815", memberId));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.when("an address and a pair are given for a server with no stored pair", () ->
+                client.updateSecurityServer(serverId, new SecurityServerEditDto()
+                                .serverAddress("new-addr-0815")
+                                .systemDid(systemDid("new-addr-0815"))
+                                .dspBaseUrl(dspBaseUrl("new-addr-0815")))
+                        .statusCode(400)
+                        .body("error.code", equalTo("did_not_stored")));
+
+        Step.then("the address is unchanged and no pair is stored", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("ss-addr-0815"))
+                        .body("$", not(hasKey("system_did")))
+                        .body("$", not(hasKey("dsp_base_url"))));
+    }
+
+    @Test
+    void systemDidCheckAnswersWithoutStoringAnything(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0816", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0816", memberId));
+        Step.and("SYSTEM pair stored", () ->
+                seeder.seedSystemPair(serverId, systemDid("ss-addr-0816"), dspBaseUrl("ss-addr-0816")));
+        var client = new SecurityServersAdminClient(session);
+        var proposedAddress = "new-addr-0816";
+        var memberDid = "did:web:" + proposedAddress + "%3A7183:v1:" + INSTANCE_IDENTIFIER + ":" + BASELINE_MEMBER_CLASS
+                + ":member0816";
+
+        Step.when("a valid DID at the proposed address is checked with no Issuer Service", () ->
+                client.checkSystemDid(serverId, proposedAddress, systemDid(proposedAddress))
+                        .statusCode(200)
+                        .body("status", equalTo("RESOLVER_UNAVAILABLE"))
+                        .body("$", not(hasKey("refusal_reason")))
+                        .body("$", not(hasKey("resolution_reason"))));
+
+        Step.and("a DID whose host differs from the proposed address is refused", () ->
+                client.checkSystemDid(serverId, proposedAddress, systemDid("other-addr-0816"))
+                        .statusCode(200)
+                        .body("status", equalTo("REFUSED"))
+                        .body("refusal_reason", equalTo("HOST_DIFFERS")));
+
+        Step.and("a member DID is refused as foreign", () ->
+                client.checkSystemDid(serverId, proposedAddress, memberDid)
+                        .statusCode(200)
+                        .body("status", equalTo("REFUSED"))
+                        .body("refusal_reason", equalTo("FOREIGN_SYSTEM_DID")));
+
+        Step.and("an unknown server returns 404", () ->
+                client.checkSystemDid(INSTANCE_IDENTIFIER + ":NONEXIST:nonexist:nonexist", proposedAddress,
+                                systemDid(proposedAddress))
+                        .statusCode(404));
+
+        Step.then("the address and the SYSTEM pair are unchanged", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("ss-addr-0816"))
+                        .body("system_did", equalTo(systemDid("ss-addr-0816")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("ss-addr-0816"))));
+    }
+
+    @Test
+    void invalidAddressIsRefusedOnTheEditAndTheCheckAndStoresNothing(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0820", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0820", memberId));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.when("an address containing a slash is given on the edit", () ->
+                client.updateSecurityServerAddress(serverId, "bad/addr-0820")
+                        .statusCode(400)
+                        .body("error.code", equalTo("validation_failure"))
+                        .body("error.validation_errors", hasKey("securityServerEditDto.serverAddress")));
+
+        Step.and("an address containing a space is given on the check", () ->
+                client.checkSystemDid(serverId, "bad addr-0820", systemDid("bad-addr-0820"))
+                        .statusCode(400)
+                        .body("error.code", equalTo("validation_failure"))
+                        .body("error.validation_errors", hasKey("systemDidCheckRequestDto.serverAddress")));
+
+        Step.then("the address is unchanged", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("ss-addr-0820")));
+    }
+
+    @Test
+    void systemDidCheckForbiddenWithoutTheEditAddressPermission(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0817", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0817", memberId));
+        var securityOfficerClient = new SecurityServersAdminClient(seeder.newSecurityOfficerSession());
+
+        Step.then("the check as SECURITY_OFFICER returns 403", () ->
+                securityOfficerClient.checkSystemDid(serverId, "ss-addr-0817", systemDid("ss-addr-0817"))
+                        .statusCode(403));
+    }
+
+    private static String systemDid(String host) {
+        return "did:web:" + host + "%3A7183:v1:system";
+    }
+
+    private static String dspBaseUrl(String host) {
+        return "https://" + host + ":8183/api/dsp";
     }
 
     @Test

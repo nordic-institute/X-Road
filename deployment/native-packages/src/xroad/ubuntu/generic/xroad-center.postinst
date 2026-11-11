@@ -245,7 +245,6 @@ store_certificates_settings() {
     || abort "Failed to store management-service TLS identity. ABORTING."
 }
 
-
 case "$1" in
 configure | reconfigure)
     prepare_certificates_settings

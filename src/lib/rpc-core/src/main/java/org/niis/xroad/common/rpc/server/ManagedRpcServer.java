@@ -31,6 +31,7 @@ import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -41,15 +42,24 @@ public abstract class ManagedRpcServer {
     private final List<BindableService> services;
     private final RpcServerProperties rpcServerProperties;
     private final RpcCredentialsConfigurer rpcCredentialsConfigurer;
+    private final Collection<String> allowedClientNames;
 
     private RpcServer rpcServer;
 
     protected ManagedRpcServer(List<BindableService> services,
                                RpcServerProperties rpcServerProperties,
                                RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        this(services, rpcServerProperties, rpcCredentialsConfigurer, List.of());
+    }
+
+    protected ManagedRpcServer(List<BindableService> services,
+                               RpcServerProperties rpcServerProperties,
+                               RpcCredentialsConfigurer rpcCredentialsConfigurer,
+                               Collection<String> allowedClientNames) {
         this.services = services;
         this.rpcServerProperties = rpcServerProperties;
         this.rpcCredentialsConfigurer = rpcCredentialsConfigurer;
+        this.allowedClientNames = allowedClientNames;
     }
 
     public void init() throws IOException {
@@ -72,7 +82,7 @@ public abstract class ManagedRpcServer {
         return new RpcServer(
                 rpcServerProperties.listenAddress(),
                 rpcServerProperties.port(),
-                rpcCredentialsConfigurer.createServerCredentials(),
+                rpcCredentialsConfigurer.createServerCredentials(allowedClientNames),
                 builder -> {
                     rpcServerProperties.maxInboundMessageSize().ifPresent(builder::maxInboundMessageSize);
                     services.forEach(service -> {

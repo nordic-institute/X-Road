@@ -45,12 +45,15 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -188,7 +191,8 @@ class OpMonitoringServiceHandlerOutageTest {
                 .overrides(Map.of("xroad.common-rpc.channel.op-monitor.port", String.valueOf(port)))
                 .build();
         var handler = new OpMonitoringServiceHandlerImpl(mock(ServerConfProvider.class), globalConfProvider(),
-                () -> OpMonitorClient.create(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), config));
+                () -> OpMonitorClient.create(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), config,
+                        sharedCredentialsResolver()));
         handlers.add(handler);
 
         handler.startHandling(null, proxyMessage(), opMonitoringData());
@@ -233,6 +237,10 @@ class OpMonitoringServiceHandlerOutageTest {
         return handler(client(port, deadlineMillis));
     }
 
+    private static OpMonitorChannelTrustResolver sharedCredentialsResolver() {
+        return new OpMonitorChannelTrustResolver(mock(RpcProperties.class), new NoopVaultClient());
+    }
+
     private OpMonitoringServiceHandlerImpl handler(OpMonitorClient client) {
         var handler = new OpMonitoringServiceHandlerImpl(mock(ServerConfProvider.class), globalConfProvider(),
                 () -> client);
@@ -257,7 +265,8 @@ class OpMonitoringServiceHandlerOutageTest {
                 return deadlineMillis;
             }
         };
-        var client = new OpMonitorClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), channelProperties);
+        var client = new OpMonitorClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), channelProperties,
+                sharedCredentialsResolver());
         client.init();
         return client;
     }

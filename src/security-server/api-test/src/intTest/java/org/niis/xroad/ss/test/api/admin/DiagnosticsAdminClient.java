@@ -26,8 +26,10 @@
  */
 package org.niis.xroad.ss.test.api.admin;
 
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.ValidatableResponse;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -128,6 +130,40 @@ public class DiagnosticsAdminClient {
                 .extract()
                 .jsonPath()
                 .getMap("$");
+    }
+
+    /**
+     * Returns the operational monitoring request counts grouped into time intervals of the given length.
+     * The response has one bucket per interval in the range, also when no requests were recorded.
+     */
+    public ValidatableResponse getOperationalMonitoringIntervals(Instant recordsFrom, Instant recordsTo, int intervalMinutes) {
+        return getOperationalMonitoringIntervals(recordsFrom, recordsTo, intervalMinutes, null);
+    }
+
+    /**
+     * Same as {@link #getOperationalMonitoringIntervals(Instant, Instant, int)}, counting only requests of the given service
+     * ({@code <instance>:<class>:<member>:<subsystem>:<serviceCode>}); a null service id counts all requests.
+     */
+    public ValidatableResponse getOperationalMonitoringIntervals(Instant recordsFrom, Instant recordsTo, int intervalMinutes,
+                                                                 String serviceId) {
+        var request = session.given()
+                .queryParam("records_from", recordsFrom.toString())
+                .queryParam("records_to", recordsTo.toString())
+                .queryParam("interval", intervalMinutes);
+        if (serviceId != null) {
+            request = request.queryParam("service_id", serviceId);
+        }
+        return request
+                .get("/diagnostics/operational-monitoring")
+                .then();
+    }
+
+    /**
+     * Sums the success and failure counts over all buckets of an operational monitoring intervals response.
+     */
+    public static int totalRequestCount(JsonPath intervals) {
+        return intervals.getList("success_count", Integer.class).stream().mapToInt(Integer::intValue).sum()
+                + intervals.getList("failure_count", Integer.class).stream().mapToInt(Integer::intValue).sum();
     }
 
     /**

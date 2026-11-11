@@ -32,6 +32,8 @@ import io.grpc.InsecureServerCredentials;
 import io.grpc.ServerCredentials;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
+
 @Slf4j
 public class InsecureRpcCredentialsConfigurer implements RpcCredentialsConfigurer {
     @Override
@@ -42,8 +44,18 @@ public class InsecureRpcCredentialsConfigurer implements RpcCredentialsConfigure
     }
 
     @Override
+    public ServerCredentials createServerCredentials(Collection<String> allowedClientNames) {
+        return createServerCredentials();
+    }
+
+    @Override
     public ChannelCredentials createClientCredentials() {
         log.warn("GRPC client is running without TLS. This is intended only for testing purposes.");
         return InsecureChannelCredentials.create();
+    }
+
+    @Override
+    public ChannelCredentials createClientCredentials(ChannelTrust trust) {
+        return createClientCredentials();
     }
 }

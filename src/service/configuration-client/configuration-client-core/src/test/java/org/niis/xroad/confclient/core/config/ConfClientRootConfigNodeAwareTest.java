@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ConfClientRootConfigNodeAwareTest {
 
     private static final NodeAwareProducerFixture FIXTURE = new NodeAwareProducerFixture("confclientnodeaware",
-            nodeName -> new ConfClientRootConfig().xRoadConfig("configuration-client", nodeName));
+            () -> new ConfClientRootConfig().xRoadConfig("configuration-client"));
 
     @Test
     void aConfiguredNodeNameResolvesTheNodeValue() throws Exception {

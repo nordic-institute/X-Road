@@ -43,6 +43,7 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueStoreImpl;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -153,10 +154,10 @@ class SystemDidRegistrationSequenceTest {
                     return handler.add(inv.getArgument(0));
                 });
 
-        service = new SystemDidRegistrationServiceImpl(authCertServerCheck, store, dids -> {
+        service = new SystemDidRegistrationServiceImpl(authCertServerCheck, store, new DidBatchResolution(dids -> {
             resolvedDids.addAll(dids);
             return dids.stream().map(DidResolution::resolved).toList();
-        }, managementRequestService);
+        }), managementRequestService);
     }
 
     @Test

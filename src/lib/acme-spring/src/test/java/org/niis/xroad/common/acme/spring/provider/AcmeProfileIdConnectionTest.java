@@ -38,6 +38,7 @@ import org.shredzone.acme4j.connector.NetworkSettings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.net.http.HttpClient;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -64,7 +65,7 @@ class AcmeProfileIdConnectionTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        connection = new AcmeProfileIdConnection(new AcmeXroadHttpConnector(new NetworkSettings()));
+        connection = new AcmeProfileIdConnection(new AcmeXroadHttpConnector(new NetworkSettings(), HttpClient.newHttpClient()));
         session = new Session(wm.getRuntimeInfo().getHttpBaseUrl() + "/directory");
         requestUrl = new URL(wm.getRuntimeInfo().getHttpBaseUrl() + "/some-resource");
 

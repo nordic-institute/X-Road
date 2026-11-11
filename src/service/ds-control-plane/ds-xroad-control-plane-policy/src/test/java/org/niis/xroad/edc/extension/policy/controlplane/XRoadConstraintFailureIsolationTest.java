@@ -57,6 +57,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
@@ -67,6 +68,8 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -89,8 +92,10 @@ import java.lang.reflect.Field;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -176,10 +181,10 @@ class XRoadConstraintFailureIsolationTest {
                     return true;
                 });
         var policyStore = mock(PolicyDefinitionStore.class);
-        when(policyStore.findById(PARTICIPANT_CONTEXT_ID, BAD_GROUP))
-                .thenReturn(policyDefinition(BAD_GROUP, localGroupPolicy(BAD_GROUP)));
-        when(policyStore.findById(PARTICIPANT_CONTEXT_ID, GOOD_GROUP))
-                .thenReturn(policyDefinition(GOOD_GROUP, localGroupPolicy(GOOD_GROUP)));
+        when(policyStore.findAll(argThat(XRoadConstraintFailureIsolationTest::isProviderLookupOfBothPolicies)))
+                .thenAnswer(invocation -> Stream.of(
+                        policyDefinition(BAD_GROUP, localGroupPolicy(BAD_GROUP)),
+                        policyDefinition(GOOD_GROUP, localGroupPolicy(GOOD_GROUP))));
         var definitionStore = mock(ContractDefinitionStore.class);
         when(definitionStore.findAll(any())).thenReturn(Stream.of(
                 contractDefinition("def-bad", BAD_GROUP), contractDefinition("def-good", GOOD_GROUP)));
@@ -262,6 +267,16 @@ class XRoadConstraintFailureIsolationTest {
             }
             default -> throw new IllegalArgumentException(constraintKey);
         };
+    }
+
+    private static boolean isProviderLookupOfBothPolicies(QuerySpec spec) {
+        var criteria = spec.getFilterExpression();
+        return criteria.size() == 2
+                && criteria.contains(ParticipantResource.filterByParticipantContextId(PARTICIPANT_CONTEXT_ID))
+                && criteria.stream().anyMatch(criterion -> "id".equals(criterion.getOperandLeft())
+                        && CriterionOperatorRegistry.IN.equals(criterion.getOperator())
+                        && criterion.getOperandRight() instanceof Collection<?> ids
+                        && Set.copyOf(ids).equals(Set.of(BAD_GROUP, GOOD_GROUP)));
     }
 
     private static ParticipantAgent memberAgent() {

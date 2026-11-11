@@ -34,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -51,9 +52,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -101,7 +104,7 @@ class ConsumerSideDspProcessorTest {
     void setUp() {
         lenient().when(clientProperties.acquisitionDeadline()).thenReturn(DEADLINE);
         processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver,
-                clientProperties, clock);
+                clientProperties, clock, () -> TimeUnit.MILLISECONDS.toNanos(clock.millis()));
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
     }
 
@@ -947,6 +950,217 @@ class ConsumerSideDspProcessorTest {
         processor.failOver(new DspRequest(serviceId, SENDER, null, false), new AssetAccessResponse("http://dp-a/e", "t", DID_A));
 
         assertThat(timeouts).containsExactly(Duration.ofSeconds(30));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"dsp_access_refused", "dsp_dataset_not_found", "dsp_offers_not_found"})
+    void aRefusedCallRepeatedWithinTenSecondsIsAnsweredWithoutContactingTheControlPlane(String refusalCode) {
+        providerA();
+        refuseAt(DID_A, URL_A, refusalCode);
+
+        var first = executeRefused();
+        clock.advance(Duration.ofMillis(9_999));
+        var repeat = executeRefused();
+
+        assertThat(repeat.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
+        assertThat(repeat.getCode()).isEqualTo(first.getCode());
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"dsp_access_refused", "dsp_dataset_not_found", "dsp_offers_not_found"})
+    void aRememberedRepeatReturnsTheClientFacingResultOfTheFirstCall(String refusalCode) {
+        providerA();
+        refuseAt(DID_A, URL_A, refusalCode);
+
+        var first = executeRefused();
+        var repeat = executeRefused();
+
+        assertThat(repeat.getCode()).isEqualTo(first.getCode());
+        assertThat(repeat.getDetails()).isEqualTo(first.getDetails());
+        assertThat(repeat.getErrorCodeMetadata())
+                .isEqualTo(first.getErrorCodeMetadata())
+                .containsExactly("originalCode=" + refusalCode);
+    }
+
+    @Test
+    void theNextCallAfterTenSecondsAsksTheProviderAgain() {
+        providerA();
+        refuseAt(DID_A, URL_A, "dsp_access_refused");
+
+        executeRefused();
+        clock.advance(RefusalMemory.LIFETIME);
+        executeRefused();
+
+        verify(assetAccessAcquisitionService, times(2)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void aGrantAfterARefusalWorksOnceTheMemoryHasExpired() {
+        providerA();
+        var granted = new AssetAccessResponse("http://dp.a/e", "token-a", DID_A);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+                .thenThrow(refusal("dsp_access_refused"))
+                .thenReturn(granted);
+
+        executeRefused();
+        clock.advance(Duration.ofSeconds(5));
+        assertThat(executeRefused().getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
+        clock.advance(Duration.ofSeconds(5));
+
+        assertThat(processor.execute(request())).isSameAs(granted);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"dsp_acquisition_failed", "dsp_acquisition_timeout", "dsp_negotiation_failed", "dsp_catalog_fetch_failed"})
+    void aTransportOrOtherFaultIsNotRemembered(String faultCode) {
+        providerA();
+        refuseAt(DID_A, URL_A, faultCode);
+
+        var first = executeRefused();
+        var repeat = executeRefused();
+
+        assertThat(repeat.getCode()).isEqualTo(first.getCode());
+        verify(assetAccessAcquisitionService, times(2)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void anUnclassifiedFailureIsNotRemembered() {
+        providerA();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+                .thenThrow(new IllegalStateException("channel closed"));
+
+        executeRefused();
+        executeRefused();
+
+        verify(assetAccessAcquisitionService, times(2)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void aTransferRefusalIsNotRememberedAndKeepsItsClientCode() {
+        providerA();
+        var transferRefusal = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_TRANSFER_FAILED.code()))
+                .details("Counter Party responded with Response{protocol=http/1.1, code=409, message=Conflict}")
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+                .thenThrow(transferRefusal);
+
+        var first = executeRefused();
+        var repeat = executeRefused();
+
+        assertThat(first.getCode()).isEqualTo(ErrorCode.SERVICE_FAILED.code());
+        assertThat(repeat.getCode()).isEqualTo(first.getCode());
+        verify(assetAccessAcquisitionService, times(2)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void aRefusalOfOneServerDoesNotKeepTheCallFromAnotherServer() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
+        refuseAt(DID_A, URL_A, "dsp_access_refused");
+        var granted = new AssetAccessResponse("http://dp.b/e", "token-b", DID_B);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
+                .thenReturn(granted);
+
+        executeRefused();
+        var result = processor.execute(request());
+
+        assertThat(result).isSameAs(granted);
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), eq(DID_A), any(), any(), any());
+    }
+
+    @Test
+    void aRefusalIsNotRememberedForAnotherCaller() {
+        providerA();
+        refuseAt(DID_A, URL_A, "dsp_access_refused");
+        var otherSender = ClientId.Conf.create(INSTANCE, "COM", "4321", "OtherSub");
+        var otherCallerRequest = new DspRequest(serviceId, otherSender, null, false);
+
+        executeRefused();
+        assertThatThrownBy(() -> processor.execute(otherCallerRequest))
+                .isInstanceOf(XrdRuntimeException.class);
+
+        verify(assetAccessAcquisitionService, times(2)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void severalServersThatAllRefuseAreAllRememberedAndAnsweredAtOnce() {
+        providerAAndB();
+        refuseAt(DID_A, URL_A, "dsp_access_refused");
+        refuseAt(DID_B, URL_B, "dsp_access_refused");
+
+        executeRefused();
+        var repeat = executeRefused();
+
+        assertThat(repeat.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
+        verify(assetAccessAcquisitionService, times(2)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "proxy.dataspace., dsp_access_refused",
+            "dataspace., dsp_access_refused",
+            "proxy.dataspace., dsp_dataset_not_found",
+            "dataspace., dsp_dataset_not_found",
+            "dataspace., dsp_offers_not_found"})
+    void aRememberedAndAFreshRefusalGiveTheClientCodeOfTwoFreshRefusals(String freshOriginPrefix, String refusalCode) {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
+        refuseAt(DID_A, URL_A, refusalCode);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.withCode(freshOriginPrefix + refusalCode)).build());
+
+        executeRefused();
+        var mixed = executeRefused();
+
+        assertThat(mixed.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
+        assertThat(mixed.getErrorCodeMetadata()).containsExactly("originalCode=" + refusalCode);
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), eq(DID_A), any(), any(), any());
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), eq(DID_B), any(), any(), any());
+    }
+
+    @Test
+    void aRememberedRefusalAndAFreshOtherFaultStillGiveIoError() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
+        refuseAt(DID_A, URL_A, "dsp_access_refused");
+        refuseAt(DID_B, URL_B, "dsp_acquisition_failed");
+
+        executeRefused();
+        var mixed = executeRefused();
+
+        assertThat(mixed.getCode()).isEqualTo(ErrorCode.IO_ERROR.code());
+    }
+
+    private DspRequest request() {
+        return new DspRequest(serviceId, SENDER, null, false);
+    }
+
+    private void providerA() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+    }
+
+    private void providerAAndB() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
+    }
+
+    private static XrdRuntimeException refusal(String dspCode) {
+        return XrdRuntimeException.systemException(ErrorCode.withCode("proxy.dataspace." + dspCode)).build();
+    }
+
+    private void refuseAt(String did, String url, String dspCode) {
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(did), eq(url), any(), any()))
+                .thenThrow(refusal(dspCode));
+    }
+
+    private XrdRuntimeException executeRefused() {
+        return (XrdRuntimeException) catchThrowable(() -> processor.execute(request()));
     }
 
     private void slowCandidates(List<Duration> timeouts) {

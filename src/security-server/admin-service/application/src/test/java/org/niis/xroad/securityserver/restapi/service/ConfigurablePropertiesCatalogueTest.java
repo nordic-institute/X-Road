@@ -212,6 +212,19 @@ class ConfigurablePropertiesCatalogueTest {
                 .satisfies(dto -> assertThat(dto.getCurrentValue()).isEqualTo("2091"));
     }
 
+    @Test
+    void allowedClientNamesIsListedUnderOpMonitorScopeWithEmptyDefault() {
+        var properties = service.getConfigurationProperties();
+
+        assertThat(properties)
+                .filteredOn(dto -> "xroad.op-monitor.rpc.allowed-client-names".equals(dto.getPropertyName()))
+                .singleElement()
+                .satisfies(dto -> {
+                    assertThat(dto.getScope()).isEqualTo("op-monitor-daemon");
+                    assertThat(dto.getDefaultValue()).isEmpty();
+                });
+    }
+
     private static ConfigurationPropertyEntity row() {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey("xroad.op-monitor.rpc.port");

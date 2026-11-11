@@ -67,6 +67,8 @@
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
       :new-member="newMember"
+      :request-type="managementRequest.type"
+      :requested-address="managementRequest.address"
       @approve="approve"
       @cancel="showApproveDialog = false"
     />

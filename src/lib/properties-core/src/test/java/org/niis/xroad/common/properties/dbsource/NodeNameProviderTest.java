@@ -24,16 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.common.properties.dbsource;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ExtendWith(SystemStubsExtension.class)
 class NodeNameProviderTest {
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     @Test
     void sharedHasNoNode() {
@@ -41,8 +51,8 @@ class NodeNameProviderTest {
     }
 
     @Test
-    void aNameUsesTheTrimmedName() {
-        assertThat(NodeNameProvider.of(" node_1 ").nodeName()).contains("node_1");
+    void configuredNameIsUsedUnchanged() {
+        assertThat(NodeNameProvider.of("node_1").nodeName()).contains("node_1");
     }
 
     @ParameterizedTest
@@ -50,5 +60,29 @@ class NodeNameProviderTest {
     @ValueSource(strings = {"", "   "})
     void blankOrMissingNameUsesNodeZero(String configuredName) {
         assertThat(NodeNameProvider.of(configuredName).nodeName()).contains("node_0");
+    }
+
+    @Test
+    void invalidNameIsRejectedWhenTheProviderIsBuilt() {
+        assertThatThrownBy(() -> NodeNameProvider.of("-bad")).isInstanceOf(InvalidNodeNameException.class);
+    }
+
+    @Test
+    void environmentNameIsUsedUnchanged() {
+        variables.set("XROAD_NODE_NAME", "node_1");
+
+        assertThat(NodeNameProvider.fromEnvironment().nodeName()).contains("node_1");
+    }
+
+    @Test
+    void unsetEnvironmentVariableUsesNodeZero() {
+        assertThat(NodeNameProvider.fromEnvironment().nodeName()).contains("node_0");
+    }
+
+    @Test
+    void invalidEnvironmentNameIsRejectedWhenTheProviderIsBuilt() {
+        variables.set("XROAD_NODE_NAME", "-bad");
+
+        assertThatThrownBy(NodeNameProvider::fromEnvironment).isInstanceOf(InvalidNodeNameException.class);
     }
 }

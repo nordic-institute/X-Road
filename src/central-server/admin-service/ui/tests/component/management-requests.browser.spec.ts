@@ -40,11 +40,15 @@
  */
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
+import { HttpResponse } from 'msw';
+import type { RequestHandler } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
 import { Permissions } from '@/global';
+import { useSecurityServer } from '@/store/modules/security-servers';
 import type {
   PagedManagementRequests,
+  SecurityServer,
   ManagementRequestListView,
   ManagementRequestDetailedView,
   CertificateDetails,
@@ -491,5 +495,192 @@ describe('0900 — CS Management Requests — DID registration rows show their o
     const table = page.getByTestId('management-requests-table');
     await expect.element(table).toBeVisible();
     await expect.element(table.getByText('Register member DIDs').first()).toBeVisible();
+  });
+});
+
+describe('0900 — CS Management Requests — notify after an address-changing approval (Browser Mode)', () => {
+  const OLD_ADDRESS = 'old-address.example.org';
+  const NEW_ADDRESS = 'new-address.example.org';
+  const NOTIFY_TEXT = `The address of security server ${serverId.encoded_id} changed to ${NEW_ADDRESS}. Inform the Security Server operator, for example by email, so that they can re-identify the server.`;
+
+  const authCertRequest: ManagementRequestListView = { ...waitingRequest, address: NEW_ADDRESS };
+
+  const existingServer = (address: string, withPair = true): SecurityServer =>
+    ({
+      server_id: serverId,
+      owner_name: 'E2E TC1 Member',
+      server_address: address,
+      created_at: '2024-01-15T10:00:00Z',
+      in_maintenance_mode: false,
+      ...(withPair ? { system_did: `did:web:${address}%3A7183:v1:system`, dsp_base_url: `https://${address}:8183/api/dsp` } : {}),
+    }) as SecurityServer;
+
+  const serverAnswers = {
+    existing: (address: string, withPair = true) => () => HttpResponse.json(existingServer(address, withPair)),
+    missing: () => HttpResponse.json({ status: 404, error: { code: 'security_server_not_found' } }, { status: 404 }),
+    broken: () => HttpResponse.json({ status: 500 }, { status: 500 }),
+  };
+
+  const screens = [
+    {
+      name: 'requests list',
+      open: async (request: ManagementRequestListView, extra: RequestHandler[]) => {
+        await renderRoute(MR_LIST_PATH, {
+          permissions: basePermissions,
+          msw: [
+            specHttp.get('/management-requests', ({ response }) => response(200).json(singleItemPage(request) as never)),
+            ...extra,
+          ],
+        });
+        await expect.element(page.getByTestId('approve-button').first()).toBeVisible();
+        await page.getByTestId('approve-button').first().click();
+      },
+    },
+    {
+      name: 'request details',
+      open: async (request: ManagementRequestListView, extra: RequestHandler[]) => {
+        await renderRoute(`/management-requests/${request.id}/details`, {
+          permissions: basePermissions,
+          msw: [
+            specHttp.get('/management-requests/{management_request_id}', ({ response }) =>
+              response(200).json(request as never),
+            ),
+            ...extra,
+          ],
+        });
+        await expect.element(page.getByTestId('approve-button')).toBeVisible();
+        await page.getByTestId('approve-button').click();
+      },
+    },
+  ];
+
+  describe.each(screens)('from the $name', ({ open }) => {
+    let serverFetches: number;
+    let approvals: number;
+
+    function handlers(answer: () => Response, approval: 'ok' | 'fail' = 'ok'): RequestHandler[] {
+      serverFetches = 0;
+      approvals = 0;
+      return [
+        specHttp.get('/security-servers/{server_id}', () => {
+          serverFetches += 1;
+          return answer() as never;
+        }),
+        specHttp.post('/management-requests/{management_request_id}/approval', ({ response }) => {
+          approvals += 1;
+          return approval === 'ok'
+            ? response(200).json({ ...waitingRequest, status: 'APPROVED' } as never)
+            : (HttpResponse.json({ status: 500 }, { status: 500 }) as never);
+        }),
+      ];
+    }
+
+    async function confirmApproval() {
+      await expect.element(page.getByTestId('dialog-save-button')).toBeVisible();
+      await page.getByTestId('dialog-save-button').click();
+    }
+
+    it('shows the success snackbar, then the warning banner, for an existing server with another address', async () => {
+      await open(authCertRequest, handlers(serverAnswers.existing(OLD_ADDRESS)));
+      await confirmApproval();
+
+      await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
+      const banner = page.getByTestId('contextual-alert');
+      await expect.element(banner).toMatchTextContent(NOTIFY_TEXT);
+      expect(banner.element().classList).toContain('border-warning');
+      expect(banner.element().classList).not.toContain('border-error');
+      expect(serverFetches).toBe(1);
+      expect(approvals).toBe(1);
+    });
+
+    it('leaves the security servers store current untouched', async () => {
+      const sentinel = { ...existingServer('sentinel.example.org') };
+      await open(authCertRequest, handlers(serverAnswers.existing(OLD_ADDRESS)));
+      const store = useSecurityServer();
+      store.$patch({ current: sentinel });
+      try {
+        await confirmApproval();
+        await expect.poll(() => approvals).toBe(1);
+        expect(serverFetches).toBe(1);
+        expect(store.current).toEqual(sentinel);
+      } finally {
+        store.$patch({ current: undefined });
+      }
+    });
+
+    it('shows only the success message for an existing server without a stored pair', async () => {
+      await open(authCertRequest, handlers(serverAnswers.existing(OLD_ADDRESS, false)));
+      await confirmApproval();
+
+      await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
+      await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
+      expect(serverFetches).toBe(1);
+      expect(approvals).toBe(1);
+    });
+
+    it('shows no banner for a new server (404)', async () => {
+      await open(authCertRequest, handlers(() => serverAnswers.missing()));
+      await confirmApproval();
+
+      await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
+      await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
+      expect(serverFetches).toBe(1);
+    });
+
+    it('shows no banner when the address is unchanged', async () => {
+      await open(authCertRequest, handlers(serverAnswers.existing(NEW_ADDRESS)));
+      await confirmApproval();
+
+      await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
+      await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
+      expect(serverFetches).toBe(1);
+    });
+
+    it('shows no banner when the address differs only in letter case', async () => {
+      await open(authCertRequest, handlers(serverAnswers.existing(NEW_ADDRESS.toUpperCase())));
+      await confirmApproval();
+
+      await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
+      await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
+      expect(serverFetches).toBe(1);
+      expect(approvals).toBe(1);
+    });
+
+    it('still approves, with no banner, when the server fetch fails for another reason', async () => {
+      await open(authCertRequest, handlers(() => serverAnswers.broken()));
+      await confirmApproval();
+
+      await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
+      await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
+      expect(serverFetches).toBe(1);
+      expect(approvals).toBe(1);
+    });
+
+    it('shows no notify text when the approval fails', async () => {
+      await open(authCertRequest, handlers(serverAnswers.existing(OLD_ADDRESS), 'fail'));
+      await confirmApproval();
+
+      const banner = page.getByTestId('contextual-alert');
+      await expect.element(banner).toBeVisible();
+      expect(banner.element().classList).toContain('border-error');
+      await expect.element(page.getByText('Inform the Security Server operator')).not.toBeInTheDocument();
+      await expect.element(page.getByTestId('success-snackbar')).not.toBeInTheDocument();
+      expect(approvals).toBe(1);
+    });
+
+    it('does not fetch the server or show a banner for another request type', async () => {
+      const otherRequest: ManagementRequestListView = {
+        ...authCertRequest,
+        type: 'CLIENT_REGISTRATION_REQUEST',
+        client_id: clientIdFixture,
+      };
+      await open(otherRequest, handlers(serverAnswers.existing(OLD_ADDRESS)));
+      await confirmApproval();
+
+      await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
+      await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
+      expect(serverFetches).toBe(0);
+      expect(approvals).toBe(1);
+    });
   });
 });

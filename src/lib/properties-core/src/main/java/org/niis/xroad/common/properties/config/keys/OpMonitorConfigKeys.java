@@ -108,7 +108,40 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
+    private static final String ALLOWED_CLIENT_NAMES_KEY = RPC.rootPath() + ".allowed-client-names";
+
+    /**
+     * {@code xroad.op-monitor.rpc.allowed-client-names} — comma-separated client names (certificate CN or DNS SAN)
+     * the op-monitor RPC server accepts. Empty accepts every client of the Security Server CA. An empty entry or an
+     * entry containing {@code *} in a non-blank value is rejected.
+     */
+    public static final ConfigKey<String[]> RPC_ALLOWED_CLIENT_NAMES = RPC
+            .key("allowed-client-names", String[].class)
+            .withConverter(OpMonitorConfigKeys::parseAllowedClientNames)
+            .withDefaultValue("")
+            .exposedInUi()
+            .build();
+
     private OpMonitorConfigKeys() {
+    }
+
+    private static String[] parseAllowedClientNames(String raw) {
+        if (raw.isBlank()) {
+            return new String[0];
+        }
+        var entries = raw.split(",", -1);
+        for (var i = 0; i < entries.length; i++) {
+            entries[i] = entries[i].trim();
+            if (entries[i].isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Invalid value \"%s\" for %s: entry %d is empty".formatted(raw, ALLOWED_CLIENT_NAMES_KEY, i + 1));
+            }
+            if (entries[i].contains("*")) {
+                throw new IllegalArgumentException(
+                        "Invalid entry \"%s\" for %s: wildcards are not supported".formatted(entries[i], ALLOWED_CLIENT_NAMES_KEY));
+            }
+        }
+        return entries;
     }
 
     /** @return the provider singleton (pass to {@code XRoadConfigBuilder.register(...)}). */

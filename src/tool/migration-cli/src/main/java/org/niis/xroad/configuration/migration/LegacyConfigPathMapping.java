@@ -162,7 +162,6 @@ public class LegacyConfigPathMapping {
         addMapping("center.auto-approve-owner-change-requests", "management-requests.auto-approve-owner-change-requests");
         addMapping("center.auto-approve-client-reg-requests", "management-requests.auto-approve-client-reg-requests");
         addMapping("center.auto-approve-auth-cert-reg-requests", "management-requests.auto-approve-auth-cert-reg-requests");
-        addMapping("center.ha-node-name", "admin-service.ha-node-name");
         addMapping("center.backup-encryption-enabled", "backups.backup-encryption-enabled");
         addMapping("center.backup-encryption-keyids", "backups.backup-encryption-keyids");
 
@@ -173,6 +172,7 @@ public class LegacyConfigPathMapping {
         // ----- removed keys ------------
         REMOVED_KEYS.add("conf.path");
         REMOVED_KEYS.add("center.database-properties");
+        REMOVED_KEYS.add("center.ha-node-name");
         REMOVED_KEYS.add("proxy-ui-api.ssl-properties");
         REMOVED_KEYS.add("proxy.configuration-anchor-file");
         REMOVED_KEYS.add("proxy.database-properties");

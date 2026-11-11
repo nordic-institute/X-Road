@@ -36,6 +36,8 @@ public class NodeProperties {
 
     public static final String NODE_TYPE_ENV_VARIABLE = "XROAD_NODE_TYPE";
 
+    public static final String NODE_NAME_ENV_VARIABLE = "XROAD_NODE_NAME";
+
     public enum NodeType {
         STANDALONE("standalone"),
         PRIMARY("primary", "master"),
@@ -62,6 +64,13 @@ public class NodeProperties {
 
     public static NodeType getServerNodeType() {
         return NodeType.fromStringIgnoreCaseOrReturnDefault(System.getenv(NODE_TYPE_ENV_VARIABLE));
+    }
+
+    /**
+     * @return the raw value of the node name environment variable, {@code null} when it is not set
+     */
+    public static String getConfiguredNodeName() {
+        return System.getenv(NODE_NAME_ENV_VARIABLE);
     }
 
     public boolean isSecondaryNode() {

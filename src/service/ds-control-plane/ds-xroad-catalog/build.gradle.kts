@@ -16,4 +16,5 @@ dependencies {
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.logback.classic)
+  testImplementation(libs.edc.core.controlplane.catalog)
 }

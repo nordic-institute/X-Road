@@ -45,12 +45,14 @@ import org.niis.xroad.cs.openapi.model.MemberDidRegistrationEntryDto;
 import org.niis.xroad.cs.openapi.model.MemberDidRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.NewSubsystemIdDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
 import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
 import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.ManagementRequestsAdminClient;
 import org.niis.xroad.cs.test.api.admin.MembersAdminClient;
+import org.niis.xroad.cs.test.api.admin.SecurityServersAdminClient;
 import org.niis.xroad.test.apitest.core.junit.Step;
 
 import java.util.Comparator;
@@ -73,6 +75,9 @@ class ManagementRequestsApiTest extends CsApiTest {
     private static final String MEMBER_CLASS = CsBaselineSeeder.BASELINE_MEMBER_CLASS;
     private static final String SSMR32_ADDRESS = "security-server-address-ssmr32";
     private static final String SSMR35_ADDRESS = "security-server-address-ssmr35";
+    private static final String SSMR37_ADDRESS = "security-server-address-ssmr37";
+    private static final String SSMR38_ADDRESS = "security-server-address-ssmr38";
+    private static final String SSMR38_NEW_ADDRESS = "security-server-address-ssmr38-new";
     private static final String OWNERS_GROUP = "security-server-owners";
 
     @Test
@@ -1574,6 +1579,73 @@ class ManagementRequestsApiTest extends CsApiTest {
                         .body("results[0].member_id", equalTo(memberId))
                         .body("results[0].status", equalTo("FIXABLE_CONFLICT"))
                         .body("results[0].reason", equalTo("SYSTEM_VALUES_NOT_STORED")));
+    }
+
+    @Test
+    void systemDidRegistrationIsAcceptedAsAnEqualSendAfterTheAdministratorReplacesTheStoredPair(
+            CsBaselineSeeder seeder) throws Exception {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var msSession = Step.given("management service session opened", seeder::newManagementServiceOnlySession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "mr37", MEMBER_CLASS));
+        var serverId = memberId + ":ssmr37";
+        var cert = seeder.generateCertForServer(serverId);
+        var mgmtClient = new ManagementRequestsAdminClient(session);
+        var msClient = new ManagementRequestsAdminClient(msSession);
+        var regId = Step.given("auth cert registration posted", () ->
+                postAuthCertReg(mgmtClient, cert, serverId, SSMR37_ADDRESS, ManagementRequestOriginDto.SECURITY_SERVER));
+        Step.given("auth cert registration approved", () -> mgmtClient.approveRequest(regId).statusCode(200));
+        Step.and("a differing pair is stored", () ->
+                seeder.seedSystemPair(serverId, "did:web:" + SSMR37_ADDRESS + "%3A7183:v1:system",
+                        "https://" + SSMR37_ADDRESS + ":9183/api/dsp"));
+
+        Step.when("the Security Server sends a pair that differs from the stored one", () ->
+                msClient.addManagementRequest(systemDidRegistration(serverId, cert,
+                                ManagementRequestOriginDto.SECURITY_SERVER, SSMR37_ADDRESS))
+                        .statusCode(409)
+                        .body("error.code", equalTo("management_request_did_fixable_conflict")));
+
+        Step.and("the administrator replaces the stored pair at the same address", () ->
+                new SecurityServersAdminClient(session).updateSecurityServer(serverId, new SecurityServerEditDto()
+                                .serverAddress(SSMR37_ADDRESS)
+                                .systemDid("did:web:" + SSMR37_ADDRESS + "%3A7183:v1:system")
+                                .dspBaseUrl("https://" + SSMR37_ADDRESS + ":8183/api/dsp"))
+                        .statusCode(200));
+
+        Step.then("the same send is accepted as an equal send without resolution", () ->
+                msClient.addManagementRequest(systemDidRegistration(serverId, cert,
+                                ManagementRequestOriginDto.SECURITY_SERVER, SSMR37_ADDRESS))
+                        .statusCode(202)
+                        .body("id", notNullValue()));
+    }
+
+    @Test
+    void approvingAnAuthCertRegistrationWithAnotherAddressChangesTheAddressAndKeepsTheStoredPair(
+            CsBaselineSeeder seeder) throws Exception {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "mr38", MEMBER_CLASS));
+        var serverId = memberId + ":ssmr38";
+        var mgmtClient = new ManagementRequestsAdminClient(session);
+        var firstRegId = Step.given("first auth cert registration posted", () ->
+                postAuthCertReg(mgmtClient, seeder.generateCertForServer(serverId), serverId, SSMR38_ADDRESS,
+                        ManagementRequestOriginDto.SECURITY_SERVER));
+        Step.given("first auth cert registration approved", () ->
+                mgmtClient.approveRequest(firstRegId).statusCode(200));
+        var storedDid = "did:web:" + SSMR38_ADDRESS + "%3A7183:v1:system";
+        var storedUrl = "https://" + SSMR38_ADDRESS + ":8183/api/dsp";
+        Step.and("a pair is stored", () -> seeder.seedSystemPair(serverId, storedDid, storedUrl));
+
+        var secondRegId = Step.when("an auth cert registration with another address is posted", () ->
+                postAuthCertReg(mgmtClient, seeder.generateCertForServer(serverId), serverId, SSMR38_NEW_ADDRESS,
+                        ManagementRequestOriginDto.SECURITY_SERVER));
+        Step.and("it is approved", () -> mgmtClient.approveRequest(secondRegId).statusCode(200));
+
+        Step.then("the address is the new one and the stored pair is unchanged and stale", () ->
+                new SecurityServersAdminClient(session).getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo(SSMR38_NEW_ADDRESS))
+                        .body("system_did", equalTo(storedDid))
+                        .body("dsp_base_url", equalTo(storedUrl))
+                        .body("system_pair_stale", equalTo(true)));
     }
 
     @Test

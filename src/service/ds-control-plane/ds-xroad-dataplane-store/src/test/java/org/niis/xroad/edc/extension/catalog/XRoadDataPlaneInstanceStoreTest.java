@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
@@ -58,10 +57,10 @@ class XRoadDataPlaneInstanceStoreTest {
     void findByIdResolvesNeverRegisteredMemberContext() {
         var store = store(proxyEntry());
 
-        var instance = store.findById("xroad-proxy::" + MEMBER_CONTEXT);
+        var instance = store.findById(MEMBER_CONTEXT, "xroad-proxy");
 
         assertThat(instance).isNotNull();
-        assertThat(instance.getId()).isEqualTo("xroad-proxy::" + MEMBER_CONTEXT);
+        assertThat(instance.getId()).isEqualTo("xroad-proxy");
         assertThat(instance.getParticipantContextId()).isEqualTo(MEMBER_CONTEXT);
         assertThat(instance.getUrl()).hasToString(PROXY_URL);
         assertThat(instance.getAllowedSourceTypes()).containsExactlyInAnyOrder("http", "https");
@@ -72,27 +71,38 @@ class XRoadDataPlaneInstanceStoreTest {
         assertThat(instance.getAuthorizationProfile()).isNull();
     }
 
-    @Test
-    void findByIdTreatsEverythingAfterFirstSeparatorAsParticipantContext() {
+    @ParameterizedTest
+    @ValueSource(strings = {"ss1", "ss1-mgmt", "system", "a::b", MEMBER_CONTEXT})
+    void findByIdAnswersEveryMemberContextTheEntryIsOfferedTo(String participantContextId) {
         var store = store(proxyEntry());
 
-        var instance = store.findById("xroad-proxy::a::b");
+        var instance = store.findById(participantContextId, "xroad-proxy");
 
         assertThat(instance).isNotNull();
-        assertThat(instance.getParticipantContextId()).isEqualTo("a::b");
-        assertThat(instance.getId()).isEqualTo("xroad-proxy::a::b");
+        assertThat(instance.getId()).isEqualTo("xroad-proxy");
+        assertThat(instance.getParticipantContextId()).isEqualTo(participantContextId);
     }
 
     @ParameterizedTest
-    @NullSource
-    @ValueSource(strings = {"", "xroad-proxy", "xroad-proxy:" + MEMBER_CONTEXT, "xroad-proxy::", "unknown::" + MEMBER_CONTEXT,
-            "::" + MEMBER_CONTEXT, "disabled::" + MEMBER_CONTEXT})
-    void findByIdReturnsNullForNullMalformedUnknownOrDisabledEntryId(String id) {
+    @MethodSource("lookupsThatFindNothing")
+    void findByIdReturnsNullForMissingContextOrUnknownOrDisabledEntryId(String participantContextId, String id) {
         var settings = proxyEntry();
         settings.putAll(entry("disabled", "disabled", "http://disabled:5590", PULL, false));
         var store = store(settings);
 
-        assertThat(store.findById(id)).isNull();
+        assertThat(store.findById(participantContextId, id)).isNull();
+    }
+
+    static Stream<Arguments> lookupsThatFindNothing() {
+        return Stream.of(
+                Arguments.of(null, "xroad-proxy"),
+                Arguments.of("", "xroad-proxy"),
+                Arguments.of(MEMBER_CONTEXT, null),
+                Arguments.of(MEMBER_CONTEXT, ""),
+                Arguments.of(MEMBER_CONTEXT, "unknown"),
+                Arguments.of(MEMBER_CONTEXT, "disabled"),
+                Arguments.of(MEMBER_CONTEXT, "xroad-proxy::" + MEMBER_CONTEXT)
+        );
     }
 
     @ParameterizedTest
@@ -106,12 +116,12 @@ class XRoadDataPlaneInstanceStoreTest {
         var instances = store.query(queryByParticipantContextId(participantContextId).build()).toList();
 
         assertThat(instances).extracting(DataPlaneInstance::getId)
-                .containsExactlyInAnyOrder("xroad-proxy::" + participantContextId, "dp2::" + participantContextId);
+                .containsExactlyInAnyOrder("xroad-proxy", "dp2");
         assertThat(instances).allSatisfy(instance -> {
             assertThat(instance.getParticipantContextId()).isEqualTo(participantContextId);
             assertThat(instance.getState()).isEqualTo(DataPlaneInstanceStates.REGISTERED.code());
         });
-        assertThat(instances).filteredOn(instance -> instance.getId().startsWith("dp2::"))
+        assertThat(instances).filteredOn(instance -> instance.getId().equals("dp2"))
                 .singleElement()
                 .satisfies(instance -> {
                     assertThat(instance.getUrl()).hasToString("http://dp2:5591");
@@ -126,8 +136,8 @@ class XRoadDataPlaneInstanceStoreTest {
 
         var firstQuery = store.query(query).toList();
         var secondQuery = store.query(query).toList();
-        var firstLookup = store.findById("xroad-proxy::" + MEMBER_CONTEXT);
-        var secondLookup = store.findById("xroad-proxy::" + MEMBER_CONTEXT);
+        var firstLookup = store.findById(MEMBER_CONTEXT, "xroad-proxy");
+        var secondLookup = store.findById(MEMBER_CONTEXT, "xroad-proxy");
 
         assertThat(firstQuery).singleElement().isNotSameAs(secondQuery.getFirst());
         assertThat(firstLookup).isNotSameAs(secondLookup).isNotSameAs(firstQuery.getFirst());
@@ -138,7 +148,7 @@ class XRoadDataPlaneInstanceStoreTest {
         var store = store(new LinkedHashMap<>());
 
         assertThat(store.query(queryByParticipantContextId(MEMBER_CONTEXT).build())).isEmpty();
-        assertThat(store.findById("xroad-proxy::" + MEMBER_CONTEXT)).isNull();
+        assertThat(store.findById(MEMBER_CONTEXT, "xroad-proxy")).isNull();
     }
 
     @Test
@@ -147,7 +157,7 @@ class XRoadDataPlaneInstanceStoreTest {
         settings.put("xroad.cp.dataplane.dp1.allowed-source-types", "http, https");
         var store = store(settings);
 
-        var instance = store.findById("dp1::" + MEMBER_CONTEXT);
+        var instance = store.findById(MEMBER_CONTEXT, "dp1");
 
         assertThat(instance.getAllowedSourceTypes()).containsExactlyInAnyOrder("http", "https");
         assertThat(instance.getAllowedTransferTypes())
@@ -191,23 +201,11 @@ class XRoadDataPlaneInstanceStoreTest {
     }
 
     static Stream<Arguments> unsupportedOperations() {
-        var instance = DataPlaneInstance.Builder.newInstance().id("xroad-proxy::" + MEMBER_CONTEXT).url(PROXY_URL).build();
+        var instance = DataPlaneInstance.Builder.newInstance().id("xroad-proxy").url(PROXY_URL).build();
         return Stream.of(
-                Arguments.of("getAll", (StoreCall) store -> store.getAll()),
                 Arguments.of("save", (StoreCall) store -> store.save(instance)),
-                Arguments.of("deleteById", (StoreCall) store -> store.deleteById(instance.getId()))
+                Arguments.of("deleteById", (StoreCall) store -> store.deleteById(MEMBER_CONTEXT, instance.getId()))
         );
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void entryIdContainingSeparatorFailsStartupNamingTheEntry(boolean enabled) {
-        var settings = entry("bad-entry", "bad::id", "http://bad:5590", PULL, enabled);
-
-        assertThatThrownBy(() -> store(settings))
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining("bad-entry")
-                .hasMessageContaining("bad::id");
     }
 
     @Test

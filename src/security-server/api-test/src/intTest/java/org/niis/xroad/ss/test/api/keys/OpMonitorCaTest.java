@@ -35,6 +35,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -86,6 +87,11 @@ class OpMonitorCaTest extends SsApiTest {
     private static final String CLIENT_TOKEN_FILE = "/etc/xroad/secret-store-client-token";
     private static final Pattern PEM_CERTIFICATE_BLOCK = Pattern.compile(
             "\\A-----BEGIN CERTIFICATE-----\\R([A-Za-z0-9+/=]+\\R)+-----END CERTIFICATE-----\\R?\\z");
+
+    @AfterEach
+    void deleteTheStoredCa(SsBaselineSeeder seeder) {
+        new SystemAdminClient(seeder.newSession()).deleteOpMonitorCa().statusCode(204);
+    }
 
     @Test
     @DisplayName("a PEM root CA, a PEM intermediate CA and a DER CA are each stored and returned with their details")

@@ -26,8 +26,11 @@
 package org.niis.xroad.opmonitor.core.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 
 import java.util.Map;
@@ -36,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OpMonitorServerPropertiesTest {
+    private static final String ALLOWED_CLIENT_NAMES = "xroad.op-monitor.rpc.allowed-client-names";
 
     @Test
     void maxInboundMessageSizeKeepsGrpcDefaultWhenNotConfigured() {
@@ -73,6 +77,78 @@ class OpMonitorServerPropertiesTest {
         var properties = new OpMonitorServerProperties(config(Map.of()));
 
         assertThat(properties.enabled()).isTrue();
+    }
+
+    @Test
+    void allowedClientNamesAreEmptyWhenNotConfigured() {
+        var properties = new OpMonitorServerProperties(config(Map.of()));
+
+        assertThat(properties.allowedClientNames()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "   \t "})
+    void blankAllowedClientNamesMeanCaOnly(String value) {
+        var properties = new OpMonitorServerProperties(config(Map.of(ALLOWED_CLIENT_NAMES, value)));
+
+        assertThat(properties.allowedClientNames()).isEmpty();
+    }
+
+    @Test
+    void allowedClientNamesAreSplitOnCommasAndTrimmed() {
+        var properties = new OpMonitorServerProperties(config(Map.of(ALLOWED_CLIENT_NAMES, "proxy, ui")));
+
+        assertThat(properties.allowedClientNames()).containsExactly("proxy", "ui");
+    }
+
+    @Test
+    void ipShapedAllowedClientNameIsValid() {
+        var properties = new OpMonitorServerProperties(config(Map.of(ALLOWED_CLIENT_NAMES, "127.0.0.1")));
+
+        assertThat(properties.allowedClientNames()).containsExactly("127.0.0.1");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"*", "*.example.org", "proxy,*", "proxy,,ui", "proxy,", ",", ",,", ", ,"})
+    void malformedAllowedClientNamesAreRejectedNamingTheSetting(String value) {
+        var overrides = Map.of(ALLOWED_CLIENT_NAMES, value);
+
+        assertThatThrownBy(() -> config(overrides))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(ALLOWED_CLIENT_NAMES);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"*", "*.example.org", "proxy,*"})
+    void wildcardEntryIsNamedInTheError(String value) {
+        var offending = value.substring(value.lastIndexOf(',') + 1);
+        var overrides = Map.of(ALLOWED_CLIENT_NAMES, value);
+
+        assertThatThrownBy(() -> config(overrides))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(offending);
+    }
+
+    @Test
+    void emptyEntryIsLocatedInTheError() {
+        var overrides = Map.of(ALLOWED_CLIENT_NAMES, "proxy,,ui");
+
+        assertThatThrownBy(() -> config(overrides))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("proxy,,ui")
+                .hasMessageContaining("entry 2");
+    }
+
+    @Test
+    void malformedAllowedClientNamesAreRejectedWhenRpcTlsIsOff() {
+        var builder = XRoadConfigBuilder.create()
+                .register(OpMonitorConfigKeys.instance())
+                .register(CommonRpcConfigKeys.instance())
+                .overrides(Map.of(ALLOWED_CLIENT_NAMES, "proxy,,ui", "xroad.common-rpc.use-tls", "false"));
+
+        assertThatThrownBy(builder::build)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(ALLOWED_CLIENT_NAMES);
     }
 
     private static XRoadConfig config(Map<String, String> overrides) {

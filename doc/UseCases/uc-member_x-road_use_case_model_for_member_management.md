@@ -1,8 +1,8 @@
 # X-Road: Use Case Model for Member Management
 **Analysis**
 
-Version: 1.9  
-25.08.2021
+Version: 1.10  
+06.11.2026
 <!--  63 pages -->
 Doc. ID: UC-MEMBER
 
@@ -27,6 +27,7 @@ Doc. ID: UC-MEMBER
  06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
  06.02.2019 | 1.8     | Minor update to [UC_MEMBER\_48](#245-uc-member_48-register-a-security-server-client) | Petteri Kivimäki
  25.08.2021 | 1.9     | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 06.11.2026 | 1.10    | [UC MEMBER\_22](#2320-uc-member_22-edit-the-address-of-a-security-server) logs the events Edit security server and Edit security server failed; new [UC MEMBER\_58](#2343-uc-member_58-edit-the-did-of-an-x-road-member-on-a-security-server); [UC MEMBER\_06](#233-uc-member_06-view-the-security-servers-owned-by-an-x-road-member) and [UC MEMBER\_08](#235-uc-member_08-view-the-security-servers-used-by-an-x-road-member) display the member DID | Justas Samuolis
 
 ## Table of Contents
 
@@ -86,6 +87,7 @@ Doc. ID: UC-MEMBER
     + [2.3.40 UC MEMBER\_41: Add a Member Class](#2340-uc-member_41-add-a-member-class)
     + [2.3.41 UC MEMBER\_42: Edit the Description of a Member Class](#2341-uc-member_42-edit-the-description-of-a-member-class)
     + [2.3.42 UC MEMBER\_43: Delete a Member Class](#2342-uc-member_43-delete-a-member-class)
+    + [2.3.43 UC MEMBER\_58: Edit the DID of an X-Road Member on a Security Server](#2343-uc-member_58-edit-the-did-of-an-x-road-member-on-a-security-server)
   * [2.4 Security Server Use Cases](#24-security-server-use-cases)
     + [2.4.1 UC MEMBER\_44: View Security Server Clients](#241-uc-member_44-view-security-server-clients)
     + [2.4.2 UC MEMBER\_45: View the Details of a Security Server Client](#242-uc-member_45-view-the-details-of-a-security-server-client)
@@ -502,11 +504,13 @@ Figure 1. Use case diagram for member management
 
 1.  CS administrator selects to view the security servers owned by an X-Road member.
 
-2.  System displays the list of security servers. For each server, the security server code is displayed. The following user action options are displayed:
+2.  System displays the list of security servers. For each server, the security server code and the DID of the member on that server are displayed. If the member has no DID on the server, a dash is displayed instead. If the host of the DID does not match the address of the security server, a warning is displayed with the DID. The following user action options are displayed:
 
     -   create an authentication certificate registration request for adding an owned security server for the X-Road member: [2.3.9](#239-uc-member_12-add-an-owned-security-server-to-an-x-road-member);
 
-    -   view the details of a security server owned by the X-Road member: [2.3.16](#2316-uc-member_18-view-the-details-of-a-security-server).
+    -   view the details of a security server owned by the X-Road member: [2.3.16](#2316-uc-member_18-view-the-details-of-a-security-server);
+
+    -   edit the DID of the member on a security server: [2.3.43](#2343-uc-member_58-edit-the-did-of-an-x-road-member-on-a-security-server).
 
 **Extensions**: -
 
@@ -578,6 +582,8 @@ Figure 1. Use case diagram for member management
 
     -   the code of the security server;
 
+    -   the DID of the member on the security server, or a dash if the member has no DID on the server; a warning is displayed with the DID if its host does not match the address of the security server;
+
     -   the code of the subsystem that is the client of the security server;
 
     -   the name of the owner of the security server.
@@ -590,7 +596,9 @@ Figure 1. Use case diagram for member management
 
     -   create a security server client registration request for registering a subsystem of the member as a client to a security server: [2.3.13](#2313-uc-member_15-create-a-security-server-client-registration-request);
 
-    -   create a security server client deletion request to delete the registration of a member's subsystem as a client of a security server: [2.3.14](#2314-uc-member_16-create-a-security-server-client-deletion-request).
+    -   create a security server client deletion request to delete the registration of a member's subsystem as a client of a security server: [2.3.14](#2314-uc-member_16-create-a-security-server-client-deletion-request);
+
+    -   edit the DID of the member on the security server: [2.3.43](#2343-uc-member_58-edit-the-did-of-an-x-road-member-on-a-security-server).
 
 **Extensions**: -
 
@@ -1393,7 +1401,7 @@ Figure 1. Use case diagram for member management
 
 5.  System saves the inserted value.
 
-6.  System logs the event “Edit security server address” to the audit log.
+6.  System logs the event “Edit security server” to the audit log.
 
 **Extensions**:
 
@@ -1401,7 +1409,7 @@ Figure 1. Use case diagram for member management
 
   - 3a.1. System displays the termination message of the parsing process.
 
-  - 3a.2. System logs the event “Edit central server address failed” to the audit log.
+  - 3a.2. System logs the event “Edit security server failed” to the audit log.
 
   - 3a.3. CS administrator selects to reinsert the address. Use case continues from step 3.
 
@@ -1411,7 +1419,7 @@ Figure 1. Use case diagram for member management
 
   - 4a.1. System displays the error message “Central server address must be DNS name or IP address”.
 
-  - 4a.2. System logs the event “Edit central server address failed” to the audit log.
+  - 4a.2. System logs the event “Edit security server failed” to the audit log.
 
   - 4a.3. CS administrator selects to reinsert the address. Use case continues from step 3.
 
@@ -2688,6 +2696,101 @@ Figure 1. Use case diagram for member management
 **Related information**:
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
+
+
+#### 2.3.43 UC MEMBER\_58: Edit the DID of an X-Road Member on a Security Server
+
+**System**: Central server
+
+**Level**: User task
+
+**Component:** Central server
+
+**Actor**: CS administrator
+
+**Brief Description**: CS administrator replaces the DID that global configuration announces for an X-Road member on a security server, and optionally checks first whether the new DID resolves.
+
+**Preconditions**: The member has a DID on the security server.
+
+**Postconditions**: The new DID of the member on the security server is part of the next global configuration. An audit log record for the event is created.
+
+**Trigger**: The DID of the member on the security server is wrong or no longer matches the address of the security server.
+
+**Main Success Scenario**:
+
+1.  CS administrator selects to edit the DID of an X-Road member on a security server from the list of servers owned by the member ([2.3.3](#233-uc-member_06-view-the-security-servers-owned-by-an-x-road-member)) or used by the member ([2.3.5](#235-uc-member_08-view-the-security-servers-used-by-an-x-road-member)).
+
+2.  System displays the current DID of the member.
+
+3.  CS administrator inserts the new DID.
+
+4.  System verifies that the new DID is valid for the member and the security server: it is a did:web DID of version v1 in its canonical form, its host matches the address of the security server, it is not the DID of another member, and no other security server uses it.
+
+5.  System replaces the stored DID of the member on the security server with the new DID.
+
+6.  System logs the event “Edit member DID” to the audit log.
+
+7.  System displays a message that the DID was updated and a reminder to inform the operator of the security server about the change, for example by email. The security server keeps its own values until its operator re-identifies it.
+
+8.  System reloads the lists of owned and used servers of the member.
+
+**Extensions**:
+
+3a. CS administrator selects to check the new DID before saving it.
+
+  - 3a.1. System applies the verification of step 4. If the verification fails, the system displays the reason for the refusal, as in extension 4a, and does not resolve the DID.
+
+  - 3a.2. System asks the Issuer Service to resolve the DID.
+
+  - 3a.3. System displays the result: the DID resolves; the DID does not resolve, with the reason (malformed DID, no DID document found, DID document belongs to another DID, or DID document could not be fetched); or the check could not be made because the Issuer Service is unreachable.
+
+  - 3a.4. System logs the event “Check member DID” to the audit log. The event includes the result of the check.
+
+  - 3a.5. Use case continues from step 3. The result of the check does not prevent saving the DID.
+
+4a. The system refuses the new DID.
+
+  - 4a.1. System keeps the stored DID unchanged and displays an error message that names the reason. The reason is one of the following:
+
+    - the DID is not a did:web DID of version v1;
+
+    - the DID is too long;
+
+    - the host of the DID or the address of the security server contains non-ASCII characters;
+
+    - the DID cannot be decoded;
+
+    - the DID is not in its canonical form;
+
+    - the host of the DID does not match the address of the security server;
+
+    - the DID is the DID of another member;
+
+    - the security server does not serve the member;
+
+    - the address of the security server cannot be read as a host;
+
+    - the DID is already used by another security server, including when another CS administrator saved it at the same time; or
+
+    - the member has no stored DID on the security server, so there is nothing to replace.
+
+  - 4a.2. System logs the event “Edit member DID failed” to the audit log.
+
+  - 4a.3. CS administrator selects to reinsert the DID. Use case continues from step 3.
+
+    - 4a.3a. CS administrator selects to terminate the use case.
+
+4b. The new DID is the same as the stored DID and passes the verification of step 4.
+
+  - 4b.1. System changes nothing. Use case continues from step 6.
+
+  - 4b.2. If the stored DID is stale, its host differs from the address of the security server. The verification of step 4 then fails. The same applies if the address of the security server cannot be read as a host. The system refuses the DID as in extension 4a and logs the event “Edit member DID failed”.
+
+**Related information**:
+
+-   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
+
+-   A DID is shown with a warning when its host no longer matches the address of the security server, for example after an address change. The other security servers then still use the old DID to reach the member.
 
 
 ### 2.4 Security Server Use Cases

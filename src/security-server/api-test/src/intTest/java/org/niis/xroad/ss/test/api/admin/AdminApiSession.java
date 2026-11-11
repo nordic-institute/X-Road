@@ -29,8 +29,12 @@ package org.niis.xroad.ss.test.api.admin;
 import io.restassured.filter.session.SessionFilter;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.SpecificationQuerier;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
+
+import java.time.Duration;
 
 /**
  * Manages a session with the Security Server admin API. Authenticates via form login,
@@ -49,10 +53,14 @@ public class AdminApiSession {
     private static final String ADMIN_PASSWORD = "secret123!";
     private static final String XSRF_COOKIE = "XSRF-TOKEN";
     private static final String XSRF_HEADER = "X-XSRF-TOKEN";
+    private static final String CONNECT_TIMEOUT_PARAM = "http.connection.timeout";
+    private static final String READ_TIMEOUT_PARAM = "http.socket.timeout";
 
     private final String baseUrl;
     private final SessionFilter sessionFilter;
     private final boolean reporting;
+    @Nullable
+    private final Duration requestTimeout;
     private String xsrfToken;
 
     public AdminApiSession(String baseUrl) {
@@ -79,7 +87,24 @@ public class AdminApiSession {
         this.baseUrl = baseUrl;
         this.sessionFilter = new SessionFilter();
         this.reporting = reporting;
+        this.requestTimeout = null;
         login(username, password);
+    }
+
+    private AdminApiSession(AdminApiSession source, Duration requestTimeout) {
+        this.baseUrl = source.baseUrl;
+        this.sessionFilter = source.sessionFilter;
+        this.reporting = source.reporting;
+        this.requestTimeout = requestTimeout;
+        this.xsrfToken = source.xsrfToken;
+    }
+
+    /**
+     * Returns a view of this session whose calls give up when connecting, or waiting for response data,
+     * takes longer than the given timeout.
+     */
+    public AdminApiSession withRequestTimeout(Duration timeout) {
+        return new AdminApiSession(this, timeout);
     }
 
     /**
@@ -100,7 +125,15 @@ public class AdminApiSession {
     }
 
     private RequestSpecification spec() {
-        return reporting ? RestAssuredFactory.given() : RestAssuredFactory.givenSilent();
+        var spec = reporting ? RestAssuredFactory.given() : RestAssuredFactory.givenSilent();
+        if (requestTimeout == null) {
+            return spec;
+        }
+        var config = SpecificationQuerier.query(spec).getConfig();
+        var timeoutMillis = Math.toIntExact(requestTimeout.toMillis());
+        return spec.config(config.httpClient(config.getHttpClientConfig()
+                .setParam(CONNECT_TIMEOUT_PARAM, timeoutMillis)
+                .setParam(READ_TIMEOUT_PARAM, timeoutMillis)));
     }
 
     private void login(String username, String password) {

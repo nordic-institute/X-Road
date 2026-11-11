@@ -24,27 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.properties.spring;
-
-import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
-import org.springframework.core.env.Environment;
+package org.niis.xroad.cs.admin.api.domain;
 
 /**
- * Builds the {@link NodeNameProvider} of a Spring application from its {@code Environment}, which holds
- * {@code local.yaml} (via {@code spring.config.import}) and the {@code XROAD_ADMIN_SERVICE_HA_NODE_NAME}
- * environment variable (relaxed binding), following {@link NodeNameProvider#of(String)}. An application
- * without a node name resolves to {@link NodeNameProvider#DEFAULT_NODE_NAME}.
+ * A SYSTEM DID and DSP base URL to replace the stored pair of a Security Server with.
+ *
+ * @param systemDid  the new SYSTEM DID
+ * @param dspBaseUrl the new DSP base URL
  */
-public final class SpringNodeNameProvider {
-
-    private SpringNodeNameProvider() {
-    }
-
-    /**
-     * @param environment the application's environment
-     * @return the provider of the node name configured in the environment
-     */
-    public static NodeNameProvider forEnvironment(Environment environment) {
-        return NodeNameProvider.of(environment.getProperty(NodeNameProvider.HA_NODE_NAME_PROPERTY_KEY));
-    }
+public record SystemPairEdit(String systemDid, String dspBaseUrl) {
 }

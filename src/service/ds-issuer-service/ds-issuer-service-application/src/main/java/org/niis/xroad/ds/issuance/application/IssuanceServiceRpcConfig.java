@@ -43,20 +43,16 @@ import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
 
-import java.util.Optional;
-
 class IssuanceServiceRpcConfig {
 
     @ApplicationScoped
-    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName,
-                            @ConfigProperty(name = NodeNameProvider.HA_NODE_NAME_PROPERTY_KEY)
-                            Optional<String> nodeName) {
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(GlobalConfConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
                 .deploymentMode(deploymentMode())
-                .dbOverrides(appName, NodeNameProvider.of(nodeName.orElse(null)))
+                .dbOverrides(appName, NodeNameProvider.fromEnvironment())
                 .build();
     }
 

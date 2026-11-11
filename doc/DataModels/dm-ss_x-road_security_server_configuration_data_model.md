@@ -502,7 +502,12 @@ Proxy data-plane flow lifecycle state, shared by every proxy node of a clustered
 
 On the first `prepare` or `start` signal, one row is created. The flow's process ID is stored in `flow_id`, and `state` is set to `PROVISIONED` for `prepare` or `STARTED` for `start`. Later lifecycle calls for the same flow update the same row: `started` sets the state to `STARTED`, `suspend` to `SUSPENDED`, `terminate` to `TERMINATED`, and `completed` to `COMPLETED`. A second row is never created for the same `flow_id`.
 
-**Retention.** `TERMINATED` and `COMPLETED` rows are retained, and the table currently has no automatic cleanup or expiration. The state of a completed flow is no longer needed for functional flow handling, but remains available for debugging through the flow-state endpoint.
+**Retention.** The control plane's DSP record cleaner runs on the primary or standalone node, not on secondary cluster nodes. Where several instances still run, for example replicas that do not set the node type, each row is deleted once, because the deletes skip rows that another instance has locked or leased; overlapping passes can send the same terminate signal for a transfer twice, which is harmless. It deletes rows by two rules, both measured against `updated_at`:
+
+* `TERMINATED` and `COMPLETED` rows once they have not been updated for the configured age (`xroad.dsp-record-cleaner.age`, default `PT6H`, must exceed `PT1H10M`). Until then the state of a finished flow remains available for debugging through the flow-state endpoint.
+* Rows in any state once they have not been updated for the configured upper age limit (`xroad.dsp-record-cleaner.max-age`, default `P7D`). The upper age limit must be positive and exceed the age. It removes rows whose flow never received a final signal, and a row recreated by a start signal that arrived after the row of a finished flow was deleted.
+
+The proxy and the control plane must run in the same time zone, because `updated_at` is a timestamp without time zone written by the proxy. If they differ, a finished row can be deleted earlier than the age, by up to the time-zone difference. A late start signal can then recreate the row, and the upper age limit removes it.
 
 #### 2.19.1 Indexes
 
@@ -510,6 +515,7 @@ On the first `prepare` or `start` signal, one row is created. The flow's process
 |:---------------------------------------|:-------:|
 | dataflow_state_pkey                    |   id    |
 | uniq_dataflow_state_flow_id (unique)   | flow_id |
+| idx_dataflow_state_state_updated_at    | state, updated_at |
 
 #### 2.19.2 Attributes
 

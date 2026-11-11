@@ -33,4 +33,5 @@ dependencies {
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(project(":lib:properties-core"))
   testImplementation(libs.mockito.core)
+  testImplementation(libs.systemStubs)
 }

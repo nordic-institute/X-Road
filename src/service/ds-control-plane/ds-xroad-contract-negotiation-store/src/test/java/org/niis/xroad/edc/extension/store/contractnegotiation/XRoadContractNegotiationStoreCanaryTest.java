@@ -65,7 +65,7 @@ class XRoadContractNegotiationStoreCanaryTest {
             + "store, then, after a deliberate review, update the recorded EXPECTED_* constants in "
             + "XRoadContractNegotiationStoreCanaryTest to match.";
 
-    private static final String EXPECTED_EDC_VERSION = "1.0.0-RC5";
+    private static final String EXPECTED_EDC_VERSION = "1.0.0-RC6";
 
     private static final List<String> EXPECTED_AGREEMENT_UPSERT_COLUMNS = List.of(
             "agr_id", "provider_agent_id", "consumer_agent_id", "signing_date", "asset_id",

@@ -66,5 +66,9 @@ dependencies {
   implementation(project(":service:signer:signer-client"))
 
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-xroad-claim"))
+  runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-xroad-sts-config"))
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-provisioning-api"))
+
+  testImplementation(testFixtures(project(":lib:bootstrap-edc-quarkus")))
+  testImplementation(libs.assertj.core)
 }

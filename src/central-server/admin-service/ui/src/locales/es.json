@@ -36,7 +36,24 @@
     "configuration_part_validation_failed": "La validación de la fuente de configuración falló",
     "configuration_part_validator_not_found": "Validador de la fuente de configuración no encontrado",
     "csr_generation_failed": "La generación des CSR falló",
+    "did_foreign_system": "El DID no es el SYSTEM DID de este servidor de seguridad",
+    "did_held_by_another_server": "El DID ya lo usa otro servidor de seguridad",
+    "did_host_differs": "El host del DID debe coincidir con la dirección del servidor de seguridad",
+    "did_member_not_served": "El servidor de seguridad no atiende a este miembro",
+    "did_non_ascii_host": "El host del DID y de la dirección del servidor de seguridad debe ser ASCII",
+    "did_not_canonical": "El DID no está en su forma canónica",
+    "did_not_stored": "El servidor de seguridad no tiene almacenado un DID que reemplazar",
+    "did_of_other_member": "El DID pertenece a otro miembro",
+    "did_too_long": "El DID es demasiado largo",
+    "did_undecodable": "El DID no se puede decodificar",
+    "did_unparseable_server_address": "La dirección del servidor de seguridad no se puede leer como un host",
+    "did_wrong_scheme": "El DID debe ser un DID did:web de la versión v1",
     "double_file_extension": "No se permite la doble extensión en los nombres de archivos o ficheros",
+    "dsp_base_url_host_differs": "El host de la URL base de DSP debe coincidir con la dirección del servidor de seguridad",
+    "dsp_base_url_malformed": "La URL base de DSP no es una URL válida",
+    "dsp_base_url_non_ascii_host": "El host de la URL base de DSP debe ser ASCII",
+    "dsp_base_url_not_canonical": "La URL base de DSP no está en su forma canónica",
+    "dsp_base_url_not_https": "La URL base de DSP debe usar https",
     "error_activating_signing_key": "Error de activación de la clave de firma",
     "error_deleting_signing_key": "Error al eliminar de la clave de firma",
     "error_recreating_anchor": "Error al recrear el archivo o fichero del Ancla (Anchor File)",
@@ -105,6 +122,7 @@
     "subsystem_not_found": "No se ha encontrado un subsistema con el código especificado.",
     "subsystem_not_registered_to_security_server": "El subsistema no está registrado en el servidor de seguridad dado.",
     "subsystem_registered_and_cannot_be_deleted": "No se puede eliminar el subsistema ya registrado.",
+    "system_pair_incomplete": "Indique tanto el SYSTEM DID como la URL base de DSP, o ninguno de los dos",
     "timestamping_authority_not_found": "Autoridad de marca de tiempo no encontrada",
     "token_action_not_possible": "Acción del token no es posible",
     "token_activation_failed": "Falló la activación del token",
@@ -366,6 +384,7 @@
     "clientEnable": "Habilitar el cliente",
     "dialog": {
       "approve": {
+        "addressChangedNotify": "La dirección del servidor de seguridad {serverId} cambió a {address}. Informe al operador del servidor de seguridad, por ejemplo por correo electrónico, para que pueda volver a identificar el servidor.",
         "bodyMessage": "¿Está seguro de que desea aprobar la solicitud de administración ID {ID} del Server {ServerId}?",
         "newMemberWarning": "El miembro especificado no existe actualmente. Se creará automáticamente cuando se apruebe esta solicitud.",
         "successMessage": "ID de solicitud de administración {id} del {serverId} aprobada",
@@ -397,11 +416,26 @@
         "areYouSureUnregister": "¿Está seguro de que no desea registrar al miembro {MiemberCode} del servidor {ServerCode} de la configuración del sistema?",
         "confirmDelete": "¿Está seguro de que desea eliminar al miembro {miembro} de la configuración del sistema? Ingrese el código de miembro para confirmar.",
         "deleteMember": "Eliminar miembro",
+        "editDid": {
+          "check": {
+            "not_resolved_fetch_failure": "El DID del miembro no se resuelve: no se pudo obtener su documento DID. Aun así, puede guardar.",
+            "not_resolved_id_mismatch": "El DID del miembro no se resuelve: el documento DID pertenece a otro DID. Aun así, puede guardar.",
+            "not_resolved_malformed_did": "El DID del miembro no se resuelve: su documento DID tiene un formato incorrecto. Aun así, puede guardar.",
+            "not_resolved_no_document": "El DID del miembro no se resuelve: no se encontró ningún documento DID. Aun así, puede guardar.",
+            "resolved": "El DID del miembro se resuelve.",
+            "resolver_unavailable": "No se pudo comprobar el DID del miembro porque el Issuer Service no está accesible. Aun así, puede guardar."
+          },
+          "checkDid": "Comprobar DID",
+          "success": "DID del miembro actualizado correctamente",
+          "title": "Editar DID del miembro en {server}"
+        },
         "editMemberName": "Editar el nombre del miembro",
         "enterCode": "Ingrese el código de miembro",
         "globalGroups": "Grupos globales",
         "group": "Grupo",
         "memberDeleted": "Miembro eliminado con éxito",
+        "memberDid": "DID del miembro",
+        "memberDidStaleWarning": "El DID del miembro no coincide con la dirección del servidor de seguridad. Otros servidores usan el DID antiguo para llegar a este miembro.",
         "memberNameSaved": "Nombre del miembro guardado con éxito",
         "memberSuccessfullyUnregistered": "Miembro {MiemberCode} del Servidor {ServerCode} no ha sido registrado",
         "ownedServers": "Servidores propios",
@@ -452,11 +486,27 @@
       },
       "editAddress": {
         "addressField": "Dirección del servidor de seguridad",
+        "check": {
+          "not_resolved_fetch_failure": "El SYSTEM DID no se resuelve: no se pudo obtener su documento DID. Aun así, puede guardar.",
+          "not_resolved_id_mismatch": "El SYSTEM DID no se resuelve: el documento DID pertenece a otro DID. Aun así, puede guardar.",
+          "not_resolved_malformed_did": "El SYSTEM DID no se resuelve: su documento DID tiene un formato incorrecto. Aun así, puede guardar.",
+          "not_resolved_no_document": "El SYSTEM DID no se resuelve: no se encontró ningún documento DID. Aun así, puede guardar.",
+          "resolved": "El SYSTEM DID se resuelve.",
+          "resolver_unavailable": "No se pudo comprobar el SYSTEM DID porque el Issuer Service no está accesible. Aun así, puede guardar."
+        },
+        "checkDid": "Comprobar DID",
+        "dspBaseUrlField": "URL base de DSP",
+        "notify": "Informe de este cambio al operador del servidor de seguridad, por ejemplo por correo electrónico. El servidor de seguridad conserva sus propios valores hasta que el operador lo vuelva a identificar.",
+        "oldHostWarning": "El SYSTEM DID y la URL base de DSP pueden seguir usando el host antiguo. Cámbielos también, o déjelos para que el operador del servidor de seguridad vuelva a identificar el servidor.",
+        "publishedValues": "Valores publicados",
+        "publishedValuesHint": "La configuración global anuncia estos valores a otros servidores.",
         "success": "Dirección del servidor de seguridad actualizada correctamente",
+        "systemDidField": "SYSTEM DID",
         "title": "Editar dirección del servidor de seguridad"
       }
     },
     "disabled": "Temporalmente deshabilitado",
+    "dspBaseUrl": "URL base de DSP",
     "ownerClass": "Clase del propietario",
     "ownerCode": "Código del propietario",
     "ownerName": "Nombre del propietario",
@@ -485,6 +535,8 @@
       }
     },
     "serverCode": "Código de servidor",
+    "staleValuesWarning": "El SYSTEM DID o la URL base de DSP no coincide con la dirección del servidor de seguridad. Otros servidores usan los valores antiguos para llegar a este servidor. Edite los valores o pida al operador del servidor de seguridad que vuelva a identificar el servidor.",
+    "systemDid": "SYSTEM DID",
     "unregistered": "No registrado"
   },
   "status": {
@@ -579,7 +631,7 @@
             "cache-period": "Tiempo en segundos que los resultados de verificación OCSP se almacenan en caché antes de volver a verificarse."
           },
           "common-rpc": {
-            "use-tls": "Cuando está habilitado, se utiliza TLS mutuo para la comunicación gRPC entre los servicios colocalizados del Servidor Central.",
+            "use-tls": "Solo para pruebas; nunca lo desactive en producción. Cuando está habilitado, se utiliza TLS mutuo para la comunicación gRPC entre los servicios colocalizados del Servidor Central. Cuando está deshabilitado, esta comunicación gRPC va en texto plano.",
             "certificate-provisioning": {
               "refresh-interval": "Con qué frecuencia los servicios verifican si su certificado TLS de gRPC necesita renovarse (p. ej. 5H).",
               "wait-duration": "Retraso antes del primer reintento tras una carga fallida del certificado TLS de gRPC desde el almacén de secretos (p. ej. 5S).",

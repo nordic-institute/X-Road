@@ -122,6 +122,43 @@ describe('Diagnostics Traffic — out-of-range request (Browser Mode)', () => {
   });
 });
 
+describe('Diagnostics Traffic — op-monitor trust failure (Browser Mode)', () => {
+  it('shows the translated headline and the check hint for the error body the backend returns, without raw keys or Axios text', async () => {
+    await renderRoute('/diagnostics/traffic', {
+      permissions: [Permissions.DIAGNOSTICS],
+      msw: [
+        addonStatusHandler,
+        specHttp.untyped.get('/api/v1/diagnostics/operational-monitoring', () =>
+          HttpResponse.json(
+            {
+              status: 500,
+              error: {
+                code: 'core.op_monitor_trust_failure',
+                metadata: ['The op-monitor channel trust could not be established', 'tr.op_monitor_trust_failure'],
+              },
+            },
+            { status: 500 },
+          ),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByText('Could not establish a trusted connection to Operational Monitoring')).toBeVisible();
+    await expect
+      .element(
+        page.getByText(
+          'Check the imported Operational Monitoring CA on the Operational Monitoring Trust tab and that the secret store (OpenBao) is available, then try again.',
+        ),
+      )
+      .toBeVisible();
+
+    const text = document.body.innerText;
+    expect(text).not.toContain('error_code.');
+    expect(text).not.toContain('AxiosError');
+    expect(text).not.toContain('Request failed with status code');
+  });
+});
+
 function chartSeriesDataLengths(): number[] {
   const chart = getInstanceByDom(document.querySelector('x-vue-echarts .echarts-host') as HTMLElement);
   const series = (chart?.getOption().series ?? []) as Array<{ data: unknown[] }>;

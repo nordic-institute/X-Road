@@ -39,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 import org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.ScriptedLoader;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.cert.X509Certificate;
@@ -162,7 +163,7 @@ class XRoadJettyExtensionTest {
         loader.serve(usable("internal", TestCertUtil.getInternalKey()));
         extension = newExtension(60);
         extension.initialize(context);
-        try (var occupied = new ServerSocket(port)) {
+        try (var _ = occupyTheDefaultContextBindHost()) {
             extension.start();
             await().atMost(AWAIT).until(() -> loader.loads.get() >= 4);
         }
@@ -177,12 +178,21 @@ class XRoadJettyExtensionTest {
         loader.serve(usable("internal", TestCertUtil.getInternalKey()));
         extension = newExtension(60);
         extension.initialize(context);
-        try (var occupied = new ServerSocket(port)) {
+        try (var _ = occupyTheDefaultContextBindHost()) {
             extension.start();
             await().atMost(AWAIT).until(() -> loader.loads.get() >= 3);
         }
 
         await().atMost(AWAIT).untilAsserted(() -> new Socket("localhost", port).close());
+    }
+
+    /**
+     * Occupies the port on the exact host the {@code default} context binds, so the connector's bind
+     * attempt conflicts here the same way it would with a real process already holding that port — a plain
+     * wildcard bind would not conflict with the loopback-only bind on every platform.
+     */
+    private ServerSocket occupyTheDefaultContextBindHost() throws IOException {
+        return new ServerSocket(port, 0, InetAddress.getByName("127.0.0.1"));
     }
 
     private XRoadJettyExtension newExtension(long reloadIntervalSeconds) {

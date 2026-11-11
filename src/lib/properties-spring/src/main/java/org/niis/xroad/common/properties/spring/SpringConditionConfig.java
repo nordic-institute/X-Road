@@ -30,6 +30,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.springframework.core.env.Environment;
 
 /**
@@ -38,10 +39,9 @@ import org.springframework.core.env.Environment;
  * application bean uses — DB overrides (shared rows plus the node's rows), then container or native
  * defaults — so a bean-registration decision can never disagree with the value the running application
  * reads. The {@code Environment} is consulted only for framework metadata (application name and the active
- * profile) and for the node name ({@code xroad.admin-service.ha-node-name}); every other
- * {@code xroad.*} value comes from the layers above. The
- * underlying DB connection pool is opened and closed within the single read (see
- * {@code CachedDbConfigSource}), so the throwaway config leaks nothing.
+ * profile); every other {@code xroad.*} value comes from the layers above. The node name comes from the
+ * {@code XROAD_NODE_NAME} environment variable. The underlying DB connection pool is opened and closed
+ * within the single read (see {@code CachedDbConfigSource}), so the throwaway config leaks nothing.
  */
 public final class SpringConditionConfig {
 
@@ -62,7 +62,7 @@ public final class SpringConditionConfig {
             builder.register(provider);
         }
         return builder.deploymentMode(deploymentMode)
-                .dbOverrides(appName, SpringNodeNameProvider.forEnvironment(environment))
+                .dbOverrides(appName, NodeNameProvider.fromEnvironment())
                 .build();
     }
 }

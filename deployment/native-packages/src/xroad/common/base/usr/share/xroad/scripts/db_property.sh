@@ -5,6 +5,7 @@
 #   db_property.sh get    <key>         [--node <name>]
 #   db_property.sh set    <key> <value> [--node <name>] [--yes|-y] [--if-absent]
 #   db_property.sh remove <key>         [--node <name>] [--yes|-y]
+#   db_property.sh list                 [--node <name>]
 #
 # Rows are keyed by (property_key, ha_node_name). Without --node a command acts on the shared row
 # (ha_node_name is NULL) only; with --node it acts on that node's row only. The former
@@ -16,9 +17,11 @@
 # prompting; the value is inserted only when the key has no row yet.
 # For `remove`, an existing row triggers a delete prompt unless --yes is given;
 # if no matching row exists, the command is a no-op success.
+# For `list`, one row per line is printed to stdout as the key, a tab and the value, sorted by key.
+# Without --node the shared rows are listed, with --node the rows of that node only. The exit code
+# is 0 also when there are no rows, and 2 on any operational error.
 # --node is for a Central Server only; on any other host it exits with status 2 before the
-# database is touched. A node name must match the X-Road node name rule; an invalid one exits
-# with status 2 the same way.
+# database is touched. A blank node name exits with status 2 the same way.
 
 set -euo pipefail
 
@@ -44,10 +47,13 @@ Commands:
   remove <key>         [--node <name>] [--yes|-y]
          Delete a row from configuration_properties. No-op if absent.
 
+  list                 [--node <name>]
+         Print the rows as <key><TAB><value>, sorted by key: the shared rows, or with
+         --node the rows of that node only. Exit status 0 also when there are none.
+
 Common options:
   -n, --node <name>  Central Server only. Act on the row of this Central Server node
-                     (for example node_1) instead of the shared row. The name must
-                     match ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$
+                     (for example node_1) instead of the shared row.
   -y, --yes          Skip interactive confirmation prompt
   -h, --help         Show this help
 
@@ -55,8 +61,8 @@ Options for set:
       --if-absent  Insert only when the key has no row yet; an existing row is
                    left untouched and the command succeeds. Never prompts.
 
-Without --node, a command acts on the shared row only; node rows are never touched.
-With --node, a command acts on that node's row only; the shared row is never touched.
+Without --node, a command acts on the shared row(s) only; node rows are never touched.
+With --node, a command acts on that node's row(s) only; the shared rows are never touched.
 There is no per-application scope.
 
 Examples:
@@ -64,6 +70,8 @@ Examples:
          Shared row, used by every node without an own row.
   $(basename "$0") set --yes --node node_1 -- <key> <value>
          Row of node_1 only.
+  $(basename "$0") list --node node_1
+         Every row of node_1, for example to find rows left behind by a node rename.
 EOF
   exit 64
 }
@@ -100,9 +108,9 @@ is_central_server() {
 validate_node() {
   (( NODE_GIVEN == 1 )) || return 0
   is_central_server || die "--node is supported on a Central Server only"
-  local LC_ALL=C
-  [[ "$NODE" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$ ]] \
-    || die "Invalid node name; it must match ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$"
+  if [[ "$NODE" =~ ^[[:space:]]*$ ]]; then
+    die "--node requires a non-blank node name"
+  fi
 }
 
 load_db_properties() {
@@ -191,6 +199,21 @@ WHERE property_key = :'k' AND ha_node_name IS NOT DISTINCT FROM NULLIF(:'n', '')
 SQL
 }
 
+cmd_list() {
+  parse_args "$@"
+  (( IF_ABSENT == 1 )) && die "--if-absent applies to 'set' only"
+  (( ${#POS[@]} == 0 )) || usage
+  validate_node
+
+  load_db_properties
+
+  psql_q -F $'\t' -v n="$NODE" <<'SQL' || die "Database query failed while listing properties"
+SELECT property_key, property_value FROM configuration_properties
+WHERE ha_node_name IS NOT DISTINCT FROM NULLIF(:'n', '')
+ORDER BY property_key COLLATE "C";
+SQL
+}
+
 cmd_set() {
   parse_args "$@"
   (( ${#POS[@]} == 3 )) && reject_scope_argument "${POS[2]}"
@@ -261,6 +284,7 @@ main() {
     get)               cmd_get "$@" ;;
     set)               cmd_set "$@" ;;
     remove)            cmd_remove "$@" ;;
+    list)              cmd_list "$@" ;;
     -h|--help|help)    usage ;;
     *)                 die "Unknown command: $subcommand (run with --help)" ;;
   esac

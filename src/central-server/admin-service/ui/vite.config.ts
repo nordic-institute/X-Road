@@ -114,6 +114,7 @@ export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
     },
     test: {
       globals: true,
+      fsModuleCache: false,
       testTimeout: 15000,
       attachmentsDir: 'tests/results/attachments',
       reporters: ['default', 'junit'],

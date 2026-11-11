@@ -28,8 +28,11 @@ package org.niis.xroad.opmonitor.test.container;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.common.vault.NoopVaultClient;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
@@ -40,6 +43,8 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import java.io.File;
 import java.time.Duration;
 import java.util.List;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * Browserless op-monitor test stack: the op-monitor service and its own PostgreSQL database, seeded via
@@ -109,7 +114,9 @@ public class OpMonitorContainerSetup extends BaseComposeSetup {
             }
         };
 
-        opMonitorClient = new OpMonitorClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), properties);
+        var credentials = new InsecureRpcCredentialsConfigurer();
+        opMonitorClient = new OpMonitorClient(new RpcChannelFactory(credentials), properties,
+                new OpMonitorChannelTrustResolver(mock(RpcProperties.class), new NoopVaultClient()));
         opMonitorClient.init();
     }
 

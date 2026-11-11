@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { Client, MemberAdd, MemberGlobalGroup, MemberName, SecurityServer } from '@/openapi-types';
+import { Client, DidCheck, MemberAdd, MemberDidEdit, MemberGlobalGroup, MemberName, MemberServer } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { WithCurrentItem } from '@niis/shared-ui';
 
@@ -66,7 +66,7 @@ export const useMember = defineStore('member', {
     },
     async getMemberOwnedServers(memberId: string) {
       return axios
-        .get<SecurityServer[]>(`/members/${memberId}/owned-servers`)
+        .get<MemberServer[]>(`/members/${memberId}/owned-servers`)
         .then((resp) => resp.data)
         .catch((error) => {
           throw error;
@@ -74,7 +74,7 @@ export const useMember = defineStore('member', {
     },
     async getUsedServers(memberId: string) {
       return axios
-        .get<SecurityServer[]>(`/members/${memberId}/used-servers`)
+        .get<MemberServer[]>(`/members/${memberId}/used-servers`)
         .then((resp) => resp.data)
         .catch((error) => {
           throw error;
@@ -90,6 +90,14 @@ export const useMember = defineStore('member', {
     },
     async unregister(memberId: string, serverId: string) {
       return axios.delete(`/members/${memberId}/servers/${serverId}`);
+    },
+    async editMemberDid(memberId: string, serverId: string, memberDid: string) {
+      const request: MemberDidEdit = { member_did: memberDid };
+      return axios.patch(`/members/${memberId}/servers/${serverId}`, request);
+    },
+    async checkMemberDid(memberId: string, serverId: string, memberDid: string) {
+      const request: MemberDidEdit = { member_did: memberDid };
+      return axios.post<DidCheck>(`/members/${memberId}/servers/${serverId}/member-did-check`, request).then((resp) => resp.data);
     },
   },
 });

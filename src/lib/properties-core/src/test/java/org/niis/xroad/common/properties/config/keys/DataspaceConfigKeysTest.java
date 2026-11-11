@@ -42,4 +42,39 @@ class DataspaceConfigKeysTest {
         assertThat(key.validate(1).valid()).isTrue();
         assertThat(key.convertedDefaultValue()).isEqualTo(4000);
     }
+
+    @Test
+    void issuerListenAddressResolvesThroughTheProviderRegistryDefaultsToEveryInterfaceAndIsPublishedToFramework() {
+        var key = ConfigKeyProviders.allProviders().stream()
+                .flatMap(provider -> provider.keys().stream())
+                .filter(candidate -> candidate.key().equals("xroad.dataspace.issuer.listen-address"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(key).isSameAs(DataspaceConfigKeys.ISSUER_LISTEN_ADDRESS);
+        assertThat(key.convertedDefaultValue()).isEqualTo("0.0.0.0");
+        assertThat(key.publishedToFramework()).isTrue();
+    }
+
+    @Test
+    void otherKeysKeepTheirDefaultsAndStayOutOfTheFrameworkAndUi() {
+        assertThat(DataspaceConfigKeys.ISSUER_DID_PORT.convertedDefaultValue()).isEqualTo(6183);
+        assertThat(DataspaceConfigKeys.ISSUER_ISSUANCE_PORT.convertedDefaultValue()).isEqualTo(6185);
+        assertThat(DataspaceConfigKeys.ISSUER_CREDENTIAL_JSON_SCHEMA_URL.convertedDefaultValue())
+                .isEqualTo("https://example.com/schema/XRoadMembershipCredential.json");
+        assertThat(DataspaceConfigKeys.ISSUER_ACME_RENEWAL_ACTIVE.convertedDefaultValue()).isTrue();
+        assertThat(DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_HOST.convertedDefaultValue()).isEqualTo("127.0.0.1");
+        assertThat(DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_PORT.convertedDefaultValue()).isEqualTo(5460);
+        assertThat(DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_DEADLINE_AFTER.convertedDefaultValue()).isEqualTo(60000);
+        assertThat(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_HOST.convertedDefaultValue()).isEqualTo("ds-identity-hub");
+        assertThat(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_PORT.convertedDefaultValue()).isEqualTo(5460);
+        assertThat(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_DEADLINE_AFTER.convertedDefaultValue()).isEqualTo(60000);
+
+        assertThat(DataspaceConfigKeys.instance().keys())
+                .filteredOn(key -> !key.key().equals("xroad.dataspace.issuer.listen-address"))
+                .allSatisfy(key -> {
+                    assertThat(key.publishedToFramework()).as("%s must stay out of the framework config", key.key()).isFalse();
+                    assertThat(key.exposedInUi()).as("%s must stay out of the system-parameters UI", key.key()).isFalse();
+                });
+    }
 }

@@ -32,6 +32,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck.Verdict;
@@ -52,12 +53,14 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NO_STORED_VALUE;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
@@ -70,12 +73,13 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 /**
  * Writes lock the server row before they read or write any published value, then validate the values
  * against the server as it is under the lock. {@code checkSystemPair} is a dry run that takes no lock and
- * writes nothing; so does {@code checkMemberDids}, which runs the same per-entry decision as the write and
- * leaves out the write, the lock and the audit event. Uniqueness is decided here first: the hash-indexed
- * member DID constraint cannot be an {@code ON CONFLICT} target, so equal resends are told apart from
- * conflicts by comparing the stored value. A refusal the store sees under the lock concerns one entry and
- * does not stop the others. When two servers race on the same DID and the database exclusion constraint
- * fires first, the whole batch rolls back; the repeated call is then refused per entry.
+ * writes nothing; so do {@code checkMemberDids} and {@code checkMemberDidReplacements}, which run the same
+ * per-entry decision as their write and leave out the write, the lock and the audit event. Uniqueness is
+ * decided here first: the hash-indexed member DID constraint cannot be an {@code ON CONFLICT} target, so
+ * equal resends are told apart from conflicts by comparing the stored value. A refusal the store sees under
+ * the lock concerns one entry and does not stop the others. When two servers race on the same DID and the
+ * database exclusion constraint fires first, the whole batch rolls back; the repeated call is then refused
+ * per entry.
  */
 @Service
 @Transactional
@@ -123,7 +127,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
                 .orElseThrow(() -> serverNotFound(securityServerId));
         var pair = new SystemPair(systemDid, dspBaseUrl);
 
-        var check = verdictOf(server, validatorFor(server), pair);
+        var check = verdictOf(server, ParticipantValueValidator.forServer(server), pair);
         boolean wouldWrite = check.verdict() == Verdict.ABSENT || check.verdict() == Verdict.STALE_REPLACEABLE;
         if (wouldWrite && isHeldByAnotherServer(server, pair)) {
             return SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER);
@@ -153,22 +157,33 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
         return decideMemberDids(lockAndLoad(securityServerId), memberDids, Mode.ADMIN_REPLACE, Effect.APPLY);
     }
 
+    @Override
+    public Map<ClientId, ParticipantValueResult> checkMemberDidReplacements(int securityServerId,
+                                                                            Map<ClientId, String> memberDids) {
+        var server = securityServerRepository.findById(securityServerId)
+                .orElseThrow(() -> serverNotFound(securityServerId));
+        return decideMemberDids(server, memberDids, Mode.ADMIN_REPLACE, Effect.DRY_RUN);
+    }
+
     private ParticipantValueResult storeSystemPair(int securityServerId, SystemPair pair, Mode mode) {
         var server = lockAndLoad(securityServerId);
-        var check = verdictOf(server, validatorFor(server), pair);
+        if (mode == Mode.ADMIN_REPLACE && server.getSystemDid() == null) {
+            return ParticipantValueResult.rejected(NO_STORED_VALUE);
+        }
+        var check = verdictOf(server, ParticipantValueValidator.forServer(server), pair);
 
         var verdict = check.verdict();
         if (verdict == Verdict.REJECTED) {
             return ParticipantValueResult.rejected(check.rejection());
         }
-        if (verdict == Verdict.EQUAL || (verdict == Verdict.ABSENT && mode == Mode.ADMIN_REPLACE)) {
+        if (verdict == Verdict.EQUAL) {
             return ParticipantValueResult.UNCHANGED;
         }
         if (verdict == Verdict.VALUE_DIFFERS && mode == Mode.WRITE_ONCE) {
             return ParticipantValueResult.rejected(VALUE_DIFFERS);
         }
         if (isHeldByAnotherServer(server, pair)) {
-            return heldByAnotherServer(server, null);
+            return heldByAnotherServer(server, null, mode);
         }
 
         server.setSystemDid(pair.did());
@@ -201,18 +216,15 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     private Map<ClientId, ParticipantValueResult> decideMemberDids(SecurityServerEntity server, Map<ClientId, String> memberDids,
                                                                    Mode mode, Effect effect) {
         var servedMemberIds = servedMembers(server);
-        var validator = validatorFor(server, servedMemberIds.keySet());
+        var validator = ParticipantValueValidator.forServer(server, servedMemberIds.keySet());
+        var storedByMemberId = loadStoredRows(server, servedMemberIds, memberDids.keySet());
         var plans = new HashMap<ClientId, MemberDidPlan>();
-        var accepted = new LinkedHashMap<ClientId, String>();
-        memberDids.forEach((member, did) -> validator.validate(new MemberDid(member, did)).ifPresentOrElse(
-                rejection -> plans.put(member, new MemberDidPlan.Settled(ParticipantValueResult.rejected(rejection))),
-                () -> accepted.put(member, did)));
-
-        var storedByMemberId = loadStoredRows(server, servedMemberIds, accepted.keySet());
         var writableDids = new HashSet<String>();
-        accepted.forEach((member, did) -> {
+        memberDids.forEach((member, did) -> {
             var memberId = servedMemberIds.get(member.getMemberId());
-            var plan = planMemberDid(validator, memberId, storedByMemberId.get(memberId), did, mode);
+            var plan = refusalOf(validator, member, did, memberId, storedByMemberId, mode)
+                    .<MemberDidPlan>map(rejection -> new MemberDidPlan.Settled(ParticipantValueResult.rejected(rejection)))
+                    .orElseGet(() -> planMemberDid(validator, memberId, storedByMemberId.get(memberId), did, mode));
             plans.put(member, plan);
             if (plan instanceof MemberDidPlan.Writable) {
                 writableDids.add(did);
@@ -222,8 +234,17 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
 
         var results = new LinkedHashMap<ClientId, ParticipantValueResult>();
         memberDids.forEach((member, did) -> results.put(member,
-                decideMemberDid(server, didsHeldElsewhere, member, did, plans.get(member), effect)));
+                decideMemberDid(server, didsHeldElsewhere, member, did, plans.get(member), mode, effect)));
         return results;
+    }
+
+    private Optional<ParticipantValueRejection> refusalOf(ParticipantValueValidator validator, ClientId member, String did,
+                                                          Long memberId,
+                                                          Map<Long, MemberDidEntity> storedByMemberId, Mode mode) {
+        if (mode == Mode.ADMIN_REPLACE && memberId != null && !storedByMemberId.containsKey(memberId)) {
+            return Optional.of(NO_STORED_VALUE);
+        }
+        return validator.validate(new MemberDid(member, did));
     }
 
     private Map<ClientId, Long> servedMembers(SecurityServerEntity server) {
@@ -236,8 +257,8 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     }
 
     private Map<Long, MemberDidEntity> loadStoredRows(SecurityServerEntity server, Map<ClientId, Long> servedMemberIds,
-                                                      Set<ClientId> accepted) {
-        var memberIds = accepted.stream()
+                                                      Set<ClientId> members) {
+        var memberIds = members.stream()
                 .map(member -> servedMemberIds.get(member.getMemberId()))
                 .filter(Objects::nonNull)
                 .collect(toUnmodifiableSet());
@@ -255,18 +276,20 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     }
 
     private ParticipantValueResult decideMemberDid(SecurityServerEntity server, Set<String> didsHeldElsewhere,
-                                                   ClientId member, String did, MemberDidPlan plan, Effect effect) {
+                                                   ClientId member, String did, MemberDidPlan plan, Mode mode,
+                                                   Effect effect) {
         return switch (plan) {
             case MemberDidPlan.Settled(var result) -> result;
-            case MemberDidPlan.Writable writable -> decideWrite(server, didsHeldElsewhere, member, did, writable, effect);
+            case MemberDidPlan.Writable writable -> decideWrite(server, didsHeldElsewhere, member, did, writable, mode, effect);
         };
     }
 
     private ParticipantValueResult decideWrite(SecurityServerEntity server, Set<String> didsHeldElsewhere,
-                                               ClientId member, String did, MemberDidPlan.Writable plan, Effect effect) {
+                                               ClientId member, String did, MemberDidPlan.Writable plan, Mode mode,
+                                               Effect effect) {
         if (didsHeldElsewhere.contains(did)) {
             return effect == Effect.APPLY
-                    ? heldByAnotherServer(server, member)
+                    ? heldByAnotherServer(server, member, mode)
                     : ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER);
         }
         if (effect == Effect.APPLY) {
@@ -289,9 +312,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     private MemberDidPlan planMemberDid(ParticipantValueValidator validator, long memberId, MemberDidEntity stored,
                                         String did, Mode mode) {
         if (stored == null) {
-            return mode == Mode.ADMIN_REPLACE
-                    ? new MemberDidPlan.Settled(ParticipantValueResult.UNCHANGED)
-                    : new MemberDidPlan.Insert(memberId);
+            return new MemberDidPlan.Insert(memberId);
         }
         var storedDid = stored.getDid();
         if (storedDid.equals(did)) {
@@ -317,16 +338,10 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
         return new NotFoundException(SECURITY_SERVER_NOT_FOUND.build(String.valueOf(securityServerId)));
     }
 
-    private ParticipantValueValidator validatorFor(SecurityServerEntity server) {
-        return validatorFor(server, Set.of());
-    }
-
-    private ParticipantValueValidator validatorFor(SecurityServerEntity server, Set<ClientId> clientMembers) {
-        return new ParticipantValueValidator(
-                new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), clientMembers));
-    }
-
-    private ParticipantValueResult heldByAnotherServer(SecurityServerEntity server, ClientId member) {
+    private ParticipantValueResult heldByAnotherServer(SecurityServerEntity server, ClientId member, Mode mode) {
+        if (mode == Mode.ADMIN_REPLACE) {
+            return ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER);
+        }
         var data = new LinkedHashMap<RestApiAuditProperty, Object>();
         data.put(SERVER_CODE, server.getServerCode());
         data.put(OWNER_CLASS, server.getOwner().getIdentifier().getMemberClass());

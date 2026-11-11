@@ -54,6 +54,7 @@ import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
@@ -292,7 +293,8 @@ public abstract class AbstractProxyIntegrationTest {
 
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
                 TEST_SERVER_CONF, TEST_GLOBAL_CONF, proxyProperties, commonProperties,
-                mock(RpcChannelFactory.class), mock(XRoadConfig.class), mock(MonitorRpcClient.class),
+                mock(RpcChannelFactory.class), mock(XRoadConfig.class), mock(OpMonitorChannelTrustResolver.class),
+                mock(MonitorRpcClient.class),
                 httpSenderProviderServer, httpClientCreator.getHttpClient());
         serviceHandlerLoader.init();
 

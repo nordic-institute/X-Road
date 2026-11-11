@@ -34,6 +34,9 @@ dependencies {
   testImplementation(libs.hsqldb)
   testImplementation(project(":common:common-test"))
   testImplementation(libs.commons.cli)
+  testImplementation(libs.junit.jupiter.params)
+  testImplementation(libs.logback.classic)
+  testImplementation(testFixtures(project(":lib:rpc-core")))
   testImplementation(testFixtures(project(":lib:properties-core")))
 
   xjc(libs.bundles.jaxb)

@@ -41,6 +41,11 @@ public interface MemberDidRepository extends GenericRepository<MemberDidEntity, 
      */
     List<MemberDidRow> findAllRows();
 
+    /**
+     * Selects the columns of every stored DID of one member, in one SQL statement and without loading any entity.
+     */
+    List<MemberDidRow> findRowsByMemberId(Long memberId);
+
     Optional<MemberDidEntity> findBySecurityServerIdAndMemberId(Integer securityServerId, Long memberId);
 
     List<MemberDidEntity> findBySecurityServerIdAndMemberIdIn(Integer securityServerId, Collection<Long> memberIds);

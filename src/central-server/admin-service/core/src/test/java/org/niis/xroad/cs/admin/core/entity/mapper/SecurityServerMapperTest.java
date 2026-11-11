@@ -72,6 +72,34 @@ class SecurityServerMapperTest {
         assertThat(server.getServerCode()).isEqualTo(SERVER_CODE);
         assertThat(server.getSystemDid()).isNull();
         assertThat(server.getDspBaseUrl()).isNull();
+        assertThat(server.getSystemPairStale()).isNull();
+    }
+
+    @Test
+    void shouldFlagAPairWhoseHostDiffersFromTheAddressAsStale() {
+        SecurityServerEntity entity = createEntity();
+        entity.setSystemDid("did:web:old.example.org%3A7183:v1:system");
+        entity.setDspBaseUrl("https://old.example.org:7185/dsp");
+
+        assertThat(securityServerMapper.toTarget(entity).getSystemPairStale()).isTrue();
+    }
+
+    @Test
+    void shouldFlagAPairWhoseDspBaseUrlHostDiffersFromTheAddressAsStale() {
+        SecurityServerEntity entity = createEntity();
+        entity.setSystemDid("did:web:ss.example.org%3A7183:v1:system");
+        entity.setDspBaseUrl("https://old.example.org:7185/dsp");
+
+        assertThat(securityServerMapper.toTarget(entity).getSystemPairStale()).isTrue();
+    }
+
+    @Test
+    void shouldNotFlagAPairWhoseHostsMatchTheAddress() {
+        SecurityServerEntity entity = createEntity();
+        entity.setSystemDid("did:web:ss.example.org%3A7183:v1:system");
+        entity.setDspBaseUrl("https://ss.example.org:7185/dsp");
+
+        assertThat(securityServerMapper.toTarget(entity).getSystemPairStale()).isFalse();
     }
 
     private SecurityServerEntity createEntity() {

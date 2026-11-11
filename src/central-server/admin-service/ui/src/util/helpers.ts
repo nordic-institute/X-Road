@@ -114,6 +114,15 @@ export function managementTypeToIconTextColor(type: ManagementRequestType | unde
   }
 }
 
+export function hasStoredSystemPair(systemDid: string | undefined, dspBaseUrl: string | undefined): boolean {
+  return !!systemDid && !!dspBaseUrl;
+}
+
+// Host names are case-insensitive, so addresses differing only in letter case name the same host
+export function addressChanged(stored: string | undefined, requested: string | undefined): boolean {
+  return stored?.toLowerCase() !== requested?.toLowerCase();
+}
+
 // Upper case every word
 export function upperCaseWords(value: string): string {
   if (!value) {

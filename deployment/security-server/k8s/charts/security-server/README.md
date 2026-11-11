@@ -204,3 +204,16 @@ mechanism itself (Service `type` templating, a TCP-mode Gateway API resource, or
 similar — see `development/k8s/docs/EKS.md`'s NLB-vs-ALB note for the EKS case
 specifically) is out of scope for this chart's current contract and left for a future
 change.
+
+## 11. Operational monitoring client allow-list
+
+`xroad.op-monitor.rpc.allowed-client-names` limits which components may connect to
+the op-monitor gRPC server (`services.op-monitor`, disabled by default). It matches
+the common name or a DNS SAN of the client certificate. The chart does not set it: an
+empty list admits every component with a certificate from the Security Server RPC CA,
+including `signer` and `configuration-client`.
+
+Each component's internal gRPC certificate carries its `XROAD_HOST` value as the
+common name, so the proxy presents `proxy` and the admin-service `proxy-ui-api`. A list
+of these two names admits only them. Like other non-default `xroad.*` keys, the value
+comes from `configSeed.properties`.

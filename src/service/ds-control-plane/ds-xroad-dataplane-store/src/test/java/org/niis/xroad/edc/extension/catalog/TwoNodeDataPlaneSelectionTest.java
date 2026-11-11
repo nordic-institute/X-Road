@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.RandomSelec
 import org.eclipse.edc.connector.controlplane.defaults.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.edc.connector.controlplane.services.dataplane.DataPlaneSelectorServiceImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
+import static org.mockito.Mockito.mock;
 
 class TwoNodeDataPlaneSelectionTest {
 
@@ -49,7 +51,7 @@ class TwoNodeDataPlaneSelectionTest {
     private static final String PULL = XRoadTransferType.PULL.wireValue();
     private static final String NODE_A_URL = "http://127.0.0.1:5590/full/api/v1/dataflows";
     private static final String NODE_B_URL = "http://proxy-b:5590/full/api/v1/dataflows";
-    private static final String EXPECTED_ID = "xroad-proxy::" + MEMBER_CONTEXT;
+    private static final String EXPECTED_ID = "xroad-proxy";
 
     private final DataPlaneSelectorService nodeA = selectorFor(NODE_A_URL);
     private final DataPlaneSelectorService nodeB = selectorFor(NODE_B_URL);
@@ -74,8 +76,8 @@ class TwoNodeDataPlaneSelectionTest {
         var dataPlaneId = nodeA.selectFor(transferProcess(MEMBER_CONTEXT)).getContent().getId();
         var freshNode = selectorFor("http://proxy-c:5590/full/api/v1/dataflows");
 
-        var onB = nodeB.findById(dataPlaneId);
-        var onFreshNode = freshNode.findById(dataPlaneId);
+        var onB = nodeB.findById(MEMBER_CONTEXT, dataPlaneId);
+        var onFreshNode = freshNode.findById(MEMBER_CONTEXT, dataPlaneId);
 
         assertThat(onB.succeeded()).isTrue();
         assertThat(onB.getContent().getUrl()).hasToString(NODE_B_URL);
@@ -127,6 +129,6 @@ class TwoNodeDataPlaneSelectionTest {
         var strategies = new DefaultSelectionStrategyRegistry();
         strategies.add(new RandomSelectionStrategy());
         return new DataPlaneSelectorServiceImpl(
-                new XRoadDataPlaneInstanceStore(entries), strategies, new NoopTransactionContext(), "random");
+                new XRoadDataPlaneInstanceStore(entries), strategies, new NoopTransactionContext(), "random", mock(Monitor.class));
     }
 }

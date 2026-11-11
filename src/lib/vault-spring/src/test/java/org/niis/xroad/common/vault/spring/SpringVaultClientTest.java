@@ -251,6 +251,21 @@ class SpringVaultClientTest {
     }
 
     @Test
+    void shouldReadAMissingOpMonitorCaRecordAsAbsentWhenTheKvReadReturnsNull() {
+        when(vaultKeyValueOperations.get(VaultClient.OPMONITOR_CA_PATH)).thenReturn(null);
+
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void shouldPropagateAnOpMonitorCaReadFailure() {
+        when(vaultKeyValueOperations.get(VaultClient.OPMONITOR_CA_PATH)).thenThrow(new VaultException("vault sealed"));
+
+        assertThatThrownBy(() -> vaultClient.getOpMonitorCa())
+                .isInstanceOf(VaultException.class);
+    }
+
+    @Test
     void shouldReadABlankOpMonitorCaRecordAsAbsent() {
         secretsByPath.put(VaultClient.OPMONITOR_CA_PATH, Map.of(VaultClient.CERTIFICATE_KEY, ""));
         assertThat(vaultClient.getOpMonitorCa()).isEmpty();

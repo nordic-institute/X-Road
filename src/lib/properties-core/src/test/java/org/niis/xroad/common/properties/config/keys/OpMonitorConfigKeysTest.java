@@ -33,6 +33,7 @@ import org.niis.xroad.common.properties.config.ConfigCatalogue;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OpMonitorConfigKeysTest {
 
@@ -40,6 +41,7 @@ class OpMonitorConfigKeysTest {
             "xroad.op-monitor.rpc.listen-address",
             "xroad.op-monitor.rpc.port",
             "xroad.op-monitor.rpc.max-inbound-message-size",
+            "xroad.op-monitor.rpc.allowed-client-names",
             "xroad.common-rpc.channel.op-monitor.host",
             "xroad.common-rpc.channel.op-monitor.port",
             "xroad.common-rpc.channel.op-monitor.deadline-after",
@@ -52,5 +54,24 @@ class OpMonitorConfigKeysTest {
     @Test
     void keptKeysAreInTheCatalogue() {
         assertThat(catalogueKeys).containsAll(KEPT_KEYS);
+    }
+
+    @Test
+    void allowedClientNamesIsExposedInUiAndEmptyByDefault() {
+        var key = OpMonitorConfigKeys.RPC_ALLOWED_CLIENT_NAMES;
+
+        assertThat(key.key()).isEqualTo("xroad.op-monitor.rpc.allowed-client-names");
+        assertThat(key.exposedInUi()).isTrue();
+        assertThat(key.convert(key.defaultValue())).isEmpty();
+    }
+
+    @Test
+    void allowedClientNamesConverterKeepsEntriesAndRejectsMalformedOnes() {
+        var key = OpMonitorConfigKeys.RPC_ALLOWED_CLIENT_NAMES;
+
+        assertThat(key.convert(" proxy , ui ")).containsExactly("proxy", "ui");
+        assertThat(key.convert("  ")).isEmpty();
+        assertThatThrownBy(() -> key.convert("proxy,,ui")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> key.convert("*.example.org")).isInstanceOf(IllegalArgumentException.class);
     }
 }

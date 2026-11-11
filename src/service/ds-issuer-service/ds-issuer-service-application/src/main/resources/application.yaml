@@ -50,18 +50,24 @@ web:
     did:
       port: 6183
       path: /
+      host: ${xroad.dataspace.issuer.listen-address:}
     issuance:
       port: 6185
       path: /api/issuance
+      host: ${xroad.dataspace.issuer.listen-address:}
     statuslist:
       port: 6187
       path: /statuslist
+      host: ${xroad.dataspace.issuer.listen-address:}
 
 edc:
   hostname: ${HOSTNAME}
   issuance:
     anonymous:
       allowed: true # Bypass mandatory creation of a holder as X-Road credential issuance trust model doesn't require it
+  issuer:
+    dcp:
+      profile: vc20-bssl/jwt
   vault:
     hashicorp:
       url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"

@@ -30,6 +30,7 @@ package org.niis.xroad.common.properties.spring;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.FrameworkPublishedConfig;
 import org.niis.xroad.common.properties.config.keys.ConfigKeyProviders;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
@@ -63,7 +64,7 @@ public class XRoadFrameworkPropertySourceEnvironmentPostProcessor implements Env
 
         var appName = environment.getProperty("spring.application.name");
         var storedOverrides = FrameworkPublishedConfig.storedOverrides(appName, ConfigKeyProviders.allProviders(),
-                SpringNodeNameProvider.forEnvironment(environment));
+                NodeNameProvider.fromEnvironment());
         if (storedOverrides.isEmpty()) {
             return;
         }

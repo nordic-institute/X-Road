@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class IssuanceServiceRpcConfigNodeAwareTest {
 
     private static final NodeAwareProducerFixture FIXTURE = new NodeAwareProducerFixture("issuernodeaware",
-            nodeName -> new IssuanceServiceRpcConfig().xRoadConfig("ds-issuer-service", nodeName));
+            () -> new IssuanceServiceRpcConfig().xRoadConfig("ds-issuer-service"));
 
     @Test
     void aConfiguredNodeNameResolvesTheNodeValue() throws Exception {

@@ -25,6 +25,8 @@ dependencies {
   }
   api(libs.apache.httpclient5)
 
+  implementation(project(":lib:properties-core"))
+
   api(libs.jakarta.injectApi)
   api(libs.jakarta.bindApi)
   api(libs.jakarta.soapApi)

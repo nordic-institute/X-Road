@@ -31,17 +31,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 
+import java.util.Collection;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.IN;
 
 /**
- * Filters a stream by {@link QuerySpec}. Supports {@code id =} (plain or under the EDC namespace,
- * which is how EDC itself names it) and {@code participantContextId =} criteria, AND-combined. Sort
- * is ignored. Any other criterion matches nothing: a filter this evaluator cannot apply must narrow
- * the result to empty, never widen it, because EDC uses these queries as authorization checks
- * (contract validation counts the assets a definition selects).
+ * Filters a stream by {@link QuerySpec}. Supports {@code id =} and {@code id in} (plain or under the
+ * EDC namespace, which is how EDC itself names it) and {@code participantContextId =} criteria,
+ * AND-combined. Sort is ignored. Any other criterion matches nothing: a filter this evaluator cannot
+ * apply must narrow the result to empty, never widen it, because EDC uses these queries as
+ * authorization checks (contract validation counts the assets a definition selects).
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -78,6 +81,10 @@ class QueryEvaluator<T> {
         var left = String.valueOf(criterion.getOperandLeft());
         var operator = criterion.getOperator();
 
+        if (IN.equals(operator) && isIdOperand(left)) {
+            return filterByIds(source, criterion);
+        }
+
         if (!OPERATOR_EQUALS.equals(operator)) {
             log.warn("Unsupported operator '{}' for criterion '{}', matching nothing", operator, left);
             return Stream.empty();
@@ -93,5 +100,18 @@ class QueryEvaluator<T> {
                 yield Stream.empty();
             }
         };
+    }
+
+    private Stream<T> filterByIds(Stream<T> source, Criterion criterion) {
+        if (!(criterion.getOperandRight() instanceof Collection<?> ids)) {
+            log.warn("Operator 'in' needs a collection operand for criterion '{}', matching nothing", criterion.getOperandLeft());
+            return Stream.empty();
+        }
+        var wanted = ids.stream().map(String::valueOf).collect(Collectors.toSet());
+        return source.filter(e -> wanted.contains(idAccessor.apply(e)));
+    }
+
+    private static boolean isIdOperand(String operand) {
+        return CRITERION_ID.equals(operand) || CRITERION_ID_NAMESPACED.equals(operand);
     }
 }

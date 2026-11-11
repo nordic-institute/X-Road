@@ -468,7 +468,8 @@
       "agreement_token_key_not_available": "Kokkuleppe tõendi allkirjastamisvõti pole saadaval. Puhverserver pole veel ühtegi allkirjastamisvõtit laadinud",
       "agreement_token_key_store_failed": "Kokkuleppe tõendi allkirjastamisvõtit ei õnnestunud saladuste hoidlasse salvestada. Proovige hiljem uuesti",
       "agreement_token_rejected": "Kokkuleppe tõend lükati tagasi",
-      "agreement_token_signing_failed": "Kokkuleppe tõendi allkirjastamine ebaõnnestus"
+      "agreement_token_signing_failed": "Kokkuleppe tõendi allkirjastamine ebaõnnestus",
+      "op_monitor_trust_failure": "Usaldusväärset ühendust operatiivandmete jälgimisega ei õnnestunud luua"
     },
     "csr_not_found": "CSR-i ei leitud",
     "database_error": "Andmebaasi viga",
@@ -598,7 +599,8 @@
     "tr": {
       "op_monitor": {
         "network_error": "Võrguühenduse viga: operatiivandmete jälgimine pole saadaval"
-      }
+      },
+      "op_monitor_trust_failure": "Kontrollige vahekaardil „Operatsioonide monitooringu usaldus“ imporditud operatiivandmete jälgimise CA-d ja seda, et saladuste hoidla (OpenBao) on kättesaadav, ning proovige uuesti."
     },
     "unknown_host": "Ühenduse viga, tundmatu host",
     "unsupported_openapi_version": "Toetamata OpenAPI versioon. Hetkel toetatakse ainult versioone 3.0.x ja 3.1.0.",
@@ -880,6 +882,7 @@
       "description": "Teisel hostil töötava operatiivandmete jälgimise deemoni CA. Laadige see üles, et see turvaserver usaldaks seda operatiivandmete jälgimise deemonit. Fail peab sisaldama täpselt ühte PEM- või DER-kodeeringus CA sertifikaati ja mitte ühtegi privaatvõtit.",
       "empty": "Operatsioonide monitooringu CA-d pole salvestatud",
       "replace": "Asenda",
+      "restartHint": "Muudatuste rakendamiseks taaskäivitage proxy ja admin-service.",
       "title": "Operatiivandmete jälgimise CA",
       "upload": "Lae üles",
       "uploaded": "Operatsioonide monitooringu CA on salvestatud"
@@ -1329,7 +1332,7 @@
             "enabled": "Lipp AntiDOS süsteemi lubamiseks või keelamiseks."
           },
           "common-rpc": {
-            "use-tls": "Kui lubatud, kasutatakse kõigi turvaserveri siseteenuste vahelises gRPC suhtluses vastastikust TLS-i.",
+            "use-tls": "Ainult testimiseks; ärge lülitage seda tootmises välja. Kui lubatud, kasutatakse kõigi turvaserveri siseteenuste vahelises gRPC suhtluses vastastikust TLS-i. Kui keelatud, on kogu sisemine gRPC suhtlus krüpteerimata, sealhulgas ühendus operatsioonide monitooringu deemoniga, ning imporditud operatsioonide monitooringu CA-d ja lubatud kliendinimesid ei rakendata.",
             "certificate-provisioning": {
               "refresh-interval": "Kui tihti teenused kontrollivad, kas nende gRPC TLS-sertifikaati on vaja uuendada (nt 5H).",
               "wait-duration": "Viivitus enne esimest taaskatset pärast gRPC TLS-sertifikaadi ebaõnnestunud laadimist saladuste hoidlast (nt 5S).",
@@ -1425,7 +1428,8 @@
             "health-statistics-period-seconds": "Periood sekundites, mille jooksul tervisemõõdikuid koondatakse.",
             "rpc": {
               "listen-address": "IP-aadress, millel operatsioonide monitooringu deemoni gRPC server kuulab.",
-              "port": "Port, millel operatsioonide monitooringu deemoni gRPC server kuulab."
+              "port": "Port, millel operatsioonide monitooringu deemoni gRPC server kuulab.",
+              "allowed-client-names": "Komadega eraldatud kliendinimed, mida operatsioonide monitooringu deemoni gRPC server aktsepteerib, kui RPC TLS on sees. Klient aktsepteeritakse, kui tema sertifikaadi CN või DNS SAN võrdub kirjega (tõstutundetu, ilma IP SAN-ita, ilma metamärkideta). Tühi (vaikimisi) aktsepteerib iga klienti, kellel on turvaserveri CA sertifikaat. Metamärk või tühi kirje peatab deemoni käivitumisel. Muudatuse järel taaskäivitage deemon."
             }
           },
           "message-log-archiver": {

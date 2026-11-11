@@ -38,6 +38,7 @@ import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.entity.MemberDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
@@ -131,10 +132,10 @@ class MemberDidRegistrationSequencePostgresTest extends AbstractCentralServerPos
         });
         var configProperties = mock(ManagementServiceConfigProperties.class);
         when(configProperties.getMemberDidRegMaxEntries()).thenReturn(100);
-        service = new MemberDidRegistrationServiceImpl(dids -> {
+        service = new MemberDidRegistrationServiceImpl(new DidBatchResolution(dids -> {
             resolvedDids.addAll(dids);
             return dids.stream().map(DidResolution::resolved).toList();
-        }, store, servers, managementRequestService, configProperties);
+        }), store, servers, managementRequestService, configProperties);
     }
 
     @RepeatedTest(2)

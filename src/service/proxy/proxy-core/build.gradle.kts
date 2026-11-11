@@ -36,6 +36,7 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
 
+  testImplementation(testFixtures(project(":lib:rpc-core")))
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
@@ -58,6 +59,7 @@ dependencies {
   testFixturesImplementation(project(":lib:messagelog-core"))
   testFixturesImplementation(project(":service:configuration-client:configuration-client-rpc-client"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
+  testFixturesImplementation(project(":service:op-monitor:op-monitor-client"))
   testFixturesImplementation(project(":service:monitor:monitor-rpc-client"))
   testFixturesImplementation(testFixtures(project(":lib:properties-core")))
   testFixturesImplementation(testFixtures(project(":lib:keyconf-impl")))
