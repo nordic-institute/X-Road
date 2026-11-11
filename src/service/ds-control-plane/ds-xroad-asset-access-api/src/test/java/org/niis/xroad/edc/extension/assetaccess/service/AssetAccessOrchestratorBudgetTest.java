@@ -50,7 +50,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -58,7 +57,6 @@ import static org.mockito.Mockito.when;
 class AssetAccessOrchestratorBudgetTest extends AssetAccessOrchestratorTestSupport {
 
     private static final String PROVIDER_ADDRESS = "http://provider/dsp";
-    private static final Duration LARGE_CANDIDATE_TIMEOUT = Duration.ofSeconds(300);
 
     @Test
     void anAcquisitionWithNoTimeLeftFailsWithoutStartingAnyStep() {
@@ -101,7 +99,7 @@ class AssetAccessOrchestratorBudgetTest extends AssetAccessOrchestratorTestSuppo
     @Test
     void negotiationAndTransferWaitsAreCappedByTheTimeLeftOfTheBudget() {
         var poller = spy(completionPoller);
-        var timed = newOrchestrator(poller, CATALOG_TIMEOUT, Duration.ofSeconds(60), Duration.ofSeconds(60), LARGE_CANDIDATE_TIMEOUT);
+        var timed = newOrchestrator(poller, Duration.ofSeconds(60), Duration.ofSeconds(60));
         stubCatalogAndTransformChain("asset-1");
         stubNegotiationInitiation();
         when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-1"));
@@ -124,7 +122,7 @@ class AssetAccessOrchestratorBudgetTest extends AssetAccessOrchestratorTestSuppo
     @Test
     void aNegotiationWaitCutShortByTheBudgetFailsWithTheBudgetTimeoutAndCoolsNothing() {
         var poller = spy(completionPoller);
-        var timed = newOrchestrator(poller, CATALOG_TIMEOUT, Duration.ofSeconds(60), Duration.ofSeconds(60), LARGE_CANDIDATE_TIMEOUT);
+        var timed = newOrchestrator(poller, Duration.ofSeconds(60), Duration.ofSeconds(60));
         stubCatalogAndTransformChain("asset-1");
         stubNegotiationInitiation();
         var future = timed.acquireAssetAccess(buildParticipantContext(), requestFor(null),
@@ -141,7 +139,7 @@ class AssetAccessOrchestratorBudgetTest extends AssetAccessOrchestratorTestSuppo
     @Test
     void aTransferWaitCutShortByTheBudgetFailsWithTheBudgetTimeoutAndCoolsNothing() {
         var poller = spy(completionPoller);
-        var timed = newOrchestrator(poller, CATALOG_TIMEOUT, Duration.ofSeconds(60), Duration.ofSeconds(60), LARGE_CANDIDATE_TIMEOUT);
+        var timed = newOrchestrator(poller, Duration.ofSeconds(60), Duration.ofSeconds(60));
         stubCatalogAndTransformChain("asset-1");
         stubNegotiatedAgreements("agreement-1");
         when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-1"));
@@ -179,8 +177,7 @@ class AssetAccessOrchestratorBudgetTest extends AssetAccessOrchestratorTestSuppo
     @Test
     void eachStageDurationReachesItsOwnStage() {
         var poller = spy(completionPoller);
-        var timed = newOrchestrator(poller, Duration.ofSeconds(1), Duration.ofSeconds(2), Duration.ofSeconds(3),
-                Duration.ofSeconds(4));
+        var timed = newOrchestrator(poller, Duration.ofSeconds(1), Duration.ofSeconds(2), Duration.ofSeconds(3));
         when(catalogService.requestCatalog(any(), any(), any(), any(), any())).thenReturn(
                 new CompletableFuture<>(), CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
         when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
@@ -195,7 +192,6 @@ class AssetAccessOrchestratorBudgetTest extends AssetAccessOrchestratorTestSuppo
 
         assertThat(catalogTimedOut.getCause()).isInstanceOf(XrdRuntimeException.class);
         assertThat(((XrdRuntimeException) catalogTimedOut.getCause()).getDetails()).contains("1000 ms");
-        verify(poller).awaitDeadline(Duration.ofSeconds(4));
 
         var future = timed.acquireAssetAccess(buildParticipantContext(), requestFor(null), defaultBudget());
         verify(poller).awaitNegotiation("neg-1", Duration.ofSeconds(2));
@@ -204,7 +200,6 @@ class AssetAccessOrchestratorBudgetTest extends AssetAccessOrchestratorTestSuppo
             verify(poller).awaitTransfer("tp-1", Duration.ofSeconds(3));
         });
         pollUntilDone(future);
-        verify(poller, times(2)).awaitDeadline(Duration.ofSeconds(4));
     }
 
     private static void assertAcquisitionTimeout(Throwable failure) {

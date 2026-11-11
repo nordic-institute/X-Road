@@ -369,88 +369,6 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
-    void cancelNegotiationCancelsTheWaitAndPollNoLongerQueriesTheStore() {
-        var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
-
-        poller.cancelNegotiation("neg-1");
-        poller.poll();
-
-        assertThat(future).isCancelled();
-        verifyNoInteractions(negotiationStore, transferProcessStore);
-    }
-
-    @Test
-    void cancelTransferCancelsTheWaitAndPollNoLongerQueriesTheStore() {
-        var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
-
-        poller.cancelTransfer("tp-1");
-        poller.poll();
-
-        assertThat(future).isCancelled();
-        verifyNoInteractions(negotiationStore, transferProcessStore);
-    }
-
-    @Test
-    void cancellingAnUnknownIdLeavesOtherWaitsTracked() {
-        var agreement = buildAgreement();
-        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(_ ->
-                Stream.of(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null)));
-        var negotiation = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
-
-        poller.cancelNegotiation("neg-unknown");
-        poller.cancelTransfer("tp-unknown");
-        poller.poll();
-
-        assertThat(succeededValue(negotiation)).isEqualTo(agreement);
-    }
-
-    @Test
-    void cancellingAFinishedWaitKeepsItsOutcome() {
-        var agreement = buildAgreement();
-        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(_ ->
-                Stream.of(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null)));
-        var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
-        poller.poll();
-        assertThat(succeededValue(future)).isEqualTo(agreement);
-
-        poller.cancelNegotiation("neg-1");
-
-        assertThat(future).isNotCancelled();
-        assertThat(succeededValue(future)).isEqualTo(agreement);
-    }
-
-    @Test
-    void awaitDeadlineFailsAsTransportFaultWithTimeoutWhenItsTimeoutPasses() {
-        var future = poller.awaitDeadline(Duration.ofSeconds(20));
-        poller.poll();
-        assertThat(future).isNotDone();
-
-        clock.advanceTo(clock.instant().plusSeconds(21));
-        poller.poll();
-
-        assertFailedWith(future, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
-    }
-
-    @Test
-    void cancelledDeadlineIsRemovedFromTheRegistry() throws Exception {
-        var future = poller.awaitDeadline(Duration.ofSeconds(20));
-
-        future.cancel(false);
-
-        assertThat(future).isCancelled();
-        assertThat(pendingDeadlines()).isEmpty();
-    }
-
-    @Test
-    void stopLeavesDeadlinePending() {
-        var future = poller.awaitDeadline(LONG_TIMEOUT);
-
-        poller.stop();
-
-        assertThat(future).isNotDone();
-    }
-
-    @Test
     void stopFailsPendingWaitersWithAcquisitionFailureBeforeReturning() {
         var negotiationFuture = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         var transferFuture = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
@@ -770,12 +688,6 @@ class AssetAccessCompletionPollerTest {
         poller.poll();
 
         assertFailedWith(future, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
-    }
-
-    private Map<?, ?> pendingDeadlines() throws ReflectiveOperationException {
-        var field = AssetAccessCompletionPoller.class.getDeclaredField("deadlineWaiters");
-        field.setAccessible(true);
-        return (Map<?, ?>) field.get(poller);
     }
 
     private static StageOutcome.Failed<?> failedOutcome(CompletableFuture<? extends StageOutcome<?>> future) {

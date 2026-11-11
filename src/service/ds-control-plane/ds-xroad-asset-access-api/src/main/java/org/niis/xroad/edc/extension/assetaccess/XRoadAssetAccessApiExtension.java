@@ -128,6 +128,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
     @Inject
     private OkHttpClient okHttpClient;
+
     @Setting(key = "xroad.asset-access.catalog.timeout-seconds",
             description = "Per-stage catalog fetch limit in seconds; a stage never outlasts the time left of the call",
             defaultValue = "20")
@@ -142,18 +143,6 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
             description = "Per-stage transfer process limit in seconds; a stage never outlasts the time left of the call",
             defaultValue = "60")
     private long transferTimeoutSeconds;
-
-    @Setting(key = "xroad.asset-access.candidate.timeout-seconds",
-            description = "Time limit in seconds for one candidate provider Security Server across catalog fetch, "
-                    + "negotiation and transfer. A candidate that exceeds it is abandoned, counted as a transport fault "
-                    + "and put in cooldown, and the next candidate is tried. A typical acquisition has two candidates "
-                    + "(a failed server and a sibling), so the default of 20 times 2 stays below "
-                    + "xroad.asset-access.acquisition.timeout-seconds (60). The proxy's per-call gRPC deadline is the "
-                    + "acquisition time it asked for plus xroad.proxy.dsp.acquisition-deadline-margin, so the aggregated "
-                    + "failure reaches the proxy first. With three or more hanging candidates the acquisition times out "
-                    + "first.",
-            defaultValue = "20")
-    private long candidateTimeoutSeconds;
 
     @Setting(key = "xroad.asset-access.cooldown.period-seconds",
             description = "How long, in seconds, a provider Security Server that failed with a transport fault is kept "
@@ -293,10 +282,6 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     }
 
     private void validateSettings() {
-        if (candidateTimeoutSeconds <= 0) {
-            throw new EdcException("xroad.asset-access.candidate.timeout-seconds must be positive, was %d"
-                    .formatted(candidateTimeoutSeconds));
-        }
         if (handshakeRaceDeadlineMillis <= 0) {
             throw new EdcException("xroad.asset-access.handshake-race.deadline-millis must be positive, was %d"
                     .formatted(handshakeRaceDeadlineMillis));
@@ -338,8 +323,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     monitor,
                     Duration.ofSeconds(catalogTimeoutSeconds),
                     Duration.ofSeconds(negotiationTimeoutSeconds),
-                    Duration.ofSeconds(transferTimeoutSeconds),
-                    Duration.ofSeconds(candidateTimeoutSeconds)
+                    Duration.ofSeconds(transferTimeoutSeconds)
             );
         }
         return assetAccessOrchestrator;

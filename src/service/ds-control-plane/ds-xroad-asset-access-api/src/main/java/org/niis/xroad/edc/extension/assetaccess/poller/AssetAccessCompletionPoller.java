@@ -54,7 +54,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -92,9 +91,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * through to the deadline check; if the pass's transaction itself fails, a deadline-only sweep over
  * both waiter maps still runs, since comparing the clock against a deadline needs no store access.
  *
- * <p>A wait can be cancelled through {@link #cancelNegotiation(String)} or {@link #cancelTransfer(String)}. The
- * waiter is removed and its future cancelled on the caller's thread, not on the completion executor, and a terminal
- * state read for that id afterwards completes nothing.
  */
 public class AssetAccessCompletionPoller {
 
@@ -128,7 +124,6 @@ public class AssetAccessCompletionPoller {
 
     private final Map<String, Waiter<ContractAgreement>> negotiationWaiters = new ConcurrentHashMap<>();
     private final Map<String, Waiter<DataAddress>> transferWaiters = new ConcurrentHashMap<>();
-    private final Map<String, Waiter<Void>> deadlineWaiters = new ConcurrentHashMap<>();
 
     public AssetAccessCompletionPoller(ContractNegotiationStore negotiationStore,
                                         TransferProcessStore transferProcessStore,
@@ -154,8 +149,8 @@ public class AssetAccessCompletionPoller {
     }
 
     /**
-     * Registers a negotiation id to await; the returned future never fails, unless cancelled through
-     * {@link #cancelNegotiation(String)}, and completes with a {@link StageOutcome}: succeeded with the contract
+     * Registers a negotiation id to await; the returned future never fails, unless cancelled by the
+     * caller, and completes with a {@link StageOutcome}: succeeded with the contract
      * agreement once the negotiation reaches {@link ContractNegotiationStates#FINALIZED}; failed with the stored
      * error detail and the kind {@link FailureClassifier} derives from the record once it reaches
      * {@link ContractNegotiationStates#TERMINATING} or {@link ContractNegotiationStates#TERMINATED}; failed with a
@@ -166,17 +161,8 @@ public class AssetAccessCompletionPoller {
     }
 
     /**
-     * Stops awaiting a negotiation: removes its registration and cancels the future returned by
-     * {@link #awaitNegotiation(String, Duration)}. Does nothing for an id that is unknown or whose wait already
-     * completed.
-     */
-    public void cancelNegotiation(String negotiationId) {
-        cancel(negotiationWaiters, negotiationId);
-    }
-
-    /**
-     * Registers a transfer process id to await; the returned future never fails, unless cancelled through
-     * {@link #cancelTransfer(String)}, and completes with a {@link StageOutcome}: succeeded with the data address
+     * Registers a transfer process id to await; the returned future never fails, unless cancelled by the
+     * caller, and completes with a {@link StageOutcome}: succeeded with the data address
      * resolved through {@link DataAddressStore} once the transfer reaches {@link TransferProcessStates#STARTED};
      * failed with the stored error detail and the kind {@link FailureClassifier} derives from the record once it
      * reaches {@link TransferProcessStates#TERMINATING}, {@link TransferProcessStates#TERMINATING_REQUESTED} or
@@ -186,29 +172,6 @@ public class AssetAccessCompletionPoller {
      */
     public CompletableFuture<StageOutcome<DataAddress>> awaitTransfer(String transferProcessId, Duration timeout) {
         return register(transferWaiters, transferProcessId, timeout);
-    }
-
-    /**
-     * Stops awaiting a transfer process: removes its registration and cancels the future returned by
-     * {@link #awaitTransfer(String, Duration)}. Does nothing for an id that is unknown or whose wait already
-     * completed.
-     */
-    public void cancelTransfer(String transferProcessId) {
-        cancel(transferWaiters, transferProcessId);
-    }
-
-    /**
-     * Registers a bare deadline, for bounding work that has no store record to poll; the returned future never
-     * fails and completes with {@link StageOutcome.Failed} of kind {@link FailureKind#TRANSPORT_FAULT} and a
-     * {@link TimeoutException} once {@code timeout} passes. The caller cancels it when the bounded work finishes
-     * first, which removes the registration. Registered after {@link #stop()}, it completes at once with kind
-     * {@link FailureKind#OTHER}; one already pending when {@link #stop()} runs stays pending.
-     */
-    public CompletableFuture<StageOutcome<Void>> awaitDeadline(Duration timeout) {
-        var id = UUID.randomUUID().toString();
-        var future = register(deadlineWaiters, id, timeout);
-        future.whenComplete((_, _) -> deadlineWaiters.remove(id));
-        return future;
     }
 
     private <T> CompletableFuture<StageOutcome<T>> register(Map<String, Waiter<T>> waiters, String id, Duration timeout) {
@@ -226,13 +189,6 @@ public class AssetAccessCompletionPoller {
         return future;
     }
 
-    private static <T> void cancel(Map<String, Waiter<T>> waiters, String id) {
-        var waiter = waiters.remove(id);
-        if (waiter != null) {
-            waiter.future().cancel(false);
-        }
-    }
-
     /**
      * Starts the scheduled poll loop.
      */
@@ -242,10 +198,9 @@ public class AssetAccessCompletionPoller {
     }
 
     /**
-     * Stops the poll loop, fails every pending negotiation and transfer waiter (deadlines from
-     * {@link #awaitDeadline(Duration)} stay pending) through the completion executor and shuts both
-     * executors down, waiting (bounded) for the completion executor so that no completion runs after
-     * this method returns. A final fail-all sweep runs once the completion executor has terminated,
+     * Stops the poll loop, fails every pending negotiation and transfer waiter through the
+     * completion executor and shuts both executors down, waiting (bounded) for the completion executor so that
+     * no completion runs after this method returns. A final fail-all sweep runs once the completion executor has terminated,
      * so a waiter registered by a completion continuation that was still running during the drain is
      * also failed before this method returns.
      */
@@ -301,7 +256,6 @@ public class AssetAccessCompletionPoller {
             sweepExpiredDeadlines(negotiationWaiters, completions);
             sweepExpiredDeadlines(transferWaiters, completions);
         }
-        sweepExpiredDeadlines(deadlineWaiters, completions);
         completions.forEach(Runnable::run);
     }
 

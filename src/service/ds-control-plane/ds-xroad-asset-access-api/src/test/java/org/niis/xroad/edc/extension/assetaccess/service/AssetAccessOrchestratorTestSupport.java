@@ -109,7 +109,6 @@ import static org.mockito.Mockito.when;
 abstract class AssetAccessOrchestratorTestSupport {
 
     static final Duration COOLDOWN_PERIOD = Duration.ofSeconds(180);
-    static final Duration CANDIDATE_TIMEOUT = Duration.ofSeconds(20);
     static final String PROVIDER_CONFLICT = providerAnswer(409, "agreement no longer valid");
     static final Duration CATALOG_TIMEOUT = Duration.ofSeconds(20);
     static final Duration DEFAULT_BUDGET = Duration.ofSeconds(60);
@@ -184,17 +183,11 @@ abstract class AssetAccessOrchestratorTestSupport {
 
     AssetAccessOrchestrator newOrchestrator(AssetAccessCompletionPoller poller, Duration catalogTimeout,
                                             Duration negotiationTimeout, Duration transferTimeout) {
-        return newOrchestrator(poller, catalogTimeout, negotiationTimeout, transferTimeout, CANDIDATE_TIMEOUT);
-    }
-
-    AssetAccessOrchestrator newOrchestrator(AssetAccessCompletionPoller poller, Duration catalogTimeout,
-                                            Duration negotiationTimeout, Duration transferTimeout,
-                                            Duration candidateTimeout) {
         return new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup, reuseNote,
                 catalogService, contractNegotiationService, transferProcessService, poller, cooldownTracker,
                 candidateHandshakeRace,
                 jsonLd, transformerRegistry, monitor,
-                catalogTimeout, negotiationTimeout, transferTimeout, candidateTimeout);
+                catalogTimeout, negotiationTimeout, transferTimeout);
     }
 
     CallBudget defaultBudget() {

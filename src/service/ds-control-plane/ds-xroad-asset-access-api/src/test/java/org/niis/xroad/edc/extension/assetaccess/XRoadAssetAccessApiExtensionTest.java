@@ -73,7 +73,6 @@ class XRoadAssetAccessApiExtensionTest {
     private static final String HANDSHAKE_RACE_DEADLINE_SETTING = "xroad.asset-access.handshake-race.deadline-millis";
     private static final String HANDSHAKE_RACE_STAGGER_SETTING = "xroad.asset-access.handshake-race.stagger-millis";
     private static final String SMOOTHING_FACTOR_SETTING = "xroad.asset-access.handshake-race.smoothing-factor";
-    private static final String CANDIDATE_TIMEOUT_SETTING = "xroad.asset-access.candidate.timeout-seconds";
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -110,29 +109,6 @@ class XRoadAssetAccessApiExtensionTest {
         var tracker = initializedCooldownTracker(context, factory);
 
         assertThat(tracker.period()).isEqualTo(Duration.ofSeconds(30));
-    }
-
-    @Test
-    void candidateTimeoutDefaultsToTwentySeconds() throws Exception {
-        var setting = XRoadAssetAccessApiExtension.class.getDeclaredField("candidateTimeoutSeconds")
-                .getAnnotation(Setting.class);
-        assertThat(setting.key()).isEqualTo("xroad.asset-access.candidate.timeout-seconds");
-        assertThat(setting.defaultValue()).isEqualTo("20");
-    }
-
-    @Test
-    void candidateTimeoutRejectsZeroAndNegative(ServiceExtensionContext context, ObjectFactory factory) {
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(CANDIDATE_TIMEOUT_SETTING, "0")));
-        var zero = factory.constructInstance(XRoadAssetAccessApiExtension.class);
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(CANDIDATE_TIMEOUT_SETTING, "-1")));
-        var negative = factory.constructInstance(XRoadAssetAccessApiExtension.class);
-
-        assertThatThrownBy(() -> zero.initialize(context))
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining(CANDIDATE_TIMEOUT_SETTING);
-        assertThatThrownBy(() -> negative.initialize(context))
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining(CANDIDATE_TIMEOUT_SETTING);
     }
 
     @Test

@@ -138,11 +138,13 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * budget; a step that finds no time left fails the acquisition with {@code DSP_ACQUISITION_TIMEOUT} instead of
  * starting. A step whose limit the budget cut short and that then times out fails the acquisition the same way
  * and does not put its candidate into cooldown, while a step that times out on its own full cap is a transport
- * fault. A catalog fetch that times out on its full cap is a transport fault too. The renegotiation after a
- * refusal runs on the same budget. The budget is the one of the caller that started the work; callers that join
- * it bring their own wait limit. A caller giving up cancels its waiter (see {@link AssetAccessStateStore}), and
- * the work stops when its last waiter has given up: pending steps are cancelled and a step registered afterwards
- * is cancelled at once. A negotiation or transfer already started in EDC runs on without being awaited.
+ * fault. A catalog fetch that times out on its full cap is a transport fault too. A candidate has no time limit of
+ * its own: the one being tried runs on whatever the budget has left, so a slow candidate that is still working is
+ * not dropped. The renegotiation after a refusal runs on the same budget. The budget is the one of the caller that
+ * started the work; callers that join it bring their own wait limit. A caller giving up cancels its waiter (see
+ * {@link AssetAccessStateStore}), and the work stops when its last waiter has given up: pending steps are
+ * cancelled and a step registered afterwards is cancelled at once. A negotiation or transfer already started in
+ * EDC runs on without being awaited.
  *
  * <p>Several ds-control-plane instances may each acquire access under the same reused agreement, each starting
  * its own transfer process; the previous transfer under that agreement is not completed here, it is cleaned up
@@ -167,7 +169,6 @@ public class AssetAccessOrchestrator {
     private final Duration catalogTimeout;
     private final Duration negotiationTimeout;
     private final Duration transferTimeout;
-    private final Duration candidateTimeout;
 
     /**
      * Acquires access to an asset, de-duplicating concurrent requests for the same participant+asset+candidate
@@ -177,10 +178,7 @@ public class AssetAccessOrchestrator {
      * rest are probed in parallel and tried in the order the candidate handshake race returns, or tried at once,
      * without a probe, when only one is left. A transport fault puts
      * the candidate in cooldown and moves on to the next; any other failure is returned at once, so no other
-     * candidate is contacted after a provider answered. A candidate that does not answer within its limit is
-     * abandoned the same way as a transport fault: once its attempt is settled, it starts no further stage and its
-     * poller wait is cancelled. A stage completing at the moment of abandonment can still start the next one, and a
-     * negotiation or transfer already sent is not terminated.
+     * candidate is contacted after a provider answered.
      */
     public CompletableFuture<AssetAccessResult> acquireAssetAccess(ParticipantContext participantContext,
                                                                    AssetAccessRequest request,
@@ -327,63 +325,35 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<StageOutcome<DataAddress>> attemptReuse(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
             AssetAccessRequest.Candidate candidate, ContractAgreement agreement, CallContext call) {
-        return classifyWithinCandidateLimit(candidate, attempt ->
-                transferUnderReusedAgreement(key, participantContext, request, candidate, agreement, attempt, call));
+        return classifyFailure(
+                transferUnderReusedAgreement(key, participantContext, request, candidate, agreement, call));
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> attemptNegotiation(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
             AssetAccessRequest.Candidate candidate, CallContext call) {
         monitor.info("%s no reusable agreement found, negotiating".formatted(key));
-        return classifyWithinCandidateLimit(candidate,
-                attempt -> negotiateAndTransfer(key, participantContext, request, candidate, attempt, call));
+        return classifyFailure(negotiateAndTransfer(key, participantContext, request, candidate, call));
     }
 
-    private CompletableFuture<StageOutcome<DataAddress>> classifyWithinCandidateLimit(
-            AssetAccessRequest.Candidate candidate,
-            Function<CandidateAttempt, CompletableFuture<StageOutcome<DataAddress>>> start) {
-        var attempt = new CandidateAttempt();
-        var classified = start.apply(attempt).exceptionally(
+    private static CompletableFuture<StageOutcome<DataAddress>> classifyFailure(
+            CompletableFuture<StageOutcome<DataAddress>> attempt) {
+        return attempt.exceptionally(
                 failure -> new StageOutcome.Failed<>(FailureClassifier.classify(failure), unwrap(failure)));
-        return abandonAtCandidateLimit(candidate, attempt, classified);
-    }
-
-    private CompletableFuture<StageOutcome<DataAddress>> abandonAtCandidateLimit(
-            AssetAccessRequest.Candidate candidate, CandidateAttempt attempt,
-            CompletableFuture<StageOutcome<DataAddress>> outcome) {
-        var deadline = completionPoller.awaitDeadline(candidateTimeout);
-        var abandoned = deadline.thenApply(deadlineOutcome -> switch (deadlineOutcome) {
-            case StageOutcome.Failed(var failureKind, var failure) when failureKind != FailureKind.TRANSPORT_FAULT ->
-                    new StageOutcome.Failed<DataAddress>(failureKind, failure);
-            default -> candidateAbandoned(candidate);
-        });
-        return outcome.applyToEither(abandoned, Function.identity())
-                .whenComplete((_, _) -> {
-                    deadline.cancel(false);
-                    attempt.settle();
-                });
-    }
-
-    private StageOutcome<DataAddress> candidateAbandoned(AssetAccessRequest.Candidate candidate) {
-        var timeout = new TimeoutException("Candidate %s abandoned after %s"
-                .formatted(candidate.counterPartyAddress(), candidateTimeout));
-        return new StageOutcome.Failed<>(FailureClassifier.classify(timeout), timeout);
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> transferUnderReusedAgreement(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            AssetAccessRequest.Candidate candidate, ContractAgreement agreement, CandidateAttempt attempt,
-            CallContext call) {
+            AssetAccessRequest.Candidate candidate, ContractAgreement agreement, CallContext call) {
         monitor.info("%s reusing agreement: agreementId=%s matchedByClientId=%s"
                 .formatted(key, agreement.getId(), request.clientId() != null));
         return startTransfer(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
-                candidate.counterPartyAddress(), request.protocolOrDefault(), attempt, call)
+                candidate.counterPartyAddress(), request.protocolOrDefault(), call)
                 .thenCompose(outcome -> switch (outcome) {
                     case StageOutcome.Succeeded<DataAddress> _ -> CompletableFuture.completedFuture(
                             rememberOnSuccess(noteKey(participantContext, request, candidate), agreement, outcome));
                     case StageOutcome.Failed(var failureKind, var failure) -> isTransferRefusal(failureKind, failure)
-                            ? unlessSettled(attempt, () -> negotiateAfterRefusal(
-                                    key, participantContext, request, candidate, agreement, failure, attempt, call))
+                            ? negotiateAfterRefusal(key, participantContext, request, candidate, agreement, failure, call)
                             : CompletableFuture.completedFuture(outcome);
                 });
     }
@@ -391,11 +361,11 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<StageOutcome<DataAddress>> negotiateAfterRefusal(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
             AssetAccessRequest.Candidate candidate, ContractAgreement refusedAgreement, Throwable refusal,
-            CandidateAttempt attempt, CallContext call) {
+            CallContext call) {
         monitor.warning("%s reused agreement refused, negotiating afresh: agreementId=%s reason=%s"
                 .formatted(key, refusedAgreement.getId(), unwrap(refusal).getMessage()));
         reuseNote.evict(noteKey(participantContext, request, candidate), refusedAgreement.getId());
-        return negotiateAndTransfer(key, participantContext, request, candidate, attempt, call);
+        return negotiateAndTransfer(key, participantContext, request, candidate, call);
     }
 
     private StageOutcome<DataAddress> rememberOnSuccess(AgreementReuseNote.Key noteKey, ContractAgreement agreement,
@@ -423,43 +393,28 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<StageOutcome<DataAddress>> negotiateAndTransfer(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            AssetAccessRequest.Candidate candidate, CandidateAttempt attempt, CallContext call) {
-        return andThen(attempt, fetchCatalog(key, participantContext, request, candidate, call),
-                catalog -> acquireFromCatalog(key, participantContext, request, candidate, catalog, attempt, call));
+            AssetAccessRequest.Candidate candidate, CallContext call) {
+        return andThen(fetchCatalog(key, participantContext, request, candidate, call),
+                catalog -> acquireFromCatalog(key, participantContext, request, candidate, catalog, call));
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> acquireFromCatalog(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            AssetAccessRequest.Candidate candidate, Catalog catalog, CandidateAttempt attempt, CallContext call) {
+            AssetAccessRequest.Candidate candidate, Catalog catalog, CallContext call) {
         var offer = findOffer(key, catalog, request.assetId(), request.clientId());
-        return andThen(attempt, negotiateContract(key, participantContext, request, candidate, offer, attempt, call),
+        return andThen(negotiateContract(key, participantContext, request, candidate, offer, call),
                 agreement -> startTransfer(key, participantContext, agreement, offer.transferType(),
-                        candidate.counterPartyAddress(), request.protocolOrDefault(), attempt, call)
+                        candidate.counterPartyAddress(), request.protocolOrDefault(), call)
                         .thenApply(outcome -> rememberOnSuccess(noteKey(participantContext, request, candidate), agreement, outcome)));
     }
 
     private static <T, R> CompletableFuture<StageOutcome<R>> andThen(
-            CandidateAttempt attempt, CompletableFuture<StageOutcome<T>> stage,
-            Function<T, CompletableFuture<StageOutcome<R>>> next) {
+            CompletableFuture<StageOutcome<T>> stage, Function<T, CompletableFuture<StageOutcome<R>>> next) {
         return stage.thenCompose(outcome -> switch (outcome) {
-            case StageOutcome.Succeeded<T> succeeded -> unlessSettled(attempt, () -> next.apply(succeeded.value()));
+            case StageOutcome.Succeeded<T> succeeded -> next.apply(succeeded.value());
             case StageOutcome.Failed<T> failed ->
                     CompletableFuture.completedFuture(new StageOutcome.Failed<R>(failed.failureKind(), failed.failure()));
         });
-    }
-
-    private static <R> CompletableFuture<StageOutcome<R>> unlessSettled(
-            CandidateAttempt attempt, Supplier<CompletableFuture<StageOutcome<R>>> next) {
-        return attempt.isSettled()
-                ? CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureKind.OTHER, abandonedAttemptFailure()))
-                : next.get();
-    }
-
-    private static XrdRuntimeException abandonedAttemptFailure() {
-        return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
-                .origin(ErrorOrigin.DATASPACE)
-                .details("Candidate attempt abandoned")
-                .build();
     }
 
     private static QuerySpec datasetQuery(String assetId) {
@@ -646,7 +601,7 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<StageOutcome<ContractAgreement>> negotiateContract(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            AssetAccessRequest.Candidate candidate, OfferContext offer, CandidateAttempt attempt, CallContext call) {
+            AssetAccessRequest.Candidate candidate, OfferContext offer, CallContext call) {
         try {
             var timeout = call.stageTimeout(negotiationTimeout);
             var contractRequest = buildContractRequest(request, candidate, offer);
@@ -657,7 +612,6 @@ public class AssetAccessOrchestrator {
             monitor.info("%s negotiation initiated, awaiting completion: negotiationId=%s".formatted(key, negotiationId));
 
             var negotiation = call.scope().track(completionPoller.awaitNegotiation(negotiationId, timeout));
-            attempt.cancelWaitOnSettle(() -> completionPoller.cancelNegotiation(negotiationId));
             return negotiation
                     .whenComplete((outcome, throwable) -> onNegotiationComplete(key, negotiationId, outcome, throwable))
                     .thenApply(outcome -> call.classifyTimeout(outcome, timeout, negotiationTimeout));
@@ -704,7 +658,7 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<StageOutcome<DataAddress>> startTransfer(
             String key, ParticipantContext participantContext, ContractAgreement agreement,
-            String transferType, String counterPartyAddress, String protocol, CandidateAttempt attempt, CallContext call) {
+            String transferType, String counterPartyAddress, String protocol, CallContext call) {
         Duration timeout;
         try {
             timeout = call.stageTimeout(transferTimeout);
@@ -744,7 +698,6 @@ public class AssetAccessOrchestrator {
         monitor.info("%s transfer initiated, awaiting completion: transferProcessId=%s".formatted(key, transferProcessId));
 
         var transfer = call.scope().track(completionPoller.awaitTransfer(transferProcessId, timeout));
-        attempt.cancelWaitOnSettle(() -> completionPoller.cancelTransfer(transferProcessId));
         return transfer
                 .whenComplete((outcome, throwable) -> onTransferComplete(key, transferProcessId, outcome, throwable))
                 .thenApply(outcome -> call.classifyTimeout(outcome, timeout, transferTimeout))

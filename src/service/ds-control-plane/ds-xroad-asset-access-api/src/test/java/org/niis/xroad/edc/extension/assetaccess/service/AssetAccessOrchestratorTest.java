@@ -77,11 +77,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -342,17 +339,6 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
         assertThat(second).isNotSameAs(first);
         assertThat(first.get(5, TimeUnit.SECONDS)).isNotNull();
         verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
-    }
-
-    private void finishDispatchedCompletions() {
-        completionPoller.stop();
-    }
-
-    private AssetAccessOrchestrator orchestratorKeepingAbandonedWaits() {
-        var poller = spy(completionPoller);
-        lenient().doNothing().when(poller).cancelNegotiation(any());
-        lenient().doNothing().when(poller).cancelTransfer(any());
-        return newOrchestrator(poller, Duration.ofSeconds(60), Duration.ofSeconds(60));
     }
 
     @Test
@@ -997,172 +983,9 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
     }
 
     @Test
-    void candidateHangingPastTheLimitIsAbandonedMarkedAndTheNextCandidateWins() throws Exception {
-        when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any()))
-                .thenReturn(new CompletableFuture<>());
-        var address = stubNegotiatedAccessViaCatalogOf("provider-2");
-        var request = requestForCandidates("provider-1", "provider-2");
-
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());
-        clock.advance(CANDIDATE_TIMEOUT);
-        pollUntilDone(future);
-
-        var result = future.get(5, TimeUnit.SECONDS);
-        assertThat(result.dataAddress()).isSameAs(address);
-        assertThat(result.winner().counterPartyId()).isEqualTo("provider-2");
-        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isTrue();
-        assertThat(cooldownTracker.isCoolingDown("http://provider-2.example.org/dsp")).isFalse();
-    }
-
-    @Test
-    void candidateAnsweringWithinTheLimitIsNotAbandoned() throws Exception {
-        stubAgreementAt("provider-1", "agreement-for-provider-1", 1_000L);
-        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-2"));
-        var address = startedAddress("tp-2", "http://provider-1.example.org/data");
-        var request = requestForCandidates("provider-1", "provider-2");
-
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());
-        clock.advance(CANDIDATE_TIMEOUT.minusSeconds(1));
-        pollUntilDone(future);
-
-        var result = future.get(5, TimeUnit.SECONDS);
-        assertThat(result.dataAddress()).isSameAs(address);
-        assertThat(result.winner().counterPartyId()).isEqualTo("provider-1");
-        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isFalse();
-    }
-
-    @Test
-    void loneCandidateHangingPastTheLimitFailsAcquisitionWithATimeoutCause() {
-        when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any()))
-                .thenReturn(new CompletableFuture<>());
-        var request = requestForCandidates("provider-1");
-
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());
-        clock.advance(CANDIDATE_TIMEOUT);
-        pollUntilDone(future);
-
-        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
-                .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
-                        .isEqualTo("dataspace.dsp_acquisition_failed"))
-                .satisfies(ex -> assertThat(ex.getCause().getCause())
-                        .isInstanceOf(TimeoutException.class)
-                        .hasMessage("Candidate http://provider-1.example.org/dsp abandoned after PT20S"));
-        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isTrue();
-    }
-
-    @Test
-    void abandonedCandidateNegotiationWaitIsRemovedFromThePoller() {
+    void acquisitionAfterThePollerStoppedFailsWithoutMarkingCandidates() {
         stubCatalogAndTransformChain("asset-1");
         stubNegotiationInitiation();
-
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1"), defaultBudget());
-        verify(contractNegotiationService).initiateNegotiation(any(), any());
-        clock.advance(CANDIDATE_TIMEOUT);
-        pollUntilDone(future);
-        clearInvocations(negotiationStore, transferProcessStore);
-        completionPoller.poll();
-
-        verifyNoInteractions(negotiationStore, transferProcessStore);
-    }
-
-    @Test
-    void abandonedCandidateTransferWaitIsRemovedFromThePoller() {
-        stubReusableAgreement("agreement-1");
-        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-1"));
-
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1"), defaultBudget());
-        verify(transferProcessService).initiateTransfer(any(), any());
-        clock.advance(CANDIDATE_TIMEOUT);
-        pollUntilDone(future);
-        clearInvocations(negotiationStore, transferProcessStore);
-        completionPoller.poll();
-
-        verifyNoInteractions(negotiationStore, transferProcessStore);
-    }
-
-    @Test
-    void negotiationFinalizingAfterItsCandidateWasAbandonedStartsNoTransfer() {
-        stubCatalogAndTransformChain("asset-1");
-        stubNegotiationInitiation();
-        var keepingWaits = orchestratorKeepingAbandonedWaits();
-
-        var future = keepingWaits.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1"), defaultBudget());
-        verify(contractNegotiationService).initiateNegotiation(any(), any());
-        clock.advance(CANDIDATE_TIMEOUT);
-        pollUntilDone(future);
-        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(_ ->
-                Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-late"))));
-        clearInvocations(negotiationStore);
-        completionPoller.poll();
-        finishDispatchedCompletions();
-
-        verify(negotiationStore).queryNegotiations(specWithId("neg-1"));
-        verifyNoInteractions(transferProcessService);
-    }
-
-    @Test
-    void renegotiationAfterRefusedReuseFinalizingAfterTheCandidateWasAbandonedStartsNoTransfer() {
-        stubReusableAgreement("agreement-1");
-        stubCatalogAndTransformChain("asset-1");
-        stubNegotiationInitiation();
-        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(ServiceResult.conflict(PROVIDER_CONFLICT));
-        var keepingWaits = orchestratorKeepingAbandonedWaits();
-
-        var future = keepingWaits.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1"), defaultBudget());
-        verify(contractNegotiationService).initiateNegotiation(any(), any());
-        clock.advance(CANDIDATE_TIMEOUT);
-        pollUntilDone(future);
-        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(_ ->
-                Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-late"))));
-        clearInvocations(negotiationStore);
-        completionPoller.poll();
-        finishDispatchedCompletions();
-
-        verify(negotiationStore).queryNegotiations(specWithId("neg-1"));
-        verify(transferProcessService, times(1)).initiateTransfer(any(), any());
-    }
-
-    @Test
-    void reuseTransferRefusedAfterTheCandidateWasAbandonedStartsNoRenegotiation() {
-        stubReusableAgreement("agreement-1");
-        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-1"));
-        var keepingWaits = orchestratorKeepingAbandonedWaits();
-
-        var future = keepingWaits.acquireAssetAccess(buildParticipantContext(), requestFor(null), defaultBudget());
-        verify(transferProcessService).initiateTransfer(any(), any());
-        clock.advance(CANDIDATE_TIMEOUT);
-        pollUntilDone(future);
-        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(_ ->
-                Stream.of(terminatedTransfer("tp-1", PROVIDER_CONFLICT)));
-        completionPoller.poll();
-        finishDispatchedCompletions();
-
-        verifyNoInteractions(catalogService, contractNegotiationService);
-    }
-
-    @Test
-    void catalogAnsweringAfterTheCandidateWasAbandonedStartsNoNegotiation() {
-        var catalogResponse = new CompletableFuture<StatusResult<byte[]>>();
-        when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any())).thenReturn(catalogResponse);
-        when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
-        when(transformerRegistry.transform(any(), eq(Catalog.class)))
-                .thenReturn(Result.success(buildCatalog("asset-1", "offer-1", XRoadTransferType.PULL.wireValue())));
-
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1"), defaultBudget());
-        clock.advance(CANDIDATE_TIMEOUT);
-        pollUntilDone(future);
-        catalogResponse.complete(StatusResult.success("{}".getBytes()));
-
-        verify(transformerRegistry).transform(any(), eq(Catalog.class));
-        verifyNoInteractions(contractNegotiationService);
-    }
-
-    @Test
-    void acquisitionAfterThePollerStoppedFailsWithoutAbandoningOrMarkingCandidates() {
-        lenient().when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
-                .thenReturn(new CompletableFuture<>());
         completionPoller.stop();
         var request = requestForCandidates("provider-1", "provider-2");
 
