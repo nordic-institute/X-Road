@@ -27,14 +27,22 @@
 
 package org.niis.xroad.configuration.migration;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -43,6 +51,19 @@ class SinglePropertySetterTest {
     private static final String DB_PROPERTIES_PATH = Paths.get("src/test/resources/db-test.properties")
             .toAbsolutePath()
             .toString();
+
+    private static final String GROUPING_KEY = "xroad.message-log-encryption.archive.grouping-strategy";
+
+    static class TestSinglePropertySetter extends SinglePropertySetter {
+        TestSinglePropertySetter(String propertyKey, String propertyValue) {
+            super(propertyKey, propertyValue);
+        }
+
+        @Override
+        boolean confirmProceed(Map<String, String> properties) {
+            return true; // auto-confirm for testing
+        }
+    }
 
     @Test
     void loadPropertiesReturnsSingleEntry() {
@@ -98,16 +119,55 @@ class SinglePropertySetterTest {
                 Mockito.verifyNoMoreInteractions(dbRepo);
             }
         }
+    }
 
-        static class TestSinglePropertySetter extends SinglePropertySetter {
-            TestSinglePropertySetter(String propertyKey, String propertyValue) {
-                super(propertyKey, propertyValue);
+    @Nested
+    class LegacyValueConversion {
+
+        private ListAppender<ILoggingEvent> logAppender;
+        private Logger logger;
+
+        @BeforeEach
+        void setUp() {
+            logger = (Logger) LoggerFactory.getLogger(BasePropertiesToDbMigrator.class);
+            logAppender = new ListAppender<>();
+            logAppender.start();
+            logger.addAppender(logAppender);
+        }
+
+        @AfterEach
+        void tearDown() {
+            logger.detachAppender(logAppender);
+        }
+
+        @Test
+        void savesGroupingValueAsExactConstant() {
+            try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
+                new TestSinglePropertySetter(GROUPING_KEY, "member")
+                        .migrate("not/used", DB_PROPERTIES_PATH);
+
+                var dbRepo = mockedDb.constructed().getFirst();
+                Mockito.verify(dbRepo).saveProperty(GROUPING_KEY, "MEMBER");
+            }
+            assertThat(logAppender.list)
+                    .extracting(ILoggingEvent::getLevel)
+                    .doesNotContain(Level.WARN);
+        }
+
+        @Test
+        void unknownGroupingValueSavedUnchangedAndWarns() {
+            try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
+                new TestSinglePropertySetter(GROUPING_KEY, "team")
+                        .migrate("not/used", DB_PROPERTIES_PATH);
+
+                var dbRepo = mockedDb.constructed().getFirst();
+                Mockito.verify(dbRepo).saveProperty(GROUPING_KEY, "team");
             }
 
-            @Override
-            boolean confirmProceed(Map<String, String> properties) {
-                return true; // auto-confirm for testing
-            }
+            String logged = logAppender.list.stream()
+                    .map(ILoggingEvent::getFormattedMessage)
+                    .reduce("", (a, b) -> a + "\n" + b);
+            assertThat(logged).contains(GROUPING_KEY).contains("team");
         }
     }
 

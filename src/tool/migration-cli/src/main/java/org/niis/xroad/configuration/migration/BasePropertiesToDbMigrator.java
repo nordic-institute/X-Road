@@ -41,12 +41,16 @@ public abstract class BasePropertiesToDbMigrator {
     abstract Map<String, String> loadProperties(String filePath);
 
     public void migrate(String filePath, String dbPropertiesPath) {
-        Map<String, String> properties = new TreeMap<>(loadProperties(filePath));
+        Map<String, String> loadedProperties = new TreeMap<>(loadProperties(filePath));
 
         if (log.isDebugEnabled()) {
             log.debug("Loaded properties from file {}:", filePath);
-            properties.forEach((k, v) -> log.debug("{}={}", k, v));
+            loadedProperties.forEach((k, v) -> log.debug("{}={}", k, v));
         }
+
+        LegacyConfigValueConverter.ConversionResult conversionResult = LegacyConfigValueConverter.convert(loadedProperties);
+        conversionResult.warnings().forEach(log::warn);
+        Map<String, String> properties = new TreeMap<>(conversionResult.properties());
 
         if (confirmProceed(properties)) {
             saveToDb(properties, dbPropertiesPath);

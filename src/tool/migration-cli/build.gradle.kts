@@ -29,6 +29,7 @@ dependencies {
   implementation("org.yaml:snakeyaml")
 
   testImplementation(project(":common:common-test"))
+  testImplementation(project(":lib:messagelog-core"))
   testImplementation(libs.springBoot.starterTest)
   testImplementation(libs.systemStubs)
 
