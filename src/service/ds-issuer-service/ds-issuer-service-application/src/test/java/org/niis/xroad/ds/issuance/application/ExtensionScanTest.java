@@ -39,4 +39,13 @@ class ExtensionScanTest {
 
         assertThat(scanned).isNotEmpty();
     }
+
+    @Test
+    void edcsHolderAttestationExtensionIsExcluded() {
+        var scanned = ExtensionScanGuard.scanNonExcluded(ExtensionScanTest.class.getResource("/application.yaml"));
+
+        assertThat(scanned)
+                .extracting(extension -> extension.getClass().getName())
+                .doesNotContain("org.eclipse.edc.issuerservice.issuance.attestation.holder.HolderAttestationExtension");
+    }
 }

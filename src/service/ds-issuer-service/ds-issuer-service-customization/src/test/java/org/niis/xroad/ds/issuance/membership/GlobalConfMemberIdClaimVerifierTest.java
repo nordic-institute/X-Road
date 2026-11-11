@@ -29,13 +29,6 @@ package org.niis.xroad.ds.issuance.membership;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.util.Base64;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -46,18 +39,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
-import java.math.BigInteger;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -114,8 +101,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsGlobalconfUnavailableWhenGlobalconfNotReady() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, false);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, false);
         doThrowOnVerifyValidity();
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
@@ -132,8 +119,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsClaimMalformedWhenX5cHeaderMissing() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, false);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, false);
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
@@ -142,8 +129,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsCertChainInvalidWhenCertchainValidatorFails() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any()))
                 .thenReturn(Result.failure(MembershipVerificationFailureReason.CERT_CHAIN_INVALID.name() + ": untrusted"));
 
@@ -154,8 +141,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsOcspInvalidWhenOcspVerifierFails() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(ocspVerifier.verify(any(), any()))
                 .thenReturn(Result.failure(MembershipVerificationFailureReason.OCSP_INVALID.name() + ": stale"));
@@ -168,8 +155,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsSignatureInvalidWhenTokenValidationFailsGeneric() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.failure("signature mismatch"));
@@ -181,8 +168,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsClaimReplayedWhenTokenValidationReportsJtiReuse() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.failure("The JWT id 'xyz' was already used."));
@@ -194,8 +181,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsClaimExpiredWhenTokenValidationReportsExpired() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.failure("Token has expired (exp)"));
@@ -207,8 +194,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsClaimAudienceInvalidWhenTokenValidationReportsAudMismatch() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.failure("'aud' claim does not match expected audience"));
@@ -220,8 +207,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsSuccessWithCertSubjectClientidOnHappyPath() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
@@ -237,8 +224,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void passesCertPublicKeyToTokenValidationService() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         ArgumentCaptor<org.eclipse.edc.keys.spi.PublicKeyResolver> resolverCaptor =
                 ArgumentCaptor.forClass(org.eclipse.edc.keys.spi.PublicKeyResolver.class);
@@ -250,7 +237,7 @@ class GlobalConfMemberIdClaimVerifierTest {
         verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
         PublicKey resolved = resolverCaptor.getValue().resolveKey("any-kid").getContent();
-        assertEquals(keyAndCert.cert.getPublicKey(), resolved);
+        assertEquals(keyAndCert.cert().getPublicKey(), resolved);
     }
 
     private void doThrowOnVerifyValidity() {
@@ -259,54 +246,6 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     private static void doThrowOn(GlobalConfProvider mock) {
         org.mockito.Mockito.doThrow(new RuntimeException("not loaded")).when(mock).verifyValidity();
-    }
-
-    private static String signJwt(TestKeyAndCert keyAndCert, String holderDid, String issuerDid, boolean includeCert) throws Exception {
-        Instant now = Instant.now();
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(holderDid)
-                .subject(holderDid)
-                .audience(issuerDid)
-                .issueTime(Date.from(now))
-                .expirationTime(Date.from(now.plusSeconds(300)))
-                .jwtID(UUID.randomUUID().toString())
-                .build();
-        JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
-        if (includeCert) {
-            headerBuilder.x509CertChain(List.of(Base64.encode(keyAndCert.cert.getEncoded())));
-        }
-        SignedJWT jwt = new SignedJWT(headerBuilder.build(), claims);
-        JWSSigner signer = new RSASSASigner(keyAndCert.privateKey);
-        jwt.sign(signer);
-        return jwt.serialize();
-    }
-
-    private record TestKeyAndCert(PrivateKey privateKey, X509Certificate cert) {
-        static TestKeyAndCert generate() throws Exception {
-            var kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(2048);
-            var kp = kpg.generateKeyPair();
-            X509Certificate cert = SelfSignedCertGen.generate(kp.getPublic(), kp.getPrivate());
-            return new TestKeyAndCert(kp.getPrivate(), cert);
-        }
-    }
-
-    /**
-     * Minimal self-signed cert generator using BouncyCastle's BC provider, which is already
-     * on the classpath via globalconf-impl.
-     */
-    private static final class SelfSignedCertGen {
-        static X509Certificate generate(PublicKey publicKey, PrivateKey privateKey) throws Exception {
-            var name = new org.bouncycastle.asn1.x500.X500Name("CN=Test, O=NIIS, C=EE");
-            var serial = BigInteger.valueOf(System.currentTimeMillis());
-            var notBefore = new Date(System.currentTimeMillis() - 60_000);
-            var notAfter = new Date(System.currentTimeMillis() + 3_600_000L);
-            var builder = new org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder(
-                    name, serial, notBefore, notAfter, name, publicKey);
-            var signer = new org.bouncycastle.operator.jcajce.JcaContentSignerBuilder("SHA256WithRSA").build(privateKey);
-            var holder = builder.build(signer);
-            return new org.bouncycastle.cert.jcajce.JcaX509CertificateConverter().getCertificate(holder);
-        }
     }
 
     @SuppressWarnings("unused")
