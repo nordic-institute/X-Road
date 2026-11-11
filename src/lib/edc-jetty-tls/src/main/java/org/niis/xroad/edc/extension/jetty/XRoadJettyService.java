@@ -29,6 +29,7 @@ package org.niis.xroad.edc.extension.jetty;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import jakarta.servlet.Servlet;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.web.spi.WebServer;
@@ -61,6 +62,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -86,6 +88,12 @@ import java.util.stream.Collectors;
  * <p>Every connector is HTTPS: the connector TLS certificate is mandatory for this runtime (see
  * {@link XRoadJettyExtension}), so stock's plaintext fallback for a missing keystore has no reason to exist
  * here — carrying it forward would silently reopen the unguarded HTTP path the owned module exists to close.
+ *
+ * <p>Each connector's bind host follows one rule: the {@link #DEFAULT_CONTEXT_NAME} context always binds
+ * {@link #DEFAULT_CONTEXT_BIND_HOST}, unconditionally; every other context binds whatever host the
+ * constructor's resolver returns for its name, or every interface when the resolver returns {@code null} or
+ * a blank value. Upstream's {@link PortMapping} carries no host, so this rule — not the mapping — is the
+ * one place that decides it.
  */
 public final class XRoadJettyService implements WebServer {
 
@@ -93,11 +101,20 @@ public final class XRoadJettyService implements WebServer {
     private static final String ROOT_PATH = "/";
     private static final int MAX_CAUSE_LENGTH = 300;
 
+    /**
+     * The context name {@link XRoadJettyExtension} registers its own API port under. Its bind host is always
+     * {@link #DEFAULT_CONTEXT_BIND_HOST}; no setting overrides it.
+     */
+    static final String DEFAULT_CONTEXT_NAME = "default";
+    private static final String DEFAULT_CONTEXT_BIND_HOST = "127.0.0.1";
+    private static final UnaryOperator<String> NO_HOST_OVERRIDE = contextName -> null;
+
     private final Monitor monitor;
     private final PortMappingRegistry portMappingRegistry;
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
     private final List<Consumer<ServerConnector>> connectorConfigurationCallbacks = new ArrayList<>();
     private final Clock clock;
+    private final UnaryOperator<String> hostResolver;
 
     private SslContextFactory.Server sslContextFactory;
     private volatile X509Certificate servedCertificate;
@@ -106,14 +123,27 @@ public final class XRoadJettyService implements WebServer {
     private volatile boolean stopped;
     private volatile String notServedCause;
 
-    public XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry) {
-        this(monitor, portMappingRegistry, Clock.systemUTC());
+    XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry) {
+        this(monitor, portMappingRegistry, NO_HOST_OVERRIDE, Clock.systemUTC());
+    }
+
+    /**
+     * @param hostResolver resolves the configured bind host of a named context, by context name; {@code null} when
+     *                      none is configured. Never consulted for {@link #DEFAULT_CONTEXT_NAME}.
+     */
+    public XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry, UnaryOperator<String> hostResolver) {
+        this(monitor, portMappingRegistry, hostResolver, Clock.systemUTC());
     }
 
     XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry, Clock clock) {
+        this(monitor, portMappingRegistry, NO_HOST_OVERRIDE, clock);
+    }
+
+    XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry, UnaryOperator<String> hostResolver, Clock clock) {
         this.monitor = monitor;
         this.clock = clock;
         this.portMappingRegistry = portMappingRegistry;
+        this.hostResolver = hostResolver;
         System.setProperty(LOG_ANNOUNCE, "false");
         this.handlers.put(ROOT_PATH, new ServletContextHandler(ROOT_PATH, 0));
     }
@@ -344,9 +374,27 @@ public final class XRoadJettyService implements WebServer {
         var connector = new ServerConnector(server, sslConnectionFactory(factory), httpsConnectionFactory(mapping));
         connector.setName(mapping.name());
         connector.setPort(mapping.port());
+        var bindHost = bindHost(mapping);
+        if (bindHost != null) {
+            connector.setHost(bindHost);
+        }
         connectorConfigurationCallbacks.forEach(callback -> callback.accept(connector));
-        monitor.debug("HTTPS context '" + mapping.name() + "' listening on port " + mapping.port());
+        monitor.debug("HTTPS context '" + mapping.name() + "' listening on "
+                + (bindHost != null ? bindHost : "every interface") + ", port " + mapping.port());
         return connector;
+    }
+
+    /**
+     * The {@link #DEFAULT_CONTEXT_NAME} context always binds {@link #DEFAULT_CONTEXT_BIND_HOST}, no setting
+     * overrides it. Any other context binds the host {@link #hostResolver} resolves for its name, or
+     * {@code null} to bind every interface when none is configured or the resolved host is blank.
+     */
+    private String bindHost(PortMapping mapping) {
+        if (DEFAULT_CONTEXT_NAME.equals(mapping.name())) {
+            return DEFAULT_CONTEXT_BIND_HOST;
+        }
+        var resolvedHost = hostResolver.apply(mapping.name());
+        return StringUtils.isBlank(resolvedHost) ? null : resolvedHost;
     }
 
     private static ConnectionFactory sslConnectionFactory(SslContextFactory.Server factory) {

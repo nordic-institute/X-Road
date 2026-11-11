@@ -54,7 +54,6 @@ services:
     networks:
       - xrd-ss-network
     ports:
-      - "0:8181"
       - "0:8183"
       - "0:9999"
     deploy:

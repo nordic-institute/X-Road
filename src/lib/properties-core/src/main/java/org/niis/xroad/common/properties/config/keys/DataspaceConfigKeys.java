@@ -68,6 +68,18 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
             .build();
 
     /**
+     * {@code xroad.dataspace.issuer.listen-address} — the interface the Issuer Service's public DID,
+     * issuance and status-list ports bind to; distinct from {@code xroad.dataspace.issuer.host}, the
+     * advertised DID/URL host. {@code 0.0.0.0} (the default) and {@code ::} both listen on every
+     * interface, IPv4 and IPv6; blank is also accepted and listens on every interface.
+     */
+    public static final ConfigKey<String> ISSUER_LISTEN_ADDRESS = ISSUER
+            .string("listen-address")
+            .withDefaultValue("0.0.0.0")
+            .publishedToFramework()
+            .build();
+
+    /**
      * {@code xroad.dataspace.issuer.acme-renewal-active} — the Central Server's own explicit kill-switch for
      * the co-located Issuer Service's DS TLS certificate ACME renewal scheduler: {@code xroad-ds-issuer-service}
      * is an unconditional dependency of the Central Server package, not an opt-in feature.

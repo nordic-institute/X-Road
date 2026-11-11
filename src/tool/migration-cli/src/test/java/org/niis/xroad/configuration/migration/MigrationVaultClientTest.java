@@ -28,6 +28,7 @@
 package org.niis.xroad.configuration.migration;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.support.VaultResponse;
 
@@ -36,7 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,13 +46,13 @@ class MigrationVaultClientTest {
     @Test
     void testSetTokenPinCallsCorrectVaultPath() {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
-        MigrationVaultClient client = new MigrationVaultClient(kvOps);
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         client.setTokenPin("tok1", "s3cr3t".toCharArray());
 
         Map<String, String> expected = new HashMap<>();
         expected.put("pin", "s3cr3t");
-        verify(kvOps).put(eq("signer/token-pins/tok1"), eq(expected));
+        verify(kvOps).put("signer/token-pins/node_0/tok1", expected);
     }
 
     @Test
@@ -62,9 +62,9 @@ class MigrationVaultClientTest {
         Map<String, Object> data = new HashMap<>();
         data.put("pin", "s3cr3t");
         response.setData(data);
-        when(kvOps.get("signer/token-pins/tok1")).thenReturn(response);
+        when(kvOps.get("signer/token-pins/node_0/tok1")).thenReturn(response);
 
-        MigrationVaultClient client = new MigrationVaultClient(kvOps);
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
         Optional<char[]> result = client.getTokenPin("tok1");
 
         assertThat(result).isPresent();
@@ -74,9 +74,9 @@ class MigrationVaultClientTest {
     @Test
     void testGetTokenPinReturnsEmptyWhenResponseNull() {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
-        when(kvOps.get("signer/token-pins/tok1")).thenReturn(null);
+        when(kvOps.get("signer/token-pins/node_0/tok1")).thenReturn(null);
 
-        MigrationVaultClient client = new MigrationVaultClient(kvOps);
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         assertThat(client.getTokenPin("tok1")).isEmpty();
     }
@@ -85,9 +85,9 @@ class MigrationVaultClientTest {
     void testGetTokenPinReturnsEmptyWhenDataNull() {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
         VaultResponse response = new VaultResponse();   // data is null by default
-        when(kvOps.get("signer/token-pins/tok1")).thenReturn(response);
+        when(kvOps.get("signer/token-pins/node_0/tok1")).thenReturn(response);
 
-        MigrationVaultClient client = new MigrationVaultClient(kvOps);
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         assertThat(client.getTokenPin("tok1")).isEmpty();
     }
@@ -97,9 +97,9 @@ class MigrationVaultClientTest {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
         VaultResponse response = new VaultResponse();
         response.setData(new HashMap<>());   // no "pin" entry
-        when(kvOps.get("signer/token-pins/tok1")).thenReturn(response);
+        when(kvOps.get("signer/token-pins/node_0/tok1")).thenReturn(response);
 
-        MigrationVaultClient client = new MigrationVaultClient(kvOps);
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         assertThat(client.getTokenPin("tok1")).isEmpty();
     }
@@ -107,11 +107,10 @@ class MigrationVaultClientTest {
     @Test
     void testDeleteTokenPinCallsCorrectVaultPath() {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
-        MigrationVaultClient client = new MigrationVaultClient(kvOps);
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         client.deleteTokenPin("tok1");
 
-        verify(kvOps).delete("signer/token-pins/tok1");
+        verify(kvOps).delete("signer/token-pins/node_0/tok1");
     }
-
 }

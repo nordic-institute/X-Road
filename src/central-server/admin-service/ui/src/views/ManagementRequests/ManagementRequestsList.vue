@@ -119,6 +119,8 @@
       :request-id="toApprove.id"
       :security-server-id="toApprove.security_server_id.encoded_id"
       :new-member="newMember"
+      :request-type="toApprove.type"
+      :requested-address="toApprove.address"
       @approve="fetchItems"
       @cancel="toApprove = undefined"
     />

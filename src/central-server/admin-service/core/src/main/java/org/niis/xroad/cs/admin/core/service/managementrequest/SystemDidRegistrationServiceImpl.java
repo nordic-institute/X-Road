@@ -28,29 +28,24 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.cs.admin.api.domain.DidResolution;
-import org.niis.xroad.cs.admin.api.domain.DidResolutionOutcome;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck.Verdict;
-import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.api.service.SystemDidRegistrationService;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SystemDidRegistrationServiceImpl implements SystemDidRegistrationService {
 
     private final AuthCertServerCheck authCertServerCheck;
     private final ParticipantValueStore participantValueStore;
-    private final DidResolutionService didResolutionService;
+    private final DidBatchResolution didBatchResolution;
     private final ManagementRequestService managementRequestService;
 
     @Override
@@ -72,19 +67,12 @@ public class SystemDidRegistrationServiceImpl implements SystemDidRegistrationSe
     }
 
     private void requireResolves(String systemDid) {
-        List<DidResolution> resolutions;
-        try {
-            resolutions = didResolutionService.resolve(List.of(systemDid));
-        } catch (XrdRuntimeException e) {
-            log.warn("DID resolution of {} failed", systemDid, e);
+        var result = didBatchResolution.resolve(List.of(systemDid)).getFirst();
+        if (result.status() == DidBatchResolution.Status.RESOLVER_UNAVAILABLE) {
             throw SystemDidRegistrationOutcome.resolverUnavailable().toException();
         }
-        if (resolutions.isEmpty() || !systemDid.equals(resolutions.getFirst().did())) {
-            throw SystemDidRegistrationOutcome.resolverUnavailable().toException();
-        }
-        var resolution = resolutions.getFirst();
-        if (resolution.outcome() != DidResolutionOutcome.RESOLVED) {
-            throw SystemDidRegistrationOutcome.notResolved(resolution).toException();
+        if (result.status() == DidBatchResolution.Status.NOT_RESOLVED) {
+            throw SystemDidRegistrationOutcome.notResolved(result.resolution()).toException();
         }
     }
 }

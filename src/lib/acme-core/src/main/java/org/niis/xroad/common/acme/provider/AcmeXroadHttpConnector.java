@@ -32,6 +32,7 @@ import org.shredzone.acme4j.connector.NetworkSettings;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 
 import static ee.ria.xroad.common.Version.XROAD_VERSION;
@@ -42,8 +43,8 @@ public class AcmeXroadHttpConnector extends HttpConnector {
     public static final String XROAD_ACME_USER_AGENT = "X-Road/" + XROAD_VERSION + " " + HttpConnector.defaultUserAgent();
     private final NetworkSettings networkSettings;
 
-    public AcmeXroadHttpConnector(NetworkSettings networkSettings) {
-        super(networkSettings);
+    public AcmeXroadHttpConnector(NetworkSettings networkSettings, HttpClient httpClient) {
+        super(networkSettings, httpClient);
         this.networkSettings = networkSettings;
     }
 

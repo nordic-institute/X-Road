@@ -28,7 +28,8 @@ package org.niis.xroad.cs.test.api.admin;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
-import org.niis.xroad.cs.openapi.model.SecurityServerAddressDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
+import org.niis.xroad.cs.openapi.model.SystemDidCheckRequestDto;
 
 import java.util.Map;
 
@@ -63,13 +64,32 @@ public class SecurityServersAdminClient {
     }
 
     /**
-     * Updates the address of a security server (PATCH /security-servers/{server_id}).
+     * Updates the address of a security server, leaving its stored SYSTEM pair untouched
+     * (PATCH /security-servers/{server_id}).
      */
     public ValidatableResponse updateSecurityServerAddress(String serverId, String newAddress) {
+        return updateSecurityServer(serverId, new SecurityServerEditDto().serverAddress(newAddress));
+    }
+
+    /**
+     * Edits the address and optionally the SYSTEM pair of a security server (PATCH /security-servers/{server_id}).
+     */
+    public ValidatableResponse updateSecurityServer(String serverId, SecurityServerEditDto edit) {
         return session.given()
                 .contentType(ContentType.JSON)
-                .body(new SecurityServerAddressDto().serverAddress(newAddress))
+                .body(edit)
                 .patch("/security-servers/{server_id}", serverId)
+                .then();
+    }
+
+    /**
+     * Checks a proposed SYSTEM DID against a proposed address (POST /security-servers/{server_id}/system-did-check).
+     */
+    public ValidatableResponse checkSystemDid(String serverId, String serverAddress, String systemDid) {
+        return session.given()
+                .contentType(ContentType.JSON)
+                .body(new SystemDidCheckRequestDto().serverAddress(serverAddress).systemDid(systemDid))
+                .post("/security-servers/{server_id}/system-did-check", serverId)
                 .then();
     }
 

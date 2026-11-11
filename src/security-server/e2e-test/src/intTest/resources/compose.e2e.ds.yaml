@@ -83,7 +83,6 @@ services:
         aliases:
           - ${ENV_PREFIX:-}ds-control-plane
     ports:
-      - "0:8181"
       - "0:8183" # protocol, /api/dsp
       - "0:9999" # debug port
     deploy:
