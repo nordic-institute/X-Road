@@ -237,6 +237,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== OPERATIONAL MONITORING ERRORS =====
     OPERATIONAL_DATA_RESPONSE_TOO_LARGE("operational_data_response_too_large"),
+    OP_MONITOR_TRUST_FAILURE("op_monitor_trust_failure"),
 
     // ===== BUSINESS LOGIC ERRORS =====
     DUPLICATE_ENTRY("duplicate_entry"),

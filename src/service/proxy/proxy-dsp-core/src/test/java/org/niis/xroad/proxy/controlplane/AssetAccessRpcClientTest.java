@@ -28,7 +28,9 @@ package org.niis.xroad.proxy.controlplane;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
+import com.google.protobuf.Any;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -42,11 +44,15 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
+import jakarta.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -59,6 +65,7 @@ import org.niis.xroad.edc.assetaccess.proto.AssetAccessWinner;
 import org.niis.xroad.edc.assetaccess.proto.ReportCounterPartyFailureReq;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -69,13 +76,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACCESS_REFUSED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 @ExtendWith(MockitoExtension.class)
@@ -95,6 +106,19 @@ class AssetAccessRpcClientTest {
     private static final List<AcquisitionCandidate> PROVIDER =
             List.of(new AcquisitionCandidate("provider-1", "http://provider/dsp"));
 
+    private static final String CONSUMER_CTX = "DEV:COM:222";
+    private static final ClientId TESTCLIENT = ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT");
+    private static final String PETSTORE =
+            ServiceId.Conf.create("DEV", "COM", "222", "TESTSERVICE", "petstore").asEncodedId();
+    private static final AcquisitionCandidate CANDIDATE_SS0 = new AcquisitionCandidate(
+            "did:web:ss0.example.org%3A7183:v1:DEV:COM:222",
+            "https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
+    private static final AcquisitionCandidate CANDIDATE_SS1 = new AcquisitionCandidate(
+            "did:web:ss1.example.org%3A7183:v1:DEV:COM:222",
+            "https://ss1.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
+    private static final List<AcquisitionCandidate> SS0 = List.of(CANDIDATE_SS0);
+    private static final List<AcquisitionCandidate> SS0_AND_SS1 = List.of(CANDIDATE_SS0, CANDIDATE_SS1);
+
     private Server server;
     private ManagedChannel channel;
     private AssetAccessRpcClient client;
@@ -105,6 +129,8 @@ class AssetAccessRpcClientTest {
     private AcquireAssetAccessResp configuredResponse;
     private StatusRuntimeException configuredError;
     private CountDownLatch holdLatch;
+
+    private final AtomicLong refusalNanos = new AtomicLong();
 
     private final AtomicReference<ReportCounterPartyFailureReq> capturedReport = new AtomicReference<>();
     private final CountDownLatch reportReceived = new CountDownLatch(1);
@@ -172,7 +198,7 @@ class AssetAccessRpcClientTest {
         when(cacheProperties.maximumSize()).thenReturn(10_000L);
         when(cacheProperties.margin()).thenReturn(Duration.ofSeconds(5));
 
-        client = new AssetAccessRpcClient(rpcChannelFactory, channelProperties, clientProperties);
+        client = new AssetAccessRpcClient(rpcChannelFactory, channelProperties, clientProperties, refusalNanos::get);
         client.init();
     }
 
@@ -677,5 +703,119 @@ class AssetAccessRpcClientTest {
         assertThat(options.isWaitForReady()).isFalse();
         assertThat(options.getDeadline()).isNotNull();
         assertThat(options.getDeadline().timeRemaining(TimeUnit.MILLISECONDS)).isPositive().isLessThanOrEqualTo(5_000);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"dsp_access_refused", "dsp_dataset_not_found", "dsp_offers_not_found"})
+    void aRefusedCallRepeatedWithinTheLifetimeIsRefusedAgainWithoutContactingTheControlPlane(String refusalCode) {
+        stubProtocol();
+        configuredError = controlPlaneError("dataspace." + refusalCode);
+
+        var first = acquireRefused(SS0, null, TESTCLIENT);
+        var repeat = acquireRefused(SS0, null, TESTCLIENT);
+
+        assertThat(requestCount.get()).isEqualTo(1);
+        assertThat(repeat.getCode()).isEqualTo(first.getCode()).endsWith(refusalCode);
+    }
+
+    @Test
+    void aTransferRefusalIsNotRememberedAndTheRepeatAsksTheControlPlaneAgain() {
+        stubProtocol();
+        configuredError = controlPlaneError("dataspace." + DSP_TRANSFER_FAILED.code());
+
+        var first = acquireRefused(SS0, null, TESTCLIENT);
+        var repeat = acquireRefused(SS0, null, TESTCLIENT);
+
+        assertThat(requestCount.get()).isEqualTo(2);
+        assertThat(repeat.getCode()).isEqualTo(first.getCode()).endsWith(DSP_TRANSFER_FAILED.code());
+    }
+
+    @Test
+    void aTransportFaultOfTheControlPlaneCallIsNotRemembered() {
+        stubProtocol();
+        configuredError = new StatusRuntimeException(Status.UNAVAILABLE);
+
+        assertThatThrownBy(() -> client.acquireAssetAccess(CONSUMER_CTX, PETSTORE, SS0, null, TESTCLIENT, TIMEOUT))
+                .isInstanceOf(StatusRuntimeException.class);
+        assertThatThrownBy(() -> client.acquireAssetAccess(CONSUMER_CTX, PETSTORE, SS0, null, TESTCLIENT, TIMEOUT))
+                .isInstanceOf(StatusRuntimeException.class);
+
+        assertThat(requestCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void aRefusedCallAsksTheControlPlaneAgainOnceTheMemoryHasExpiredAndCachesTheGrant() {
+        stubProtocol();
+        configuredError = controlPlaneError("dataspace." + DSP_ACCESS_REFUSED.code());
+        acquireRefused(SS0, null, TESTCLIENT);
+        refusalNanos.addAndGet(RefusalMemory.LIFETIME.minusMillis(1).toNanos());
+        acquireRefused(SS0, null, TESTCLIENT);
+        configuredError = null;
+        configuredResponse = responseBuilder()
+                .setEndpoint("https://ss0.example.org/pets/1")
+                .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
+                .build();
+
+        refusalNanos.addAndGet(Duration.ofMillis(1).toNanos());
+        var granted = client.acquireAssetAccess(CONSUMER_CTX, PETSTORE, SS0, null, TESTCLIENT, TIMEOUT);
+        var cached = client.acquireAssetAccess(CONSUMER_CTX, PETSTORE, SS0, null, TESTCLIENT, TIMEOUT);
+
+        assertThat(granted.endpoint()).isEqualTo("https://ss0.example.org/pets/1");
+        assertThat(cached.endpoint()).isEqualTo("https://ss0.example.org/pets/1");
+        assertThat(requestCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void aRefusalForOneCandidateSetDoesNotKeepAnotherCandidateSetFromAsking() {
+        stubProtocol();
+        configuredError = controlPlaneError("dataspace." + DSP_ACCESS_REFUSED.code());
+        acquireRefused(SS0, null, TESTCLIENT);
+        configuredError = null;
+        configuredResponse = responseBuilder().setEndpoint("https://ss1.example.org/pets/1").build();
+
+        var result = client.acquireAssetAccess(CONSUMER_CTX, PETSTORE, SS0_AND_SS1, null, TESTCLIENT, TIMEOUT);
+
+        assertThat(result.endpoint()).isEqualTo("https://ss1.example.org/pets/1");
+        assertThat(requestCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void aRefusalWithoutAForcedTargetDoesNotKeepAForcedCallFromAsking() {
+        stubProtocol();
+        configuredError = controlPlaneError("dataspace." + DSP_ACCESS_REFUSED.code());
+
+        acquireRefused(SS0_AND_SS1, null, TESTCLIENT);
+        acquireRefused(SS0_AND_SS1, SecurityServerId.Conf.create("DEV", "COM", "222", "ss0"), TESTCLIENT);
+
+        assertThat(requestCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void aRefusalIsNotRememberedForAnotherCaller() {
+        stubProtocol();
+        configuredError = controlPlaneError("dataspace." + DSP_ACCESS_REFUSED.code());
+
+        acquireRefused(SS0, null, TESTCLIENT);
+        acquireRefused(SS0, null, ClientId.Conf.create("DEV", "COM", "222", "OTHERCLIENT"));
+
+        assertThat(requestCount.get()).isEqualTo(2);
+    }
+
+    private XrdRuntimeException acquireRefused(List<AcquisitionCandidate> candidates,
+                                               @Nullable SecurityServerId forcedTarget, ClientId consumer) {
+        var failure = catchThrowable(() ->
+                client.acquireAssetAccess(CONSUMER_CTX, PETSTORE, candidates, forcedTarget, consumer, TIMEOUT));
+        assertThat(failure).isInstanceOf(XrdRuntimeException.class);
+        return (XrdRuntimeException) failure;
+    }
+
+    private static StatusRuntimeException controlPlaneError(String code) {
+        return StatusProto.toStatusRuntimeException(com.google.rpc.Status.newBuilder()
+                .setCode(Status.Code.INTERNAL.value())
+                .addDetails(Any.pack(XrdRuntimeExceptionProto.newBuilder()
+                        .setIdentifier("control-plane-failure")
+                        .setErrorCode(code)
+                        .build()))
+                .build());
     }
 }

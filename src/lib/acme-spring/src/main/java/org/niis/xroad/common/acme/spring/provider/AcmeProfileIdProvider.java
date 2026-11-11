@@ -35,6 +35,7 @@ import org.shredzone.acme4j.connector.NetworkSettings;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
 @Slf4j
 public class AcmeProfileIdProvider extends AcmeXroadProvider {
 
@@ -55,8 +56,8 @@ public class AcmeProfileIdProvider extends AcmeXroadProvider {
     }
 
     @Override
-    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
-        return new AcmeProfileIdConnection(createHttpConnector(networkSettings));
+    public Connection connect(URI serverUri, NetworkSettings networkSettings, HttpClient httpClient) {
+        return new AcmeProfileIdConnection(createHttpConnector(networkSettings, httpClient));
     }
 
 }

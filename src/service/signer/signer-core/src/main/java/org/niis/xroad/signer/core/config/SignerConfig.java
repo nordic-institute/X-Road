@@ -26,12 +26,17 @@
 package org.niis.xroad.signer.core.config;
 
 import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.healthcheck.HealthCheckProperties;
 import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -41,6 +46,7 @@ import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
@@ -63,7 +69,8 @@ import java.util.Map;
 public class SignerConfig {
 
     @ApplicationScoped
-    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName,
+                            NodeIdentity nodeIdentity) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(SignerConfigKeys.instance())
@@ -73,7 +80,7 @@ public class SignerConfig {
                 .register(OcspVerifierConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .overrides(profileOverrides())
-                .dbOverrides(appName)
+                .dbOverrides(appName, NodeNameProvider.of(nodeIdentity.name()))
                 .build();
     }
 
@@ -159,9 +166,20 @@ public class SignerConfig {
         }
     }
 
+    // NodeIdentity is a final record: a normal scope would need a client proxy, which a record cannot have.
+    @Produces
+    @Singleton
+    NodeIdentity nodeIdentity() {
+        return NodeIdentity.fromEnvironment();
+    }
+
+    void onStart(@Observes StartupEvent event, NodeIdentity nodeIdentity) {
+        log.info("Signer node name '{}' ({})", nodeIdentity.name(), nodeIdentity.configured() ? "configured" : "default");
+    }
+
     @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity) {
+        return new QuarkusVaultClient(kvSecretEngine, nodeIdentity);
     }
 
     private static DeploymentMode deploymentMode() {

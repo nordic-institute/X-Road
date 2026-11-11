@@ -489,7 +489,8 @@
       "agreement_token_key_not_available": "The agreement token signing key is not available. The proxy has not loaded any signing key yet",
       "agreement_token_key_store_failed": "The agreement token signing key could not be saved to the secret store. Try again later",
       "agreement_token_rejected": "The agreement token was rejected",
-      "agreement_token_signing_failed": "Signing the agreement token failed"
+      "agreement_token_signing_failed": "Signing the agreement token failed",
+      "op_monitor_trust_failure": "Could not establish a trusted connection to Operational Monitoring"
     },
     "csr_not_found": "CSR not found",
     "database_error": "Database error",
@@ -636,7 +637,8 @@
     "tr": {
       "op_monitor": {
         "network_error": "Network error: Operational Monitoring is not available"
-      }
+      },
+      "op_monitor_trust_failure": "Check the imported Operational Monitoring CA on the Operational Monitoring Trust tab and that the secret store (OpenBao) is available, then try again."
     },
     "unknown_host": "Connection error, unknown host",
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
@@ -927,6 +929,7 @@
       "description": "The CA of an operational monitoring daemon running on another host. Upload it so that this Security Server trusts that operational monitoring daemon. The file must hold exactly one PEM or DER encoded CA certificate and no private key.",
       "empty": "No Operational Monitoring CA is stored",
       "replace": "Replace",
+      "restartHint": "Restart proxy and admin-service to apply.",
       "title": "Operational Monitoring CA",
       "upload": "Upload",
       "uploaded": "The Operational Monitoring CA is stored"
@@ -1385,7 +1388,7 @@
             "enabled": "Flag for enabling or disabling the AntiDOS system."
           },
           "common-rpc": {
-            "use-tls": "When enabled, mutual TLS is used for all gRPC communication between the Security Server internal services.",
+            "use-tls": "For testing only; never turn it off in production. When enabled, mutual TLS is used for all gRPC communication between the Security Server internal services. When disabled, all internal gRPC communication is plaintext, including the connection to the operational monitoring daemon, and the imported Operational Monitoring CA and the allowed client names are not applied.",
             "certificate-provisioning": {
               "refresh-interval": "How often services check whether their gRPC TLS certificate needs to be renewed (e.g. 5H).",
               "wait-duration": "Delay before the first retry after a failed load of the gRPC TLS certificate from the secret store (e.g. 5S).",
@@ -1483,7 +1486,8 @@
             "rpc": {
               "listen-address": "IP address on which the operational monitoring daemon gRPC server listens.",
               "port": "Port on which the operational monitoring daemon gRPC server listens.",
-              "max-inbound-message-size": "Maximum size in bytes of a request the operational monitoring daemon gRPC server accepts, for example a batch of stored operational data records. The minimum is 65536. If not set, the gRPC default of 4 MiB applies. Keep it above xroad.proxy.addon.op-monitor.buffer.max-message-size."
+              "max-inbound-message-size": "Maximum size in bytes of a request the operational monitoring daemon gRPC server accepts, for example a batch of stored operational data records. The minimum is 65536. If not set, the gRPC default of 4 MiB applies. Keep it above xroad.proxy.addon.op-monitor.buffer.max-message-size.",
+              "allowed-client-names": "Comma-separated client names the operational monitoring daemon gRPC server accepts when RPC TLS is on. A client is accepted when its certificate CN or DNS SAN equals an entry (case-insensitive, no IP SANs, no wildcards). Empty (default) accepts any client with a certificate from the Security Server CA. A wildcard or empty entry stops the daemon at startup. Restart the daemon after a change."
             }
           },
           "message-log-archiver": {

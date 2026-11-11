@@ -6629,7 +6629,6 @@ components:
             maxLength: 255
     MailNotificationType:
       type: string
-      format: enum
       description: types of mail notifications that can be turned on or off via configuration
       example: ACME_FAILURE
       enum:
@@ -6665,7 +6664,6 @@ components:
           format: text
     MailStatus:
       type: string
-      format: enum
       description: Whether the sending was a success or an error
       example: success
       enum:
@@ -7104,7 +7102,6 @@ components:
             $ref: '#/components/schemas/OcspResponder'
     CertificateStatus:
       type: string
-      format: enum
       description: certificate status
       example: IN_USE
       enum:
@@ -7115,7 +7112,6 @@ components:
         - GLOBAL_ERROR
     CertificateAuthorityOcspResponse:
       type: string
-      format: enum
       description: certificate authority OCSP status
       example: IN_USE
       enum:
@@ -7126,7 +7122,6 @@ components:
         - OCSP_RESPONSE_REVOKED
     CertificateOcspStatus:
       type: string
-      format: enum
       description: certificate status
       example: IN_USE
       enum:
@@ -7153,7 +7148,6 @@ components:
         $ref: '#/components/schemas/PossibleAction'
     PossibleAction:
       type: string
-      format: enum
       description: an action to change state or edit token, key, cert or csr
       example: DELETE
       enum:
@@ -7255,7 +7249,6 @@ components:
           $ref: '#/components/schemas/ClientStatus'
     RenameStatus:
       type: string
-      format: enum
       description: rename status
       example: NAME_SET
       readOnly: true
@@ -7277,7 +7270,6 @@ components:
             any warnings cause request to fail
     ClientStatus:
       type: string
-      format: enum
       description: client status
       example: REGISTERED
       readOnly: true
@@ -7294,7 +7286,6 @@ components:
       $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     ConnectionType:
       type: string
-      format: enum
       description: connection type
       example: HTTP
       default: HTTPS
@@ -7310,7 +7301,6 @@ components:
           $ref: '#/components/schemas/ConnectionType'
     CsrFormat:
       type: string
-      format: enum
       description: format of the certificate signing request (PEM or DER)
       example: PEM
       default: PEM
@@ -7437,7 +7427,6 @@ components:
           readOnly: true
     DiagnosticStatusClass:
       type: string
-      format: enum
       description: diagnostics status class
       example: OK
       enum:
@@ -7793,7 +7782,6 @@ components:
         - RSA
         - EC
       example: RSA
-      format: enum
       type: string
     KeyName:
       type: object
@@ -7836,7 +7824,6 @@ components:
           $ref: '#/components/schemas/CsrGenerate'
     KeyUsage:
       type: string
-      format: enum
       description: certificate key usage
       example: NON_REPUDIATION
       enum:
@@ -7851,7 +7838,6 @@ components:
         - DECIPHER_ONLY
     KeyUsageType:
       type: string
-      format: enum
       description: intended usage for the key (signing or authentication)
       example: AUTHENTICATION
       enum:
@@ -7907,7 +7893,6 @@ components:
             maxLength: 1023
     NodeType:
       type: string
-      format: enum
       description:
         <p>The enum can have three different values</p>
         <ul>
@@ -7930,7 +7915,6 @@ components:
           $ref: '#/components/schemas/NodeType'
     AuthProviderType:
       type: string
-      format: enum
       description:
         <p>The enum can have three different values</p>
         <ul>
@@ -8088,7 +8072,6 @@ components:
         is_management_services_provider: false
     MaintenanceModeStatus:
       type: string
-      format: enum
       description: Maintenance Mode status
       example: ENABLED_MAINTENANCE_MODE
       enum:
@@ -8489,7 +8472,6 @@ components:
           $ref: '#/components/schemas/ServiceType'
     ServicePrioritizationStrategy:
       type: string
-      format: enum
       description: service prioritization strategy
       example: FREE_FIRST
       enum:
@@ -8578,7 +8560,6 @@ components:
         - PAID
         - UNDEFINED
       example: FREE
-      format: enum
       type: string
     Token:
       type: object
@@ -8649,7 +8630,6 @@ components:
           $ref: '#/components/schemas/PossibleActions'
     TokenInitStatus:
       type: string
-      format: enum
       description: whether a token has been initialized or not – if the software token init status
         cannot be resolved (e.g. signer module is offline), the value is UNKNOWN
       example: INITIALIZED
@@ -8779,6 +8759,7 @@ components:
       required:
         - enabled
         - auth_cert_registered
+        - server
         - participant_contexts
       properties:
         enabled:
@@ -8789,12 +8770,47 @@ components:
           type: boolean
           readOnly: true
           description: whether the authentication certificate is in REGISTERED state
+        server:
+          $ref: '#/components/schemas/DataspaceServerStatus'
         participant_contexts:
           type: array
           readOnly: true
           description: provisioning status per participant context
           items:
             $ref: '#/components/schemas/DataspaceParticipantContextStatus'
+    DataspaceServerStatus:
+      type: object
+      description: server-level data space status, including the publication of the SYSTEM values
+      required:
+        - dataspace_ready
+        - publication_state
+      properties:
+        dataspace_ready:
+          type: boolean
+          readOnly: true
+          description: whether the data space is ready, that is globalconf lists a credential issuer for this instance
+        dsp_base_url:
+          type: string
+          readOnly: true
+          description: DSP base URL of this security server, built from the registered address; absent while the address is unknown
+        publication_state:
+          $ref: '#/components/schemas/DataspacePublicationState'
+        publication_reason:
+          type: string
+          readOnly: true
+          description: reason for the publication state, for example the Central Server's conflict reason
+    DataspacePublicationState:
+      type: string
+      readOnly: true
+      description: >-
+        whether the SYSTEM values have reached the Central Server. NOT_SENT: not sent yet or retrying.
+        SUBMITTED: accepted by the Central Server, not yet in globalconf. PUBLISHED: seen in globalconf.
+        REJECTED: refused with a final reason.
+      enum:
+        - NOT_SENT
+        - SUBMITTED
+        - PUBLISHED
+        - REJECTED
     DataspaceParticipantContextStatus:
       type: object
       description: provisioning status for one data space participant context
@@ -8843,6 +8859,12 @@ components:
             - REJECTED
             - DRIFTED
             - UNKNOWN
+        publication_state:
+          $ref: '#/components/schemas/DataspacePublicationState'
+        publication_reason:
+          type: string
+          readOnly: true
+          description: reason for the publication state of a MEMBER context; absent for SYSTEM contexts
     AgreementTokenKeyStatus:
       type: object
       description: status of the agreement token signing key of the connected proxy

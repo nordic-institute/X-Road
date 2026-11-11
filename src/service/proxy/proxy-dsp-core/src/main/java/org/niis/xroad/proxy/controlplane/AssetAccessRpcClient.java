@@ -29,13 +29,14 @@ package org.niis.xroad.proxy.controlplane;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.github.benmanes.caffeine.cache.Ticker;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
@@ -57,9 +58,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * gRPC-based implementation of {@link AssetAccessAcquisitionService} that calls
  * the ds-control-plane AssetAccessService to acquire asset access responses.
+ *
+ * <p>A negotiation refusal is remembered by {@link RefusalMemory} under the cache key for a few seconds: a repeat of
+ * the call within that time is refused again with the code of the first refusal, without contacting the control plane.
  */
 @Slf4j
-@RequiredArgsConstructor
 @ApplicationScoped
 public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAccessAcquisitionService {
 
@@ -68,12 +71,27 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     private final RpcChannelFactory rpcChannelFactory;
     private final ControlPlaneRpcChannelProperties channelProperties;
     private final AssetAccessClientProperties clientProperties;
+    private final RefusalMemory refusalMemory;
 
     private ManagedChannel channel;
     private AssetAccessServiceGrpc.AssetAccessServiceBlockingStub accessServiceBlockingStub;
     private AssetAccessServiceGrpc.AssetAccessServiceStub failureReportStub;
 
     private AssetAccessCache cache;
+
+    @Inject
+    public AssetAccessRpcClient(RpcChannelFactory rpcChannelFactory, ControlPlaneRpcChannelProperties channelProperties,
+                                AssetAccessClientProperties clientProperties) {
+        this(rpcChannelFactory, channelProperties, clientProperties, Ticker.systemTicker());
+    }
+
+    AssetAccessRpcClient(RpcChannelFactory rpcChannelFactory, ControlPlaneRpcChannelProperties channelProperties,
+                         AssetAccessClientProperties clientProperties, Ticker refusalTicker) {
+        this.rpcChannelFactory = rpcChannelFactory;
+        this.channelProperties = channelProperties;
+        this.clientProperties = clientProperties;
+        this.refusalMemory = new RefusalMemory(refusalTicker);
+    }
 
     @Override
     public ErrorOrigin getRpcOrigin() {
@@ -128,10 +146,20 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
                 forcedTarget != null ? forcedTarget.asEncodedId() : null,
                 clientProperties.protocol(),
                 consumerClientId != null ? consumerClientId.asEncodedId() : null);
-        if (cache == null) {
-            return loadAssetAccess(cacheKey, candidates, timeout).response();
+        var remembered = refusalMemory.recall(cacheKey);
+        if (remembered.isPresent()) {
+            log.debug("Asset {} was refused for this call a moment ago, not asking again", assetId);
+            throw remembered.get();
         }
-        return cache.get(cacheKey, key -> loadAssetAccess(key, candidates, timeout)).response();
+        try {
+            if (cache == null) {
+                return loadAssetAccess(cacheKey, candidates, timeout).response();
+            }
+            return cache.get(cacheKey, key -> loadAssetAccess(key, candidates, timeout)).response();
+        } catch (RuntimeException e) {
+            refusalMemory.rememberIfRefusal(cacheKey, e);
+            throw e;
+        }
     }
 
     @Override

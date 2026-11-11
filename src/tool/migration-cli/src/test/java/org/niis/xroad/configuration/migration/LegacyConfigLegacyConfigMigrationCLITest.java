@@ -27,6 +27,8 @@ package org.niis.xroad.configuration.migration;
 
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.PathResource;
@@ -35,6 +37,8 @@ import org.springframework.core.io.Resource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -187,6 +191,22 @@ class LegacyConfigLegacyConfigMigrationCLITest {
                 .anyMatch(l -> l.contains("# serverconf.hibernate.connection.password")));
     }
 
+
+    @Test
+    void shouldStoreNodeLookingValueOfSetPropertyUnchanged() {
+        var constructorArguments = new ArrayList<List<?>>();
+        try (MockedConstruction<SinglePropertySetter> setters = Mockito.mockConstruction(SinglePropertySetter.class,
+                (setter, context) -> constructorArguments.add(List.copyOf(context.arguments())))) {
+            LegacyConfigMigrationCLI.main(new String[]{
+                    "set-property",
+                    INPUT_DB_PROPERTIES_SRC,
+                    "xroad.sample.property",
+                    "--node=secret"});
+            assertEquals(1, setters.constructed().size());
+            Mockito.verify(setters.constructed().getFirst()).migrate("cmdline", INPUT_DB_PROPERTIES_SRC);
+        }
+        assertEquals(List.of(List.of("xroad.sample.property", "--node=secret")), constructorArguments);
+    }
 
     @SneakyThrows
     private PropertySource<?> loadYaml(String path) {

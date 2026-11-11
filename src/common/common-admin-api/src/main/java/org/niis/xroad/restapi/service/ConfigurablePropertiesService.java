@@ -145,9 +145,9 @@ public class ConfigurablePropertiesService {
         systemPropertyDto.setDefaultValue(parameter.defaultValue());
         systemPropertyDto.setScope(parameter.scope());
         storedValues.stream()
-                .filter(v -> v.getPropertyKey().equals(parameter.propertyName()))
+                .filter(v -> v.getHaNodeName() == null && v.getPropertyKey().equals(parameter.propertyName()))
                 .map(ConfigurationPropertyEntity::getPropertyValue)
-                .findAny()
+                .findFirst()
                 .ifPresent(systemPropertyDto::setCurrentValue);
         return systemPropertyDto;
     }

@@ -34,7 +34,7 @@ package org.niis.xroad.securityserver.restapi.service;
  * @param reason    reason name reported by the Central Server, set only for the conflict and not resolved statuses
  * @param cause     send failure cause, set only when sending failed
  */
-public record SystemDidRegistrationSendOutcome(Status status, Integer requestId, String reason, Exception cause) {
+public record SystemDidRegistrationSendOutcome(Status status, Integer requestId, String reason, Throwable cause) {
 
     public enum Status {
         STORED,
@@ -60,7 +60,7 @@ public record SystemDidRegistrationSendOutcome(Status status, Integer requestId,
         return new SystemDidRegistrationSendOutcome(Status.NOT_RESOLVED, null, reason, null);
     }
 
-    public static SystemDidRegistrationSendOutcome sendFailure(Exception cause) {
+    public static SystemDidRegistrationSendOutcome sendFailure(Throwable cause) {
         return new SystemDidRegistrationSendOutcome(Status.SEND_FAILURE, null, null, cause);
     }
 }

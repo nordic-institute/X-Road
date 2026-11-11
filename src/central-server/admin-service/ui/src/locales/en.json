@@ -617,7 +617,7 @@
             "cache-period": "How long (in seconds) OCSP verification results are cached before being re-checked."
           },
           "common-rpc": {
-            "use-tls": "When enabled, mutual TLS is used for gRPC communication between the Central Server's co-located services.",
+            "use-tls": "For testing only; never turn it off in production. When enabled, mutual TLS is used for gRPC communication between the Central Server's co-located services. When disabled, this gRPC communication is plaintext.",
             "certificate-provisioning": {
               "refresh-interval": "How often services check whether their gRPC TLS certificate needs to be renewed (e.g. 5H).",
               "wait-duration": "Delay before the first retry after a failed load of the gRPC TLS certificate from the secret store (e.g. 5S).",

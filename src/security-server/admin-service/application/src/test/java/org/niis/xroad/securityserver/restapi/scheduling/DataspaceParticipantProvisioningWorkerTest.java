@@ -75,6 +75,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.atLeastOnce;
@@ -112,6 +113,8 @@ class DataspaceParticipantProvisioningWorkerTest {
     private DataspaceParticipantBindingService participantBindingService;
     @Mock
     private AdminServiceProperties adminServiceProperties;
+    @Mock
+    private DataspacePublicationStage publicationStage;
     @Mock
     private AdminServiceProperties.Dataspace dataspace;
 
@@ -169,6 +172,75 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
+    void publicationStageRunsOnAPassWhereEveryContextConverged() {
+        var converged = statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT)).thenReturn(converged);
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT)), anyBoolean());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
+    }
+
+    @Test
+    void publicationStageRunsAfterBindAndProvisionWithTheEnsuredContexts() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+
+        worker.provisionParticipant();
+
+        var order = inOrder(participantBindingService, dataspaceProvisioningService, publicationStage);
+        order.verify(participantBindingService).bindSystemIfAbsent(HUB_DID);
+        order.verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_CONTEXT);
+        order.verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT)), anyBoolean());
+    }
+
+    @Test
+    void publicationStageDoesNotSeeAContextWhoseEnsureFailed() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+        doThrow(new IllegalStateException("hub down")).when(dataspaceProvisioningService).ensureParticipantContext(any());
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(eq(Set.of()), anyBoolean());
+    }
+
+    @Test
+    void publicationStageDoesNotSeeAContextWhoseAnchorIsUnconfirmed() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_CONTEXT)).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(eq(Set.of()), anyBoolean());
+    }
+
+    @Test
+    void publicationStageDoesNotSeeAServedContextWhoseCredentialIsMissingAndAnchorUnconfirmed() {
+        var servedWithoutCredential = statusOf(true, CredentialStatus.ABSENT, IdentityStatus.OK);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT)).thenReturn(servedWithoutCredential);
+        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_CONTEXT)).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(eq(Set.of()), anyBoolean());
+    }
+
+    @Test
+    void publicationStageIsSkippedWhileTheOwnerIsUnknown() {
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(PRE_OWNER_SYSTEM_CONTEXT));
+
+        worker.provisionParticipant();
+
+        verify(publicationStage, never()).publish(any(), anyBoolean());
+    }
+
+    @Test
     void scheduledProvisionSwallowsFailures() {
         when(dataspaceProvisioningService.participantContexts()).thenThrow(new RuntimeException("boom"));
 
@@ -180,6 +252,50 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(dataspaceProvisioningService.participantContexts()).thenThrow(new RuntimeException("boom"));
 
         assertThatCode(() -> worker.provisionParticipantBestEffort()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void publicationStageRunsAfterAMemberIsBoundAndProvisioned() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+
+        worker.provisionParticipant();
+
+        var order = inOrder(participantBindingService, dataspaceProvisioningService, publicationStage);
+        order.verify(participantBindingService).bindMembersIfAbsent(Map.of(MEMBER, HUB_DID));
+        order.verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        order.verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT, MEMBER_CONTEXT)), anyBoolean());
+    }
+
+    @Test
+    void publicationStageGetsTrueWhenTheOwnerMemberCredentialIsIssued() {
+        var ownerMember = new ParticipantContext("TEST:GOV:1234", ParticipantKind.MEMBER, OWNER);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, ownerMember));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
+        when(dataspaceProvisioningService.readContextStatus(ownerMember))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(any(), eq(true));
+    }
+
+    @Test
+    void publicationStageGetsFalseWhenOnlyAnotherMemberCredentialIsIssued() {
+        var ownerMember = new ParticipantContext("TEST:GOV:1234", ParticipantKind.MEMBER, OWNER);
+        when(dataspaceProvisioningService.participantContexts())
+                .thenReturn(List.of(SYSTEM_CONTEXT, ownerMember, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
+        when(dataspaceProvisioningService.readContextStatus(ownerMember))
+                .thenReturn(statusOf(true, CredentialStatus.PENDING, IdentityStatus.OK));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(any(), eq(false));
     }
 
     @Test

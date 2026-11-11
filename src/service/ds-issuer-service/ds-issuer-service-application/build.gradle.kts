@@ -82,4 +82,8 @@ dependencies {
 
   runtimeOnly(project(":service:ds-issuer-service:ds-issuer-service-customization"))
   runtimeOnly(project(":service:ds-issuer-service:ds-issuer-service-provisioning-api"))
+
+  testImplementation(testFixtures(project(":lib:properties-core")))
+  testImplementation(testFixtures(project(":lib:bootstrap-edc-quarkus")))
+  testImplementation(libs.assertj.core)
 }

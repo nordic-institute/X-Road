@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.115
+Version: 2.117
 Doc. ID: UG-SS
 
 ---
@@ -145,6 +145,7 @@ Doc. ID: UG-SS
 | 19.10.2026 | 2.114   | Added chapter [26](#26-managing-the-agreement-token-signing-key) on viewing and rotating the agreement token signing key                                                                                                                                                                                                                                                                                   | Andres Rosenthal     |
 | 20.10.2026 | 2.115   | Added automatic rotation, key retention and the remote secret store requirements to chapter [26](#26-managing-the-agreement-token-signing-key)                                                                                                                                                                                                                                                             | Andres Rosenthal     |
 | 05.11.2026 | 2.116   | Added section [7.4](#74-access-rights-over-the-dataspace-protocol) on when local group membership changes take effect over the dataspace protocol                                                                                                                                                                                                                                                          | Andres Rosenthal     |
+| 06.11.2026 | 2.117   | Added section [15.2.7](#1527-trust-settings-of-the-operational-monitoring-connection) on the trust settings of the operational monitoring connection                                                                                                                                                                                                                                                       | Eneli Reimets        |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -280,6 +281,7 @@ Doc. ID: UG-SS
     - [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
     - [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
     - [15.2.6 Exchanging CA Certificates with an External Operational Monitoring Daemon](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon)
+    - [15.2.7 Trust Settings of the Operational Monitoring Connection](#1527-trust-settings-of-the-operational-monitoring-connection)
 - [16 Environmental Monitoring](#16-environmental-monitoring)
   - [16.1 Usage via SOAP API](#161-usage-via-soap-api)
   - [16.2 Limiting environmental monitoring remote data set](#162-limiting-environmental-monitoring-remote-data-set)
@@ -2878,7 +2880,7 @@ In the configuration of the Security Server (the channel to the daemon):
 
 `xroad.common-rpc.channel.op-monitor.port` – port of the daemon (by default the value is set to *2081*).
 
-The connection is secured with TLS using the shared internal gRPC identity of the Security Server. The parameter `xroad.common-rpc.use-tls` (by default *true*) turns TLS on or off for all the internal gRPC connections of the Security Server, including this one.
+The connection is secured with TLS using the shared internal gRPC identity of the Security Server. The parameter `xroad.common-rpc.use-tls` (by default *true*) turns TLS on or off for all the internal gRPC connections of the Security Server, including this one. The parameter is for testing only; do not set it to *false* in production. When it is *false*, the connections are unencrypted and the trust settings described in section [15.2.7](#1527-trust-settings-of-the-operational-monitoring-connection) are not applied.
 
 The values are changed in the System Parameters view of the Security Server user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. A changed value takes effect when the services that use it are restarted:
 
@@ -2895,7 +2897,7 @@ service xroad-proxy restart
 service xroad-proxy-ui-api restart
 ```
 
-- after changing the parameter `xroad.common-rpc.use-tls`, restart all the X-Road services of the Security Server.
+- after changing the parameter `xroad.common-rpc.use-tls` (testing only), restart all the X-Road services of the Security Server.
 
 
 #### 15.2.4 Installing an External Operational Monitoring Daemon
@@ -2966,6 +2968,10 @@ Both CAs are managed in the Security Server user interface and in the management
 - Download the Security Server RPC CA: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator), [System Administrator](#xroad-system-administrator)
 - Upload, replace and delete the Operational Monitoring CA: [Security Officer](#xroad-security-officer), [System Administrator](#xroad-system-administrator)
 
+**NOTE:** A change to the Operational Monitoring CA takes effect only after the proxy and admin-service are restarted. See **Applying the changes** below and section [15.2.7](#1527-trust-settings-of-the-operational-monitoring-connection).
+
+**NOTE:** The proxy keeps operational monitoring records in memory until it stores them in the operational monitoring daemon. When the proxy restarts, the records that are not yet stored are lost. This holds for a graceful restart too. By default the buffer holds 20000 records. When the buffer is full, the oldest records are dropped.
+
 **NOTE:** Each Security Server host has its own Security Server RPC CA, so one download covers one Security Server. If several Security Servers share one external operational monitoring daemon, upload the Operational Monitoring CA to every one of them. The operational monitoring daemon host then needs the Security Server RPC CA of every one of these Security Servers.
 
 _To view the Security Server RPC CA and the Operational Monitoring CA_, follow these steps.
@@ -2988,7 +2994,7 @@ _To upload the Operational Monitoring CA_, follow these steps.
 
 3. In the **Operational Monitoring CA** section, click **Upload** and select the CA certificate file.
 
-   The Security Server stores the certificate and shows its hash.
+   The Security Server stores the certificate and shows its hash. The view reminds you to restart the proxy and admin-service to apply the change.
 
 The file must hold exactly one CA certificate, in PEM or DER format. The CA can be a root CA or an intermediate CA, and it must be valid at the time of the upload. In a PEM file, text outside the certificate block is ignored.
 
@@ -3017,7 +3023,9 @@ _To delete the Operational Monitoring CA_, follow these steps.
 
 3. In the **Operational Monitoring CA** section, click **Delete**, then click **Yes** in the confirmation dialog.
 
-After the deletion, the Security Server trusts only the Security Server RPC CA again, as for an operational monitoring daemon on the same host. Deleting does not change the host and port settings of the operational monitoring daemon connection. Deleting when no Operational Monitoring CA is stored succeeds and changes nothing.
+   The view reminds you to restart the proxy and admin-service to apply the change.
+
+After the restart, the Security Server trusts only the Security Server RPC CA again, as for an operational monitoring daemon on the same host. Deleting does not change the host and port settings of the operational monitoring daemon connection. Deleting when no Operational Monitoring CA is stored succeeds and changes nothing.
 
 _To download the Security Server RPC CA_, follow these steps.
 
@@ -3047,6 +3055,19 @@ _To install the Security Server RPC CA on the operational monitoring daemon host
    service xroad-opmonitor restart
    ```
 
+**Applying the changes**
+
+The Security Server uses the Operational Monitoring CA when it creates its connections to the operational monitoring daemon. After the Operational Monitoring CA is uploaded, replaced or deleted, restart the proxy and admin-service on the Security Server:
+
+```bash
+service xroad-proxy restart
+service xroad-proxy-ui-api restart
+```
+
+Until the restart, the stored Operational Monitoring CA and the CA in use can differ.
+
+The proxy restart loses the operational monitoring records that are buffered in its memory and not yet stored (see the note at the beginning of this section). Plan the restart accordingly.
+
 **Management REST API**
 
 The same operations are available in the management REST API (see chapter [19](#19-management-rest-api) and \[[REST_UI-API](#Ref_REST_UI-API)\]). The roles are the same as in the user interface.
@@ -3075,6 +3096,52 @@ Both CAs are stored in the secret store (OpenBao).
 
 - When the secret store is installed on the Security Server host, the OpenBao data is included in the configuration backup described in chapter [13](#13-back-up-and-restore). The backup archive then contains both CAs.
 - When the secret store is remote, the configuration backup does not include it. Back up the remote secret store separately.
+
+#### 15.2.7 Trust Settings of the Operational Monitoring Connection
+
+This section explains how the Security Server decides whom to trust on the connection to the operational monitoring daemon, and how to configure the trust. For installing an external operational monitoring daemon, see section [15.2.4](#1524-installing-an-external-operational-monitoring-daemon).
+
+**How the trust is chosen**
+
+The proxy and the admin-service connect to the operational monitoring daemon. Both present the shared internal gRPC certificate of the Security Server. What they trust depends on the Operational Monitoring CA (see section [15.2.6](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon)):
+
+- When an Operational Monitoring CA is stored, the connections trust only this CA. The host name of the daemon is verified against its certificate.
+- When no Operational Monitoring CA is stored, the connections trust the Security Server RPC CA.
+
+The trust is chosen when the connection is created, on its first use. Therefore, after the Operational Monitoring CA is uploaded, replaced or deleted, restart the proxy and the admin-service.
+
+There is no fallback. If the Operational Monitoring CA cannot be read from the secret store (OpenBao), or it is not a valid certificate, the connection is not created and the call fails with the error code `op_monitor_trust_failure` (*Could not establish a trusted connection to Operational Monitoring*). In the admin user interface only the traffic view of the Diagnostics fails. In the proxy the failure is not remembered, so the next call tries again.
+
+The operational monitoring daemon trusts the Security Server RPC CA installed on its own host.
+
+**Certificate names**
+
+The certificate of the operational monitoring daemon must contain the exact host that the Security Server connects to, which is the value of `xroad.common-rpc.channel.op-monitor.host`.
+
+- If the host is a name, the certificate needs a DNS subject alternative name.
+- If the host is an IP address, the certificate needs an IP subject alternative name.
+
+By default the host and the IP subject alternative name are *127.0.0.1*.
+
+When the certificate of the daemon is issued by the secret store (OpenBao) of the Security Server, its names come from these parameters:
+
+- `xroad.common-rpc.certificate-provisioning.alt-names` – DNS subject alternative names, comma-separated (by default empty).
+- `xroad.common-rpc.certificate-provisioning.ip-subject-alt-names` – IP subject alternative names, comma-separated (by default *127.0.0.1*). A value you set replaces the default. In a package installation, keep *127.0.0.1* in the list; the other internal gRPC connections use it.
+- `xroad.common-rpc.certificate-provisioning.common-name` – common name of the certificate (by default the value of the environment variable `XROAD_HOST`, or *localhost* when it is not set).
+
+All internal gRPC components of the Security Server use these parameters, so a change applies to the certificates of all of them. The parameters are not shown in the System Parameters view. Set them with the script `/usr/share/xroad/scripts/db_property.sh`. The values are read when a component starts. After a change, restart the operational monitoring daemon so that it requests a certificate with the new names. Other components use the new names after their own next restart.
+
+**The allowed client names**
+
+The parameter `xroad.op-monitor.rpc.allowed-client-names` is a comma-separated list of the names of the components that may connect to the operational monitoring daemon. It is a parameter of the operational monitoring daemon. For details, see [UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR).
+
+In package installations and the Security Server Sidecar, leave the list empty: every component presents the same name, `localhost`, so the list cannot distinguish them.
+
+**The RPC TLS switch**
+
+The parameter `xroad.common-rpc.use-tls` (by default *true*) is for testing only. Do not set it to *false* in production.
+
+When the parameter is *false*, every internal gRPC connection of the Security Server is unencrypted, including the connection to the operational monitoring daemon. The Operational Monitoring CA and the allowed client names are not applied. Traffic to an external operational monitoring daemon is then neither encrypted nor authenticated. A malformed list of allowed client names still stops the daemon at startup. A valid, non-empty list only causes one warning in the daemon log.
 
 ## 16 Environmental Monitoring
 

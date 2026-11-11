@@ -2,7 +2,7 @@
 
 # User Guide
 
-Version: 0.8  
+Version: 0.9  
 Doc ID: UG-OPMONSYSPAR
 
 | Date       | Version | Description                                                                                                             | Author             |
@@ -14,6 +14,7 @@ Doc ID: UG-OPMONSYSPAR
 | 01.06.2023 | 0.6     | Update references                                                                                                       | Petteri Kivimäki   |
 | 10.07.2025 | 0.7     | Added grpc related properties                                                                                           | Mikk-Erik Bachmann |
 | 19.10.2026 | 0.8     | Operational monitoring parameters of X-Road 8: store and query over gRPC                                                | Eneli Reimets      |
+| 06.11.2026 | 0.9     | Added trust settings of the operational monitoring connection                                                           | Eneli Reimets      |
 
 ## Table of Contents
 
@@ -43,6 +44,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 ### 1.2 References
 
 <a name="UG-SS"></a>**UG-SS** -- X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md).  
+<a name="UG-SYSPAR"></a>**UG-SYSPAR** -- X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../../Manuals/ug-syspar_x-road_v6_system_parameters.md).  
 <a name="CRON"></a>**CRON** -- Quartz Scheduler Cron Trigger Tutorial,  http://www.quartz-scheduler.org/documentation/quartz-2.2.2/tutorials/crontrigger.html  
 <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
@@ -53,7 +55,7 @@ This chapter describes the system parameters used by the X-Road 8 operational mo
 * To change the parameters `xroad.op-monitor.*`, the service *xroad-opmonitor* must be restarted.
 * To change the parameters `xroad.common-rpc.channel.op-monitor.*`, the services *xroad-proxy* and *xroad-proxy-ui-api* must be restarted. Both services connect to the operational monitoring daemon.
 * To change the parameters `xroad.proxy.addon.op-monitor.*`, the service *xroad-proxy* must be restarted.
-* To change the parameter `xroad.common-rpc.use-tls`, all the X-Road services of the Security Server must be restarted.
+* The parameter `xroad.common-rpc.use-tls` is for testing only. It is described in section 4.1.1.1 of \[[UG-SYSPAR](#UG-SYSPAR)\], including the services to restart after a change.
 
 The security server and the operational monitoring daemon communicate over gRPC on port 2081 by default. Operational data is stored and queried over this connection.
 
@@ -80,11 +82,11 @@ The parameter `xroad.proxy.addon.op-monitor.buffer.max-message-size` must be low
 | op-monitor | `xroad.op-monitor.rpc.listen-address` | 127.0.0.1 | The IP address on which the gRPC server of the operational monitoring daemon listens. In the container deployment the default is 0.0.0.0. |
 | op-monitor | `xroad.op-monitor.rpc.port` | 2081 | The TCP port on which the gRPC server of the operational monitoring daemon listens. |
 | op-monitor | `xroad.op-monitor.rpc.max-inbound-message-size` | not set (gRPC default, 4 MiB) | Maximum size in bytes of a request the gRPC server of the operational monitoring daemon accepts, for example a batch of stored operational data records. The minimum is 65536. |
+| op-monitor | `xroad.op-monitor.rpc.allowed-client-names` | empty (any client with a certificate from the Security Server CA) | Comma-separated client names the gRPC server of the operational monitoring daemon accepts when `xroad.common-rpc.use-tls` is enabled. A client is accepted when the CN or a DNS SAN of its certificate equals an entry. Matching is exact and case-insensitive. IP SANs are never matched. Wildcards are not supported: an entry that contains `*` (for example `*` or `*.example.org`) is invalid and prevents the operational monitoring daemon from starting, and so does an empty entry (for example `proxy,,ui`). With an empty list, any component with a certificate from the Security Server RPC CA can connect. The list does not protect against a compromised component. It is read once, when the daemon starts. In package installations and the Security Server Sidecar, leave the list empty: every component presents the same name, `localhost`, so the list cannot tell the components apart. An external daemon host has no list. |
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.host` | 127.0.0.1 | The host name or address used to connect to the gRPC server of the operational monitoring daemon. In the container deployment the default is *op-monitor*. |
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.port` | 2081 | The port used to connect to the gRPC server of the operational monitoring daemon. |
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.deadline-after` | 60000 | Milliseconds before a gRPC call to the operational monitoring daemon times out. The channel waits for the daemon to become ready within this time. |
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.max-inbound-message-size` | 16777216 | Maximum size in bytes of a response the channel accepts, for example the response of a monitoring query. The minimum is 4194304 (4 MiB). A query response over the limit fails; see the message size limit above. |
-| common | `xroad.common-rpc.use-tls` | true | When enabled, mutual TLS is used for all gRPC communication between the Security Server internal services, including the connection to the operational monitoring daemon. |
 | op-monitor-buffer | `xroad.proxy.addon.op-monitor.enabled` | false | Enables the operational monitoring add-on of the proxy. |
 | op-monitor-buffer | `xroad.proxy.addon.op-monitor.buffer.max-message-size` | 3145728 | Maximum size in bytes of one store request sent by the operational monitoring buffer to the operational monitoring daemon. Larger batches are split into several requests. The minimum is 65536. |
 | op-monitor-buffer | `xroad.proxy.addon.op-monitor.buffer.max-records-in-message` | 100 | Maximum number of operational data records in a message sent by the operational monitoring buffer to the operational monitoring daemon. |

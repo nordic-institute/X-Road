@@ -27,6 +27,8 @@
 
 package org.niis.xroad.common.rpc;
 
+import io.grpc.util.AdvancedTlsX509TrustManager;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
@@ -35,6 +37,18 @@ public interface VaultKeyProvider {
     KeyManager getKeyManager();
 
     TrustManager getTrustManager();
+
+    /**
+     * Creates a trust manager with the same trust anchors as {@link #getTrustManager()} that also runs the given
+     * verifier after the chain check. It is updated together with the shared trust manager.
+     *
+     * @param verifier additional peer check
+     * @return the dedicated trust manager
+     */
+    default AdvancedTlsX509TrustManager createVerifyingTrustManager(
+            AdvancedTlsX509TrustManager.SslSocketAndEnginePeerVerifier verifier) {
+        throw new UnsupportedOperationException("Not supported");
+    }
 
     void init();
 

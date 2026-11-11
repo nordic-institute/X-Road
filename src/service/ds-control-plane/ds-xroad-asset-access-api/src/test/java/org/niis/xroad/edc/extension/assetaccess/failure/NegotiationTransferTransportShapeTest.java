@@ -53,7 +53,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.spi.ProtocolWebhook;
@@ -79,6 +79,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -358,8 +359,10 @@ class NegotiationTransferTransportShapeTest {
             when(identityService.obtainClientCredentials(anyString(), any())).thenReturn(credentials);
             var tokenDecorator = mock(TokenDecorator.class);
             when(tokenDecorator.decorate(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            var scopeExtractors = mock(RequestScopeExtractorRegistry.class);
+            when(scopeExtractors.extractScopes(any(), any())).thenReturn(Result.success(Set.of()));
             var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator,
-                    mock(PolicyEngine.class), audienceResolver);
+                    scopeExtractors, audienceResolver);
             if (messagesRegistered) {
                 dispatcher.registerMessage(ContractRequestMessage.class,
                         message -> request(message.getCounterPartyAddress()), (_, _) -> null);

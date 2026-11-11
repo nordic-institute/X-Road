@@ -24,6 +24,7 @@ dependencies {
   implementation(project(":service:ds-control-plane:ds-xroad-agreement-grant-api"))
   implementation(project(":service:ds-control-plane:ds-xroad-provisioning-api"))
   implementation(project(":service:ds-control-plane:ds-xroad-contract-negotiation-store"))
+  implementation(project(":service:ds-control-plane:ds-xroad-dsp-record-cleaner"))
 
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
@@ -73,6 +74,7 @@ dependencies {
   runtimeOnly(libs.bundles.edc.dcp)
 
   testImplementation(project(":service:ds-control-plane:ds-control-plane-tasks-store-poll-executor"))
+  testImplementation(testFixtures(project(":lib:bootstrap-edc-quarkus")))
   testImplementation(libs.smallrye.config.yaml)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.assertj.core)

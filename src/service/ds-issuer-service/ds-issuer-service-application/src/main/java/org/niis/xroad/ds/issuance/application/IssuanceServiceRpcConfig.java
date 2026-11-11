@@ -36,6 +36,7 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
@@ -51,7 +52,7 @@ class IssuanceServiceRpcConfig {
                 .register(GlobalConfConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
                 .deploymentMode(deploymentMode())
-                .dbOverrides(appName)
+                .dbOverrides(appName, NodeNameProvider.fromEnvironment())
                 .build();
     }
 

@@ -34,7 +34,7 @@ import okhttp3.Response;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.http.spi.EdcHttpClientException;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -46,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.time.Duration;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -126,8 +127,10 @@ class CatalogTransportShapeTest {
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
         var tokenDecorator = mock(TokenDecorator.class);
         when(tokenDecorator.decorate(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        var scopeExtractors = mock(RequestScopeExtractorRegistry.class);
+        when(scopeExtractors.extractScopes(any(), any())).thenReturn(Result.success(Set.of()));
         var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator,
-                mock(PolicyEngine.class), _ -> Result.success("provider-1"));
+                scopeExtractors, _ -> Result.success("provider-1"));
         dispatcher.registerMessage(CatalogRequestMessage.class,
                 message -> new Request.Builder().url(message.getCounterPartyAddress() + "/catalog/request").get().build(),
                 (_, _) -> new byte[0]);

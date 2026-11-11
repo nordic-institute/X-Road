@@ -51,13 +51,16 @@ import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.Provider
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -870,6 +873,32 @@ class ConsumerSideDspProcessorTest {
 
         verify(assetAccessAcquisitionService)
                 .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(SYSTEM_DID_A, SYSTEM_URL_A)), any(), eq(SENDER), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"dsp_access_refused", "dsp_dataset_not_found", "dsp_offers_not_found"})
+    void aRememberedRefusalReachesTheClientLikeTheFirstRefusal(String refusalCode) {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var refusal = XrdRuntimeException.systemException(ErrorCode.withCode("proxy.dataspace." + refusalCode)).build();
+        var memory = new RefusalMemory(() -> 0L);
+        var key = new AssetAccessCache.CacheKey(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(),
+                Set.copyOf(single(DID_A, URL_A)), null, "http-dsp-profile-2025-1", SENDER.asEncodedId());
+        memory.rememberIfRefusal(key, refusal);
+        var request = new DspRequest(serviceId, SENDER, null, false);
+
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenThrow(refusal);
+        var first = (XrdRuntimeException) catchThrowable(() -> processor.execute(request));
+        doThrow(memory.recall(key).orElseThrow())
+                .when(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+        var repeat = (XrdRuntimeException) catchThrowable(() -> processor.execute(request));
+
+        assertThat(repeat.getCode()).isEqualTo(first.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
+        assertThat(repeat.getDetails()).isEqualTo(first.getDetails());
+        assertThat(repeat.getErrorCodeMetadata())
+                .isEqualTo(first.getErrorCodeMetadata())
+                .containsExactly("originalCode=" + refusalCode);
     }
 
     private static List<AcquisitionCandidate> single(String counterPartyId, String counterPartyAddress) {

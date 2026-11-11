@@ -41,9 +41,12 @@ import org.niis.xroad.serverconf.impl.dao.DsParticipantDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.niis.xroad.serverconf.model.PublicationState;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -123,6 +126,21 @@ public class DsParticipantDAOImplTest {
         assertNull(loaded.get().getMemberIdentifier());
         assertEquals(ParticipantIdentifierScheme.SYSTEM_SEGMENT, loaded.get().getCtxId());
         assertEquals(ParticipantIdentifierScheme.systemDid(SS_HOST).toString(), loaded.get().getDid());
+    }
+
+    @Test
+    public void findActiveSystemParticipantReturnsAnActiveRow() {
+        Optional<DsParticipantEntity> loaded = inRolledBackTransactionWithSystemRow(ParticipantState.ACTIVE);
+
+        assertTrue(loaded.isPresent());
+        assertEquals(ParticipantType.SYSTEM, loaded.get().getParticipantType());
+    }
+
+    @Test
+    public void findActiveSystemParticipantIsEmptyForADecommissionedRow() {
+        Optional<DsParticipantEntity> loaded = inRolledBackTransactionWithSystemRow(ParticipantState.DECOMMISSIONED);
+
+        assertFalse(loaded.isPresent());
     }
 
     @Test
@@ -276,6 +294,23 @@ public class DsParticipantDAOImplTest {
     }
 
     @Test
+    public void deleteRemovesThePublicationStateTogetherWithTheRow() {
+        Long id = saveMember("participant-delete-published");
+        Instant at = Instant.now();
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at);
+            dao.transitionPublication(session, id, PublicationState.SUBMITTED, PublicationState.PUBLISHED, null, at);
+            return null;
+        });
+        assertEquals(PublicationState.PUBLISHED, loadRow(id).getPublicationState());
+
+        boolean deleted = DATABASE_CTX.doInTransaction(session -> dao.delete(session, id));
+
+        assertTrue(deleted);
+        assertNull(loadRow(id));
+    }
+
+    @Test
     public void deleteOfAbsentRowIsNotAnError() {
         boolean deleted = DATABASE_CTX.doInTransaction(session -> dao.delete(session, Long.MAX_VALUE));
 
@@ -298,6 +333,208 @@ public class DsParticipantDAOImplTest {
         }
     }
 
+    @Test
+    public void transitionExpectingNotSentAppliesToARowWithNoPublicationState() {
+        Long id = saveMember("participant-publication-null");
+        Instant at = Instant.parse("2026-11-03T10:15:30Z");
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at));
+
+        assertTrue(applied);
+        var row = loadRow(id);
+        assertEquals(PublicationState.SUBMITTED, row.getPublicationState());
+        assertNull(row.getPublicationReason());
+        assertEquals(at, row.getPublicationChangedAt());
+    }
+
+    @Test
+    public void aLaterFlushOfAManagedRowKeepsAPublicationTransitionMadeByTheConditionalUpdate() {
+        Long id = saveMember("participant-publication-managed-row");
+
+        DATABASE_CTX.doInTransaction(session -> {
+            var managed = session.find(DsParticipantEntity.class, id);
+            dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null,
+                    Instant.parse("2026-11-03T10:15:30Z"));
+            managed.setState(ParticipantState.DECOMMISSIONED);
+            session.flush();
+            return null;
+        });
+
+        var row = loadRow(id);
+        assertEquals(ParticipantState.DECOMMISSIONED, row.getState());
+        assertEquals(PublicationState.SUBMITTED, row.getPublicationState());
+    }
+
+    @Test
+    public void transitionStoresTheReasonOfARejectedRow() {
+        Long id = saveMember("participant-publication-rejected");
+
+        DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.REJECTED, "DID_TAKEN",
+                        Instant.now()));
+
+        var row = loadRow(id);
+        assertEquals(PublicationState.REJECTED, row.getPublicationState());
+        assertEquals("DID_TAKEN", row.getPublicationReason());
+    }
+
+    @Test
+    public void transitionExpectingNotSentAppliesToAStoredNotSentRow() {
+        Long id = saveMember("participant-publication-not-sent");
+        DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.NOT_SENT, "SEND_FAILURE",
+                        Instant.now()));
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null,
+                        Instant.now()));
+
+        assertTrue(applied);
+        assertEquals(PublicationState.SUBMITTED, loadRow(id).getPublicationState());
+    }
+
+    @Test
+    public void transitionChangesNothingWhenTheRowIsNoLongerInTheExpectedState() {
+        Long id = saveMember("participant-publication-lost-race");
+        Instant first = Instant.parse("2026-11-03T10:15:30Z");
+        DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, first));
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.REJECTED, "DID_TAKEN",
+                        Instant.now()));
+
+        assertFalse(applied);
+        var row = loadRow(id);
+        assertEquals(PublicationState.SUBMITTED, row.getPublicationState());
+        assertNull(row.getPublicationReason());
+        assertEquals(first, row.getPublicationChangedAt());
+    }
+
+    @Test
+    public void transitionExpectingAnotherStateDoesNotMatchARowWithNoPublicationState() {
+        Long id = saveMember("participant-publication-expected-submitted");
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.SUBMITTED, PublicationState.PUBLISHED, null,
+                        Instant.now()));
+
+        assertFalse(applied);
+        assertNull(loadRow(id).getPublicationState());
+    }
+
+    @Test
+    public void transitionOfAMissingRowReportsNotApplied() {
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, Long.MAX_VALUE, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null,
+                        Instant.now()));
+
+        assertFalse(applied);
+    }
+
+    @Test
+    public void transitionOfADecommissionedRowReportsNotApplied() {
+        Long id = saveMember("participant-publication-decommissioned");
+        DATABASE_CTX.doInTransaction(session ->
+                session.createMutationQuery("update DsParticipantEntity set state = :state where id = :id")
+                        .setParameter("state", ParticipantState.DECOMMISSIONED)
+                        .setParameter("id", id)
+                        .executeUpdate());
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null,
+                        Instant.now()));
+
+        assertFalse(applied);
+        assertNull(loadRow(id).getPublicationState());
+    }
+
+    @Test
+    public void rowsWithoutPublicationColumnsSetLoadAsNotSent() {
+        Long id = saveMember("participant-publication-unset");
+
+        var row = loadRow(id);
+
+        assertNull(row.getPublicationState());
+        assertNull(row.getPublicationReason());
+        assertNull(row.getPublicationChangedAt());
+    }
+
+    @Test
+    public void findsOnlyActiveMemberRowsThatAreNotSent() {
+        Long unset = saveMember("participant-not-sent-unset");
+        Long notSent = saveMember("participant-not-sent-stored");
+        Long submitted = saveMember("participant-not-sent-submitted");
+        Long rejected = saveMember("participant-not-sent-rejected");
+        Long decommissioned = saveMember("participant-not-sent-decommissioned");
+        ensureSystemParticipant();
+        Instant at = Instant.now();
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.transitionPublication(session, notSent, PublicationState.NOT_SENT, PublicationState.NOT_SENT, "SEND_FAILURE", at);
+            dao.transitionPublication(session, submitted, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at);
+            dao.transitionPublication(session, rejected, PublicationState.NOT_SENT, PublicationState.REJECTED, "DID_TAKEN", at);
+            session.createMutationQuery("update DsParticipantEntity set state = :state where id = :id")
+                    .setParameter("state", ParticipantState.DECOMMISSIONED)
+                    .setParameter("id", decommissioned)
+                    .executeUpdate();
+            return null;
+        });
+
+        List<DsParticipantEntity> found = DATABASE_CTX.doInTransaction(session ->
+                dao.findActiveMembers(session, Set.of(PublicationState.NOT_SENT)));
+
+        var ids = found.stream().map(DsParticipantEntity::getId).toList();
+        assertThat(ids).contains(unset, notSent).doesNotContain(submitted, rejected, decommissioned);
+        assertThat(found).allMatch(row -> row.getParticipantType() == ParticipantType.MEMBER);
+    }
+
+    @Test
+    public void findsOnlyActiveMemberRowsThatAreSubmittedOrPublished() {
+        Long unset = saveMember("participant-sent-unset");
+        Long notSent = saveMember("participant-sent-not-sent");
+        Long submitted = saveMember("participant-sent-submitted");
+        Long published = saveMember("participant-sent-published");
+        Long rejected = saveMember("participant-sent-rejected");
+        Long decommissioned = saveMember("participant-sent-decommissioned");
+        ensureSystemParticipant();
+        Instant at = Instant.now();
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.transitionPublication(session, notSent, PublicationState.NOT_SENT, PublicationState.NOT_SENT, "SEND_FAILURE", at);
+            dao.transitionPublication(session, submitted, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at);
+            dao.transitionPublication(session, published, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at);
+            dao.transitionPublication(session, published, PublicationState.SUBMITTED, PublicationState.PUBLISHED, null, at);
+            dao.transitionPublication(session, rejected, PublicationState.NOT_SENT, PublicationState.REJECTED, "DID_TAKEN", at);
+            dao.transitionPublication(session, decommissioned, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at);
+            session.createMutationQuery("update DsParticipantEntity set state = :state where id = :id")
+                    .setParameter("state", ParticipantState.DECOMMISSIONED)
+                    .setParameter("id", decommissioned)
+                    .executeUpdate();
+            var system = dao.findSystemParticipant(session).orElseThrow();
+            dao.transitionPublication(session, system.getId(), PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at);
+            return null;
+        });
+
+        List<DsParticipantEntity> found = DATABASE_CTX.doInTransaction(session ->
+                dao.findActiveMembers(session, Set.of(PublicationState.SUBMITTED, PublicationState.PUBLISHED)));
+
+        var ids = found.stream().map(DsParticipantEntity::getId).toList();
+        assertThat(ids).contains(submitted, published).doesNotContain(unset, notSent, rejected, decommissioned);
+        assertThat(found).allMatch(row -> row.getParticipantType() == ParticipantType.MEMBER);
+    }
+
+    private Long saveMember(String memberCode) {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode);
+        return DATABASE_CTX.doInTransaction(session -> dao.save(session, memberParticipant(session, member)).getId());
+    }
+
+    private DsParticipantEntity loadRow(Long id) {
+        return DATABASE_CTX.doInTransaction(session -> {
+            session.clear();
+            return session.find(DsParticipantEntity.class, id);
+        });
+    }
+
     private DsParticipantEntity memberParticipant(Session session, ClientId member) {
         ClientIdEntity identifier = identifierDAO.findOrCreateClientId(session, member);
 
@@ -309,6 +546,22 @@ public class DsParticipantDAOImplTest {
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
+    }
+
+    private Optional<DsParticipantEntity> inRolledBackTransactionWithSystemRow(ParticipantState state) {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            session.createMutationQuery("delete from DsParticipantEntity where participantType = :type")
+                    .setParameter("type", ParticipantType.SYSTEM)
+                    .executeUpdate();
+            DsParticipantEntity participant = systemParticipant();
+            participant.setState(state);
+            dao.save(session, participant);
+            session.flush();
+            return dao.findActiveSystemParticipant(session);
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
     }
 
     private void ensureSystemParticipant() {
