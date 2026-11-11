@@ -256,7 +256,7 @@ class FileKeyProviderTest {
     }
 
     @Test
-    void verifyingTrustManagerBeforeInitFails() throws Exception {
+    void verifyingTrustManagerBeforeInitFails() {
         var provider = newProvider();
         assertThatThrownBy(() -> provider.createVerifyingTrustManager(null))
                 .isInstanceOf(XrdRuntimeException.class);

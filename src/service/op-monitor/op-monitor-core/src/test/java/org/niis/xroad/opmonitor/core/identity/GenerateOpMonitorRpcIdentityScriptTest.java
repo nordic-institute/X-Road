@@ -421,10 +421,11 @@ class GenerateOpMonitorRpcIdentityScriptTest {
 
         assertThat(listing()).containsExactlyInAnyOrderElementsOf(OUTPUT_FILES);
         var after = snapshot();
-        assertThat(after).doesNotContainEntry("ca.crt", before.get("ca.crt"));
-        assertThat(after).doesNotContainEntry("ca.key", before.get("ca.key"));
-        assertThat(after).doesNotContainEntry("server.key", before.get("server.key"));
-        assertThat(after).doesNotContainEntry("server.crt", before.get("server.crt"));
+        assertThat(after)
+                .doesNotContainEntry("ca.crt", before.get("ca.crt"))
+                .doesNotContainEntry("ca.key", before.get("ca.key"))
+                .doesNotContainEntry("server.key", before.get("server.key"))
+                .doesNotContainEntry("server.crt", before.get("server.crt"));
         var server = certificate("server.crt");
         assertThatCode(() -> server.verify(certificate("ca.crt").getPublicKey())).doesNotThrowAnyException();
         assertThatThrownBy(() -> server.verify(parseCertificate(before.get("ca.crt")).getPublicKey()))
@@ -514,10 +515,11 @@ class GenerateOpMonitorRpcIdentityScriptTest {
         assertThat(run(DNS_NAME).exitCode()).isZero();
 
         var after = snapshot();
-        assertThat(after).containsEntry("ca.crt", before.get("ca.crt"));
-        assertThat(after).containsEntry("ca.key", before.get("ca.key"));
-        assertThat(after).doesNotContainEntry("server.key", before.get("server.key"));
-        assertThat(after).doesNotContainEntry("server.crt", before.get("server.crt"));
+        assertThat(after)
+                .containsEntry("ca.crt", before.get("ca.crt"))
+                .containsEntry("ca.key", before.get("ca.key"))
+                .doesNotContainEntry("server.key", before.get("server.key"))
+                .doesNotContainEntry("server.crt", before.get("server.crt"));
         var server = certificate("server.crt");
         var newKey = privateKey("server.key");
         var certificateKey = (RSAPublicKey) server.getPublicKey();
@@ -533,14 +535,16 @@ class GenerateOpMonitorRpcIdentityScriptTest {
 
         assertThat(run("--days", "50", DNS_NAME).exitCode()).isZero();
         var second = snapshot();
-        assertThat(second).containsEntry("ca.crt", first.get("ca.crt"));
-        assertThat(second).containsEntry("ca.key", first.get("ca.key"));
-        assertThat(second).doesNotContainEntry("server.crt", first.get("server.crt"));
+        assertThat(second)
+                .containsEntry("ca.crt", first.get("ca.crt"))
+                .containsEntry("ca.key", first.get("ca.key"))
+                .doesNotContainEntry("server.crt", first.get("server.crt"));
 
         assertThat(run("--force-new-ca", "--ca-days", "100", "--days", "50", DNS_NAME).exitCode()).isZero();
         var third = snapshot();
-        assertThat(third).doesNotContainEntry("ca.crt", second.get("ca.crt"));
-        assertThat(third).doesNotContainEntry("ca.key", second.get("ca.key"));
+        assertThat(third)
+                .doesNotContainEntry("ca.crt", second.get("ca.crt"))
+                .doesNotContainEntry("ca.key", second.get("ca.key"));
         var newCa = certificate("ca.crt");
         var server = certificate("server.crt");
         assertThatCode(() -> server.verify(newCa.getPublicKey())).doesNotThrowAnyException();
