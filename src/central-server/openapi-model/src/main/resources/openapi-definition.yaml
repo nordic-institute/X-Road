@@ -2127,7 +2127,7 @@ paths:
               schema:
                 description: array of member security servers
                 items:
-                  $ref: '#/components/schemas/SecurityServer'
+                  $ref: '#/components/schemas/MemberServer'
                 type: array
                 uniqueItems: false
           description: List of member's global groups
@@ -2155,7 +2155,7 @@ paths:
               schema:
                 description: array of member security servers
                 items:
-                  $ref: '#/components/schemas/SecurityServer'
+                  $ref: '#/components/schemas/MemberServer'
                 type: array
                 uniqueItems: false
           description: List of member's global groups
@@ -2191,6 +2191,75 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
       summary: delete a member
+      tags:
+        - members
+        - security-servers
+    patch:
+      description: >
+        <h3>CS administrator replaces the stored DID of a member on a Security Server.</h3>
+      operationId: updateMemberDid
+      parameters:
+        - $ref: '#/components/parameters/MemberIdParam'
+        - $ref: '#/components/parameters/ServerIdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberDidEdit'
+        description: the new member DID
+        required: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: replace the DID of a member on a security server
+      tags:
+        - members
+        - security-servers
+  /members/{member_id}/servers/{server_id}/member-did-check:
+    parameters:
+      - $ref: '#/components/parameters/MemberIdParam'
+      - $ref: '#/components/parameters/ServerIdParam'
+    post:
+      description: >
+        <h3>CS administrator checks whether a proposed DID of a member on a security server would be accepted as
+        a replacement and can be resolved. Nothing is stored. A refused or unresolved DID is answered in the
+        response body.</h3>
+      operationId: checkMemberDid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberDidEdit'
+        description: the proposed member DID
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DidCheck'
+          description: the result of the check
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: check whether a proposed member DID resolves
       tags:
         - members
         - security-servers
@@ -2641,14 +2710,16 @@ paths:
       tags:
         - security-servers
     patch:
-      description: <h3>CS administrator changes the address of a security server.</h3>
-      operationId: updateSecurityServerAddress
+      description: >
+        <h3>CS administrator changes the address of a security server and, optionally, replaces its stored
+        SYSTEM DID and DSP base URL.</h3>
+      operationId: updateSecurityServer
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SecurityServerAddress'
-        description: security server address
+              $ref: '#/components/schemas/SecurityServerEdit'
+        description: new security server address and, optionally, the new SYSTEM DID and DSP base URL
         required: true
       responses:
         '200':
@@ -2667,7 +2738,43 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: update the security server's address
+      summary: update the security server's address and published values
+      tags:
+        - security-servers
+  /security-servers/{server_id}/system-did-check:
+    parameters:
+      - $ref: '#/components/parameters/ServerIdParam'
+    post:
+      description: >
+        <h3>CS administrator checks whether a proposed SYSTEM DID is valid for a proposed address of the
+        security server and can be resolved. Nothing is stored. A refused or unresolved DID is answered in the
+        response body.</h3>
+      operationId: checkSystemDid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemDidCheckRequest'
+        description: the proposed address and SYSTEM DID
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DidCheck'
+          description: the result of the check
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: check whether a proposed SYSTEM DID resolves
       tags:
         - security-servers
   /security-servers/{server_id}/authentication-certificates:
@@ -4628,6 +4735,15 @@ components:
           minLength: 1
           type: string
       type: object
+    MemberDidEdit:
+      description: proposed DID of a member on a security server, checked or saved as the new one
+      properties:
+        member_did:
+          description: the proposed member DID, replaces the stored one when saved
+          type: string
+      required:
+        - member_did
+      type: object
     SubsystemName:
       description: x-road subsystem name
       properties:
@@ -4815,9 +4931,35 @@ components:
           description: optional message of maintenance mode
           type: string
           readOnly: true
+        system_did:
+          description: stored SYSTEM DID of the security server, absent when none is stored
+          type: string
+          readOnly: true
+        dsp_base_url:
+          description: stored DSP base URL of the security server, absent when none is stored
+          type: string
+          readOnly: true
+        system_pair_stale:
+          description: whether the host of the stored SYSTEM DID or DSP base URL differs from the server address, absent when no pair is stored
+          type: boolean
+          readOnly: true
       required:
         - server_id
         - in_maintenance_mode
+      type: object
+    MemberServer:
+      allOf:
+        - $ref: '#/components/schemas/SecurityServer'
+      description: security server of a member, with the DID stored for the member on it
+      properties:
+        member_did:
+          description: stored DID of the member on the security server, absent when none is stored
+          type: string
+          readOnly: true
+        member_did_stale:
+          description: whether the host of the stored member DID differs from the server address, absent when no member DID is stored
+          type: boolean
+          readOnly: true
       type: object
     PagedClients:
       description: array of Clients with paging metadata
@@ -4951,6 +5093,80 @@ components:
       required:
         - server_address
       type: object
+    SecurityServerEdit:
+      allOf:
+        - $ref: '#/components/schemas/SecurityServerAddress'
+      description: new address of a security server and, optionally, its new SYSTEM DID and DSP base URL
+      properties:
+        system_did:
+          description: new SYSTEM DID, replaces the stored one
+          type: string
+        dsp_base_url:
+          description: new DSP base URL, replaces the stored one
+          type: string
+      type: object
+    SystemDidCheckRequest:
+      allOf:
+        - $ref: '#/components/schemas/SecurityServerAddress'
+      description: proposed address of a security server and the SYSTEM DID to check against it
+      properties:
+        system_did:
+          description: the proposed SYSTEM DID
+          type: string
+      required:
+        - system_did
+      type: object
+    DidCheck:
+      description: >
+        result of checking a proposed SYSTEM DID or member DID. refusal_reason is set only with REFUSED and
+        resolution_reason only with NOT_RESOLVED.
+      properties:
+        status:
+          $ref: '#/components/schemas/DidCheckStatus'
+        refusal_reason:
+          $ref: '#/components/schemas/DidRefusalReason'
+        resolution_reason:
+          $ref: '#/components/schemas/DidResolutionReason'
+      required:
+        - status
+      type: object
+    DidCheckStatus:
+      description: >
+        REFUSED: the DID is not acceptable and was not resolved. RESOLVED: the DID resolves.
+        NOT_RESOLVED: the DID is acceptable but does not resolve. RESOLVER_UNAVAILABLE: the DID is acceptable
+        but could not be resolved because the resolver could not be reached.
+      enum:
+        - REFUSED
+        - RESOLVED
+        - NOT_RESOLVED
+        - RESOLVER_UNAVAILABLE
+      type: string
+    DidRefusalReason:
+      description: >
+        why a proposed DID is refused. FOREIGN_SYSTEM_DID is given only for a SYSTEM DID. DID_OF_OTHER_MEMBER and
+        MEMBER_NOT_SERVED are given only for a member DID. UNDECODABLE_DID is given for either kind.
+      enum:
+        - NO_STORED_VALUE
+        - WRONG_SCHEME
+        - DID_TOO_LONG
+        - NOT_CANONICAL
+        - HOST_DIFFERS
+        - UNPARSEABLE_REGISTERED_ADDRESS
+        - NON_ASCII_HOST
+        - FOREIGN_SYSTEM_DID
+        - UNDECODABLE_DID
+        - DID_OF_OTHER_MEMBER
+        - MEMBER_NOT_SERVED
+        - DID_HELD_BY_ANOTHER_SERVER
+      type: string
+    DidResolutionReason:
+      description: why an acceptable DID did not resolve
+      enum:
+        - MALFORMED_DID
+        - NO_DOCUMENT
+        - ID_MISMATCH
+        - FETCH_FAILURE
+      type: string
     ServiceProviderId:
       properties:
         service_provider_id:

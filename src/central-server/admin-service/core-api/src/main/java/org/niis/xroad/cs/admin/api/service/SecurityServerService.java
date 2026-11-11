@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,9 +29,11 @@ package org.niis.xroad.cs.admin.api.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.annotation.Nullable;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.paging.Page;
@@ -57,7 +59,17 @@ public interface SecurityServerService {
 
     Set<SecurityServerAuthenticationCertificateDetails> findAuthCertificates(SecurityServerId id);
 
-    Optional<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress);
+    /**
+     * Changes the address of a server and, when a pair is given, replaces its stored SYSTEM DID and DSP base URL,
+     * all in one transaction. The request fails and nothing is stored when the pair is refused or the server has
+     * no stored pair to replace.
+     *
+     * @param serverId   the identifier of the server
+     * @param newAddress the new address
+     * @param pair       the new SYSTEM DID and DSP base URL, or {@code null} to leave the stored pair as it is
+     * @return the updated server, empty when there is no such server
+     */
+    Optional<SecurityServer> editSecurityServer(SecurityServerId serverId, String newAddress, @Nullable SystemPairEdit pair);
 
     void delete(SecurityServerId serverId);
 

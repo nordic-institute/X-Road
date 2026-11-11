@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -43,6 +44,7 @@ import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
+import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.paging.Page;
@@ -50,6 +52,7 @@ import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
@@ -78,7 +81,6 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_REGI
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SS_AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ADDRESS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
@@ -90,6 +92,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 public class SecurityServerServiceImpl implements SecurityServerService {
 
     private static final String DELETE_SS_COMMENT_TPL = "%s deletion";
+    private static final String SYSTEM_DID_EXCLUSION_CONSTRAINT = "security_servers_system_did_excl";
 
     private final StableSortHelper stableSortHelper;
     private final AuthCertRepository authCertRepository;
@@ -103,6 +106,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     private final PageRequestDtoConverter pageRequestDtoConverter;
     private final PageConverter pageConverter;
     private final AuditDataHelper auditDataHelper;
+    private final ParticipantValueStore participantValueStore;
 
     @Override
     public Page<SecurityServer> findSecurityServers(String q, PageRequestDto pageRequest) {
@@ -189,18 +193,27 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     }
 
     @Override
-    public Optional<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress) {
-        auditDataHelper.put(SERVER_CODE, serverId.getServerCode());
-        auditDataHelper.put(OWNER_CODE, serverId.getOwner().getMemberCode());
-        auditDataHelper.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
-        auditDataHelper.put(ADDRESS, newAddress);
+    public Optional<SecurityServer> editSecurityServer(SecurityServerId serverId, String newAddress,
+                                                       @Nullable SystemPairEdit pair) {
+        if (securityServerRepository.lockForUpdateBy(serverId).isEmpty()) {
+            return Optional.empty();
+        }
+        var server = securityServerRepository.findBy(serverId)
+                .orElseThrow(() -> new SecurityServerNotFoundException(serverId));
 
-        return securityServerRepository.findBy(serverId)
-                .map(securityServer -> {
-                    securityServer.setAddress(newAddress);
-                    return securityServer;
-                })
-                .map(securityServerMapper::toTarget);
+        server.setAddress(newAddress);
+        securityServerRepository.saveAndFlush(server);
+
+        if (pair != null) {
+            replaceSystemPair(server, pair);
+        }
+        return Optional.of(securityServerMapper.toTarget(server));
+    }
+
+    private void replaceSystemPair(SecurityServerEntity server, SystemPairEdit pair) {
+        ParticipantValueRefusals.replaceOrRefuse(
+                () -> participantValueStore.replaceSystemPair(server.getId(), pair.systemDid(), pair.dspBaseUrl()),
+                SYSTEM_DID_EXCLUSION_CONSTRAINT);
     }
 
     @Override
@@ -233,10 +246,6 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         var request = new ClientDeletionRequest(CENTER, serverId, clientId);
         request.setComments(comment);
         return request;
-    }
-
-    private ClientDeletionRequest createClientDeletionRequest(SecurityServerId serverId, ClientId clientId) {
-        return createClientDeletionRequest(serverId, clientId, null);
     }
 
     private void registerAuthCertsDeleteRequests(SecurityServerEntity securityServerEntity) {
