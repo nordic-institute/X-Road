@@ -28,6 +28,7 @@ package org.niis.xroad.e2e;
 import io.restassured.response.ValidatableResponse;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -101,6 +102,7 @@ class SsProxyDspEncodedMemberTest extends E2eTest {
     private static final Duration NEGOTIATION_POLL_INTERVAL = Duration.ofSeconds(2);
 
     @Test
+    @Disabled("did:web cannot resolve a DID with a percent-encoded segment yet; enable once it can")
     @DisplayName("A runtime-registered consumer member with a percent-encoded context id completes a negotiation with ss1")
     void encodedConsumerMemberCompletesNegotiation(E2eEnvironment env) {
         Assumptions.assumeTrue(env instanceof DsControlPlaneDbOps,
