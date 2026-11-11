@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.AbstractStub;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
@@ -74,6 +75,13 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
     private ManagedChannel channel;
     private IssuerProvisioningServiceGrpc.IssuerProvisioningServiceBlockingStub stub;
 
+    /**
+     * Same stub as {@link #stub}, minus wait-for-ready: used only by {@link #canSign(String)} so a refused
+     * connection fails at once instead of queueing until the deadline. {@link AbstractStub} has no
+     * {@code withoutWaitForReady()} of its own; a stub built without {@code withWaitForReady()} is fail-fast.
+     */
+    private IssuerProvisioningServiceGrpc.IssuerProvisioningServiceBlockingStub canSignStub;
+
     @Override
     public ErrorOrigin getRpcOrigin() {
         return ErrorOrigin.DS_ISSUER_SERVICE;
@@ -90,6 +98,7 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
         stub = IssuerProvisioningServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        canSignStub = IssuerProvisioningServiceGrpc.newBlockingStub(channel);
     }
 
     @Override
@@ -166,14 +175,17 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
 
     /**
      * Checks whether the issuer can sign credentials for the given participant context, under
-     * {@link #CAN_SIGN_DEADLINE_MILLIS} instead of the channel's own deadline. A deadline overrun comes back as
+     * {@link #CAN_SIGN_DEADLINE_MILLIS} instead of the channel's own deadline. Unlike every other call on this
+     * client, it opts out of wait-for-ready: a refused connection fails at once instead of queueing until the
+     * deadline, so a down Issuer Service is reported as {@link CanSignCause#ISSUER_SERVICE_UNREACHABLE} right
+     * away rather than as a timeout. A deadline overrun on a connection that is up comes back as
      * {@link CanSignCause#TIMEOUT}; any other failure to reach the Issuer Service comes back as
      * {@link CanSignCause#ISSUER_SERVICE_UNREACHABLE}. Neither is an exception, so a caller reading the status
      * can rely on this method never throwing for a down or unreachable Issuer Service.
      */
     public CanSignResult canSign(String participantContextId) {
         try {
-            var response = stub.withDeadlineAfter(CAN_SIGN_DEADLINE_MILLIS, MILLISECONDS)
+            var response = canSignStub.withDeadlineAfter(CAN_SIGN_DEADLINE_MILLIS, MILLISECONDS)
                     .canSign(CanSignReq.newBuilder().setParticipantContextId(participantContextId).build());
             return toDomain(response);
         } catch (StatusRuntimeException error) {

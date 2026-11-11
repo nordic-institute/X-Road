@@ -361,8 +361,10 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
 
         @Bean
         IssuerHostServiceImpl issuerHostService(SystemParameterService systemParameterService,
-                DataspaceIssuerDidService dataspaceIssuerDidService, DnsNameValidator dnsNameValidator) {
-            return new IssuerHostServiceImpl(systemParameterService, dataspaceIssuerDidService, dnsNameValidator);
+                DataspaceIssuerDidService dataspaceIssuerDidService, DnsNameValidator dnsNameValidator,
+                IssuerSetUpLeaseService issuerSetUpLeaseService) {
+            return new IssuerHostServiceImpl(systemParameterService, dataspaceIssuerDidService, dnsNameValidator,
+                    issuerSetUpLeaseService);
         }
 
         @Bean

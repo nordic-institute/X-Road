@@ -257,7 +257,15 @@ class DataspaceIssuerProvisioningServiceImplTest {
                 .thenReturn(CanSignResult.cannotSign(CanSignCause.NO_ACTIVE_KEY));
 
         assertThatThrownBy(() -> service.provisionIssuer())
-                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue());
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue();
+                    assertThat(e.getMessage())
+                            .contains("existing participant context")
+                            .contains(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID)
+                            .contains("cannot sign")
+                            .contains(CanSignCause.NO_ACTIVE_KEY.toString())
+                            .doesNotContain("before set-up created anything");
+                });
 
         verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
         verify(rpcClient, never()).createAttestationDefinition(any(), any(), any());
@@ -337,7 +345,13 @@ class DataspaceIssuerProvisioningServiceImplTest {
                 .thenReturn(CanSignResult.cannotSign(CanSignCause.TIMEOUT));
 
         assertThatThrownBy(() -> service.provisionIssuer())
-                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue());
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue();
+                    assertThat(e.getMessage())
+                            .contains("did not answer the can-sign check")
+                            .contains(CanSignCause.TIMEOUT.toString())
+                            .doesNotContain("existing participant context");
+                });
 
         verify(rpcClient, times(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS))
                 .canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID);

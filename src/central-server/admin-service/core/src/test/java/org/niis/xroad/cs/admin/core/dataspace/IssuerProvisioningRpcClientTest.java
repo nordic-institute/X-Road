@@ -53,10 +53,13 @@ import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
+import java.net.ServerSocket;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("java:S2925")
@@ -263,6 +266,37 @@ class IssuerProvisioningRpcClientTest {
         var result = client.canSign("ctx-id");
 
         assertThat(result).isEqualTo(CanSignResult.cannotSign(CanSignCause.ISSUER_SERVICE_UNREACHABLE));
+    }
+
+    /**
+     * A closed port refuses the connection attempt outright; a wait-for-ready stub would instead queue the call
+     * until {@link IssuerProvisioningRpcClient#CAN_SIGN_DEADLINE_MILLIS} and come back as {@link CanSignCause#TIMEOUT}.
+     */
+    @Test
+    void canSignReturnsCannotSignWithIssuerServiceUnreachableCauseFastOnAClosedPort() throws Exception {
+        int closedPort;
+        try (var probe = new ServerSocket(0)) {
+            closedPort = probe.getLocalPort();
+        }
+
+        var closedPortChannelFactory = mock(RpcChannelFactory.class);
+        var closedPortChannelProperties = mock(IssuerProvisioningRpcChannelProperties.class);
+        var closedPortChannel = ManagedChannelBuilder.forAddress("localhost", closedPort).usePlaintext().build();
+        when(closedPortChannelFactory.createChannel(closedPortChannelProperties)).thenReturn(closedPortChannel);
+
+        var closedPortClient = new IssuerProvisioningRpcClient(closedPortChannelFactory, closedPortChannelProperties);
+        closedPortClient.afterPropertiesSet();
+        try {
+            var start = System.nanoTime();
+            var result = closedPortClient.canSign("ctx-id");
+            var elapsed = Duration.ofNanos(System.nanoTime() - start);
+
+            assertThat(result).isEqualTo(CanSignResult.cannotSign(CanSignCause.ISSUER_SERVICE_UNREACHABLE));
+            assertThat(elapsed).isLessThan(Duration.ofMillis(IssuerProvisioningRpcClient.CAN_SIGN_DEADLINE_MILLIS));
+        } finally {
+            closedPortClient.close();
+            closedPortChannel.shutdownNow();
+        }
     }
 
     @Test

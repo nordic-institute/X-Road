@@ -116,9 +116,9 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
         return switch (result.outcome()) {
             case ABSENT -> false;
             case CAN_SIGN -> requireSameDid(result, did);
-            case CANNOT_SIGN -> throw provisioningFailed(
-                    "issuer cannot sign for participant context '" + ISSUER_PARTICIPANT_ID + "' before "
-                            + "set-up created anything: " + result.cause());
+            case CANNOT_SIGN -> throw provisioningFailed(isTransientFailure(result)
+                    ? "Issuer Service did not answer the can-sign check before set-up created anything: " + result.cause()
+                    : "existing participant context '" + ISSUER_PARTICIPANT_ID + "' cannot sign: " + result.cause());
         };
     }
 

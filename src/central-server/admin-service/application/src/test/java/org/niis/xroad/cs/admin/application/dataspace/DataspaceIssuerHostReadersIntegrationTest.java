@@ -35,6 +35,7 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
+import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.application.connectortls.CentralServerConnectorTlsAcmeHostContext;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProperties;
@@ -80,7 +81,8 @@ class DataspaceIssuerHostReadersIntegrationTest {
         systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS, "cs.example");
         when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
 
-        issuerHostService = new IssuerHostServiceImpl(systemParameterService, dataspaceIssuerDidService, new DnsNameValidator());
+        issuerHostService = new IssuerHostServiceImpl(systemParameterService, dataspaceIssuerDidService, new DnsNameValidator(),
+                mock(IssuerSetUpLeaseService.class));
         var dataspaceIssuerProperties = new DataspaceIssuerProperties(mock(XRoadConfig.class), issuerHostService);
         acmeHostContext = new CentralServerConnectorTlsAcmeHostContext(
                 dataspaceIssuerProperties, connectorTlsCertificationAuthoritiesService);
