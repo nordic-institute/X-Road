@@ -9,7 +9,7 @@ Doc. ID: IG-CS-8
 | Date       | Version | Description                                                                                          | Author          |
 |------------|---------|------------------------------------------------------------------------------------------------------|-----------------|
 | 07.10.2025 | 1.0     | Initial version                                                                                      | Justas Samuolis |
-| 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check and the default node name |                 |
+| 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check and the default node name | Ričardas Bučiūnas |
 
 
 ## Table of Contents <!-- omit in toc -->

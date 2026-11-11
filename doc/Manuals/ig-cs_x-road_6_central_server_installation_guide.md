@@ -66,7 +66,7 @@ Doc. ID: IG-CS
 | 10.09.2026 | 2.46    | Document hardware token configuration via the `xroad.signer.modules` database property                                                                                                       | Ričardas Bučiūnas    |
 | 05.11.2026 | 2.47    | Document per-node property values in `db_property.sh`                                                                                                                                        |                      |
 | 07.11.2026 | 2.48    | Add the `db_property.sh list` command and the node name rule                                                                                                                                 |                      |
-| 11.11.2026 | 2.49    | Use the TLS certificate name keys as the per-node example and describe the default of a key without a row                                                                                    |                      |
+| 11.11.2026 | 2.49    | Use the TLS certificate name keys as the per-node example and describe the default of a key without a row                                                                                    | Ričardas Bučiūnas    |
 
 
 ## Table of Contents <!-- omit in toc -->

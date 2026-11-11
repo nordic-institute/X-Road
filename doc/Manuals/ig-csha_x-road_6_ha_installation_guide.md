@@ -33,7 +33,7 @@ Doc. ID: IG-CSHA
 | 02.06.2023 | 1.18    | Minor updates                                                                                        | Justas Samuolis    |
 | 05.06.2023 | 1.19    | Update HA cluster status endpoint path                                                               | Andres Rosenthal   |
 | 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
-| 11.11.2026 | 1.21    | Document the node name check, the default node name and the per-node TLS certificate names           |                    |
+| 11.11.2026 | 1.21    | Document the node name check, the default node name and the per-node TLS certificate names           | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
