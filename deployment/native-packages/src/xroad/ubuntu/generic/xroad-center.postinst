@@ -9,6 +9,8 @@ trap db_stop EXIT
 readonly NODE_INI=/etc/xroad/conf.d/node.ini
 readonly NODE_NAME_PATTERN='^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$'
 NODE_NAME=""
+ROWS_IN_USE=false
+STORED_ROW=""
 
 abort() {
     local rc=$?
@@ -208,11 +210,27 @@ store_node_name() {
   log "Central Server node name set to '${node_name}' in ${NODE_INI}"
 }
 
-# Prints the stored value of a TLS identity row as this node uses it: its own row, else the shared
-# row. Fails when there is no row. A row with an empty value exists.
+# Sets ROWS_IN_USE: true when the installer stores TLS identity rows, so the stored rows are read
+# and written. False when database migrations are skipped or write_tls_config.sh stores no rows.
+set_rows_in_use() {
+  ROWS_IN_USE=false
+  RET=""
+  db_get xroad-common/skip-cs-db-migrations || true
+  [[ "$RET" != "true" ]] || return 0
+  tls_identity_rows_skip_reason >/dev/null || ROWS_IN_USE=true
+}
+
+# Reads the value of a TLS identity row as this node uses it (its own row, else the shared row)
+# into STORED_ROW. A row with an empty value exists. Returns 1 when there is no row or rows are not
+# in use. Aborts when the database cannot be read, before any row is written.
 # Arguments: $1 - module name, $2 - row key (common-name, alt-names, ip-subject-alt-names)
 stored_tls_row() {
-  read_effective_tls_row "xroad.$1.tls.certificate-provisioning.$2" "$NODE_NAME" 2>/dev/null
+  STORED_ROW=""
+  [[ "$ROWS_IN_USE" == true ]] || return 1
+  local key="xroad.$1.tls.certificate-provisioning.$2" rc=0
+  STORED_ROW=$(read_effective_tls_row "$key" "$NODE_NAME") || rc=$?
+  (( rc < 2 )) || abort "Cannot read the TLS identity row ${key} from the database. ABORTING."
+  return "$rc"
 }
 
 # Prints the IP and DNS alternative name lists in the IP:<address>,DNS:<name> answer format.
@@ -233,15 +251,16 @@ format_alt_names() {
 
 # Sets the defaults of the two questions of a module and asks them. The default is the value this
 # node uses (its row, else the shared row), else the previous or preseeded answer, else the host value.
+# Rows are read only when ROWS_IN_USE is true; a database error then aborts the installation.
 # Arguments: $1 - module name, $2 - subject question, $3 - alternative names question
 ask_tls_names() {
   local module="$1" subject_question="$2" alt_question="$3"
   local stored_subject stored_ips stored_dns
   local has_subject=false has_ips=false has_dns=false
 
-  stored_subject=$(stored_tls_row "$module" common-name) && has_subject=true
-  stored_ips=$(stored_tls_row "$module" ip-subject-alt-names) && has_ips=true
-  stored_dns=$(stored_tls_row "$module" alt-names) && has_dns=true
+  if stored_tls_row "$module" common-name; then has_subject=true; stored_subject="$STORED_ROW"; fi
+  if stored_tls_row "$module" ip-subject-alt-names; then has_ips=true; stored_ips="$STORED_ROW"; fi
+  if stored_tls_row "$module" alt-names; then has_dns=true; stored_dns="$STORED_ROW"; fi
 
   db_subst "$subject_question" HOST "$HOST"
   db_subst "$alt_question" ALT "$ALT"
@@ -271,6 +290,7 @@ ask_tls_names() {
 prepare_certificates_settings() {
   HOST=$(detect_host_name)
   ALT=$(detect_alt_names)
+  set_rows_in_use
 
   log "Preparing center-admin-service certificate properties"
   ask_tls_names admin-service xroad-common/admin-subject xroad-common/admin-altsubject

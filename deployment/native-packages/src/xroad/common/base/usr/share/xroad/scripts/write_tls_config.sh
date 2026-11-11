@@ -15,6 +15,7 @@
 #   store_tls_identity_rows "proxy" "$subject" "$altn" [--yes|--if-absent] [node] [if-changed]  # No guards
 #   detect_host_name, detect_alt_names                 # Host name and addresses of this host
 #   read_effective_tls_row "<row key>" [node]           # Value a node uses: its own row, else the shared row
+#   tls_identity_rows_skip_reason                       # Why this host stores no rows (returns 1 when it does)
 #
 
 log () { echo >&2 "$@"; }
@@ -197,6 +198,24 @@ store_tls_identity_rows() {
   done
 }
 
+# Prints why this host does not store TLS identity rows and returns 0; returns 1 when it does.
+# Identity rows are written only when systemd is the running init (the sd_booted test).
+# Without it the package is being configured inside an image build or a container's
+# first-start reconfigure, where the host name belongs to the build or the container rather
+# than to the deployment, and a stored row would outrank the runtime XROAD_HOST default.
+# Deployed X-Road always runs under systemd.
+tls_identity_rows_skip_reason() {
+  if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
+    echo "XROAD_IGNORE_DATABASE_SETUP is set"
+    return 0
+  fi
+  if [[ ! -d /run/systemd/system ]]; then
+    echo "systemd is not the running init (image build or container reconfigure)"
+    return 0
+  fi
+  return 1
+}
+
 # Package entry point for the TLS identity rows of a module.
 # Arguments: as store_tls_identity_rows, with $4 optional "reconfigure" to overwrite existing rows;
 # $5 is the optional Central Server node name, $6 the optional "if-changed" (see store_tls_identity_rows).
@@ -206,18 +225,9 @@ write_tls_identity_rows() {
   local module_name="$1"
   local mode="${4:-}"
 
-  if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
-    log "XROAD_IGNORE_DATABASE_SETUP is set, not storing ${module_name} TLS identity rows"
-    return 0
-  fi
-
-  # Identity rows are written only when systemd is the running init (the sd_booted test).
-  # Without it the package is being configured inside an image build or a container's
-  # first-start reconfigure, where the host name belongs to the build or the container rather
-  # than to the deployment, and a stored row would outrank the runtime XROAD_HOST default.
-  # Deployed X-Road always runs under systemd.
-  if [[ ! -d /run/systemd/system ]]; then
-    log "systemd is not the running init (image build or container reconfigure), not storing ${module_name} TLS identity rows"
+  local skip_reason
+  if skip_reason=$(tls_identity_rows_skip_reason); then
+    log "${skip_reason}, not storing ${module_name} TLS identity rows"
     return 0
   fi
 
