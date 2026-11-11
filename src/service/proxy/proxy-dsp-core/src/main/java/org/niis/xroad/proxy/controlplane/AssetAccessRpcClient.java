@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.controlplane;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.github.benmanes.caffeine.cache.Ticker;
 import io.grpc.ManagedChannel;
@@ -136,14 +135,12 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     @Override
     public AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId,
                                                   List<AcquisitionCandidate> candidates,
-                                                  @Nullable SecurityServerId forcedTarget,
                                                   @Nullable ClientId consumerClientId,
                                                   Duration timeout) {
         var cacheKey = new AssetAccessCache.CacheKey(
                 participantContextId,
                 assetId,
                 Set.copyOf(candidates),
-                forcedTarget != null ? forcedTarget.asEncodedId() : null,
                 clientProperties.protocol(),
                 consumerClientId != null ? consumerClientId.asEncodedId() : null);
         var remembered = refusalMemory.recall(cacheKey);
@@ -203,9 +200,6 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
                 AssetAccessCandidate.newBuilder()
                         .setCounterPartyId(candidate.counterPartyId())
                         .setCounterPartyAddress(candidate.counterPartyAddress())));
-        if (cacheKey.forcedTarget() != null) {
-            request.setForcedTargetServerId(cacheKey.forcedTarget());
-        }
         if (cacheKey.consumerClientId() != null) {
             request.setClientId(cacheKey.consumerClientId());
         }

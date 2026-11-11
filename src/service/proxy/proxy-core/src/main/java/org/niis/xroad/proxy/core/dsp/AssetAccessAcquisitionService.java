@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.dsp;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.annotation.Nullable;
 
@@ -49,15 +48,12 @@ public interface AssetAccessAcquisitionService {
      * @param participantContextId the consumer participant context to negotiate as
      * @param assetId              the asset identifier for the data transfer
      * @param candidates           the provider participants that may serve the asset, in the caller's order
-     * @param forcedTarget         the Security Server the caller forced the target to, which {@code candidates}
-     *                             is then narrowed to; {@code null} when the caller states none
      * @param consumerClientId     the calling client, subsystem included; {@code null} when the request states none
      * @param timeout              how long the control plane may spend on this acquisition
      * @return the parsed asset access response containing the dataplane endpoint URL
      */
     AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId,
                                            List<AcquisitionCandidate> candidates,
-                                           @Nullable SecurityServerId forcedTarget,
                                            @Nullable ClientId consumerClientId,
                                            Duration timeout);
 

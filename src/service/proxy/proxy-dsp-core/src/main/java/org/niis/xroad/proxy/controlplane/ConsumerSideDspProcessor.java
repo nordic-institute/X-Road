@@ -154,7 +154,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         var candidates = deriveCandidates(requestTargetsSystemCtx, serviceId, providerAddresses, request.triedServers());
         try {
             var access = assetAccessAcquisitionService.acquireAssetAccess(
-                    participantContextId, assetId, candidates, request.targetSecurityServer(), request.sender(),
+                    participantContextId, assetId, candidates, request.sender(),
                     clientProperties.acquisitionDeadline());
             return new DspAcquisition(access, (int) candidates.stream().map(ConsumerSideDspProcessor::authorityOf).distinct().count());
         } catch (XrdRuntimeException ex) {

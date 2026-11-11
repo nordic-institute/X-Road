@@ -1398,7 +1398,7 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
     void reportedServerIsSkippedAndTheSiblingWins(String reportedAddress) throws Exception {
         stubNegotiatedAccessViaCatalogOf("provider-2");
         var request = new AssetAccessRequest("asset-1", List.of(new AssetAccessRequest.Candidate("provider-1", reportedAddress),
-                new AssetAccessRequest.Candidate("provider-2", "http://provider-2.example.org/dsp")), null, null, null);
+                new AssetAccessRequest.Candidate("provider-2", "http://provider-2.example.org/dsp")), null, null);
         orchestrator.reportCounterPartyFailure("provider-1", reportedAddress);
 
         assertThat(acquireAndAwait(request).winner().counterPartyId()).isEqualTo("provider-2");
@@ -1481,24 +1481,11 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
         verify(catalogService, times(1)).requestCatalog(any(), any(), any(), any(), any());
     }
 
-    @Test
-    void acquisitionsForDifferentForcedTargetsDoNotShareAnInFlightEntry() {
-        when(catalogService.requestCatalog(any(), any(), any(), any(), any())).thenReturn(new CompletableFuture<>());
-        var candidates = List.of(new AssetAccessRequest.Candidate("provider-1", "http://provider-1.example.org/dsp"));
-
-        var first = orchestrator.acquireAssetAccess(buildParticipantContext(),
-                new AssetAccessRequest("asset-1", candidates, null, null, "DEV:COM:222:SS1"), defaultBudget());
-        var second = orchestrator.acquireAssetAccess(buildParticipantContext(),
-                new AssetAccessRequest("asset-1", candidates, null, null, "DEV:COM:222:SS2"), defaultBudget());
-
-        assertThat(second).isNotSameAs(first);
-    }
-
     private static AssetAccessRequest requestForCandidates(String... counterPartyIds) {
         var candidates = Stream.of(counterPartyIds)
                 .map(id -> new AssetAccessRequest.Candidate(id, "http://%s.example.org/dsp".formatted(id)))
                 .toList();
-        return new AssetAccessRequest("asset-1", candidates, null, null, null);
+        return new AssetAccessRequest("asset-1", candidates, null, null);
     }
 
     private static AssetAccessRequest requestForMemberContext(String memberCode, String... servers) {
@@ -1506,7 +1493,7 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
                 .map(server -> new AssetAccessRequest.Candidate("%s-for-%s".formatted(server, memberCode),
                         "https://%s.example.org:8183/api/dsp/DEV:COM:%s/http-dsp-profile-2025-1".formatted(server, memberCode)))
                 .toList();
-        return new AssetAccessRequest("asset-1", candidates, null, null, null);
+        return new AssetAccessRequest("asset-1", candidates, null, null);
     }
 
     private ContractNegotiation terminatedNegotiation(String id, String errorDetail) {

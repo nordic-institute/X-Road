@@ -190,7 +190,7 @@ class AssetAccessOrchestratorSiblingSecurityServerTest extends AssetAccessOrches
 
     private static AssetAccessRequest petstoreRequestForTestClient() {
         return new AssetAccessRequest(PETSTORE_ASSET_ID, List.of(SECURITY_SERVER, SIBLING_SECURITY_SERVER), null,
-                TESTCLIENT_ID, null);
+                TESTCLIENT_ID);
     }
 
     private void startedAddressWithToken(String transferProcessId, String endpoint, String token) {

@@ -107,7 +107,7 @@ class AssetAccessOrchestratorCallerCancelTest extends AssetAccessOrchestratorTes
     void theLastCallerGivingUpDuringTheHandshakeRaceCancelsTheRaceAndSendsNoCatalogRequest() {
         var request = new AssetAccessRequest("asset-1", List.of(
                 new AssetAccessRequest.Candidate("provider-1", "http://provider-1.example.org/dsp"),
-                new AssetAccessRequest.Candidate("provider-2", "http://provider-2.example.org/dsp")), null, null, null);
+                new AssetAccessRequest.Candidate("provider-2", "http://provider-2.example.org/dsp")), null, null);
         var ordering = new CompletableFuture<List<AssetAccessRequest.Candidate>>();
         when(candidateHandshakeRace.order(any())).thenReturn(ordering);
         var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());

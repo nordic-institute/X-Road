@@ -455,30 +455,19 @@ class AssetAccessGrpcServiceTest {
     }
 
     @Test
-    void acquireForwardsCandidatesInOrderAndForcedTarget() {
+    void acquireForwardsCandidatesInOrder() {
         var captor = stubOrchestratorCapturingRequest();
 
         stub.acquire(minimalRequest()
                 .clearCandidates()
                 .addCandidates(candidate("provider-b", "http://b/dsp"))
                 .addCandidates(candidate("provider-a", "http://a/dsp"))
-                .setForcedTargetServerId("DEV:COM:222:SS1")
                 .build());
 
         var forwarded = captor.getValue();
         assertThat(forwarded.candidates()).containsExactly(
                 new AssetAccessRequest.Candidate("provider-b", "http://b/dsp"),
                 new AssetAccessRequest.Candidate("provider-a", "http://a/dsp"));
-        assertThat(forwarded.forcedTarget()).isEqualTo("DEV:COM:222:SS1");
-    }
-
-    @Test
-    void acquireWithoutForcedTargetForwardsNull() {
-        var captor = stubOrchestratorCapturingRequest();
-
-        stub.acquire(minimalRequest().build());
-
-        assertThat(captor.getValue().forcedTarget()).isNull();
     }
 
     @Test

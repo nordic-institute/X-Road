@@ -129,11 +129,11 @@ class AssetAccessCacheTest {
     @Test
     void invalidatingDropsEveryProviderCandidateOfTheAssetAndLeavesOthersCached() {
         var candidateA = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1",
-                Set.of(candidate("provider-a")), null, "http-dsp-profile-2025-1", "DEV:COM:222:A");
+                Set.of(candidate("provider-a")), "http-dsp-profile-2025-1", "DEV:COM:222:A");
         var candidateB = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1",
-                Set.of(candidate("provider-b")), null, "http-dsp-profile-2025-1", "DEV:COM:222:A");
+                Set.of(candidate("provider-b")), "http-dsp-profile-2025-1", "DEV:COM:222:A");
         var otherClient = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1",
-                Set.of(candidate("provider-a")), null, "http-dsp-profile-2025-1", "DEV:COM:222:B");
+                Set.of(candidate("provider-a")), "http-dsp-profile-2025-1", "DEV:COM:222:B");
         var otherAsset = key("asset-2");
         Stream.of(candidateA, candidateB, otherClient, otherAsset).forEach(k -> cache.get(k, x -> load(60)));
         loadCount.set(0);
@@ -149,8 +149,8 @@ class AssetAccessCacheTest {
         var ab = new LinkedHashSet<>(List.of(candidate("provider-a"), candidate("provider-b")));
         var ba = new LinkedHashSet<>(List.of(candidate("provider-b"), candidate("provider-a")));
 
-        cache.get(keyOf(ab, null), k -> load(60));
-        cache.get(keyOf(ba, null), k -> load(60));
+        cache.get(keyOf(ab), k -> load(60));
+        cache.get(keyOf(ba), k -> load(60));
 
         assertThat(loadCount.get()).isEqualTo(1);
     }
@@ -170,10 +170,10 @@ class AssetAccessCacheTest {
         assertThat(secondA.counterPartyAddress()).isNotSameAs(firstA.counterPartyAddress());
         assertThat(secondA).isEqualTo(firstA);
         assertThat(secondB).isEqualTo(firstB);
-        assertThat(keyOf(second, null)).isEqualTo(keyOf(first, null));
+        assertThat(keyOf(second)).isEqualTo(keyOf(first));
 
-        cache.get(keyOf(first, null), k -> load(60));
-        cache.get(keyOf(second, null), k -> load(60));
+        cache.get(keyOf(first), k -> load(60));
+        cache.get(keyOf(second), k -> load(60));
 
         assertThat(loadCount.get()).isEqualTo(1);
     }
@@ -183,21 +183,10 @@ class AssetAccessCacheTest {
         var atFirstAddress = Set.of(new AcquisitionCandidate("provider-a", "http://first/dsp"));
         var atSecondAddress = Set.of(new AcquisitionCandidate("provider-a", "http://second/dsp"));
 
-        cache.get(keyOf(atFirstAddress, null), k -> load(60));
-        cache.get(keyOf(atSecondAddress, null), k -> load(60));
+        cache.get(keyOf(atFirstAddress), k -> load(60));
+        cache.get(keyOf(atSecondAddress), k -> load(60));
 
         assertThat(loadCount.get()).isEqualTo(2);
-    }
-
-    @Test
-    void aDifferentForcedTargetIsADifferentEntry() {
-        var candidates = Set.of(candidate("provider-a"));
-
-        cache.get(keyOf(candidates, "DEV:COM:1234:ss-a"), k -> load(60));
-        cache.get(keyOf(candidates, "DEV:COM:1234:ss-b"), k -> load(60));
-        cache.get(keyOf(candidates, null), k -> load(60));
-
-        assertThat(loadCount.get()).isEqualTo(3);
     }
 
     @Test
@@ -233,7 +222,7 @@ class AssetAccessCacheTest {
     @Test
     void removalByWinnerDropsEveryEntryWonByTheServerAndKeepsTheOthers() {
         var wonBySsAElsewhere = new AssetAccessCache.CacheKey("ctx-2", "asset-2",
-                Set.of(candidate("provider-a"), candidate("provider-b")), "DEV:COM:1234:ss-a",
+                Set.of(candidate("provider-a"), candidate("provider-b")),
                 "http-dsp-profile-2025-1", "DEV:COM:222:B");
         var wonBySsA = keyWith("ctx-1", "asset-1", "provider-a", "DEV:COM:222:A");
         var wonBySsAOtherPort = keyWith("ctx-1", "asset-3", "provider-a", "DEV:COM:222:A");
@@ -392,20 +381,20 @@ class AssetAccessCacheTest {
 
     private static AssetAccessCache.CacheKey keyWith(String participantContextId, String assetId, String candidateId,
                                                      String consumerClientId) {
-        return new AssetAccessCache.CacheKey(participantContextId, assetId, Set.of(candidate(candidateId)), null,
+        return new AssetAccessCache.CacheKey(participantContextId, assetId, Set.of(candidate(candidateId)),
                 "http-dsp-profile-2025-1", consumerClientId);
     }
 
     private static AssetAccessCache.CacheKey key(String assetId) {
-        return keyOf(Set.of(candidate("provider-1")), null, assetId);
+        return keyOf(Set.of(candidate("provider-1")), assetId);
     }
 
-    private static AssetAccessCache.CacheKey keyOf(Set<AcquisitionCandidate> candidates, String forcedTarget) {
-        return keyOf(candidates, forcedTarget, "asset-1");
+    private static AssetAccessCache.CacheKey keyOf(Set<AcquisitionCandidate> candidates) {
+        return keyOf(candidates, "asset-1");
     }
 
-    private static AssetAccessCache.CacheKey keyOf(Set<AcquisitionCandidate> candidates, String forcedTarget, String assetId) {
-        return new AssetAccessCache.CacheKey("test-participant-ctx", assetId, candidates, forcedTarget,
+    private static AssetAccessCache.CacheKey keyOf(Set<AcquisitionCandidate> candidates, String assetId) {
+        return new AssetAccessCache.CacheKey("test-participant-ctx", assetId, candidates,
                 "http-dsp-profile-2025-1", null);
     }
 

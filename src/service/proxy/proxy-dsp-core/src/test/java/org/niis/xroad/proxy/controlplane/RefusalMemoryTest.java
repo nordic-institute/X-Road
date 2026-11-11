@@ -50,7 +50,6 @@ class RefusalMemoryTest {
             Set.of(new AcquisitionCandidate(
                     "did:web:ss0.example.org%3A7183:v1:DEV:COM:222",
                     "https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1")),
-            null,
             "http-dsp-profile-2025-1",
             ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT").asEncodedId());
 

@@ -54,9 +54,8 @@ message AcquireAssetAccessReq {
   string protocol = 3;
   optional string client_id = 4;
   repeated AssetAccessCandidate candidates = 5;
-  optional string forced_target_server_id = 6;
   // Time the control plane may spend on the acquisition; absent means its configured limit.
-  optional int64 timeout_millis = 7;
+  optional int64 timeout_millis = 6;
 }
 
 message AcquireAssetAccessResp {

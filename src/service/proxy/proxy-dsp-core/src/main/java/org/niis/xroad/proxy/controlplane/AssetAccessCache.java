@@ -54,13 +54,12 @@ class AssetAccessCache {
      * affects the response; {@code participantContextId} varies per request with the sender.
      *
      * <p>The candidates are a set: the same candidates in any order are the same key.
-     * {@code forcedTarget} is the encoded id of the Security Server the caller forced the target to.
      *
      * <p>Planned: the candidates will be resolved from GlobalConf; multiple {@code protocol} versions
      * are foreseeable.
      */
     record CacheKey(String participantContextId, String assetId, Set<AcquisitionCandidate> candidates,
-                    @Nullable String forcedTarget, String protocol, @Nullable String consumerClientId) { }
+                    String protocol, @Nullable String consumerClientId) { }
 
     /**
      * @param winnerKey the {@link SecurityServerAuthority} key of the candidate that granted the access, derived

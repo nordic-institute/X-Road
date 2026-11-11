@@ -171,7 +171,7 @@ public class AssetAccessOrchestrator {
 
     /**
      * Acquires access to an asset, de-duplicating concurrent requests for the same participant+asset+candidate
-     * set(+forced target)(+client) key. Each caller gets a future of its own on the shared work; cancelling it is
+     * set(+client) key. Each caller gets a future of its own on the shared work; cancelling it is
      * the caller giving up. Candidates not in cooldown (all of them when every candidate is) are
      * considered. Those holding a reusable agreement are tried first, newest agreement first, without probing. The
      * rest are probed in parallel and tried in the order the candidate handshake race returns, or tried at once,
@@ -269,9 +269,6 @@ public class AssetAccessOrchestrator {
                 .sorted()
                 .collect(Collectors.joining(",", "[", "]"));
         var key = participantContext.getParticipantContextId() + "::" + request.assetId() + "::" + candidateSet;
-        if (request.forcedTarget() != null) {
-            key += "::forced=" + request.forcedTarget();
-        }
         return request.clientId() == null ? key : key + "::" + request.clientId();
     }
 

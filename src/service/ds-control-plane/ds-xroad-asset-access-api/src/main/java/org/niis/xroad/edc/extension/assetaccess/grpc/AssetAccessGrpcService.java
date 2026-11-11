@@ -184,8 +184,7 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
                                 candidate.getCounterPartyId(), candidate.getCounterPartyAddress()))
                         .toList(),
                 request.getProtocol().isEmpty() ? null : request.getProtocol(),
-                request.hasClientId() ? request.getClientId() : null,
-                request.hasForcedTargetServerId() ? request.getForcedTargetServerId() : null);
+                request.hasClientId() ? request.getClientId() : null);
     }
 
     private AssetAccessResult awaitAcquireResult(ParticipantContext participantContext,

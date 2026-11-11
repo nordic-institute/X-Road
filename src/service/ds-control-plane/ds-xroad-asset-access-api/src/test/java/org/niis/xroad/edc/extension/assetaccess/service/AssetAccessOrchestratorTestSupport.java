@@ -404,7 +404,7 @@ abstract class AssetAccessOrchestratorTestSupport {
 
     static AssetAccessRequest requestFor(String clientId) {
         return new AssetAccessRequest("asset-1",
-                List.of(new AssetAccessRequest.Candidate("provider-1", "http://provider/dsp")), null, clientId, null);
+                List.of(new AssetAccessRequest.Candidate("provider-1", "http://provider/dsp")), null, clientId);
     }
 
     void stubCatalogAndTransformChain(String assetId) {

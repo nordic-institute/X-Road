@@ -33,18 +33,15 @@ import org.niis.xroad.ds.identity.DspConventions;
 import java.util.List;
 
 /**
- * @param candidates   provider Security Server participants to try; acquisition reorders them
- * @param clientId     encoded id of the consumer client (subsystem) the access is acquired for;
- *                     {@code null} when the caller states none
- * @param forcedTarget encoded id of the Security Server the caller forced the target to;
- *                     {@code null} when the caller states none
+ * @param candidates provider Security Server participants to try; acquisition reorders them
+ * @param clientId   encoded id of the consumer client (subsystem) the access is acquired for;
+ *                   {@code null} when the caller states none
  */
 public record AssetAccessRequest(
         String assetId,
         List<Candidate> candidates,
         String protocol,
-        @Nullable String clientId,
-        @Nullable String forcedTarget
+        @Nullable String clientId
 ) {
     /**
      * One provider Security Server participant: its counter-party id and DSP address.
