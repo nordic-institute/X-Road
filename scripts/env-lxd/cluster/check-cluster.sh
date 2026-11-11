@@ -10,8 +10,13 @@
 #  - each node uses the database write address and carries its own HA node name, distinct from the others;
 #  - a node that is not expected to stop reports its HA node name through the admin API,
 #    a node that is expected to stop at OpenBao database creation did stop there;
-#  - on every node whose admin service runs, OpenBao holds tls/admin-service/<node> and
-#    tls/management-service/<node> and no shared tls/admin-service or tls/management-service secret;
+#  - on every node whose admin service runs, OpenBao (read with the services' client token) holds
+#    tls/admin-service/<node> and tls/management-service/<node> and no shared tls/admin-service or
+#    tls/management-service secret;
+#  - on every node whose admin service runs, the configuration database holds the six TLS name rows of the node
+#    (common name, alternative names and addresses of the admin and management service) as preseeded, holds no
+#    shared TLS name row, and ports 4000 and 4002 serve certificates carrying the preseeded names, the node
+#    address and the cluster name;
 #  - the cluster name resolves to the load balancer and, through it, the Issuer Service ports serve the
 #    first node's certificate carrying the cluster name, and port 80 answers HTTP.
 # CHECK_PATRONI_WAIT and CHECK_CS_WRITE_WAIT (seconds) bound the Patroni wait and the admin API retries.
@@ -77,12 +82,13 @@ esac
 call "$api" | grep -Eq "\"description\" *: *\"$2\"" || { echo "the new description is not read back"; exit 1; }
 EOF
 
-# Prints "<secret path> <HTTP status>" for the node's own and the shared TLS secret of each service. The root token
-# is read on the node and sent from standard input to curl, so it appears in no argument list, and no response body
-# is printed.
+# Prints "<secret path> <HTTP status>" for the node's own and the shared TLS secret of each service. The services'
+# client token is read on the node and sent from standard input to curl, so it appears in no argument list, and no
+# response body is printed.
 IFS= read -r -d '' OPENBAO_TLS_STATUS_SCRIPT <<'EOF' || true
+. /etc/xroad/services/secret-store-local.conf
 status_of() {
-  printf 'X-Vault-Token: %s\n' "$(cat /etc/openbao/root-token)" \
+  printf 'X-Vault-Token: %s\n' "$XROAD_SECRET_STORE_TOKEN" \
     | curl -sk -m 20 -o /dev/null -w '%{http_code}' -H @- "https://127.0.0.1:8200/v1/xrd-secret/$1"
 }
 for service in admin-service management-service; do
@@ -105,6 +111,91 @@ certificate_fingerprint() {
 
 certificate_names() {
   host_exec "$1" bash -c "echo | timeout 10 openssl s_client -connect '$2' -servername '$3' 2>/dev/null | openssl x509 -noout -ext subjectAltName" 2>/dev/null
+}
+
+TLS_NAME_ROW_PATTERN='^xroad\.(admin|management)-service\.tls\.certificate-provisioning\.(common-name|alt-names|ip-subject-alt-names)$'
+
+# Prints the value of the row KEY ($2) from the db_property.sh list output ($1); fails when there is no such row.
+tls_row_value() {
+  awk -F'\t' -v key="$2" '$1 == key {found = 1; print $2} END {exit !found}' <<<"$1"
+}
+
+# Succeeds when the row KEY ($1) with value VALUE ($2) matches EXPECTED ($3): an address row holds the expected
+# address among its entries, any other row equals it.
+tls_row_matches() {
+  if [[ "$1" == *.ip-subject-alt-names ]]; then
+    tr ',' '\n' <<<"$2" | grep -qxF "$3"
+  else
+    [[ "$2" == "$3" ]]
+  fi
+}
+
+# Sets expected_cn, expected_dns (comma separated) and expected_ip of NODE ($1) in the caller's variables, as the
+# node's Central Server preseed gives them: the node address, the node name, the cluster name and the node address.
+expected_tls_names() {
+  expected_cn=$(host_address "$1")
+  expected_dns=$expected_cn
+  [[ "$1" == "$expected_cn" ]] || expected_dns+=",$1"
+  expected_dns+=",$cluster_name"
+  expected_ip=$(host_ip "$1" "$1")
+}
+
+# Checks the six TLS name rows of NODE ($1, HA node name $2) and that no shared TLS name row exists.
+check_tls_name_rows() {
+  local node=$1 node_name=$2 expected_cn expected_dns expected_ip node_rows shared_rows service key row_key expected value
+  expected_tls_names "$node"
+  if ! node_rows=$(host_exec "$node" /usr/share/xroad/scripts/db_property.sh list --node "$node_name" 2>&1); then
+    fail "cannot list the rows of $node_name on $node: $node_rows"
+    return
+  fi
+  for service in admin-service management-service; do
+    for key in common-name alt-names ip-subject-alt-names; do
+      case "$key" in
+        common-name) expected=$expected_cn ;;
+        alt-names) expected=$expected_dns ;;
+        *) expected=$expected_ip ;;
+      esac
+      row_key="xroad.$service.tls.certificate-provisioning.$key"
+      if ! value=$(tls_row_value "$node_rows" "$row_key"); then
+        fail "$node holds no row $row_key for $node_name"
+      elif [[ -n "$expected" ]] && tls_row_matches "$row_key" "$value" "$expected"; then
+        pass "$node row $row_key of $node_name is '$value'"
+      else
+        fail "$node row $row_key of $node_name is '$value', expected '$expected'"
+      fi
+    done
+  done
+  if ! shared_rows=$(host_exec "$node" /usr/share/xroad/scripts/db_property.sh list 2>&1); then
+    fail "cannot list the shared rows on $node: $shared_rows"
+    return
+  fi
+  shared_rows=$(cut -f1 <<<"$shared_rows" | grep -E "$TLS_NAME_ROW_PATTERN")
+  if [[ -z "$shared_rows" ]]; then
+    pass "$node holds no shared TLS name row"
+  else
+    fail "$node holds shared TLS name rows: $(tr '\n' ' ' <<<"$shared_rows")"
+  fi
+}
+
+# Checks that ports 4000 and 4002 of NODE ($1) serve certificates carrying the preseeded names and address.
+check_tls_certificate_names() {
+  local node=$1 expected_cn expected_dns expected_ip port names name
+  expected_tls_names "$node"
+  if [[ -z "$expected_cn" || -z "$expected_ip" ]]; then
+    fail "cannot work out the expected certificate names of $node (name '$expected_cn', address '$expected_ip')"
+    return
+  fi
+  for port in 4000 4002; do
+    names=$(certificate_names "$node" "127.0.0.1:$port" "$expected_cn")
+    for name in $(tr ',' ' ' <<<"$expected_dns") "IP Address:$expected_ip"; do
+      [[ "$name" == "IP Address:"* ]] || name="DNS:$name"
+      if tr ',' '\n' <<<"$names" | sed 's/^ *//' | grep -qxF "$name"; then
+        pass "$node certificate on port $port carries $name"
+      else
+        fail "$node certificate on port $port does not carry $name: $names"
+      fi
+    done
+  done
 }
 
 running_of() {
@@ -360,8 +451,10 @@ for node in $nodes; do
         *) fail "cannot tell whether $node OpenBao holds the shared tls/$service secret (HTTP '$plain_secret_status')" ;;
       esac
     done
+    check_tls_name_rows "$node" "$expected_name"
+    check_tls_certificate_names "$node"
   else
-    echo "INFO: skipping the OpenBao TLS path check on $node: its admin service is not running"
+    echo "INFO: skipping the OpenBao and TLS name checks on $node: its admin service is not running"
   fi
 done
 

@@ -14,7 +14,7 @@ Description: Insert the Central Server node name (leave empty for a standalone C
  .
  The name must start with a letter or digit, followed by letters, digits, '_' or '-', at most 63 characters in total, for example node_1.
  .
- The installation does not check the name. A name that does not follow this rule makes the Central Server services fail to start.
+ The installation stops with an error when the name does not follow this rule.
  .
  The name is stored in /etc/xroad/conf.d/node.ini and is asked only at the first installation. Do not change it after the node is in use: the node's own settings and TLS keys are stored under the name.
 
@@ -40,7 +40,7 @@ Description: Insert admin interface TLS certificate subject name alternatives
 
 Template: xroad-common/service-subject
 Type: string
-Description: Insert management service TLS certificate subject common name [default=${HOST}]
+Description: Insert management service TLS certificate subject common name
  This certificate will be used to secure management Security Server and management services.
  .
  Include most used hostname or IP address as common name (CN) value.
@@ -49,7 +49,7 @@ Description: Insert management service TLS certificate subject common name [defa
 
 Template: xroad-common/service-altsubject
 Type: string
-Description: Insert management service TLS certificate subject name alternatives [default=${ALT}]
+Description: Insert management service TLS certificate subject name alternatives
  This certificate will be used to secure management Security Server and management services.
  .
  Include all alternative names and IP addresses which will be used for accessing secure services

@@ -11,8 +11,10 @@
 # Usage (when sourced):
 #   . write_tls_config.sh
 #   setup_default_tls_config "proxy"           # Auto-detect, store identity rows if absent
-#   write_tls_identity_rows "proxy" "$subject" "$altn" [reconfigure] [node] [keep-shared]  # Package path, guarded
-#   store_tls_identity_rows "proxy" "$subject" "$altn" [--yes|--if-absent] [node] [keep-shared]  # No guards
+#   write_tls_identity_rows "proxy" "$subject" "$altn" [reconfigure] [node] [if-changed]  # Package path, guarded
+#   store_tls_identity_rows "proxy" "$subject" "$altn" [--yes|--if-absent] [node] [if-changed]  # No guards
+#   detect_host_name, detect_alt_names                 # Host name and addresses of this host
+#   read_effective_tls_row "<row key>" [node]           # Value a node uses: its own row, else the shared row
 #
 
 log () { echo >&2 "$@"; }
@@ -44,6 +46,23 @@ Examples:
 
 EOF
   exit 1
+}
+
+# Prints the host name used as the default common name: the FQDN, or the short name when the
+# FQDN is longer than 64 characters.
+detect_host_name() {
+  local host
+  host=$(hostname -f)
+  if (( ${#host} > 64 )); then
+    host=$(hostname -s)
+  fi
+  echo "$host"
+}
+
+# Prints the default alternative names of this host: the global-scope addresses, then the FQDN
+# and the short host name, in the format IP:1.1.1.1,DNS:name,...
+detect_alt_names() {
+  echo "$(ip addr | awk '/scope global/ {split($2,a,"/"); printf "IP:%s,", a[1]}')DNS:$(hostname -f),DNS:$(hostname -s)"
 }
 
 # Extract the values of one family (IP or DNS) from a combined list, comma-joined.
@@ -87,6 +106,31 @@ extract_cn() {
   echo "$subject"
 }
 
+# Prints the value a Central Server node uses for a TLS identity row: its own row, else the shared
+# row. Without a node name only the shared row is read. A row with an empty value is a value.
+# Arguments: $1 - row key, $2 - optional Central Server node name
+# Returns 0 when a row exists (the value is printed), 1 when there is none, 2 on a database error.
+read_effective_tls_row() {
+  local key="$1" node="${2:-}"
+  local db_property="${DB_PROPERTY_SCRIPT:-/usr/share/xroad/scripts/db_property.sh}"
+  local value rc=0
+
+  if [[ -n "$node" ]]; then
+    value=$("$db_property" get "$key" --node "$node") || rc=$?
+    case "$rc" in
+      0) printf '%s\n' "$value"; return 0 ;;
+      1) rc=0 ;;
+      *) return 2 ;;
+    esac
+  fi
+  value=$("$db_property" get "$key") || rc=$?
+  case "$rc" in
+    0) printf '%s\n' "$value" ;;
+    1) return 1 ;;
+    *) return 2 ;;
+  esac
+}
+
 # Store the TLS identity rows of a module in the configuration database without the package
 # guards; the caller decides whether this host should write.
 # Arguments:
@@ -96,8 +140,9 @@ extract_cn() {
 #   $4 - optional db_property.sh write flag: --yes overwrites, --if-absent keeps existing
 #        rows; none prompts before overwriting an existing row
 #   $5 - optional Central Server node name: the rows are stored for that node only
-#   $6 - optional "keep-shared": with a node name, a key that has a shared row is not written, so
-#        the shared value keeps applying to the node
+#   $6 - optional "if-changed": a key is written only when it has no row or its answer differs
+#        from the value the node uses (its own row, else the shared row); an existing row of the
+#        written scope is then overwritten, whatever $4 says
 # An answer without a common name falls back to the host name (hostname -f).
 # Returns non-zero, naming the key, on any database error.
 store_tls_identity_rows() {
@@ -108,8 +153,11 @@ store_tls_identity_rows() {
   [[ -n "${4:-}" ]] && write_flag=("$4")
   local -a node_flag=()
   [[ -n "${5:-}" ]] && node_flag=(--node "$5")
-  local keep_shared=false
-  [[ -n "${5:-}" && "${6:-}" == "keep-shared" ]] && keep_shared=true
+  local if_changed=false
+  if [[ "${6:-}" == "if-changed" ]]; then
+    if_changed=true
+    write_flag=(--yes)
+  fi
   local db_property="${DB_PROPERTY_SCRIPT:-/usr/share/xroad/scripts/db_property.sh}"
 
   local prefix="xroad.${module_name}.tls.certificate-provisioning"
@@ -126,22 +174,22 @@ store_tls_identity_rows() {
   dns_list=$(extract_dns_list "$altn")
   ip_list=$(extract_ip_list "$altn")
 
-  local key value
+  local key value current row_rc
   for key in common-name alt-names ip-subject-alt-names; do
     case "$key" in
       common-name) value="$cn" ;;
       alt-names) value="$dns_list" ;;
       ip-subject-alt-names) value="$ip_list" ;;
     esac
-    if [[ "$keep_shared" == true ]]; then
-      local shared_rc=0
-      "$db_property" get "${prefix}.${key}" >/dev/null 2>&1 || shared_rc=$?
-      if [[ "$shared_rc" -eq 0 ]]; then
-        log "${prefix}.${key} has a shared row, not storing a row for node ${5}"
-        continue
-      elif [[ "$shared_rc" -ne 1 ]]; then
-        log "FATAL: failed to read the shared row ${prefix}.${key} from the database"
+    if [[ "$if_changed" == true ]]; then
+      row_rc=0
+      current=$(read_effective_tls_row "${prefix}.${key}" "${5:-}") || row_rc=$?
+      if (( row_rc > 1 )); then
+        log "FATAL: failed to read the row ${prefix}.${key} from the database"
         return 1
+      fi
+      if [[ "$row_rc" -eq 0 && "$current" == "$value" ]]; then
+        continue
       fi
     fi
     "$db_property" set "${prefix}.${key}" "$value" "${write_flag[@]}" "${node_flag[@]}" \
@@ -151,10 +199,9 @@ store_tls_identity_rows() {
 
 # Package entry point for the TLS identity rows of a module.
 # Arguments: as store_tls_identity_rows, with $4 optional "reconfigure" to overwrite existing rows;
-# $5 is the optional Central Server node name, $6 the optional "keep-shared" (see store_tls_identity_rows).
+# $5 is the optional Central Server node name, $6 the optional "if-changed" (see store_tls_identity_rows).
 # Skips when XROAD_IGNORE_DATABASE_SETUP is set or systemd is not the running init.
 # Existing rows are kept unless reconfiguring.
-# Sets the shell variable TLS_IDENTITY_ROWS_WRITTEN to true once the store step has run; it is not exported.
 write_tls_identity_rows() {
   local module_name="$1"
   local mode="${4:-}"
@@ -179,9 +226,7 @@ write_tls_identity_rows() {
     write_flag="--yes"
   fi
 
-  store_tls_identity_rows "$module_name" "$2" "$3" "$write_flag" "${5:-}" "${6:-}" || return
-  # shellcheck disable=SC2034
-  TLS_IDENTITY_ROWS_WRITTEN=true
+  store_tls_identity_rows "$module_name" "$2" "$3" "$write_flag" "${5:-}" "${6:-}"
 }
 
 # Store the TLS identity rows of a module using the auto-detected host name and addresses.
@@ -192,14 +237,7 @@ write_tls_identity_rows() {
 setup_default_tls_config() {
   local module_name="$1"
 
-  local host alt_names
-  host=$(hostname -f)
-  if (( ${#host} > 64 )); then
-    host=$(hostname -s)
-  fi
-  alt_names="$(ip addr | awk '/scope global/ {split($2,a,"/"); printf "IP:%s,", a[1]}')DNS:$(hostname -f),DNS:$(hostname -s)"
-
-  write_tls_identity_rows "$module_name" "$host" "$alt_names"
+  write_tls_identity_rows "$module_name" "$(detect_host_name)" "$(detect_alt_names)"
 }
 
 # Main execution block - only runs when script is executed directly (not sourced)
