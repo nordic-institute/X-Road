@@ -1,14 +1,15 @@
 # X-Road 8: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 1.0
+Version: 1.1
 Doc. ID: IG-CS-8
 
 ---
 
 ## Version history <!-- omit in toc -->
-| Date       | Version | Description     | Author          |
-|------------|---------|-----------------|-----------------|
-| 07.10.2025 | 1.0     | Initial version | Justas Samuolis |
+| Date       | Version | Description                                                                                          | Author          |
+|------------|---------|------------------------------------------------------------------------------------------------------|-----------------|
+| 07.10.2025 | 1.0     | Initial version                                                                                      | Justas Samuolis |
+| 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check and the default node name |                 |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -207,16 +208,16 @@ Upon the first installation of the Central Server software, the system asks for 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`.
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
-- The node name, on the first installation only, and only when `/etc/xroad/conf.d/node.ini` has no node name yet. Leave the answer empty for a standalone Central Server. Enter the name of the node when the server is a node of a high availability cluster. The installation does not check the name; see [2.6.4 Node name](#264-node-name) for the rule and for what happens when the name does not follow it. The preseed key is `xroad-common/node-name`.
+- The node name, on the first installation only, and only when `/etc/xroad/conf.d/node.ini` has no node name yet. Leave the answer empty for a standalone Central Server. Enter the name of the node when the server is a node of a high availability cluster. The installation checks the name before it writes anything, and stops with an error when the name does not follow the rule. See [2.6.4 Node name](#264-node-name) for the rule. The preseed key is `xroad-common/node-name`.
 
-- Names of the TLS certificate of the user interface (reference data: 1.10) and of the TLS certificate of the management services (reference data: 1.11). The installation asks the common name and the alternative names of each certificate. The name and IP addresses detected from the operating system are suggested as default values. When the database already has the names for this node, those are suggested instead.
+- Names of the TLS certificate of the user interface (reference data: 1.10) and of the TLS certificate of the management services (reference data: 1.11). The installation asks the common name and the alternative names of each certificate. The suggested value is the value that this node uses now: its own row in the configuration database, else the shared row. When there is no row, the preseeded answer is suggested, else the name and IP addresses that the installation detects from the operating system.
 
   Enter the common name as a plain host name or IP address, for example `server.domain.tld`.
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
-  The certificate gets exactly the names that are entered. The answers are stored in the configuration database and are used when the services create their keys, see [2.6.2 Provisioning TLS Certificates for management services and user interface](#262-provisioning-tls-certificates-for-management-services-and-user-interface). When `node.ini` has a node name, the answers are stored as rows of that node. Otherwise they are stored as shared rows. The preseed keys are `xroad-common/admin-subject`, `xroad-common/admin-altsubject`, `xroad-common/service-subject` and `xroad-common/service-altsubject`.
+  The certificate gets exactly the names that are entered. The answers are stored in the configuration database and are used when the services create their keys, see [2.6.2 Provisioning TLS Certificates for management services and user interface](#262-provisioning-tls-certificates-for-management-services-and-user-interface). A key is stored only when it has no row yet, or when the answer differs from the value the node uses now. An unchanged answer writes nothing. A changed answer is stored as a row of the node when `node.ini` has a node name, and as a shared row otherwise. The preseed keys are `xroad-common/admin-subject`, `xroad-common/admin-altsubject`, `xroad-common/service-subject` and `xroad-common/service-altsubject`.
 
-ATTENTION: Security Servers connect to the management services by the Central Server address in the global configuration (reference data: 1.9). If that address is not the host name or one of the host's global-scope IP addresses, for example a NAT address or a load balancer name, enter it as the common name or as an alternative name of the management services certificate. The names can also be changed after the installation. Follow the procedure in section [2.6.2](#262-provisioning-tls-certificates-for-management-services-and-user-interface).
+ATTENTION: Security Servers connect to the management services by the Central Server address in the global configuration (reference data: 1.9). A Security Server trusts the exact management services certificate that the Central Server publishes in the global configuration, whatever names the certificate carries, and it does not compare the address with the names in the certificate. The address therefore does not have to be in the certificate. Enter the names that other clients use to reach the node, for example a NAT address or a load balancer name. The names can also be changed after the installation. Follow the procedure in section [2.6.2](#262-provisioning-tls-certificates-for-management-services-and-user-interface).
 
 #### 2.6.1 Configuring TLS Certificates for global configuration distribution
 
@@ -236,15 +237,21 @@ TLS certificates for the user interface and management services are automaticall
 
 Each node has its own keys. The user interface key is stored at `xrd-secret/tls/admin-service/<node>` and the management services key at `xrd-secret/tls/management-service/<node>`. `<node>` is the node name, see [2.6.4 Node name](#264-node-name).
 
-The names in the certificates are the answers given during the installation, see [2.6 Package Installation](#26-package-installation). They are stored in the configuration database as rows of the node when `node.ini` has a node name, and as shared rows otherwise. A key that has no row falls back to the name derived from the host:
+The names in the certificates are the answers given during the installation, see [2.6 Package Installation](#26-package-installation). The installation detects the suggested names from the host and stores the answers in the configuration database. The services do not detect the host name or the addresses themselves.
 
-- The common name is the fully qualified host name. It is the short host name when the fully qualified name is longer than 64 characters.
+The installation detects these names:
+
+- The common name is the fully qualified host name (`hostname -f`). It is the short host name when the fully qualified name is longer than 64 characters.
 - The DNS alternative names are the fully qualified and the short host name.
 - The IP alternative names are the server's global-scope addresses. Loopback and link-local addresses are left out.
 
-Running `sudo dpkg-reconfigure xroad-center` asks the names again and overwrites the rows of this node's scope: the node rows when `node.ini` has a node name, the shared rows otherwise. A key that already exists keeps its names; delete it and restart the services as described below.
+The answers are stored as rows of the node when `node.ini` has a node name, and as shared rows otherwise. A key that has no row uses a default: the common name is the value of the environment variable `XROAD_HOST`, or `localhost` when it is not set; there are no DNS alternative names; the IP alternative name is `127.0.0.1`. The defaults apply when no installation has stored rows, for example in container images. The installation stores no rows when systemd is not the running init, or when the environment variable `XROAD_IGNORE_DATABASE_SETUP` is set.
 
-On an upgrade, a node that has a node name writes a node row only for a name that has neither a node row nor a shared row; names that already have a shared row keep applying to the node.
+Each node resolves every key in this order: the row of the node, the shared row, the default.
+
+Running `sudo dpkg-reconfigure xroad-center` asks the names again. The suggested value is the value the node uses now. A key is stored only when the answer differs from that value, in the scope of the node: as a node row when `node.ini` has a node name, as a shared row otherwise. A key that already exists keeps its names; delete it and restart the services as described below.
+
+An upgrade follows the same rule. A key that has a node row or a shared row and an unchanged answer is not written, so a shared row keeps applying to the node.
 
 **Changing the certificate names**
 
@@ -260,18 +267,20 @@ Change the names when Security Servers or users reach the node by another name o
 
    For the user interface certificate, use the keys `xroad.admin-service.tls.certificate-provisioning.*`.
 
-   These rows are shared: they apply to every node that has no row of its own for the key. To set a key for one node only, add `--node <node>`, where `<node>` is the node name, see [2.6.4 Node name](#264-node-name). Node rows are for a cluster, where each node can have its own names:
+   These rows are shared: they apply to every node that has no row of its own for the key. A node that has a node name usually has node rows already, because the installation stores a node row for every name that had no row, or that was changed. On a first installation with no rows set earlier, that is all six names. A node row wins over the shared row, so a shared row does not apply to such a node. To make the node use the shared row, remove the node row, for example `db_property.sh remove xroad.management-service.tls.certificate-provisioning.common-name --node node_1`. To avoid this, set the shared rows before the node is installed: the installation then suggests them and stores nothing for an unchanged answer.
+
+   To set a key for one node only, add `--node <node>`, where `<node>` is the node name, see [2.6.4 Node name](#264-node-name). Node rows are for a cluster, where each node can have its own names:
 
    ```bash
    sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs-1.example.org --node node_1 --yes
    sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs-1.example.org,cs.example.org --node node_1 --yes
    ```
 
-   Each node resolves every key on its own, in this order: the row of the node, the shared row, the name derived from the host. A node can therefore use its own common name together with the shared alternative names.
+   Each node resolves every key on its own, in this order: the row of the node, the shared row, the default. A node can therefore use its own common name together with the shared alternative names.
 
    For node 2 and later of a cluster, the rows can be set from an existing node before the new node is installed, because the configuration database already exists. The new node reads the rows when it creates its key at the first start.
 
-   To check the rows, run `db_property.sh get <key>` for the shared row and `db_property.sh get <key> --node <node>` for the row of a node. `db_property.sh list --node <node>` shows all rows of a node. To make a node use the shared row again, run `db_property.sh remove <key> --node <node>`.
+   To check the rows, run `db_property.sh get <key>` for the shared row and `db_property.sh get <key> --node <node>` for the row of a node. `db_property.sh list --node <node>` shows all rows of a node. To make a node use the shared row again, run `db_property.sh remove <key> --node <node>`; the row of the node is deleted and the shared row applies.
 
 2. Delete the key of the certificate. Do this and the next step on each node whose names changed: after a change of a shared row, that is every node without a row of its own for the key. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<node>` with the node name, `node_0` when the name is not set:
 
@@ -285,7 +294,7 @@ Change the names when Security Servers or users reach the node by another name o
 
 3. Restart the services that use the key. The first service in each list creates the new key, so start it first:
 
-   - Management services certificate: `xroad-center-management-service`, then `xroad-center-registration-service`. The user interface service `xroad-center` reads this key whenever it needs it and does not need a restart.
+   - Management services certificate: `xroad-center-management-service`, then `xroad-center-registration-service`. The user interface service `xroad-center` reads this key whenever it needs it, so it uses the new key without a restart. It reads the management services names once, when it starts. If you create the key with "Re-create key" in the user interface after a row change, restart `xroad-center` first. Otherwise the new key gets the old names.
    - User interface certificate: `xroad-center`, then `xroad-center-management-service` and `xroad-center-registration-service`. The two services connect to `xroad-center` and trust its certificate from the key.
 
    Example for the management services certificate:
@@ -326,7 +335,10 @@ A standalone Central Server does not need a node name. Set one on every node of 
 - If the name is not set:
   - The services use the name `node_0` in secret store paths.
   - Backup archive names have no node name suffix.
-- The installation does not check the name. The services check it when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
+  - `node_0` is the default name of an initialized Central Server that is not clustered. The server does not report itself as clustered.
+- To turn a standalone Central Server into node 1 of a cluster, set `name=node_0` in `node.ini`. The server keeps its keys in the secret store and its configuration rows, because they are already stored under `node_0`; nothing is moved. From then on the server reports itself as clustered. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md) for the other steps.
+- The installation checks the name that is entered at the prompt before it writes anything. A name that does not follow the rule stops the installation with an error, and neither `node.ini` nor any configuration row is written. Enter a valid name and run the installation again. The installation also stops when `node.ini` exists but cannot be read.
+- The installation does not check a name that is already in `node.ini`. The services check it when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
 - Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node and move its configuration rows.
 
 ### 2.7 Pre-configuration for Registration Web Service

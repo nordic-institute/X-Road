@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.53  
+Version: 2.54  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -79,6 +79,7 @@ Doc. ID: UG-CS
 | 20.10.2025 | 2.51    | Add information about paid and free tsp and ocsp responders                                                                                                                                                                                                                                                                                                                                                                             | Mikk-Erik Bachmann   |
 | 05.11.2025 | 2.52    | Add information about the approved CAs default CSR format                                                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 20.10.2026 | 2.53    | Added Issuer Service host configuration paragraph                                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
+| 11.11.2026 | 2.54    | Added a note that xroad-center must be restarted before re-creating the management service key after a change of the certificate names                                                                                                                                                                                                                                                                                                  |                      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -480,6 +481,8 @@ To re-create Management Service key and self-signed certificate, follow these st
 2. Locate the Management service TLS certificate section and click button Re-create key.
 3. Confirm the re-creating by clicking Confirm.
 4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
+
+The new certificate gets the names that are stored in the configuration database. The user interface service `xroad-center` reads these names once, when it starts. If you changed the names after `xroad-center` started, restart `xroad-center` before you click Re-create key. Otherwise the new certificate gets the old names. See [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2 for how to change the names.
 
 To generate Management Service certificate signing request, follow these steps.
 
