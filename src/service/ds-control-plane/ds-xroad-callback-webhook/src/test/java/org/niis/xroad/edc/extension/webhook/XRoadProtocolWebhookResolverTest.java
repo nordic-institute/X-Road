@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.webhook;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.eclipse.edc.connector.core.profile.DataspaceProfileContextRegistryImpl;
@@ -38,6 +39,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DspConventions;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
@@ -96,13 +99,24 @@ class XRoadProtocolWebhookResolverTest {
     }
 
     @Test
-    void contextIdIsPassedThroughUnchanged() {
+    void percentInContextIdIsEncodedForTheWire() {
         publish(BASE_URL);
 
         var webhook = resolver.getWebhook("DEV:COM:A%2BB", PROFILE);
 
         assertThat(webhook).isNotNull();
-        assertThat(webhook.url()).isEqualTo(BASE_URL + "/DEV:COM:A%2BB/" + PROFILE);
+        assertThat(webhook.url()).isEqualTo(BASE_URL + "/DEV:COM:A%252BB/" + PROFILE);
+    }
+
+    @Test
+    void encodedMemberCallbackEqualsThePeerAddressOfTheSameMember() {
+        var member = ClientId.Conf.create("DEV", "COM", "A+B");
+        publish(DspConventions.dspBaseUrl("ss0.example.org", DspConventions.DSP_PORT));
+
+        var webhook = resolver.getWebhook(ParticipantIdentifierScheme.memberCtxId(member), PROFILE);
+
+        assertThat(webhook).isNotNull();
+        assertThat(webhook.url()).isEqualTo(DspConventions.memberCounterPartyAddress(member, "ss0.example.org"));
     }
 
     @Test

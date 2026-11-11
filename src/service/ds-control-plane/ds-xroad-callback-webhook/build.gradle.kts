@@ -6,6 +6,7 @@ dependencies {
   implementation(libs.edc.spi.controlplane)
   implementation(libs.edc.spi.core)
 
+  implementation(project(":lib:ds-identity-core"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:serverconf-core"))
   implementation(project(":common:common-domain"))

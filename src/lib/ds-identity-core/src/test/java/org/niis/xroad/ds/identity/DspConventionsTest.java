@@ -129,6 +129,22 @@ class DspConventionsTest {
     }
 
     @Test
+    void participantPathSegmentEncodesOnlyThePercentSign() {
+        assertThat(DspConventions.participantPathSegment("DEV:COM:A%2BB")).isEqualTo("DEV:COM:A%252BB");
+        assertThat(DspConventions.participantPathSegment("DEV:COM:a-b.c_d")).isEqualTo("DEV:COM:a-b.c_d");
+    }
+
+    @ParameterizedTest
+    @ValueSource(chars = {'\'', '(', ')', '+', ',', '=', '?'})
+    void credentialServiceUrlParticipantSegmentEqualsTheCounterPartyPathSegment(char special) {
+        var ctxId = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "COM", "A" + special + "B"));
+
+        var url = DspConventions.credentialServiceUrl("ss0.example.org", 7185, ctxId);
+
+        assertThat(url).endsWith("/api/credentials/v1/participants/" + DspConventions.participantPathSegment(ctxId));
+    }
+
+    @Test
     void counterPartyAddressContextSegmentDecodesBackToTheRegisteredCtxId() {
         var member = ClientId.Conf.create("DEV", "COM", "A+B");
 

@@ -34,6 +34,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
@@ -181,6 +182,40 @@ class XRoadJettyServiceTest {
         assertThat(configured).containsExactlyInAnyOrder("first", "second");
     }
 
+    @Test
+    void theDspPortPassesADoubleEncodedParticipantSegmentDecodedOnce() throws Exception {
+        var dspPort = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping(ApiContext.PROTOCOL, dspPort, "/api/dsp"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        jettyService.registerServlet(ApiContext.PROTOCOL, pathInfoServlet());
+
+        var response = get(dspPort, "/api/dsp/DEV:COM:12%252B34/profile");
+
+        assertThat(response.status()).isEqualTo(HttpServletResponse.SC_OK);
+        assertThat(response.body()).isEqualTo("/DEV:COM:12%2B34/profile");
+    }
+
+    @Test
+    void aNonDspPortRejectsADoubleEncodedPathSegment() throws Exception {
+        var otherPort = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("management", otherPort, "/api/management"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        jettyService.registerServlet("management", pathInfoServlet());
+
+        assertThat(get(otherPort, "/api/management/DEV:COM:12%252B34/profile").status())
+                .isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
+        assertThat(get(otherPort, "/api/management/DEV:COM:12%2B34/profile").status())
+                .isEqualTo(HttpServletResponse.SC_OK);
+    }
+
     /**
      * The test certificates' subjects do not match "localhost", so Jetty's default SNI host check would
      * reject every request with HTTP 400 before it reaches a servlet. Production traffic dials the
@@ -201,6 +236,15 @@ class XRoadJettyServiceTest {
             @Override
             protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
                 response.getWriter().write(body);
+            }
+        };
+    }
+
+    private static Servlet pathInfoServlet() {
+        return new HttpServlet() {
+            @Override
+            protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+                response.getWriter().write(request.getPathInfo());
             }
         };
     }

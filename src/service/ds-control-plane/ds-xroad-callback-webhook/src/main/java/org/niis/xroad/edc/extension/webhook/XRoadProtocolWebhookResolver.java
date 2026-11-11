@@ -35,6 +35,7 @@ import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.Nullable;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
@@ -70,7 +71,7 @@ class XRoadProtocolWebhookResolver implements ProtocolWebhookResolver {
             return null;
         }
         return publishedDspBaseUrl()
-                .map(base -> base + "/" + participantContextId + "/" + protocol)
+                .map(base -> base + "/" + DspConventions.participantPathSegment(participantContextId) + "/" + protocol)
                 .<ProtocolWebhook>map(url -> () -> url)
                 .orElse(null);
     }
