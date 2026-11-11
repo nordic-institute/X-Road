@@ -355,8 +355,8 @@ public class CandidateHandshakeRace {
                     return;
                 }
                 probe.state = ProbeState.FAILED;
+                cooldownTracker.markFailed(probe.candidate.counterPartyAddress());
             }
-            cooldownTracker.markFailed(probe.candidate.counterPartyAddress());
             handshakeTimes.forget(probe.candidate.counterPartyAddress());
             monitor.warning("Probe failed: counterPartyAddress=%s".formatted(probe.candidate.counterPartyAddress()), cause);
             startNextWaiting();
