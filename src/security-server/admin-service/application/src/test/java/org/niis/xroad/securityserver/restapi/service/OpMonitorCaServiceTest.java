@@ -269,6 +269,19 @@ class OpMonitorCaServiceTest {
     }
 
     @Test
+    void shouldReplaceAndDeleteTheCaWhileOnlyReadingItFails() throws Exception {
+        when(vaultClient.getOpMonitorCa()).thenThrow(XrdRuntimeException.systemInternalError("malformed record"));
+
+        var replaced = service.uploadOpMonitorCa(pem(rootCa));
+        service.deleteOpMonitorCa();
+
+        assertThat(replaced).isEqualTo(rootCa);
+        verify(vaultClient).createOpMonitorCa(rootCa);
+        verify(vaultClient).clearOpMonitorCa();
+        assertThatThrownBy(() -> service.getOpMonitorCa()).isInstanceOf(InternalServerErrorException.class);
+    }
+
+    @Test
     void shouldClearTheStoredCaAndAuditItsFingerprintOnDelete() {
         stored.set(rootCa);
         keepVaultState();

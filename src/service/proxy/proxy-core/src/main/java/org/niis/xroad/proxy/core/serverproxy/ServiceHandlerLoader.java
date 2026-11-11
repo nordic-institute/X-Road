@@ -36,6 +36,7 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
@@ -63,6 +64,7 @@ public class ServiceHandlerLoader {
     private final CommonProperties commonProperties;
     private final RpcChannelFactory rpcChannelFactory;
     private final XRoadConfig xRoadConfig;
+    private final OpMonitorChannelTrustResolver opMonitorChannelTrustResolver;
     private final MonitorRpcClient monitorRpcClient;
     private final HttpSenderProvider httpSenderProvider;
     @Named(SERVER_PROXY_HTTP_CLIENT)
@@ -93,7 +95,7 @@ public class ServiceHandlerLoader {
         }
         if (addons.opMonitor().enabled()) {
             handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                    () -> OpMonitorClient.create(rpcChannelFactory, xRoadConfig)));
+                    () -> OpMonitorClient.create(rpcChannelFactory, xRoadConfig, opMonitorChannelTrustResolver)));
         }
         if (addons.proxyMonitor().enabled()) {
             handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));

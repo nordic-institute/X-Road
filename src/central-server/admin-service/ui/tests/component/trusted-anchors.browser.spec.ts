@@ -104,7 +104,7 @@ describe('0850 — CS Trusted Anchors — download anchor trigger (Browser Mode)
     await expect.element(downloadBtn).toBeVisible();
     await downloadBtn.click();
 
-    expect(downloadSpy).toHaveBeenCalled();
+    await expect.poll(() => downloadSpy.mock.calls.length).toBeGreaterThan(0);
   });
 });
 

@@ -9,7 +9,8 @@ services:
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
         INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
         ('xroad.proxy.addon.op-monitor.enabled', 'true', now(), now()),
-        ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', now(), now())
+        ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', now(), now()),
+        ('xroad.op-monitor.rpc.allowed-client-names', 'proxy,ui', now(), now())
         ON CONFLICT DO NOTHING;
         SQL
     networks:

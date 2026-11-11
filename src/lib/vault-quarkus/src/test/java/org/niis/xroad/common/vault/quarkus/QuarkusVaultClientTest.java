@@ -37,6 +37,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.node.NodeIdentity;
@@ -221,6 +223,24 @@ class QuarkusVaultClientTest {
     @Test
     void shouldReturnEmptyWhenNoOpMonitorCaIsStored() {
         assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void shouldReadAMissingOpMonitorCaRecordAsAbsentWhenOpenBaoAnswers404() {
+        when(kvSecretEngine.readSecret(VaultClient.OPMONITOR_CA_PATH))
+                .thenThrow(new VaultClientException("read", VaultClient.OPMONITOR_CA_PATH, 404, "not found", null));
+
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {403, 500, 503})
+    void shouldPropagateAnOpMonitorCaReadFailureOtherThanNotFound(int status) {
+        when(kvSecretEngine.readSecret(VaultClient.OPMONITOR_CA_PATH))
+                .thenThrow(new VaultClientException("read", VaultClient.OPMONITOR_CA_PATH, status, "failure", null));
+
+        assertThatThrownBy(() -> vaultClient.getOpMonitorCa())
+                .isInstanceOfSatisfying(VaultClientException.class, e -> assertThat(e.getStatus()).isEqualTo(status));
     }
 
     @Test

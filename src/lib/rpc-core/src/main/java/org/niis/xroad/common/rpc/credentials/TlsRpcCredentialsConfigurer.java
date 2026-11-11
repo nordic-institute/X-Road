@@ -30,8 +30,13 @@ import io.grpc.ChannelCredentials;
 import io.grpc.ServerCredentials;
 import io.grpc.TlsChannelCredentials;
 import io.grpc.TlsServerCredentials;
+import io.grpc.util.AdvancedTlsX509TrustManager;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
+
+import java.security.cert.X509Certificate;
+import java.util.Collection;
 
 @RequiredArgsConstructor
 public class TlsRpcCredentialsConfigurer implements RpcCredentialsConfigurer {
@@ -48,6 +53,24 @@ public class TlsRpcCredentialsConfigurer implements RpcCredentialsConfigurer {
     }
 
     @Override
+    public ServerCredentials createServerCredentials(Collection<String> allowedClientNames) {
+        if (allowedClientNames.isEmpty()) {
+            return createServerCredentials();
+        }
+        try {
+            var trustManager = reloadableVaultKeyManager.createVerifyingTrustManager(
+                    new ClientIdentityMatcher(allowedClientNames));
+            return TlsServerCredentials.newBuilder()
+                    .keyManager(reloadableVaultKeyManager.getKeyManager())
+                    .trustManager(trustManager)
+                    .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE)
+                    .build();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemInternalError("Failed to create the server credentials", e);
+        }
+    }
+
+    @Override
     public ChannelCredentials createClientCredentials() {
 
         TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
@@ -55,5 +78,28 @@ public class TlsRpcCredentialsConfigurer implements RpcCredentialsConfigurer {
                 .trustManager(reloadableVaultKeyManager.getTrustManager());
 
         return tlsBuilder.build();
+    }
+
+    @Override
+    public ChannelCredentials createClientCredentials(ChannelTrust trust) {
+        return switch (trust) {
+            case ChannelTrust.Shared _ -> createClientCredentials();
+            case ChannelTrust.OnlyCa onlyCa -> createOnlyCaCredentials(onlyCa.ca());
+        };
+    }
+
+    private ChannelCredentials createOnlyCaCredentials(X509Certificate ca) {
+        try {
+            var trustManager = AdvancedTlsX509TrustManager.newBuilder()
+                    .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
+                    .build();
+            trustManager.updateTrustCredentials(new X509Certificate[] {ca});
+            return TlsChannelCredentials.newBuilder()
+                    .keyManager(reloadableVaultKeyManager.getKeyManager())
+                    .trustManager(trustManager)
+                    .build();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemInternalError("Failed to create the client credentials", e);
+        }
     }
 }

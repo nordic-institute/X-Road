@@ -107,7 +107,7 @@ class ProviderRefusalCanaryTest {
     @Test
     void anAgreementThatIsNoLongerValidIsAnAnswerTheRecogniserTakesForARefusal() {
         var participantAgent = mock(ParticipantAgent.class);
-        when(protocolTokenValidator.verify(eq(participantContext), eq(token), any(), any(), any()))
+        when(protocolTokenValidator.verify(eq(participantContext), eq(token), any(), any()))
                 .thenReturn(ServiceResult.success(participantAgent));
         when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
         when(negotiationStore.queryAgreements(any())).thenAnswer(invocation -> Stream.of(agreement()));
@@ -123,7 +123,7 @@ class ProviderRefusalCanaryTest {
 
     @Test
     void aTokenTheProviderCannotVerifyIsNotARefusal() {
-        when(protocolTokenValidator.verify(eq(participantContext), eq(token), any(), any(), any()))
+        when(protocolTokenValidator.verify(eq(participantContext), eq(token), any(), any()))
                 .thenReturn(ServiceResult.unauthorized("bad token"));
         when(negotiationStore.queryAgreements(any())).thenAnswer(invocation -> Stream.of(agreement()));
 

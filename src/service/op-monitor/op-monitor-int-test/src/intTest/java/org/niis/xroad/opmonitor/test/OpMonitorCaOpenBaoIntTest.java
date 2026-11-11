@@ -26,13 +26,8 @@
  */
 package org.niis.xroad.opmonitor.test;
 
-import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
-import io.quarkus.vault.client.http.jdk.JDKVaultHttpClient;
-import io.quarkus.vault.runtime.VaultConfigHolder;
-import io.quarkus.vault.runtime.VaultKvManager;
 import io.quarkus.vault.runtime.VaultPKIManagerFactory;
-import io.quarkus.vault.runtime.config.VaultRuntimeConfig;
 import io.restassured.path.json.JsonPath;
 import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -47,12 +42,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.common.vault.VaultCaClient;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.config.CertificateProvisioningConfig;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultCaClient;
-import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.opmonitor.test.container.OpMonitorContainerSetup;
 import org.niis.xroad.test.apitest.core.junit.ApiStackExtension;
@@ -60,7 +55,6 @@ import org.niis.xroad.test.apitest.core.junit.ApiStackExtension;
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.math.BigInteger;
-import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPairGenerator;
 import java.security.cert.CertificateFactory;
@@ -75,8 +69,6 @@ import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -90,10 +82,11 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * op-monitor CA record.
  */
 @ExtendWith(ApiStackExtension.class)
+@ResourceLock(OpenBaoTestSupport.OP_MONITOR_CA_RECORD)
 @SuppressWarnings("checkstyle:magicnumber")
 class OpMonitorCaOpenBaoIntTest {
 
-    private static final String KV_MOUNT = "xrd-secret";
+    private static final String KV_MOUNT = OpenBaoTestSupport.KV_MOUNT;
     private static final String PKI_MOUNT = "xrd-pki";
     private static final String RAW_RECORD_PATH = KV_MOUNT + "/tls/opmonitor-ca";
     private static final String ISSUING_CA_PATH = PKI_MOUNT + "/cert/ca";
@@ -111,15 +104,11 @@ class OpMonitorCaOpenBaoIntTest {
         stack = setup;
         deleteRawRecord();
 
-        var vaultApi = io.quarkus.vault.client.VaultClient.builder()
-                .baseUrl(setup.openBaoUrl())
-                .executor(new JDKVaultHttpClient(HttpClient.newHttpClient()))
-                .clientToken(setup.openBaoClientToken())
-                .build();
+        var vaultApi = OpenBaoTestSupport.vaultApi(setup);
         var provisioning = new CertificateProvisioningConfig(
                 "xrd-internal", "localhost", List.of(), List.of(), Duration.ofDays(1), PKI_MOUNT);
 
-        vaultClient = new QuarkusVaultClient(new VaultKVSecretEngine(new VaultKvManager(vaultApi, quarkusConfigHolder())));
+        vaultClient = OpenBaoTestSupport.quarkusVaultClient(vaultApi);
         vaultKeyClient = new QuarkusVaultKeyClient(pkiEngineFactory(vaultApi), provisioning);
         vaultCaClient = new QuarkusVaultCaClient(pkiEngineFactory(vaultApi), provisioning);
     }
@@ -218,14 +207,6 @@ class OpMonitorCaOpenBaoIntTest {
         var result = stack.execInContainer(OpMonitorContainerSetup.OPENBAO, command);
         assertThat(result.getExitCode()).as(String.join(" ", command)).isZero();
         return result.getStdout();
-    }
-
-    private static VaultConfigHolder quarkusConfigHolder() {
-        var config = mock(VaultRuntimeConfig.class);
-        when(config.kvSecretEngineVersion()).thenReturn(1);
-        when(config.kvSecretEngineMountPath()).thenReturn(KV_MOUNT);
-        when(config.kvSecretEngineAlias()).thenReturn(Map.of());
-        return new VaultConfigHolder().setVaultRuntimeConfig(config);
     }
 
     @SneakyThrows

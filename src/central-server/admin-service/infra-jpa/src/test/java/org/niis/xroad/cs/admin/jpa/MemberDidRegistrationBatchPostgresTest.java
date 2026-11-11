@@ -47,6 +47,7 @@ import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.converter.PageConverter;
 import org.niis.xroad.cs.admin.core.converter.PageRequestDtoConverter;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceMemberDidServiceImpl;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.entity.MemberDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapperImpl;
 import org.niis.xroad.cs.admin.core.entity.mapper.FlattenedSecurityServerClientViewMapperImpl;
@@ -155,8 +156,8 @@ class MemberDidRegistrationBatchPostgresTest extends AbstractCentralServerPostgr
                 .thenAnswer(inv -> transactions.execute(status -> handler.add(inv.getArgument(0))));
         var configProperties = mock(ManagementServiceConfigProperties.class);
         when(configProperties.getMemberDidRegMaxEntries()).thenReturn(BATCH_SIZE);
-        service = new MemberDidRegistrationServiceImpl(this::resolveAtIssuerLatency, store, servers, managementRequestService,
-                configProperties);
+        service = new MemberDidRegistrationServiceImpl(new DidBatchResolution(this::resolveAtIssuerLatency), store, servers,
+                managementRequestService, configProperties);
     }
 
     @Test

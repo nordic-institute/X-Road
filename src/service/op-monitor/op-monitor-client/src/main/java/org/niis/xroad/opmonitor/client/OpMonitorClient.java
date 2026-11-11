@@ -29,7 +29,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +38,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.ChannelTrust;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.opmonitor.api.AccessScope;
@@ -53,6 +53,7 @@ import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -60,19 +61,21 @@ import java.util.List;
 public class OpMonitorClient extends AbstractRpcClient {
     private final RpcChannelFactory rpcChannelFactory;
     private final OpMonitorRpcChannelProperties rpcChannelProperties;
+    private final OpMonitorChannelTrustResolver channelTrustResolver;
 
-    private ManagedChannel channel;
-    private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitoringServiceBlockingStub;
-
+    private final AtomicReference<Connection> connection = new AtomicReference<>();
 
     /**
      * Creates an initialised client for the op-monitor channel configured in {@code config}.
      * @param rpcChannelFactory the factory of the channel
      * @param config the configuration the channel properties are read from
+     * @param channelTrustResolver chooses whom the channel trusts
      * @return the client, to be closed after use
      */
-    public static OpMonitorClient create(RpcChannelFactory rpcChannelFactory, XRoadConfig config) {
-        var opMonitorClient = new OpMonitorClient(rpcChannelFactory, new OpMonitorRpcChannelProperties(config));
+    public static OpMonitorClient create(RpcChannelFactory rpcChannelFactory, XRoadConfig config,
+                                         OpMonitorChannelTrustResolver channelTrustResolver) {
+        var opMonitorClient = new OpMonitorClient(rpcChannelFactory, new OpMonitorRpcChannelProperties(config),
+                channelTrustResolver);
         opMonitorClient.init();
         return opMonitorClient;
     }
@@ -84,23 +87,47 @@ public class OpMonitorClient extends AbstractRpcClient {
 
     @Override
     public ManagedChannel getChannel() {
-        return channel;
+        var current = connection.get();
+        return current == null ? null : current.channel();
     }
 
-    @PostConstruct
-    public void init() {
+    /**
+     * Creates the channel unless it exists. Other calls create it on first use when this has not been called; a failed
+     * creation is not remembered, so the next call tries again.
+     */
+    public synchronized void init() {
+        if (connection.get() != null) {
+            return;
+        }
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
-        channel = rpcChannelFactory.createChannel(rpcChannelProperties);
+        var newChannel = createChannel(channelTrustResolver.resolve());
+        connection.set(new Connection(newChannel, OpMonitorServiceGrpc.newBlockingStub(newChannel).withWaitForReady()));
+    }
 
-        opMonitoringServiceBlockingStub = OpMonitorServiceGrpc.newBlockingStub(channel).withWaitForReady();
+    private ManagedChannel createChannel(ChannelTrust trust) {
+        try {
+            return rpcChannelFactory.createChannel(rpcChannelProperties, trust);
+        } catch (XrdRuntimeException e) {
+            throw OpMonitorChannelTrustResolver.trustFailure(e);
+        }
+    }
+
+    private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub stub() {
+        var current = connection.get();
+        if (current == null) {
+            init();
+            current = connection.get();
+        }
+        return current.stub();
     }
 
     @Override
     @PreDestroy
     public void close() {
-        if (channel != null) {
-            channel.shutdown();
+        var current = connection.get();
+        if (current != null) {
+            current.channel().shutdown();
         }
     }
 
@@ -110,7 +137,7 @@ public class OpMonitorClient extends AbstractRpcClient {
      * @param records records to store
      */
     public void storeOperationalData(List<OperationalDataRecordProto> records) {
-        exec(() -> opMonitoringServiceBlockingStub.storeOperationalData(
+        exec(() -> stub().storeOperationalData(
                 StoreOperationalDataReq.newBuilder().addAllRecords(records).build()));
     }
 
@@ -122,7 +149,7 @@ public class OpMonitorClient extends AbstractRpcClient {
      * @return the response message and its content type
      */
     public QueryOperationalDataResp queryOperationalData(byte[] soapQuery, String contentType, AccessScope accessScope) {
-        return exec(() -> opMonitoringServiceBlockingStub.queryOperationalData(
+        return exec(() -> stub().queryOperationalData(
                 QueryOperationalDataReq.newBuilder()
                         .setSoapQuery(ByteString.copyFrom(soapQuery))
                         .setContentType(contentType)
@@ -151,7 +178,7 @@ public class OpMonitorClient extends AbstractRpcClient {
                 reqBuilder.setServiceId(ServiceIdMapper.toDto(serviceId));
             }
             var response = exec(() ->
-                    opMonitoringServiceBlockingStub.getOperationalDataIntervals(reqBuilder.build()));
+                    stub().getOperationalDataIntervals(reqBuilder.build()));
 
             return response.getOperationalDataIntervalList().stream().map(OperationalDataInterval::new).toList();
         } catch (Exception e) {
@@ -159,5 +186,8 @@ public class OpMonitorClient extends AbstractRpcClient {
                     "Failed to get operational data from: %s, to: %s".formatted(Instant.ofEpochMilli(recordsFrom),
                             Instant.ofEpochMilli(recordsTo)), e);
         }
+    }
+
+    private record Connection(ManagedChannel channel, OpMonitorServiceGrpc.OpMonitorServiceBlockingStub stub) {
     }
 }

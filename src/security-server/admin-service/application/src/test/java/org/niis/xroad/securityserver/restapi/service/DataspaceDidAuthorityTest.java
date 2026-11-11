@@ -29,6 +29,10 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
@@ -39,6 +43,7 @@ import org.niis.xroad.securityserver.restapi.service.DidMintResult.Reason;
 import org.niis.xroad.securityserver.restapi.service.DidMintResult.Rejected;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -180,11 +185,51 @@ class DataspaceDidAuthorityTest {
         assertThatThrownBy(authority::mintSystemDid).isInstanceOf(XrdRuntimeException.class);
     }
 
+    @Test
+    void dspBaseUrlIfValidIsEmptyWhileTheRegisteredAddressIsUnknown() {
+        var authority = authority(new OwnAddress.NotRegistered(SERVER_ID), 443);
+
+        assertThat(authority.dspBaseUrlIfValid()).isEmpty();
+    }
+
+    @Test
+    void dspBaseUrlIfValidIsEmptyForAnInvalidAddressAndLogsOnlyAtDebug() {
+        var authority = authority(new OwnAddress.Registered(SERVER_ID, "bad_host.example"), 443);
+        var logger = (Logger) LoggerFactory.getLogger(DataspaceDidAuthority.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        logger.setLevel(Level.DEBUG);
+        try {
+            assertThat(authority.dspBaseUrlIfValid()).isEmpty();
+        } finally {
+            logger.detachAppender(appender);
+            logger.setLevel(null);
+        }
+
+        assertThat(appender.list).hasSize(1);
+        assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.DEBUG);
+        assertThat(appender.list.getFirst().getFormattedMessage()).contains("bad_host.example");
+    }
+
+    @Test
+    void dspBaseUrlIfValidReturnsTheUrlOfAValidAddress() {
+        var authority = authority(new OwnAddress.Registered(SERVER_ID, "ss0.example.org"), 443, 8183);
+
+        assertThat(authority.dspBaseUrlIfValid()).isEqualTo(authority.dspBaseUrl()).get().asString()
+                .contains("ss0.example.org").contains("8183");
+    }
+
     private static DataspaceDidAuthority authority(OwnAddress address, int didPort) {
+        return authority(address, didPort, 7181);
+    }
+
+    private static DataspaceDidAuthority authority(OwnAddress address, int didPort, int dspPort) {
         var resolver = mock(OwnSecurityServerResolver.class);
         when(resolver.address()).thenReturn(address);
         var dataspace = mock(Dataspace.class);
         when(dataspace.getDidPort()).thenReturn(didPort);
+        when(dataspace.getDspPort()).thenReturn(dspPort);
         var properties = mock(AdminServiceProperties.class);
         when(properties.getDataspace()).thenReturn(dataspace);
         return new DataspaceDidAuthority(resolver, properties);

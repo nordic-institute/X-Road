@@ -46,10 +46,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.OPERATIONAL_DATA_RESPONSE_TOO_LARGE;
@@ -60,13 +64,15 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
 
 /**
  * Service handler for operational monitoring. The monitoring queries are sent to op-monitor over gRPC.
- * The op-monitor client is created on the first query.
+ * The op-monitor client is created on the first query. Queries arriving during that creation wait for its outcome.
+ * A failed creation is not kept, the next query creates the client again.
  */
 @Slf4j
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private final Supplier<OpMonitorClient> opMonitorClientFactory;
-    private OpMonitorClient opMonitorClient;
+    private final AtomicReference<CompletableFuture<OpMonitorClient>> clientCreation = new AtomicReference<>();
+    private volatile boolean destroyed;
 
     public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider,
                                           GlobalConfProvider globalConfProvider,
@@ -76,10 +82,11 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public synchronized void destroy() {
-        if (opMonitorClient != null) {
-            opMonitorClient.close();
-            opMonitorClient = null;
+    public void destroy() {
+        destroyed = true;
+        var creation = clientCreation.getAndSet(null);
+        if (creation != null) {
+            creation.thenAccept(OpMonitorClient::close);
         }
     }
 
@@ -191,10 +198,57 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         return query.toByteArray();
     }
 
-    private synchronized OpMonitorClient opMonitorClient() {
-        if (opMonitorClient == null) {
-            opMonitorClient = opMonitorClientFactory.get();
+    private OpMonitorClient opMonitorClient() {
+        var current = clientCreation.get();
+        if (current != null) {
+            return await(current);
         }
-        return opMonitorClient;
+        var creation = new CompletableFuture<OpMonitorClient>();
+        var existing = clientCreation.compareAndExchange(null, creation);
+        return existing != null ? await(existing) : create(creation);
+    }
+
+    private OpMonitorClient create(CompletableFuture<OpMonitorClient> creation) {
+        try {
+            if (destroyed) {
+                throw XrdRuntimeException.systemInternalError("The op-monitor service handler has been destroyed");
+            }
+            var client = opMonitorClientFactory.get();
+            creation.complete(client);
+            return client;
+        } catch (RuntimeException ex) {
+            failCreation(creation, ex);
+            throw ex;
+        } finally {
+            if (!creation.isDone()) {
+                failCreation(creation, XrdRuntimeException.systemInternalError("The op-monitor client creation failed"));
+            }
+        }
+    }
+
+    private void failCreation(CompletableFuture<OpMonitorClient> creation, RuntimeException failure) {
+        clientCreation.compareAndSet(creation, null);
+        creation.completeExceptionally(failure);
+    }
+
+    private static OpMonitorClient await(CompletableFuture<OpMonitorClient> creation) {
+        try {
+            return creation.get();
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR)
+                    .cause(ex)
+                    .details("Interrupted while waiting for the op-monitor client")
+                    .build();
+        } catch (ExecutionException ex) {
+            var cause = ex.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            throw XrdRuntimeException.systemException(cause);
+        }
     }
 }

@@ -46,6 +46,7 @@ import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.service.managementrequest.AuthCertServerCheck.CheckedServer;
 
 import java.util.ArrayList;
@@ -64,13 +65,17 @@ import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_MALFORMED;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NO_STORED_VALUE;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNDECODABLE_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
@@ -122,7 +127,8 @@ class SystemDidRegistrationServiceImplTest {
             calls.add("add");
             return request;
         });
-        return new SystemDidRegistrationServiceImpl(authCertServerCheck, store, resolver, managementRequestService);
+        return new SystemDidRegistrationServiceImpl(
+                authCertServerCheck, store, new DidBatchResolution(resolver), managementRequestService);
     }
 
     @Test
@@ -184,7 +190,15 @@ class SystemDidRegistrationServiceImplTest {
     void everyStoreRejectionHasARow() {
         var covered = rejectionRows().map(row -> row.get()[0]).toList();
 
-        assertThat(covered).containsAll(List.of(ParticipantValueRejection.values()));
+        assertThat(covered).containsAll(Stream.of(ParticipantValueRejection.values())
+                .filter(rejection -> rejection != NO_STORED_VALUE)
+                .toList());
+    }
+
+    @Test
+    void noStoredValueIsNotARegistrationRejection() {
+        assertThatThrownBy(() -> SystemDidRegistrationOutcome.of(NO_STORED_VALUE, ADDRESS))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -285,7 +299,7 @@ class SystemDidRegistrationServiceImplTest {
                 row(DID_TOO_LONG, ADDRESS, finalCode),
                 row(WRONG_SCHEME, ADDRESS, finalCode),
                 row(DSP_BASE_URL_NOT_HTTPS, ADDRESS, finalCode),
-                row(MALFORMED_DSP_BASE_URL, ADDRESS, finalCode),
+                row(DSP_BASE_URL_MALFORMED, ADDRESS, finalCode),
                 row(FOREIGN_SYSTEM_DID, ADDRESS, finalCode),
                 row(UNDECODABLE_DID, ADDRESS, finalCode),
                 row(DID_OF_OTHER_MEMBER, ADDRESS, finalCode),
@@ -295,7 +309,10 @@ class SystemDidRegistrationServiceImplTest {
                 row(UNPARSEABLE_REGISTERED_ADDRESS, ADDRESS, fixableCode),
                 row(VALUE_DIFFERS, ADDRESS, fixableCode),
                 row(DID_HELD_BY_ANOTHER_SERVER, ADDRESS, fixableCode),
-                row(NON_ASCII_HOST, NON_ASCII_ADDRESS, fixableCode));
+                row(NON_ASCII_HOST, NON_ASCII_ADDRESS, fixableCode),
+                row(DSP_BASE_URL_NOT_CANONICAL, ADDRESS, finalCode),
+                row(DSP_BASE_URL_NON_ASCII_HOST, ADDRESS, finalCode),
+                row(DSP_BASE_URL_HOST_DIFFERS, ADDRESS, fixableCode));
     }
 
     private static Arguments row(ParticipantValueRejection rejection, String address, String code) {

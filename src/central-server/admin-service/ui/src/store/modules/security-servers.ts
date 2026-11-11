@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { PagedSecurityServers, PagingMetadata, SecurityServer, SecurityServerAddress } from '@/openapi-types';
+import { DidCheck, PagedSecurityServers, PagingMetadata, SecurityServer, SecurityServerEdit, SystemDidCheckRequest } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataQuery } from '@/ui-types';
 import { WithCurrentItem } from '@niis/shared-ui';
@@ -77,17 +77,28 @@ export const useSecurityServer = defineStore('securityServer', {
         })
         .finally(() => (this.loadingCurrent = false));
     },
-    async updateAddress(securityServerId: string, address: string) {
-      const securityServerAddress: SecurityServerAddress = {
+    async fetchById(securityServerId: string) {
+      return axios.get<SecurityServer>(`/security-servers/${securityServerId}`).then((resp) => resp.data);
+    },
+    async updateAddress(securityServerId: string, address: string, systemPair?: { system_did: string; dsp_base_url: string }) {
+      const securityServerEdit: SecurityServerEdit = {
         server_address: address,
+        ...systemPair,
       };
       this.loadingCurrent = true;
       return axios
-        .patch<SecurityServer>(`/security-servers/${securityServerId}`, securityServerAddress)
+        .patch<SecurityServer>(`/security-servers/${securityServerId}`, securityServerEdit)
         .then((resp) => {
           this.current = resp.data;
         })
         .finally(() => (this.loadingCurrent = false));
+    },
+    async checkSystemDid(securityServerId: string, address: string, systemDid: string) {
+      const request: SystemDidCheckRequest = {
+        server_address: address,
+        system_did: systemDid,
+      };
+      return axios.post<DidCheck>(`/security-servers/${securityServerId}/system-did-check`, request).then((resp) => resp.data);
     },
     async delete(securityServerId: string) {
       return axios.delete(`/security-servers/${securityServerId}`).then(() => {

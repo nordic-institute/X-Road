@@ -35,6 +35,7 @@ import org.shredzone.acme4j.provider.AbstractAcmeProvider;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
 
 public class AcmeXroadProvider extends AbstractAcmeProvider {
 
@@ -55,13 +56,13 @@ public class AcmeXroadProvider extends AbstractAcmeProvider {
     }
 
     @Override
-    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
-        return new DefaultConnection(createHttpConnector(networkSettings));
+    public Connection connect(URI serverUri, NetworkSettings networkSettings, HttpClient httpClient) {
+        return new DefaultConnection(createHttpConnector(networkSettings, httpClient));
     }
 
     @Override
-    protected HttpConnector createHttpConnector(NetworkSettings settings) {
-        return new AcmeXroadHttpConnector(settings);
+    protected HttpConnector createHttpConnector(NetworkSettings settings, HttpClient httpClient) {
+        return new AcmeXroadHttpConnector(settings, httpClient);
     }
 
 }

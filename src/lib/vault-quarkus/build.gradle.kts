@@ -9,4 +9,5 @@ dependencies {
   api(libs.quarkus.extension.vault)
 
   testImplementation(libs.assertj.core)
+  testImplementation(libs.junit.jupiter.params)
 }

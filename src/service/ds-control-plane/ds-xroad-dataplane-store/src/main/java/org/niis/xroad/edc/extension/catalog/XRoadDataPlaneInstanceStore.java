@@ -53,11 +53,11 @@ import java.util.stream.Stream;
  * immediately after start.
  *
  * <p>Each enabled configuration entry applies to every participant context alike. An instance is built on
- * demand with the id {@code <entry id>::<participant context id>}, the node's configured URL, the configured
- * allowed source and transfer types, state REGISTERED, no labels and no authorization profile. Only two
- * shapes are served: lookup by such an id, and a query whose filter is exactly one
- * {@code participantContextId = <ctx>} criterion (paging and sorting are ignored). Every other operation
- * throws {@link UnsupportedOperationException}.</p>
+ * demand for the requested participant context, with the configured entry id as instance id, the node's
+ * configured URL, the configured allowed source and transfer types, state REGISTERED, no labels and no
+ * authorization profile. Only two shapes are served: lookup by participant context id and entry id, and a
+ * query whose filter is exactly one {@code participantContextId = <ctx>} criterion (paging and sorting are
+ * ignored). Every other operation throws {@link UnsupportedOperationException}.</p>
  *
  * <p>The store does not check that a participant context exists. Callers have already loaded a validated
  * participant context, transfer process or asset before they ask for its data plane, and a removed participant
@@ -71,7 +71,6 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
     static final String KEY_ENABLED = "enabled";
     static final String KEY_ALLOWED_SOURCE_TYPES = "allowed-source-types";
     static final String KEY_ALLOWED_TRANSFER_TYPES = "allowed-transfer-types";
-    static final String ID_SEPARATOR = "::";
 
     private static final String PARTICIPANT_CONTEXT_ID_FIELD = "participantContextId";
     private static final String EQUALS_OPERATOR = "=";
@@ -84,17 +83,12 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
     }
 
     @Override
-    public DataPlaneInstance findById(String id) {
-        if (id == null) {
+    public DataPlaneInstance findById(String participantContextId, String id) {
+        if (participantContextId == null || participantContextId.isEmpty()) {
             return null;
         }
-        var separatorIndex = id.indexOf(ID_SEPARATOR);
-        if (separatorIndex < 0) {
-            return null;
-        }
-        var participantContextId = id.substring(separatorIndex + ID_SEPARATOR.length());
-        var entry = entriesById.get(id.substring(0, separatorIndex));
-        if (entry == null || participantContextId.isEmpty()) {
+        var entry = entriesById.get(id);
+        if (entry == null) {
             return null;
         }
         return newInstance(entry, participantContextId);
@@ -107,12 +101,7 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
     }
 
     @Override
-    public Stream<DataPlaneInstance> getAll() {
-        throw unsupported("getAll");
-    }
-
-    @Override
-    public StoreResult<DataPlaneInstance> deleteById(String instanceId) {
+    public StoreResult<DataPlaneInstance> deleteById(String participantContextId, String instanceId) {
         throw unsupported("deleteById");
     }
 
@@ -136,10 +125,6 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
     private void addEntry(Config entry) {
         var node = entry.currentNode();
         var id = entry.getString(KEY_ID);
-        if (id.contains(ID_SEPARATOR)) {
-            throw new EdcException("Data plane entry '%s' has id '%s' containing '%s', which is reserved as the id separator"
-                    .formatted(node, id, ID_SEPARATOR));
-        }
         if (!entry.getBoolean(KEY_ENABLED, true)) {
             log.info("Data plane entry '{}' is disabled — skipping.", node);
             return;
@@ -184,7 +169,7 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
     private static DataPlaneInstance newInstance(Entry entry, String participantContextId) {
         var instance = DataPlaneInstance.Builder.newInstance()
-                .id(entry.id() + ID_SEPARATOR + participantContextId)
+                .id(entry.id())
                 .participantContextId(participantContextId)
                 .url(entry.url())
                 .allowedSourceTypes(entry.allowedSourceTypes())
@@ -196,8 +181,8 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
     private static UnsupportedOperationException unsupported(String operation) {
         return new UnsupportedOperationException(
-                "XRoadDataPlaneInstanceStore is read-only and answers only by id or by participantContextId; '%s' is not supported"
-                        .formatted(operation));
+                ("XRoadDataPlaneInstanceStore is read-only and answers only lookups by participantContextId and id, "
+                        + "or queries filtered by participantContextId; '%s' is not supported").formatted(operation));
     }
 
     private record Entry(String id, URL url, Set<String> allowedSourceTypes, Set<String> allowedTransferTypes) {

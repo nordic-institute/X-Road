@@ -26,40 +26,67 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.model.ParticipantState;
+import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Read-only aggregator for data space provisioning status, consumed by the status REST endpoint.
  * Mirrors the precondition observations of {@link DataspaceParticipantProvisioningWorker}
  * without triggering any provisioning action.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataspaceProvisioningStatusService {
 
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final DataspaceReadinessPredicates readinessPredicates;
+    private final DataspaceDidAuthority didAuthority;
+    private final DsParticipantRepository dsParticipantRepository;
 
     /**
-     * Returns a snapshot of the current provisioning status. Deliberately not transactional:
-     * only the context enumeration touches the database (in its own read-only transaction),
-     * while the per-context status reads are blocking gRPC calls that must not hold a pooled
-     * DB connection.
+     * Returns a snapshot of the current provisioning status. Deliberately not transactional: the context
+     * enumeration, the SYSTEM binding row read, each context's binding row read inside its status read and
+     * the publication read of each MEMBER context run in their own short transactions, so no pooled DB
+     * connection is held across the blocking gRPC calls of the per-context status reads.
      */
     public DataspaceStatus readStatus() {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        List<ParticipantContextStatus> contextStatuses = dataspaceProvisioningService.participantContexts().stream()
+        var contexts = dataspaceProvisioningService.participantContexts();
+        List<ParticipantContextStatus> contextStatuses = contexts.stream()
                 .map(dataspaceProvisioningService::readContextStatus)
                 .toList();
+        Map<String, MemberPublication> memberPublications = new LinkedHashMap<>();
+        contexts.stream()
+                .filter(context -> context.kind() == DataspaceProvisioningService.ParticipantKind.MEMBER)
+                .forEach(context -> memberPublications.put(context.participantId(), readMemberPublication(context)));
 
-        return new DataspaceStatus(true, authCertRegistered, contextStatuses);
+        return new DataspaceStatus(true, authCertRegistered, readServerStatus(), contextStatuses, memberPublications);
+    }
+
+    private MemberPublication readMemberPublication(DataspaceProvisioningService.ParticipantContext context) {
+        var row = dsParticipantRepository.findByMemberIdentifier(context.memberId())
+                .filter(participant -> participant.getState() == ParticipantState.ACTIVE);
+        var state = row.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
+        return new MemberPublication(state, row.map(DsParticipantEntity::getPublicationReason).orElse(null));
+    }
+
+    private ServerStatus readServerStatus() {
+        var system = dsParticipantRepository.findActiveSystemParticipant();
+        var state = system.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
+        return new ServerStatus(readinessPredicates.isDataspaceReady(), didAuthority.dspBaseUrlIfValid().orElse(null),
+                state,
+                system.map(DsParticipantEntity::getPublicationReason).orElse(null));
     }
 
     /**
@@ -67,12 +94,41 @@ public class DataspaceProvisioningStatusService {
      *
      * @param enabled             always {@code true}; kept for API backward compatibility
      * @param authCertRegistered  whether the SS auth cert is in REGISTERED state (Signer read)
+     * @param server              server-level status, including the publication of the SYSTEM values
      * @param participantContexts per-context provisioning statuses
+     * @param memberPublications  publication of each MEMBER context's values, keyed by participant id
      */
     public record DataspaceStatus(
             boolean enabled,
             boolean authCertRegistered,
-            List<ParticipantContextStatus> participantContexts
+            ServerStatus server,
+            List<ParticipantContextStatus> participantContexts,
+            Map<String, MemberPublication> memberPublications
+    ) {
+    }
+
+    /**
+     * Publication of one member's values.
+     *
+     * @param publicationState  publication state, NOT_SENT while the member has no state yet
+     * @param publicationReason reason for the publication state, {@code null} when there is none
+     */
+    public record MemberPublication(PublicationState publicationState, @Nullable String publicationReason) {
+    }
+
+    /**
+     * Server-level status.
+     *
+     * @param dataspaceReady    whether globalconf lists a credential issuer for this instance
+     * @param dspBaseUrl        the DSP base URL, {@code null} while the registered address is unknown or invalid
+     * @param publicationState  publication state of the SYSTEM values
+     * @param publicationReason reason for the publication state, {@code null} when there is none
+     */
+    public record ServerStatus(
+            boolean dataspaceReady,
+            @Nullable String dspBaseUrl,
+            PublicationState publicationState,
+            @Nullable String publicationReason
     ) {
     }
 }

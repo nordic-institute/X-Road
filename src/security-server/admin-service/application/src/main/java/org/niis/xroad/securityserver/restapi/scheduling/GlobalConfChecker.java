@@ -63,6 +63,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -93,15 +95,17 @@ public class GlobalConfChecker {
     private final AdminServiceProperties adminServiceProperties;
     private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final DataspaceParticipantProvisioningTrigger dataspaceParticipantProvisioningTrigger;
+    private final DataspacePublicationGlobalConfCheck dataspacePublicationGlobalConfCheck;
 
     /**
-     * Reloads global configuration, and updates client statuses, authentication certificate statuses
-     * and server owner identity to the serverconf database. The task is scheduled at a fixed rate
-     * which means that the task is run at a fixed interval (defined by FIXED_RATE_MS) regardless of the
-     * previous executions of the task. However, scheduled tasks do not run in parallel by default. The
-     * next task won't be invoked until the previous one is done. Set an initial delay before running the task
-     * for the first time after a startup to be sure that all required components are available, e.g.
-     * SignerClient may not be available immediately.
+     * Reloads global configuration, and updates client statuses, authentication certificate statuses and
+     * server owner identity to the serverconf database, then, once that transaction commits, the publication
+     * state of the dataspace SYSTEM values and member DIDs. The task is scheduled at a fixed rate which means
+     * that the task is run at a fixed interval (defined by FIXED_RATE_MS) regardless of the previous executions
+     * of the task. However, scheduled tasks do not run in parallel by default. The next task won't be invoked
+     * until the previous one is done. Set an initial delay before running the task for the first time after a
+     * startup to be sure that all required components are available, e.g. SignerClient may not be available
+     * immediately.
      *
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
@@ -174,6 +178,7 @@ public class GlobalConfChecker {
             log.debug("Security Server ID is \"{}\"", securityServerId);
             updateClientStatuses(serverConf, securityServerId);
             updateAuthCertStatuses(securityServerId);
+            checkDataspacePublicationAfterCommit(securityServerId);
             updateTimestampServices(serverConf);
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(e);
@@ -347,6 +352,15 @@ public class GlobalConfChecker {
                         (oldName, newName) -> !StringUtils.equals(oldName, globalConfProvider.getSubsystemName(clientId)));
             }
         }
+    }
+
+    private void checkDataspacePublicationAfterCommit(SecurityServerId securityServerId) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                dataspacePublicationGlobalConfCheck.check(securityServerId);
+            }
+        });
     }
 
     private void updateClientStatus(ClientEntity client, String status) {
