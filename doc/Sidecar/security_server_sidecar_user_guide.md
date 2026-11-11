@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.30
+Version: 1.31
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -38,6 +38,7 @@ Doc. ID: UG-SS-SIDECAR
 | 10.09.2026 | 1.28    | Document hardware token configuration via `xroad.signer.modules` | Ričardas Bučiūnas         |
 | 14.09.2026 | 1.29    | Added health-check and external secret store network ports | Eneli Reimets             |
 | 06.11.2026 | 1.30    | Link the operational monitoring connection trust settings | Eneli Reimets             |
+| 10.11.2026 | 1.31    | Document the 7.8.3 to 8.0.0 migration                            | Marc David                |
 
 ## License
 
@@ -74,6 +75,15 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
   * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
+  * [4.3 Upgrading from version 7.8.3 to 8.0.0](#43-upgrading-from-version-783-to-800)
+    * [Before you start](#before-you-start)
+    * [Migrating with a local database](#migrating-with-a-local-database)
+    * [Migrating with an external database](#migrating-with-an-external-database)
+    * [Migration command additions](#migration-command-additions)
+    * [Migration options](#migration-options)
+    * [Checking the migration result](#checking-the-migration-result)
+    * [After the migration](#after-the-migration)
+    * [Recovering from a failed migration](#recovering-from-a-failed-migration)
 * [5 High Availability Setup](#5-high-availability-setup)
 
 <!-- vim-markdown-toc -->
@@ -318,9 +328,9 @@ To change the database host, you need to:
     ```bash
     [...]
     # db.properties
-    serverconf.hibernate.connection.url = jdbc:postgresql://<new host ip>:5432/serverconf
-    serverconf.hibernate.connection.username = <new user>
-    serverconf.hibernate.connection.password = <new password>
+    xroad.db.serverconf.hibernate.connection.url = jdbc:postgresql://<new host ip>:5432/serverconf
+    xroad.db.serverconf.hibernate.connection.username = <new user>
+    xroad.db.serverconf.hibernate.connection.password = <new password>
     [...]
     ```
 
@@ -566,6 +576,7 @@ Upgrading to a new image is supported, provided that:
 * The new container image has the same or subsequent minor version of the X-Road Security Server.
   * As an exception, upgrading from 6.26.0 to 7.0.x is supported despite the major version change.
   * As an exception, upgrading from 7.4.2 to 7.5.x is supported using backup archive if local database is used.
+  * As an exception, upgrading from 7.8.3 to 8.0.0 is supported via migration mode.
 * A volume is used for `/etc/xroad`.
 * A remote database is used, or a volume is mapped to `/var/lib/postgresql/18/main`.
 * The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
@@ -654,6 +665,224 @@ However, due to a newer PostgreSQL version (16, previously 12) used in new sidec
   ```
 
 See [IG-SS](#Ref_IG-SS) for backup and restore details.
+
+### 4.3 Upgrading from version 7.8.3 to 8.0.0
+
+Upgrading from 7.8.3 to 8.0.0 is supported, but not with the upgrade steps above.
+X-Road 8 changes the configuration format, keeps the TLS certificates in a secret store and uses a newer PostgreSQL version (18, previously 16).
+Therefore, the 8.0.0 image must be run once in migration mode, which migrates the configuration, keys and database before any X-Road service starts.
+
+For where each kind of configuration and key goes, see [Migration-CLI sub-steps](../Manuals/ig-ss_x-road_v8_security_server_upgrade_guide.md#migration-cli-sub-steps) in the Security Server Upgrade Guide: X-Road 7.8 to X-Road 8.
+
+The steps depend on where the 7.8.3 Sidecar keeps its database. Follow [Migrating with a local database](#migrating-with-a-local-database) or [Migrating with an external database](#migrating-with-an-external-database). Both use the common sections that follow them.
+
+#### Before you start
+
+Check that:
+
+* The Sidecar runs version 7.8.3. Migration mode refuses any other version, so upgrade an older Sidecar to 7.8.3 first.
+* The 7.8.3 Sidecar has a volume mounted at `/etc/xroad`.
+* You have the PIN of the software token.
+* You use the 8.0.0 image with the same country variant as the 7.8.3 image, or the image without a variant if the 7.8.3 image had none. X-Road 8 has no `slim` image: a `slim` 7.8.3 Sidecar image migrates to the 8.0.0 image without including message logging or environmental and operational monitoring.
+
+In the commands below, `<7.8.3 config volume name>` and `<7.8.3 archive volume name>` are the volumes the 7.8.3 Sidecar mounted at `/etc/xroad` and `/var/lib/xroad`. If the 7.8.3 Sidecar had no volume at `/var/lib/xroad`, use a new volume instead. `<new config volume name>` and `<new database volume name>` are new volumes and must not exist yet.
+
+#### Migrating with a local database
+
+##### Running the migration with a local database
+
+1. Export the database to a file on the host; the exported dump file will have to be mounted to the 8.0.0 sidecar container for migration purposes:
+
+    ```bash
+    docker exec -u postgres <7.8.3 container name> pg_dumpall > <dump file path>
+    ```
+
+2. Stop the 7.8.3 container right after the export, and rename it. Changes made after the export are not migrated.
+
+    ```bash
+    docker stop <7.8.3 container name>
+    docker rename <7.8.3 container name> <container name prev>
+    ```
+
+3. Run the 8.0.0 image in migration mode, with the additions from [Migration command additions](#migration-command-additions) that apply to your Sidecar:
+
+    ```bash
+    docker run --name <container name> \
+      ... published ports and other parameters, e.g network ...
+      -e XROAD_ADMIN_USER=<admin user> \
+      -e XROAD_ADMIN_PASSWORD=<admin password> \
+      -e XROAD_MIGRATION_MODE=true \
+      -e XROAD_MIGRATION_SOFTTOKEN_PIN=<token pin> \
+      -v <7.8.3 config volume name>:/mnt/migration-source/etc/xroad \
+      -v <dump file path>:/mnt/migration-source/pg_dumpall.sql \
+      -v <new config volume name>:/etc/xroad \
+      -v <new database volume name>:/var/lib/postgresql/18/main \
+      -v <7.8.3 archive volume name>:/var/lib/xroad \
+      niis/xroad-security-server-sidecar:8.0.0
+    ```
+
+4. Check the result as in [Checking the migration result](#checking-the-migration-result).
+
+##### Retrying a failed migration with a local database
+
+1. Remove the 8.0.0 container and its new configuration and database volumes:
+
+    ```bash
+    docker rm <container name>
+    docker volume rm <new config volume name> <new database volume name>
+    ```
+
+2. Fix the cause, and run step 3 of [Running the migration with a local database](#running-the-migration-with-a-local-database) again.
+
+##### Rolling back a migration with a local database
+
+```bash
+docker stop <container name>
+docker rm <container name>
+docker start <container name prev>
+```
+
+#### Migrating with an external database
+
+Migration mode changes the X-Road databases on the external database server in place.
+
+The database server must run PostgreSQL 15 or newer. For full compatibility, use version 18, as in [2.5 Using an External Database](#25-using-an-external-database).
+
+##### Running the migration with an external database
+
+1. Back up all X-Road databases of the Sidecar on the database server. The backup is your way back to 7.8.3.
+2. Stop the 7.8.3 container and rename it:
+
+    ```bash
+    docker stop <7.8.3 container name>
+    docker rename <7.8.3 container name> <container name prev>
+    ```
+
+3. Run the 8.0.0 image in migration mode, with the additions from [Migration command additions](#migration-command-additions) that apply to your Sidecar. 
+
+    ```bash
+    docker run --detach \
+      --name <container name> \
+      ... published ports and other parameters, e.g network ...
+      -e XROAD_ADMIN_USER=<admin user> \
+      -e XROAD_ADMIN_PASSWORD=<admin password> \
+      -e XROAD_MIGRATION_MODE=true \
+      -e XROAD_MIGRATION_SOFTTOKEN_PIN=<token pin> \
+      -e XROAD_DB_PWD=<postgres password> \
+      -v <7.8.3 config volume name>:/mnt/migration-source/etc/xroad \
+      -v <new config volume name>:/etc/xroad \
+      -v <7.8.3 archive volume name>:/var/lib/xroad \
+      niis/xroad-security-server-sidecar:8.0.0
+    ```
+
+4. Check the result as in [Checking the migration result](#checking-the-migration-result).
+
+##### Retrying a failed migration with an external database
+
+1. Remove the 8.0.0 container and its new configuration volume:
+
+    ```bash
+    docker rm <container name>
+    docker volume rm <new config volume name>
+    ```
+
+2. Restore the databases from the backup of step 1 of [Running the migration with an external database](#running-the-migration-with-an-external-database).
+
+3. Fix the cause, and run step 3 of [Running the migration with an external database](#running-the-migration-with-an-external-database) again.
+
+##### Rolling back a migration with an external database
+
+1. Stop and remove the 8.0.0 container:
+
+    ```bash
+    docker stop <container name>
+    docker rm <container name>
+    ```
+
+2. Restore the databases from the backup of step 1 of [Running the migration with an external database](#running-the-migration-with-an-external-database).
+3. Start the 7.8.3 container:
+
+    ```bash
+    docker start <container name prev>
+    ```
+
+#### Migration command additions
+
+Add these to the migration command of your database type, before the image line, when they apply:
+
+* If the 7.8.3 Sidecar got the ACME account keystore password from `ACCOUNT_KEYSTORE_PASSWORD`, add it:
+
+    ```bash
+      -e ACCOUNT_KEYSTORE_PASSWORD=<ACME keystore password> \
+    ```
+
+* If the 7.8.3 Sidecar used autologin (`XROAD_TOKEN_PIN` or `/etc/xroad/autologin`), add the X-Road 8 autologin variables. Migration mode doesn't migrate the 7.8.3 autologin and deletes `/etc/xroad/autologin`. For the variables, see [3.4 Autologin](#34-autologin).
+
+    ```bash
+      -e XROAD_SIGNER_AUTOLOGIN_ENABLED=true \
+      -e XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=<token pin> \
+    ```
+
+* With an external secret store, add the variables in [2.10 Secret Store](#210-secret-store).
+* To change what the migration sets, add the variables in [Migration options](#migration-options).
+
+#### Migration options
+
+Add these environment variables to the migration command to change what the migration sets. For the X-Road 7 behaviour and the X-Road 8 default of batch signing and strict identifier checks, see [Operator choices](../Manuals/ig-ss_x-road_v8_security_server_upgrade_guide.md#operator-choices) in the Security Server Upgrade Guide: X-Road 7.8 to X-Road 8.
+
+| Variable                                   | Value             | If not set                                                                                           |
+|--------------------------------------------|-------------------|------------------------------------------------------------------------------------------------------|
+| `XROAD_MIGRATION_MESSAGE_LOG_ENABLED`      | `true` or `false` | Message logging is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`          |
+| `XROAD_MIGRATION_ENV_MONITORING_ENABLED`   | `true` or `false` | Environmental monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim` |
+| `XROAD_MIGRATION_OP_MONITORING_ENABLED`    | `true` or `false` | Operational monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`   |
+| `XROAD_MIGRATION_BATCH_SIGNING_ENABLED`    | `true`            | Batch signing is disabled, the X-Road 8 default                                                      |
+| `XROAD_MIGRATION_STRICT_IDENTIFIER_CHECKS` | `true`            | Strict identifier checks are disabled, the X-Road 7 behaviour                                        |
+
+#### Checking the migration result
+
+1. Follow the container log until the migration ends:
+
+    ```bash
+    docker logs --follow <container name>
+    ```
+
+   The migration succeeded when the log shows `MIGRATION-STEP 5/5 cleanup: PASSED` and then `MIGRATION RESULT: SUCCESS`. The X-Road services start after it. If the migration failed, see [Recovering from a failed migration](#recovering-from-a-failed-migration).
+
+2. Check that the Sidecar is running, as in [Verifying that the Sidecar is Running](#verifying-that-the-sidecar-is-running), and that the admin user interface shows the clients, certificates and global configuration of the 7.8.3 Sidecar.
+3. Without autologin, log in to the token in the admin user interface.
+
+#### After the migration
+
+Restarting the migrated container with the migration settings in place is safe, however, should you recreate the container later, for example to upgrade to a newer 8.x image as in [4 Upgrading](#4-upgrading), the migration settings can be left out:
+
+* the `XROAD_MIGRATION_MODE`, `XROAD_MIGRATION_SOFTTOKEN_PIN` and other `XROAD_MIGRATION_*` variables;
+* the `/mnt/migration-source/etc/xroad` mount of the 7.8.3 configuration volume and the `/mnt/migration-source/pg_dumpall.sql` mount of the dump file.
+
+Mount only the new volumes the migration used: `<new config volume name>` at `/etc/xroad`, `<7.8.3 archive volume name>` at `/var/lib/xroad` and, with a local database, `<new database volume name>` at `/var/lib/postgresql/18/main`.
+
+Keep the 7.8.3 container, its configuration and database volumes, and the dump file or database backup for as long as you may need to roll back to 7.8.3. After that, remove them.
+
+#### Recovering from a failed migration
+
+When a migration step fails, the log shows `MIGRATION-STEP <n>/5 <step>: FAILED (<reason>)` and `MIGRATION RESULT: FAILED`, and the container stops before any X-Road service starts. 
+
+For each reason below, fix the cause, then retry as described in [Retrying a failed migration with a local database](#retrying-a-failed-migration-with-a-local-database) or [Retrying a failed migration with an external database](#retrying-a-failed-migration-with-an-external-database):
+
+* `source configuration version is <version>, not 7.8.3: upgrade to 7.8.3 first`: upgrade the 7.8 Sidecar to 7.8.3, then migrate.
+* `7.8 configuration volume is not mounted: /mnt/migration-source/etc/xroad is missing or empty`: mount the 7.8.3 configuration volume as in the migration command.
+* `country variant mismatch`: use the 8.0.0 image with the variant of the 7.8.3 image.
+* `XROAD_MIGRATION_SOFTTOKEN_PIN is not set`: add the variable as in the migration command.
+* `migration CLI steps failed`, with `No ACME account keystore password found` earlier in the log: add `ACCOUNT_KEYSTORE_PASSWORD` as in [Migration command additions](#migration-command-additions).
+* `target volume /etc/xroad is not empty`: the volumes hold a previous attempt.
+
+Local database only:
+
+* `7.8 database dump /mnt/migration-source/pg_dumpall.sql is missing or empty`, `has CRLF line endings`, `is incomplete` or `is not a pg_dumpall dump`: start the 7.8.3 container with `docker start <container name prev>`, export the database again as in step 1 of [Running the migration with a local database](#running-the-migration-with-a-local-database) with `<container name prev>` as the container name, stop the container, and check the `<dump file path>` line of the migration command.
+
+External database only:
+
+* `could not read the PostgreSQL version of the external database`: check that the database server is reachable from the container and that the `serverconf` user name and password in `db.properties` of the 7.8.3 Sidecar are correct.
+* `external database at <host>:<port> runs PostgreSQL <version>, older than 15`: upgrade the database server.
 
 ## 5 High Availability Setup
 
