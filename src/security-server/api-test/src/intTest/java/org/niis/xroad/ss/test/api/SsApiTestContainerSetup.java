@@ -124,6 +124,15 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
     }
 
     /**
+     * Returns everything the named service container has written to stdout and stderr, including output from
+     * before its restarts.
+     */
+    public String containerLogs(String serviceName) {
+        return env.getContainerByServiceName(serviceName).orElseThrow(
+                () -> new IllegalStateException("Container not found: " + serviceName)).getLogs();
+    }
+
+    /**
      * Starts a previously stopped service container.
      */
     public void startService(String serviceName) {
