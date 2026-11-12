@@ -30,6 +30,7 @@ package org.niis.xroad.migration.signer;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.migration.utils.DbCredentials;
 import org.niis.xroad.signer.keyconf.CertRequestType;
 import org.niis.xroad.signer.keyconf.CertificateType;
@@ -51,8 +52,10 @@ import java.util.Optional;
 @SuppressWarnings("checkstyle:MagicNumber")
 public class SignerRepository {
     private final Connection connection;
+    private final String nodeName;
 
-    public SignerRepository(DbCredentials dbCredentials) {
+    public SignerRepository(DbCredentials dbCredentials, NodeIdentity nodeIdentity) {
+        this.nodeName = nodeIdentity.name();
         PGSimpleDataSource ds = new PGSimpleDataSource();
         ds.setUrl(dbCredentials.jdbcUrl());
         ds.setUser(dbCredentials.username());
@@ -69,9 +72,10 @@ public class SignerRepository {
     }
 
     Optional<Long> getTokenId(String externalId) throws SQLException {
-        String sql = "SELECT id FROM signer_tokens WHERE external_id = ?";
+        String sql = "SELECT id FROM signer_tokens WHERE ha_node_name = ? AND external_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, externalId);
+            ps.setString(1, nodeName);
+            ps.setString(2, externalId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(rs.getLong("id"));
@@ -82,16 +86,17 @@ public class SignerRepository {
     }
 
     long saveToken(DeviceType deviceType, byte[] pinHash) throws SQLException {
-        String sql = "INSERT INTO signer_tokens(external_id, type, friendly_name, serial_no, label, pin) VALUES "
-                + "(?, ?, ?, ?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO signer_tokens(ha_node_name, external_id, type, friendly_name, serial_no, label, pin) VALUES "
+                + "(?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, deviceType.getId()); // external_id
-            statement.setString(2, deviceType.getDeviceType()); // type
-            statement.setString(3, deviceType.getFriendlyName()); // friendly_name
-            statement.setString(4, deviceType.getTokenId()); // serial_no
-            statement.setString(5, deviceType.getSlotId()); // label
-            statement.setObject(6, pinHash, Types.BINARY); // pin hash
+            statement.setString(1, nodeName); // ha_node_name
+            statement.setString(2, deviceType.getId()); // external_id
+            statement.setString(3, deviceType.getDeviceType()); // type
+            statement.setString(4, deviceType.getFriendlyName()); // friendly_name
+            statement.setString(5, deviceType.getTokenId()); // serial_no
+            statement.setString(6, deviceType.getSlotId()); // label
+            statement.setObject(7, pinHash, Types.BINARY); // pin hash
 
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
@@ -104,9 +109,10 @@ public class SignerRepository {
     }
 
     Optional<Long> getKeyId(String externalId) throws SQLException {
-        String sql = "SELECT id FROM signer_keys WHERE external_id = ?";
+        String sql = "SELECT id FROM signer_keys WHERE ha_node_name = ? AND external_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, externalId);
+            ps.setString(1, nodeName);
+            ps.setString(2, externalId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(rs.getLong("id"));
@@ -117,19 +123,20 @@ public class SignerRepository {
     }
 
     long saveKey(KeyType keyType, long tokenId, boolean isSoftToken, byte[] keystore) throws SQLException {
-        String sql = "INSERT INTO signer_keys(external_id, token_id, type, friendly_name, label, public_key, "
-                + "keystore, sign_mechanism_name, usage) VALUES "
-                + "(?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO signer_keys(ha_node_name, external_id, token_id, type, friendly_name, label, "
+                + "public_key, keystore, sign_mechanism_name, usage) VALUES "
+                + "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, keyType.getKeyId()); // external_id
-            statement.setLong(2, tokenId); // token_id
-            statement.setString(3, isSoftToken ? "SOFTWARE" : "HARDWARE"); // type
-            statement.setString(4, keyType.getFriendlyName()); // friendly_name
-            statement.setString(5, keyType.getLabel()); // label
-            statement.setString(6, toBase64(keyType.getPublicKey())); // public_key
-            statement.setObject(7, keystore, Types.BINARY); // keystore
-            statement.setString(8, StringUtils.defaultIfBlank(keyType.getSignMechanismName(), "CKM_RSA_PKCS"));
-            statement.setString(9, keyType.getUsage().name()); // usage
+            statement.setString(1, nodeName); // ha_node_name
+            statement.setString(2, keyType.getKeyId()); // external_id
+            statement.setLong(3, tokenId); // token_id
+            statement.setString(4, isSoftToken ? "SOFTWARE" : "HARDWARE"); // type
+            statement.setString(5, keyType.getFriendlyName()); // friendly_name
+            statement.setString(6, keyType.getLabel()); // label
+            statement.setString(7, toBase64(keyType.getPublicKey())); // public_key
+            statement.setObject(8, keystore, Types.BINARY); // keystore
+            statement.setString(9, StringUtils.defaultIfBlank(keyType.getSignMechanismName(), "CKM_RSA_PKCS"));
+            statement.setString(10, keyType.getUsage().name()); // usage
 
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
@@ -142,9 +149,10 @@ public class SignerRepository {
     }
 
     Optional<Long> getCertificateId(String externalId) throws SQLException {
-        String sql = "SELECT id FROM signer_certificates WHERE external_id = ?";
+        String sql = "SELECT id FROM signer_certificates WHERE ha_node_name = ? AND external_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, externalId);
+            ps.setString(1, nodeName);
+            ps.setString(2, externalId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(rs.getLong("id"));
@@ -155,29 +163,31 @@ public class SignerRepository {
     }
 
     void saveCertificate(CertificateType cert, long keyId) throws SQLException {
-        String sql = "INSERT INTO signer_certificates(external_id, key_id, member_id, data, status, active, next_renewal_time, "
-                + " renewed_cert_hash, renewal_error, ocsp_verify_error) VALUES "
-                + "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO signer_certificates(ha_node_name, external_id, key_id, member_id, data, status, active, "
+                + " next_renewal_time, renewed_cert_hash, renewal_error, ocsp_verify_error) VALUES "
+                + "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, cert.getId()); // external_id
-            statement.setLong(2, keyId); // key_id
-            statement.setObject(3, ensureMemberId(cert.getMemberId()), Types.BIGINT); // member_id
-            statement.setBytes(4, cert.getContents()); // data
-            statement.setString(5, cert.getStatus()); // status
-            statement.setBoolean(6, cert.isActive()); // active
-            statement.setTimestamp(7, toTimestamp(cert.getNextRenewalTime())); // next_renewal_time
-            statement.setString(8, cert.getRenewedCertHash()); // renewed_cert_hash
-            statement.setString(9, cert.getRenewalError()); // renewal_error
-            statement.setString(10, cert.getOcspVerifyBeforeActivationError()); // ocsp_verify_error
+            statement.setString(1, nodeName); // ha_node_name
+            statement.setString(2, cert.getId()); // external_id
+            statement.setLong(3, keyId); // key_id
+            statement.setObject(4, ensureMemberId(cert.getMemberId()), Types.BIGINT); // member_id
+            statement.setBytes(5, cert.getContents()); // data
+            statement.setString(6, cert.getStatus()); // status
+            statement.setBoolean(7, cert.isActive()); // active
+            statement.setTimestamp(8, toTimestamp(cert.getNextRenewalTime())); // next_renewal_time
+            statement.setString(9, cert.getRenewedCertHash()); // renewed_cert_hash
+            statement.setString(10, cert.getRenewalError()); // renewal_error
+            statement.setString(11, cert.getOcspVerifyBeforeActivationError()); // ocsp_verify_error
 
             statement.executeUpdate();
         }
     }
 
     Optional<Long> getCertificateRequestId(String externalId) throws SQLException {
-        String sql = "SELECT id FROM signer_certificate_requests WHERE external_id = ?";
+        String sql = "SELECT id FROM signer_certificate_requests WHERE ha_node_name = ? AND external_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, externalId);
+            ps.setString(1, nodeName);
+            ps.setString(2, externalId);
             try (ResultSet rs = ps.executeQuery()) {
                 // If at least one row is returned, the certificate request exists
                 if (rs.next()) {
@@ -189,16 +199,17 @@ public class SignerRepository {
     }
 
     void saveCertificateRequest(CertRequestType certRequest, long keyId) throws SQLException {
-        String sql = "INSERT INTO signer_certificate_requests(external_id, key_id, member_id, subject_name, "
+        String sql = "INSERT INTO signer_certificate_requests(ha_node_name, external_id, key_id, member_id, subject_name, "
                 + " subject_alternative_name, certificate_profile) "
-                + " VALUES (?, ?, ?, ?, ?, ?)";
+                + " VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, certRequest.getId());
-            statement.setLong(2, keyId);
-            statement.setObject(3, ensureMemberId(certRequest.getMemberId()), Types.BIGINT);
-            statement.setString(4, certRequest.getSubjectName());
-            statement.setString(5, certRequest.getSubjectAlternativeName());
-            statement.setString(6, certRequest.getCertificateProfile());
+            statement.setString(1, nodeName);
+            statement.setString(2, certRequest.getId());
+            statement.setLong(3, keyId);
+            statement.setObject(4, ensureMemberId(certRequest.getMemberId()), Types.BIGINT);
+            statement.setString(5, certRequest.getSubjectName());
+            statement.setString(6, certRequest.getSubjectAlternativeName());
+            statement.setString(7, certRequest.getCertificateProfile());
 
             statement.executeUpdate();
         }
