@@ -66,8 +66,10 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 /**
  * Verifies that an imported op-monitor CA replaces the Security Server RPC CA for the
  * admin-service channel, and that deleting it restores the default trust after restart.
- * The test temporarily shortens the channel deadline so the expected TLS failure returns
- * promptly, then restores the previous value before restarting the service.
+ * The test temporarily shortens the channel deadline to bound how long the expected failure
+ * takes: the client waits for the channel to become ready, so the failed call ends at the deadline.
+ * The admin service log shows the switch to the imported CA. The previous deadline is restored
+ * before the final restart.
  */
 @DisplayName("Op-monitor CA trust on the admin-service channel (destructive lane)")
 @ResourceLock(value = "op-monitor-ca", mode = READ_WRITE)
@@ -81,6 +83,8 @@ class OpMonitorCaTrustDestructiveTest extends SsSharedStackDestructiveTest {
     private static final String NETWORK_ERROR_CODE = "core.op_monitor.network_error";
     private static final String OP_MONITOR_DEADLINE = "xroad.common-rpc.channel.op-monitor.deadline-after";
     private static final String SHORT_OP_MONITOR_DEADLINE_MILLIS = "5000";
+    private static final String IMPORTED_CA_TRUST_LOG = "Trusting only the imported op-monitor CA on the op-monitor channel";
+    private static final Duration LOG_POLL_TIMEOUT = Duration.ofSeconds(10);
 
     @Test
     @DisplayName("an unrelated stored CA breaks the intervals call after an admin service restart, and deleting it restores the call")
@@ -95,7 +99,7 @@ class OpMonitorCaTrustDestructiveTest extends SsSharedStackDestructiveTest {
                 effectiveOpMonitorDeadline(uiBaseUrl));
 
         try {
-            and("the op-monitor deadline is shortened to %s ms for the channel created at the next restart"
+            and("the op-monitor deadline is shortened to %s ms, bounding the expected failure of the channel created at the next restart"
                     .formatted(SHORT_OP_MONITOR_DEADLINE_MILLIS), () ->
                     systemParameters(uiBaseUrl).updateConfigurableProperty(OP_MONITOR_DEADLINE, SHORT_OP_MONITOR_DEADLINE_MILLIS)
                             .statusCode(204));
@@ -108,15 +112,32 @@ class OpMonitorCaTrustDestructiveTest extends SsSharedStackDestructiveTest {
             then("the intervals call still works on the already created channel", () ->
                     assertThat(intervalsStatus(uiBaseUrl)).isEqualTo(200));
 
+            var trustLogLinesBeforeRestart = and("the admin service trust log lines are counted before the restart", () ->
+                    countImportedCaTrustLogLines(stack));
+
             when("the admin service is restarted", () -> restartAdminService(stack, uiBaseUrl));
 
-            then("the intervals call fails because the Security Server CA is no longer trusted", () ->
+            then("the intervals call fails with a network error at the %s ms deadline: the Security Server CA is no longer trusted"
+                    .formatted(SHORT_OP_MONITOR_DEADLINE_MILLIS), () ->
                     intervals(uiBaseUrl)
                             .statusCode(500)
                             .body("error.code", equalTo(NETWORK_ERROR_CODE)));
-        } finally {
-            restoreTrust(stack, uiBaseUrl, previousDeadline);
+
+            and("the admin service logged after the restart that it trusts only the imported op-monitor CA", () ->
+                    await()
+                            .pollInterval(POLL_INTERVAL)
+                            .atMost(LOG_POLL_TIMEOUT)
+                            .untilAsserted(() -> assertThat(countImportedCaTrustLogLines(stack))
+                                    .isGreaterThan(trustLogLinesBeforeRestart)));
+        } catch (RuntimeException | Error failure) {
+            try {
+                restoreTrust(stack, uiBaseUrl, previousDeadline);
+            } catch (RuntimeException | Error cleanupFailure) {
+                failure.addSuppressed(cleanupFailure);
+            }
+            throw failure;
         }
+        restoreTrust(stack, uiBaseUrl, previousDeadline);
 
         then("the intervals call works again after the CA is deleted and the admin service restarted", () ->
                 assertThat(intervalsStatus(uiBaseUrl)).isEqualTo(200));
@@ -127,16 +148,17 @@ class OpMonitorCaTrustDestructiveTest extends SsSharedStackDestructiveTest {
 
     private static void restoreTrust(SsApiTestContainerSetup stack, String uiBaseUrl, String previousDeadline) {
         try {
-            and("the op-monitor CA is deleted", () ->
-                    new SystemAdminClient(new AdminApiSession(uiBaseUrl)).deleteOpMonitorCa().statusCode(204));
-        } finally {
+            and("the admin service answers before the cleanup", () -> awaitAdminService(uiBaseUrl));
             try {
+                and("the op-monitor CA is deleted", () ->
+                        new SystemAdminClient(new AdminApiSession(uiBaseUrl)).deleteOpMonitorCa().statusCode(204));
+            } finally {
                 and("the op-monitor deadline is restored to %s ms".formatted(previousDeadline), () ->
                         systemParameters(uiBaseUrl).updateConfigurableProperty(OP_MONITOR_DEADLINE, previousDeadline)
                                 .statusCode(204));
-            } finally {
-                and("the admin service is restarted", () -> restartAdminService(stack, uiBaseUrl));
             }
+        } finally {
+            and("the admin service is restarted", () -> restartAdminService(stack, uiBaseUrl));
         }
     }
 
@@ -162,6 +184,16 @@ class OpMonitorCaTrustDestructiveTest extends SsSharedStackDestructiveTest {
 
     private static void restartAdminService(SsApiTestContainerSetup stack, String uiBaseUrl) {
         stack.restartService(SsApiTestContainerSetup.UI);
+        awaitAdminService(uiBaseUrl);
+    }
+
+    private static long countImportedCaTrustLogLines(SsApiTestContainerSetup stack) {
+        return stack.containerLogs(SsApiTestContainerSetup.UI).lines()
+                .filter(line -> line.contains(IMPORTED_CA_TRUST_LOG))
+                .count();
+    }
+
+    private static void awaitAdminService(String uiBaseUrl) {
         await()
                 .pollDelay(RESTART_POLL_DELAY)
                 .pollInterval(POLL_INTERVAL)
