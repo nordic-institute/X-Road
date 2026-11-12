@@ -27,6 +27,7 @@
 package org.niis.xroad.ss.test.api.destructive;
 
 import io.restassured.response.ValidatableResponse;
+import jakarta.annotation.Nullable;
 import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -52,7 +53,9 @@ import java.security.KeyPairGenerator;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -129,15 +132,11 @@ class OpMonitorCaTrustDestructiveTest extends SsSharedStackDestructiveTest {
                             .atMost(LOG_POLL_TIMEOUT)
                             .untilAsserted(() -> assertThat(countImportedCaTrustLogLines(stack))
                                     .isGreaterThan(trustLogLinesBeforeRestart)));
-        } catch (RuntimeException | Error failure) {
-            try {
-                restoreTrust(stack, uiBaseUrl, previousDeadline);
-            } catch (RuntimeException | Error cleanupFailure) {
-                failure.addSuppressed(cleanupFailure);
-            }
+        } catch (Throwable failure) {
+            restoreTrust(stack, uiBaseUrl, previousDeadline, failure);
             throw failure;
         }
-        restoreTrust(stack, uiBaseUrl, previousDeadline);
+        restoreTrust(stack, uiBaseUrl, previousDeadline, null);
 
         then("the intervals call works again after the CA is deleted and the admin service restarted", () ->
                 assertThat(intervalsStatus(uiBaseUrl)).isEqualTo(200));
@@ -146,19 +145,45 @@ class OpMonitorCaTrustDestructiveTest extends SsSharedStackDestructiveTest {
                 assertThat(effectiveOpMonitorDeadline(uiBaseUrl)).isEqualTo(previousDeadline));
     }
 
-    private static void restoreTrust(SsApiTestContainerSetup stack, String uiBaseUrl, String previousDeadline) {
+    /**
+     * Attempts every cleanup step even when an earlier one fails. An admin service that does not answer is restarted
+     * before the CA delete and the deadline restore, and a final restart applies the restored configuration.
+     * Cleanup failures are suppressed into {@code testFailure} when there is one; otherwise the first cleanup failure
+     * is thrown with the rest suppressed.
+     */
+    @SneakyThrows
+    private static void restoreTrust(SsApiTestContainerSetup stack, String uiBaseUrl, String previousDeadline,
+                                     @Nullable Throwable testFailure) {
+        var cleanupFailures = new ArrayList<Throwable>();
+        if (!attempt(cleanupFailures, () -> and("the admin service answers before the cleanup", () ->
+                awaitAdminService(uiBaseUrl)))) {
+            attempt(cleanupFailures, () -> and("the unresponsive admin service is restarted before the cleanup", () ->
+                    restartAdminService(stack, uiBaseUrl)));
+        }
+        attempt(cleanupFailures, () -> and("the op-monitor CA is deleted", () ->
+                new SystemAdminClient(new AdminApiSession(uiBaseUrl)).deleteOpMonitorCa().statusCode(204)));
+        attempt(cleanupFailures, () -> and("the op-monitor deadline is restored to %s ms".formatted(previousDeadline), () ->
+                systemParameters(uiBaseUrl).updateConfigurableProperty(OP_MONITOR_DEADLINE, previousDeadline)
+                        .statusCode(204)));
+        attempt(cleanupFailures, () -> and("the admin service is restarted to apply the restored configuration", () ->
+                restartAdminService(stack, uiBaseUrl)));
+
+        if (testFailure != null) {
+            cleanupFailures.forEach(testFailure::addSuppressed);
+        } else if (!cleanupFailures.isEmpty()) {
+            var failure = cleanupFailures.removeFirst();
+            cleanupFailures.forEach(failure::addSuppressed);
+            throw failure;
+        }
+    }
+
+    private static boolean attempt(List<Throwable> failures, Runnable step) {
         try {
-            and("the admin service answers before the cleanup", () -> awaitAdminService(uiBaseUrl));
-            try {
-                and("the op-monitor CA is deleted", () ->
-                        new SystemAdminClient(new AdminApiSession(uiBaseUrl)).deleteOpMonitorCa().statusCode(204));
-            } finally {
-                and("the op-monitor deadline is restored to %s ms".formatted(previousDeadline), () ->
-                        systemParameters(uiBaseUrl).updateConfigurableProperty(OP_MONITOR_DEADLINE, previousDeadline)
-                                .statusCode(204));
-            }
-        } finally {
-            and("the admin service is restarted", () -> restartAdminService(stack, uiBaseUrl));
+            step.run();
+            return true;
+        } catch (Throwable failure) {
+            failures.add(failure);
+            return false;
         }
     }
 
