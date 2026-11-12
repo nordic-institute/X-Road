@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -202,6 +203,32 @@ class ExpiredTransferSweeperTest {
         verify(transferProcessStore, times(2)).findAll(captor.capture());
         var offsets = captor.getAllValues().stream().map(QuerySpec::getOffset).sorted().toList();
         assertThat(offsets).containsExactly(0, BATCH_SIZE);
+    }
+
+    @Test
+    void everyPageQuerySortsByIdAscendingWithUnchangedFilterAndLimit() {
+        List<TransferProcess> transfers = new ArrayList<>();
+        for (int i = 0; i < BATCH_SIZE + 1; i++) {
+            transfers.add(startedConsumerTransfer("tp-" + i));
+        }
+        when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("no data address stored"));
+        when(transferProcessStore.findAll(any())).thenAnswer(inv -> {
+            QuerySpec spec = inv.getArgument(0);
+            return transfers.stream().skip(spec.getOffset()).limit(spec.getLimit());
+        });
+
+        sweeper.sweep();
+
+        var captor = ArgumentCaptor.forClass(QuerySpec.class);
+        verify(transferProcessStore, times(2)).findAll(captor.capture());
+        assertThat(captor.getAllValues()).hasSize(2).allSatisfy(spec -> {
+            assertThat(spec.getSortField()).isEqualTo("id");
+            assertThat(spec.getSortOrder()).isEqualTo(SortOrder.ASC);
+            assertThat(spec.getLimit()).isEqualTo(BATCH_SIZE);
+            assertThat(spec.getFilterExpression()).containsExactlyInAnyOrder(
+                    Criterion.criterion("type", "=", TransferProcess.Type.CONSUMER.name()),
+                    Criterion.criterion("state", "=", TransferProcessStates.STARTED.code()));
+        });
     }
 
     @Test
