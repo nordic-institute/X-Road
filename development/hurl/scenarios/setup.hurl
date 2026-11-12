@@ -1045,9 +1045,9 @@ HTTP 200
 [Asserts]
 jsonpath "$.id" == "did:web:{{is_host}}%3A{{is_did_port}}:issuer"
 
-# Gate: each Security Server sees its own DSP base URL in its reloaded global configuration.
-# PUBLISHED is set only after the server's globalconf check finds the stored SYSTEM DID and
-# DSP base URL in its own copy, before the first DSP-routed request (the TestClient registration).
+# Gate: waits until each Security Server's own copy of the global configuration carries its SYSTEM DID
+# and DSP base URL (publication_state PUBLISHED). It runs before the first DSP-routed request, the
+# TestClient registration.
 GET https://{{ss0_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 [Options]

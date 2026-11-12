@@ -31,9 +31,6 @@ import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
-import java.util.List;
-import java.util.Map;
-
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
@@ -49,11 +46,12 @@ import static org.niis.xroad.e2e.AdminApi.authed;
  */
 @Slf4j
 @UtilityClass
-@SuppressWarnings("unchecked")
 class SignCertificateOps {
 
     private static final String SS0_ENV = "ss0";
     private static final String CA_ENV = "ca";
+    /** {@code Key.usage} of a signing key in the Security Server admin API. */
+    private static final String SIGNING_KEY_USAGE = "SIGNING";
     private static final String SIGN_KEY_TOKEN_ID = "0";
     private static final String SIGN_KEY_SERIAL_NUMBER = "DEV/SS0/COM";
 
@@ -70,24 +68,24 @@ class SignCertificateOps {
     }
 
     /**
-     * Provisions the sign certificate of the member {@code memberCtxId} ({@code INSTANCE:CLASS:CODE}).
+     * Provisions the sign certificate of the member {@code memberId} ({@code INSTANCE:CLASS:CODE}, not encoded).
      * An import that left the certificate inactive is followed by an explicit activation, because an inactive
      * sign certificate keeps the membership credential from being issued.
      */
-    static void provisionSignCertificate(E2eEnvironment env, AdminSession ss0, String memberCtxId) {
+    static void provisionSignCertificate(E2eEnvironment env, AdminSession ss0, String memberId) {
         var baseUrl = adminBaseUrl(env, SS0_ENV);
-        var existing = findSignMaterial(baseUrl, ss0, memberCtxId);
+        var existing = findSignMaterial(baseUrl, ss0, memberId);
         var certificate = existing.certificate();
         if (certificate == null) {
             var csr = existing.pendingCsr() != null
                     ? existing.pendingCsr()
-                    : generateSignCsr(baseUrl, ss0, env.securityServerAddress(SS0_ENV), memberCtxId);
-            var csrBytes = fetchCsrBytes(baseUrl, ss0, csr, memberCtxId);
-            var certBytes = signWithTestCa(caBaseUrl(env), csrBytes, memberCtxId);
-            certificate = importSignCertificate(baseUrl, ss0, certBytes, memberCtxId);
+                    : generateSignCsr(baseUrl, ss0, env.securityServerAddress(SS0_ENV), memberId);
+            var csrBytes = fetchCsrBytes(baseUrl, ss0, csr, memberId);
+            var certBytes = signWithTestCa(caBaseUrl(env), csrBytes, memberId);
+            certificate = importSignCertificate(baseUrl, ss0, certBytes, memberId);
         }
         if (!certificate.active()) {
-            activateSignCertificate(baseUrl, ss0, certificate.hash(), memberCtxId);
+            activateSignCertificate(baseUrl, ss0, certificate.hash(), memberId);
         }
     }
 
@@ -96,30 +94,31 @@ class SignCertificateOps {
         return "http://%s:%s".formatted(mapping.host(), mapping.port());
     }
 
-    private static TokenSignMaterial findSignMaterial(String baseUrl, AdminSession session, String memberCtxId) {
+    private static TokenSignMaterial findSignMaterial(String baseUrl, AdminSession session, String memberId) {
         var response = authed(session).get(baseUrl + "/api/v1/tokens/" + SIGN_KEY_TOKEN_ID);
         assertThat(response.getStatusCode()).as("look up the token %s", SIGN_KEY_TOKEN_ID).isEqualTo(HTTP_OK);
-        for (Map<String, Object> key : response.jsonPath().getList("keys", Map.class)) {
-            for (Map<String, Object> cert : (List<Map<String, Object>>) key.get("certificates")) {
-                if (memberCtxId.equals(cert.get("owner_id"))) {
-                    var details = (Map<String, Object>) cert.get("certificate_details");
-                    return new TokenSignMaterial(
-                            new SignCertificate((String) details.get("hash"), Boolean.TRUE.equals(cert.get("active"))),
-                            null);
-                }
-            }
-            for (Map<String, Object> csr : (List<Map<String, Object>>) key.get("certificate_signing_requests")) {
-                if (memberCtxId.equals(csr.get("owner_id"))) {
-                    return new TokenSignMaterial(null, new GeneratedCsr((String) key.get("id"), (String) csr.get("id")));
-                }
-            }
+        var json = response.jsonPath();
+        var signingKeys = "keys.findAll { it.usage == '%s' }".formatted(SIGNING_KEY_USAGE);
+        var certificate = "%s.certificates.flatten().find { it?.owner_id == '%s' }".formatted(signingKeys, memberId);
+        if (json.getMap(certificate) != null) {
+            return new TokenSignMaterial(
+                    new SignCertificate(json.getString(certificate + ".certificate_details.hash"),
+                            json.getBoolean(certificate + ".active")),
+                    null);
+        }
+        var csrKey = "%s.find { it.certificate_signing_requests.any { csr -> csr.owner_id == '%s' } }"
+                .formatted(signingKeys, memberId);
+        if (json.getMap(csrKey) != null) {
+            var csrId = json.getString(csrKey + ".certificate_signing_requests.find { it.owner_id == '%s' }.id"
+                    .formatted(memberId));
+            return new TokenSignMaterial(null, new GeneratedCsr(json.getString(csrKey + ".id"), csrId));
         }
         return TokenSignMaterial.none();
     }
 
     private static GeneratedCsr generateSignCsr(String baseUrl, AdminSession session, String securityServerAddress,
-                                                String memberCtxId) {
-        var memberCode = memberCtxId.substring(memberCtxId.lastIndexOf(':') + 1);
+                                                String memberId) {
+        var memberCode = memberId.substring(memberId.lastIndexOf(':') + 1);
         var caResponse = authed(session).get(baseUrl + "/api/v1/certificate-authorities");
         assertThat(caResponse.getStatusCode()).as("look up the approved certificate authorities").isEqualTo(HTTP_OK);
         var body = """
@@ -139,53 +138,53 @@ class SignCertificateOps {
                     }
                   }
                 }
-                """.formatted(memberCode, caResponse.jsonPath().getString("[0].name"), memberCtxId, memberCode,
+                """.formatted(memberCode, caResponse.jsonPath().getString("[0].name"), memberId, memberCode,
                 securityServerAddress, SIGN_KEY_SERIAL_NUMBER);
         var response = authed(session)
                 .header("Content-Type", "application/json")
                 .body(body)
                 .post(baseUrl + "/api/v1/tokens/" + SIGN_KEY_TOKEN_ID + "/keys-with-csrs");
-        assertThat(response.getStatusCode()).as("generate a SIGNING CSR for %s", memberCtxId).isEqualTo(HTTP_OK);
+        assertThat(response.getStatusCode()).as("generate a SIGNING CSR for %s", memberId).isEqualTo(HTTP_OK);
         return new GeneratedCsr(response.jsonPath().getString("key.id"), response.jsonPath().getString("csr_id"));
     }
 
-    private static byte[] fetchCsrBytes(String baseUrl, AdminSession session, GeneratedCsr csr, String memberCtxId) {
+    private static byte[] fetchCsrBytes(String baseUrl, AdminSession session, GeneratedCsr csr, String memberId) {
         var response = authed(session)
                 .get(baseUrl + "/api/v1/keys/" + csr.keyId() + "/csrs/" + csr.csrId() + "?csr_format=PEM");
-        assertThat(response.getStatusCode()).as("fetch the CSR PEM of %s", memberCtxId).isEqualTo(HTTP_OK);
+        assertThat(response.getStatusCode()).as("fetch the CSR PEM of %s", memberId).isEqualTo(HTTP_OK);
         return response.getBody().asByteArray();
     }
 
-    private static byte[] signWithTestCa(String caBaseUrl, byte[] csrBytes, String memberCtxId) {
+    private static byte[] signWithTestCa(String caBaseUrl, byte[] csrBytes, String memberId) {
         var response = RestAssuredFactory.given()
                 .multiPart("certreq", "sign.csr.pem", csrBytes, "application/octet-stream")
                 .multiPart("type", "sign")
                 .post(caBaseUrl + "/testca/sign");
-        assertThat(response.getStatusCode()).as("sign the CSR of %s with the test CA", memberCtxId).isEqualTo(HTTP_OK);
+        assertThat(response.getStatusCode()).as("sign the CSR of %s with the test CA", memberId).isEqualTo(HTTP_OK);
         return response.getBody().asByteArray();
     }
 
     private static SignCertificate importSignCertificate(String baseUrl, AdminSession session, byte[] certBytes,
-                                                         String memberCtxId) {
+                                                         String memberId) {
         var response = authed(session)
                 .multiPart("certificate", "sign_key_cert.pem", certBytes, "application/octet-stream")
                 .post(baseUrl + "/api/v1/token-certificates");
         if (response.getStatusCode() == HTTP_CONFLICT) {
-            log.info("Sign certificate for {} is already imported; using the one on the token", memberCtxId);
-            var existing = findSignMaterial(baseUrl, session, memberCtxId).certificate();
-            assertThat(existing).as("an existing sign certificate for %s after a 409 on import", memberCtxId).isNotNull();
+            log.info("Sign certificate for {} is already imported; using the one on the token", memberId);
+            var existing = findSignMaterial(baseUrl, session, memberId).certificate();
+            assertThat(existing).as("an existing sign certificate for %s after a 409 on import", memberId).isNotNull();
             return existing;
         }
-        assertThat(response.getStatusCode()).as("import the sign certificate of %s", memberCtxId).isEqualTo(HTTP_CREATED);
+        assertThat(response.getStatusCode()).as("import the sign certificate of %s", memberId).isEqualTo(HTTP_CREATED);
         return new SignCertificate(response.jsonPath().getString("certificate_details.hash"),
                 response.jsonPath().getBoolean("active"));
     }
 
     private static void activateSignCertificate(String baseUrl, AdminSession session, String certHash,
-                                                String memberCtxId) {
+                                                String memberId) {
         var response = authed(session).put(baseUrl + "/api/v1/token-certificates/" + certHash + "/activate");
         assertThat(response.getStatusCode())
-                .as("activate the sign certificate %s of %s", certHash, memberCtxId)
+                .as("activate the sign certificate %s of %s", certHash, memberId)
                 .isIn(HTTP_NO_CONTENT, HTTP_CONFLICT);
     }
 }

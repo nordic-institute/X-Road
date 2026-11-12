@@ -59,6 +59,7 @@ import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.AdminApi.registerClient;
 import static org.niis.xroad.e2e.DisabledServiceFault.awaitCallSucceeds;
+import static org.niis.xroad.e2e.DspNegotiationDbAssertions.NO_BASELINE;
 import static org.niis.xroad.e2e.SignCertificateOps.provisionSignCertificate;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
@@ -244,8 +245,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                         + "new member's own context share one wire agreement",
                 () -> dspAssertions.awaitNegotiationPair());
 
-        and("the provider's negotiation row carries the consumer server's published DSP base URL and the consumer's "
-                + "participant segment as the callback address", () ->
+        and("the provider's negotiation row carries the DSP base URL that ss0's provisioning status reports for "
+                + "itself and the consumer's participant segment as the callback address", () ->
                 assertProviderNegotiationCallbackAddress(ss0BaseUrl, ss0Session, dspAssertions));
 
         and("exactly one per-context edc_contract_agreement copy exists for each side of that wire agreement", () ->
@@ -294,7 +295,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private void assertProviderNegotiationCallbackAddress(String ss0BaseUrl, AdminSession ss0,
                                                           DspNegotiationDbAssertions dspAssertions) {
         var expectedPrefix = dspBaseUrl(ss0BaseUrl, ss0) + "/" + CONSUMER_MEMBER_CTX_ID + "/";
-        dspAssertions.awaitProviderNegotiations("%:v1:" + CONSUMER_MEMBER_CTX_ID, negotiations -> {
+        dspAssertions.awaitProviderNegotiations("%:v1:" + CONSUMER_MEMBER_CTX_ID, NO_BASELINE, negotiations -> {
             assertThat(negotiations).as("PROVIDER negotiations with the consumer member's context").isNotEmpty();
             assertThat(negotiations)
                     .as("a FINALIZED negotiation whose callback address starts with %s; observed addresses: %s",

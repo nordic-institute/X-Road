@@ -103,12 +103,12 @@ class SsStatusListRolloverTest extends E2eTest {
             new Member("6002", "RolloverService2"));
 
     private record Member(String code, String subsystem) {
-        String ctxId() {
+        String memberId() {
             return X_ROAD_INSTANCE + ":" + MEMBER_CLASS + ":" + code;
         }
 
         String clientId() {
-            return ctxId() + ":" + subsystem;
+            return memberId() + ":" + subsystem;
         }
 
         String servicePath() {
@@ -137,7 +137,7 @@ class SsStatusListRolloverTest extends E2eTest {
         and("two new members are added to ss0 with CA-signed sign certificates and submitted for registration", () -> {
             for (var member : MEMBERS) {
                 addLocalClient(ss0BaseUrl, ss0Session, member.clientId());
-                provisionSignCertificate(env, ss0Session, member.ctxId());
+                provisionSignCertificate(env, ss0Session, member.memberId());
                 registerClient(ss0BaseUrl, ss0Session, member.clientId());
             }
         });
@@ -156,7 +156,7 @@ class SsStatusListRolloverTest extends E2eTest {
         });
         then("both members' membership credentials are issued", () -> {
             for (var member : MEMBERS) {
-                awaitMemberCredentialIssued(ss0BaseUrl, ss0Session, member.ctxId());
+                awaitMemberCredentialIssued(ss0BaseUrl, ss0Session, member.memberId());
             }
         });
         then("the established consumer reaches both members through ss0's proxy, verifying their credentials", () -> {

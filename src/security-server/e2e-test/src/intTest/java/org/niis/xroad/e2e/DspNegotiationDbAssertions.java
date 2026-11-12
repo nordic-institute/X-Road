@@ -72,6 +72,9 @@ final class DspNegotiationDbAssertions {
     private static final String TYPE_CONSUMER = "CONSUMER";
     private static final String TYPE_PROVIDER = "PROVIDER";
 
+    /** A {@code createdAfter} baseline that every negotiation is newer than. */
+    static final long NO_BASELINE = 0L;
+
     private static final int NEGOTIATION_STATE_FINALIZED = 1200;
     private static final int EXPECTED_NEGOTIATION_COUNT = 2;
 
@@ -176,19 +179,13 @@ final class DspNegotiationDbAssertions {
 
     /**
      * Polls until {@code assertions} holds for every PROVIDER negotiation on {@code providerMemberCtxId} whose
-     * counterparty id matches the SQL {@code LIKE} pattern {@code counterpartyIdLike}, oldest first. The
-     * {@code assertions} run on each poll and signal a mismatch with an {@link AssertionError}.
+     * counterparty id matches the SQL {@code LIKE} pattern {@code counterpartyIdLike} and that was created after
+     * {@code createdAfter}, oldest first. {@code createdAfter} is a {@link #latestProviderNegotiationCreatedAt}
+     * value read earlier, or {@link #NO_BASELINE} for every negotiation. The {@code assertions} run on each poll
+     * and signal a mismatch with an {@link AssertionError}.
      */
-    void awaitProviderNegotiations(String counterpartyIdLike, Consumer<List<ProviderNegotiation>> assertions) {
-        awaitProviderNegotiationsCreatedAfter(counterpartyIdLike, 0L, assertions);
-    }
-
-    /**
-     * Like {@link #awaitProviderNegotiations}, but only for negotiations created after {@code createdAfter},
-     * a {@link #latestProviderNegotiationCreatedAt} value read earlier.
-     */
-    void awaitProviderNegotiationsCreatedAfter(String counterpartyIdLike, long createdAfter,
-                                               Consumer<List<ProviderNegotiation>> assertions) {
+    void awaitProviderNegotiations(String counterpartyIdLike, long createdAfter,
+                                   Consumer<List<ProviderNegotiation>> assertions) {
         var sql = ("SELECT n.state, n.counterparty_id, n.counterparty_address FROM edc_contract_negotiation n "
                 + "WHERE n.type = '" + TYPE_PROVIDER + "' AND n.participant_context_id = '%s' "
                 + "AND n.counterparty_id LIKE '%s' AND n.created_at > %d ORDER BY n.id")

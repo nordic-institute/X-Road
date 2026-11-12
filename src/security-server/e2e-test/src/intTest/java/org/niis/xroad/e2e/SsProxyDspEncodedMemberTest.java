@@ -192,7 +192,7 @@ class SsProxyDspEncodedMemberTest extends E2eTest {
      */
     private void awaitProviderNegotiationWithDecodedCounterparty(DspNegotiationDbAssertions ss1Assertions,
                                                                   long createdAfter) {
-        ss1Assertions.awaitProviderNegotiationsCreatedAfter(PROVIDER_COUNTERPARTY_ID_LIKE, createdAfter, negotiations -> {
+        ss1Assertions.awaitProviderNegotiations(PROVIDER_COUNTERPARTY_ID_LIKE, createdAfter, negotiations -> {
             assertThat(negotiations).as("ss1 PROVIDER negotiations of this run with a DEV:COM:222* counterparty").isNotEmpty();
             assertThat(negotiations)
                     .as("counterparty ids must all end with %s", CONSUMER_DID_SUFFIX)
