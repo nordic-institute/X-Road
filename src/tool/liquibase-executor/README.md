@@ -37,6 +37,11 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
 
    Stores added or dropped by the bump change this list, so rebuild it for every bump.
 
+   `SqlSchemaBootstrapperExtension` is excluded in the `application.yaml` of all three runtimes and replaced by
+   `XRoadNoOpSqlSchemaBootstrapperExtension`, so these `addStatementFromResource` calls run no SQL. Check that the
+   exclusion still names the class in the new tag. A new store on the classpath gets its tables only through a
+   changeset (step 3).
+
 2. **Diff the table scripts between the old and the new tag.** In the `Connector` and `IdentityHub`
    checkouts of the EDC sources, for every store from step 1:
 

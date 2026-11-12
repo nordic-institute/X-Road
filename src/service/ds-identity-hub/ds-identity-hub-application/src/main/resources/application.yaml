@@ -47,10 +47,13 @@ xroad:
       # StsClientTokenGeneratorService over the unwrapped embedded service instead.
       # StsApiConfigurationExtension is excluded because it injects the stock EDC JettyService, which is not on
       # the classpath. XRoadStsApiConfigurationExtension registers the same STS port mapping and version info.
+      # SqlSchemaBootstrapperExtension is excluded so that no EDC code can create tables;
+      # XRoadNoOpSqlSchemaBootstrapperExtension provides the SqlSchemaBootstrapper the SQL stores inject.
       excluded-service-extensions: >-
         org.eclipse.edc.web.jetty.JettyExtension,
         org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,
-        org.eclipse.edc.api.iam.decentralizedclaims.sts.StsApiConfigurationExtension
+        org.eclipse.edc.api.iam.decentralizedclaims.sts.StsApiConfigurationExtension,
+        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension
   ds:
     rpc:
       host: "0.0.0.0"

@@ -39,4 +39,14 @@ class ExtensionScanTest {
 
         assertThat(scanned).isNotEmpty();
     }
+
+    @Test
+    void sqlSchemaBootstrapperIsProvidedByTheNoOpExtensionOnly() {
+        var scanned = ExtensionScanGuard.scanNonExcluded(ExtensionScanTest.class.getResource("/application.yaml"))
+                .stream().map(extension -> extension.getClass().getName()).toList();
+
+        assertThat(scanned)
+                .contains("org.niis.xroad.edc.extension.bridge.XRoadNoOpSqlSchemaBootstrapperExtension")
+                .doesNotContain("org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension");
+    }
 }

@@ -53,11 +53,14 @@ xroad:
       # only thing standing between it and boot.
       # SqlContractNegotiationStoreExtension is excluded so XRoadContractNegotiationStoreExtension is the
       # sole ContractNegotiationStore provider; its jar stays on the classpath (via ds-control-plane-db) so
-      # the delegate store class, dialect statements and schema DDL remain usable.
+      # the delegate store class and dialect statements remain usable.
+      # SqlSchemaBootstrapperExtension is excluded so that no EDC code can create tables;
+      # XRoadNoOpSqlSchemaBootstrapperExtension provides the SqlSchemaBootstrapper the SQL stores inject.
       excluded-service-extensions: >-
         org.eclipse.edc.signaling.DataPlaneSignalingApiExtension,
         org.eclipse.edc.web.jetty.JettyExtension,
-        org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension
+        org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension,
+        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension
   ds:
     rpc:
       host: "0.0.0.0"
