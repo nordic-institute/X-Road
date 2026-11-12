@@ -43,6 +43,7 @@ import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROX
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 import static org.niis.xroad.common.properties.config.Validator.positiveInt;
+import static org.niis.xroad.common.properties.config.Validator.range;
 
 /**
  * Security Server admin-service keys ({@code xroad.proxy-ui-api.*}, incl. {@code .tls} and the
@@ -533,6 +534,16 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .integer("provisioning-batch-size")
             .withDefaultValue(100)
             .withValidator(positiveInt())
+            .build();
+
+    /**
+     * {@code xroad.proxy-ui-api.dataspace.publication-submitted-timeout-minutes}. How long a value stays submitted
+     * while globalconf does not carry it before it is sent again.
+     */
+    public static final ConfigKey<Integer> DATASPACE_PUBLICATION_SUBMITTED_TIMEOUT_MINUTES = DATASPACE
+            .integer("publication-submitted-timeout-minutes")
+            .withDefaultValue(60)
+            .withValidator(range(5, 10080))
             .build();
 
     /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-contacts} */

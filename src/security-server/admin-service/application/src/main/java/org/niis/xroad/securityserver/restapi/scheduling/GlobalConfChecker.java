@@ -100,7 +100,8 @@ public class GlobalConfChecker {
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses and
      * server owner identity to the serverconf database, then, once that transaction commits, the publication
-     * state of the dataspace SYSTEM values and member DIDs. The task is scheduled at a fixed rate which means
+     * state of the dataspace SYSTEM values and member DIDs, and finally the differences between the dataspace
+     * binding rows and what globalconf carries. The task is scheduled at a fixed rate which means
      * that the task is run at a fixed interval (defined by FIXED_RATE_MS) regardless of the previous executions
      * of the task. However, scheduled tasks do not run in parallel by default. The next task won't be invoked
      * until the previous one is done. Set an initial delay before running the task for the first time after a

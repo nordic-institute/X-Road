@@ -83,7 +83,7 @@ public record SystemValuesComparison(GlobalConfComparison systemDid, GlobalConfC
     /**
      * @return whether globalconf carries both values as held
      */
-    public boolean isEqual() {
+    private boolean isEqual() {
         return systemDid == GlobalConfComparison.EQUAL && dspBaseUrl == GlobalConfComparison.EQUAL;
     }
 }

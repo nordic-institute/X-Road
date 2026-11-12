@@ -52,11 +52,6 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DifferenceSignals {
 
-    /**
-     * The publication states in which a DID has been sent to the Control Plane and Identity Hub.
-     */
-    public static final Set<PublicationState> SENT = Set.of(PublicationState.SUBMITTED, PublicationState.PUBLISHED);
-
     private final SecurityServerId serverId;
     private final GlobalConfProvider globalConfProvider;
     private final RegisteredHostMatcher hostMatcher;
@@ -88,7 +83,7 @@ public final class DifferenceSignals {
      * the member
      */
     boolean memberMismatch(DsParticipantEntity row) {
-        return isSent(row) && compareMemberDid(row) == GlobalConfComparison.DIFFERENT;
+        return PublicationState.isSent(row.getPublicationState()) && compareMemberDid(row) == GlobalConfComparison.DIFFERENT;
     }
 
     /**
@@ -111,7 +106,7 @@ public final class DifferenceSignals {
      * another, not stale, value
      */
     SystemMismatch systemMismatch(DsParticipantEntity row, Supplier<String> dspBaseUrl) {
-        if (!isSent(row)) {
+        if (!PublicationState.isSent(row.getPublicationState())) {
             return SystemMismatch.NONE;
         }
         var comparison = compareSystemValues(row, dspBaseUrl.get());
@@ -144,10 +139,6 @@ public final class DifferenceSignals {
                 .toList();
         return new Differences(hostDiffering.isEmpty() ? HostStatus.OK : HostStatus.DIFFERS, systemMismatch,
                 memberMismatches, hostDiffering);
-    }
-
-    private static boolean isSent(DsParticipantEntity row) {
-        return row.getPublicationState() != null && SENT.contains(row.getPublicationState());
     }
 
     /**

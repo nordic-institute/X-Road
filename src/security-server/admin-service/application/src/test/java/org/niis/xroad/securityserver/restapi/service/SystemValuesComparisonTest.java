@@ -47,7 +47,6 @@ class SystemValuesComparisonTest {
         var comparison = SystemValuesComparison.of(DID, URL, null, _ -> false);
 
         assertThat(comparison).isEqualTo(new SystemValuesComparison(ABSENT, ABSENT));
-        assertThat(comparison.isEqual()).isFalse();
     }
 
     @Test
@@ -61,7 +60,6 @@ class SystemValuesComparisonTest {
         var comparison = SystemValuesComparison.of(DID, URL, new ServerSystemValues(DID, URL), _ -> true);
 
         assertThat(comparison).isEqualTo(new SystemValuesComparison(EQUAL, EQUAL));
-        assertThat(comparison.isEqual()).isTrue();
     }
 
     @Test
@@ -71,8 +69,6 @@ class SystemValuesComparisonTest {
 
         assertThat(didOnly).isEqualTo(new SystemValuesComparison(DIFFERENT, EQUAL));
         assertThat(urlOnly).isEqualTo(new SystemValuesComparison(EQUAL, DIFFERENT));
-        assertThat(didOnly.isEqual()).isFalse();
-        assertThat(urlOnly.isEqual()).isFalse();
     }
 
     @Test
@@ -99,7 +95,6 @@ class SystemValuesComparisonTest {
         var comparison = SystemValuesComparison.of(DID, null, new ServerSystemValues(DID, URL), _ -> false);
 
         assertThat(comparison).isEqualTo(new SystemValuesComparison(EQUAL, STALE));
-        assertThat(comparison.isEqual()).isFalse();
     }
 
     @Test

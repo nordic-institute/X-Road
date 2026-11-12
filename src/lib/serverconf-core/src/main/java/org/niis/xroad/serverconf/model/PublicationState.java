@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.serverconf.model;
 
+import java.util.Set;
+
 /**
  * Whether a bound participant's identity values have reached the Central Server. A row with no
  * publication state is treated as {@link #NOT_SENT}.
@@ -34,5 +36,18 @@ public enum PublicationState {
     NOT_SENT,
     SUBMITTED,
     PUBLISHED,
-    REJECTED
+    REJECTED;
+
+    /**
+     * The states in which a value has been sent to the Control Plane and Identity Hub.
+     */
+    public static final Set<PublicationState> SENT = Set.of(SUBMITTED, PUBLISHED);
+
+    /**
+     * @param state a publication state, {@code null} counts as {@link #NOT_SENT}
+     * @return whether the state is one of {@link #SENT}
+     */
+    public static boolean isSent(PublicationState state) {
+        return state != null && SENT.contains(state);
+    }
 }

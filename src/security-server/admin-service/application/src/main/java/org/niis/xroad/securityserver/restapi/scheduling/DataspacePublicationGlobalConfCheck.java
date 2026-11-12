@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -42,11 +43,13 @@ import org.niis.xroad.securityserver.restapi.service.HostedMembers;
 import org.niis.xroad.securityserver.restapi.service.PublicationCheck;
 import org.niis.xroad.securityserver.restapi.service.PublicationCheckAction;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Clock;
@@ -55,23 +58,24 @@ import java.time.Instant;
 
 /**
  * Step of the globalconf check that compares the SYSTEM values and the member DIDs on the binding rows with what the
- * reloaded globalconf carries. A submitted value that globalconf carries becomes published. A published SYSTEM value
- * that globalconf no longer carries while the authentication certificate is registered, and a published member DID
- * that globalconf no longer carries while the member is hosted on this server, go back to not sent, so the next
- * reconciler pass sends them again. A submitted SYSTEM value or member DID that globalconf still does not carry after
- * the configured timeout goes back to not sent under the same guards: the authentication certificate must be
- * registered for the SYSTEM values, and the member must be hosted on this server for a member DID. A row with no
- * known change time never goes back by the timeout. The SYSTEM values and the member DIDs are checked independently.
- * After both, a last step evaluates the difference signals afresh from the rows as they are then and hands them to
- * {@link DataspaceDifferenceLog}.
+ * reloaded globalconf carries. It looks up the registered address of this Security Server once and runs three
+ * steps, each in its own transaction:
+ * <ol>
+ *     <li>the SYSTEM values, decided by {@link PublicationCheck};</li>
+ *     <li>the member DIDs of the rows in a sent state, decided by {@link PublicationCheck};</li>
+ *     <li>the differences between the binding rows and globalconf, evaluated afresh from the rows as they are
+ *     then and handed to {@link DataspaceDifferenceLog}.</li>
+ * </ol>
+ * {@link PublicationCheck} holds the transition rules.
  *
  * <p>Runs after the transaction of the globalconf check has committed, so the members hosted here are read from the
  * committed serverconf, including the client statuses of that check. A globalconf check that rolls back publishes
- * nothing. The globalconf check skips secondary nodes and backup restores. Never throws: a failure is logged and the
- * next check retries. Each step reads and transitions in its own transaction.
+ * nothing. The globalconf check skips secondary nodes and backup restores. Never throws: a failure, of the address
+ * lookup, of the signal setup or of a step, is logged and the next check retries.
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DataspacePublicationGlobalConfCheck {
 
     private final DsParticipantRepository dsParticipantRepository;
@@ -82,27 +86,10 @@ public class DataspacePublicationGlobalConfCheck {
     private final DataspaceDidAuthority didAuthority;
     private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final AdminServiceProperties adminServiceProperties;
-    private final TransactionTemplate transactionTemplate;
+    private final PlatformTransactionManager transactionManager;
 
     @Setter(AccessLevel.PACKAGE)
     private Clock clock = Clock.systemUTC();
-
-    public DataspacePublicationGlobalConfCheck(DsParticipantRepository dsParticipantRepository,
-            ClientRepository clientRepository, DifferenceEvaluator differenceEvaluator,
-            DataspaceDifferenceLog differenceLog, DataspaceReadinessPredicates readinessPredicates,
-            DataspaceDidAuthority didAuthority, OwnSecurityServerResolver ownSecurityServerResolver,
-            AdminServiceProperties adminServiceProperties, PlatformTransactionManager transactionManager) {
-        this.dsParticipantRepository = dsParticipantRepository;
-        this.clientRepository = clientRepository;
-        this.differenceEvaluator = differenceEvaluator;
-        this.differenceLog = differenceLog;
-        this.readinessPredicates = readinessPredicates;
-        this.didAuthority = didAuthority;
-        this.ownSecurityServerResolver = ownSecurityServerResolver;
-        this.adminServiceProperties = adminServiceProperties;
-        this.transactionTemplate = new TransactionTemplate(transactionManager);
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-    }
 
     /**
      * Runs one check against the already reloaded globalconf.
@@ -110,25 +97,38 @@ public class DataspacePublicationGlobalConfCheck {
      * @param securityServerId the identifier of this Security Server
      */
     public void check(SecurityServerId securityServerId) {
-        runStep("SYSTEM values", () -> checkSystemValues(securityServerId));
-        runStep("member DIDs", () -> checkMemberDids(securityServerId));
-        runStep("differences", () -> differenceLog.record(
-                differenceEvaluator.evaluate(ownSecurityServerResolver.address(securityServerId))));
+        OwnAddress address;
+        DifferenceSignals signals;
+        try {
+            address = ownSecurityServerResolver.address(securityServerId);
+            signals = differenceEvaluator.signals(securityServerId, address);
+        } catch (Exception e) {
+            logFailure("own address lookup and signal setup", e);
+            return;
+        }
+        runStep("SYSTEM values", () -> checkSystemValues(signals));
+        runStep("member DIDs", () -> checkMemberDids(signals));
+        runStep("differences", () -> differenceLog.record(differenceEvaluator.evaluate(address)));
     }
 
     private void runStep(String subject, Runnable step) {
+        var transactionTemplate = new TransactionTemplate(transactionManager,
+                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
         try {
             transactionTemplate.executeWithoutResult(_ -> step.run());
         } catch (Exception e) {
-            log.error("Dataspace publication: globalconf check of the {} failed, the next check retries", subject, e);
+            logFailure(subject, e);
         }
     }
 
-    private void checkSystemValues(SecurityServerId securityServerId) {
+    private static void logFailure(String subject, Exception e) {
+        log.error("Dataspace publication: globalconf check of the {} failed, the next check retries", subject, e);
+    }
+
+    private void checkSystemValues(DifferenceSignals signals) {
         dsParticipantRepository.findActiveSystemParticipant().ifPresent(system -> {
             var action = PublicationCheck.decide(system.getPublicationState(),
-                    () -> signals(securityServerId).compareSystemValues(system,
-                            didAuthority.dspBaseUrlIfValid().orElse(null)).overall(),
+                    () -> signals.compareSystemValues(system, didAuthority.dspBaseUrlIfValid().orElse(null)).overall(),
                     readinessPredicates::hasRegisteredAuthCert, system.getPublicationChangedAt(), submittedBefore());
             if (action != PublicationCheckAction.NONE) {
                 transition(system, "SYSTEM values", action.expected(), action.next());
@@ -136,13 +136,12 @@ public class DataspacePublicationGlobalConfCheck {
         });
     }
 
-    private void checkMemberDids(SecurityServerId securityServerId) {
-        var rows = dsParticipantRepository.findActiveMembers(DifferenceSignals.SENT);
+    private void checkMemberDids(DifferenceSignals signals) {
+        var rows = dsParticipantRepository.findActiveMembers(PublicationState.SENT);
         if (rows.isEmpty()) {
             return;
         }
         var hostedMembers = HostedMembers.of(clientRepository.getAllLocalClients());
-        var signals = signals(securityServerId);
         var submittedBefore = submittedBefore();
         for (var row : rows) {
             var member = row.getMemberIdentifier();
@@ -152,10 +151,6 @@ public class DataspacePublicationGlobalConfCheck {
                 transition(row, "member DID of " + member.asEncodedId(), action.expected(), action.next());
             }
         }
-    }
-
-    private DifferenceSignals signals(SecurityServerId securityServerId) {
-        return differenceEvaluator.signals(securityServerId, ownSecurityServerResolver.address(securityServerId));
     }
 
     private Instant submittedBefore() {

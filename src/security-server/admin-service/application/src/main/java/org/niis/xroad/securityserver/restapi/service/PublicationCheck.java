@@ -61,14 +61,13 @@ public class PublicationCheck {
     public static PublicationCheckAction decide(@Nullable PublicationState storedState,
             Supplier<GlobalConfComparison> comparison, BooleanSupplier resendAllowed, @Nullable Instant changedAt,
             Instant submittedBefore) {
-        var state = storedState == null ? PublicationState.NOT_SENT : storedState;
-        if (state != PublicationState.SUBMITTED && state != PublicationState.PUBLISHED) {
+        if (!PublicationState.isSent(storedState)) {
             return PublicationCheckAction.NONE;
         }
         return switch (comparison.get()) {
-            case EQUAL -> state == PublicationState.SUBMITTED ? PublicationCheckAction.PUBLISH
+            case EQUAL -> storedState == PublicationState.SUBMITTED ? PublicationCheckAction.PUBLISH
                     : PublicationCheckAction.NONE;
-            case ABSENT -> whenAbsent(state, resendAllowed, changedAt, submittedBefore);
+            case ABSENT -> whenAbsent(storedState, resendAllowed, changedAt, submittedBefore);
             case DIFFERENT, STALE -> PublicationCheckAction.NONE;
         };
     }

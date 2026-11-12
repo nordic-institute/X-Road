@@ -29,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.config;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
-import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 
 import java.util.Map;
 
@@ -39,7 +39,7 @@ class AdminServicePropertiesTest {
 
     @Test
     void thePublicationSubmittedTimeoutReadsTheStoredOverride() {
-        var config = config(Map.of("xroad.dsp.publication-submitted-timeout-minutes", "90"));
+        var config = config(Map.of("xroad.proxy-ui-api.dataspace.publication-submitted-timeout-minutes", "90"));
 
         assertThat(new AdminServiceProperties(config).getDataspace().getPublicationSubmittedTimeoutMinutes())
                 .isEqualTo(90);
@@ -52,6 +52,6 @@ class AdminServicePropertiesTest {
     }
 
     private static XRoadConfig config(Map<String, String> overrides) {
-        return XRoadConfigBuilder.create().register(DspConfigKeys.instance()).overrides(overrides).build();
+        return XRoadConfigBuilder.create().register(AdminServiceConfigKeys.instance()).overrides(overrides).build();
     }
 }

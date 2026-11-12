@@ -424,7 +424,7 @@ public class DataspacePublicationStage {
         boolean systemValuesSent() {
             var state = systemStateAfterSend != null ? systemStateAfterSend
                     : systemRow.get().map(DsParticipantEntity::getPublicationState).orElse(null);
-            return state == PublicationState.SUBMITTED || state == PublicationState.PUBLISHED;
+            return PublicationState.isSent(state);
         }
     }
 }

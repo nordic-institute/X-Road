@@ -46,13 +46,11 @@ import static org.niis.xroad.common.properties.config.Validator.range;
  * built-in services keys and the issuer-trust refresh interval, and the Issuer Service's DID resolution
  * extension reads the DID resolution fetch timeout. An X-Road process reads a key through {@code XRoadConfig}: the
  * admin service reads both port keys through {@code AdminServiceProperties.Dataspace.getDidPort()} and
- * {@code getDspPort()}, and the submitted-value timeout through {@code getPublicationSubmittedTimeoutMinutes()}.
- * An application configuration interpolates a key with {@code ${...}}: the identity hub's DID web context port uses
- * {@code ${xroad.dsp.did-port}}.
+ * {@code getDspPort()}. An application configuration interpolates a key with {@code ${...}}: the identity hub's DID web
+ * context port uses {@code ${xroad.dsp.did-port}}.
  *
- * <p>{@code publishedToFramework()} is set on every key except the submitted-value timeout, so that the packaged
- * default and a stored row both reach the framework configuration, which serves the first and the third way. The
- * timeout is read only through {@code XRoadConfig}.
+ * <p>{@code publishedToFramework()} is set on every key, so that the packaged default and a stored row both reach
+ * the framework configuration, which serves the first and the third way.
  */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class DspConfigKeys implements ConfigKeyProvider {
@@ -79,13 +77,6 @@ public final class DspConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(8183)
             .withValidator(range(1, 65535))
             .publishedToFramework()
-            .build();
-
-    /** {@code xroad.dsp.publication-submitted-timeout-minutes}. */
-    public static final ConfigKey<Integer> PUBLICATION_SUBMITTED_TIMEOUT_MINUTES = DSP
-            .integer("publication-submitted-timeout-minutes")
-            .withDefaultValue(60)
-            .withValidator(range(5, 10080))
             .build();
 
     /** {@code xroad.dsp.catalog.cache.enabled}. */

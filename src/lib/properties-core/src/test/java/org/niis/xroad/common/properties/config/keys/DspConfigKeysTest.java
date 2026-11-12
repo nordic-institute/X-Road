@@ -48,15 +48,6 @@ class DspConfigKeysTest {
     }
 
     @Test
-    void publicationSubmittedTimeoutDefaultsToSixtyAndRejectsValuesOutsideFiveToTenThousandEighty() {
-        assertThat(DspConfigKeys.PUBLICATION_SUBMITTED_TIMEOUT_MINUTES.convertedDefaultValue()).isEqualTo(60);
-        assertThat(DspConfigKeys.PUBLICATION_SUBMITTED_TIMEOUT_MINUTES.validate(4).valid()).isFalse();
-        assertThat(DspConfigKeys.PUBLICATION_SUBMITTED_TIMEOUT_MINUTES.validate(10081).valid()).isFalse();
-        assertThat(DspConfigKeys.PUBLICATION_SUBMITTED_TIMEOUT_MINUTES.validate(5).valid()).isTrue();
-        assertThat(DspConfigKeys.PUBLICATION_SUBMITTED_TIMEOUT_MINUTES.validate(10080).valid()).isTrue();
-    }
-
-    @Test
     void ttlSecondsRejectsZeroNegativeAndNull() {
         assertThat(DspConfigKeys.CATALOG_CACHE_TTL_SECONDS.validate(0L).valid()).isFalse();
         assertThat(DspConfigKeys.CATALOG_CACHE_TTL_SECONDS.validate(-5L).valid()).isFalse();
@@ -105,15 +96,6 @@ class DspConfigKeysTest {
     }
 
     @Test
-    void everyKeyButThePublicationTimeoutIsPublishedToFramework() {
-        assertThat(DspConfigKeys.instance().keys())
-                .filteredOn(key -> key != DspConfigKeys.PUBLICATION_SUBMITTED_TIMEOUT_MINUTES)
-                .allSatisfy(key -> assertThat(key.publishedToFramework())
-                        .as("%s must be published to framework", key.key()).isTrue());
-        assertThat(DspConfigKeys.PUBLICATION_SUBMITTED_TIMEOUT_MINUTES.publishedToFramework()).isFalse();
-    }
-
-    @Test
     void noKeyIsExposedInUi() {
         assertThat(DspConfigKeys.instance().keys())
                 .allSatisfy(key -> assertThat(key.exposedInUi()).as("%s must not be exposed in UI", key.key())
@@ -127,7 +109,6 @@ class DspConfigKeysTest {
                 .containsExactlyInAnyOrder(
                         "xroad.dsp.did-port",
                         "xroad.dsp.dsp-port",
-                        "xroad.dsp.publication-submitted-timeout-minutes",
                         "xroad.dsp.catalog.cache.enabled",
                         "xroad.dsp.catalog.cache.ttl-seconds",
                         "xroad.dsp.catalog.cache.find-by-id-max-size",

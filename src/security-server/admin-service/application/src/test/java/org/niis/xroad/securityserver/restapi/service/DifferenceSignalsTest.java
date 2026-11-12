@@ -124,7 +124,8 @@ class DifferenceSignalsTest {
         assertThat(systemSignals(ADDRESS, null).compareSystemValues(row, BUILT_URL))
                 .isEqualTo(new SystemValuesComparison(GlobalConfComparison.ABSENT, GlobalConfComparison.ABSENT));
         assertThat(systemSignals(ADDRESS, new ServerSystemValues(SYSTEM_DID, BUILT_URL))
-                .compareSystemValues(row, BUILT_URL).isEqual()).isTrue();
+                .compareSystemValues(row, BUILT_URL))
+                .isEqualTo(new SystemValuesComparison(GlobalConfComparison.EQUAL, GlobalConfComparison.EQUAL));
         assertThat(systemSignals(ADDRESS, new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL))
                 .compareSystemValues(row, BUILT_URL))
                 .isEqualTo(new SystemValuesComparison(GlobalConfComparison.DIFFERENT, GlobalConfComparison.DIFFERENT));
