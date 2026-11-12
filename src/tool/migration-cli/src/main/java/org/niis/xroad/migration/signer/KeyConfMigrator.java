@@ -34,6 +34,7 @@ import jakarta.xml.bind.Unmarshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.migration.utils.DbCredentials;
 import org.niis.xroad.migration.utils.DbPropertiesReader;
 import org.niis.xroad.signer.keyconf.CertRequestType;
@@ -68,10 +69,10 @@ public class KeyConfMigrator {
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public void migrate(String keyconfPath, String dbPropertiesPath) throws SQLException {
+    public void migrate(String keyconfPath, String dbPropertiesPath, NodeIdentity nodeIdentity) throws SQLException {
         KeyConfType keyConf = parseKeyConf(Path.of(keyconfPath, "keyconf.xml"));
 
-        SignerRepository repo = getSignerRepository(dbPropertiesPath);
+        SignerRepository repo = getSignerRepository(dbPropertiesPath, nodeIdentity);
 
         for (DeviceType deviceType : keyConf.getDevice()) {
             logInfo(0, "Processing token {}", deviceType.getId());
@@ -149,9 +150,9 @@ public class KeyConfMigrator {
         }
     }
 
-    protected SignerRepository getSignerRepository(String dbPropertiesPath) {
+    protected SignerRepository getSignerRepository(String dbPropertiesPath, NodeIdentity nodeIdentity) {
         DbCredentials dbCredentials = DbPropertiesReader.readDbCredentials(Paths.get(dbPropertiesPath), "serverconf");
-        return new SignerRepository(dbCredentials);
+        return new SignerRepository(dbCredentials, nodeIdentity);
     }
 
     private byte[] getPinHashFromInput(String keyconfPath) {
