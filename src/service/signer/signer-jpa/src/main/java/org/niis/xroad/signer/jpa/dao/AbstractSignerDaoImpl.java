@@ -28,9 +28,11 @@ package org.niis.xroad.signer.jpa.dao;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Base for signer DAOs whose entities carry a {@code haNodeName} attribute.
@@ -39,14 +41,26 @@ public abstract class AbstractSignerDaoImpl<T> extends AbstractDAOImpl<T> {
 
     private static final String NODE_NAME_ATTRIBUTE = "haNodeName";
 
-    /**
-     * Finds all rows owned by the given node.
-     */
     public List<T> findAllByNode(@Nonnull Session session, @Nonnull Class<T> clazz, @Nonnull String nodeName) {
         var criteriaBuilder = session.getCriteriaBuilder();
         CriteriaQuery<T> query = criteriaBuilder.createQuery(clazz);
         var root = query.from(clazz);
         query.select(root).where(criteriaBuilder.equal(root.get(NODE_NAME_ATTRIBUTE), nodeName));
         return session.createQuery(query).getResultList();
+    }
+
+    @Override
+    public Optional<T> findById(Session session, Class<T> clazz, Long id) {
+        throw unscopedFinder();
+    }
+
+    @Override
+    public List<T> findAll(Session session, Class<T> clazz) {
+        throw unscopedFinder();
+    }
+
+    private static XrdRuntimeException unscopedFinder() {
+        return XrdRuntimeException.systemInternalError(
+                "Signer rows are scoped by node: finders that ignore the node are not allowed, use findAllByNode");
     }
 }

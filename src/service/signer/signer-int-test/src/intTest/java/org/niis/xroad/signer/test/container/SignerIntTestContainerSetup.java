@@ -49,9 +49,9 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * Signer test stack: three signer nodes (primary, secondary and node-b) sharing the same serverconf database,
- * plus the test CA used to countersign generated CSRs. Boots once per JVM launcher session; the primary,
- * secondary and node-b {@link SignerRpcClient}/{@link SignerSignRpcClient} pairs are created once the stack is up,
- * with the default RPC deadline.
+ * plus the test CA used to countersign generated CSRs. Boots once per JVM launcher session; the primary and
+ * secondary {@link SignerRpcClient}/{@link SignerSignRpcClient} pairs and the node-b {@link SignerRpcClient} are
+ * created once the stack is up, with the default RPC deadline.
  */
 @Slf4j
 public class SignerIntTestContainerSetup extends BaseComposeSetup {
@@ -77,8 +77,6 @@ public class SignerIntTestContainerSetup extends BaseComposeSetup {
     private SignerSignRpcClient secondarySignerSignClient;
     @Getter
     private SignerRpcClient nodeBSignerClient;
-    @Getter
-    private SignerSignRpcClient nodeBSignerSignClient;
 
     public SignerIntTestContainerSetup(ApiTestCoreProperties coreProperties) {
         super(coreProperties);
@@ -116,7 +114,6 @@ public class SignerIntTestContainerSetup extends BaseComposeSetup {
 
         nodeBSignerClient = newSignerClient(SIGNER_NODE_B, DEFAULT_DEADLINE_MILLIS);
         nodeBSignerClient.init();
-        nodeBSignerSignClient = newSignerSignClient(SIGNER_NODE_B, DEFAULT_DEADLINE_MILLIS);
     }
 
     /**

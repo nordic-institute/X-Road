@@ -12,4 +12,8 @@ dependencies {
   implementation(libs.quarkus.arc)
 
   testImplementation(libs.mockito.core)
+  testImplementation(project(":common:common-test"))
+  testImplementation(project(":tool:liquibase-executor"))
+  testImplementation(libs.liquibase.core)
+  testImplementation(libs.testcontainers.postgresql)
 }

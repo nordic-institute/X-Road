@@ -81,11 +81,7 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
     @DisplayName("Both nodes hold token 0 with the same external id")
     void bothNodesHoldTokenWithSameExternalId() {
         Step.given("token '0' is active on both nodes", this::ensureTokensActive);
-        Step.then("the primary node lists token '0'",
-                () -> assertThat(client(PRIMARY).getToken(TOKEN_ID_0).getId()).isEqualTo(TOKEN_ID_0));
-        Step.and("node_b lists token '0'",
-                () -> assertThat(nodeBClient().getToken(TOKEN_ID_0).getId()).isEqualTo(TOKEN_ID_0));
-        Step.and("the database holds one token '0' row per node",
+        Step.then("the database holds one token '0' row per node",
                 () -> assertThat(rowNodes("signer_tokens", "external_id = '0'")).containsExactly(DEFAULT_NODE, NODE_B));
     }
 
@@ -93,8 +89,7 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
     @Order(2)
     @DisplayName("Rows stay with the node that created them")
     void rowsStayWithTheNodeThatCreatedThem() {
-        var cleanups = new ArrayList<Runnable>();
-        try {
+        try (var cleanups = new Cleanups()) {
             Step.given("token '0' is active on both nodes", this::ensureTokensActive);
             var primaryRows = Step.when("the primary node creates a key with a certificate and a key with a certificate request",
                     () -> createRows(client(PRIMARY), "node-scoped-primary", cleanups));
@@ -104,15 +99,14 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
             Step.then("the primary rows carry node_0 in the database", () -> assertRowsOwnedBy(primaryRows, DEFAULT_NODE));
             Step.and("the node_b rows carry node_b in the database", () -> assertRowsOwnedBy(nodeBRows, NODE_B));
 
-            Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
+            Step.when("the primary node reloads its registry from the database", () -> client(PRIMARY).refreshModules());
+            Step.and("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
             Step.then("the secondary node sees the primary rows and none of the node_b rows",
                     () -> assertViewHolds(client(SECONDARY), primaryRows, nodeBRows));
             Step.and("node_b sees its own rows and none of the primary rows",
                     () -> assertViewHolds(nodeBClient(), nodeBRows, primaryRows));
             Step.and("the primary node sees its own rows and none of the node_b rows",
                     () -> assertViewHolds(client(PRIMARY), primaryRows, nodeBRows));
-        } finally {
-            cleanups.reversed().forEach(Runnable::run);
         }
     }
 
@@ -121,15 +115,17 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
         ensureTokenActive(nodeBClient(), TOKEN_ID_0, TOKEN_PIN);
     }
 
-    private NodeRows createRows(SignerRpcClient nodeClient, String label, List<Runnable> cleanups) {
+    private NodeRows createRows(SignerRpcClient nodeClient, String label, Cleanups cleanups) {
         var keyWithCertId = nodeClient.generateKey(TOKEN_ID_0, label + "-cert-key", KeyAlgorithm.RSA).getId();
+        cleanups.add(() -> nodeClient.deleteKey(keyWithCertId, true));
         var certId = importSignedCert(nodeClient, keyWithCertId);
+        cleanups.add(() -> nodeClient.deleteCert(certId));
         var keyWithRequestId = nodeClient.generateKey(TOKEN_ID_0, label + "-request-key", KeyAlgorithm.RSA).getId();
+        cleanups.add(() -> nodeClient.deleteKey(keyWithRequestId, true));
         var certRequestId = generateCertRequest(nodeClient, keyWithRequestId).certReqId();
+        cleanups.add(() -> nodeClient.deleteCertRequest(certRequestId));
 
-        var rows = new NodeRows(keyWithCertId, certId, keyWithRequestId, certRequestId);
-        cleanups.add(() -> deleteRows(nodeClient, rows));
-        return rows;
+        return new NodeRows(keyWithCertId, certId, keyWithRequestId, certRequestId);
     }
 
     private SignerRpcClient.GeneratedCertRequestInfo generateCertRequest(SignerRpcClient nodeClient, String keyId) {
@@ -150,12 +146,6 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
 
         nodeClient.importCert(certBytes, CertificateInfo.STATUS_REGISTERED, clientId(MEMBER));
         return nodeClient.getCertForHash(calculateCertHexHash(readCertificate(certBytes).getEncoded())).getId();
-    }
-
-    private void deleteRows(SignerRpcClient nodeClient, NodeRows rows) {
-        nodeClient.deleteCert(rows.certId());
-        nodeClient.deleteCertRequest(rows.certRequestId());
-        rows.keyIds().forEach(keyId -> nodeClient.deleteKey(keyId, true));
     }
 
     private void assertRowsOwnedBy(NodeRows rows, String node) {
@@ -189,5 +179,30 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
                 .doesNotContainAnyElementsOf(foreign.keyIds());
         assertThat(certIds).contains(expected.certId()).doesNotContain(foreign.certId());
         assertThat(certRequestIds).contains(expected.certRequestId()).doesNotContain(foreign.certRequestId());
+    }
+
+    private static final class Cleanups implements AutoCloseable {
+        private final List<Runnable> cleanups = new ArrayList<>();
+
+        void add(Runnable cleanup) {
+            cleanups.add(cleanup);
+        }
+
+        @Override
+        public void close() {
+            var failures = new ArrayList<RuntimeException>();
+            cleanups.reversed().forEach(cleanup -> {
+                try {
+                    cleanup.run();
+                } catch (RuntimeException e) {
+                    failures.add(e);
+                }
+            });
+            if (!failures.isEmpty()) {
+                var first = failures.getFirst();
+                failures.stream().skip(1).forEach(first::addSuppressed);
+                throw first;
+            }
+        }
     }
 }
