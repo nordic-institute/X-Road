@@ -86,6 +86,3 @@ edc:
       url: ${xroad.db.ds-issuer-service.hibernate.connection.url}
       user: ${xroad.db.ds-issuer-service.hibernate.connection.username}
       password: ${xroad.db.ds-issuer-service.hibernate.connection.password}
-  sql:
-    schema:
-      autocreate: true
