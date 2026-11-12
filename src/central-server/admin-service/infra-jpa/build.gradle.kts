@@ -20,4 +20,5 @@ dependencies {
   testImplementation(libs.hibernate.hikaricp)
   testImplementation(libs.awaitility)
   testImplementation(libs.testcontainers.postgresql)
+  testImplementation(libs.logback.classic)
 }

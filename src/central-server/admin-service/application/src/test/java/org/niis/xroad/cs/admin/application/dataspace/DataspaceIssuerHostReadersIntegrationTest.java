@@ -34,39 +34,32 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
-import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
+import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.application.connectortls.CentralServerConnectorTlsAcmeHostContext;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProperties;
-import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProvisioningWorker;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
 import org.niis.xroad.cs.admin.core.service.IssuerHostServiceImpl;
 import org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl;
 import org.niis.xroad.cs.admin.core.validation.DnsNameValidator;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Exercises {@link CentralServerConnectorTlsAcmeHostContext} and {@link DataspaceIssuerProvisioningWorker} behind
- * the real {@link DataspaceIssuerProperties}/{@link IssuerHostServiceImpl} chain, proving both readers see a host
- * set through {@link org.niis.xroad.cs.admin.api.service.IssuerHostService#setHost} immediately, with nothing cached
- * at any layer in between.
+ * Exercises {@link CentralServerConnectorTlsAcmeHostContext} behind the real
+ * {@link DataspaceIssuerProperties}/{@link IssuerHostServiceImpl} chain, proving it sees a host set through
+ * {@link org.niis.xroad.cs.admin.api.service.IssuerHostService#setHost} immediately, with nothing cached at any
+ * layer in between.
  */
 @ExtendWith(MockitoExtension.class)
 class DataspaceIssuerHostReadersIntegrationTest {
@@ -75,19 +68,12 @@ class DataspaceIssuerHostReadersIntegrationTest {
     private DsTlsCertificationAuthoritiesService connectorTlsCertificationAuthoritiesService;
     @Mock
     private DataspaceIssuerDidService dataspaceIssuerDidService;
-    @Mock
-    private DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
-    @Mock
-    private TaskScheduler taskScheduler;
 
     private CentralServerConnectorTlsAcmeHostContext acmeHostContext;
-    private DataspaceIssuerProvisioningWorker provisioningWorker;
     private IssuerHostServiceImpl issuerHostService;
 
     @BeforeEach
     void setUp() {
-        lenient().when(taskScheduler.getClock()).thenReturn(Clock.systemUTC());
-
         var repository = new FakeSystemParameterRepository();
         var systemParameterService =
                 new SystemParameterServiceImpl(repository, mock(HAConfigStatus.class), new SystemParameterMapperImpl());
@@ -95,35 +81,27 @@ class DataspaceIssuerHostReadersIntegrationTest {
         systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS, "cs.example");
         when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
 
-        issuerHostService = new IssuerHostServiceImpl(systemParameterService, dataspaceIssuerDidService, new DnsNameValidator());
+        issuerHostService = new IssuerHostServiceImpl(systemParameterService, dataspaceIssuerDidService, new DnsNameValidator(),
+                mock(IssuerSetUpLeaseService.class));
         var dataspaceIssuerProperties = new DataspaceIssuerProperties(mock(XRoadConfig.class), issuerHostService);
         acmeHostContext = new CentralServerConnectorTlsAcmeHostContext(
                 dataspaceIssuerProperties, connectorTlsCertificationAuthoritiesService);
-        provisioningWorker = new DataspaceIssuerProvisioningWorker(dataspaceIssuerProvisioningService, systemParameterService,
-                dataspaceIssuerProperties, taskScheduler);
     }
 
     @Test
-    void readersSkipWhenNoHostIsSet() {
+    void readerSeesNoHostnameWhenNoHostIsSet() {
         assertThat(acmeHostContext.getPublicHostname()).isNull();
-
-        ReflectionTestUtils.invokeMethod(provisioningWorker, "scheduledProvision");
-
-        verify(dataspaceIssuerProvisioningService, never()).provisionIssuer();
-        assertThat(provisioningWorker.getState().status()).isEqualTo(DataspaceIssuerProvisioningWorker.Status.WAITING_FOR_CONFIGURATION);
     }
 
     @Test
-    void readersSeeEachSetHostImmediatelyWithoutRestart() {
+    void readerSeesEachSetHostImmediatelyWithoutRestart() {
         issuerHostService.setHost("first.example.org");
 
         assertThat(acmeHostContext.getPublicHostname()).isEqualTo("first.example.org");
-        assertThat((boolean) ReflectionTestUtils.invokeMethod(provisioningWorker, "preconditionsMet")).isTrue();
 
         issuerHostService.setHost("second.example.org");
 
         assertThat(acmeHostContext.getPublicHostname()).isEqualTo("second.example.org");
-        assertThat((boolean) ReflectionTestUtils.invokeMethod(provisioningWorker, "preconditionsMet")).isTrue();
     }
 
     /**

@@ -45,6 +45,10 @@ class DataspaceIssuerDidServiceImplTest {
 
     private static final String DID_1 = "did:web:cs1.example%3A443:issuer";
     private static final String DID_2 = "did:web:cs2.example%3A443:issuer";
+    private static final String HOST = "cs1.example";
+    private static final int DID_PORT = 443;
+    private static final String ISSUANCE_URL = "https://cs1.example:6185/api/issuance/v1/participants/issuer";
+    private static final String STATUSLIST_BASE_URL = "https://cs1.example:6187/statuslist";
 
     @Mock
     private IssuerDidRepository issuerDidRepository;
@@ -57,21 +61,22 @@ class DataspaceIssuerDidServiceImplTest {
     }
 
     /**
-     * Idempotency lives entirely in the repository's conflict-ignoring insert (the database's
-     * {@code ON CONFLICT DO NOTHING}), so the service has no application-level branching to unit-test beyond
-     * this delegation — a genuine already-registered-DID scenario belongs in a real-database test of the
-     * repository method itself.
+     * The database's failing unique constraint on {@code did} is what makes a second bind an error, so the
+     * service has no application-level branching to unit-test beyond this delegation — the conflict case
+     * belongs in a real-database test of the repository method itself.
      */
     @Test
-    void registerDelegatesToTheConflictIgnoringInsert() {
-        service.register(DID_1);
+    void registerDelegatesToTheInsert() {
+        service.register(DID_1, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL);
 
-        verify(issuerDidRepository).insertIgnoreConflict(DID_1);
+        verify(issuerDidRepository).insert(DID_1, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL);
     }
 
     @Test
     void findAllReturnsEveryRegisteredDidSorted() {
-        when(issuerDidRepository.findAll()).thenReturn(List.of(new IssuerDidEntity(DID_2), new IssuerDidEntity(DID_1)));
+        when(issuerDidRepository.findAll()).thenReturn(List.of(
+                new IssuerDidEntity(DID_2, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL),
+                new IssuerDidEntity(DID_1, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL)));
 
         assertThat(service.findAll()).containsExactly(DID_1, DID_2);
     }

@@ -57,6 +57,10 @@ public class DataspaceIssuerProperties {
         return config.value(DataspaceConfigKeys.ISSUER_ISSUANCE_PORT);
     }
 
+    public int getStatuslistPort() {
+        return config.value(DataspaceConfigKeys.ISSUER_STATUSLIST_PORT);
+    }
+
     public String getCredentialJsonSchemaUrl() {
         return config.value(DataspaceConfigKeys.ISSUER_CREDENTIAL_JSON_SCHEMA_URL);
     }

@@ -27,22 +27,40 @@
 package org.niis.xroad.cs.admin.core.dataspace;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.cs.admin.api.domain.CanSignCause;
+import org.niis.xroad.cs.admin.api.domain.CanSignOutcome;
+import org.niis.xroad.cs.admin.api.domain.CanSignResult;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 
 /**
  * Provisions the data space issuer over gRPC. The X-Road membership credential definition shape is
  * fixed (constants below); only the issuer host/ports and the published schema URL are configurable.
+ *
+ * <p>Guards the issuer's signing key: a key is created only when the issuer cannot already sign for the
+ * intended DID, and the identity is bound ({@link DataspaceIssuerDidService}) only after a final
+ * "can sign" check passes. This lets a run stopped between key creation and binding finish safely, while
+ * never creating or replacing a key for an issuer that can sign for a different DID.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerProvisioningService {
 
     static final String ISSUER_PARTICIPANT_ID = "issuer";
+    /** Bounds how often a "can sign" probe that keeps returning a transient cause is attempted. */
+    static final int CAN_SIGN_MAX_ATTEMPTS = 7;
+    static final Duration CAN_SIGN_RETRY_INTERVAL = Duration.ofSeconds(5);
     private static final String ISSUER_KEY_ALIAS = "issuer-key";
     private static final String ATTESTATION_DEFINITION_ID = "xroad-membership-attestation-definition";
     private static final String ATTESTATION_TYPE = "holder";
@@ -55,21 +73,106 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
     private final IssuerProvisioningRpcClient rpcClient;
     private final DataspaceIssuerProperties properties;
     private final DataspaceIssuerDidService dataspaceIssuerDidService;
+    private final ConnectorCertificateCheck connectorCertificateCheck;
+
+    Sleeper sleeper = Thread::sleep;
 
     @Override
     public void provisionIssuer() {
-        String did = "did:web:" + properties.getHost() + "%3A" + properties.getDidPort() + ":issuer";
+        String host = properties.getHost();
+        if (host == null || !connectorCertificateCheck.isReadyFor(host)) {
+            throw provisioningFailed(
+                    "issuer host is unset or its connector TLS certificate is not ready; refusing to provision");
+        }
+        String did = IssuerDidFormat.didFor(host, properties.getDidPort());
         String issuerServiceUrl = "https://%s:%d/api/issuance/v1/participants/issuer"
-                .formatted(properties.getHost(), properties.getIssuancePort());
+                .formatted(host, properties.getIssuancePort());
+        String statuslistBaseUrl = "https://%s:%d/statuslist".formatted(host, properties.getStatuslistPort());
         String keyId = did + "#key-1";
 
-        rpcClient.createParticipantContext(ISSUER_PARTICIPANT_ID, did, issuerServiceUrl, keyId, ISSUER_KEY_ALIAS);
+        if (alreadyUsableFor(canSignWithRetry(), did)) {
+            log.warn("Issuer participant context '{}' can already sign for DID '{}'; finishing a stopped set-up "
+                    + "run without creating a new key", ISSUER_PARTICIPANT_ID, did);
+        } else {
+            rpcClient.createParticipantContext(ISSUER_PARTICIPANT_ID, did, issuerServiceUrl, keyId, ISSUER_KEY_ALIAS);
+        }
+
         rpcClient.createAttestationDefinition(ISSUER_PARTICIPANT_ID, ATTESTATION_DEFINITION_ID, ATTESTATION_TYPE);
         rpcClient.createCredentialDefinition(ISSUER_PARTICIPANT_ID, CREDENTIAL_DEFINITION_ID, CREDENTIAL_TYPE,
                 CREDENTIAL_FORMAT, CREDENTIAL_JSON_SCHEMA, properties.getCredentialJsonSchemaUrl(),
                 CREDENTIAL_VALIDITY_SECONDS, List.of(ATTESTATION_DEFINITION_ID), membershipMappings());
 
-        dataspaceIssuerDidService.register(did);
+        requireCanSignFor(canSignWithRetry(), did);
+
+        dataspaceIssuerDidService.register(did, host, properties.getDidPort(), issuerServiceUrl, statuslistBaseUrl);
+    }
+
+    /**
+     * @return {@code true} when the issuer can already sign for {@code did}, meaning a key exists and no new one
+     * must be created; {@code false} when no participant context exists yet.
+     * @throws XrdRuntimeException when the issuer cannot sign at all, or can sign only for a different DID
+     */
+    private boolean alreadyUsableFor(CanSignResult result, String did) {
+        return switch (result.outcome()) {
+            case ABSENT -> false;
+            case CAN_SIGN -> requireSameDid(result, did);
+            case CANNOT_SIGN -> throw provisioningFailed(isTransientFailure(result)
+                    ? "Issuer Service did not answer the can-sign check before set-up created anything: " + result.cause()
+                    : "existing participant context '" + ISSUER_PARTICIPANT_ID + "' cannot sign: " + result.cause());
+        };
+    }
+
+    private void requireCanSignFor(CanSignResult result, String did) {
+        if (result.outcome() != CanSignOutcome.CAN_SIGN || !did.equals(result.did())) {
+            throw provisioningFailed(
+                    "issuer cannot sign for DID '" + did + "' after provisioning; outcome was " + result.outcome());
+        }
+    }
+
+    /**
+     * Probes "can sign", retrying a transient failure ({@link CanSignCause#TIMEOUT} or
+     * {@link CanSignCause#ISSUER_SERVICE_UNREACHABLE}) for up to {@link #CAN_SIGN_MAX_ATTEMPTS} attempts in total, waiting
+     * {@link #CAN_SIGN_RETRY_INTERVAL} between attempts. Any other outcome, including a non-transient
+     * "cannot sign" cause, is returned on the first attempt.
+     */
+    private CanSignResult canSignWithRetry() {
+        var result = rpcClient.canSign(ISSUER_PARTICIPANT_ID);
+        for (int attempt = 2; attempt <= CAN_SIGN_MAX_ATTEMPTS && isTransientFailure(result); attempt++) {
+            waitBeforeRetry();
+            result = rpcClient.canSign(ISSUER_PARTICIPANT_ID);
+        }
+        return result;
+    }
+
+    private static boolean isTransientFailure(CanSignResult result) {
+        return result.outcome() == CanSignOutcome.CANNOT_SIGN
+                && (result.cause() == CanSignCause.TIMEOUT || result.cause() == CanSignCause.ISSUER_SERVICE_UNREACHABLE);
+    }
+
+    private void waitBeforeRetry() {
+        try {
+            sleeper.sleep(CAN_SIGN_RETRY_INTERVAL);
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
+            throw provisioningFailed("interrupted while waiting to retry the can-sign check");
+        }
+    }
+
+    private static XrdRuntimeException provisioningFailed(String details) {
+        return XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED)
+                .details(details)
+                .build();
+    }
+
+    private boolean requireSameDid(CanSignResult result, String did) {
+        if (!did.equals(result.did())) {
+            throw XrdRuntimeException.systemException(DSP_PARTICIPANT_DID_DRIFT)
+                    .metadataItems(result.did(), did)
+                    .details(("issuer can already sign for DID '%s', but the DID to provision is '%s'; refusing to "
+                            + "touch the participant context until the drift is resolved").formatted(result.did(), did))
+                    .build();
+        }
+        return true;
     }
 
     private List<CredentialMapping> membershipMappings() {
@@ -86,5 +189,10 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
                 .setOutput(CREDENTIAL_SUBJECT_PREFIX + field)
                 .setRequired(true)
                 .build();
+    }
+
+    @FunctionalInterface
+    interface Sleeper {
+        void sleep(Duration duration) throws InterruptedException;
     }
 }
