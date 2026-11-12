@@ -266,7 +266,7 @@ HTTP 200
 
 # Initialize the Issuer Service now that the connector TLS certificate is in place, then wait
 # until the issuer identity is bound. Bounded by retries so a broken Issuer Service fails this
-# script instead of hanging it. 409 ("already initialized" or "already running") is accepted too, so a
+# script instead of hanging it. 409 ("already bound" or "already running") is accepted too, so a
 # re-run against an already-bound issuer stays idempotent.
 POST https://{{cs_host}}:4000/api/v1/issuer-service/initialize
 X-XSRF-TOKEN: {{cs_xsrf_token}}

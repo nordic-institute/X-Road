@@ -82,7 +82,7 @@ Doc. ID: UG-CS
 | 06.11.2026 | 2.54    | Added the member DID column, the stale DID warning and the member DID edit and check (Section 7.2.1)                                                                                                                                                                                                                                                                                                                                    | Justas Samuolis      |
 | 11.11.2026 | 2.55    | Added a note that xroad-center must be restarted before re-creating the management service key after a change of the certificate names                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas    |
 | 12.11.2026 | 2.56    | Added Issuer Service issuance settings and statuslist capacity paragraph                                                                                                                                                                                                                                                                                                                                                                | Ričardas Bučiūnas    |
-| 12.11.2026 | 2.57    | Replaced the Issuer Service host section's automatic-binding note with the operator-started initialization step                                                                                                                                                                                                                                                                                                                        | Ovidijus Narkevicius |
+| 12.11.2026 | 2.57    | Replaced the Issuer Service host section's automatic-binding note with the operator-started initialization step                                                                                                                                                                                                                                                                                                                         | Ovidijus Narkevicius |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -537,7 +537,7 @@ curl --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:
 }
 ```
 
-`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run currently holds the lease. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `status` summarizes these into one value:
+`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run is in progress. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `status` summarizes these into one value:
 
 - `NOT_CONFIGURED` — the host is not set yet.
 - `WAITING_FOR_CERTIFICATE` — the host is set, but the connector TLS certificate is not yet present, valid and unexpired.

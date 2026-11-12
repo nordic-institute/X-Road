@@ -154,7 +154,7 @@
     timeout: 240
   when: xroad_cs_ds_tls_san | length > 0
 
-# Initializes the Issuer Service. 409 ("already initialized" or "already running") is accepted so a
+# Initializes the Issuer Service. 409 ("already bound" or "already running") is accepted so a
 # re-run of this role against an already-bound issuer stays idempotent. Any other 409 cause, such as
 # the host not being set or the certificate not being ready, is checked by the assert below instead
 # of being left to the bound-wait retries to time out on.
