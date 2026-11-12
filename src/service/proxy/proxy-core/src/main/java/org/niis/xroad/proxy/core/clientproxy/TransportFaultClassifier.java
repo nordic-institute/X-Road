@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,50 +23,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.proxy.core.clientproxy;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
+import javax.net.ssl.SSLHandshakeException;
+
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
-/**
- * Decides when a data call that failed on a provider security server moves on to another one.
- *
- * <p>A data call fails over only when it could not connect to the provider: connection refused, connect
- * timeout, no route to host, unknown host. Once the connection stands, the provider may already have processed
- * the request, so a read timeout, a TLS error, an HTTP error response and every other failure reach the client
- * unchanged and leave the cached asset access alone.
- */
-final class DataCallFailover {
-
-    private DataCallFailover() {
-    }
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class TransportFaultClassifier {
 
     /**
-     * Tells whether the failure happened while connecting, by exception type rather than message. The fastest
-     * connection selector wraps its connect failures in {@code NETWORK_ERROR}; a connect timeout there is a
-     * {@link SocketTimeoutException} under that code, while a read timeout of an established connection is a
-     * bare {@link SocketTimeoutException}.
+     * Tells whether the provider's Security Server never received the request that the given send failure
+     * ended: the connection or the TLS handshake failed before any request byte was sent.
+     *
+     * @param failure the exception thrown by the send
+     * @return true if the cause chain shows that nothing was sent
      */
-    static boolean isConnectionFailure(Throwable failure) {
-        for (var cause : ExceptionUtils.getThrowableList(failure)) {
-            if (cause instanceof ConnectException || cause instanceof NoRouteToHostException
-                    || cause instanceof UnknownHostException || cause instanceof ConnectTimeoutException) {
-                return true;
-            }
-            if (cause instanceof XrdRuntimeException xrdException && xrdException.isCausedBy(NETWORK_ERROR)
-                    && ExceptionUtils.indexOfType(xrdException, SocketTimeoutException.class) >= 0) {
-                return true;
-            }
-        }
-        return false;
+    public static boolean nothingWasSent(Throwable failure) {
+        return ExceptionUtils.getThrowableList(failure).stream()
+                .filter(cause -> !(cause instanceof ConnectionPoolTimeoutException))
+                .anyMatch(TransportFaultClassifier::showsNothingWasSent);
+    }
+
+    private static boolean showsNothingWasSent(Throwable cause) {
+        return cause instanceof ConnectException
+                || cause instanceof NoRouteToHostException
+                || cause instanceof UnknownHostException
+                || cause instanceof ConnectTimeoutException
+                || cause instanceof SSLHandshakeException
+                || cause instanceof XrdRuntimeException ex && (ex.isCausedBy(NETWORK_ERROR) || failedHandshake(ex));
+    }
+
+    private static boolean failedHandshake(XrdRuntimeException failure) {
+        return failure.isCausedBy(SSL_AUTH_FAILED)
+                && ExceptionUtils.indexOfType(failure.getCause(), IOException.class) >= 0;
     }
 }

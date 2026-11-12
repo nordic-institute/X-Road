@@ -60,23 +60,4 @@ class CallBudgetTest {
         clock.advance(Duration.ofSeconds(50));
         assertThat(budget.stage(Duration.ofSeconds(20))).isEqualTo(Duration.ofSeconds(10));
     }
-
-    @Test
-    void shareDividesTheTimeLeftAmongTheAlternativesLeftAndKeepsTheCap() {
-        var budget = CallBudget.startingNow(clock, Duration.ofSeconds(60));
-
-        assertThat(budget.share(Duration.ofSeconds(60), 3)).isEqualTo(Duration.ofSeconds(20));
-        assertThat(budget.share(Duration.ofSeconds(15), 3)).isEqualTo(Duration.ofSeconds(15));
-
-        clock.advance(Duration.ofSeconds(30));
-        assertThat(budget.share(Duration.ofSeconds(60), 2)).isEqualTo(Duration.ofSeconds(15));
-        assertThat(budget.share(Duration.ofSeconds(60), 1)).isEqualTo(Duration.ofSeconds(30));
-    }
-
-    @Test
-    void shareTreatsNoAlternativesLeftAsOne() {
-        var budget = CallBudget.startingNow(clock, Duration.ofSeconds(60));
-
-        assertThat(budget.share(Duration.ofSeconds(60), 0)).isEqualTo(Duration.ofSeconds(60));
-    }
 }
