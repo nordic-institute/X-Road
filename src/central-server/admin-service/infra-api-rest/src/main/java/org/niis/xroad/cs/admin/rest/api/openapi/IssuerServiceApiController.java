@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.IssuerServiceStatus;
-import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
 import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
@@ -64,7 +63,8 @@ public class IssuerServiceApiController implements IssuerServiceApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_SYSTEM_SETTINGS')")
     public ResponseEntity<IssuerServiceStateDto> getIssuerServiceState() {
-        return ResponseEntity.ok(applyStatus(toDto(issuerHostService.getState()), issuerServiceStatusService.getStatus()));
+        var status = issuerServiceStatusService.getStatus();
+        return ResponseEntity.ok(applyStatus(toDto(issuerHostService.getHost(), status.didBound()), status));
     }
 
     @Override
@@ -73,7 +73,7 @@ public class IssuerServiceApiController implements IssuerServiceApi {
     public ResponseEntity<IssuerServiceStateDto> setIssuerServiceHost(IssuerServiceHostDto issuerServiceHost) {
         auditDataHelper.put(RestApiAuditProperty.ISSUER_SERVICE_HOST, issuerServiceHost.getHost());
         var state = issuerHostService.setHost(issuerServiceHost.getHost());
-        return ResponseEntity.ok(applyStatus(toDto(state), issuerServiceStatusService.getStatus()));
+        return ResponseEntity.ok(applyStatus(toDto(state.host(), state.bound()), issuerServiceStatusService.getStatus()));
     }
 
     @Override
@@ -95,10 +95,10 @@ public class IssuerServiceApiController implements IssuerServiceApi {
         };
     }
 
-    private static IssuerServiceStateDto toDto(IssuerHostState state) {
+    private static IssuerServiceStateDto toDto(String host, boolean bound) {
         return new IssuerServiceStateDto()
-                .host(state.host())
-                .bound(state.bound());
+                .host(host)
+                .bound(bound);
     }
 
     private static IssuerServiceStateDto applyStatus(IssuerServiceStateDto dto, IssuerServiceStatus status) {

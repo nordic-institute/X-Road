@@ -40,6 +40,12 @@ public interface IssuerHostService {
     IssuerHostState getState();
 
     /**
+     * @return the current issuer host, or {@code null} when not set, without reading whether the issuer
+     * identity is bound
+     */
+    String getHost();
+
+    /**
      * Stores the given host as the Issuer Service's shared host.
      *
      * @param host the new issuer host

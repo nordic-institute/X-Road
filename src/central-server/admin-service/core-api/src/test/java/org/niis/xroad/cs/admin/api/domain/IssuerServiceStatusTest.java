@@ -44,6 +44,15 @@ class IssuerServiceStatusTest {
     }
 
     @Test
+    void notConfiguredWithNoCanSignCauseWhenTheProbeWasSkipped() {
+        var status = IssuerServiceStatus.derive(false, false, false, null, null, null);
+
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.NOT_CONFIGURED);
+        assertThat(status.canSign()).isFalse();
+        assertThat(status.canSignCause()).isNull();
+    }
+
+    @Test
     void waitingForCertificateWhenHostIsSetButCertificateIsNotReady() {
         var status = IssuerServiceStatus.derive(true, false, false, DID, null, CanSignResult.absent());
 

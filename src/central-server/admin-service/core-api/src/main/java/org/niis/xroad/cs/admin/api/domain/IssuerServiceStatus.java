@@ -71,17 +71,21 @@ public record IssuerServiceStatus(
      * does not yet affect the overall state, which is governed by {@code runInProgress} and whether a DID is
      * bound.
      *
-     * @param boundDid the bound issuer DID, or {@code null} when none is bound yet
+     * @param boundDid      the bound issuer DID, or {@code null} when none is bound yet
+     * @param canSignResult the "can sign" probe result, or {@code null} when the probe was skipped (no issuer
+     *                      host is set, so there is nothing to probe); {@code canSign} is then {@code false}
+     *                      and {@code canSignCause} is {@code null}
      */
     public static IssuerServiceStatus derive(boolean hostSet, boolean certificateReady, boolean runInProgress,
             String didToBind, String boundDid, CanSignResult canSignResult) {
         boolean didBound = boundDid != null;
         String expectedDid = didBound ? boundDid : didToBind;
-        boolean matches = canSignResult.outcome() == CanSignOutcome.CAN_SIGN
+        boolean probed = canSignResult != null;
+        boolean matches = probed && canSignResult.outcome() == CanSignOutcome.CAN_SIGN
                 && Objects.equals(canSignResult.did(), expectedDid);
 
         boolean canSign = matches;
-        CanSignCause canSignCause = matches ? null
+        CanSignCause canSignCause = !probed || matches ? null
                 : switch (canSignResult.outcome()) {
                     case CAN_SIGN -> CanSignCause.DID_MISMATCH;
                     case ABSENT -> CanSignCause.NO_ACTIVE_KEY;
@@ -97,7 +101,7 @@ public record IssuerServiceStatus(
             overall = Overall.WAITING_FOR_CERTIFICATE;
         } else if (runInProgress) {
             overall = Overall.INITIALIZING;
-        } else if (canSignResult.outcome() == CanSignOutcome.ABSENT || matches) {
+        } else if (probed && (canSignResult.outcome() == CanSignOutcome.ABSENT || matches)) {
             overall = Overall.READY_TO_INITIALIZE;
         } else {
             overall = Overall.FAILED;

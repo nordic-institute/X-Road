@@ -71,7 +71,7 @@ class IssuerServiceApiControllerTest {
 
     @Test
     void getIssuerServiceStateReturnsTheCurrentState() {
-        when(issuerHostService.getState()).thenReturn(new IssuerHostState("cs.example.org", false));
+        when(issuerHostService.getHost()).thenReturn("cs.example.org");
         when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus());
 
         var response = issuerServiceApiController.getIssuerServiceState();
@@ -83,7 +83,7 @@ class IssuerServiceApiControllerTest {
 
     @Test
     void getIssuerServiceStateMapsEveryStatusField() {
-        when(issuerHostService.getState()).thenReturn(new IssuerHostState("cs.example.org", true));
+        when(issuerHostService.getHost()).thenReturn("cs.example.org");
         when(issuerServiceStatusService.getStatus()).thenReturn(new IssuerServiceStatus(
                 true, true, false, "did:example:to-bind", true, false,
                 CanSignCause.DID_MISMATCH, IssuerServiceStatus.Overall.FAILED));
@@ -102,7 +102,7 @@ class IssuerServiceApiControllerTest {
 
     @Test
     void getIssuerServiceStateMapsAnAbsentCauseAndAnAbsentDidToBind() {
-        when(issuerHostService.getState()).thenReturn(new IssuerHostState(null, false));
+        when(issuerHostService.getHost()).thenReturn(null);
         when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus());
 
         var body = issuerServiceApiController.getIssuerServiceState().getBody();
@@ -115,14 +115,14 @@ class IssuerServiceApiControllerTest {
 
     @Test
     void settingADifferentHostIsReflectedByTheNextGet() {
-        when(issuerHostService.getState()).thenReturn(new IssuerHostState("first.example.org", false));
+        when(issuerHostService.getHost()).thenReturn("first.example.org");
         when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus());
         assertThat(issuerServiceApiController.getIssuerServiceState().getBody().getHost()).isEqualTo("first.example.org");
 
         when(issuerHostService.setHost("second.example.org")).thenReturn(new IssuerHostState("second.example.org", false));
         issuerServiceApiController.setIssuerServiceHost(new IssuerServiceHostDto().host("second.example.org"));
 
-        when(issuerHostService.getState()).thenReturn(new IssuerHostState("second.example.org", false));
+        when(issuerHostService.getHost()).thenReturn("second.example.org");
         var response = issuerServiceApiController.getIssuerServiceState();
 
         assertThat(response.getBody()).isNotNull();
