@@ -94,8 +94,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.PARTICIPANT_CONTEXT_CONFLICT;
 
 @ExtendWith(MockitoExtension.class)
 class IssuerProvisioningGrpcServiceTest {
@@ -197,7 +197,7 @@ class IssuerProvisioningGrpcServiceTest {
         var error = ArgumentCaptor.forClass(Throwable.class);
         verify(participantContextResponseObserver).onError(error.capture());
         assertThat(unpackProto(error.getValue()).getErrorCode())
-                .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + DSP_PARTICIPANT_CONTEXT_CONFLICT.code());
+                .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + PARTICIPANT_CONTEXT_CONFLICT.code());
         verify(participantContextResponseObserver, never()).onNext(any());
         verify(participantContextResponseObserver, never()).onCompleted();
     }
