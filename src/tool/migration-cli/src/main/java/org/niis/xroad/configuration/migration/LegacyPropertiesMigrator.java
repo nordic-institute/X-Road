@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.niis.xroad.configuration.migration.ConfigurationYamlMigrator.PREFIX;
 
@@ -57,15 +58,17 @@ public class LegacyPropertiesMigrator {
         // Create backup
         Files.move(props.path(), outputFilePath);
 
+        Set<String> keysInFile = props.parsedContent().stringPropertyNames();
         Map<String, Object> properties = new HashMap<>();
         props.parsedContent().forEach((key, value) -> {
-            if (LegacyConfigPathMapping.shouldKeep(key.toString())) {
-                var mappedKeys = LegacyConfigPathMapping.map(key.toString());
+            var keyStr = key.toString();
+            if (LegacyConfigPathMapping.shouldKeep(keyStr) && !LegacyConfigPathMapping.isSuperseded(keyStr, keysInFile)) {
+                var mappedKeys = LegacyConfigPathMapping.map(keyStr);
                 mappedKeys.forEach(mappedKey ->
                         properties.put(PREFIX + "." + mappedKey, value)
                 );
                 String rawValue = value == null ? null : value.toString();
-                LegacyConfigValueRules.derive(key.toString(), rawValue).forEach((derivedKey, derivedValue) ->
+                LegacyConfigValueRules.derive(keyStr, rawValue).forEach((derivedKey, derivedValue) ->
                         properties.put(PREFIX + "." + derivedKey, derivedValue));
             }
         });

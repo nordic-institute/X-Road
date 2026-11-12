@@ -84,6 +84,19 @@ class IniToDbMigratorTest {
     }
 
     @Test
+    void messageBodyLoggingSignerTimeoutAndCleanTransactionBatchSavedUnderMappedKeys() {
+        Map<String, String> saved = migrateAndCollectSavedProperties();
+
+        assertThat(saved).containsEntry("xroad.proxy.message-log.message-body-logging", "false");
+        assertThat(saved).containsEntry("xroad.common-rpc.channel.signer.deadline-after", "50000");
+        assertThat(saved).containsEntry("xroad.message-log-archiver.clean-transaction-batch-size", "5000");
+
+        assertThat(saved).doesNotContainKey("xroad.message-log.message-body-logging");
+        assertThat(saved).doesNotContainKey("xroad.signer.client-timeout");
+        assertThat(saved).doesNotContainKey("xroad.message-log.clean-transaction-batch");
+    }
+
+    @Test
     void rerunGivesSameRows() {
         Map<String, String> firstRun = migrateAndCollectSavedProperties();
         Map<String, String> secondRun = migrateAndCollectSavedProperties();

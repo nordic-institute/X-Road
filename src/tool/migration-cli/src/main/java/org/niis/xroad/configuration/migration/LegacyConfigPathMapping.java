@@ -43,6 +43,13 @@ public class LegacyConfigPathMapping {
     private static final Map<String, Set<String>> MAPPING = new HashMap<>();
     private static final Set<String> REMOVED_KEYS = new HashSet<>();
 
+    /**
+     * Legacy keys that X-Road 7 read with lower priority than another legacy key mapped to the same
+     * X-Road 8 key, keyed by the key they lose to when both are present in the same source.
+     */
+    private static final Map<String, String> SUPERSEDED_BY = Map.of(
+            "message-log.message-body-logging", "message-log.soap-body-logging");
+
     /** Legacy key whose value is classified by {@link OpMonitorHostRule} instead of being mapped. */
     static final String OP_MONITOR_HOST_KEY = "op-monitor.host";
 
@@ -110,6 +117,7 @@ public class LegacyConfigPathMapping {
 
         // message-log - body logging properties
         addMapping("message-log.soap-body-logging", "proxy.message-log.message-body-logging");
+        addMapping("message-log.message-body-logging", "proxy.message-log.message-body-logging");
         addMapping("message-log.max-loggable-message-body-size", "proxy.message-log.max-loggable-message-body-size");
         addMapping("message-log.truncated-body-allowed", "proxy.message-log.truncated-body-allowed");
 
@@ -127,6 +135,7 @@ public class LegacyConfigPathMapping {
         addMapping("message-log.archive-transfer-command", "message-log-archiver.archive-transfer-command");
         addMapping("message-log.keep-records-for", "message-log-archiver.clean-keep-records-for");
         addMapping("message-log.archive-transaction-batch", "message-log-archiver.transaction-batch-size");
+        addMapping("message-log.clean-transaction-batch", "message-log-archiver.clean-transaction-batch-size");
         addMapping("message-log.archive-transfer-command-parameters", "message-log-archiver.archive-transfer-command-parameters");
         addMapping("message-log.archive-interval", "auxiliary-service.message-log.archive-cron");
         addMapping("message-log.clean-interval", "auxiliary-service.message-log.clean-cron");
@@ -143,6 +152,9 @@ public class LegacyConfigPathMapping {
         // op-monitor
         addMapping("op-monitor.grpc-port", "op-monitor.rpc.port", "common-rpc.channel.op-monitor.port");
         addMapping("op-monitor.grpc-client-timeout", "common-rpc.channel.op-monitor.deadline-after");
+
+        // signer
+        addMapping("signer.client-timeout", "common-rpc.channel.signer.deadline-after");
 
         addMapping("op-monitor-buffer.size", "proxy.addon.op-monitor.buffer.size");
         addMapping("op-monitor-buffer.max-records-in-message", "proxy.addon.op-monitor.buffer.max-records-in-message");
@@ -234,6 +246,14 @@ public class LegacyConfigPathMapping {
 
     static boolean shouldKeep(String key) {
         return !REMOVED_KEYS.contains(key);
+    }
+
+    /**
+     * Whether {@code key} loses to another legacy key, present in {@code keysInSource}, that is mapped to
+     * the same X-Road 8 key.
+     */
+    static boolean isSuperseded(String key, Set<String> keysInSource) {
+        return keysInSource.contains(SUPERSEDED_BY.get(key));
     }
 
 }
