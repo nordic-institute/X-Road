@@ -86,6 +86,10 @@ class XRoadProtocolWebhookResolver implements ProtocolWebhookResolver {
             monitor.warning("DSP callback unavailable: the Security Server owner is not set, so its published DSP base URL "
                     + "cannot be looked up");
             return Optional.empty();
+        } catch (GlobalConfInitException _) {
+            monitor.warning("DSP callback unavailable: global configuration is not initialised, so the Security Server "
+                    + "identifier cannot be read");
+            return Optional.empty();
         }
 
         Optional<String> published;

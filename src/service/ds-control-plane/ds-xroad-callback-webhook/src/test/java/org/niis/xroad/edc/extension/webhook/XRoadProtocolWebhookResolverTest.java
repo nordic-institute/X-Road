@@ -162,6 +162,16 @@ class XRoadProtocolWebhookResolverTest {
     }
 
     @Test
+    void uninitialisedGlobalConfBehindTheIdentifierYieldsNoWebhookAndOneWarning() {
+        when(serverConfProvider.getIdentifier()).thenThrow(new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED));
+
+        assertThat(resolver.getWebhook("DEV:COM:222", PROFILE)).isNull();
+
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.getFirst()).contains("not initialised");
+    }
+
+    @Test
     void unrelatedServerConfFailureIsNotSwallowed() {
         when(serverConfProvider.getIdentifier()).thenThrow(XrdRuntimeException.systemInternalError("boom"));
 
