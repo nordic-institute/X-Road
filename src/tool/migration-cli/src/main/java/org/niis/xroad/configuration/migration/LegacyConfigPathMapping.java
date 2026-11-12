@@ -134,7 +134,6 @@ public class LegacyConfigPathMapping {
         addMapping("message-log.archive-encryption-enabled", "message-log-encryption.archive.encryption-enabled");
         addMapping("message-log.archive-default-encryption-key", "message-log-encryption.archive.default-key-id");
         addMapping("message-log.archive-grouping", "message-log-encryption.archive.grouping-strategy");
-        addMapping("message-log.archive-encryption-keys-config", "message-log-encryption.archive.grouping-keys");
 
         // message-log - database encryption properties (moved to database-encryption sub-section)
         addMapping("message-log.messagelog-encryption-enabled", "message-log-encryption.db.encryption-enabled");
@@ -180,6 +179,7 @@ public class LegacyConfigPathMapping {
         REMOVED_KEYS.add("message-log.messagelog-keystore");
         REMOVED_KEYS.add("message-log.messagelog-keystore-password");
         REMOVED_KEYS.add("message-log.archive-gpg-home-directory");
+        REMOVED_KEYS.add("message-log.archive-encryption-keys-config");
 
         REMOVED_KEYS.add("configuration-proxy.download-script");
 
