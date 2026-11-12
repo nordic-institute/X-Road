@@ -34,7 +34,6 @@ import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -47,7 +46,6 @@ import org.niis.xroad.globalconf.model.GlobalConfInitState;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,7 +63,7 @@ class XRoadProtocolWebhookResolverTest {
     private final GlobalConfProvider globalConfProvider = mock();
     private final ServerConfProvider serverConfProvider = mock();
     private final DataspaceProfileContextRegistry profileRegistry = new DataspaceProfileContextRegistryImpl();
-    private final List<String> warnings = new ArrayList<>();
+    private final WarningCapturingMonitor monitor = new WarningCapturingMonitor();
 
     private XRoadProtocolWebhookResolver resolver;
 
@@ -79,12 +77,7 @@ class XRoadProtocolWebhookResolverTest {
                 List.of(),
                 List.of()));
         when(serverConfProvider.getIdentifier()).thenReturn(SERVER_ID);
-        resolver = new XRoadProtocolWebhookResolver(globalConfProvider, serverConfProvider, profileRegistry, new Monitor() {
-            @Override
-            public void warning(String message, Throwable... errors) {
-                warnings.add(message);
-            }
-        });
+        resolver = new XRoadProtocolWebhookResolver(globalConfProvider, serverConfProvider, profileRegistry, monitor);
     }
 
     @Test
@@ -95,7 +88,7 @@ class XRoadProtocolWebhookResolverTest {
 
         assertThat(webhook).isNotNull();
         assertThat(webhook.url()).isEqualTo(BASE_URL + "/DEV:COM:222/" + PROFILE);
-        assertThat(warnings).isEmpty();
+        assertThat(monitor.getWarnings()).isEmpty();
     }
 
     @Test
@@ -135,8 +128,8 @@ class XRoadProtocolWebhookResolverTest {
 
         assertThat(resolver.getWebhook("DEV:COM:222", PROFILE)).isNull();
 
-        assertThat(warnings).hasSize(1);
-        assertThat(warnings.getFirst()).contains(SERVER_ID.toShortString()).contains("no DSP base URL");
+        assertThat(monitor.getWarnings()).hasSize(1);
+        assertThat(monitor.getWarnings().getFirst()).contains(SERVER_ID.toShortString()).contains("no DSP base URL");
     }
 
     @Test
@@ -146,8 +139,8 @@ class XRoadProtocolWebhookResolverTest {
 
         assertThat(resolver.getWebhook("DEV:COM:222", PROFILE)).isNull();
 
-        assertThat(warnings).hasSize(1);
-        assertThat(warnings.getFirst()).contains("owner is not set");
+        assertThat(monitor.getWarnings()).hasSize(1);
+        assertThat(monitor.getWarnings().getFirst()).contains("owner is not set");
     }
 
     @Test
@@ -157,8 +150,8 @@ class XRoadProtocolWebhookResolverTest {
 
         assertThat(resolver.getWebhook("DEV:COM:222", PROFILE)).isNull();
 
-        assertThat(warnings).hasSize(1);
-        assertThat(warnings.getFirst()).contains("not initialised").contains(SERVER_ID.toShortString());
+        assertThat(monitor.getWarnings()).hasSize(1);
+        assertThat(monitor.getWarnings().getFirst()).startsWith("DSP callback unavailable:").contains("not initialised");
     }
 
     @Test
@@ -167,8 +160,8 @@ class XRoadProtocolWebhookResolverTest {
 
         assertThat(resolver.getWebhook("DEV:COM:222", PROFILE)).isNull();
 
-        assertThat(warnings).hasSize(1);
-        assertThat(warnings.getFirst()).contains("not initialised");
+        assertThat(monitor.getWarnings()).hasSize(1);
+        assertThat(monitor.getWarnings().getFirst()).startsWith("DSP callback unavailable:").contains("not initialised");
     }
 
     @Test

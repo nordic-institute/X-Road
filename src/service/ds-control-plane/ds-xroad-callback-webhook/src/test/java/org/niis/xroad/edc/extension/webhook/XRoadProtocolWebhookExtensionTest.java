@@ -28,6 +28,7 @@ package org.niis.xroad.edc.extension.webhook;
 
 import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
+import org.eclipse.edc.boot.system.injection.ProviderMethod;
 import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
 import org.eclipse.edc.boot.system.injection.ServiceInjectionPoint;
 import org.eclipse.edc.connector.core.profile.DataspaceProfileContextRegistryImpl;
@@ -43,8 +44,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +53,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class XRoadProtocolWebhookExtensionTest {
 
-    private final List<String> warnings = new ArrayList<>();
+    private final WarningCapturingMonitor monitor = new WarningCapturingMonitor();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -62,12 +61,7 @@ class XRoadProtocolWebhookExtensionTest {
         context.registerService(ServerConfProvider.class, mock(ServerConfProvider.class));
         context.registerService(DataspaceProfileContextRegistry.class, new DataspaceProfileContextRegistryImpl());
         context.registerService(ProtocolWebhookResolver.class, (participantContextId, protocol) -> null);
-        context.registerService(Monitor.class, new Monitor() {
-            @Override
-            public void warning(String message, Throwable... errors) {
-                warnings.add(message);
-            }
-        });
+        context.registerService(Monitor.class, monitor);
     }
 
     @Test
@@ -77,8 +71,8 @@ class XRoadProtocolWebhookExtensionTest {
 
         factory.constructInstance(XRoadProtocolWebhookExtension.class).initialize(context);
 
-        assertThat(warnings).hasSize(1);
-        assertThat(warnings.getFirst()).contains(XRoadProtocolWebhookExtension.LEGACY_CALLBACK_ADDRESS_SETTING);
+        assertThat(monitor.getWarnings()).hasSize(1);
+        assertThat(monitor.getWarnings().getFirst()).contains(XRoadProtocolWebhookExtension.LEGACY_CALLBACK_ADDRESS_SETTING);
     }
 
     @Test
@@ -87,18 +81,18 @@ class XRoadProtocolWebhookExtensionTest {
 
         factory.constructInstance(XRoadProtocolWebhookExtension.class).initialize(context);
 
-        assertThat(warnings).isEmpty();
+        assertThat(monitor.getWarnings()).isEmpty();
     }
 
     @Test
     void extensionProvidesTheProtocolWebhookResolver() {
         var extension = new XRoadProtocolWebhookExtension();
 
-        var providedTypes = new ProviderMethodScanner(extension).allProviders()
-                .map(provider -> provider.getReturnType().getName())
-                .toList();
+        var providers = new ProviderMethodScanner(extension).allProviders().toList();
 
-        assertThat(providedTypes).containsExactly(ProtocolWebhookResolver.class.getName());
+        assertThat(providers).extracting(provider -> provider.getReturnType().getName())
+                .containsExactly(ProtocolWebhookResolver.class.getName());
+        assertThat(providers).noneMatch(ProviderMethod::isDefault);
     }
 
     @Test

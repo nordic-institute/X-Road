@@ -76,9 +76,18 @@ class XRoadProtocolWebhookResolver implements ProtocolWebhookResolver {
     }
 
     private Optional<String> publishedDspBaseUrl() {
-        SecurityServerId serverId;
         try {
-            serverId = serverConfProvider.getIdentifier();
+            return ownIdentifier().flatMap(this::publishedDspBaseUrl);
+        } catch (GlobalConfInitException _) {
+            monitor.warning("DSP callback unavailable: global configuration is not initialised, so the published DSP base URL "
+                    + "cannot be looked up");
+            return Optional.empty();
+        }
+    }
+
+    private Optional<SecurityServerId> ownIdentifier() {
+        try {
+            return Optional.of(serverConfProvider.getIdentifier());
         } catch (XrdRuntimeException e) {
             if (!e.isCausedBy(MALFORMED_SERVERCONF)) {
                 throw e;
@@ -86,22 +95,11 @@ class XRoadProtocolWebhookResolver implements ProtocolWebhookResolver {
             monitor.warning("DSP callback unavailable: the Security Server owner is not set, so its published DSP base URL "
                     + "cannot be looked up");
             return Optional.empty();
-        } catch (GlobalConfInitException _) {
-            monitor.warning("DSP callback unavailable: global configuration is not initialised, so the Security Server "
-                    + "identifier cannot be read");
-            return Optional.empty();
         }
+    }
 
-        Optional<String> published;
-        try {
-            published = globalConfProvider.getServerSystemValues(serverId)
-                    .map(ServerSystemValues::dspBaseUrl)
-                    .filter(url -> !url.isBlank());
-        } catch (GlobalConfInitException e) {
-            monitor.warning("DSP callback unavailable: global configuration is not initialised, so the DSP base URL of "
-                    + serverId.toShortString() + " cannot be looked up");
-            return Optional.empty();
-        }
+    private Optional<String> publishedDspBaseUrl(SecurityServerId serverId) {
+        var published = globalConfProvider.getServerSystemValues(serverId).map(ServerSystemValues::dspBaseUrl);
         if (published.isEmpty()) {
             monitor.warning("DSP callback unavailable: global configuration publishes no DSP base URL for " + serverId.toShortString());
         }
