@@ -97,9 +97,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ansible jq
           ansible-galaxy collection install community.general ansible.posix
-          # LXD ships preinstalled via snap on ubuntu-24.04 runners; ensure it is ready.
-          sudo snap install lxd 2>/dev/null || true
-          sudo lxd waitready --timeout 60
+          sudo snap wait system seed.loaded
+          for attempt in 1 2 3 4 5; do
+            sudo snap install lxd && break
+            [ "$attempt" -eq 5 ] && exit 1
+            sleep $((attempt * 30))
+          done
+          sudo /snap/bin/lxd waitready --timeout 60
 
       # lxdbr0 must sit on 10.10.10.1/24 — that is the dnsmasq address the
       # native-lxd-stack networking scripts and *.lxd resolution assume.

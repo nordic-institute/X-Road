@@ -69,7 +69,6 @@ dependencies {
   runtimeOnly(libs.edc.sql.pool)
   runtimeOnly(libs.edc.core.sql.bootstrapper)
   runtimeOnly(libs.edc.sql.jti.validation)
-  runtimeOnly(libs.edc.sql.lease.core)
   runtimeOnly(libs.edc.sql.participantcontext.store)
   runtimeOnly(libs.edc.store.participantcontext.config.sql)
   runtimeOnly(libs.postgresql)
@@ -87,4 +86,5 @@ dependencies {
   testImplementation(testFixtures(project(":lib:bootstrap-edc-quarkus")))
   testImplementation(libs.smallrye.config.yaml)
   testImplementation(libs.assertj.core)
+  testImplementation(libs.edc.ih.common.lib)
 }

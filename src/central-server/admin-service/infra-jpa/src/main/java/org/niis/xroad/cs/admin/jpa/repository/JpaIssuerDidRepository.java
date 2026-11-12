@@ -30,6 +30,7 @@ import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -37,8 +38,10 @@ public interface JpaIssuerDidRepository extends JpaRepository<IssuerDidEntity, I
 
     @Override
     @Modifying
-    @Query(value = "INSERT INTO " + IssuerDidEntity.TABLE_NAME + " (id, did, created_at, updated_at) "
-            + "VALUES (nextval('" + IssuerDidEntity.TABLE_NAME + "_id_seq'), :did, now(), now()) "
-            + "ON CONFLICT (did) DO NOTHING", nativeQuery = true)
-    void insertIgnoreConflict(String did);
+    @Query(value = "INSERT INTO " + IssuerDidEntity.TABLE_NAME
+            + " (id, did, host, did_port, issuance_url, statuslist_base_url, created_at, updated_at) "
+            + "VALUES (nextval('" + IssuerDidEntity.TABLE_NAME + "_id_seq'), :did, :host, :didPort, :issuanceUrl, "
+            + ":statuslistBaseUrl, now(), now())", nativeQuery = true)
+    void insert(@Param("did") String did, @Param("host") String host, @Param("didPort") int didPort,
+            @Param("issuanceUrl") String issuanceUrl, @Param("statuslistBaseUrl") String statuslistBaseUrl);
 }

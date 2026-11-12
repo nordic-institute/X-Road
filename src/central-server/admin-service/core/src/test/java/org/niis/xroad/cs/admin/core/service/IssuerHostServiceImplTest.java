@@ -36,6 +36,7 @@ import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
+import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.dataspace.IssuerProvisioningRpcClient;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
@@ -74,6 +75,8 @@ class IssuerHostServiceImplTest {
     DataspaceIssuerDidService dataspaceIssuerDidService;
     @Mock
     DnsNameValidator dnsNameValidator;
+    @Mock
+    IssuerSetUpLeaseService issuerSetUpLeaseService;
 
     @InjectMocks
     IssuerHostServiceImpl issuerHostService;
@@ -157,6 +160,45 @@ class IssuerHostServiceImplTest {
     }
 
     @Test
+    void setHostRefusesWhileTheSetUpLeaseIsHeld() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.of("node-a"));
+
+        var exception = assertThrows(ConflictException.class, () -> issuerHostService.setHost("other.example.org"));
+
+        assertEquals(ErrorMessage.ISSUER_SERVICE_ALREADY_RUNNING.code(), exception.getErrorDeviation().code());
+        verify(systemParameterService, never()).updateOrCreateParameter(eq(SystemParameterService.ISSUER_SERVICE_HOST), anyString());
+    }
+
+    /**
+     * Exercises the real {@link SystemParameterServiceImpl} so the host set before the lease was taken is
+     * proven to still be the stored value, not merely the mock's stubbed return value, once a later change
+     * is refused while the lease is held.
+     */
+    @Test
+    void aHostSetBeforeTheLeaseIsHeldIsKeptWhenALaterChangeIsRefusedWhileItIsHeld() {
+        var repository = new FakeSystemParameterRepository();
+        var haConfigStatus = mock(HAConfigStatus.class);
+        var realSystemParameterService = new SystemParameterServiceImpl(repository, haConfigStatus, new SystemParameterMapperImpl());
+        var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
+        when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
+        var leaseServiceMock = mock(IssuerSetUpLeaseService.class);
+        var realIssuerHostService =
+                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
+                        leaseServiceMock);
+
+        realIssuerHostService.setHost("first.example.org");
+
+        when(leaseServiceMock.currentHolder()).thenReturn(Optional.of("node-a"));
+
+        assertThrows(ConflictException.class, () -> realIssuerHostService.setHost("second.example.org"));
+
+        var state = realIssuerHostService.getState();
+        assertEquals("first.example.org", state.host());
+        assertFalse(state.bound());
+    }
+
+    @Test
     void setHostRefusesTheSameHostAfterBinding() {
         when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:web:cs.example.org"));
         when(systemParameterService.getIssuerServiceHost()).thenReturn("cs.example.org");
@@ -178,7 +220,8 @@ class IssuerHostServiceImplTest {
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
         when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
         var realIssuerHostService =
-                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator());
+                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
+                        mock(IssuerSetUpLeaseService.class));
 
         realIssuerHostService.setHost("first.example.org");
 
@@ -218,7 +261,8 @@ class IssuerHostServiceImplTest {
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
         when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
         var realIssuerHostService =
-                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator());
+                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
+                        mock(IssuerSetUpLeaseService.class));
 
         realIssuerHostService.setHost("cs.example.org");
         realIssuerHostService.setHost("cs.example.org");
@@ -240,7 +284,8 @@ class IssuerHostServiceImplTest {
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
         when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
         var realIssuerHostService =
-                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator());
+                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
+                        mock(IssuerSetUpLeaseService.class));
 
         realIssuerHostService.setHost("first.example.org");
         var state = realIssuerHostService.setHost("second.example.org");
@@ -263,7 +308,8 @@ class IssuerHostServiceImplTest {
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
         when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
         var realIssuerHostService =
-                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator());
+                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
+                        mock(IssuerSetUpLeaseService.class));
 
         realIssuerHostService.setHost("first.example.org");
         assertEquals("first.example.org", realIssuerHostService.getState().host());

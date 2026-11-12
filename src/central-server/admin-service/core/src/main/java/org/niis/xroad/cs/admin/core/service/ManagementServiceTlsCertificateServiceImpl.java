@@ -41,12 +41,14 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.vault.TlsKeyProvisioning;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.service.ManagementServiceTlsCertificateService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedOutputStream;
@@ -61,9 +63,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.stream.Stream;
 
-import static java.util.Arrays.stream;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CERTIFICATE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DISTINGUISHED_NAME;
 import static org.niis.xroad.common.core.exception.ErrorCode.KEY_CERT_GENERATION_FAILED;
@@ -74,6 +74,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_WRI
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CSR_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_CERTIFICATE_ALREADY_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_KEY_NOT_FOUND;
+import static org.niis.xroad.cs.admin.core.config.BootstrapConfiguration.MANAGEMENT_SERVICE_VAULT_KEY_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_NAME;
 
 @Service
@@ -87,6 +88,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
     private static final String CERT_CER_FILENAME = "./" + MANAGEMENT_SERVICE + ".cer";
 
     private final VaultClient vaultClient;
+    @Qualifier(MANAGEMENT_SERVICE_VAULT_KEY_CLIENT)
     private final VaultKeyClient vaultKeyClient;
     private final CertificateConverter certificateConverter;
     private final AuditDataHelper auditDataHelper;
@@ -167,11 +169,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
 
     public void generateTlsKeyAndCertificate() {
         try {
-            var vaultKeyData = vaultKeyClient.provisionNewCerts();
-            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
-                    .toArray(X509Certificate[]::new);
-            var tlsCredentials = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createManagementServiceTlsCredentials(tlsCredentials);
+            vaultClient.createManagementServiceTlsCredentials(TlsKeyProvisioning.provision(vaultKeyClient));
             log.info("Successfully created management service TLS credentials");
         } catch (CertificateException | IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             log.error("Failed to generate management service TLS key and certificate", e);

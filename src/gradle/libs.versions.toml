@@ -21,6 +21,7 @@ junitJupiter = "6.1.3"
 junitPlatform = "6.1.3"
 xmlUnit = "2.14.0"
 bouncyCastle = "1.86"
+okhttp = "5.5.1"
 slf4j = "2.0.20"
 protoc = "4.36.2"
 grpc = "1.84.0"
@@ -135,6 +136,8 @@ xmlunit-assertj3 = { module = "org.xmlunit:xmlunit-assertj3", version.ref = "xml
 
 bouncyCastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle" }
 bouncyCastle-bcpg = { module = "org.bouncycastle:bcpg-jdk18on", version.ref = "bouncyCastle" }
+
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protoc" }
 protobuf-javaUtil = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protoc" }
@@ -274,6 +277,7 @@ edc-core-controlplane-transfer = { module = "org.eclipse.edc:control-plane-trans
 edc-core-controlplane-transfer-tasks = { module = "org.eclipse.edc:control-plane-transfer-task-executor", version.ref = "edc" }
 edc-core-tasks = { module = "org.eclipse.edc:task-core", version.ref = "edc" }
 edc-core-dsp-virtual = { module = "org.eclipse.edc:dsp-virtual", version.ref = "edc" }
+edc-core-dsp-http = { module = "org.eclipse.edc:dsp-http-core", version.ref = "edc" }
 edc-core-dps = { module = "org.eclipse.edc:data-plane-signaling-core", version.ref = "edc" }
 edc-core-dps-oauth = { module = "org.eclipse.edc:data-plane-signaling-oauth2", version.ref = "edc" }
 edc-core-cel = { module = "org.eclipse.edc:cel-core", version.ref = "edc" }
@@ -311,6 +315,7 @@ edc-spi-dsp = { module = "org.eclipse.edc:dsp-spi", version.ref = "edc" }
 edc-spi-dsp-v2025 = { module = "org.eclipse.edc:dsp-spi-2025", version.ref = "edc" }
 edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
 edc-spi-identityhub-participantcontext = { module = "org.eclipse.edc:participant-context-spi", version.ref = "edc" }
+edc-spi-identityhub-did = { module = "org.eclipse.edc:did-spi", version.ref = "edc" }
 edc-ih-participants = { module = "org.eclipse.edc:identity-hub-participants", version.ref = "edc" }
 edc-spi-identityhub = { module = "org.eclipse.edc:identity-hub-spi", version.ref = "edc" }
 edc-spi-identityhub-vc = { module = "org.eclipse.edc:verifiable-credential-spi", version.ref = "edc" }
@@ -336,6 +341,7 @@ edc-iam-dcp-cel = { module = "org.eclipse.edc:decentralized-claims-cel", version
 
 # IdentityHub runtime modules (identityhub-base-bom members)
 edc-ih-common-core = { module = "org.eclipse.edc:common-core", version.ref = "edc" }
+edc-ih-common-lib = { module = "org.eclipse.edc:common-lib", version.ref = "edc" }
 edc-ih-core = { module = "org.eclipse.edc:identity-hub-core", version.ref = "edc" }
 edc-ih-did = { module = "org.eclipse.edc:identity-hub-did", version.ref = "edc" }
 edc-ih-keypairs = { module = "org.eclipse.edc:identity-hub-keypairs", version.ref = "edc" }

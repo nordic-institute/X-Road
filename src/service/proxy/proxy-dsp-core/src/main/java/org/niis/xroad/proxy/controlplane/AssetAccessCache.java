@@ -30,11 +30,16 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import com.github.benmanes.caffeine.cache.Ticker;
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
+import org.niis.xroad.edc.protocol.assetaccess.SecurityServerAuthority;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -48,13 +53,34 @@ class AssetAccessCache {
      * Cache key for acquired asset access responses. A cache must key on every field that
      * affects the response; {@code participantContextId} varies per request with the sender.
      *
-     * <p>Planned: {@code counterPartyAddress} will be resolved from GlobalConf; multiple
-     * {@code protocol} versions are foreseeable.
+     * <p>The candidates are a set: the same candidates in any order are the same key.
+     *
+     * <p>Planned: the candidates will be resolved from GlobalConf; multiple {@code protocol} versions
+     * are foreseeable.
      */
-    record CacheKey(String participantContextId, String assetId, String counterPartyId,
-                    String counterPartyAddress, String protocol, @Nullable String consumerClientId) { }
+    record CacheKey(String participantContextId, String assetId, Set<AcquisitionCandidate> candidates,
+                    String protocol, @Nullable String consumerClientId) { }
 
-    record CachedEntry(AssetAccessResponse response, long expiresAtEpochSeconds) { }
+    /**
+     * @param winnerKey the {@link SecurityServerAuthority} key of the candidate that granted the access, derived
+     *                  from the response when the entry is created
+     */
+    record CachedEntry(AssetAccessResponse response, @Nonnull String winnerKey, long expiresAtEpochSeconds) {
+
+        static CachedEntry from(AcquireAssetAccessResp response) {
+            var expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
+            var winner = response.getWinner();
+            return of(new AssetAccessResponse(
+                    response.getEndpoint(),
+                    response.hasAuthorization() ? response.getAuthorization() : null,
+                    new AcquisitionCandidate(winner.getCounterPartyId(), winner.getCounterPartyAddress())), expiresAt);
+        }
+
+        static CachedEntry of(AssetAccessResponse response, long expiresAtEpochSeconds) {
+            return new CachedEntry(response, SecurityServerAuthority.of(response.winner().counterPartyAddress()),
+                    expiresAtEpochSeconds);
+        }
+    }
 
     private final Cache<CacheKey, CachedEntry> cache;
 
@@ -125,14 +151,23 @@ class AssetAccessCache {
     }
 
     /**
-     * Drops the entries acquired for the given participant context, asset and calling client: those of one
-     * provider candidate, or of every candidate when {@code counterPartyId} is {@code null}.
+     * Drops every entry acquired for the given participant context, asset and calling client, whichever
+     * provider candidate it was acquired from.
      */
-    void invalidate(String participantContextId, String assetId, @Nullable String counterPartyId,
-                    @Nullable String consumerClientId) {
+    void invalidate(String participantContextId, String assetId, @Nullable String consumerClientId) {
         cache.asMap().keySet().removeIf(key -> key.participantContextId().equals(participantContextId)
                 && key.assetId().equals(assetId)
-                && (counterPartyId == null || key.counterPartyId().equals(counterPartyId))
                 && Objects.equals(key.consumerClientId(), consumerClientId));
+    }
+
+    /**
+     * Drops every entry won by the Security Server at the given address, whatever its participant context, asset,
+     * client or candidate set. Servers are compared by {@link SecurityServerAuthority}: the lowercase
+     * {@code host:port} of the address with the scheme's default port filled in, or the exact address when it is not
+     * an HTTP(S) URL, so the same host on another port is another server.
+     */
+    void removeWonBy(String counterPartyAddress) {
+        var key = SecurityServerAuthority.of(counterPartyAddress);
+        cache.asMap().values().removeIf(entry -> key.equals(entry.winnerKey()));
     }
 }

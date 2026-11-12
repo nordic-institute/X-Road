@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.core.service;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 import org.niis.xroad.proxy.core.util.ProxyRequestContext;
 
 import java.net.URI;
@@ -68,14 +70,54 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
         return resolveFromGlobalConf(serviceProvider, securityServerId);
     }
 
+    /**
+     * Resolves the provider's candidate servers, leaving out those in maintenance mode.
+     *
+     * @param serviceProvider the target service
+     * @param serverId        the target security server, or null if not specified
+     * @return candidates not in maintenance mode
+     * @throws XrdRuntimeException {@code MAINTENANCE_MODE} when the targeted server, or every server, is in maintenance mode;
+     *                             {@code UNKNOWN_MEMBER} or {@code INVALID_SECURITY_SERVER} when the provider or the
+     *                             targeted server cannot be resolved
+     */
+    public List<ProviderAddress> resolveCandidates(ServiceId serviceProvider, @Nullable SecurityServerId serverId) {
+        var filter = filterMaintenance(serviceProvider, serverId);
+
+        if (filter.available().isEmpty()) {
+            filter.firstMaintenanceError().ifPresent(error -> {
+                throw error;
+            });
+        }
+
+        return filter.available();
+    }
+
     private List<URI> resolveFromGlobalConf(ServiceId serviceProvider, SecurityServerId serverId) {
         log.trace("resolveFromGlobalConf({}, {})", serviceProvider, serverId);
 
+        var filter = filterMaintenance(serviceProvider, serverId);
+
+        String protocol = proxyProperties.sslEnabled() ? "https" : "http";
+        int port = proxyProperties.serverProxyPort();
+
+        List<URI> addresses = new ArrayList<>(filter.available().size());
+        for (var candidate : filter.available()) {
+            buildUri(protocol, candidate.hostAddress(), port).ifPresent(addresses::add);
+        }
+
+        if (addresses.isEmpty()) {
+            throw filter.firstMaintenanceError().orElseGet(() -> XrdRuntimeException.systemException(UNKNOWN_MEMBER,
+                    "Could not find suitable address for service provider \"%s\"".formatted(serviceProvider)));
+        }
+
+        return addresses;
+    }
+
+    private MaintenanceFilter filterMaintenance(ServiceId serviceProvider, @Nullable SecurityServerId serverId) {
         var candidates = providerSecurityServerResolver.resolve(serviceProvider, serverId);
 
-        // Maintenance-mode filtering for the hint path is applied here because
-        // ProviderSecurityServerResolver is intentionally maintenance-unaware.
-        // For the hint-absent path it is applied by the per-host loop below.
+        // ProviderSecurityServerResolver is intentionally maintenance-unaware, so the hinted server
+        // is checked here by its id and every candidate by its host address below.
         if (serverId != null) {
             var hintHost = candidates.get(0).hostAddress();
             globalConfProvider.getMaintenanceMode(serverId)
@@ -85,37 +127,22 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
                     });
         }
 
-        var hostNames = candidates.stream()
-                .map(ProviderSecurityServerResolver.ProviderAddress::hostAddress)
-                .toList();
-
-        String protocol = proxyProperties.sslEnabled() ? "https" : "http";
-        int port = proxyProperties.serverProxyPort();
-
-        List<URI> addresses = new ArrayList<>(hostNames.size());
+        var available = new ArrayList<ProviderAddress>(candidates.size());
         var maintenanceModeErrors = new LinkedList<XrdRuntimeException>();
 
-        for (var host : hostNames) {
+        for (var candidate : candidates) {
+            var host = candidate.hostAddress();
             var inMaintenance = globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
                     .filter(SharedParameters.MaintenanceMode::enabled)
                     .map(mode -> buildMaintenanceModeException(null, host, mode.message()))
                     .map(maintenanceModeErrors::add)
                     .orElse(Boolean.FALSE);
             if (!inMaintenance) {
-                buildUri(protocol, host, port).ifPresent(addresses::add);
+                available.add(candidate);
             }
         }
 
-        if (addresses.isEmpty()) {
-            if (maintenanceModeErrors.isEmpty()) {
-                throw XrdRuntimeException.systemException(UNKNOWN_MEMBER,
-                        "Could not find suitable address for service provider \"%s\"".formatted(serviceProvider));
-            } else {
-                throw maintenanceModeErrors.getFirst();
-            }
-        }
-
-        return addresses;
+        return new MaintenanceFilter(available, maintenanceModeErrors.stream().findFirst());
     }
 
     private Optional<URI> buildUri(String protocol, String host, int port) {
@@ -153,5 +180,9 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
         }
 
         return XrdRuntimeException.systemException(MAINTENANCE_MODE, message.toString());
+    }
+
+    private record MaintenanceFilter(List<ProviderAddress> available,
+                                     Optional<XrdRuntimeException> firstMaintenanceError) {
     }
 }

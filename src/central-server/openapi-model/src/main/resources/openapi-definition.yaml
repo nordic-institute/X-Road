@@ -3523,6 +3523,30 @@ paths:
       summary: set the Issuer Service host
       tags:
         - issuer-service
+  /issuer-service/initialize:
+    post:
+      description:
+        <h3>Administrator starts the one-time Issuer Service initialization.</h3>
+        <p>
+        Runs the initialization prerequisite checks and answers at once. Either accepted, with the run
+        continuing in the background, or refused with the first failing cause (issuer already initialized,
+        host not set, or connector TLS certificate missing, expired or not valid for the issuer host).
+        </p>
+      operationId: initializeIssuerService
+      responses:
+        '202':
+          description: initialization accepted; the run continues in the background
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: initialize the Issuer Service
+      tags:
+        - issuer-service
   /openapi.yaml:
     get:
       tags:
@@ -4267,6 +4291,28 @@ components:
         - EC
       example: RSA
       type: string
+    IssuerServiceOverallStatus:
+      description: the issuer's overall initialization and signing state
+      enum:
+        - NOT_CONFIGURED
+        - WAITING_FOR_CERTIFICATE
+        - READY_TO_INITIALIZE
+        - INITIALIZING
+        - READY
+        - FAILED
+      example: NOT_CONFIGURED
+      type: string
+    CanSignCause:
+      description: why the data space issuer cannot sign credentials for the bound (or to-be-bound) DID
+      enum:
+        - NO_ACTIVE_KEY
+        - DID_NOT_PUBLISHED
+        - KEY_SECRET_NOT_READABLE
+        - TIMEOUT
+        - ISSUER_SERVICE_UNREACHABLE
+        - DID_MISMATCH
+      example: NO_ACTIVE_KEY
+      type: string
     ErrorInfo:
       $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
     GlobalConfDownloadUrl:
@@ -4465,7 +4511,7 @@ components:
         - instance_identifier
       type: object
     IssuerServiceState:
-      description: Issuer Service host and whether the issuer identity is bound
+      description: Issuer Service host, whether the issuer identity is bound, and the issuer status
       properties:
         host:
           description: the Issuer Service's shared host, or null when not yet set
@@ -4475,8 +4521,33 @@ components:
         bound:
           description: whether the issuer identity is bound, so the host can no longer change
           type: boolean
+        host_set:
+          description: whether the issuer host is set
+          type: boolean
+        certificate_ready:
+          description: whether the connector TLS certificate is present, unexpired and valid for the host
+          type: boolean
+        run_in_progress:
+          description: whether an initialization run currently holds the lease
+          type: boolean
+        did_to_bind:
+          description: the issuer DID that initialization would bind, absent when the host is not set
+          format: text
+          type: string
+        can_sign:
+          description: whether the asking node's Issuer Service can currently sign for the bound (or to-be-bound) DID
+          type: boolean
+        can_sign_cause:
+          $ref: '#/components/schemas/CanSignCause'
+        status:
+          $ref: '#/components/schemas/IssuerServiceOverallStatus'
       required:
         - bound
+        - host_set
+        - certificate_ready
+        - run_in_progress
+        - can_sign
+        - status
       type: object
     IssuerServiceHost:
       description: Issuer Service host to set
