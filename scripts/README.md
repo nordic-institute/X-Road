@@ -42,6 +42,7 @@ granular single-image selection call `images/build-security-server.sh <service..
 | `images/build-central-server.sh` | Central Server dev image |
 | `images/build-dev-infra.sh` | Dev-infra images (openbao, testca, postgres-dev, nginx-cp) |
 | `images/build-builder.sh` | Package-builder toolchain images |
+| `images/test-secret-store-init.sh [image]` | Container test of the `xroad-secret-store-local` setup script on the dev OpenBao image (default `localhost:5555/openbao-dev:latest`); runs in CI as `secret-store-init-test` |
 
 ---
 

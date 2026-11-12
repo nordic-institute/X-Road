@@ -1,7 +1,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.21
+Version: 1.22
 Doc. ID: IG-CSHA
 
 ---
@@ -34,6 +34,7 @@ Doc. ID: IG-CSHA
 | 05.06.2023 | 1.19    | Update HA cluster status endpoint path                                                               | Andres Rosenthal   |
 | 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
 | 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows of a standalone server and the per-node TLS certificate names | Ričardas Bučiūnas  |
+| 12.11.2026 | 1.22    | Document the root token file: main node only, upgrade order and moving the file                      |                    |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -56,6 +57,7 @@ Doc. ID: IG-CSHA
   - [3.5 Post-Configuration Steps](#35-post-configuration-steps)
 - [4 General Installation of HA Support](#4-general-installation-of-ha-support)
   - [4.1 Node name and renaming a node](#41-node-name-and-renaming-a-node)
+  - [4.2 The root token file](#42-the-root-token-file)
 - [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
 - [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
   - [6.1 Configuration database (and possible replicas) is lost](#61-configuration-database-and-possible-replicas-is-lost)
@@ -234,7 +236,7 @@ The name is fixed after the node has joined the cluster. The node keeps its secr
 
 1.  Take a backup of the node and of the other nodes.
 2.  Stop the Central Server services on the node. Do not uninstall the packages yet. The entries of the old name must be deleted while the secret store is reachable, and the local secret store may be gone after the packages are removed.
-3.  Delete the secret store entries of the old name. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. With a remote secret store, use its address and a token that can delete secrets there. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<old_node_name>` with the old name:
+3.  Delete the secret store entries of the old name. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`; only the main node keeps this file (see section [4.2](#42-the-root-token-file)), so run the commands there. With a remote secret store, use its address and a token that can delete secrets there. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<old_node_name>` with the old name:
     ```bash
     export BAO_ADDR=<secret store address>
     export BAO_TOKEN=<token>
@@ -259,6 +261,34 @@ The name is fixed after the node has joined the cluster. The node keeps its secr
 6.  On the node, set the new name in `/etc/xroad/conf.d/node.ini` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
 
 These steps do not change the other tables of the configuration database. Rows in the `ha_node_name` column of the tables for configuration sources, distributed files and system parameters keep the old node name. This guide does not describe how to move or remove them.
+
+### 4.2 The root token file
+
+The local secret store has a root token, which is kept in the file `/etc/openbao/root-token`. In a cluster, only one node, the main node, keeps this file. At every start, the secret store setup of a node waits for OpenBao, initializes it if needed, unseals it and checks the client token. Only a node that has the root token file also creates the secret store storage areas and the access policy, and issues the client token. Other nodes log that they skip these steps.
+
+Keep a copy of the root token file outside the cluster, in a safe place.
+
+A node without the root token file needs the client token file `/etc/xroad/secret-store-client-token` from the main node. When the file is missing or invalid, the secret store setup of that node stops with an error that names this step. Copy the file from the main node, keep its owner and mode, and restart the setup:
+
+```bash
+sudo systemctl restart xroad-secret-store-local.service
+```
+
+**Upgrade order.** Upgrade the node that holds the root token file first. An upgrade restarts the secret store setup, and only that node writes the access policy of the new release. Upgrade the other nodes after it.
+
+**Moving the root token file.** To make another node the main node:
+
+1.  Copy `/etc/openbao/root-token` from the current main node to the new main node. Use the off-cluster copy when the current main node is lost. The file must be owned by `root` and have the mode `600`.
+2.  Keep the off-cluster copy.
+3.  Delete the file on the old main node:
+    ```bash
+    sudo rm /etc/openbao/root-token
+    ```
+4.  On the new main node, restart the secret store setup and check that it succeeds:
+    ```bash
+    sudo systemctl restart xroad-secret-store-local.service
+    systemctl status xroad-secret-store-local.service
+    ```
 
 ## 5 Monitoring HA State on a Node
 

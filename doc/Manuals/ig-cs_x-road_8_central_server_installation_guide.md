@@ -1,6 +1,6 @@
 # X-Road 8: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 1.1
+Version: 1.2
 Doc. ID: IG-CS-8
 
 ---
@@ -10,6 +10,7 @@ Doc. ID: IG-CS-8
 |------------|---------|------------------------------------------------------------------------------------------------------|-----------------|
 | 07.10.2025 | 1.0     | Initial version                                                                                      | Justas Samuolis |
 | 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check, the default node name and the shared rows of a standalone server | Ričardas Bučiūnas |
+| 12.11.2026 | 1.2     | Read the root token on the main node only                                                            |                 |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -316,7 +317,7 @@ Change the names when Security Servers or users reach the node by another name o
 
    To check the rows, run `db_property.sh get <key>` for the shared row and `db_property.sh get <key> --node <node>` for the row of a node. `db_property.sh list --node <node>` shows all rows of a node. To make a node use the shared row again, run `db_property.sh remove <key> --node <node>`; the row of the node is deleted and the shared row applies.
 
-2. Delete the key of the certificate. Do this and the next step on each node whose names changed: after a change of a shared row, that is every node without a row of its own for the key. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<node>` with the node name, `node_0` when the name is not set:
+2. Delete the key of the certificate. Do this and the next step on each node whose names changed: after a change of a shared row, that is every node without a row of its own for the key. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. In a cluster, only the main node keeps the root token file, so run the `bao` commands there, once for each node name. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<node>` with the node name, `node_0` when the name is not set:
 
    ```bash
    export BAO_ADDR=https://127.0.0.1:8200
@@ -440,5 +441,5 @@ skip_migrations=false
 Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
 Files:<br/>
 `openbao.hcl` - OpenBao main configuration file. Contains DB credentials and other options.<br/>
-`root-token` - root OpenBao token.<br/>
+`root-token` - root OpenBao token. In a cluster, only the main node keeps this file, see the [High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#42-the-root-token-file).<br/>
 `unseal-keys` - OpenBao unseal keys.
