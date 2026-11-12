@@ -64,7 +64,6 @@
     <changeSet id="signer-backfill-ha-node-name" author="niis">
         <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="HALT" onError="HALT">
-            <changeLogPropertyDefined property="ha_node_name"/>
             <not>
                 <changeLogPropertyDefined property="ha_node_name" value=""/>
             </not>

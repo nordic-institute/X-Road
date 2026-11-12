@@ -46,6 +46,7 @@ import picocli.CommandLine;
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,6 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SignerNodeNameBackfillPostgresTest {
 
     private static final String BACKFILL_CHANGESET = "signer-backfill-ha-node-name";
+    private static final String COLUMN_CHANGESET = "signer-add-ha-node-name-columns";
     private static final String SEED_NODE = "seeded";
     private static final List<String> SIGNER_TABLES = List.of(
             "signer_tokens", "signer_keys", "signer_certificates", "signer_certificate_requests");
@@ -164,13 +166,25 @@ class SignerNodeNameBackfillPostgresTest {
     }
 
     @Test
-    void literalPlaceholderNameHaltsAndWritesNothing() throws Exception {
-        seedBeforeBackfill("centerui");
+    void rowsWithoutColumnGetTheNodeNameFromTheBackfill() throws Exception {
+        migrateBefore("centerui", COLUMN_CHANGESET);
+        seedRowsWithoutColumn();
 
-        assertThat(execute("centerui", "${ha_node_name}")).isNotZero();
+        assertThat(execute("centerui", "node_a")).isZero();
 
-        assertThat(backfillApplied()).isFalse();
-        SIGNER_TABLES.forEach(table -> assertThat(nodeNames(table)).as(table).containsExactly(SEED_NODE));
+        assertThat(backfillApplied()).isTrue();
+        SIGNER_TABLES.forEach(table -> assertThat(nodeNames(table)).as(table).containsExactly("node_a"));
+    }
+
+    @Test
+    void rowsWithoutColumnGetTheDefaultNameWhenNoNameIsGiven() throws Exception {
+        migrateBefore("centerui", COLUMN_CHANGESET);
+        seedRowsWithoutColumn();
+
+        assertThat(execute("centerui", null)).isZero();
+
+        assertThat(backfillApplied()).isTrue();
+        SIGNER_TABLES.forEach(table -> assertThat(nodeNames(table)).as(table).containsExactly("node_0"));
     }
 
     @ParameterizedTest
@@ -185,12 +199,17 @@ class SignerNodeNameBackfillPostgresTest {
     }
 
     private void seedBeforeBackfill(String changelog) throws Exception {
+        migrateBefore(changelog, BACKFILL_CHANGESET);
+        seedRows();
+    }
+
+    private void migrateBefore(String changelog, String changeSetId) throws Exception {
         var changelogFile = "liquibase/" + changelog + "-changelog.xml";
         var accessor = new ClassLoaderResourceAccessor();
         var parsed = ChangeLogParserFactory.getInstance().getParser(changelogFile, accessor)
                 .parse(changelogFile, new ChangeLogParameters(), accessor);
         var ids = parsed.getChangeSets().stream().map(ChangeSet::getId).toList();
-        assertThat(ids).contains(BACKFILL_CHANGESET);
+        assertThat(ids).contains(changeSetId);
 
         Scope.child(Scope.Attr.resourceAccessor, accessor, () -> {
             var update = new CommandScope("updateCount");
@@ -199,15 +218,13 @@ class SignerNodeNameBackfillPostgresTest {
             update.addArgumentValue("username", SharedPostgres.CONTAINER.getUsername());
             update.addArgumentValue("password", SharedPostgres.CONTAINER.getPassword());
             update.addArgumentValue("contexts", "!admin");
-            update.addArgumentValue("count", ids.indexOf(BACKFILL_CHANGESET));
+            update.addArgumentValue("count", ids.indexOf(changeSetId));
             update.execute();
         });
         assertThat(backfillApplied()).isFalse();
-        seedRows();
     }
 
-    private int execute(String changelog, String nodeName) {
-        System.setProperty("liquibase.command.password", SharedPostgres.CONTAINER.getPassword());
+    private int execute(String changelog, String nodeName) throws Exception {
         var args = new ArrayList<>(List.of(
                 "--changelog=" + changelog,
                 "--url=" + url,
@@ -217,7 +234,8 @@ class SignerNodeNameBackfillPostgresTest {
             args.add("--prop-ha-node-name=" + nodeName);
         }
         args.add("update");
-        return new CommandLine(new LiquibaseExecutor()).execute(args.toArray(String[]::new));
+        return Scope.child(Map.of("liquibase.command.password", SharedPostgres.CONTAINER.getPassword()),
+                () -> new CommandLine(new LiquibaseExecutor()).execute(args.toArray(String[]::new)));
     }
 
     private void seedRows() {
@@ -231,6 +249,19 @@ class SignerNodeNameBackfillPostgresTest {
         jdbc.update("insert into signer_certificate_requests (external_id, key_id, subject_name, created_at, "
                 + "updated_at, ha_node_name) select 'seed_request', id, 'CN=seed', now(), now(), ? "
                 + "from signer_keys where external_id = 'seed_key'", SEED_NODE);
+    }
+
+    private void seedRowsWithoutColumn() {
+        jdbc.update("insert into signer_tokens (external_id, type, created_at, updated_at) "
+                + "values ('seed_token', 'softToken', now(), now())");
+        jdbc.update("insert into signer_keys (external_id, token_id, type, sign_mechanism_name, created_at, "
+                + "updated_at) select 'seed_key', id, 'SIGN', 'CKM_RSA_PKCS', now(), now() "
+                + "from signer_tokens where external_id = 'seed_token'");
+        jdbc.update("insert into signer_certificates (external_id, key_id, data, created_at, updated_at) "
+                + "select 'seed_cert', id, '\\x00', now(), now() from signer_keys where external_id = 'seed_key'");
+        jdbc.update("insert into signer_certificate_requests (external_id, key_id, subject_name, created_at, "
+                + "updated_at) select 'seed_request', id, 'CN=seed', now(), now() "
+                + "from signer_keys where external_id = 'seed_key'");
     }
 
     private void insertToken(String externalId, String nodeName) {

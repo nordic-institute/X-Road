@@ -30,8 +30,7 @@ setup_database() {
 
   # read parameters from db.properties
   prepare_db_props
-  prepare_ha_node_name_args ||
-    die "The node name in /etc/xroad/conf.d/node.ini is not valid. It must start with a letter or digit, followed by letters, digits, '_' or '-', at most 63 characters in total."
+  prepare_ha_node_name_args || die "Running database migrations stopped: cannot determine the node name."
 
   local -r db_admin_user=$(get_required_root_prop 'centerui.database.admin_user' "$db_user")
   local -r db_admin_password=$(get_required_root_prop 'centerui.database.admin_password' "$db_password")

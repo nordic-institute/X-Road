@@ -25,8 +25,7 @@ done
 shift $(($OPTIND - 1))
 
 prepare_db_props
-prepare_ha_node_name_args ||
-  abort "The node name in /etc/xroad/conf.d/node.ini is not valid. It must start with a letter or digit, followed by letters, digits, '_' or '-', at most 63 characters in total."
+prepare_ha_node_name_args || abort "Restore stopped: cannot determine the node name."
 
 DUMP_FILE=$1
 MASTER_USER=postgres

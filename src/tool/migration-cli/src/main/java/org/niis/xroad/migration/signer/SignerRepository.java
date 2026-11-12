@@ -71,8 +71,8 @@ public class SignerRepository {
         }
     }
 
-    Optional<Long> getTokenId(String externalId) throws SQLException {
-        String sql = "SELECT id FROM signer_tokens WHERE ha_node_name = ? AND external_id = ?";
+    private Optional<Long> findId(String table, String externalId) throws SQLException {
+        String sql = "SELECT id FROM " + table + " WHERE ha_node_name = ? AND external_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, nodeName);
             ps.setString(2, externalId);
@@ -83,6 +83,10 @@ public class SignerRepository {
                 return Optional.empty();
             }
         }
+    }
+
+    Optional<Long> getTokenId(String externalId) throws SQLException {
+        return findId("signer_tokens", externalId);
     }
 
     long saveToken(DeviceType deviceType, byte[] pinHash) throws SQLException {
@@ -109,17 +113,7 @@ public class SignerRepository {
     }
 
     Optional<Long> getKeyId(String externalId) throws SQLException {
-        String sql = "SELECT id FROM signer_keys WHERE ha_node_name = ? AND external_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, nodeName);
-            ps.setString(2, externalId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(rs.getLong("id"));
-                }
-                return Optional.empty();
-            }
-        }
+        return findId("signer_keys", externalId);
     }
 
     long saveKey(KeyType keyType, long tokenId, boolean isSoftToken, byte[] keystore) throws SQLException {
@@ -149,17 +143,7 @@ public class SignerRepository {
     }
 
     Optional<Long> getCertificateId(String externalId) throws SQLException {
-        String sql = "SELECT id FROM signer_certificates WHERE ha_node_name = ? AND external_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, nodeName);
-            ps.setString(2, externalId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(rs.getLong("id"));
-                }
-                return Optional.empty();
-            }
-        }
+        return findId("signer_certificates", externalId);
     }
 
     void saveCertificate(CertificateType cert, long keyId) throws SQLException {
@@ -184,18 +168,7 @@ public class SignerRepository {
     }
 
     Optional<Long> getCertificateRequestId(String externalId) throws SQLException {
-        String sql = "SELECT id FROM signer_certificate_requests WHERE ha_node_name = ? AND external_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, nodeName);
-            ps.setString(2, externalId);
-            try (ResultSet rs = ps.executeQuery()) {
-                // If at least one row is returned, the certificate request exists
-                if (rs.next()) {
-                    return Optional.of(rs.getLong("id"));
-                }
-                return Optional.empty();
-            }
-        }
+        return findId("signer_certificate_requests", externalId);
     }
 
     void saveCertificateRequest(CertRequestType certRequest, long keyId) throws SQLException {
