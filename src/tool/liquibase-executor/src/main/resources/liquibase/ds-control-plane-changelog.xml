@@ -7,6 +7,7 @@
     logicalFilePath="ds-control-plane-changelog.xml">
 
     <include file="ds-control-plane/000-baseline.xml" relativeToChangelogFile="true"/>
+    <include file="ds-control-plane/001-xroad-additions.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

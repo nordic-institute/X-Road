@@ -81,6 +81,10 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
      `author="niis"` and `objectQuotingStrategy="QUOTE_ALL_OBJECTS"`.
    - Use typed changes (`createTable`, `addColumn`, `modifyDataType`, `createIndex`, `dropColumn`, ...).
    - One changeset per EDC script, with a `<comment>` naming the EDC version and file.
+   - Exception: an X-Road addition that EDC does not ship (for example an extra index) goes in a separate
+     `NNN-xroad-additions.xml` file, with a `<comment>` that says it is an X-Road addition, and a matching
+     statement in the component's additions file `src/test/resources/parity/<component>-additions.sql`
+     (step 4.3). Only `ds-control-plane` has one so far.
    - Never edit an applied changeset, including the baseline: its checksum is stored in `databasechangelog`.
    - A store used by several components (jti, participant context, key pairs, ...) changes in each
      component's directory.
@@ -125,6 +129,16 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
           docker exec -i edc-check psql -v ON_ERROR_STOP=1 -q -U postgres -d ref || break
       done
       ```
+      Then apply the component's X-Road additions file, if it has one, so the diff in 4.5 stays empty. For
+      `ds-control-plane`:
+      ```
+      docker exec -i edc-check psql -v ON_ERROR_STOP=1 -q -U postgres -d ref \
+        < src/tool/liquibase-executor/src/test/resources/parity/ds-control-plane-additions.sql
+      ```
+      At every EDC upgrade, check each statement of the additions file against the new tag. If EDC now ships an
+      equal index, retire the addition instead of creating a duplicate: drop the X-Road index in a new changeset
+      (the applied one stays unchanged), add EDC's index as in step 3, and remove the statement from the
+      additions file.
    4. In `lb`, run the executor twice with `update`. The password goes through the environment, not the
       command line. The second run must apply nothing: the `databasechangelog` row count does not change.
       Logback errors about `/var/log/xroad` on a machine without X-Road are harmless.
