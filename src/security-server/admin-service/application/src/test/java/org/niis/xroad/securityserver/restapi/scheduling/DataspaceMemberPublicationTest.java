@@ -51,12 +51,12 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
-import org.niis.xroad.securityserver.restapi.service.DifferenceEvaluator;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome.Entry;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
 import org.niis.xroad.serverconf.model.Client;
@@ -141,6 +141,7 @@ class DataspaceMemberPublicationTest {
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         when(readinessPredicates.registeredAuthCertBytes()).thenReturn(Optional.of(new byte[] {1}));
         when(didAuthority.dspBaseUrlIfValid()).thenReturn(Optional.of(DSP_BASE_URL));
+        when(didAuthority.dspBaseUrlIfValid(any(OwnAddress.class))).thenReturn(Optional.of(DSP_BASE_URL));
         when(adminServiceProperties.getDataspace()).thenReturn(dataspaceProperties);
         when(dataspaceProperties.getProvisioningBatchSize()).thenAnswer(_ -> batchSize);
         when(dataspaceProperties.getPublicationSubmittedTimeoutMinutes()).thenReturn(60);
@@ -175,8 +176,7 @@ class DataspaceMemberPublicationTest {
         backoff = new PublicationBackoff(clock, () -> 1.0);
         stage.setBackoff(backoff);
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository,
-                new DifferenceEvaluator(dsParticipantRepository, globalConfProvider, didAuthority),
-                new DataspaceDifferenceLog(), readinessPredicates, didAuthority,
+                globalConfProvider, new DataspaceDifferenceLog(), readinessPredicates, didAuthority,
                 new OwnSecurityServerResolver(mock(OwnServerIdentitySource.class), globalConfProvider),
                 adminServiceProperties, mock(PlatformTransactionManager.class));
         check.setClock(clock);

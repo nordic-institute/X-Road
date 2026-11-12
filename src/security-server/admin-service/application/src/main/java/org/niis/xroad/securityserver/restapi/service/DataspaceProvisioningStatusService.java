@@ -26,23 +26,28 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
-import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
-import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DifferenceSignals.Differences;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
-import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Service;
 
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Read-only aggregator for data space provisioning status, consumed by the status REST endpoint.
@@ -58,15 +63,14 @@ public class DataspaceProvisioningStatusService {
     private final DataspaceDidAuthority didAuthority;
     private final DsParticipantRepository dsParticipantRepository;
     private final OwnSecurityServerResolver ownSecurityServerResolver;
-    private final DifferenceEvaluator differenceEvaluator;
+    private final GlobalConfProvider globalConfProvider;
 
     /**
      * Returns a snapshot of the current provisioning status. Deliberately not transactional: the context
-     * enumeration, the SYSTEM binding row read, each context's binding row read inside its status read and
-     * the publication read of each MEMBER context run in their own short transactions, so no pooled DB
-     * connection is held across the blocking gRPC calls of the per-context status reads. The difference evaluator
-     * also reads the SYSTEM binding row and every active member binding row, and builds the DSP base URL when the
-     * SYSTEM row is sent.
+     * enumeration, the SYSTEM binding row read, the member binding rows read and each context's binding row read
+     * inside its status read run in their own short transactions, so no pooled DB connection is held across the
+     * blocking gRPC calls of the per-context status reads. The own address is resolved once, and the SYSTEM row and the
+     * active member rows are read once for the publication states and the differences.
      */
     public DataspaceStatus readStatus() {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
@@ -74,34 +78,45 @@ public class DataspaceProvisioningStatusService {
         List<ParticipantContextStatus> contextStatuses = contexts.stream()
                 .map(dataspaceProvisioningService::readContextStatus)
                 .toList();
-        var differences = differenceEvaluator.evaluate(ownSecurityServerResolver.address());
-        return new DataspaceStatus(true, authCertRegistered, readServerStatus(differences), contextStatuses,
-                readMemberPublications(contexts, differences));
-    }
-
-    private Map<String, MemberPublication> readMemberPublications(List<ParticipantContext> contexts,
-            Differences differences) {
+        var address = ownSecurityServerResolver.address();
+        var dspBaseUrl = didAuthority.dspBaseUrlIfValid(address).orElse(null);
+        var system = dsParticipantRepository.findActiveSystemParticipant();
+        var members = dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class));
+        var differences = evaluate(address, dspBaseUrl, system.orElse(null), members);
+        Map<ClientId, DsParticipantEntity> memberRows = members.stream()
+                .collect(Collectors.toMap(DsParticipantEntity::getMemberIdentifier, Function.identity()));
         Map<String, MemberPublication> memberPublications = new LinkedHashMap<>();
         contexts.stream()
-                .filter(context -> context.kind() == ParticipantKind.MEMBER)
-                .forEach(context ->
-                        memberPublications.put(context.participantId(), readMemberPublication(context, differences)));
-        return memberPublications;
+                .filter(context -> context.kind() == DataspaceProvisioningService.ParticipantKind.MEMBER)
+                .forEach(context -> memberPublications.put(context.participantId(),
+                        readMemberPublication(context, memberRows, differences)));
+
+        return new DataspaceStatus(true, authCertRegistered, readServerStatus(system, dspBaseUrl, differences),
+                contextStatuses, memberPublications);
     }
 
-    private MemberPublication readMemberPublication(ParticipantContext context, Differences differences) {
-        var row = dsParticipantRepository.findByMemberIdentifier(context.memberId())
-                .filter(participant -> participant.getState() == ParticipantState.ACTIVE);
+    private Differences evaluate(OwnAddress address, @Nullable String dspBaseUrl, @Nullable DsParticipantEntity system,
+            List<DsParticipantEntity> members) {
+        if (!(address instanceof OwnAddress.Registered(var serverId, var registeredAddress))) {
+            return Differences.UNKNOWN;
+        }
+        return DifferenceSignals.of(serverId, globalConfProvider, registeredAddress, dspBaseUrl)
+                .evaluate(system, members);
+    }
+
+    private MemberPublication readMemberPublication(DataspaceProvisioningService.ParticipantContext context,
+            Map<ClientId, DsParticipantEntity> memberRows, Differences differences) {
+        var row = Optional.ofNullable(memberRows.get(context.memberId()));
         var state = row.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
         return new MemberPublication(state, row.map(DsParticipantEntity::getPublicationReason).orElse(null),
                 differences.memberMismatches().contains(context.memberId()));
     }
 
-    private ServerStatus readServerStatus(Differences differences) {
-        var system = dsParticipantRepository.findActiveSystemParticipant();
+    private ServerStatus readServerStatus(Optional<DsParticipantEntity> system, @Nullable String dspBaseUrl,
+            Differences differences) {
         var state = system.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
         var mismatch = differences.systemMismatch();
-        return new ServerStatus(readinessPredicates.isDataspaceReady(), didAuthority.dspBaseUrlIfValid().orElse(null),
+        return new ServerStatus(readinessPredicates.isDataspaceReady(), dspBaseUrl,
                 state, system.map(DsParticipantEntity::getPublicationReason).orElse(null),
                 mismatch.systemDid(), mismatch.dspBaseUrl(), differences.hostStatus());
     }

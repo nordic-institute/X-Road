@@ -58,6 +58,7 @@ import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.Client;
@@ -708,7 +709,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
 
     private void carrySystemValues(String did, String dspBaseUrl) {
-        when(dataspaceDidAuthority.dspBaseUrlIfValid()).thenReturn(Optional.of(DSP_BASE_URL));
+        when(dataspaceDidAuthority.dspBaseUrlIfValid(any(OwnAddress.class))).thenReturn(Optional.of(DSP_BASE_URL));
         when(globalConfProvider.getServerSystemValues(SS_ID)).thenReturn(Optional.of(new ServerSystemValues(did, dspBaseUrl)));
     }
 

@@ -48,9 +48,9 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
-import org.niis.xroad.securityserver.restapi.service.DifferenceEvaluator;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
 import org.niis.xroad.serverconf.model.ParticipantState;
@@ -131,6 +131,7 @@ class DataspacePublicationWritersTest {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(readinessPredicates.registeredAuthCertBytes()).thenReturn(Optional.of(new byte[] {1, 2, 3}));
         when(didAuthority.dspBaseUrlIfValid()).thenReturn(Optional.of(DSP_BASE_URL));
+        when(didAuthority.dspBaseUrlIfValid(any(OwnAddress.class))).thenReturn(Optional.of(DSP_BASE_URL));
         when(globalConfProvider.getServerSystemValues(SERVER_ID)).thenReturn(Optional.empty());
         when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any()))
                 .thenReturn(SystemDidRegistrationSendOutcome.stored(1));
@@ -141,8 +142,7 @@ class DataspacePublicationWritersTest {
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
                 didRegistrationSender, mock(AdminServiceProperties.class));
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, mock(ClientRepository.class),
-                new DifferenceEvaluator(dsParticipantRepository, globalConfProvider, didAuthority),
-                new DataspaceDifferenceLog(), readinessPredicates, didAuthority,
+                globalConfProvider, new DataspaceDifferenceLog(), readinessPredicates, didAuthority,
                 new OwnSecurityServerResolver(mock(OwnServerIdentitySource.class), globalConfProvider),
                 adminServiceProperties, mock(PlatformTransactionManager.class));
         check.setClock(clock);
@@ -281,7 +281,7 @@ class DataspacePublicationWritersTest {
     @Test
     void aSubmittedValueStaysSubmittedWhileTheDspBaseUrlCannotBeBuiltAndGlobalconfCarriesTheValues() {
         reconcilerPass();
-        when(didAuthority.dspBaseUrlIfValid()).thenReturn(Optional.empty());
+        when(didAuthority.dspBaseUrlIfValid(any(OwnAddress.class))).thenReturn(Optional.empty());
         carry(CARRIED);
 
         globalconfCheck();
@@ -390,7 +390,7 @@ class DataspacePublicationWritersTest {
     }
 
     @Test
-    void theDspBaseUrlIsNotBuiltForNotSentAndRejectedRows() {
+    void aNotSentOrRejectedRowIsNeverMovedByTheCheck() {
         when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("ss.example.test");
         for (var state : new PublicationState[] {PublicationState.NOT_SENT, PublicationState.REJECTED}) {
             row.setPublicationState(state);
@@ -401,6 +401,6 @@ class DataspacePublicationWritersTest {
         }
 
         verify(dsParticipantRepository, atLeastOnce()).findActiveMembers(EnumSet.allOf(PublicationState.class));
-        verify(didAuthority, never()).dspBaseUrlIfValid();
+        verify(dsParticipantRepository, never()).transitionPublication(anyLong(), any(), any(), any());
     }
 }

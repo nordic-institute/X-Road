@@ -73,17 +73,10 @@ public record SystemValuesComparison(GlobalConfComparison systemDid, GlobalConfC
         if (systemDid == GlobalConfComparison.ABSENT) {
             return GlobalConfComparison.ABSENT;
         }
-        if (isEqual()) {
+        if (systemDid == GlobalConfComparison.EQUAL && dspBaseUrl == GlobalConfComparison.EQUAL) {
             return GlobalConfComparison.EQUAL;
         }
         return systemDid == GlobalConfComparison.STALE || dspBaseUrl == GlobalConfComparison.STALE
                 ? GlobalConfComparison.STALE : GlobalConfComparison.DIFFERENT;
-    }
-
-    /**
-     * @return whether globalconf carries both values as held
-     */
-    private boolean isEqual() {
-        return systemDid == GlobalConfComparison.EQUAL && dspBaseUrl == GlobalConfComparison.EQUAL;
     }
 }

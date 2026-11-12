@@ -28,17 +28,19 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.google.common.base.Suppliers;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
-import org.niis.xroad.securityserver.restapi.service.DifferenceEvaluator;
 import org.niis.xroad.securityserver.restapi.service.DifferenceSignals;
+import org.niis.xroad.securityserver.restapi.service.DifferenceSignals.Differences;
 import org.niis.xroad.securityserver.restapi.service.HostedMembers;
 import org.niis.xroad.securityserver.restapi.service.PublicationCheck;
 import org.niis.xroad.securityserver.restapi.service.PublicationCheckAction;
@@ -55,16 +57,19 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.EnumSet;
 
 /**
  * Step of the globalconf check that compares the SYSTEM values and the member DIDs on the binding rows with what the
- * reloaded globalconf carries. It looks up the registered address of this Security Server once and runs three
- * steps, each in its own transaction:
+ * reloaded globalconf carries. It looks up the registered address of this Security Server once, builds the DSP base
+ * URL from that address and one {@link DifferenceSignals} from both, and runs three steps with them, each in its own
+ * transaction:
  * <ol>
  *     <li>the SYSTEM values, decided by {@link PublicationCheck};</li>
  *     <li>the member DIDs of the rows in a sent state, decided by {@link PublicationCheck};</li>
  *     <li>the differences between the binding rows and globalconf, evaluated afresh from the rows as they are
- *     then and handed to {@link DataspaceDifferenceLog}.</li>
+ *     then and handed to {@link DataspaceDifferenceLog}; the rows are not read while the address is not
+ *     registered.</li>
  * </ol>
  * {@link PublicationCheck} holds the transition rules.
  *
@@ -80,7 +85,7 @@ public class DataspacePublicationGlobalConfCheck {
 
     private final DsParticipantRepository dsParticipantRepository;
     private final ClientRepository clientRepository;
-    private final DifferenceEvaluator differenceEvaluator;
+    private final GlobalConfProvider globalConfProvider;
     private final DataspaceDifferenceLog differenceLog;
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceDidAuthority didAuthority;
@@ -101,14 +106,25 @@ public class DataspacePublicationGlobalConfCheck {
         DifferenceSignals signals;
         try {
             address = ownSecurityServerResolver.address(securityServerId);
-            signals = differenceEvaluator.signals(securityServerId, address);
+            var dspBaseUrl = didAuthority.dspBaseUrlIfValid(address).orElse(null);
+            signals = DifferenceSignals.of(securityServerId, globalConfProvider, address.registeredAddress().orElse(null),
+                    dspBaseUrl);
         } catch (Exception e) {
             logFailure("own address lookup and signal setup", e);
             return;
         }
         runStep("SYSTEM values", () -> checkSystemValues(signals));
         runStep("member DIDs", () -> checkMemberDids(signals));
-        runStep("differences", () -> differenceLog.record(differenceEvaluator.evaluate(address)));
+        runStep("differences", () -> differenceLog.record(evaluateDifferences(address, signals)));
+    }
+
+    private Differences evaluateDifferences(OwnAddress address, DifferenceSignals signals) {
+        if (!(address instanceof OwnAddress.Registered)) {
+            return Differences.UNKNOWN;
+        }
+        var members = dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class));
+        var system = dsParticipantRepository.findActiveSystemParticipant().orElse(null);
+        return signals.evaluate(system, members);
     }
 
     private void runStep(String subject, Runnable step) {
@@ -128,7 +144,7 @@ public class DataspacePublicationGlobalConfCheck {
     private void checkSystemValues(DifferenceSignals signals) {
         dsParticipantRepository.findActiveSystemParticipant().ifPresent(system -> {
             var action = PublicationCheck.decide(system.getPublicationState(),
-                    () -> signals.compareSystemValues(system, didAuthority.dspBaseUrlIfValid().orElse(null)).overall(),
+                    () -> signals.compareSystemValues(system).overall(),
                     readinessPredicates::hasRegisteredAuthCert, system.getPublicationChangedAt(), submittedBefore());
             if (action != PublicationCheckAction.NONE) {
                 transition(system, "SYSTEM values", action.expected(), action.next());
@@ -141,12 +157,12 @@ public class DataspacePublicationGlobalConfCheck {
         if (rows.isEmpty()) {
             return;
         }
-        var hostedMembers = HostedMembers.of(clientRepository.getAllLocalClients());
+        var hostedMembers = Suppliers.memoize(() -> HostedMembers.of(clientRepository.getAllLocalClients()));
         var submittedBefore = submittedBefore();
         for (var row : rows) {
             var member = row.getMemberIdentifier();
             var action = PublicationCheck.decide(row.getPublicationState(), () -> signals.compareMemberDid(row),
-                    () -> hostedMembers.contains(member), row.getPublicationChangedAt(), submittedBefore);
+                    () -> hostedMembers.get().contains(member), row.getPublicationChangedAt(), submittedBefore);
             if (action != PublicationCheckAction.NONE) {
                 transition(row, "member DID of " + member.asEncodedId(), action.expected(), action.next());
             }

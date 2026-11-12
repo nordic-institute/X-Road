@@ -39,6 +39,7 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DidMintResult.Minted;
 import org.niis.xroad.securityserver.restapi.service.DidMintResult.Reason;
 import org.niis.xroad.securityserver.restapi.service.DidMintResult.Rejected;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.stereotype.Component;
 
@@ -124,11 +125,7 @@ public class DataspaceDidAuthority {
      *         valid host name or IPv6 literal
      */
     public Optional<String> dspBaseUrl() {
-        var dspPort = adminServiceProperties.getDataspace().getDspPort();
-        return resolve().map(address -> switch (address) {
-            case RegisteredAddress.Valid(var host, var _) -> DspConventions.dspBaseUrl(host, dspPort);
-            case RegisteredAddress.Invalid(var rejection) -> throw rejection.toException();
-        });
+        return dspBaseUrl(registeredAddress());
     }
 
     /**
@@ -136,12 +133,28 @@ public class DataspaceDidAuthority {
      *         for callers that treat an address that cannot be used the same as an unknown one
      */
     public Optional<String> dspBaseUrlIfValid() {
+        return dspBaseUrlIfValid(ownSecurityServerResolver.address());
+    }
+
+    /**
+     * @param address the registered address of this server, already resolved
+     * @return the DSP base URL like {@link #dspBaseUrlIfValid()}, built from that address
+     */
+    public Optional<String> dspBaseUrlIfValid(OwnAddress address) {
         try {
-            return dspBaseUrl();
+            return dspBaseUrl(address.registeredAddress());
         } catch (XrdRuntimeException e) {
             log.debug("No DSP base URL can be built from the registered address: {}", e.getMessage());
             return Optional.empty();
         }
+    }
+
+    private Optional<String> dspBaseUrl(Optional<String> registeredAddress) {
+        var dspPort = adminServiceProperties.getDataspace().getDspPort();
+        return registeredAddress.map(this::validate).map(address -> switch (address) {
+            case RegisteredAddress.Valid(var host, var _) -> DspConventions.dspBaseUrl(host, dspPort);
+            case RegisteredAddress.Invalid(var rejection) -> throw rejection.toException();
+        });
     }
 
     private DidMintResult mint(Function<String, Did> derive) {

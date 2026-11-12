@@ -44,15 +44,13 @@ import org.mockito.quality.Strictness;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
-import org.niis.xroad.securityserver.restapi.service.DifferenceEvaluator;
-import org.niis.xroad.securityserver.restapi.service.DifferenceSignals;
-import org.niis.xroad.securityserver.restapi.service.GlobalConfComparison;
-import org.niis.xroad.securityserver.restapi.service.SystemValuesComparison;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
@@ -69,10 +67,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -82,13 +79,15 @@ class DataspacePublicationGlobalConfCheckTest {
     private static final SecurityServerId SERVER_ID =
             SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
     private static final OwnAddress.Registered ADDRESS = new OwnAddress.Registered(SERVER_ID, "ss1.example.org");
+    private static final String SYSTEM_DID = "did:web:ss1.example.org:system";
+    private static final String DSP_BASE_URL = "https://ss1.example.org:7181/dsp";
 
     @Mock
     private DsParticipantRepository dsParticipantRepository;
     @Mock
     private ClientRepository clientRepository;
     @Mock
-    private DifferenceEvaluator differenceEvaluator;
+    private GlobalConfProvider globalConfProvider;
     @Mock
     private DataspaceDifferenceLog differenceLog;
     @Mock
@@ -99,8 +98,6 @@ class DataspacePublicationGlobalConfCheckTest {
     private OwnSecurityServerResolver ownSecurityServerResolver;
     @Mock
     private PlatformTransactionManager transactionManager;
-    @Mock
-    private DifferenceSignals signals;
 
     private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
     private final Logger logger = (Logger) LoggerFactory.getLogger(DataspacePublicationGlobalConfCheck.class);
@@ -114,15 +111,15 @@ class DataspacePublicationGlobalConfCheckTest {
         logger.setLevel(Level.DEBUG);
         var config = XRoadConfigBuilder.create().register(AdminServiceConfigKeys.instance()).build();
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository,
-                differenceEvaluator, differenceLog, readinessPredicates, didAuthority, ownSecurityServerResolver,
+                globalConfProvider, differenceLog, readinessPredicates, didAuthority, ownSecurityServerResolver,
                 new AdminServiceProperties(config), transactionManager);
         when(transactionManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
-        when(didAuthority.dspBaseUrlIfValid()).thenReturn(Optional.empty());
         when(ownSecurityServerResolver.address(SERVER_ID)).thenReturn(ADDRESS);
-        when(differenceEvaluator.signals(SERVER_ID, ADDRESS)).thenReturn(signals);
-        when(signals.compareSystemValues(any(), any()))
-                .thenReturn(new SystemValuesComparison(GlobalConfComparison.EQUAL, GlobalConfComparison.EQUAL));
-        when(signals.compareMemberDid(any())).thenReturn(GlobalConfComparison.EQUAL);
+        when(didAuthority.dspBaseUrlIfValid(ADDRESS)).thenReturn(Optional.of(DSP_BASE_URL));
+        when(globalConfProvider.getServerSystemValues(SERVER_ID))
+                .thenReturn(Optional.of(new ServerSystemValues(SYSTEM_DID, DSP_BASE_URL)));
+        when(globalConfProvider.getMemberDid(any(), any())).thenAnswer(
+                invocation -> Optional.of(memberDid((ClientId) invocation.getArgument(0))));
         when(dsParticipantRepository.findActiveSystemParticipant())
                 .thenReturn(Optional.of(row(1, ParticipantType.SYSTEM)));
         when(dsParticipantRepository.findActiveMembers(any())).thenReturn(List.of(row(2, ParticipantType.MEMBER),
@@ -137,14 +134,19 @@ class DataspacePublicationGlobalConfCheckTest {
     }
 
     @Test
-    void theOwnAddressIsResolvedAndTheSignalsAreBuiltOncePerCheckWhateverTheNumberOfRows() {
+    void everySubmittedRowThatGlobalconfCarriesUnchangedIsPublished() {
         check.check(SERVER_ID);
 
-        verify(ownSecurityServerResolver, times(1)).address(SERVER_ID);
-        verify(differenceEvaluator, times(1)).signals(SERVER_ID, ADDRESS);
-        verify(signals, times(1)).compareSystemValues(any(), any());
-        verify(signals, times(2)).compareMemberDid(any());
-        verify(dsParticipantRepository, times(3)).transitionPublication(anyLong(), any(), any(), any());
+        verify(dsParticipantRepository).transitionPublication(1L, PublicationState.SUBMITTED, PublicationState.PUBLISHED, null);
+        verify(dsParticipantRepository).transitionPublication(2L, PublicationState.SUBMITTED, PublicationState.PUBLISHED, null);
+        verify(dsParticipantRepository).transitionPublication(3L, PublicationState.SUBMITTED, PublicationState.PUBLISHED, null);
+    }
+
+    @Test
+    void theLocalClientsAreNotLoadedWhileGlobalconfCarriesEverySentMemberRow() {
+        check.check(SERVER_ID);
+
+        verify(clientRepository, never()).getAllLocalClients();
     }
 
     @Test
@@ -156,34 +158,23 @@ class DataspacePublicationGlobalConfCheckTest {
         var errors = appender.list.stream().filter(event -> event.getLevel() == Level.ERROR).toList();
         assertThat(errors).hasSize(1);
         assertThat(errors.getFirst().getFormattedMessage()).contains("own address lookup and signal setup");
-        verifyNoInteractions(dsParticipantRepository, clientRepository, differenceEvaluator, differenceLog);
+        verifyNoInteractions(dsParticipantRepository, clientRepository, differenceLog);
     }
 
     @Test
-    void throwingSignalsAreLoggedAtErrorAndTouchNoRepositoryEvaluationOrLog() {
-        when(differenceEvaluator.signals(SERVER_ID, ADDRESS)).thenThrow(new IllegalStateException("globalconf gone"));
+    void aThrowingSignalSetupIsLoggedAtErrorAndTouchesNoRepository() {
+        when(didAuthority.dspBaseUrlIfValid(ADDRESS)).thenThrow(new IllegalStateException("authority gone"));
 
         assertThatCode(() -> check.check(SERVER_ID)).doesNotThrowAnyException();
 
         var errors = appender.list.stream().filter(event -> event.getLevel() == Level.ERROR).toList();
         assertThat(errors).hasSize(1);
         assertThat(errors.getFirst().getFormattedMessage()).contains("signal setup");
-        verify(differenceEvaluator, times(1)).signals(SERVER_ID, ADDRESS);
-        verifyNoMoreInteractions(differenceEvaluator);
         verifyNoInteractions(dsParticipantRepository, clientRepository, differenceLog);
     }
 
-    @Test
-    void theNextCheckAfterAFailedLookupResolvesTheAddressAgain() {
-        when(ownSecurityServerResolver.address(SERVER_ID)).thenThrow(new IllegalStateException("database down"))
-                .thenReturn(ADDRESS);
-
-        check.check(SERVER_ID);
-        check.check(SERVER_ID);
-
-        verify(ownSecurityServerResolver, times(2)).address(SERVER_ID);
-        verify(differenceEvaluator, times(1)).signals(SERVER_ID, ADDRESS);
-        verify(dsParticipantRepository, times(3)).transitionPublication(anyLong(), any(), any(), any());
+    private static String memberDid(ClientId member) {
+        return "did:web:ss1.example.org:" + member.getMemberCode();
     }
 
     private static DsParticipantEntity row(long id, ParticipantType type) {
@@ -191,8 +182,11 @@ class DataspacePublicationGlobalConfCheckTest {
         row.setId(id);
         row.setParticipantType(type);
         row.setPublicationState(PublicationState.SUBMITTED);
+        row.setDid(SYSTEM_DID);
         if (type == ParticipantType.MEMBER) {
-            row.setMemberIdentifier(ClientIdEntityFactory.create(ClientId.Conf.create("DEV", "COM", "M" + id)));
+            var member = ClientId.Conf.create("DEV", "COM", "M" + id);
+            row.setMemberIdentifier(ClientIdEntityFactory.create(member));
+            row.setDid(memberDid(member));
         }
         return row;
     }
