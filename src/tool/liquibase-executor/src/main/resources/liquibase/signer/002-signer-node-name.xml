@@ -7,6 +7,8 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
     logicalFilePath="signer/002-signer-node-name.xml">
 
+    <property name="ha_node_name" value="node_0" global="true"/>
+
     <changeSet id="signer-add-ha-node-name-columns" author="niis">
         <comment>
             Every signer row belongs to one node. The default node_0 is the name of a node without a configured
@@ -57,6 +59,33 @@
                              constraintName="uq_signer_certificates_node_external_id"/>
         <addUniqueConstraint tableName="signer_certificate_requests" columnNames="ha_node_name, external_id"
                              constraintName="uq_signer_cert_requests_node_external_id"/>
+    </changeSet>
+
+    <changeSet id="signer-backfill-ha-node-name" author="niis">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="HALT" onError="HALT">
+            <changeLogPropertyDefined property="ha_node_name"/>
+            <not>
+                <changeLogPropertyDefined property="ha_node_name" value=""/>
+            </not>
+        </preConditions>
+        <comment>
+            Existing rows get the name of the node that runs the upgrade; later nodes and restores find the changeset
+            already applied. ANY keeps the stored checksum valid when a later run passes another name, a blank name or
+            none, because the value is part of the checksum.
+        </comment>
+        <update tableName="signer_tokens">
+            <column name="ha_node_name" value="${ha_node_name}"/>
+        </update>
+        <update tableName="signer_keys">
+            <column name="ha_node_name" value="${ha_node_name}"/>
+        </update>
+        <update tableName="signer_certificates">
+            <column name="ha_node_name" value="${ha_node_name}"/>
+        </update>
+        <update tableName="signer_certificate_requests">
+            <column name="ha_node_name" value="${ha_node_name}"/>
+        </update>
     </changeSet>
 
 </databaseChangeLog>

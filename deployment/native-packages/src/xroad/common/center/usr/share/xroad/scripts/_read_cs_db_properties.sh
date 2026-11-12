@@ -27,3 +27,18 @@ prepare_db_props() {
   db_port=${db_port:-5432}
   db_database=${db_database:-centerui_production}
 }
+
+# Sets ha_node_name_args to the Liquibase argument that carries the node name from node.ini, or to nothing when
+# node.ini has no name, so the changelog default applies. Fails for a name that breaks the node name rule.
+prepare_ha_node_name_args() {
+  local -r node_name_pattern='^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$'
+  local node_name
+  node_name=$(crudini --get '/etc/xroad/conf.d/node.ini' node name 2>/dev/null || echo "")
+
+  ha_node_name_args=()
+  [[ -n "${node_name//[[:space:]]/}" ]] || return 0
+
+  local LC_ALL=C
+  [[ "$node_name" =~ $node_name_pattern ]] || return 1
+  ha_node_name_args=("--prop-ha-node-name=${node_name}")
+}

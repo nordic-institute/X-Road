@@ -33,7 +33,7 @@ Doc. ID: IG-CSHA
 | 02.06.2023 | 1.18    | Minor updates                                                                                        | Justas Samuolis    |
 | 05.06.2023 | 1.19    | Update HA cluster status endpoint path                                                               | Andres Rosenthal   |
 | 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
-| 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows of a standalone server and the per-node TLS certificate names | Ričardas Bučiūnas  |
+| 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows and signer rows of a standalone server and the per-node TLS certificate names | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -192,7 +192,7 @@ In addition, it is necessary to configure a unique node name for each node parti
     ```
     Where `<node_name>` is the unique name for the HA node. It is suggested to follow a naming scheme where the first node is `node_0` and subsequent ones `node_1`, `node_2`, etc.. The name must follow the rule in section [4.1](#41-node-name-and-renaming-a-node). The services check the name when they start; a node with an invalid name does not start.
 
-    When upgrading an existing Central Server to HA configuration, the name of the existing server *must be* `node_0`. A Central Server that is not clustered already uses `node_0` as its default node name, so its keys in the secret store are stored under that name. The installation and the X-Road 7 migration store its configuration rows as shared rows. Setting `name=node_0` in `node.ini` turns the server into node 1 of the cluster and moves nothing: the keys are already under `node_0`, and the shared rows keep applying. From then on the server reports itself as clustered. See [IG-CS section 2.6.4](ig-cs_x-road_8_central_server_installation_guide.md#264-node-name).
+    When upgrading an existing Central Server to HA configuration, the name of the existing server *must be* `node_0`. A Central Server that is not clustered already uses `node_0` as its default node name, so its keys in the secret store are stored under that name, and its signer rows (tokens, keys, certificates and requests) carry it too. The installation and the X-Road 7 migration store its configuration rows as shared rows. Setting `name=node_0` in `node.ini` turns the server into node 1 of the cluster and moves nothing: the keys and the signer rows are already under `node_0`, and the shared rows keep applying. From then on the server reports itself as clustered. See [IG-CS section 2.6.4](ig-cs_x-road_8_central_server_installation_guide.md#264-node-name).
 
     If upgrading an existing cluster with BDR, the name of the node **must be** the same as the local BDR node name.
 
