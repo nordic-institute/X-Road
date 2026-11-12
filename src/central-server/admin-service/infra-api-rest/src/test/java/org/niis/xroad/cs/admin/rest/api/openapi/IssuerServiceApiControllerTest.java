@@ -51,6 +51,7 @@ import org.springframework.http.HttpStatus;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -71,26 +72,27 @@ class IssuerServiceApiControllerTest {
 
     @Test
     void getIssuerServiceStateReturnsTheCurrentState() {
-        when(issuerHostService.getHost()).thenReturn("cs.example.org");
-        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus());
+        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus("cs.example.org"));
 
         var response = issuerServiceApiController.getIssuerServiceState();
 
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getHost()).isEqualTo("cs.example.org");
         assertThat(response.getBody().getBound()).isFalse();
+        verifyNoInteractions(issuerHostService);
     }
 
     @Test
     void getIssuerServiceStateMapsEveryStatusField() {
-        when(issuerHostService.getHost()).thenReturn("cs.example.org");
         when(issuerServiceStatusService.getStatus()).thenReturn(new IssuerServiceStatus(
-                true, true, false, "did:example:to-bind", true, false,
+                "cs.example.org", true, true, false, "did:example:to-bind", true, false,
                 CanSignCause.DID_MISMATCH, IssuerServiceStatus.Overall.FAILED));
 
         var body = issuerServiceApiController.getIssuerServiceState().getBody();
 
         assertThat(body).isNotNull();
+        assertThat(body.getHost()).isEqualTo("cs.example.org");
+        assertThat(body.getBound()).isTrue();
         assertThat(body.getHostSet()).isTrue();
         assertThat(body.getCertificateReady()).isTrue();
         assertThat(body.getRunInProgress()).isFalse();
@@ -98,16 +100,17 @@ class IssuerServiceApiControllerTest {
         assertThat(body.getCanSign()).isFalse();
         assertThat(body.getCanSignCause()).isEqualTo(CanSignCauseDto.DID_MISMATCH);
         assertThat(body.getStatus()).isEqualTo(IssuerServiceOverallStatusDto.FAILED);
+        verifyNoInteractions(issuerHostService);
     }
 
     @Test
     void getIssuerServiceStateMapsAnAbsentCauseAndAnAbsentDidToBind() {
-        when(issuerHostService.getHost()).thenReturn(null);
-        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus());
+        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus(null));
 
         var body = issuerServiceApiController.getIssuerServiceState().getBody();
 
         assertThat(body).isNotNull();
+        assertThat(body.getHost()).isNull();
         assertThat(body.getDidToBind()).isNull();
         assertThat(body.getCanSignCause()).isNull();
         assertThat(body.getStatus()).isEqualTo(IssuerServiceOverallStatusDto.NOT_CONFIGURED);
@@ -115,14 +118,13 @@ class IssuerServiceApiControllerTest {
 
     @Test
     void settingADifferentHostIsReflectedByTheNextGet() {
-        when(issuerHostService.getHost()).thenReturn("first.example.org");
-        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus());
+        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus("first.example.org"));
         assertThat(issuerServiceApiController.getIssuerServiceState().getBody().getHost()).isEqualTo("first.example.org");
 
         when(issuerHostService.setHost("second.example.org")).thenReturn(new IssuerHostState("second.example.org", false));
         issuerServiceApiController.setIssuerServiceHost(new IssuerServiceHostDto().host("second.example.org"));
 
-        when(issuerHostService.getHost()).thenReturn("second.example.org");
+        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus("second.example.org"));
         var response = issuerServiceApiController.getIssuerServiceState();
 
         assertThat(response.getBody()).isNotNull();
@@ -130,14 +132,14 @@ class IssuerServiceApiControllerTest {
         assertThat(response.getBody().getBound()).isFalse();
     }
 
-    private static IssuerServiceStatus notConfiguredStatus() {
-        return new IssuerServiceStatus(false, false, false, null, false, false, null, IssuerServiceStatus.Overall.NOT_CONFIGURED);
+    private static IssuerServiceStatus notConfiguredStatus(String host) {
+        return new IssuerServiceStatus(host, false, false, false, null, false, false, null, IssuerServiceStatus.Overall.NOT_CONFIGURED);
     }
 
     @Test
     void setIssuerServiceHostAuditsTheNewHostAndStoresIt() {
         when(issuerHostService.setHost("cs.example.org")).thenReturn(new IssuerHostState("cs.example.org", false));
-        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus());
+        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus("cs.example.org"));
 
         var response = issuerServiceApiController.setIssuerServiceHost(new IssuerServiceHostDto().host("cs.example.org"));
 
@@ -152,7 +154,7 @@ class IssuerServiceApiControllerTest {
     @Test
     void setIssuerServiceHostReturnsTheStatusAfterTheChange() {
         when(issuerHostService.setHost("cs.example.org")).thenReturn(new IssuerHostState("cs.example.org", false));
-        when(issuerServiceStatusService.getStatus()).thenReturn(new IssuerServiceStatus(true, false, false,
+        when(issuerServiceStatusService.getStatus()).thenReturn(new IssuerServiceStatus("cs.example.org", true, false, false,
                 "did:web:cs.example.org%3A6183:issuer", false, false, null, IssuerServiceStatus.Overall.WAITING_FOR_CERTIFICATE));
 
         var response = issuerServiceApiController.setIssuerServiceHost(new IssuerServiceHostDto().host("cs.example.org"));

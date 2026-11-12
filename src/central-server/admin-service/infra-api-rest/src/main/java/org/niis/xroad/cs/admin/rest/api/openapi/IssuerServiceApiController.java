@@ -64,7 +64,7 @@ public class IssuerServiceApiController implements IssuerServiceApi {
     @PreAuthorize("hasAuthority('VIEW_SYSTEM_SETTINGS')")
     public ResponseEntity<IssuerServiceStateDto> getIssuerServiceState() {
         var status = issuerServiceStatusService.getStatus();
-        return ResponseEntity.ok(applyStatus(toDto(issuerHostService.getHost(), status.didBound()), status));
+        return ResponseEntity.ok(applyStatus(toDto(status.host(), status.didBound()), status));
     }
 
     @Override

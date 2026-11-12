@@ -100,6 +100,22 @@ class IssuerServiceStatusServiceImplTest {
     }
 
     @Test
+    void readsTheIssuerHostExactlyOnce() {
+        when(issuerHostService.getHost()).thenReturn(HOST);
+        when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID));
+        when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.canSign(DID));
+
+        var status = issuerServiceStatusService.getStatus();
+
+        verify(issuerHostService, times(1)).getHost();
+        assertThat(status.host()).isEqualTo(HOST);
+    }
+
+    @Test
     void readsTheBoundIssuerDidsExactlyOnce() {
         when(issuerHostService.getHost()).thenReturn(HOST);
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
@@ -160,7 +176,7 @@ class IssuerServiceStatusServiceImplTest {
         assertThat(status.canSignCause()).isNull();
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.NOT_CONFIGURED);
         // No host means the certificate check has nothing to validate against yet, and the "can sign"
-        // probe is skipped rather than made and discarded.
+        // probe has nothing to probe.
         verifyNoInteractions(connectorCertificateCheck);
         verifyNoInteractions(issuerProvisioningRpcClient);
     }

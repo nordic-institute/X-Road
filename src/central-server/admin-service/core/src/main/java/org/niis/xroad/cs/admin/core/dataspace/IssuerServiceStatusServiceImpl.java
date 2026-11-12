@@ -64,7 +64,7 @@ public class IssuerServiceStatusServiceImpl implements IssuerServiceStatusServic
         var boundDids = dataspaceIssuerDidService.findAll();
         var canSign = hostSet ? canSign() : null;
 
-        return IssuerServiceStatus.derive(hostSet, certificateReady, runInProgress, didToBind, boundDid(boundDids, canSign), canSign);
+        return IssuerServiceStatus.derive(host, certificateReady, runInProgress, didToBind, boundDid(boundDids, canSign), canSign);
     }
 
     private String boundDid(List<String> boundDids, CanSignResult canSign) {
