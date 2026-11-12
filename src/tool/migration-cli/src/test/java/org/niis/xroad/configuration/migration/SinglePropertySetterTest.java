@@ -55,6 +55,7 @@ class SinglePropertySetterTest {
 
     private static final String GROUPING_KEY = "xroad.message-log-encryption.archive.grouping-strategy";
     private static final String GROUPING_KEYS_KEY = "xroad.message-log-encryption.archive.grouping-keys";
+    private static final String SIGNING_KEY_ALGORITHM_KEY = "xroad.proxy-ui-api.signing-key-algorithm";
 
     static class TestSinglePropertySetter extends SinglePropertySetter {
         TestSinglePropertySetter(String propertyKey, String propertyValue) {
@@ -170,6 +171,20 @@ class SinglePropertySetterTest {
                     .map(ILoggingEvent::getFormattedMessage)
                     .reduce("", (a, b) -> a + "\n" + b);
             assertThat(logged).contains(GROUPING_KEY).contains("team");
+        }
+
+        @Test
+        void savesKeyAlgorithmValueAsExactConstant() {
+            try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
+                new TestSinglePropertySetter(SIGNING_KEY_ALGORITHM_KEY, "ec")
+                        .migrate("not/used", DB_PROPERTIES_PATH);
+
+                var dbRepo = mockedDb.constructed().getFirst();
+                Mockito.verify(dbRepo).saveProperty(SIGNING_KEY_ALGORITHM_KEY, "EC");
+            }
+            assertThat(logAppender.list)
+                    .extracting(ILoggingEvent::getLevel)
+                    .doesNotContain(Level.WARN);
         }
     }
 

@@ -109,6 +109,10 @@ public final class LegacyConfigValueShapes {
                 new MergedJsonShape(LegacyConfigValueShapes::isGroupingKeysRow, (rows, _) -> mergeGroupingKeysRows(rows)));
         SHAPES.put(SIGNER_MODULES_KEY,
                 new MergedJsonShape(LegacyConfigValueShapes::isSignerModuleRow, LegacyConfigValueShapes::mergeSignerModuleRows));
+        SHAPES.put("xroad.proxy-ui-api.signing-key-algorithm", new EnumShape(List.of("RSA", "EC")));
+        SHAPES.put("xroad.proxy-ui-api.authentication-key-algorithm", new EnumShape(List.of("RSA", "EC")));
+        SHAPES.put("xroad.admin-service.internal-key-algorithm", new EnumShape(List.of("RSA", "EC")));
+        SHAPES.put("xroad.admin-service.external-key-algorithm", new EnumShape(List.of("RSA", "EC")));
     }
 
     static ValueShape shapeOf(String key) {

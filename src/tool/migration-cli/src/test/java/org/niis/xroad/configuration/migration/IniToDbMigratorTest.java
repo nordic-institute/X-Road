@@ -67,6 +67,14 @@ class IniToDbMigratorTest {
     }
 
     @Test
+    void keyAlgorithmValuesSavedAsExactConstants() {
+        Map<String, String> saved = migrateAndCollectSavedProperties();
+
+        assertThat(saved).containsEntry("xroad.proxy-ui-api.authentication-key-algorithm", "EC");
+        assertThat(saved).containsEntry("xroad.proxy-ui-api.signing-key-algorithm", "RSA");
+    }
+
+    @Test
     void rerunGivesSameRows() {
         Map<String, String> firstRun = migrateAndCollectSavedProperties();
         Map<String, String> secondRun = migrateAndCollectSavedProperties();

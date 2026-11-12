@@ -27,7 +27,11 @@
 
 package org.niis.xroad.configuration.migration;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.signer.common.config.SignerModuleConfig;
 import tools.jackson.databind.util.NamingStrategyImpls;
@@ -42,19 +46,36 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Guards {@link LegacyConfigValueShapes} against drifting from {@link GroupingStrategy} and
- * {@link SignerModuleConfig}, whose constants and fields it duplicates for the migration CLI (which has
- * no production dependency on the message log or signer modules).
+ * Guards {@link LegacyConfigValueShapes} against drifting from {@link GroupingStrategy},
+ * {@link SignerModuleConfig} and {@link KeyAlgorithm}, whose constants and fields its hardcoded table duplicates.
  */
 class LegacyConfigValueShapesDriftGuardTest {
 
     private static final String GROUPING_KEY = "xroad.message-log-encryption.archive.grouping-strategy";
+
+    private static final String SIGNING_KEY_ALGORITHM_KEY = "xroad.proxy-ui-api.signing-key-algorithm";
+    private static final String AUTHENTICATION_KEY_ALGORITHM_KEY = "xroad.proxy-ui-api.authentication-key-algorithm";
+    private static final String INTERNAL_KEY_ALGORITHM_KEY = "xroad.admin-service.internal-key-algorithm";
+    private static final String EXTERNAL_KEY_ALGORITHM_KEY = "xroad.admin-service.external-key-algorithm";
 
     @Test
     void groupingStrategyShapeMatchesMessageLogGroupingStrategyEnum() {
         var shape = (LegacyConfigValueShapes.EnumShape) LegacyConfigValueShapes.shapeOf(GROUPING_KEY);
 
         List<String> expectedConstants = Arrays.stream(GroupingStrategy.values())
+                .map(Enum::name)
+                .toList();
+
+        assertThat(shape.allowedConstants()).containsExactlyInAnyOrderElementsOf(expectedConstants);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {SIGNING_KEY_ALGORITHM_KEY, AUTHENTICATION_KEY_ALGORITHM_KEY,
+            INTERNAL_KEY_ALGORITHM_KEY, EXTERNAL_KEY_ALGORITHM_KEY})
+    void keyAlgorithmShapeMatchesKeyAlgorithmEnum(String key) {
+        var shape = (LegacyConfigValueShapes.EnumShape) LegacyConfigValueShapes.shapeOf(key);
+
+        List<String> expectedConstants = Arrays.stream(KeyAlgorithm.values())
                 .map(Enum::name)
                 .toList();
 

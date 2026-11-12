@@ -28,6 +28,10 @@
 package org.niis.xroad.configuration.migration;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.signer.common.config.SignerModuleConfig;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -37,6 +41,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,6 +50,11 @@ class LegacyConfigValueConverterTest {
     private static final String GROUPING_KEY = "xroad.message-log-encryption.archive.grouping-strategy";
     private static final String GROUPING_KEYS_KEY = "xroad.message-log-encryption.archive.grouping-keys";
     private static final String SIGNER_MODULES_KEY = "xroad.signer.modules";
+
+    private static final String SIGNING_KEY_ALGORITHM_KEY = "xroad.proxy-ui-api.signing-key-algorithm";
+    private static final String AUTHENTICATION_KEY_ALGORITHM_KEY = "xroad.proxy-ui-api.authentication-key-algorithm";
+    private static final String INTERNAL_KEY_ALGORITHM_KEY = "xroad.admin-service.internal-key-algorithm";
+    private static final String EXTERNAL_KEY_ALGORITHM_KEY = "xroad.admin-service.external-key-algorithm";
     private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
     private static final ObjectMapper KEBAB_MAPPER = JsonMapper.builder()
             .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
@@ -301,6 +311,53 @@ class LegacyConfigValueConverterTest {
     void reconvertingAlreadyMergedSignerModulesRowIsNoOp() {
         var firstPass = LegacyConfigValueConverter.convert(Map.of(
                 SIGNER_MODULES_KEY + ".hsm_one.enabled", "true"));
+
+        var secondPass = LegacyConfigValueConverter.convert(firstPass.properties());
+
+        assertThat(secondPass.properties()).isEqualTo(firstPass.properties());
+        assertThat(secondPass.warnings()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("keyAlgorithmCaseVariants")
+    void convertsKeyAlgorithmCaseVariantsToExactConstant(String key, String rawValue, String expected) {
+        var result = LegacyConfigValueConverter.convert(Map.of(key, rawValue));
+
+        assertThat(result.properties()).containsEntry(key, expected);
+        assertThat(result.warnings()).isEmpty();
+    }
+
+    private static Stream<Arguments> keyAlgorithmCaseVariants() {
+        return Stream.of(SIGNING_KEY_ALGORITHM_KEY, AUTHENTICATION_KEY_ALGORITHM_KEY,
+                        INTERNAL_KEY_ALGORITHM_KEY, EXTERNAL_KEY_ALGORITHM_KEY)
+                .flatMap(key -> Stream.of(
+                        Arguments.of(key, "rsa", "RSA"),
+                        Arguments.of(key, "Rsa", "RSA"),
+                        Arguments.of(key, "RSA", "RSA"),
+                        Arguments.of(key, "ec", "EC"),
+                        Arguments.of(key, "Ec", "EC"),
+                        Arguments.of(key, "EC", "EC")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {SIGNING_KEY_ALGORITHM_KEY, AUTHENTICATION_KEY_ALGORITHM_KEY,
+            INTERNAL_KEY_ALGORITHM_KEY, EXTERNAL_KEY_ALGORITHM_KEY})
+    void unknownKeyAlgorithmValueKeptUnchangedWithOneWarning(String key) {
+        var result = LegacyConfigValueConverter.convert(Map.of(key, "dsa"));
+
+        assertThat(result.properties()).containsEntry(key, "dsa");
+        assertThat(result.warnings()).hasSize(1);
+        assertThat(result.warnings().getFirst())
+                .contains(key)
+                .contains("dsa")
+                .contains("RSA", "EC");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {SIGNING_KEY_ALGORITHM_KEY, AUTHENTICATION_KEY_ALGORITHM_KEY,
+            INTERNAL_KEY_ALGORITHM_KEY, EXTERNAL_KEY_ALGORITHM_KEY})
+    void reconvertingAlreadyConvertedKeyAlgorithmRowIsNoOp(String key) {
+        var firstPass = LegacyConfigValueConverter.convert(Map.of(key, "ec"));
 
         var secondPass = LegacyConfigValueConverter.convert(firstPass.properties());
 
