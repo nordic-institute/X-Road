@@ -67,6 +67,10 @@ class SignerNodeScopedPinIntTest extends AbstractSignerIntTest {
     @Order(1)
     @DisplayName("Each node stores the PIN of token 0 under its own node path")
     void eachNodeStoresPinUnderItsOwnPath() {
+        Step.given("token '0' is active on both nodes", () -> {
+            ensureTokenActive(client(), TOKEN_ID_0, AUTOLOGIN_PIN);
+            ensureTokenActive(nodeBClient(), TOKEN_ID_0, AUTOLOGIN_PIN);
+        });
         Step.then("primary node path holds the autologin pin",
                 () -> assertThat(readPin(PRIMARY_NODE_PIN_PATH)).isEqualTo(AUTOLOGIN_PIN));
         Step.and("node_b path holds the autologin pin",

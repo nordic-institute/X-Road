@@ -39,12 +39,10 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.niis.xroad.test.apitest.core.junit.Step;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,7 +50,6 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.niis.xroad.common.properties.NodeProperties.NodeType.PRIMARY;
 import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
 
@@ -72,8 +69,6 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
     private static final String DEFAULT_NODE = "node_0";
     private static final String NODE_B = "node_b";
     private static final String TOKEN_PIN = "4321";
-    private static final Duration TOKEN_ACTIVE_TIMEOUT = Duration.ofSeconds(60);
-    private static final Duration TOKEN_ACTIVE_POLL_INTERVAL = Duration.ofMillis(500);
 
     private record NodeRows(String keyWithCertId, String certId, String keyWithRequestId, String certRequestId) {
         List<String> keyIds() {
@@ -121,26 +116,11 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
         }
     }
 
-    private SignerRpcClient nodeBClient() {
-        return containerSetup.getNodeBSignerClient();
+    private void ensureTokensActive() {
+        ensureTokenActive(client(PRIMARY), TOKEN_ID_0, TOKEN_PIN);
+        ensureTokenActive(nodeBClient(), TOKEN_ID_0, TOKEN_PIN);
     }
 
-    private void ensureTokensActive() {
-        ensureTokenActive(client(PRIMARY));
-        ensureTokenActive(nodeBClient());
-    }
-    private void ensureTokenActive(SignerRpcClient nodeClient) {
-        if (nodeClient.getToken(TOKEN_ID_0).getStatus() == TokenStatusInfo.NOT_INITIALIZED) {
-            nodeClient.initSoftwareToken(TOKEN_PIN.toCharArray());
-        }
-        if (!nodeClient.getToken(TOKEN_ID_0).isActive()) {
-            nodeClient.activateToken(TOKEN_ID_0, TOKEN_PIN.toCharArray());
-        }
-        await().atMost(TOKEN_ACTIVE_TIMEOUT)
-                .pollInterval(TOKEN_ACTIVE_POLL_INTERVAL)
-                .ignoreExceptions()
-                .untilAsserted(() -> assertThat(nodeClient.getToken(TOKEN_ID_0).isActive()).isTrue());
-    }
     private NodeRows createRows(SignerRpcClient nodeClient, String label, List<Runnable> cleanups) {
         var keyWithCertId = nodeClient.generateKey(TOKEN_ID_0, label + "-cert-key", KeyAlgorithm.RSA).getId();
         var certId = importSignedCert(nodeClient, keyWithCertId);
@@ -160,8 +140,13 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
     @SneakyThrows
     private String importSignedCert(SignerRpcClient nodeClient, String keyId) {
         var csrFile = File.createTempFile("tmp", "sign_csr");
-        Files.write(csrFile.toPath(), generateCertRequest(nodeClient, keyId).certRequest());
-        var certBytes = Files.readAllBytes(signCsr(csrFile, CsrType.SIGN).toPath());
+        byte[] certBytes;
+        try {
+            Files.write(csrFile.toPath(), generateCertRequest(nodeClient, keyId).certRequest());
+            certBytes = Files.readAllBytes(signCsr(csrFile, CsrType.SIGN).toPath());
+        } finally {
+            Files.deleteIfExists(csrFile.toPath());
+        }
 
         nodeClient.importCert(certBytes, CertificateInfo.STATUS_REGISTERED, clientId(MEMBER));
         return nodeClient.getCertForHash(calculateCertHexHash(readCertificate(certBytes).getEncoded())).getId();
@@ -193,7 +178,9 @@ class SignerNodeScopedRowsIntTest extends AbstractSignerIntTest {
     }
 
     private void assertViewHolds(SignerRpcClient viewer, NodeRows expected, NodeRows foreign) {
-        var keys = viewer.getToken(TOKEN_ID_0).getKeyInfo();
+        var tokensWithId0 = viewer.getTokens().stream().filter(token -> TOKEN_ID_0.equals(token.getId())).toList();
+        assertThat(tokensWithId0).as("tokens with id %s in the viewer's registry", TOKEN_ID_0).hasSize(1);
+        var keys = tokensWithId0.getFirst().getKeyInfo();
         var certIds = keys.stream().flatMap(key -> key.getCerts().stream()).map(CertificateInfo::getId).toList();
         var certRequestIds = keys.stream().flatMap(key -> key.getCertRequests().stream()).map(CertRequestInfo::getId).toList();
 
