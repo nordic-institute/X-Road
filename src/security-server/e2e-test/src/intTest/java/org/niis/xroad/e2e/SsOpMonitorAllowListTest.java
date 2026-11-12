@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.container.E2eEnvSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
+import org.testcontainers.containers.Container;
 
 import java.time.Duration;
 import java.util.List;
@@ -82,9 +83,9 @@ class SsOpMonitorAllowListTest extends E2eTest {
     private static final Duration STORED_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration STORED_POLL_INTERVAL = Duration.ofSeconds(2);
     private static final String NO_CLIENT_CERTIFICATE = "";
-    private static final String PROXY = "proxy";
-    private static final String UI = "ui";
-    private static final String SIGNER = "signer";
+    private static final String PROXY_IDENTITY = "proxy";
+    private static final String UI_IDENTITY = "ui";
+    private static final String SIGNER_IDENTITY = "signer";
 
     private static final String SERVER_CERTIFICATE = "Server certificate";
     private static final String TLS_VERIFIED = "Verify return code: 0 (ok)";
@@ -134,9 +135,15 @@ class SsOpMonitorAllowListTest extends E2eTest {
 
         var probes = when("op-monitor's RPC port is probed in parallel without a client certificate and with the "
                 + "identities proxy, ui and signer", () ->
-                probeInParallel(stack, List.of(NO_CLIENT_CERTIFICATE, PROXY, UI, SIGNER)));
+                probeInParallel(stack, List.of(NO_CLIENT_CERTIFICATE, PROXY_IDENTITY, UI_IDENTITY, SIGNER_IDENTITY)));
         then("op-monitor completes a TLS handshake with a certificate issued by the OpenBao issuing CA, so RPC TLS is on",
-                () -> assertTlsHandshake(probes.get(NO_CLIENT_CERTIFICATE)));
+                () -> assertTlsHandshake(NO_CLIENT_CERTIFICATE, probes.get(NO_CLIENT_CERTIFICATE)));
+        then("op-monitor accepts a certificate with the identity proxy",
+                () -> assertAccepted(PROXY_IDENTITY, probes.get(PROXY_IDENTITY)));
+        then("op-monitor accepts a certificate with the identity ui",
+                () -> assertAccepted(UI_IDENTITY, probes.get(UI_IDENTITY)));
+        then("op-monitor rejects a certificate with the unlisted identity signer",
+                () -> assertRejected(SIGNER_IDENTITY, probes.get(SIGNER_IDENTITY)));
 
         var before = and("the number of stored operational data records is read", () -> storedRecordCount(stack));
         var response = when("a dataspace request from ss1 reaches the service on ss0", () ->
@@ -150,41 +157,55 @@ class SsOpMonitorAllowListTest extends E2eTest {
                         .pollInterval(STORED_POLL_INTERVAL)
                         .atMost(STORED_TIMEOUT)
                         .untilAsserted(() -> assertThat(storedRecordCount(stack)).isGreaterThan(before)));
-
-        then("op-monitor accepts a certificate with the identity proxy", () -> assertAccepted(probes.get(PROXY)));
-        then("op-monitor accepts a certificate with the identity ui", () -> assertAccepted(probes.get(UI)));
-        then("op-monitor rejects a certificate with the unlisted identity signer", () -> {
-            var signerProbe = probes.get(SIGNER);
-            assertTlsHandshake(signerProbe);
-            assertThat(signerProbe).as("op-monitor must reject an unlisted client name").contains(FATAL_ALERT);
-        });
     }
 
-    private static void assertTlsHandshake(String probeOutput) {
+    private static void assertTlsHandshake(String identity, String probeOutput) {
         assertThat(probeOutput)
-                .as("op-monitor RPC server must complete a TLS handshake with a certificate from the issuing CA")
+                .as("identity %s: op-monitor RPC server must complete a TLS handshake with a certificate from the "
+                        + "issuing CA", describe(identity))
                 .contains(SERVER_CERTIFICATE, TLS_VERIFIED)
                 .doesNotContain(NO_PEER_CERTIFICATE, NO_CIPHER)
                 .containsPattern(NEGOTIATED_CIPHER);
     }
 
-    private static void assertAccepted(String probeOutput) {
-        assertTlsHandshake(probeOutput);
-        assertThat(probeOutput).as("op-monitor must accept a listed client name").doesNotContain(FATAL_ALERT);
+    private static void assertAccepted(String identity, String probeOutput) {
+        assertTlsHandshake(identity, probeOutput);
+        assertThat(probeOutput)
+                .as("identity %s: op-monitor must accept a listed client name", describe(identity))
+                .doesNotContain(FATAL_ALERT);
+    }
+
+    private static void assertRejected(String identity, String probeOutput) {
+        assertTlsHandshake(identity, probeOutput);
+        assertThat(probeOutput)
+                .as("identity %s: op-monitor must reject an unlisted client name", describe(identity))
+                .contains(FATAL_ALERT);
+    }
+
+    private static String describe(String identity) {
+        return identity.isEmpty() ? "(no client certificate)" : identity;
     }
 
     private static Map<String, String> probeInParallel(E2eEnvSetup stack, List<String> commonNames) {
+        Map<String, Container.ExecResult> results;
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var probes = commonNames.stream().collect(Collectors.toMap(Function.identity(),
                     commonName -> CompletableFuture.supplyAsync(() -> probe(stack, commonName), executor)));
-            return probes.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().join()));
+            results = probes.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().join()));
         }
+        return results.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                entry -> reportableOutput(entry.getKey(), entry.getValue())));
     }
 
-    private static String probe(E2eEnvSetup stack, String commonName) {
-        var result = stack.execInEnvContainer(PROVIDER_ENV, SsStackSetup.OPENBAO, "bash", "-c", PROBE_SCRIPT, "probe",
+    private static Container.ExecResult probe(E2eEnvSetup stack, String commonName) {
+        return stack.execInEnvContainer(PROVIDER_ENV, SsStackSetup.OPENBAO, "bash", "-c", PROBE_SCRIPT, "probe",
                 commonName, String.valueOf(PROBE_HOLD.toSeconds()), OP_MONITOR_RPC_ADDRESS);
-        assertThat(result.getExitCode()).as("probe script: %s", result.getStderr()).isZero();
+    }
+
+    private static String reportableOutput(String identity, Container.ExecResult result) {
+        assertThat(result.getExitCode())
+                .as("identity %s: probe script: %s", describe(identity), result.getStderr())
+                .isZero();
         return result.getStdout().lines()
                 .filter(REPORTABLE_LINE.asPredicate())
                 .collect(Collectors.joining("\n"));

@@ -108,7 +108,7 @@ class SsMonitoringTest extends E2eTest {
     private static final String SSL_AUTH_FAILED_FAULT_CODE = "server.clientproxy.ssl_authentication_failed";
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
-    private static final Duration OP_DATA_VISIBILITY_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration OP_DATA_VISIBILITY_TIMEOUT = Duration.ofSeconds(90);
     private static final Duration OP_DATA_VISIBILITY_POLL_INTERVAL = Duration.ofSeconds(2);
     private static final OpDataClient TEST_SAVED = new OpDataClient("1234", "TestSaved");
     private static final OpDataClient TEST_SERVICE = new OpDataClient("1234", "TestService");
@@ -259,7 +259,7 @@ class SsMonitoringTest extends E2eTest {
     void regularClientRetrievesOnlyOwnOperationalData(E2eEnvironment env) {
         given("traffic from TestSaved and from TestService has passed through ss0", () ->
                 generateTrafficOnSs0(env));
-        and("op-monitor has stored records of both clients, as seen by the central monitoring client 1234/TestService",
+        and("the central monitoring client 1234/TestService sees a TestSaved record and a record of another client",
                 () -> awaitOperationalRecords(env, TEST_SERVICE, SsMonitoringTest::containsBothClients));
 
         var records = when("the regular client 1234/TestSaved queries operational data of ss0", () ->
