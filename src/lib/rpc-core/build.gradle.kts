@@ -9,6 +9,8 @@ dependencies {
   api(project(":lib:properties-core"))
   api(project(":lib:vault-core"))
 
+  implementation(project(":common:common-core"))
+
   api(libs.slf4j.api)
   api(libs.grpc.protobuf)
   api(libs.grpc.stub)

@@ -61,6 +61,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
@@ -215,6 +216,21 @@ public class CertUtilsTest {
         doThrow(new CertificateParsingException("bad SAN extension")).when(cert).getSubjectAlternativeNames();
 
         CertUtils.getDnsSubjectAlternativeNames(cert);
+    }
+
+    @Test
+    public void testGetDnsSubjectAlternativeNamesKeepsCertificateOrder() throws CertificateParsingException {
+        X509Certificate cert = mock(X509Certificate.class);
+        doReturn(List.of(
+                List.of(7, "1.2.3.4"),
+                List.of(2, "zebra.example.org"),
+                List.of(1, "someone@example.org"),
+                List.of(2, "mango.example.org"),
+                List.of(2, "apple.example.org")
+        )).when(cert).getSubjectAlternativeNames();
+
+        assertEquals(List.of("zebra.example.org", "mango.example.org", "apple.example.org"),
+                CertUtils.getDnsSubjectAlternativeNames(cert));
     }
 
     /**
