@@ -39,6 +39,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_CREATED;
@@ -64,7 +66,7 @@ class AdminApi {
     private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
     private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
     /** The {@code credential_status} of a participant context whose membership credential has been issued. */
-    static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
+    private static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
     private static final Duration CREDENTIAL_ISSUED_POLL_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration CREDENTIAL_ISSUED_POLL_INTERVAL = Duration.ofSeconds(5);
 
@@ -364,18 +366,45 @@ class AdminApi {
      * {@code memberCtxId} ({@code INSTANCE:CLASS:CODE}) with an ISSUED membership credential.
      */
     static void awaitMemberCredentialIssued(String baseUrl, AdminSession session, String memberCtxId) {
+        awaitMemberContext(baseUrl, session, memberCtxId, "membership credential of %s is ISSUED".formatted(memberCtxId),
+                context -> ISSUED_CREDENTIAL_STATUS.equals(context.get("credential_status")));
+    }
+
+    /**
+     * Waits until the provisioning status entry of the MEMBER participant context {@code memberCtxId}
+     * satisfies {@code done}, and returns that entry. The entry is the context's fields as the admin API
+     * reports them, for example {@code credential_status}, {@code publication_state} and
+     * {@code publication_reason}.
+     */
+    static Map<String, Object> awaitMemberContext(String baseUrl, AdminSession session, String memberCtxId,
+                                                  String alias, Predicate<Map<String, Object>> done) {
+        var observed = new AtomicReference<Map<String, Object>>();
         Awaitility.await()
-                .alias("membership credential of %s is ISSUED".formatted(memberCtxId))
+                .alias(alias)
                 .pollInterval(CREDENTIAL_ISSUED_POLL_INTERVAL)
                 .timeout(CREDENTIAL_ISSUED_POLL_TIMEOUT)
                 .ignoreExceptions()
                 .until(() -> {
                     var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
-                    return response.getStatusCode() == HTTP_OK
-                            && ISSUED_CREDENTIAL_STATUS.equals(response.jsonPath().getString(
+                    if (response.getStatusCode() != HTTP_OK) {
+                        return false;
+                    }
+                    Map<String, Object> context = response.jsonPath().getMap(
                             "participant_contexts.find { it.kind == 'MEMBER' && it.participant_id == '"
-                                    + memberCtxId + "' }.credential_status"));
+                                    + memberCtxId + "' }");
+                    observed.set(context);
+                    return context != null && done.test(context);
                 });
+        return observed.get();
+    }
+
+    /** The DSP base URL the Security Server's provisioning status reports for the server itself. */
+    static String dspBaseUrl(String baseUrl, AdminSession session) {
+        var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
+        assertThat(response.getStatusCode()).as("GET /dataspace/provisioning-status of %s", baseUrl).isEqualTo(HTTP_OK);
+        var dspBaseUrl = response.jsonPath().getString("server.dsp_base_url");
+        assertThat(dspBaseUrl).as("server.dsp_base_url of %s", baseUrl).isNotBlank();
+        return dspBaseUrl;
     }
 
     /**

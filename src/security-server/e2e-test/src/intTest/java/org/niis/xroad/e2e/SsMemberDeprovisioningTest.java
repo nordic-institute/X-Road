@@ -51,6 +51,7 @@ import static org.niis.xroad.e2e.AdminApi.deleteClient;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.AdminApi.registerClient;
 import static org.niis.xroad.e2e.AdminApi.unregisterClient;
+import static org.niis.xroad.e2e.SignCertificateOps.provisionSignCertificate;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -64,10 +65,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * issuer, without touching anyone else's, once it does so.
  *
  * <p>Registers a dedicated member ({@code DEV:COM:5678:DeprovisioningService}), new to this run,
- * entirely through ss0's own admin API — local client add, sign-key CSR generation, signing by the test
- * CA, import, registration — via {@link MemberSignCertificate}, shared with
- * {@link SsProxyDspRuntimeMemberTest} — so this scenario never touches a member any earlier class in the
- * suite depends on.
+ * through ss0's own admin API, so this scenario never touches a member any earlier class in the suite
+ * depends on.
  * Once the member's participant context and membership credential are confirmed provisioned (so the
  * later "gone" assertions prove an actual removal, not a state that was never reached), its only client
  * is unregistered and deleted. Deleting a member's last client is, once binding rows are written at
@@ -94,7 +93,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @DisplayName("SS dataspace - deleting a member's last client tears down its dataspace presence")
 @Order(375)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SuppressWarnings("checkstyle:magicnumber")
 class SsMemberDeprovisioningTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
@@ -113,9 +111,6 @@ class SsMemberDeprovisioningTest extends E2eTest {
 
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for this member. */
     private static final String MEMBER_CTX_ID = MEMBER_ID;
-
-    private static final MemberSignCertificate SIGN_CERTIFICATE =
-            new MemberSignCertificate(SS0_ENV, MEMBER_ID, MEMBER_CODE, "Sign key 5678");
 
     /**
      * ss0's own owner member, provisioned once at environment bring-up and left untouched by this
@@ -178,7 +173,7 @@ class SsMemberDeprovisioningTest extends E2eTest {
                 addLocalClient(ss0BaseUrl, ss0Session, CLIENT_ID));
 
         and("a CA-signed sign certificate for the member is provisioned on ss0's token", () ->
-                SIGN_CERTIFICATE.provision(env, ss0Session));
+                provisionSignCertificate(env, ss0Session, MEMBER_ID));
 
         and("its registration is submitted from ss0 to the Central Server", () ->
                 registerClient(ss0BaseUrl, ss0Session, clientId));

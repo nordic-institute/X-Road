@@ -180,9 +180,19 @@ final class DspNegotiationDbAssertions {
      * {@code assertions} run on each poll and signal a mismatch with an {@link AssertionError}.
      */
     void awaitProviderNegotiations(String counterpartyIdLike, Consumer<List<ProviderNegotiation>> assertions) {
+        awaitProviderNegotiationsCreatedAfter(counterpartyIdLike, 0L, assertions);
+    }
+
+    /**
+     * Like {@link #awaitProviderNegotiations}, but only for negotiations created after {@code createdAfter},
+     * a {@link #latestProviderNegotiationCreatedAt} value read earlier.
+     */
+    void awaitProviderNegotiationsCreatedAfter(String counterpartyIdLike, long createdAfter,
+                                               Consumer<List<ProviderNegotiation>> assertions) {
         var sql = ("SELECT n.state, n.counterparty_id, n.counterparty_address FROM edc_contract_negotiation n "
                 + "WHERE n.type = '" + TYPE_PROVIDER + "' AND n.participant_context_id = '%s' "
-                + "AND n.counterparty_id LIKE '%s' ORDER BY n.id").formatted(providerMemberCtxId, counterpartyIdLike);
+                + "AND n.counterparty_id LIKE '%s' AND n.created_at > %d ORDER BY n.id")
+                .formatted(providerMemberCtxId, counterpartyIdLike, createdAfter);
         Awaitility.await()
                 .pollInterval(POLL_INTERVAL)
                 .timeout(POLL_TIMEOUT)
@@ -191,6 +201,17 @@ final class DspNegotiationDbAssertions {
                         .map(row -> new ProviderNegotiation(
                                 Integer.parseInt(row[0].trim()), row[1].trim(), row[2].trim()))
                         .toList()));
+    }
+
+    /**
+     * The creation time of the newest PROVIDER negotiation on {@code providerMemberCtxId} whose counterparty
+     * id matches {@code counterpartyIdLike}, or 0 when there is none.
+     */
+    long latestProviderNegotiationCreatedAt(String counterpartyIdLike) {
+        var sql = ("SELECT COALESCE(MAX(n.created_at), 0) FROM edc_contract_negotiation n "
+                + "WHERE n.type = '" + TYPE_PROVIDER + "' AND n.participant_context_id = '%s' "
+                + "AND n.counterparty_id LIKE '%s'").formatted(providerMemberCtxId, counterpartyIdLike);
+        return Long.parseLong(dbOps.execDsControlPlaneSql(envName, sql).trim());
     }
 
     private boolean isConsumerAndProviderPairFinalized(List<String[]> rows) {
@@ -258,8 +279,9 @@ final class DspNegotiationDbAssertions {
                     });
         } catch (ConditionTimeoutException e) {
             throw new ConditionTimeoutException(
-                    "Timed out waiting for the transfer over agreement %s to succeed; "
-                            + "last observed rows (transferprocess_id|state): %s".formatted(wireAgreementId, lastSeen.get()), e);
+                    ("Timed out waiting for the transfer over agreement %s to succeed; "
+                            + "last observed rows (transferprocess_id|state): %s").formatted(wireAgreementId,
+                            lastSeen.get().stream().map(row -> String.join("|", row)).toList()), e);
         }
     }
 

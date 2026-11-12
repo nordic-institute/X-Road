@@ -28,14 +28,15 @@ package org.niis.xroad.e2e;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import io.restassured.path.json.JsonPath;
-import io.restassured.response.ValidatableResponse;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.ds.identity.DspConventions;
+import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.DidResolutionOps.DidDocumentResponse;
+import org.niis.xroad.e2e.DspNegotiationDbAssertions.ProviderNegotiation;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -44,18 +45,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.addRestServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.awaitClientRegistered;
 import static org.niis.xroad.e2e.AdminApi.awaitMemberCredentialIssued;
 import static org.niis.xroad.e2e.AdminApi.discoverBackendUrl;
+import static org.niis.xroad.e2e.AdminApi.dspBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.AdminApi.registerClient;
+import static org.niis.xroad.e2e.DisabledServiceFault.awaitCallSucceeds;
+import static org.niis.xroad.e2e.SignCertificateOps.provisionSignCertificate;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -106,14 +110,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * {@link DidResolutionOps}, from inside the environment, because the hub serves a document only at the
  * DID's registered authority.
  *
- * <p>The scenario provisions its own sign material for the new member: after the local client add,
- * it generates a SIGNING CSR on ss0's token, has the environment's test CA sign it, and imports the
- * certificate back — the same key/cert bootstrap {@code setup.hurl} performs once for
- * {@code DEV:COM:1234}'s own sign key on ss0, just for the second member's identity, done at test run
- * time instead of at bring-up because the admin API rejects a SIGNING CSR for a member id that isn't
- * yet a local client. This needs the test CA reachable from the test JVM (see {@link E2eEnvironment}'s
- * {@code "ca"} environment), the k8s/LXD analogue of the {@code "aux"} Central Server reachability this
- * class already relies on for registration approval.
+ * <p>The new member's sign certificate comes from {@link SignCertificateOps}, which needs the test CA
+ * reachable from the test JVM (see {@link E2eEnvironment}'s {@code "ca"} environment).
  *
  * <p>Only k8s and LXD run the dataspace protocol stack; the Compose facade implements neither
  * {@link DsControlPlaneDbOps} nor {@link DidResolutionOps}, so this scenario self-skips there via
@@ -125,7 +123,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  */
 @DisplayName("SS proxy - runtime-provisioned member serves an established member-context consumer, no restart")
 @Order(350)
-@SuppressWarnings("checkstyle:magicnumber")
 class SsProxyDspRuntimeMemberTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
@@ -149,9 +146,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for {@code DEV:COM:4321}. */
     private static final String NEW_MEMBER_CTX_ID = "DEV:COM:4321";
-
-    private static final MemberSignCertificate NEW_MEMBER_SIGN_CERTIFICATE =
-            new MemberSignCertificate(SS0_ENV, NEW_MEMBER_ID, NEW_MEMBER_CODE, "Sign key 4321");
 
     private static final String DID_WEB_PREFIX = "did:web:";
     private static final ClientId.Conf NEW_MEMBER = ClientId.Conf.create(X_ROAD_INSTANCE, NEW_MEMBER_CLASS, NEW_MEMBER_CODE);
@@ -178,10 +172,14 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
      */
     private static final String ASSET_ID = NEW_CLIENT_ID + ":" + REST_SERVICE_CODE;
 
-    private static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
-
     private static final Duration DID_RESOLUTION_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration DID_RESOLUTION_POLL_INTERVAL = Duration.ofSeconds(3);
+    /**
+     * The provider control plane serves the catalog from an enumeration cache with a bounded TTL
+     * (default 60 s), and service-description changes deliberately carry no invalidation signal, so a
+     * freshly added service is contractually visible only after the cache expires. The consumer's call is
+     * retried across that window.
+     */
     private static final Duration CATALOG_VISIBILITY_TIMEOUT = Duration.ofSeconds(150);
     private static final Duration CATALOG_VISIBILITY_POLL_INTERVAL = Duration.ofSeconds(10);
 
@@ -206,7 +204,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 addLocalClient(ss0BaseUrl, ss0Session, NEW_CLIENT_ID));
 
         and("a CA-signed sign certificate for the new member is provisioned on ss0's token", () ->
-                NEW_MEMBER_SIGN_CERTIFICATE.provision(env, ss0Session));
+                provisionSignCertificate(env, ss0Session, NEW_MEMBER_ID));
 
         and("its registration is submitted from ss0 to the Central Server", () ->
                 registerClient(ss0BaseUrl, ss0Session, clientId));
@@ -235,18 +233,20 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         and("the new member's DID now resolves with verification keys", () ->
                 awaitKeyedDidDocument(env, didResolution));
 
-        var response = when(
-                "a REST request from the established consumer to the new client's service succeeds via the ss0 proxy, "
-                        + "within the catalog cache window",
-                () -> awaitCallSucceeds(env));
-
-        then("the response carries the expected POST service message", () ->
-                response.body("message", equalTo(EXPECTED_RESPONSE_MESSAGE)));
+        when("a REST request from the established consumer to the new client's service succeeds via the ss0 proxy "
+                        + "with the expected POST service message, within the catalog cache window",
+                () -> awaitCallSucceeds(
+                        () -> Mock1Fixture.callService(env, SS0_ENV, Mock1Fixture.MOCK1_X_ROAD_CLIENT, NEW_SERVICE_PATH),
+                        CATALOG_VISIBILITY_TIMEOUT, CATALOG_VISIBILITY_POLL_INTERVAL));
 
         var wireAgreementId = then(
                 "the negotiation completes: a CONSUMER row on the sender member's context and a PROVIDER row on the "
                         + "new member's own context share one wire agreement",
                 () -> dspAssertions.awaitNegotiationPair());
+
+        and("the provider's negotiation row carries the consumer server's published DSP base URL and the consumer's "
+                + "participant segment as the callback address", () ->
+                assertProviderNegotiationCallbackAddress(ss0BaseUrl, ss0Session, dspAssertions));
 
         and("exactly one per-context edc_contract_agreement copy exists for each side of that wire agreement", () ->
                 dspAssertions.assertPerContextAgreementCopies(wireAgreementId));
@@ -281,7 +281,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 .until(() -> {
                     var response = didResolution.resolveDidDocument(SS0_ENV, newMemberDidUrl(env));
                     last.set(response);
-                    return response.status() == 200 && hasVerificationKeys(response);
+                    return response.status() == HTTP_OK && hasVerificationKeys(response);
                 });
         assertThat(JsonPath.from(last.get().body()).getString("id")).as("id of the resolved document").isEqualTo(did);
     }
@@ -291,24 +291,16 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         return verificationMethods != null && !verificationMethods.isEmpty();
     }
 
-    /**
-     * The provider control plane serves the catalog from an enumeration cache with a bounded TTL
-     * (default 60 s), and service-description changes deliberately carry no invalidation signal — a
-     * freshly added service is contractually visible only after the cache expires. Retries the
-     * consumer's call across that window instead of asserting on the first attempt.
-     */
-    private ValidatableResponse awaitCallSucceeds(E2eEnvironment env) {
-        var last = new AtomicReference<ValidatableResponse>();
-        Awaitility.await()
-                .pollInterval(CATALOG_VISIBILITY_POLL_INTERVAL)
-                .timeout(CATALOG_VISIBILITY_TIMEOUT)
-                .untilAsserted(() -> {
-                    var response = Mock1Fixture.callService(env, SS0_ENV, Mock1Fixture.MOCK1_X_ROAD_CLIENT, NEW_SERVICE_PATH);
-                    last.set(response);
-                    assertThat(response.extract().statusCode())
-                            .as("consumer call via ss0 proxy (catalog visibility is bounded by the enumeration cache TTL)")
-                            .isEqualTo(200);
-                });
-        return last.get();
+    private void assertProviderNegotiationCallbackAddress(String ss0BaseUrl, AdminSession ss0,
+                                                          DspNegotiationDbAssertions dspAssertions) {
+        var expectedPrefix = dspBaseUrl(ss0BaseUrl, ss0) + "/" + CONSUMER_MEMBER_CTX_ID + "/";
+        dspAssertions.awaitProviderNegotiations("%:v1:" + CONSUMER_MEMBER_CTX_ID, negotiations -> {
+            assertThat(negotiations).as("PROVIDER negotiations with the consumer member's context").isNotEmpty();
+            assertThat(negotiations)
+                    .as("a FINALIZED negotiation whose callback address starts with %s; observed addresses: %s",
+                            expectedPrefix, negotiations.stream().map(ProviderNegotiation::counterpartyAddress).toList())
+                    .anyMatch(negotiation -> negotiation.isFinalized()
+                            && negotiation.counterpartyAddress().startsWith(expectedPrefix));
+        });
     }
 }

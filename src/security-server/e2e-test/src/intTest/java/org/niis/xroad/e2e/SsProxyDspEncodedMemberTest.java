@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.e2e;
 
-import io.restassured.response.ValidatableResponse;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
@@ -35,18 +34,18 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
 
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Map;
 
-import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
-import static org.niis.xroad.e2e.AdminApi.authed;
 import static org.niis.xroad.e2e.AdminApi.awaitClientRegistered;
+import static org.niis.xroad.e2e.AdminApi.awaitMemberContext;
 import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.AdminApi.registerClient;
+import static org.niis.xroad.e2e.DisabledServiceFault.awaitCallSucceeds;
+import static org.niis.xroad.e2e.SignCertificateOps.provisionSignCertificate;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -64,12 +63,11 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * <p>Parentheses are used because they are DN-safe in the sign certificate CSR, unlike {@code +}.
  *
  * <p>Once enabled, it self-skips outside k8s and LXD, which are the only environments supporting runtime
- * member registration. The sign certificate is provisioned through {@link MemberSignCertificate}.
+ * member registration.
  */
 @DisplayName("SS proxy - disabled until did:web resolves encoded DIDs: consumer member with a percent-encoded "
         + "context id negotiates with ss1")
 @Order(360)
-@SuppressWarnings("checkstyle:magicnumber")
 class SsProxyDspEncodedMemberTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
@@ -87,17 +85,13 @@ class SsProxyDspEncodedMemberTest extends E2eTest {
     private static final String PROVIDER_SERVICE_CODE = "mock1";
     private static final String PROVIDER_ASSET_ID = PROVIDER_CLIENT_ID + ":" + PROVIDER_SERVICE_CODE;
     private static final String PROVIDER_SERVICE_PATH = "/r1/DEV/COM/4321/TestClient/mock1";
-    private static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
+    private static final String PROVIDER_COUNTERPARTY_ID_LIKE = "%:v1:DEV:COM:222%";
 
-    private static final MemberSignCertificate SIGN_CERTIFICATE =
-            new MemberSignCertificate(SS0_ENV, MEMBER_ID, "222(A)", "Sign key 222A");
-
+    private static final String CREDENTIAL_STATUS_ISSUED = "ISSUED";
     private static final String CREDENTIAL_STATUS_ERROR = "ERROR";
     private static final String PUBLICATION_STATE_PUBLISHED = "PUBLISHED";
     private static final String PUBLICATION_STATE_REJECTED = "REJECTED";
 
-    private static final Duration PROVISIONING_POLL_TIMEOUT = Duration.ofMinutes(5);
-    private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration GRANT_TIMEOUT = Duration.ofSeconds(120);
     private static final Duration GRANT_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration CALL_TIMEOUT = Duration.ofSeconds(150);
@@ -115,6 +109,8 @@ class SsProxyDspEncodedMemberTest extends E2eTest {
                 SS1_ENV, PROVIDER_ASSET_ID, MEMBER_CTX_ID, PROVIDER_CTX_ID);
 
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
+        var negotiationsBefore = given("the provider negotiations that exist before this run are noted", () ->
+                ss1Assertions.latestProviderNegotiationCreatedAt(PROVIDER_COUNTERPARTY_ID_LIKE));
 
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
         var ss1BaseUrl = adminBaseUrl(env, SS1_ENV);
@@ -127,7 +123,7 @@ class SsProxyDspEncodedMemberTest extends E2eTest {
                 addLocalClient(ss0BaseUrl, ss0Session, CONSUMER_CLIENT_ID));
 
         and("a CA-signed sign certificate for the member is provisioned on ss0's token", () ->
-                SIGN_CERTIFICATE.provision(env, ss0Session));
+                provisionSignCertificate(env, ss0Session, MEMBER_ID));
 
         and("its registration is submitted from ss0 to the Central Server", () ->
                 registerClient(ss0BaseUrl, ss0Session, clientId));
@@ -143,14 +139,14 @@ class SsProxyDspEncodedMemberTest extends E2eTest {
         and("ss1 grants the new subsystem access to TestClient's mock1 service", () ->
                 awaitGrant(ss1BaseUrl, ss1Session));
 
-        var response = when("a REST request from the new subsystem to TestClient's mock1 succeeds via the ss0 proxy", () ->
-                awaitCallSucceeds(env));
-
-        then("the response carries the expected POST service message", () ->
-                response.body("message", equalTo(EXPECTED_RESPONSE_MESSAGE)));
+        when("a REST request from the new subsystem to TestClient's mock1 succeeds via the ss0 proxy "
+                        + "with the expected POST service message",
+                () -> awaitCallSucceeds(
+                        () -> Mock1Fixture.callService(env, SS0_ENV, CONSUMER_X_ROAD_CLIENT, PROVIDER_SERVICE_PATH),
+                        CALL_TIMEOUT, CALL_POLL_INTERVAL));
 
         and("ss1 recorded a finalized negotiation whose counterparty id carries the context id decoded exactly once", () ->
-                awaitProviderNegotiationWithDecodedCounterparty(ss1Assertions));
+                awaitProviderNegotiationWithDecodedCounterparty(ss1Assertions, negotiationsBefore));
     }
 
     /**
@@ -160,31 +156,24 @@ class SsProxyDspEncodedMemberTest extends E2eTest {
      * {@code publication_reason}.
      */
     private void awaitMemberCredentialIssuedAndDidPublished(String ss0BaseUrl, AdminSession ss0) {
-        var memberContext = "participant_contexts.find { it.kind == 'MEMBER' && it.participant_id == '"
-                + MEMBER_CTX_ID + "' }";
-        var terminalFailure = new AtomicReference<String>();
-        Awaitility.await()
-                .pollInterval(PROVISIONING_POLL_INTERVAL)
-                .timeout(PROVISIONING_POLL_TIMEOUT)
-                .ignoreExceptions()
-                .until(() -> {
-                    var response = authed(ss0).get(ss0BaseUrl + "/api/v1/dataspace/provisioning-status");
-                    if (response.getStatusCode() != HTTP_OK) {
-                        return false;
-                    }
-                    var json = response.jsonPath();
-                    var credentialStatus = json.getString(memberContext + ".credential_status");
-                    var publicationState = json.getString(memberContext + ".publication_state");
-                    if (CREDENTIAL_STATUS_ERROR.equals(credentialStatus)
-                            || PUBLICATION_STATE_REJECTED.equals(publicationState)) {
-                        terminalFailure.set("credential_status=%s, publication_state=%s, publication_reason=%s".formatted(
-                                credentialStatus, publicationState, json.getString(memberContext + ".publication_reason")));
-                        return true;
-                    }
-                    return AdminApi.ISSUED_CREDENTIAL_STATUS.equals(credentialStatus)
-                            && PUBLICATION_STATE_PUBLISHED.equals(publicationState);
-                });
-        assertThat(terminalFailure.get()).as("member context %s reached a terminal failure state", MEMBER_CTX_ID).isNull();
+        var context = awaitMemberContext(ss0BaseUrl, ss0, MEMBER_CTX_ID,
+                "credential of %s is ISSUED and its DID is PUBLISHED".formatted(MEMBER_CTX_ID),
+                member -> isFailed(member) || isIssuedAndPublished(member));
+        assertThat(isFailed(context))
+                .as("member context %s reached a terminal failure state: credential_status=%s, publication_state=%s, "
+                                + "publication_reason=%s", MEMBER_CTX_ID, context.get("credential_status"),
+                        context.get("publication_state"), context.get("publication_reason"))
+                .isFalse();
+    }
+
+    private static boolean isFailed(Map<String, Object> member) {
+        return CREDENTIAL_STATUS_ERROR.equals(member.get("credential_status"))
+                || PUBLICATION_STATE_REJECTED.equals(member.get("publication_state"));
+    }
+
+    private static boolean isIssuedAndPublished(Map<String, Object> member) {
+        return CREDENTIAL_STATUS_ISSUED.equals(member.get("credential_status"))
+                && PUBLICATION_STATE_PUBLISHED.equals(member.get("publication_state"));
     }
 
     /** Retried because ss1 can grant access only once its global configuration lists the new subsystem. */
@@ -196,27 +185,15 @@ class SsProxyDspEncodedMemberTest extends E2eTest {
                         ss1BaseUrl, ss1, PROVIDER_CLIENT_ID, CONSUMER_CLIENT_ID, PROVIDER_SERVICE_CODE));
     }
 
-    private ValidatableResponse awaitCallSucceeds(E2eEnvironment env) {
-        var last = new AtomicReference<ValidatableResponse>();
-        Awaitility.await()
-                .pollInterval(CALL_POLL_INTERVAL)
-                .timeout(CALL_TIMEOUT)
-                .untilAsserted(() -> {
-                    var response = Mock1Fixture.callService(env, SS0_ENV, CONSUMER_X_ROAD_CLIENT, PROVIDER_SERVICE_PATH);
-                    last.set(response);
-                    assertThat(response.extract().statusCode()).as("call via ss0 proxy").isEqualTo(200);
-                });
-        return last.get();
-    }
-
     /**
      * ss1 stores the consumer's DID, taken from its token, as the counterparty id and the consumer's callback
      * address as sent. The callback must carry the context id with its percent signs encoded once more, so that
      * ss1's single decode of the path segment yields the context id.
      */
-    private void awaitProviderNegotiationWithDecodedCounterparty(DspNegotiationDbAssertions ss1Assertions) {
-        ss1Assertions.awaitProviderNegotiations("%:v1:DEV:COM:222%", negotiations -> {
-            assertThat(negotiations).as("ss1 PROVIDER negotiations with a DEV:COM:222* counterparty").isNotEmpty();
+    private void awaitProviderNegotiationWithDecodedCounterparty(DspNegotiationDbAssertions ss1Assertions,
+                                                                  long createdAfter) {
+        ss1Assertions.awaitProviderNegotiationsCreatedAfter(PROVIDER_COUNTERPARTY_ID_LIKE, createdAfter, negotiations -> {
+            assertThat(negotiations).as("ss1 PROVIDER negotiations of this run with a DEV:COM:222* counterparty").isNotEmpty();
             assertThat(negotiations)
                     .as("counterparty ids must all end with %s", CONSUMER_DID_SUFFIX)
                     .allMatch(negotiation -> negotiation.counterpartyId().endsWith(CONSUMER_DID_SUFFIX));
