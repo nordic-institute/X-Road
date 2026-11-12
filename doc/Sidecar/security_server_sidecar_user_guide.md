@@ -5,40 +5,40 @@ Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                             | Author                    |
-|------------|---------|---------------------------------------------------------|---------------------------|
-| 13.11.2020 | 1.0     | Initial version                                         | Alberto Fernandez Lorenzo |
-| 24.12.2020 | 1.1     | Add description of features of different image versions | Petteri Kivimäki          |
-| 21.01.2021 | 1.2     | Removal of kubernetes related sections                  | Alberto Fernandez Lorenzo |
-| 10.02.2021 | 1.3     | Modify description of different supported platforms     | Raul Martinez Lopez       |
-| 06.05.2021 | 1.4     | Updated X-Road version                                  | Raul Martinez Lopez       |
-| 12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                    | Raul Martinez Lopez       |
-| 15.10.2021 | 1.6     | Minor documentation updates                             | Janne Mattila             |
-| 02.11.2021 | 1.7     | Updates for Sidecar 7.0.0                               | Jarkko Hyöty              |
-| 28.11.2021 | 1.8     | Add license info                                        | Petteri Kivimäki          |
-| 11.10.2022 | 1.9     | Minor documentation updates regarding upgrade process   | Monika Liutkute           |
-| 06.07.2023 | 1.10    | Sidecar repo migration                                  | Eneli Reimets             |
-| 22.02.2024 | 1.11    | Local database files mapping with docker volume         | Eneli Reimets             |
-| 13.05.2024 | 1.12    | Add additional upgrade details for Sidecar 7.5          | Ovidijus Narkevicius      |
-| 22.08.2024 | 1.13    | Add a section about enabling ACME support               | Eneli Reimets             |
-| 23.09.2024 | 1.14    | Changing System Parameter Values in Configuration Files | Eneli Reimets             |
-| 23.12.2024 | 1.15    | Minor documentation updates                             | Eneli Reimets             |
-| 18.02.2025 | 1.16    | Configuring memory allocation fo proxy service          | Ovidijus Narkevičius      |
-| 26.03.2025 | 1.17    | Syntax and styling                                      | Pauline Dimmek            |
-| 02.04.2025 | 1.18    | Added autologin paragraph                               | Mikk-Erik Bachmann        |
-| 28.08.2025 | 1.19    | Added paragraph about custom ACME challenge port number | Mikk-Erik Bachmann        |
-| 14.10.2025 | 1.20    | Document multiple token autologin support               | Raido Kaju                |
-| 18.12.2025 | 1.21    | Added hardware token installation paragraph             | Marc David                |
-| 02.03.2026 | 1.22    | Fix broken link                                         | Petteri Kivimäki          |
-| 03.09.2026 | 1.23    | Document the first-boot hook directory                 | Ričardas Bučiūnas         |
-| 03.09.2026 | 1.24    | Document building from tree-built DEBs                 | Ričardas Bučiūnas         |
-| 04.09.2026 | 1.25    | Document supplying a real DS-HTTPS certificate          | Ričardas Bučiūnas         |
-| 09.09.2026 | 1.26    | Remove the retired slim image                           | Ričardas Bučiūnas         |
-| 09.09.2026 | 1.27    | Remove the retired local.ini configuration instructions | Ričardas Bučiūnas         |
+| Date       | Version | Description                                                      | Author                    |
+|------------|---------|------------------------------------------------------------------|---------------------------|
+| 13.11.2020 | 1.0     | Initial version                                                  | Alberto Fernandez Lorenzo |
+| 24.12.2020 | 1.1     | Add description of features of different image versions          | Petteri Kivimäki          |
+| 21.01.2021 | 1.2     | Removal of kubernetes related sections                           | Alberto Fernandez Lorenzo |
+| 10.02.2021 | 1.3     | Modify description of different supported platforms              | Raul Martinez Lopez       |
+| 06.05.2021 | 1.4     | Updated X-Road version                                           | Raul Martinez Lopez       |
+| 12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                             | Raul Martinez Lopez       |
+| 15.10.2021 | 1.6     | Minor documentation updates                                      | Janne Mattila             |
+| 02.11.2021 | 1.7     | Updates for Sidecar 7.0.0                                        | Jarkko Hyöty              |
+| 28.11.2021 | 1.8     | Add license info                                                 | Petteri Kivimäki          |
+| 11.10.2022 | 1.9     | Minor documentation updates regarding upgrade process            | Monika Liutkute           |
+| 06.07.2023 | 1.10    | Sidecar repo migration                                           | Eneli Reimets             |
+| 22.02.2024 | 1.11    | Local database files mapping with docker volume                  | Eneli Reimets             |
+| 13.05.2024 | 1.12    | Add additional upgrade details for Sidecar 7.5                   | Ovidijus Narkevicius      |
+| 22.08.2024 | 1.13    | Add a section about enabling ACME support                        | Eneli Reimets             |
+| 23.09.2024 | 1.14    | Changing System Parameter Values in Configuration Files          | Eneli Reimets             |
+| 23.12.2024 | 1.15    | Minor documentation updates                                      | Eneli Reimets             |
+| 18.02.2025 | 1.16    | Configuring memory allocation fo proxy service                   | Ovidijus Narkevičius      |
+| 26.03.2025 | 1.17    | Syntax and styling                                               | Pauline Dimmek            |
+| 02.04.2025 | 1.18    | Added autologin paragraph                                        | Mikk-Erik Bachmann        |
+| 28.08.2025 | 1.19    | Added paragraph about custom ACME challenge port number          | Mikk-Erik Bachmann        |
+| 14.10.2025 | 1.20    | Document multiple token autologin support                        | Raido Kaju                |
+| 18.12.2025 | 1.21    | Added hardware token installation paragraph                      | Marc David                |
+| 02.03.2026 | 1.22    | Fix broken link                                                  | Petteri Kivimäki          |
+| 03.09.2026 | 1.23    | Document the first-boot hook directory                           | Ričardas Bučiūnas         |
+| 03.09.2026 | 1.24    | Document building from tree-built DEBs                           | Ričardas Bučiūnas         |
+| 04.09.2026 | 1.25    | Document supplying a real DS-HTTPS certificate                   | Ričardas Bučiūnas         |
+| 09.09.2026 | 1.26    | Remove the retired slim image                                    | Ričardas Bučiūnas         |
+| 09.09.2026 | 1.27    | Remove the retired local.ini configuration instructions          | Ričardas Bučiūnas         |
 | 10.09.2026 | 1.28    | Document hardware token configuration via `xroad.signer.modules` | Ričardas Bučiūnas         |
-| 14.09.2026 | 1.29    | Added health-check and external secret store network ports | Eneli Reimets             |
-| 06.11.2026 | 1.30    | Link the operational monitoring connection trust settings | Eneli Reimets             |
-| 10.11.2026 | 1.31    | Document the 7.8.3 to 8.0.0 migration                            | Marc David                |
+| 14.09.2026 | 1.29    | Added health-check and external secret store network ports       | Eneli Reimets             |
+| 06.11.2026 | 1.30    | Link the operational monitoring connection trust settings        | Eneli Reimets             |
+| 12.11.2026 | 1.31    | Document the 7.8.3 to 8.0.0 migration                            | Marc David                |
 
 ## License
 
@@ -77,10 +77,10 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
   * [4.3 Upgrading from version 7.8.3 to 8.0.0](#43-upgrading-from-version-783-to-800)
     * [Before you start](#before-you-start)
-    * [Migrating with a local database](#migrating-with-a-local-database)
-    * [Migrating with an external database](#migrating-with-an-external-database)
     * [Migration command additions](#migration-command-additions)
     * [Migration options](#migration-options)
+    * [Migrating with a local database](#migrating-with-a-local-database)
+    * [Migrating with an external database](#migrating-with-an-external-database)
     * [Checking the migration result](#checking-the-migration-result)
     * [After the migration](#after-the-migration)
     * [Recovering from a failed migration](#recovering-from-a-failed-migration)
@@ -674,7 +674,7 @@ Therefore, the 8.0.0 image must be run once in migration mode, which migrates th
 
 For where each kind of configuration and key goes, see [Migration-CLI sub-steps](../Manuals/ig-ss_x-road_v8_security_server_upgrade_guide.md#migration-cli-sub-steps) in the Security Server Upgrade Guide: X-Road 7.8 to X-Road 8.
 
-The steps depend on where the 7.8.3 Sidecar keeps its database. Follow [Migrating with a local database](#migrating-with-a-local-database) or [Migrating with an external database](#migrating-with-an-external-database). Both use the common sections that follow them.
+The steps depend on where the 7.8.3 Sidecar keeps its database. Follow [Migrating with a local database](#migrating-with-a-local-database) or [Migrating with an external database](#migrating-with-an-external-database). Both use [Migration command additions](#migration-command-additions) and [Migration options](#migration-options).
 
 #### Before you start
 
@@ -686,6 +686,38 @@ Check that:
 * You use the 8.0.0 image with the same country variant as the 7.8.3 image, or the image without a variant if the 7.8.3 image had none. X-Road 8 has no `slim` image: a `slim` 7.8.3 Sidecar image migrates to the 8.0.0 image without including message logging or environmental and operational monitoring.
 
 In the commands below, `<7.8.3 config volume name>` and `<7.8.3 archive volume name>` are the volumes the 7.8.3 Sidecar mounted at `/etc/xroad` and `/var/lib/xroad`. If the 7.8.3 Sidecar had no volume at `/var/lib/xroad`, use a new volume instead. `<new config volume name>` and `<new database volume name>` are new volumes and must not exist yet.
+
+#### Migration command additions
+
+Add these to the migration command of your database type, before the image line, when they apply:
+
+* If the 7.8.3 Sidecar got the ACME account keystore password from `ACCOUNT_KEYSTORE_PASSWORD`, add it:
+
+    ```bash
+      -e ACCOUNT_KEYSTORE_PASSWORD=<ACME keystore password> \
+    ```
+
+* If the 7.8.3 Sidecar used autologin (`XROAD_TOKEN_PIN` or `/etc/xroad/autologin`), add the X-Road 8 autologin variables. The underlying implementation of autologin works differently in X-Road 8 and therefore, the migration mode doesn't migrate the 7.8.3 autologin and deletes `/etc/xroad/autologin`. For the variables, see [3.4 Autologin](#34-autologin).
+
+    ```bash
+      -e XROAD_SIGNER_AUTOLOGIN_ENABLED=true \
+      -e XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=<token pin> \
+    ```
+
+* With an external secret store, add the variables in [2.10 Secret Store](#210-secret-store).
+* To change what the migration sets, add the variables in [Migration options](#migration-options).
+
+#### Migration options
+
+Add these environment variables to the migration command to change what the migration sets. For the X-Road 7 behaviour and the X-Road 8 default of batch signing and strict identifier checks, see [Operator choices](../Manuals/ig-ss_x-road_v8_security_server_upgrade_guide.md#operator-choices) in the Security Server Upgrade Guide: X-Road 7.8 to X-Road 8.
+
+| Variable                                   | Value             | If not set                                                                                           |
+|--------------------------------------------|-------------------|------------------------------------------------------------------------------------------------------|
+| `XROAD_MIGRATION_MESSAGE_LOG_ENABLED`      | `true` or `false` | Message logging is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`          |
+| `XROAD_MIGRATION_ENV_MONITORING_ENABLED`   | `true` or `false` | Environmental monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim` |
+| `XROAD_MIGRATION_OP_MONITORING_ENABLED`    | `true` or `false` | Operational monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`   |
+| `XROAD_MIGRATION_BATCH_SIGNING_ENABLED`    | `true`            | Batch signing is disabled, the X-Road 8 default                                                      |
+| `XROAD_MIGRATION_STRICT_IDENTIFIER_CHECKS` | `true`            | Strict identifier checks are disabled, the X-Road 7 behaviour                                        |
 
 #### Migrating with a local database
 
@@ -815,38 +847,6 @@ The database server must run PostgreSQL 15 or newer. For full compatibility, use
     ```bash
     docker start <container name prev>
     ```
-
-#### Migration command additions
-
-Add these to the migration command of your database type, before the image line, when they apply:
-
-* If the 7.8.3 Sidecar got the ACME account keystore password from `ACCOUNT_KEYSTORE_PASSWORD`, add it:
-
-    ```bash
-      -e ACCOUNT_KEYSTORE_PASSWORD=<ACME keystore password> \
-    ```
-
-* If the 7.8.3 Sidecar used autologin (`XROAD_TOKEN_PIN` or `/etc/xroad/autologin`), add the X-Road 8 autologin variables. Migration mode doesn't migrate the 7.8.3 autologin and deletes `/etc/xroad/autologin`. For the variables, see [3.4 Autologin](#34-autologin).
-
-    ```bash
-      -e XROAD_SIGNER_AUTOLOGIN_ENABLED=true \
-      -e XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=<token pin> \
-    ```
-
-* With an external secret store, add the variables in [2.10 Secret Store](#210-secret-store).
-* To change what the migration sets, add the variables in [Migration options](#migration-options).
-
-#### Migration options
-
-Add these environment variables to the migration command to change what the migration sets. For the X-Road 7 behaviour and the X-Road 8 default of batch signing and strict identifier checks, see [Operator choices](../Manuals/ig-ss_x-road_v8_security_server_upgrade_guide.md#operator-choices) in the Security Server Upgrade Guide: X-Road 7.8 to X-Road 8.
-
-| Variable                                   | Value             | If not set                                                                                           |
-|--------------------------------------------|-------------------|------------------------------------------------------------------------------------------------------|
-| `XROAD_MIGRATION_MESSAGE_LOG_ENABLED`      | `true` or `false` | Message logging is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`          |
-| `XROAD_MIGRATION_ENV_MONITORING_ENABLED`   | `true` or `false` | Environmental monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim` |
-| `XROAD_MIGRATION_OP_MONITORING_ENABLED`    | `true` or `false` | Operational monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`   |
-| `XROAD_MIGRATION_BATCH_SIGNING_ENABLED`    | `true`            | Batch signing is disabled, the X-Road 8 default                                                      |
-| `XROAD_MIGRATION_STRICT_IDENTIFIER_CHECKS` | `true`            | Strict identifier checks are disabled, the X-Road 7 behaviour                                        |
 
 #### Checking the migration result
 
