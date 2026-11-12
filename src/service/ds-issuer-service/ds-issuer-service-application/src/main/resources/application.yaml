@@ -71,6 +71,16 @@ edc:
   issuer:
     dcp:
       profile: vc20-bssl/jwt
+    issuance:
+      # A full batch must finish shorter than the lease: batch-size x call-timeout < lease-duration.
+      state-machine:
+        lease-duration-millis: 300000
+        batch-size: 10
+      send:
+        call-timeout:
+          ms: 15000
+        connect-timeout:
+          ms: 5000
   vault:
     hashicorp:
       url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"

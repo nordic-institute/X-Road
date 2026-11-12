@@ -40,6 +40,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -129,6 +130,7 @@ public class ClientSoapMessageProcessor {
     private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
     private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
+    private final DspFailover dspFailover;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
@@ -236,8 +238,8 @@ public class ClientSoapMessageProcessor {
         identifierValidationService.checkIdentifier(decoder.getRequestSoap().getSecurityServer());
     }
 
-    private ProxyMessage processRequest(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
-                                        String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
+    ProxyMessage processRequest(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
+                                String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("processRequest()");
         clientRequestPreparationService.recordServiceSecurityServerAddress(
                 decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(), ctx, opMonitoringData);
@@ -245,19 +247,19 @@ public class ClientSoapMessageProcessor {
                 decoder.getServiceId(), decoder.getRequestSoap().getClient(),
                 decoder.getRequestSoap().getSecurityServer(),
                 isManagementRequest(decoder.getServiceId()));
-        var assetAccess = new AtomicReference<AssetAccessResponse>(
-                proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)
-                        ? consumerSideDspProcessor.execute(dspRequest)
-                        : null);
+        SentRequest sentRequest = null;
         ProxyMessage response;
-        try (HttpSender httpSender = executeWithRetry(ctx, decoder, xRequestId, opMonitoringData, dspRequest, assetAccess)) {
-            // Check for any errors from the handler thread once more.
-            waitForRequestSent(ctx);
-            checkError(decoder);
+        try {
+            sentRequest = send(dspRequest, ctx, decoder, xRequestId, opMonitoringData);
+            try (HttpSender httpSender = sentRequest.httpSender()) {
+                // Check for any errors from the handler thread once more.
+                waitForRequestSent(ctx);
+                checkError(decoder);
 
-            response = parseResponse(httpSender, decoder, opMonitoringData);
+                response = parseResponse(httpSender, decoder, opMonitoringData);
+            }
         } catch (XrdRuntimeException e) {
-            dropAssetAccessOnTokenRejection(e, dspRequest, assetAccess.get());
+            dropAssetAccessOnTokenRejection(e, dspRequest, sentRequest != null ? sentRequest.assetAccess() : null);
             throw e;
         }
 
@@ -277,89 +279,96 @@ public class ClientSoapMessageProcessor {
     }
 
     /**
-     * Sends the request, transparently retrying towards another security server when a TLS
-     * handshake failure surfaces mid-request (e.g. a TLS 1.3 server proxy rejecting the client
-     * certificate after the handshake completed), and failing over once to another provider server
-     * when the data call could not connect to the one {@code assetAccess} points at. The first
-     * attempt streams the message from the request pipe as the handler thread encodes it; when it
-     * fails, the pipe is drained so the handler thread completes the message (attachment caching,
-     * signing, exactly-once logging), and subsequent attempts replay it byte-identically from the
-     * captured state. Returns the sender of the successful attempt, left open so the response can be
-     * parsed from it; failed attempts' senders are closed here. {@code assetAccess} is updated to the
-     * asset access the returned sender used.
+     * Sends the request and returns the sender of the successful attempt, left open so the response can be
+     * parsed from it, with the asset access of that attempt. Requests that go through DSP move to a sibling
+     * Security Server only when nothing was sent; all other requests use the TLS handshake retry across the
+     * resolved addresses.
      */
-    HttpSender executeWithRetry(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
-                                String xRequestId, OpMonitoringData opMonitoringData,
-                                DspRequest dspRequest, AtomicReference<AssetAccessResponse> assetAccess)
-            throws Exception {
+    SentRequest send(DspRequest dspRequest, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
+                     String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
+        if (proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)) {
+            return sendWithDspFailover(dspRequest, ctx, decoder, xRequestId, opMonitoringData);
+        }
+        return new SentRequest(executeWithRetry(ctx, decoder, xRequestId, opMonitoringData), null);
+    }
+
+    /**
+     * Sends the request over DSP. When the chosen Security Server never received the request, it goes to the
+     * Security Server that a new acquisition selects. The first attempt streams the message from the request
+     * pipe; before moving to a sibling, the pipe is drained so the handler thread completes the message, and the
+     * sibling gets it replayed byte-identically. Failures of the acquisition are thrown as they are.
+     */
+    private SentRequest sendWithDspFailover(DspRequest dspRequest, ClientSoapRequestContext ctx,
+                                            SoapRequestDecoder decoder, String xRequestId,
+                                            OpMonitoringData opMonitoringData) throws Exception {
+        var replayEntity = new AtomicReference<ReplaySoapProxyMessageEntity>();
+        return dspFailover.run(dspRequest, xRequestId, proxyProperties.clientProxy().enableRequestRetry(),
+                () -> replayEntity.get() != null || completeRequestForReplay(ctx, decoder, xRequestId)
+                        && replayEntity.compareAndSet(null, new ReplaySoapProxyMessageEntity(decoder)),
+                (httpSender, access) -> {
+                    sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData, access, replayEntity.get());
+                    return new SentRequest(httpSender, access);
+                });
+    }
+
+    /**
+     * Sends the request to the provider over the X-Road 7 path, transparently retrying towards another
+     * security server when a TLS handshake failure surfaces mid-request (e.g. a TLS 1.3 server proxy rejecting
+     * the client certificate after the handshake completed). The first attempt streams the message from the
+     * request pipe as the handler thread encodes it; when it fails, the pipe is drained so the
+     * handler thread completes the message (attachment caching, signing, exactly-once logging),
+     * and subsequent attempts replay it byte-identically from the captured state. Returns the
+     * sender of the successful attempt, left open so the response can be parsed from it; failed
+     * attempts' senders are closed here.
+     */
+    private HttpSender executeWithRetry(ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
+                                        String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
+        final boolean retryEnabled = proxyProperties.clientProxy().enableRequestRetry();
         ReplaySoapProxyMessageEntity replayEntity = null;
-        boolean failedOver = false;
         for (int attempt = 1; ; attempt++) {
             var httpSender = httpSenderProvider.createClientHttpSender();
             try {
-                sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData, assetAccess.get(), replayEntity);
+                sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData, null, replayEntity);
                 return httpSender;
             } catch (Exception e) {
                 var targets = httpSender.getAttribute(ID_TARGETS);
                 var failedAddress = httpSender.getAttribute(ID_SELECTED_TARGET);
                 httpSender.close();
-                var action = nextRetryAction(e, targets, attempt, failedOver, assetAccess.get());
-                if (action == RetryAction.NONE || !completeRequestForReplay(ctx, decoder, attempt)) {
+                if (!retryEnabled || !clientRequestPreparationService.shouldRetry(e, targets, attempt)
+                        || replayEntity == null && !completeRequestForReplay(ctx, decoder, xRequestId)) {
                     throw e;
                 }
                 if (replayEntity == null) {
                     replayEntity = new ReplaySoapProxyMessageEntity(decoder);
                 }
-                if (action == RetryAction.FAIL_OVER) {
-                    assetAccess.set(failOver(dspRequest, assetAccess.get(), xRequestId, e));
-                    failedOver = true;
-                } else {
-                    log.warn("Sending the request to the server proxy failed with a TLS handshake error, retrying"
-                                    + " (xRequestId: {}, attempt: {}, failed address: {})",
-                            xRequestId, attempt, failedAddress, e);
-                }
+                log.warn("Sending the request to the server proxy failed with a TLS handshake error, retrying"
+                                + " (xRequestId: {}, attempt: {}, failed address: {})",
+                        xRequestId, attempt, failedAddress, e);
             }
         }
-    }
-
-    private enum RetryAction { NONE, TLS_RETRY, FAIL_OVER }
-
-    private RetryAction nextRetryAction(Exception failure, Object targets, int attempt, boolean failedOver,
-                                        AssetAccessResponse assetAccess) {
-        if (!proxyProperties.clientProxy().enableRequestRetry()) {
-            return RetryAction.NONE;
-        }
-        if (clientRequestPreparationService.shouldRetry(failure, targets, attempt)) {
-            return RetryAction.TLS_RETRY;
-        }
-        return !failedOver && assetAccess != null && DataCallFailover.isConnectionFailure(failure)
-                ? RetryAction.FAIL_OVER
-                : RetryAction.NONE;
-    }
-
-    private AssetAccessResponse failOver(DspRequest dspRequest, AssetAccessResponse failed, String xRequestId,
-                                         Exception connectionFailure) throws Exception {
-        log.warn("Data call to {} could not connect, failing over (xRequestId: {})",
-                failed.endpoint(), xRequestId, connectionFailure);
-        return consumerSideDspProcessor.failOver(dspRequest, failed).orElseThrow(() -> connectionFailure);
     }
 
     /**
      * After a failed first attempt, finishes producing the request message so that it can be
      * replayed: drains the remaining encoded message from the pipe — letting the handler thread
      * parse the whole client request, cache the attachments, sign the message and log it — waits
-     * for the handler thread to finish, and verifies it completed without errors. Later attempts
-     * replay from memory and the caches, so there is nothing left to complete.
+     * for the handler thread to finish, and verifies it completed without errors. The handler thread's own
+     * error is logged when it blocks the replay, because the caller only sees the failed send.
      *
      * @return true if the request message is fully produced and replayable
      */
-    private boolean completeRequestForReplay(ClientSoapRequestContext ctx, SoapRequestDecoder decoder, int attempt) {
-        if (attempt > 1) {
-            return true;
-        }
+    private boolean completeRequestForReplay(ClientSoapRequestContext ctx, SoapRequestDecoder decoder, String xRequestId) {
         drainAndClose(ctx.reqIns());
         waitForRequestSent(ctx);
-        return decoder.getException() == null;
+        var requestError = decoder.getException();
+        if (requestError != null) {
+            log.warn("The client request could not be completed for replay, so it is not sent again (xRequestId: {})",
+                    xRequestId, requestError);
+        }
+        return requestError == null;
+    }
+
+    record SentRequest(HttpSender httpSender, @Nullable AssetAccessResponse assetAccess) {
     }
 
     private static void drainAndClose(PipedInputStream reqIns) {

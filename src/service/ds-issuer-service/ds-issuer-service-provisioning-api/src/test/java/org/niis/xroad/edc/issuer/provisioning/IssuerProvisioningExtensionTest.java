@@ -26,9 +26,12 @@
  */
 package org.niis.xroad.edc.issuer.provisioning;
 
+import org.eclipse.edc.identityhub.spi.did.DidDocumentService;
+import org.eclipse.edc.identityhub.spi.keypair.KeyPairService;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionService;
 import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.CredentialDefinitionService;
+import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +54,12 @@ class IssuerProvisioningExtensionTest {
     @Mock
     private CredentialDefinitionService credentialDefinitionService;
     @Mock
+    private KeyPairService keyPairService;
+    @Mock
+    private DidDocumentService didDocumentService;
+    @Mock
+    private PrivateKeyResolver privateKeyResolver;
+    @Mock
     private GrpcServiceRegistry grpcServiceRegistry;
     @Mock
     private Monitor monitor;
@@ -65,6 +74,9 @@ class IssuerProvisioningExtensionTest {
         setField(extension, "participantContextService", participantContextService);
         setField(extension, "attestationDefinitionService", attestationDefinitionService);
         setField(extension, "credentialDefinitionService", credentialDefinitionService);
+        setField(extension, "keyPairService", keyPairService);
+        setField(extension, "didDocumentService", didDocumentService);
+        setField(extension, "privateKeyResolver", privateKeyResolver);
         setField(extension, "grpcServiceRegistry", grpcServiceRegistry);
         setField(extension, "monitor", monitor);
     }

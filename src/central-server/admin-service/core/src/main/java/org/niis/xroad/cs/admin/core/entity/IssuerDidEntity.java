@@ -37,9 +37,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * A Central Server node's dataspace credential Issuer DID (globalconf {@code credentialIssuer/did}
- * entry). Under a high-availability Central Server, each node registers its own; the full set is the
- * distributed dataspace issuer trust anchor.
+ * The Central Server's data space credential Issuer identity binding (globalconf
+ * {@code credentialIssuer/did} entry): the Issuer's DID and the full URLs a verifier needs to reach
+ * it. Bound once, at data space issuer provisioning time, and never changed afterwards.
  */
 @Entity
 @Table(name = IssuerDidEntity.TABLE_NAME)
@@ -59,7 +59,27 @@ public class IssuerDidEntity extends AuditableEntity {
     @Getter
     private String did;
 
-    public IssuerDidEntity(String did) {
+    @Column(name = "host", nullable = false, updatable = false)
+    @Getter
+    private String host;
+
+    @Column(name = "did_port", nullable = false, updatable = false)
+    @Getter
+    private int didPort;
+
+    @Column(name = "issuance_url", nullable = false, updatable = false)
+    @Getter
+    private String issuanceUrl;
+
+    @Column(name = "statuslist_base_url", nullable = false, updatable = false)
+    @Getter
+    private String statuslistBaseUrl;
+
+    public IssuerDidEntity(String did, String host, int didPort, String issuanceUrl, String statuslistBaseUrl) {
         this.did = did;
+        this.host = host;
+        this.didPort = didPort;
+        this.issuanceUrl = issuanceUrl;
+        this.statuslistBaseUrl = statuslistBaseUrl;
     }
 }

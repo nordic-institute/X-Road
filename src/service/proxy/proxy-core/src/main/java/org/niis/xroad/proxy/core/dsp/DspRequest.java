@@ -33,6 +33,10 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * DSP request. Carries the per-request context that {@link DspRequestProcessor} needs to resolve
  * asset access from the control plane. {@code managementSubsystem} marks a request whose service is
@@ -49,7 +53,30 @@ import jakarta.annotation.Nullable;
  *                             resolver restricts provider candidates to this exact SS
  * @param managementSubsystem  {@code true} when the request's service is addressed to the federation's
  *                             management subsystem client id
+ * @param triedServers         the counter-party addresses of the Security Servers the call already tried; the
+ *                             request processor leaves their candidates out
  */
 public record DspRequest(ServiceId serviceId, @Nonnull ClientId sender, @Nullable SecurityServerId targetSecurityServer,
-                         boolean managementSubsystem) {
+                         boolean managementSubsystem, @Nonnull Set<String> triedServers) {
+    public DspRequest {
+        triedServers = Set.copyOf(triedServers);
+    }
+
+    /**
+     * A request that has tried no server yet.
+     */
+    public DspRequest(ServiceId serviceId, ClientId sender, @Nullable SecurityServerId targetSecurityServer,
+                      boolean managementSubsystem) {
+        this(serviceId, sender, targetSecurityServer, managementSubsystem, Set.of());
+    }
+
+    /**
+     * Returns a copy of this request that also counts the server at the given address as tried.
+     *
+     * @param counterPartyAddress the counter-party address of the server that won the failed attempt
+     */
+    public DspRequest withTriedServer(String counterPartyAddress) {
+        return new DspRequest(serviceId, sender, targetSecurityServer, managementSubsystem,
+                Stream.concat(triedServers.stream(), Stream.of(counterPartyAddress)).collect(Collectors.toSet()));
+    }
 }

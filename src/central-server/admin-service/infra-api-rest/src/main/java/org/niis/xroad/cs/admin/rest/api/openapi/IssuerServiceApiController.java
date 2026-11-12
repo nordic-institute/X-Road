@@ -27,10 +27,18 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.cs.admin.api.domain.IssuerServiceStatus;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
+import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
+import org.niis.xroad.cs.admin.api.service.IssuerServiceStatusService;
+import org.niis.xroad.cs.admin.api.service.IssuerSetUpService;
 import org.niis.xroad.cs.openapi.IssuerServiceApi;
+import org.niis.xroad.cs.openapi.model.CanSignCauseDto;
 import org.niis.xroad.cs.openapi.model.IssuerServiceHostDto;
+import org.niis.xroad.cs.openapi.model.IssuerServiceOverallStatusDto;
 import org.niis.xroad.cs.openapi.model.IssuerServiceStateDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -49,12 +57,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class IssuerServiceApiController implements IssuerServiceApi {
 
     private final IssuerHostService issuerHostService;
+    private final IssuerServiceStatusService issuerServiceStatusService;
+    private final IssuerSetUpService issuerSetUpService;
     private final AuditDataHelper auditDataHelper;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SYSTEM_SETTINGS')")
     public ResponseEntity<IssuerServiceStateDto> getIssuerServiceState() {
-        return ResponseEntity.ok(toDto(issuerHostService.getState()));
+        return ResponseEntity.ok(applyStatus(toDto(issuerHostService.getState()), issuerServiceStatusService.getStatus()));
     }
 
     @Override
@@ -63,12 +73,42 @@ public class IssuerServiceApiController implements IssuerServiceApi {
     public ResponseEntity<IssuerServiceStateDto> setIssuerServiceHost(IssuerServiceHostDto issuerServiceHost) {
         auditDataHelper.put(RestApiAuditProperty.ISSUER_SERVICE_HOST, issuerServiceHost.getHost());
         var state = issuerHostService.setHost(issuerServiceHost.getHost());
-        return ResponseEntity.ok(toDto(state));
+        return ResponseEntity.ok(applyStatus(toDto(state), issuerServiceStatusService.getStatus()));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('INITIALIZE_ISSUER_SERVICE')")
+    @AuditEventMethod(event = RestApiAuditEvent.INITIALIZE_ISSUER_SERVICE)
+    public ResponseEntity<Void> initializeIssuerService() {
+        return switch (issuerSetUpService.start()) {
+            case IssuerSetUpResult.Accepted() -> ResponseEntity.accepted().build();
+            case IssuerSetUpResult.Refused(var cause) -> throw refusalException(cause);
+        };
+    }
+
+    private static ConflictException refusalException(IssuerSetUpResult.Cause cause) {
+        return switch (cause) {
+            case ALREADY_SET_UP -> new ConflictException(ErrorMessage.ISSUER_SERVICE_ALREADY_BOUND.build());
+            case HOST_NOT_SET -> new ConflictException(ErrorMessage.ISSUER_SERVICE_HOST_NOT_SET.build());
+            case CERTIFICATE_NOT_READY -> new ConflictException(ErrorMessage.ISSUER_SERVICE_CERTIFICATE_NOT_READY.build());
+            case ALREADY_RUNNING -> new ConflictException(ErrorMessage.ISSUER_SERVICE_ALREADY_RUNNING.build());
+        };
     }
 
     private static IssuerServiceStateDto toDto(IssuerHostState state) {
         return new IssuerServiceStateDto()
                 .host(state.host())
                 .bound(state.bound());
+    }
+
+    private static IssuerServiceStateDto applyStatus(IssuerServiceStateDto dto, IssuerServiceStatus status) {
+        return dto
+                .hostSet(status.hostSet())
+                .certificateReady(status.certificateReady())
+                .runInProgress(status.runInProgress())
+                .didToBind(status.didToBind())
+                .canSign(status.canSign())
+                .canSignCause(status.canSignCause() == null ? null : CanSignCauseDto.valueOf(status.canSignCause().name()))
+                .status(IssuerServiceOverallStatusDto.valueOf(status.overall().name()));
     }
 }

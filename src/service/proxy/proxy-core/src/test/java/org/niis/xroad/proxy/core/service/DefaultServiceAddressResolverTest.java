@@ -128,6 +128,22 @@ class DefaultServiceAddressResolverTest {
     }
 
     @Test
+    void resolveThrowsMaintenanceModeWhenRemainingAddressCannotBeBuiltAsUri() {
+        var clientId = serviceProvider.getClientId();
+        when(globalConfProvider.getProviderAddress(clientId)).thenReturn(Set.of(HOST, "ss_0.example.org"));
+        var maintenanceMode = new SharedParameters.MaintenanceMode(true, "Scheduled maintenance");
+        when(globalConfProvider.getMaintenanceMode(INSTANCE, HOST)).thenReturn(Optional.of(maintenanceMode));
+
+        var ctx = new RestRequestContext(mock(ee.ria.xroad.common.util.RequestWrapper.class),
+                mock(ee.ria.xroad.common.util.ResponseWrapper.class),
+                mock(OpMonitoringData.class));
+
+        assertThatThrownBy(() -> resolver.resolve(serviceProvider, null, ctx))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getCode()).isEqualTo(MAINTENANCE_MODE.code()));
+    }
+
+    @Test
     void resolveThrowsUnknownMemberWhenNoAddressesFound() {
         when(globalConfProvider.getProviderAddress(any())).thenReturn(List.of());
 

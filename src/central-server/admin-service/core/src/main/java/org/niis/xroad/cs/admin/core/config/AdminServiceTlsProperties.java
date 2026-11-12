@@ -31,6 +31,7 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 import org.niis.xroad.common.vault.config.CertificateProvisioningConfig;
 import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
+import org.niis.xroad.common.vault.spring.config.ManagementServiceCertificateProvisioning;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,6 +49,10 @@ public class AdminServiceTlsProperties {
                 toList(xRoadConfig.value(CsAdminServiceConfigKeys.TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES)),
                 xRoadConfig.value(CsAdminServiceConfigKeys.TLS_CERT_PROVISIONING_TTL),
                 xRoadConfig.value(CsAdminServiceConfigKeys.TLS_CERT_PROVISIONING_SECRET_STORE_PKI_PATH));
+    }
+
+    public CertificateProvisioningProperties getManagementServiceCertificateProvisioning() {
+        return ManagementServiceCertificateProvisioning.from(xRoadConfig);
     }
 
     private static List<String> toList(String[] values) {

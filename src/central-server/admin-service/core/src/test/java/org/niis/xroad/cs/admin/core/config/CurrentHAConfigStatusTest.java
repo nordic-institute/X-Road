@@ -28,7 +28,11 @@ package org.niis.xroad.cs.admin.core.config;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.niis.xroad.common.vault.spring.NodeIdentityConfig;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -41,17 +45,29 @@ class CurrentHAConfigStatusTest {
     @SystemStub
     private final EnvironmentVariables variables = new EnvironmentVariables();
 
-    private final CurrentHAConfigStatus currentHAConfigStatus = new CurrentHAConfigStatus();
+    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withUserConfiguration(NodeIdentityConfig.class, CurrentHAConfigStatus.class);
 
     @Test
-    void shouldBeConfiguredWhenNodeNameEnvironmentVariableIsSet() {
-        variables.set("XROAD_NODE_NAME", "node_1");
+    void shouldBeUnconfiguredWithDefaultNameWhenNodeNameIsUnset() {
+        contextRunner.run(context -> {
+            var status = context.getBean(HAConfigStatus.class);
 
-        assertThat(currentHAConfigStatus.currentHaConfigStatus()).isEqualTo(new HAConfigStatus("node_1", true));
+            assertThat(status.getCurrentHaNodeName()).isEqualTo("node_0");
+            assertThat(status.isHaConfigured()).isFalse();
+        });
     }
 
-    @Test
-    void shouldFallBackToNodeZeroNotConfiguredWhenEnvironmentVariableIsUnset() {
-        assertThat(currentHAConfigStatus.currentHaConfigStatus()).isEqualTo(new HAConfigStatus("node_0", false));
+    @ParameterizedTest
+    @ValueSource(strings = {"node_a", "node_0"})
+    void shouldBeConfiguredWithTheGivenNodeNameEvenWhenItIsTheDefault(String nodeName) {
+        variables.set("XROAD_NODE_NAME", nodeName);
+
+        contextRunner.run(context -> {
+            var status = context.getBean(HAConfigStatus.class);
+
+            assertThat(status.getCurrentHaNodeName()).isEqualTo(nodeName);
+            assertThat(status.isHaConfigured()).isTrue();
+        });
     }
 }

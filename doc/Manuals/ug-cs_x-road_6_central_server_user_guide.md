@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.54  
+Version: 2.56  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -80,6 +80,8 @@ Doc. ID: UG-CS
 | 05.11.2025 | 2.52    | Add information about the approved CAs default CSR format                                                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 20.10.2026 | 2.53    | Added Issuer Service host configuration paragraph                                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
 | 06.11.2026 | 2.54    | Added the member DID column, the stale DID warning and the member DID edit and check (Section 7.2.1)                                                                                                                                                                                                                                                                                                                                    | Justas Samuolis      |
+| 11.11.2026 | 2.55    | Added a note that xroad-center must be restarted before re-creating the management service key after a change of the certificate names                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas    |
+| 12.11.2026 | 2.56    | Added Issuer Service issuance settings and statuslist capacity paragraph                                                                                                                                                                                                                                                                                                                                                                | Ričardas Bučiūnas    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -111,6 +113,9 @@ Doc. ID: UG-CS
     - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
       - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
   - [4.5 Configuring the Issuer Service Host](#45-configuring-the-issuer-service-host)
+  - [4.6 Issuer Service Issuance Settings and Statuslist Capacity](#46-issuer-service-issuance-settings-and-statuslist-capacity)
+    - [4.6.1 Issuance Settings](#461-issuance-settings)
+    - [4.6.2 Statuslist Capacity](#462-statuslist-capacity)
 - [5. Configuration Management](#5-configuration-management)
   - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
   - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
@@ -483,6 +488,8 @@ To re-create Management Service key and self-signed certificate, follow these st
 3. Confirm the re-creating by clicking Confirm.
 4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
 
+The new certificate gets the names that are stored in the configuration database. The user interface service `xroad-center` reads these names once, when it starts. If you changed the names after `xroad-center` started, restart `xroad-center` before you click Re-create key. Otherwise the new certificate gets the old names. See [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2 for how to change the names.
+
 To generate Management Service certificate signing request, follow these steps.
 
 1. In the Navigation tabs, select Settings --> TLS certificates.
@@ -504,7 +511,7 @@ When the key and certificate are rotated, and mTLS is enabled between the manage
 
 **ATTENTION!**
 - The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
-- The changed TLS certificate is automatically detected by Nginx within five minutes after the change.
+- The running management services keep serving the old certificate until they are restarted. Restart `xroad-center-management-service`, then `xroad-center-registration-service`, in this order. See [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2.
 
 ### 4.5 Configuring the Issuer Service Host
 
@@ -533,6 +540,35 @@ Only a valid DNS name is accepted: not an IP address, not `localhost` or a name 
 **Recommendation:** use a separate cluster DNS name for the Issuer Service host, not the host name of a Central Server node, even on a single node. The host cannot change after binding. If you use the node's own host name and add a node later, the existing node needs a new address, and every Security Server needs a new configuration anchor. With more than one node, the host must be the cluster DNS name, never a node's own host name.
 
 **ATTENTION!** On an initialized Central Server, the Issuer Service identity is bound automatically soon after the host is set. Check the value before you send it. Once the identity is bound, a valid new host, even the same one again, is refused, and the response names the bound host.
+
+### 4.6 Issuer Service Issuance Settings and Statuslist Capacity
+
+#### 4.6.1 Issuance Settings
+
+The Issuer Service issues credentials in batches. In each state-machine iteration it takes a time-limited lease on a whole batch of issuance requests, not one lease per delivery. If a node stalls for longer than the lease, another node can take the requests over, and a credential can be delivered twice. A full batch must therefore finish shorter than the lease: the batch size multiplied by the delivery call timeout must be smaller than the lease duration.
+
+The shipped configuration sets these values explicitly, so that a software upgrade cannot change them unnoticed:
+
+| Setting                                                   | Value  | Meaning                                                              |
+|-----------------------------------------------------------|--------|----------------------------------------------------------------------|
+| `edc.issuer.issuance.state-machine.lease-duration-millis` | 300000 | How long a node holds the lease on an issuance request, in ms        |
+| `edc.issuer.issuance.state-machine.batch-size`            | 10     | How many issuance requests a node processes in one batch             |
+| `edc.issuer.issuance.send.call-timeout.ms`                | 15000  | Time limit for one delivery call to a Security Server, in ms         |
+| `edc.issuer.issuance.send.connect-timeout.ms`             | 5000   | Time limit for opening the connection of a delivery call, in ms      |
+
+The default values need no change. To override a value, set the same key in `/etc/xroad/conf.d/local-ds-issuer-service.yaml` and restart the `xroad-ds-issuer-service` service. The override file is local to the node. On a clustered Central Server, set the override on every node and restart the service on each of them. Keep the batch size multiplied by the call timeout smaller than the lease duration.
+
+#### 4.6.2 Statuslist Capacity
+
+Every credential holds one slot in a statuslist, which records whether the credential is revoked. A statuslist has at least 131072 slots. Each renewal of a credential takes a new slot. Credentials are valid for 30 days and are renewed 7 days before they expire by default, so with this default a participant uses about 15.87 slots per year.
+
+The number of participants N counts each member once for every Security Server that hosts it, plus each Security Server. A member has a separate dataspace identity on every Security Server that hosts it. The number of statuslists needed after Y years is:
+
+`lists after Y years = ceil(N × 15.87 × Y / 131072)`
+
+For example, 5000 participants after 5 years need ceil(5000 × 15.87 × 5 / 131072) = 4 statuslists.
+
+When a statuslist is full, the Issuer Service adds a new one automatically and issues later credentials from it. The size of a statuslist is set by `edc.issuer.statuslist.bitstring.size`. Its minimum and default is 131072. X-Road does not set it, so no action is needed.
 
 ## 5. Configuration Management
 

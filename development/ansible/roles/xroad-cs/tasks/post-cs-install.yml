@@ -153,3 +153,33 @@
     port: 6183
     timeout: 240
   when: xroad_cs_ds_tls_san | length > 0
+
+# Initializes the Issuer Service. 409 ("already initialized" or "already running") is accepted so a
+# re-run of this role against an already-bound issuer stays idempotent.
+- name: initialize the Issuer Service through the admin API
+  uri:
+    url: "https://localhost:4000/api/v1/issuer-service/initialize"
+    method: POST
+    headers:
+      X-XSRF-TOKEN: "{{ cs_admin_login.cookies['XSRF-TOKEN'] }}"
+      Cookie: "{{ cs_admin_login.cookies_string }}"
+    validate_certs: false
+    status_code: [202, 409]
+  no_log: "{{ xroad_cs_admin_api_no_log }}"
+  when: xroad_cs_ds_tls_san | length > 0
+
+- name: wait until the Issuer Service identity is bound
+  uri:
+    url: "https://localhost:4000/api/v1/issuer-service"
+    method: GET
+    headers:
+      X-XSRF-TOKEN: "{{ cs_admin_login.cookies['XSRF-TOKEN'] }}"
+      Cookie: "{{ cs_admin_login.cookies_string }}"
+    validate_certs: false
+    return_content: true
+  register: cs_issuer_state_after_set_up
+  until: (cs_issuer_state_after_set_up.json.bound | default(false)) | bool
+  retries: 48
+  delay: 5
+  no_log: "{{ xroad_cs_admin_api_no_log }}"
+  when: xroad_cs_ds_tls_san | length > 0
