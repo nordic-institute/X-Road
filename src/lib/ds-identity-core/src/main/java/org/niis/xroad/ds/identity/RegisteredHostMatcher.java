@@ -29,13 +29,11 @@ package org.niis.xroad.ds.identity;
 import jakarta.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-
-import java.util.Optional;
 
 /**
- * Decides whether the host of a DID or of a DSP base URL is the registered address of a Security Server, and
- * holds the two rules that call a stored value stale. Pure: no storage, no clock.
+ * Decides whether the host of a DID is the registered address of a Security Server, and holds the two
+ * rules that call a stored value stale: a member DID, and a SYSTEM DID with its DSP base URL. Pure: no storage,
+ * no clock.
  *
  * <p>Hosts are compared after the canonical host rules of {@link DidAuthority}; ports are not compared. A registered
  * address that is unknown, not ASCII or not a usable host, a DID that cannot be decoded, and a DSP base URL that is
@@ -48,15 +46,12 @@ public final class RegisteredHostMatcher {
     private final String registeredHost;
 
     /**
-     * @param registeredAddress the address the server is registered under in global configuration, without a port;
-     *                          {@code null} when it is unknown
+     * @param registeredAddress the address the server is registered under in global configuration; a valid port
+     *                          in it is ignored; {@code null} when it is unknown
      * @return the matcher for that address
      */
     public static RegisteredHostMatcher of(@Nullable String registeredAddress) {
-        if (registeredAddress == null || !DidAuthority.isAscii(registeredAddress)) {
-            return new RegisteredHostMatcher(null);
-        }
-        return new RegisteredHostMatcher(canonicalHostOf(registeredAddress).orElse(null));
+        return new RegisteredHostMatcher(DidAuthority.canonicalHostOf(registeredAddress).orElse(null));
     }
 
     /**
@@ -71,15 +66,10 @@ public final class RegisteredHostMatcher {
      * @return whether the host it names is the registered address
      */
     public boolean didHostMatches(@Nullable String did) {
-        return registeredHost != null && did != null && decodedHost(did).filter(this::authorityHostMatches).isPresent();
-    }
-
-    /**
-     * @param url a DSP base URL
-     * @return whether the host it names is the registered address
-     */
-    public boolean dspBaseUrlHostMatches(@Nullable String url) {
-        return registeredHost != null && DidAuthority.httpsAuthority(url).filter(this::authorityHostMatches).isPresent();
+        return ParticipantIdentifierScheme.tryDecodeDid(did)
+                .map(DecodedParticipant::ssHost)
+                .filter(this::authorityHostMatches)
+                .isPresent();
     }
 
     /**
@@ -87,8 +77,7 @@ public final class RegisteredHostMatcher {
      * @return whether the host it names is the registered address
      */
     public boolean authorityHostMatches(@Nullable String authority) {
-        return registeredHost != null
-                && canonicalHostOf(authority).filter(host -> host.equals(registeredHost)).isPresent();
+        return DidAuthority.canonicalHostOf(authority).filter(host -> host.equals(registeredHost)).isPresent();
     }
 
     /**
@@ -108,19 +97,7 @@ public final class RegisteredHostMatcher {
         return !didHostMatches(systemDid) || !dspBaseUrlHostMatches(dspBaseUrl);
     }
 
-    private static Optional<String> decodedHost(String did) {
-        try {
-            return Optional.of(ParticipantIdentifierScheme.decodeDid(did).ssHost());
-        } catch (XrdRuntimeException _) {
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<String> canonicalHostOf(String authority) {
-        try {
-            return Optional.of(DidAuthority.canonicalHost(DidAuthority.parse(authority).host()));
-        } catch (XrdRuntimeException _) {
-            return Optional.empty();
-        }
+    private boolean dspBaseUrlHostMatches(@Nullable String url) {
+        return DidAuthority.httpsAuthority(url).filter(this::authorityHostMatches).isPresent();
     }
 }

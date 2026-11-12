@@ -36,7 +36,7 @@ import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.stream.IntStream;
+import java.util.regex.Pattern;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -52,7 +52,7 @@ public class DidAuthority {
     public static final int DEFAULT_HTTPS_PORT = 443;
 
     private static final String HTTPS_SCHEME_PREFIX = "https://";
-    private static final String AUTHORITY_TERMINATORS = "/?#";
+    private static final Pattern URL_AUTHORITY_END = Pattern.compile("[/?#]");
     private static final int NON_ASCII_START = 0x80;
     private static final int MIN_PORT = 1;
     private static final int MAX_PORT = 65535;
@@ -199,24 +199,21 @@ public class DidAuthority {
         if (url == null || !url.regionMatches(true, 0, HTTPS_SCHEME_PREFIX, 0, HTTPS_SCHEME_PREFIX.length())) {
             return Optional.empty();
         }
-        var afterScheme = url.substring(HTTPS_SCHEME_PREFIX.length());
-        int end = IntStream.range(0, afterScheme.length())
-                .filter(i -> AUTHORITY_TERMINATORS.indexOf(afterScheme.charAt(i)) >= 0)
-                .findFirst()
-                .orElse(afterScheme.length());
-        return Optional.of(afterScheme.substring(0, end));
+        return Optional.of(URL_AUTHORITY_END.split(url.substring(HTTPS_SCHEME_PREFIX.length()), 2)[0]);
     }
 
     /**
-     * @param authority an authority to check
-     * @return whether {@link #parse(String)} accepts it
+     * Unlike {@link #canonicalHost(String)}, which takes a bare host, this takes a host with an optional port and
+     * drops the port.
+     *
+     * @param authority an authority as {@link #parse(String)} reads it, or {@code null}
+     * @return its canonical host without the port, or empty when the authority is {@code null} or {@link #parse(String)} rejects it
      */
-    public static boolean isParseable(String authority) {
+    public static Optional<String> canonicalHostOf(@Nullable String authority) {
         try {
-            parse(authority);
-            return true;
+            return Optional.of(canonicalHost(parse(authority).host()));
         } catch (XrdRuntimeException _) {
-            return false;
+            return Optional.empty();
         }
     }
 
@@ -251,7 +248,7 @@ public class DidAuthority {
      */
     public static boolean isUriHost(String authority) {
         try {
-            return new URI("https://" + authority).getHost() != null;
+            return new URI(HTTPS_SCHEME_PREFIX + authority).getHost() != null;
         } catch (URISyntaxException _) {
             return false;
         }

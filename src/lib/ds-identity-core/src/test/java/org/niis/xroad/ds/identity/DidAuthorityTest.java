@@ -220,23 +220,22 @@ class DidAuthorityTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"ss0.example.org", "ss0.example.org:7183", "SS0.Example.ORG:443", "[2001:db8::1]:7183",
-            "2001:db8::1"})
-    void shouldTellAParseableAuthority(String authority) {
-        assertThat(DidAuthority.isParseable(authority)).isTrue();
+    @CsvSource({
+            "ss0.example.org,          ss0.example.org",
+            "SS0.Example.ORG:443,      ss0.example.org",
+            "ss0.example.org:7183,     ss0.example.org",
+            "[2001:db8::1]:7183,       [2001:db8::1]",
+            "2001:DB8::1,              [2001:db8::1]"
+    })
+    void shouldTakeTheCanonicalHostOfAnAuthority(String authority, String expected) {
+        assertThat(DidAuthority.canonicalHostOf(authority)).contains(expected);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", " ", ":7183", "user@ss0.example.org", "ss0.example.org:0", "ss0.example.org:70000",
-            "ss0.example.org:http", "[2001:db8::1", "[ss0.example.org]", "ss0.example.org ", "my_host",
-            "bücher.example"})
-    void shouldTellAnAuthorityThatCannotBeParsed(String authority) {
-        assertThat(DidAuthority.isParseable(authority)).isFalse();
-    }
-
-    @Test
-    void shouldTellANullAuthorityIsNotParseable() {
-        assertThat(DidAuthority.isParseable(null)).isFalse();
+    @NullSource
+    @ValueSource(strings = {"", "user@ss0.example.org", "ss0.example.org:70000", "[ss0.example.org]", "bücher.example"})
+    void shouldTakeNoCanonicalHostFromAnAuthorityThatCannotBeParsed(String authority) {
+        assertThat(DidAuthority.canonicalHostOf(authority)).isEmpty();
     }
 
     @Test

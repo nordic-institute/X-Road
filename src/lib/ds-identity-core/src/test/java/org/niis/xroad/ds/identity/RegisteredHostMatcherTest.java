@@ -40,6 +40,9 @@ class RegisteredHostMatcherTest {
     private static final ClientId MEMBER = ClientId.Conf.create("DEV", "COM", "222");
     private static final String ADDRESS = "ss0.example.org";
     private static final String DSP_BASE_URL = "https://ss0.example.org:7181/dsp";
+    private static final String SYSTEM_DID = ParticipantIdentifierScheme.systemDid("ss0.example.org:7183").toString();
+    private static final String IPV6_SYSTEM_DID =
+            ParticipantIdentifierScheme.systemDid("[2001:db8::1]:7183").toString();
 
     private final RegisteredHostMatcher matcher = RegisteredHostMatcher.of(ADDRESS);
 
@@ -47,8 +50,7 @@ class RegisteredHostMatcherTest {
     void shouldMatchTheDidHostOfTheRegisteredAddress() {
         assertThat(matcher.isRegisteredAddressUsable()).isTrue();
         assertThat(matcher.didHostMatches(memberDid("ss0.example.org:7183"))).isTrue();
-        assertThat(matcher.didHostMatches(ParticipantIdentifierScheme.systemDid("ss0.example.org:7183").toString()))
-                .isTrue();
+        assertThat(matcher.didHostMatches(SYSTEM_DID)).isTrue();
     }
 
     @Test
@@ -83,7 +85,7 @@ class RegisteredHostMatcherTest {
         var normalised = RegisteredHostMatcher.of(registered);
 
         assertThat(normalised.didHostMatches(memberDid("ss0.example.org:7183"))).isTrue();
-        assertThat(normalised.dspBaseUrlHostMatches(DSP_BASE_URL)).isTrue();
+        assertThat(normalised.isSystemPairStale(SYSTEM_DID, DSP_BASE_URL)).isFalse();
     }
 
     @ParameterizedTest
@@ -93,9 +95,9 @@ class RegisteredHostMatcherTest {
 
         assertThat(ipv6.isRegisteredAddressUsable()).isTrue();
         assertThat(ipv6.didHostMatches(memberDid("[2001:db8::1]:7183"))).isTrue();
-        assertThat(ipv6.dspBaseUrlHostMatches("https://[2001:db8::1]:443/api/dsp")).isTrue();
-        assertThat(ipv6.dspBaseUrlHostMatches("https://[2001:DB8::1]/api/dsp")).isTrue();
-        assertThat(ipv6.dspBaseUrlHostMatches(DSP_BASE_URL)).isFalse();
+        assertThat(ipv6.isSystemPairStale(IPV6_SYSTEM_DID, "https://[2001:db8::1]:443/api/dsp")).isFalse();
+        assertThat(ipv6.isSystemPairStale(IPV6_SYSTEM_DID, "https://[2001:DB8::1]/api/dsp")).isFalse();
+        assertThat(ipv6.isSystemPairStale(IPV6_SYSTEM_DID, DSP_BASE_URL)).isTrue();
     }
 
     @Test
@@ -104,55 +106,44 @@ class RegisteredHostMatcherTest {
         assertThat(matcher.didHostMatches(memberDid("ss0.example.org.evil.test:7183"))).isFalse();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"not-a-did", "did:web:ss0.example.org", "did:web:ss0.example.org:v9:DEV:COM:222",
-            "did:web:ss0.example.org%3A7183:v1:DEV"})
-    @NullAndEmptySource
-    void shouldNotMatchADidThatCannotBeDecoded(String did) {
-        assertThat(matcher.didHostMatches(did)).isFalse();
-        assertThat(matcher.isMemberDidStale(did)).isTrue();
-    }
-
     @Test
-    void shouldMatchTheDspBaseUrlHostOfTheRegisteredAddress() {
-        assertThat(matcher.dspBaseUrlHostMatches(DSP_BASE_URL)).isTrue();
-        assertThat(matcher.dspBaseUrlHostMatches("https://ss0.example.org/dsp")).isTrue();
-        assertThat(matcher.dspBaseUrlHostMatches("https://ss0.example.org")).isTrue();
-        assertThat(matcher.dspBaseUrlHostMatches("HTTPS://SS0.example.org:443/dsp")).isTrue();
-        assertThat(RegisteredHostMatcher.of("::1").dspBaseUrlHostMatches("https://[::1]:7181/dsp")).isTrue();
+    void shouldCallTheSystemPairFreshForADspBaseUrlOfTheRegisteredHost() {
+        assertThat(matcher.isSystemPairStale(SYSTEM_DID, DSP_BASE_URL)).isFalse();
+        assertThat(matcher.isSystemPairStale(SYSTEM_DID, "https://ss0.example.org/dsp")).isFalse();
+        assertThat(matcher.isSystemPairStale(SYSTEM_DID, "https://ss0.example.org")).isFalse();
+        assertThat(matcher.isSystemPairStale(SYSTEM_DID, "HTTPS://SS0.example.org:443/dsp")).isFalse();
+        assertThat(RegisteredHostMatcher.of("::1").isSystemPairStale(
+                ParticipantIdentifierScheme.systemDid("[::1]:7183").toString(), "https://[::1]:7181/dsp")).isFalse();
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"https://ss1.example.org:7181/dsp", "http://ss0.example.org:7181/dsp",
-            "ftp://ss0.example.org/dsp", "ss0.example.org:7181/dsp", "https://", "https://:7181/dsp"})
-    @NullAndEmptySource
-    void shouldNotMatchADspBaseUrlOfAnotherHostOrWithoutAnHttpsHost(String url) {
-        assertThat(matcher.dspBaseUrlHostMatches(url)).isFalse();
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"https://user@ss0.example.org/dsp", "https://ss0.example.org:0/dsp",
+            "ftp://ss0.example.org/dsp", "ss0.example.org:7181/dsp", "https://", "https://:7181/dsp",
+            "https://user@ss0.example.org/dsp", "https://ss0.example.org:0/dsp",
             "https://ss0.example.org:70000/dsp", "https://ss0.example.org:http/dsp", "https://ss0.example.orgé/dsp",
-            "https://ss0.example.org:/dsp"})
-    void shouldNotMatchADspBaseUrlWithAMalformedAuthority(String url) {
-        var systemDid = ParticipantIdentifierScheme.systemDid("ss0.example.org:7183").toString();
-
-        assertThat(matcher.dspBaseUrlHostMatches(url)).isFalse();
-        assertThat(matcher.isSystemPairStale(systemDid, url)).isTrue();
+            "https://ss0.example.org:/dsp", "https://ss0.example.org@evil.test/dsp",
+            "https://ss0.example.org:7181@evil.test/dsp", "https://ss0%2eexample.org/dsp",
+            "https://ss0.example.org.evil.test/dsp"})
+    @NullAndEmptySource
+    void shouldCallTheSystemPairStaleForADspBaseUrlThatIsNotAnHttpsUrlOfTheRegisteredHost(String url) {
+        assertThat(matcher.isSystemPairStale(SYSTEM_DID, url)).isTrue();
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"https://ss0.example.org?x=1", "https://ss0.example.org#top",
             "https://ss0.example.org:7181?x=1", "https://ss0.example.org/dsp?x=1#top"})
-    void shouldEndTheDspBaseUrlAuthorityAtAQueryOrFragment(String url) {
-        assertThat(matcher.dspBaseUrlHostMatches(url)).isTrue();
+    void shouldCallTheSystemPairFreshWhenTheDspBaseUrlAuthorityEndsAtAQueryOrFragment(String url) {
+        assertThat(matcher.isSystemPairStale(SYSTEM_DID, url)).isFalse();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"did:web:ss0.example.org%2:v1:DEV:COM:222", "did:web:ss0.example.org:v1:system:extra",
+    @ValueSource(strings = {"not-a-did", "did:web:ss0.example.org", "did:web:ss0.example.org:v9:DEV:COM:222",
+            "did:web:ss0.example.org%3A7183:v1:DEV", "did:web:ss0.example.org%2:v1:DEV:COM:222",
+            "did:web:ss0.example.org:v1:system:extra",
             "did:web:ss0.example.org%3a7183:v1:DEV:COM:222", "did:web:ss0.example.org%41:v1:DEV:COM:222",
             "did:web:ss0.example.org:v1:DEV:COM:%41BC", "did:web:ss0.example.orgé:v1:system",
             "did:web:ss0.example.org:v1:DEV:COM"})
+    @NullAndEmptySource
     void shouldCallAnUndecodableDidStale(String did) {
         assertThat(matcher.didHostMatches(did)).isFalse();
         assertThat(matcher.isMemberDidStale(did)).isTrue();
@@ -163,7 +154,7 @@ class RegisteredHostMatcherTest {
         var ipv6 = RegisteredHostMatcher.of("2001:db8::1");
 
         assertThat(ipv6.didHostMatches(memberDid("[2001:db8::2]:7183"))).isFalse();
-        assertThat(ipv6.dspBaseUrlHostMatches("https://[2001:db8::2]:7181/dsp")).isFalse();
+        assertThat(ipv6.isSystemPairStale(IPV6_SYSTEM_DID, "https://[2001:db8::2]:7181/dsp")).isTrue();
         assertThat(ipv6.isMemberDidStale(memberDid("[2001:db8::2]:7183"))).isTrue();
         assertThat(ipv6.didHostMatches(memberDid("[2001:db8::1]:7183"))).isTrue();
     }
@@ -187,15 +178,14 @@ class RegisteredHostMatcherTest {
 
     @Test
     void shouldCallTheSystemPairStaleWhenEitherHostDiffers() {
-        var systemDid = ParticipantIdentifierScheme.systemDid("ss0.example.org:7183").toString();
         var otherSystemDid = ParticipantIdentifierScheme.systemDid("ss1.example.org:7183").toString();
 
-        assertThat(matcher.isSystemPairStale(systemDid, DSP_BASE_URL)).isFalse();
+        assertThat(matcher.isSystemPairStale(SYSTEM_DID, DSP_BASE_URL)).isFalse();
         assertThat(matcher.isSystemPairStale(otherSystemDid, DSP_BASE_URL)).isTrue();
-        assertThat(matcher.isSystemPairStale(systemDid, "https://ss1.example.org:7181/dsp")).isTrue();
+        assertThat(matcher.isSystemPairStale(SYSTEM_DID, "https://ss1.example.org:7181/dsp")).isTrue();
         assertThat(matcher.isSystemPairStale(otherSystemDid, "https://ss1.example.org:7181/dsp")).isTrue();
         assertThat(matcher.isSystemPairStale(null, DSP_BASE_URL)).isTrue();
-        assertThat(matcher.isSystemPairStale(systemDid, null)).isTrue();
+        assertThat(matcher.isSystemPairStale(SYSTEM_DID, null)).isTrue();
     }
 
     @ParameterizedTest
@@ -205,13 +195,11 @@ class RegisteredHostMatcherTest {
     @NullAndEmptySource
     void shouldCallEveryValueStaleWhenTheRegisteredAddressCannotBeUsed(String registeredAddress) {
         var unusable = RegisteredHostMatcher.of(registeredAddress);
-        var systemDid = ParticipantIdentifierScheme.systemDid("ss0.example.org:7183").toString();
 
         assertThat(unusable.didHostMatches(memberDid("ss0.example.org:7183"))).isFalse();
         assertThat(unusable.isRegisteredAddressUsable()).isFalse();
-        assertThat(unusable.dspBaseUrlHostMatches(DSP_BASE_URL)).isFalse();
         assertThat(unusable.isMemberDidStale(memberDid("ss0.example.org:7183"))).isTrue();
-        assertThat(unusable.isSystemPairStale(systemDid, DSP_BASE_URL)).isTrue();
+        assertThat(unusable.isSystemPairStale(SYSTEM_DID, DSP_BASE_URL)).isTrue();
     }
 
     private static String memberDid(String authority) {

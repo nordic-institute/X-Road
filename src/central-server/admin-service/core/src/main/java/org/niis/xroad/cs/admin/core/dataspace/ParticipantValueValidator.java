@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.core.dataspace;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.MemberDid;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.SystemPair;
@@ -181,7 +180,7 @@ public final class ParticipantValueValidator {
         if (shape.isPresent()) {
             return shape;
         }
-        var participant = decode(did);
+        var participant = ParticipantIdentifierScheme.tryDecodeDid(did);
         if (participant.isEmpty()) {
             return Optional.of(isDecodableWithCanonicalEncoding(did) ? NOT_CANONICAL : UNDECODABLE_DID);
         }
@@ -234,8 +233,8 @@ public final class ParticipantValueValidator {
         if (!DidAuthority.isAscii(authority)) {
             return Optional.of(DSP_BASE_URL_NON_ASCII_HOST);
         }
-        if (authority.indexOf('@') >= 0 || url.indexOf('?') >= 0 || url.indexOf('#') >= 0
-                || !DidAuthority.isParseable(authority) || !DidAuthority.isUriHost(authority)
+        if (url.indexOf('?') >= 0 || url.indexOf('#') >= 0
+                || DidAuthority.canonicalHostOf(authority).isEmpty() || !DidAuthority.isUriHost(authority)
                 || !isWellFormedUri(url)) {
             return Optional.of(DSP_BASE_URL_MALFORMED);
         }
@@ -262,14 +261,6 @@ public final class ParticipantValueValidator {
 
     private static boolean isDecodableWithCanonicalEncoding(String did) {
         var canonical = ParticipantIdentifierScheme.canonicalPercentEncoding(did);
-        return !canonical.equals(did) && decode(canonical).isPresent();
-    }
-
-    private static Optional<DecodedParticipant> decode(String did) {
-        try {
-            return Optional.of(ParticipantIdentifierScheme.decodeDid(did));
-        } catch (XrdRuntimeException _) {
-            return Optional.empty();
-        }
+        return !canonical.equals(did) && ParticipantIdentifierScheme.tryDecodeDid(canonical).isPresent();
     }
 }
