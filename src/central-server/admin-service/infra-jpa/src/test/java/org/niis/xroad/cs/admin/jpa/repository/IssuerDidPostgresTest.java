@@ -42,9 +42,11 @@ import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.sql.DriverManager;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -112,13 +114,22 @@ class IssuerDidPostgresTest {
             entityManager.close();
         }
 
+        var storedRow = readStoredRow();
         assertEquals(Map.of(
                         "did", DID,
                         "host", HOST,
                         "did_port", DID_PORT,
                         "issuance_url", ISSUANCE_URL,
                         "statuslist_base_url", STATUSLIST_BASE_URL),
-                readStoredRow());
+                Map.of(
+                        "did", storedRow.get("did"),
+                        "host", storedRow.get("host"),
+                        "did_port", storedRow.get("did_port"),
+                        "issuance_url", storedRow.get("issuance_url"),
+                        "statuslist_base_url", storedRow.get("statuslist_base_url")));
+        assertThat((Integer) storedRow.get("id")).isPositive();
+        assertThat((Object) storedRow.get("created_at")).isNotNull();
+        assertThat((Object) storedRow.get("updated_at")).isNotNull();
     }
 
     @Test
@@ -168,16 +179,20 @@ class IssuerDidPostgresTest {
     private Map<String, Object> readStoredRow() throws Exception {
         try (var connection = DriverManager.getConnection(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
                 var statement = connection.prepareStatement(
-                        "SELECT did, host, did_port, issuance_url, statuslist_base_url FROM "
+                        "SELECT id, did, host, did_port, issuance_url, statuslist_base_url, created_at, updated_at FROM "
                                 + IssuerDidEntity.TABLE_NAME)) {
             try (var resultSet = statement.executeQuery()) {
                 resultSet.next();
-                return Map.of(
-                        "did", resultSet.getString("did"),
-                        "host", resultSet.getString("host"),
-                        "did_port", resultSet.getInt("did_port"),
-                        "issuance_url", resultSet.getString("issuance_url"),
-                        "statuslist_base_url", resultSet.getString("statuslist_base_url"));
+                var row = new HashMap<String, Object>();
+                row.put("id", resultSet.getInt("id"));
+                row.put("did", resultSet.getString("did"));
+                row.put("host", resultSet.getString("host"));
+                row.put("did_port", resultSet.getInt("did_port"));
+                row.put("issuance_url", resultSet.getString("issuance_url"));
+                row.put("statuslist_base_url", resultSet.getString("statuslist_base_url"));
+                row.put("created_at", resultSet.getTimestamp("created_at"));
+                row.put("updated_at", resultSet.getTimestamp("updated_at"));
+                return row;
             }
         }
     }
