@@ -78,6 +78,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.ds.issuance.membership.MembershipTestSupport.HOLDER_DID;
+import static org.niis.xroad.ds.issuance.membership.MembershipTestSupport.ISSUER_DID;
 
 /**
  * Exercises the production {@code holder} attestation wiring against the extension set the
@@ -90,8 +92,6 @@ import static org.mockito.Mockito.when;
 class XRoadMembershipAttestationWiringTest {
 
     private static final String PARTICIPANT_CONTEXT_ID = "member-1";
-    private static final String HOLDER_DID = "did:web:holder";
-    private static final String ISSUER_DID = "did:web:issuer";
     private static final String ATTESTATION_ID = "att-1";
     private static final String HOLDER_ATTESTATION_TYPE = "holder";
     private static final String EDC_HOLDER_ATTESTATION_EXTENSION =

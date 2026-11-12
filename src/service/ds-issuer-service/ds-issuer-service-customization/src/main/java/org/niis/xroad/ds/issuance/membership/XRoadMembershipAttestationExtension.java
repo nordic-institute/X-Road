@@ -68,7 +68,8 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
     static final String ATTESTATION_TYPE = "holder";
 
     @Setting(key = "xroad.issuer.claim.lifetime-seconds",
-            description = "Maximum age in seconds of the X-Road MemberId claim JWS (iat to exp).",
+            description = "Maximum age in seconds of the X-Road MemberId claim JWS, measured from iat; "
+                    + "a claim is rejected once iat is older than this plus leeway-seconds.",
             defaultValue = "300")
     private long claimLifetimeSeconds;
 
@@ -108,7 +109,7 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
         var verifier = buildVerifier(context);
         registry.registerFactory(ATTESTATION_TYPE,
                 new XRoadMembershipAttestationSourceFactory(verifier, participantContextService, context.getMonitor()));
-        validatorRegistry.registerValidator(ATTESTATION_TYPE, definition -> ValidationResult.success());
+        validatorRegistry.registerValidator(ATTESTATION_TYPE, _ -> ValidationResult.success());
         context.getMonitor().info("X-Road MembershipCredential attestation registered for type '"
                 + ATTESTATION_TYPE + "'");
     }

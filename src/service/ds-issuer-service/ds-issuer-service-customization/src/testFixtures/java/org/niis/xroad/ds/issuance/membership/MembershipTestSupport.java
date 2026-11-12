@@ -27,6 +27,8 @@
 
 package org.niis.xroad.ds.issuance.membership;
 
+import ee.ria.xroad.common.TestCertUtil;
+
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -36,10 +38,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.experimental.UtilityClass;
 
-import java.math.BigInteger;
-import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Date;
@@ -47,24 +46,25 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Shared RSA key, self-signed certificate, and compact-JWS builder for membership-claim tests.
+ * Shared DID constants, a {@link TestCertUtil}-backed key/certificate pair, and a compact-JWS
+ * builder for membership-claim tests.
  */
 @UtilityClass
 public class MembershipTestSupport {
 
+    public static final String HOLDER_DID = "did:web:holder";
+    public static final String ISSUER_DID = "did:web:issuer";
+
     private static final int CLAIM_LIFETIME_SECONDS = 300;
-    private static final int RSA_KEY_SIZE = 2048;
-    private static final long SELF_SIGNED_NOT_BEFORE_OFFSET_MILLIS = 60_000L;
-    private static final long SELF_SIGNED_NOT_AFTER_OFFSET_MILLIS = 3_600_000L;
 
     public static String signMemberClaim(TestKeyAndCert keyAndCert, String holderDid, String issuerDid, boolean includeCert)
             throws Exception {
-        return signMemberClaim(keyAndCert.cert(), keyAndCert.privateKey(), holderDid, issuerDid, includeCert);
+        return signMemberClaim(keyAndCert.cert(), keyAndCert.privateKey(), holderDid, issuerDid, includeCert, Instant.now(), null);
     }
 
-    public static String signMemberClaim(X509Certificate cert, PrivateKey key, String holderDid, String issuerDid, boolean includeCert)
-            throws Exception {
-        return signMemberClaim(cert, key, holderDid, issuerDid, includeCert, null);
+    public static String signMemberClaim(TestKeyAndCert keyAndCert, String holderDid, String issuerDid, boolean includeCert,
+                                          Instant issuedAt) throws Exception {
+        return signMemberClaim(keyAndCert.cert(), keyAndCert.privateKey(), holderDid, issuerDid, includeCert, issuedAt, null);
     }
 
     /**
@@ -73,18 +73,17 @@ public class MembershipTestSupport {
      */
     public static String signMemberClaimWithOcsp(X509Certificate cert, PrivateKey key, String holderDid, String issuerDid,
                                                   String pinnedOcspBase64) throws Exception {
-        return signMemberClaim(cert, key, holderDid, issuerDid, true, pinnedOcspBase64);
+        return signMemberClaim(cert, key, holderDid, issuerDid, true, Instant.now(), pinnedOcspBase64);
     }
 
     private static String signMemberClaim(X509Certificate cert, PrivateKey key, String holderDid, String issuerDid,
-                                           boolean includeCert, String pinnedOcspBase64) throws Exception {
-        Instant now = Instant.now();
+                                           boolean includeCert, Instant issuedAt, String pinnedOcspBase64) throws Exception {
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
                 .issuer(holderDid)
                 .subject(holderDid)
                 .audience(issuerDid)
-                .issueTime(Date.from(now))
-                .expirationTime(Date.from(now.plusSeconds(CLAIM_LIFETIME_SECONDS)))
+                .issueTime(Date.from(issuedAt))
+                .expirationTime(Date.from(issuedAt.plusSeconds(CLAIM_LIFETIME_SECONDS)))
                 .jwtID(UUID.randomUUID().toString())
                 .build();
         JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
@@ -101,28 +100,9 @@ public class MembershipTestSupport {
     }
 
     public record TestKeyAndCert(PrivateKey privateKey, X509Certificate cert) {
-        public static TestKeyAndCert generate() throws Exception {
-            var kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(RSA_KEY_SIZE);
-            var kp = kpg.generateKeyPair();
-            X509Certificate cert = generateSelfSigned(kp.getPublic(), kp.getPrivate());
-            return new TestKeyAndCert(kp.getPrivate(), cert);
+        public static TestKeyAndCert generate() {
+            var consumer = TestCertUtil.getConsumer();
+            return new TestKeyAndCert(consumer.key, consumer.certChain[0]);
         }
-    }
-
-    /**
-     * Minimal self-signed cert generator using BouncyCastle's BC provider, which is already
-     * on the classpath via globalconf-impl.
-     */
-    private static X509Certificate generateSelfSigned(PublicKey publicKey, PrivateKey privateKey) throws Exception {
-        var name = new org.bouncycastle.asn1.x500.X500Name("CN=Test, O=NIIS, C=EE");
-        var serial = BigInteger.valueOf(System.currentTimeMillis());
-        var notBefore = new Date(System.currentTimeMillis() - SELF_SIGNED_NOT_BEFORE_OFFSET_MILLIS);
-        var notAfter = new Date(System.currentTimeMillis() + SELF_SIGNED_NOT_AFTER_OFFSET_MILLIS);
-        var builder = new org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder(
-                name, serial, notBefore, notAfter, name, publicKey);
-        var signer = new org.bouncycastle.operator.jcajce.JcaContentSignerBuilder("SHA256WithRSA").build(privateKey);
-        var holder = builder.build(signer);
-        return new org.bouncycastle.cert.jcajce.JcaX509CertificateConverter().getCertificate(holder);
     }
 }

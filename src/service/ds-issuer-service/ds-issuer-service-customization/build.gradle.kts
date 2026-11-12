@@ -20,11 +20,9 @@ dependencies {
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.core)
-  testImplementation(libs.edc.junit)
-  testImplementation(libs.edc.issuer.issuance)
 
   testFixturesImplementation(libs.nimbus.jose.jwt)
-  testFixturesImplementation(libs.bouncyCastle.bcpkix)
+  testFixturesImplementation(project(":common:common-test"))
 
   constraints {
     implementation(libs.jakarta.validationApi)
