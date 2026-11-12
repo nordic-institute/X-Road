@@ -104,12 +104,12 @@ class SsMonitoringTest extends E2eTest {
     private static final Duration OP_MONITOR_SETTLE_DELAY = Duration.ofSeconds(2);
     private static final Duration OP_MONITOR_SETTLE_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration CONNECTION_TYPE_PROPAGATION_TIMEOUT = Duration.ofSeconds(90);
-    private static final Duration CONNECTION_TYPE_PROPAGATION_POLL_INTERVAL = Duration.ofSeconds(5);
+    private static final Duration CONNECTION_TYPE_PROPAGATION_POLL_INTERVAL = Duration.ofSeconds(2);
     private static final String SSL_AUTH_FAILED_FAULT_CODE = "server.clientproxy.ssl_authentication_failed";
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
-    private static final Duration OP_DATA_VISIBILITY_TIMEOUT = Duration.ofSeconds(90);
-    private static final Duration OP_DATA_VISIBILITY_POLL_INTERVAL = Duration.ofSeconds(5);
+    private static final Duration OP_DATA_VISIBILITY_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration OP_DATA_VISIBILITY_POLL_INTERVAL = Duration.ofSeconds(2);
     private static final OpDataClient TEST_SAVED = new OpDataClient("1234", "TestSaved");
     private static final OpDataClient TEST_SERVICE = new OpDataClient("1234", "TestService");
 
@@ -259,6 +259,8 @@ class SsMonitoringTest extends E2eTest {
     void regularClientRetrievesOnlyOwnOperationalData(E2eEnvironment env) {
         given("traffic from TestSaved and from TestService has passed through ss0", () ->
                 generateTrafficOnSs0(env));
+        and("op-monitor has stored records of both clients, as seen by the central monitoring client 1234/TestService",
+                () -> awaitOperationalRecords(env, TEST_SERVICE, SsMonitoringTest::containsBothClients));
 
         var records = when("the regular client 1234/TestSaved queries operational data of ss0", () ->
                 awaitOperationalRecords(env, TEST_SAVED, found -> found.stream().anyMatch(TEST_SAVED::isParty)));
@@ -277,8 +279,7 @@ class SsMonitoringTest extends E2eTest {
                 generateTrafficOnSs0(env));
 
         var records = when("the central monitoring client 1234/TestService queries operational data of ss0", () ->
-                awaitOperationalRecords(env, TEST_SERVICE, found ->
-                        found.stream().anyMatch(TEST_SERVICE::isClientOf) && found.stream().anyMatch(TEST_SAVED::isParty)));
+                awaitOperationalRecords(env, TEST_SERVICE, SsMonitoringTest::containsBothClients));
 
         then("the records include other clients' records and its own", () -> {
             assertThat(records).anyMatch(TEST_SERVICE::isClientOf);
@@ -286,6 +287,10 @@ class SsMonitoringTest extends E2eTest {
         });
         and("at least one record carries the internal security server IP", () ->
                 assertThat(records).extracting(OperationalDataRecord::getSecurityServerInternalIp).anyMatch(Objects::nonNull));
+    }
+
+    private static boolean containsBothClients(List<OperationalDataRecord> records) {
+        return records.stream().anyMatch(TEST_SERVICE::isClientOf) && records.stream().anyMatch(TEST_SAVED::isParty);
     }
 
     private void generateTrafficOnSs0(E2eEnvironment env) {
@@ -300,6 +305,7 @@ class SsMonitoringTest extends E2eTest {
         var lastFailure = new AtomicReference<>("none");
         try {
             Awaitility.await()
+                    .pollDelay(Duration.ZERO)
                     .pollInterval(OP_DATA_VISIBILITY_POLL_INTERVAL)
                     .timeout(OP_DATA_VISIBILITY_TIMEOUT)
                     .until(() -> {
@@ -406,6 +412,7 @@ class SsMonitoringTest extends E2eTest {
     private void awaitOwnerPlaintextAccepted(E2eEnvironment env, String envName) {
         try {
             Awaitility.await()
+                    .pollDelay(Duration.ZERO)
                     .pollInterval(CONNECTION_TYPE_PROPAGATION_POLL_INTERVAL)
                     .timeout(CONNECTION_TYPE_PROPAGATION_TIMEOUT)
                     .until(() -> !sendProxymonitorRequest(env, envName, "CONNTYPE-PROBE-" + UUID.randomUUID(), null)
