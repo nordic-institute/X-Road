@@ -75,6 +75,15 @@ class IniToDbMigratorTest {
     }
 
     @Test
+    void prioritizationStrategyValuesSavedAsExactConstantsUnderMappedKeys() {
+        Map<String, String> saved = migrateAndCollectSavedProperties();
+
+        assertThat(saved).containsEntry("xroad.signer.ocsp-prioritization-strategy", "ONLY_FREE");
+        assertThat(saved).containsEntry("xroad.proxy.message-log.timestamping-prioritization-strategy", "PAID_FIRST");
+        assertThat(saved).doesNotContainKey("xroad.message-log.timestamping-prioritization-strategy");
+    }
+
+    @Test
     void rerunGivesSameRows() {
         Map<String, String> firstRun = migrateAndCollectSavedProperties();
         Map<String, String> secondRun = migrateAndCollectSavedProperties();

@@ -113,6 +113,10 @@ public final class LegacyConfigValueShapes {
         SHAPES.put("xroad.proxy-ui-api.authentication-key-algorithm", new EnumShape(List.of("RSA", "EC")));
         SHAPES.put("xroad.admin-service.internal-key-algorithm", new EnumShape(List.of("RSA", "EC")));
         SHAPES.put("xroad.admin-service.external-key-algorithm", new EnumShape(List.of("RSA", "EC")));
+        SHAPES.put("xroad.signer.ocsp-prioritization-strategy",
+                new EnumShape(List.of("ONLY_FREE", "ONLY_PAID", "FREE_FIRST", "PAID_FIRST", "NONE")));
+        SHAPES.put("xroad.proxy.message-log.timestamping-prioritization-strategy",
+                new EnumShape(List.of("ONLY_FREE", "ONLY_PAID", "FREE_FIRST", "PAID_FIRST", "NONE")));
     }
 
     static ValueShape shapeOf(String key) {

@@ -55,6 +55,10 @@ class LegacyConfigValueConverterTest {
     private static final String AUTHENTICATION_KEY_ALGORITHM_KEY = "xroad.proxy-ui-api.authentication-key-algorithm";
     private static final String INTERNAL_KEY_ALGORITHM_KEY = "xroad.admin-service.internal-key-algorithm";
     private static final String EXTERNAL_KEY_ALGORITHM_KEY = "xroad.admin-service.external-key-algorithm";
+
+    private static final String OCSP_PRIORITIZATION_STRATEGY_KEY = "xroad.signer.ocsp-prioritization-strategy";
+    private static final String TIMESTAMPING_PRIORITIZATION_STRATEGY_KEY =
+            "xroad.proxy.message-log.timestamping-prioritization-strategy";
     private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
     private static final ObjectMapper KEBAB_MAPPER = JsonMapper.builder()
             .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
@@ -363,6 +367,62 @@ class LegacyConfigValueConverterTest {
 
         assertThat(secondPass.properties()).isEqualTo(firstPass.properties());
         assertThat(secondPass.warnings()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("prioritizationStrategyCaseVariants")
+    void convertsPrioritizationStrategyCaseVariantsToExactConstant(String key, String rawValue, String expected) {
+        var result = LegacyConfigValueConverter.convert(Map.of(key, rawValue));
+
+        assertThat(result.properties()).containsEntry(key, expected);
+        assertThat(result.warnings()).isEmpty();
+    }
+
+    private static Stream<Arguments> prioritizationStrategyCaseVariants() {
+        return Stream.of(OCSP_PRIORITIZATION_STRATEGY_KEY, TIMESTAMPING_PRIORITIZATION_STRATEGY_KEY)
+                .flatMap(key -> Stream.of(
+                        Arguments.of(key, "only_free", "ONLY_FREE"),
+                        Arguments.of(key, "Only_Free", "ONLY_FREE"),
+                        Arguments.of(key, "ONLY_FREE", "ONLY_FREE"),
+                        Arguments.of(key, "only_paid", "ONLY_PAID"),
+                        Arguments.of(key, "free_first", "FREE_FIRST"),
+                        Arguments.of(key, "Free_First", "FREE_FIRST"),
+                        Arguments.of(key, "paid_first", "PAID_FIRST"),
+                        Arguments.of(key, "none", "NONE")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {OCSP_PRIORITIZATION_STRATEGY_KEY, TIMESTAMPING_PRIORITIZATION_STRATEGY_KEY})
+    void unknownPrioritizationStrategyValueKeptUnchangedWithOneWarning(String key) {
+        var result = LegacyConfigValueConverter.convert(Map.of(key, "cheapest"));
+
+        assertThat(result.properties()).containsEntry(key, "cheapest");
+        assertThat(result.warnings()).hasSize(1);
+        assertThat(result.warnings().getFirst())
+                .contains(key)
+                .contains("cheapest")
+                .contains("ONLY_FREE", "ONLY_PAID", "FREE_FIRST", "PAID_FIRST", "NONE");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {OCSP_PRIORITIZATION_STRATEGY_KEY, TIMESTAMPING_PRIORITIZATION_STRATEGY_KEY})
+    void reconvertingAlreadyConvertedPrioritizationStrategyRowIsNoOp(String key) {
+        var firstPass = LegacyConfigValueConverter.convert(Map.of(key, "free_first"));
+
+        var secondPass = LegacyConfigValueConverter.convert(firstPass.properties());
+
+        assertThat(secondPass.properties()).isEqualTo(firstPass.properties());
+        assertThat(secondPass.warnings()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {OCSP_PRIORITIZATION_STRATEGY_KEY, TIMESTAMPING_PRIORITIZATION_STRATEGY_KEY})
+    void lookalikePrioritizationStrategyKeyPassesThroughUnchanged(String key) {
+        var lookalikeKey = key + "-x";
+        var result = LegacyConfigValueConverter.convert(Map.of(lookalikeKey, "free_first"));
+
+        assertThat(result.properties()).containsEntry(lookalikeKey, "free_first");
+        assertThat(result.warnings()).isEmpty();
     }
 
 }

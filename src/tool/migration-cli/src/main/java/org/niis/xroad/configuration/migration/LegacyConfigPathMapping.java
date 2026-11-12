@@ -106,6 +106,7 @@ public class LegacyConfigPathMapping {
         addMapping("message-log.timestamp-records-limit", "proxy.message-log.timestamper.records-limit");
         addMapping("message-log.timestamp-retry-delay", "proxy.message-log.timestamper.retry-delay");
         addMapping("message-log.acceptable-timestamp-failure-period", "proxy.message-log.timestamper.acceptable-timestamp-failure-period");
+        addMapping("message-log.timestamping-prioritization-strategy", "proxy.message-log.timestamping-prioritization-strategy");
 
         // message-log - body logging properties
         addMapping("message-log.soap-body-logging", "proxy.message-log.message-body-logging");

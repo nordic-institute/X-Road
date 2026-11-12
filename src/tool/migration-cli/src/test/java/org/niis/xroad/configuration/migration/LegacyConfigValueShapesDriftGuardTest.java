@@ -27,6 +27,7 @@
 
 package org.niis.xroad.configuration.migration;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Guards {@link LegacyConfigValueShapes} against drifting from {@link GroupingStrategy},
- * {@link SignerModuleConfig} and {@link KeyAlgorithm}, whose constants and fields its hardcoded table duplicates.
+ * {@link SignerModuleConfig}, {@link KeyAlgorithm} and {@link ServicePrioritizationStrategy}, whose constants
+ * and fields its hardcoded table duplicates.
  */
 class LegacyConfigValueShapesDriftGuardTest {
 
@@ -57,6 +59,10 @@ class LegacyConfigValueShapesDriftGuardTest {
     private static final String AUTHENTICATION_KEY_ALGORITHM_KEY = "xroad.proxy-ui-api.authentication-key-algorithm";
     private static final String INTERNAL_KEY_ALGORITHM_KEY = "xroad.admin-service.internal-key-algorithm";
     private static final String EXTERNAL_KEY_ALGORITHM_KEY = "xroad.admin-service.external-key-algorithm";
+
+    private static final String OCSP_PRIORITIZATION_STRATEGY_KEY = "xroad.signer.ocsp-prioritization-strategy";
+    private static final String TIMESTAMPING_PRIORITIZATION_STRATEGY_KEY =
+            "xroad.proxy.message-log.timestamping-prioritization-strategy";
 
     @Test
     void groupingStrategyShapeMatchesMessageLogGroupingStrategyEnum() {
@@ -76,6 +82,18 @@ class LegacyConfigValueShapesDriftGuardTest {
         var shape = (LegacyConfigValueShapes.EnumShape) LegacyConfigValueShapes.shapeOf(key);
 
         List<String> expectedConstants = Arrays.stream(KeyAlgorithm.values())
+                .map(Enum::name)
+                .toList();
+
+        assertThat(shape.allowedConstants()).containsExactlyInAnyOrderElementsOf(expectedConstants);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {OCSP_PRIORITIZATION_STRATEGY_KEY, TIMESTAMPING_PRIORITIZATION_STRATEGY_KEY})
+    void prioritizationStrategyShapeMatchesServicePrioritizationStrategyEnum(String key) {
+        var shape = (LegacyConfigValueShapes.EnumShape) LegacyConfigValueShapes.shapeOf(key);
+
+        List<String> expectedConstants = Arrays.stream(ServicePrioritizationStrategy.values())
                 .map(Enum::name)
                 .toList();
 

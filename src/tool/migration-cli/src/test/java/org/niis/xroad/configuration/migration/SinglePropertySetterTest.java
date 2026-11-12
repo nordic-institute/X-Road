@@ -56,6 +56,7 @@ class SinglePropertySetterTest {
     private static final String GROUPING_KEY = "xroad.message-log-encryption.archive.grouping-strategy";
     private static final String GROUPING_KEYS_KEY = "xroad.message-log-encryption.archive.grouping-keys";
     private static final String SIGNING_KEY_ALGORITHM_KEY = "xroad.proxy-ui-api.signing-key-algorithm";
+    private static final String OCSP_PRIORITIZATION_STRATEGY_KEY = "xroad.signer.ocsp-prioritization-strategy";
 
     static class TestSinglePropertySetter extends SinglePropertySetter {
         TestSinglePropertySetter(String propertyKey, String propertyValue) {
@@ -181,6 +182,20 @@ class SinglePropertySetterTest {
 
                 var dbRepo = mockedDb.constructed().getFirst();
                 Mockito.verify(dbRepo).saveProperty(SIGNING_KEY_ALGORITHM_KEY, "EC");
+            }
+            assertThat(logAppender.list)
+                    .extracting(ILoggingEvent::getLevel)
+                    .doesNotContain(Level.WARN);
+        }
+
+        @Test
+        void savesPrioritizationStrategyValueAsExactConstant() {
+            try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
+                new TestSinglePropertySetter(OCSP_PRIORITIZATION_STRATEGY_KEY, "free_first")
+                        .migrate("not/used", DB_PROPERTIES_PATH);
+
+                var dbRepo = mockedDb.constructed().getFirst();
+                Mockito.verify(dbRepo).saveProperty(OCSP_PRIORITIZATION_STRATEGY_KEY, "FREE_FIRST");
             }
             assertThat(logAppender.list)
                     .extracting(ILoggingEvent::getLevel)
