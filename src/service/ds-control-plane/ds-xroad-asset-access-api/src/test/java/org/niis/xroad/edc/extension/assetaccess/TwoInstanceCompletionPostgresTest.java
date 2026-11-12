@@ -63,6 +63,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
+import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
+import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.store.contractnegotiation.XRoadContractNegotiationStore;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
@@ -87,7 +89,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Proves that two independently constructed ds-control-plane instances, sharing only the database and one
@@ -154,7 +155,7 @@ class TwoInstanceCompletionPostgresTest {
 
         a.poller().poll();
 
-        var result = future.get(10, TimeUnit.SECONDS);
+        var result = succeededValue(future);
         assertThat(result.getAgreementId()).isEqualTo(agreement.getAgreementId());
         assertThat(result.getAssetId()).isEqualTo(agreement.getAssetId());
         assertThat(result.getProviderId()).isEqualTo(agreement.getProviderId());
@@ -184,7 +185,7 @@ class TwoInstanceCompletionPostgresTest {
 
         a.poller().poll();
 
-        var resolved = future.get(10, TimeUnit.SECONDS);
+        var resolved = succeededValue(future);
         assertThat(resolved.getType()).isEqualTo("HttpData");
         assertThat(resolved.getStringProperty("baseUrl")).isEqualTo("https://provider.example/data");
     }
@@ -208,10 +209,10 @@ class TwoInstanceCompletionPostgresTest {
 
         a.poller().poll();
 
-        assertThatThrownBy(future::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getDetails())
-                        .isEqualTo("provider refused the offer"));
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class,
+                cause -> assertThat(cause.getDetails()).isEqualTo("provider refused the offer"));
     }
 
     @Test
@@ -233,10 +234,10 @@ class TwoInstanceCompletionPostgresTest {
 
         a.poller().poll();
 
-        assertThatThrownBy(future::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getDetails())
-                        .isEqualTo("provider terminated the transfer"));
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class,
+                cause -> assertThat(cause.getDetails()).isEqualTo("provider terminated the transfer"));
     }
 
     @Test
@@ -249,7 +250,9 @@ class TwoInstanceCompletionPostgresTest {
 
         a.poller().poll();
 
-        assertThatThrownBy(future::join).hasCauseInstanceOf(TimeoutException.class);
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.TRANSPORT_FAULT);
+        assertThat(failed.failure()).isInstanceOf(TimeoutException.class);
     }
 
     @Test
@@ -262,7 +265,9 @@ class TwoInstanceCompletionPostgresTest {
 
         a.poller().poll();
 
-        assertThatThrownBy(future::join).hasCauseInstanceOf(TimeoutException.class);
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.TRANSPORT_FAULT);
+        assertThat(failed.failure()).isInstanceOf(TimeoutException.class);
     }
 
     @Test
@@ -299,8 +304,8 @@ class TwoInstanceCompletionPostgresTest {
 
         a.poller().poll();
 
-        assertThat(finalizedNegotiationFuture.get(10, TimeUnit.SECONDS).getAgreementId()).isEqualTo(agreement.getAgreementId());
-        assertThat(startedTransferFuture.get(10, TimeUnit.SECONDS).getStringProperty("baseUrl"))
+        assertThat(succeededValue(finalizedNegotiationFuture).getAgreementId()).isEqualTo(agreement.getAgreementId());
+        assertThat(succeededValue(startedTransferFuture).getStringProperty("baseUrl"))
                 .isEqualTo("https://provider.example/data");
         assertThat(pendingNegotiationFuture).isNotDone();
         assertThat(pendingTransferFuture).isNotDone();
@@ -367,7 +372,7 @@ class TwoInstanceCompletionPostgresTest {
 
         var writeCompleted = new CompletableFuture<Void>();
         goodFuture.whenComplete((resolvedAddress, throwable) -> {
-            if (throwable == null) {
+            if (resolvedAddress instanceof StageOutcome.Succeeded<?>) {
                 var written = transferProcess(writtenTransferProcessId, participantContextId, TransferProcessStates.STARTED, null);
                 decoratedTransferProcessStore.save(written);
             }
@@ -381,13 +386,25 @@ class TwoInstanceCompletionPostgresTest {
         poller.poll();
         writeCompleted.get(10, TimeUnit.SECONDS);
 
-        assertThat(goodFuture.get(2, TimeUnit.SECONDS)).isNotNull();
+        assertThat(succeededValue(goodFuture)).isNotNull();
         assertThat(badFuture).isNotDone();
 
         var b = buildInstance(Clock.systemUTC());
         var readBack = b.transferProcessStore().findById(writtenTransferProcessId);
         assertThat(readBack).isNotNull();
         assertThat(TransferProcessStates.from(readBack.getState())).isEqualTo(TransferProcessStates.STARTED);
+    }
+
+    private static StageOutcome.Failed<?> failedOutcome(CompletableFuture<? extends StageOutcome<?>> future) {
+        var outcome = future.orTimeout(10, TimeUnit.SECONDS).join();
+        assertThat(outcome).isInstanceOf(StageOutcome.Failed.class);
+        return (StageOutcome.Failed<?>) outcome;
+    }
+
+    private static <T> T succeededValue(CompletableFuture<StageOutcome<T>> future) {
+        var outcome = future.orTimeout(10, TimeUnit.SECONDS).join();
+        assertThat(outcome).isInstanceOf(StageOutcome.Succeeded.class);
+        return ((StageOutcome.Succeeded<T>) outcome).value();
     }
 
     private Instance buildInstance(Clock clock) throws IOException {

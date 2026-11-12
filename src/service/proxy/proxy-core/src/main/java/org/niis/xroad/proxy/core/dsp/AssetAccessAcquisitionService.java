@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import jakarta.annotation.Nullable;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Acquires asset access responses from the DSP control plane.
@@ -41,31 +42,51 @@ import java.time.Duration;
 public interface AssetAccessAcquisitionService {
 
     /**
-     * Acquires an asset access response from the control plane for the given asset and provider.
+     * Acquires an asset access response from the control plane for the given asset. The control plane
+     * chooses among the candidates; the result is the same for the same candidates in any order.
      *
      * @param participantContextId the consumer participant context to negotiate as
      * @param assetId              the asset identifier for the data transfer
-     * @param counterPartyId       the provider participant identifier
-     * @param counterPartyAddress  the provider's DSP protocol address
+     * @param candidates           the provider participants that may serve the asset, in the caller's order
      * @param consumerClientId     the calling client, subsystem included; {@code null} when the request states none
      * @param timeout              how long the control plane may spend on this acquisition
      * @return the parsed asset access response containing the dataplane endpoint URL
      */
-    AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
-                                           String counterPartyAddress, @Nullable ClientId consumerClientId,
+    AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId,
+                                           List<AcquisitionCandidate> candidates,
+                                           @Nullable ClientId consumerClientId,
                                            Duration timeout);
 
     /**
-     * Drops the cached asset access acquired for the given participant context, asset and calling client, so
-     * that the next acquisition asks the control plane afresh. A no-op when nothing is cached.
+     * Drops any cached asset access acquired for the given participant context, asset and calling client,
+     * so that the next acquisition asks the control plane afresh. A no-op when nothing is cached.
      *
      * @param participantContextId the consumer participant context the asset access was acquired for
      * @param assetId              the asset identifier
-     * @param counterPartyId       the provider participant to drop the asset access of, leaving the access cached
-     *                             for other provider servers; {@code null} drops it for every provider server
      * @param consumerClientId     the calling client; {@code null} when the request states none
      */
-    default void invalidateAssetAccess(String participantContextId, String assetId, @Nullable String counterPartyId,
-                                       @Nullable ClientId consumerClientId) {
+    default void invalidateAssetAccess(String participantContextId, String assetId, @Nullable ClientId consumerClientId) {
+    }
+
+    /**
+     * Drops every cached asset access won by the Security Server at the given address, whatever its participant
+     * context, asset, client or candidate set. Servers are compared by the lowercase {@code host:port} of the
+     * address with the scheme's default port filled in, or by the exact address when it is not an HTTP(S) URL, so the
+     * same host on another port is another server. A no-op when nothing is cached or the cache is disabled.
+     *
+     * @param counterPartyAddress the counter-party address of the Security Server whose cached asset access is dropped
+     */
+    default void invalidateAssetAccessWonBy(String counterPartyAddress) {
+    }
+
+    /**
+     * Tells the control plane that the provider Security Server at the address was unreachable, so that it keeps
+     * the server out of acquisition for a while. Returns without waiting for the control plane; a failed report is
+     * logged and never thrown.
+     *
+     * @param counterPartyId      the counter-party id of the failed Security Server
+     * @param counterPartyAddress the counter-party address of the failed Security Server
+     */
+    default void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
     }
 }
