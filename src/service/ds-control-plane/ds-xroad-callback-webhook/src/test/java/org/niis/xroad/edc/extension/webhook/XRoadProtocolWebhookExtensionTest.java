@@ -26,7 +26,10 @@
  */
 package org.niis.xroad.edc.extension.webhook;
 
+import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
+import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
+import org.eclipse.edc.boot.system.injection.ServiceInjectionPoint;
 import org.eclipse.edc.connector.core.profile.DataspaceProfileContextRegistryImpl;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -85,5 +88,27 @@ class XRoadProtocolWebhookExtensionTest {
         factory.constructInstance(XRoadProtocolWebhookExtension.class).initialize(context);
 
         assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void extensionProvidesTheProtocolWebhookResolver() {
+        var extension = new XRoadProtocolWebhookExtension();
+
+        var providedTypes = new ProviderMethodScanner(extension).allProviders()
+                .map(provider -> provider.getReturnType().getName())
+                .toList();
+
+        assertThat(providedTypes).containsExactly(ProtocolWebhookResolver.class.getName());
+    }
+
+    @Test
+    void extensionInjectsTheProtocolWebhookResolverToLoadAfterTheDefaultProvider() {
+        var extension = new XRoadProtocolWebhookExtension();
+
+        var injectedTypes = new InjectionPointScanner().getInjectionPoints(extension)
+                .map(point -> point instanceof ServiceInjectionPoint<?> service ? service.getType().getName() : null)
+                .toList();
+
+        assertThat(injectedTypes).contains(ProtocolWebhookResolver.class.getName());
     }
 }

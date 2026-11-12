@@ -40,6 +40,8 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -203,6 +205,38 @@ class XRoadJettyServiceTest {
 
         assertThat(response.status()).isEqualTo(HttpServletResponse.SC_OK);
         assertThat(response.body()).isEqualTo("/DEV:COM:12%2B34/profile");
+    }
+
+    @Test
+    void theCredentialsPortPassesADoubleEncodedParticipantSegmentDecodedOnce() throws Exception {
+        var credentialsPort = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("credentials", credentialsPort, "/api/credentials"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        jettyService.registerServlet("credentials", pathInfoServlet());
+
+        var response = get(credentialsPort, "/api/credentials/DEV:COM:12%252B34/profile");
+
+        assertThat(response.status()).isEqualTo(HttpServletResponse.SC_OK);
+        assertThat(response.body()).isEqualTo("/DEV:COM:12%2B34/profile");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/api/dsp/DEV:COM:12%2Fx/profile", "/api/dsp/%2e%2e/profile", "/api/dsp/DEV:COM:12%5Cx/profile"})
+    void theDspPortStillRejectsOtherAmbiguousPathEncodings(String path) throws Exception {
+        var dspPort = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping(ApiContext.PROTOCOL, dspPort, "/api/dsp"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        jettyService.registerServlet(ApiContext.PROTOCOL, pathInfoServlet());
+
+        assertThat(get(dspPort, path).status()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
     }
 
     @Test

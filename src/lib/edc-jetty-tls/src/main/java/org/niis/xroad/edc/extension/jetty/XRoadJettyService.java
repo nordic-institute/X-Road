@@ -99,6 +99,7 @@ public final class XRoadJettyService implements WebServer {
 
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private static final String ROOT_PATH = "/";
+    private static final String CREDENTIALS_CONTEXT_NAME = "credentials";
     private static final int MAX_CAUSE_LENGTH = 300;
 
     /**
@@ -414,11 +415,12 @@ public final class XRoadJettyService implements WebServer {
     }
 
     /**
-     * The DSP port carries the participant context id as a path segment in which a literal percent sign travels
-     * as {@code %25}; Jetty classes any encoded percent sign as ambiguous path encoding and rejects it by default.
+     * The DSP port and the identity hub credentials port carry the participant context id as a path segment in
+     * which a literal percent sign travels as {@code %25}; Jetty classes any encoded percent sign as ambiguous
+     * path encoding and rejects it by default.
      */
     private static boolean carriesEncodedParticipantSegment(PortMapping mapping) {
-        return ApiContext.PROTOCOL.equals(mapping.name());
+        return ApiContext.PROTOCOL.equals(mapping.name()) || CREDENTIALS_CONTEXT_NAME.equals(mapping.name());
     }
 
     private ServletContextHandler createHandler(PortMapping mapping) {

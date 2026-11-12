@@ -28,12 +28,14 @@ package org.niis.xroad.edc.extension.webhook;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.annotation.Nullable;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ProtocolWebhook;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.jetbrains.annotations.Nullable;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -50,20 +52,13 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCON
  * is read on every call, so a newly published or changed value applies without a restart. While the value is not
  * available no webhook is returned, which makes EDC end the affected negotiation or transfer instead of failing.
  */
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class XRoadProtocolWebhookResolver implements ProtocolWebhookResolver {
 
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final DataspaceProfileContextRegistry profileRegistry;
     private final Monitor monitor;
-
-    XRoadProtocolWebhookResolver(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                 DataspaceProfileContextRegistry profileRegistry, Monitor monitor) {
-        this.globalConfProvider = globalConfProvider;
-        this.serverConfProvider = serverConfProvider;
-        this.profileRegistry = profileRegistry;
-        this.monitor = monitor;
-    }
 
     @Override
     public @Nullable ProtocolWebhook getWebhook(String participantContextId, String protocol) {
