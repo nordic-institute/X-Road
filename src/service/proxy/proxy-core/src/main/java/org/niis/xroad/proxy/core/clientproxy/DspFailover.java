@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
@@ -49,6 +50,7 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
+@ArchUnitSuppressed("NoVanillaExceptions")
 public class DspFailover {
 
     private final DspRequestProcessor dspRequestProcessor;
@@ -61,6 +63,7 @@ public class DspFailover {
      * @param <T> the outcome of a successful send
      */
     @FunctionalInterface
+    @ArchUnitSuppressed("NoVanillaExceptions")
     public interface Send<T> {
         T send(HttpSender httpSender, AssetAccessResponse access) throws Exception;
     }
