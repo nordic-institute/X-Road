@@ -11,6 +11,11 @@ on:
         description: 'Git SHA for the build'
         required: true
         type: string
+      compose_e2e_only:
+        description: 'Build only what the compose e2e legs consume: skip unit tests, Sonar, and the packages and artifacts of the other lanes'
+        required: false
+        type: boolean
+        default: false
     outputs:
       image_registry:
         description: 'Image registry URL used for builds'
@@ -49,6 +54,7 @@ jobs:
           free-disk-space: false
 
       - name: Cache SonarCloud packages
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.sonar/cache
@@ -146,6 +152,7 @@ jobs:
           -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
 
       - name: Build RHEL9 packages
+        if: ${{ !inputs.compose_e2e_only }}
         working-directory: ./scripts
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
@@ -153,6 +160,7 @@ jobs:
         run: ./build-native-packages.sh -d -r rpm-el9 --package-only
 
       - name: Upload RHEL9 packages
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lxd-packages-rhel9
@@ -160,9 +168,11 @@ jobs:
           compression-level: '0'
 
       - name: Free RHEL9 packages
+        if: ${{ !inputs.compose_e2e_only }}
         run: rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
 
       - name: Build Ubuntu 24.04 (Noble) packages
+        if: ${{ !inputs.compose_e2e_only }}
         working-directory: ./scripts
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
@@ -170,6 +180,7 @@ jobs:
         run: ./build-native-packages.sh -d -r noble --package-only
 
       - name: Upload Ubuntu 24.04 (Noble) packages
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lxd-packages-ubuntu24.04
@@ -177,6 +188,7 @@ jobs:
           compression-level: '0'
 
       - name: Free Ubuntu 24.04 (Noble) packages
+        if: ${{ !inputs.compose_e2e_only }}
         run: rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
 
       - name: Build Ubuntu 26.04 (Resolute) packages
@@ -187,6 +199,7 @@ jobs:
         run: ./build-native-packages.sh -d -r resolute --package-only
 
       - name: Upload Ubuntu 26.04 (Resolute) packages
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lxd-packages-ubuntu26.04
@@ -202,12 +215,14 @@ jobs:
 
       # Everything the lxd e2e leg consumes (native packages + e2e-test-jar) is uploaded above this point.
       - name: Write artifacts-ready marker
+        if: ${{ !inputs.compose_e2e_only }}
         run: |
           mkdir -p ci-markers
           echo "IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}" > ci-markers/artifacts-ready.env
           echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/artifacts-ready.env
 
       - name: Upload artifacts-ready marker
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: artifacts-ready
@@ -224,6 +239,7 @@ jobs:
           ./build-signer-with-hsm.sh --platforms linux/amd64,linux/arm64 --push
 
       - name: Upload signer-int-test
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: signer-int-test-jar
@@ -231,6 +247,7 @@ jobs:
           compression-level: '0'
 
       - name: Upload confproxy-int-test
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: confproxy-int-test-jar
@@ -238,6 +255,7 @@ jobs:
           compression-level: '0'
 
       - name: Upload softtoken-signer-int-test
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: softtoken-signer-int-test-jar
@@ -245,6 +263,7 @@ jobs:
           compression-level: '0'
 
       - name: Upload opmonitor-int-test
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: opmonitor-int-test-jar
@@ -252,6 +271,7 @@ jobs:
           compression-level: '0'
 
       - name: Upload cs-management-int-test
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: cs-management-int-test-jar
@@ -259,6 +279,7 @@ jobs:
           compression-level: '0'
 
       - name: Upload ss-api-test
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: ss-api-test-jar
@@ -266,6 +287,7 @@ jobs:
           compression-level: '0'
 
       - name: Upload cs-api-test
+        if: ${{ !inputs.compose_e2e_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: cs-api-test-jar
@@ -286,6 +308,7 @@ jobs:
           label: 'Build, unit tests and packaging'
 
       - name: Build RHEL10 packages
+        if: ${{ !inputs.compose_e2e_only }}
         working-directory: ./scripts
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
@@ -332,6 +355,7 @@ jobs:
 
       # `build`, not bare `test` as it triggers all the relevant tasks and previous build (w/o tests) is still cached.
       - name: Run tests
+        if: ${{ !inputs.compose_e2e_only }}
         working-directory: ./src
         run: |
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build --parallel -Dorg.gradle.workers.max=6 \
@@ -342,7 +366,7 @@ jobs:
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
         uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
-        if: success() || failure()
+        if: (success() || failure()) && !inputs.compose_e2e_only
         with:
           name: Unit and integration tests
           path: src/**/build/test-results/**/TEST-*.xml
@@ -352,6 +376,7 @@ jobs:
 
       # Runs at the end, in parallel to e2e jobs.
       - name: Sonar analysis
+        if: ${{ !inputs.compose_e2e_only }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src

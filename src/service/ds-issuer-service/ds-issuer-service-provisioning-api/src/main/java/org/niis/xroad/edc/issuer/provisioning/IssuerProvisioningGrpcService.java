@@ -29,8 +29,12 @@ package org.niis.xroad.edc.issuer.provisioning;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.iam.did.spi.document.Service;
+import org.eclipse.edc.identityhub.spi.did.DidDocumentService;
+import org.eclipse.edc.identityhub.spi.did.model.DidState;
+import org.eclipse.edc.identityhub.spi.keypair.KeyPairService;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
+import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyPairUsage;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
@@ -39,11 +43,17 @@ import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.Credentia
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.CredentialDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.MappingDefinition;
+import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignCause;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateCredentialDefinitionReq;
@@ -57,8 +67,10 @@ import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
 import java.util.List;
 import java.util.Map;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.failure;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrConflict;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateManifestFields;
 
@@ -89,6 +101,9 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private final AttestationDefinitionService attestationDefinitionService;
     private final CredentialDefinitionService credentialDefinitionService;
     private final CredentialStatusService credentialStatusService;
+    private final KeyPairService keyPairService;
+    private final DidDocumentService didDocumentService;
+    private final PrivateKeyResolver privateKeyResolver;
     private final RpcResponseHandler responseHandler;
     private final Monitor monitor;
 
@@ -115,6 +130,11 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         responseHandler.handleRequest(responseObserver, () -> revokeCredentialInternal(request));
     }
 
+    @Override
+    public void canSign(CanSignReq request, StreamObserver<CanSignResp> responseObserver) {
+        responseHandler.handleRequest(responseObserver, () -> canSignInternal(request));
+    }
+
     private CreateParticipantContextResp createParticipantContextInternal(CreateParticipantContextReq request) {
         validateManifestFields(request.getParticipantContextId(), request.getDid());
         var manifest = ParticipantManifest.Builder.newInstance()
@@ -134,8 +154,13 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
                 .build();
 
         var result = participantContextService.createParticipantContext(manifest);
-        requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId());
-        return CreateParticipantContextResp.getDefaultInstance();
+        if (result.succeeded()) {
+            return CreateParticipantContextResp.getDefaultInstance();
+        }
+        if (result.reason() == ServiceFailure.Reason.CONFLICT) {
+            throw failure(DSP_PARTICIPANT_CONTEXT_CONFLICT, request.getParticipantContextId(), result.getFailureDetail());
+        }
+        throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId(), result.getFailureDetail());
     }
 
     private CreateAttestationDefinitionResp createAttestationDefinitionInternal(CreateAttestationDefinitionReq request) {
@@ -202,6 +227,36 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         }
 
         return RevokeCredentialResp.newBuilder().setRevokedCount(credentialIds.size()).build();
+    }
+
+    private CanSignResp canSignInternal(CanSignReq request) {
+        var participantContextId = request.getParticipantContextId();
+        var contextResult = participantContextService.getParticipantContext(participantContextId);
+        if (contextResult.failed()) {
+            return CanSignResp.newBuilder().setOutcome(CanSignOutcome.ABSENT).build();
+        }
+
+        var keyResult = keyPairService.getActiveKeyPairForUsage(participantContextId, KeyPairUsage.CREDENTIAL_SIGNING);
+        if (keyResult.failed()) {
+            return cannotSign(CanSignCause.NO_ACTIVE_KEY);
+        }
+
+        var privateKeyResult = privateKeyResolver.resolvePrivateKey(participantContextId, keyResult.getContent().getPrivateKeyAlias());
+        if (privateKeyResult.failed()) {
+            return cannotSign(CanSignCause.KEY_SECRET_NOT_READABLE);
+        }
+
+        var did = contextResult.getContent().getDid();
+        var didResource = didDocumentService.findById(did);
+        if (didResource == null || didResource.getStateAsEnum() != DidState.PUBLISHED) {
+            return cannotSign(CanSignCause.DID_NOT_PUBLISHED);
+        }
+
+        return CanSignResp.newBuilder().setOutcome(CanSignOutcome.CAN_SIGN).setDid(did).build();
+    }
+
+    private static CanSignResp cannotSign(CanSignCause cause) {
+        return CanSignResp.newBuilder().setOutcome(CanSignOutcome.CANNOT_SIGN).setCause(cause).build();
     }
 
     private QuerySpec hostCredentialQuery(RevokeCredentialReq request) {

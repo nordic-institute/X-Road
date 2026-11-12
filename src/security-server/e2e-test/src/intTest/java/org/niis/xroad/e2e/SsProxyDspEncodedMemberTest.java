@@ -181,7 +181,7 @@ class SsProxyDspEncodedMemberTest extends E2eTest {
                                 credentialStatus, publicationState, json.getString(memberContext + ".publication_reason")));
                         return true;
                     }
-                    return AdminApi.CREDENTIAL_STATUS_ISSUED.equals(credentialStatus)
+                    return AdminApi.ISSUED_CREDENTIAL_STATUS.equals(credentialStatus)
                             && PUBLICATION_STATE_PUBLISHED.equals(publicationState);
                 });
         assertThat(terminalFailure.get()).as("member context %s reached a terminal failure state", MEMBER_CTX_ID).isNull();

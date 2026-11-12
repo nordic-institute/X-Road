@@ -311,6 +311,7 @@ edc-spi-dsp = { module = "org.eclipse.edc:dsp-spi", version.ref = "edc" }
 edc-spi-dsp-v2025 = { module = "org.eclipse.edc:dsp-spi-2025", version.ref = "edc" }
 edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
 edc-spi-identityhub-participantcontext = { module = "org.eclipse.edc:participant-context-spi", version.ref = "edc" }
+edc-spi-identityhub-did = { module = "org.eclipse.edc:did-spi", version.ref = "edc" }
 edc-ih-participants = { module = "org.eclipse.edc:identity-hub-participants", version.ref = "edc" }
 edc-spi-identityhub = { module = "org.eclipse.edc:identity-hub-spi", version.ref = "edc" }
 edc-spi-identityhub-vc = { module = "org.eclipse.edc:verifiable-credential-spi", version.ref = "edc" }
@@ -336,6 +337,7 @@ edc-iam-dcp-cel = { module = "org.eclipse.edc:decentralized-claims-cel", version
 
 # IdentityHub runtime modules (identityhub-base-bom members)
 edc-ih-common-core = { module = "org.eclipse.edc:common-core", version.ref = "edc" }
+edc-ih-common-lib = { module = "org.eclipse.edc:common-lib", version.ref = "edc" }
 edc-ih-core = { module = "org.eclipse.edc:identity-hub-core", version.ref = "edc" }
 edc-ih-did = { module = "org.eclipse.edc:identity-hub-did", version.ref = "edc" }
 edc-ih-keypairs = { module = "org.eclipse.edc:identity-hub-keypairs", version.ref = "edc" }

@@ -32,7 +32,6 @@ import io.restassured.specification.RequestSpecification;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionTimeoutException;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -64,11 +63,10 @@ class AdminApi {
     private static final String REGISTERED_STATUS = "REGISTERED";
     private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
     private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
-    private static final Duration PROVISIONING_POLL_TIMEOUT = Duration.ofMinutes(5);
-    private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
-
     /** The {@code credential_status} of a participant context whose membership credential has been issued. */
-    static final String CREDENTIAL_STATUS_ISSUED = "ISSUED";
+    static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
+    private static final Duration CREDENTIAL_ISSUED_POLL_TIMEOUT = Duration.ofMinutes(5);
+    private static final Duration CREDENTIAL_ISSUED_POLL_INTERVAL = Duration.ofSeconds(5);
 
     /** The mapped {@code https://host:port} of one environment's admin UI container. */
     static String adminBaseUrl(E2eEnvironment env, String envName) {
@@ -362,31 +360,22 @@ class AdminApi {
     }
 
     /**
-     * Polls the read-only dataspace provisioning status until the MEMBER participant context
-     * {@code memberCtxId} reports an ISSUED membership credential, so a later assertion on the member's
-     * dataspace presence does not run before it exists.
+     * Waits until the Security Server's provisioning status reports the MEMBER participant context
+     * {@code memberCtxId} ({@code INSTANCE:CLASS:CODE}) with an ISSUED membership credential.
      */
-    static void awaitMemberContextIssued(String baseUrl, AdminSession session, String memberCtxId) {
-        try {
-            Awaitility.await()
-                    .pollInterval(PROVISIONING_POLL_INTERVAL)
-                    .timeout(PROVISIONING_POLL_TIMEOUT)
-                    .ignoreExceptions()
-                    .until(() -> {
-                        var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
-                        if (response.getStatusCode() != HTTP_OK) {
-                            return false;
-                        }
-                        var credentialStatus = response.jsonPath().getString(
-                                "participant_contexts.find { it.kind == 'MEMBER' && it.participant_id == '"
-                                        + memberCtxId + "' }.credential_status");
-                        return CREDENTIAL_STATUS_ISSUED.equals(credentialStatus);
-                    });
-        } catch (ConditionTimeoutException e) {
-            throw new ConditionTimeoutException(
-                    "Timed out waiting for participant context '%s' to reach an ISSUED membership credential"
-                            .formatted(memberCtxId), e);
-        }
+    static void awaitMemberCredentialIssued(String baseUrl, AdminSession session, String memberCtxId) {
+        Awaitility.await()
+                .alias("membership credential of %s is ISSUED".formatted(memberCtxId))
+                .pollInterval(CREDENTIAL_ISSUED_POLL_INTERVAL)
+                .timeout(CREDENTIAL_ISSUED_POLL_TIMEOUT)
+                .ignoreExceptions()
+                .until(() -> {
+                    var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
+                    return response.getStatusCode() == HTTP_OK
+                            && ISSUED_CREDENTIAL_STATUS.equals(response.jsonPath().getString(
+                            "participant_contexts.find { it.kind == 'MEMBER' && it.participant_id == '"
+                                    + memberCtxId + "' }.credential_status"));
+                });
     }
 
     /**

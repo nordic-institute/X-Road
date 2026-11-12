@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+                   logicalFilePath="centerui/202611091200-issuer-dids-identity-columns.xml">
+
+    <changeSet author="niis" id="202611091200-issuer-dids-identity-columns">
+        <comment>Central Server data space Issuer identity binding (globalconf dataspaceParameters/issuerDid). Clears rows left by the removed automatic flow and adds the identity columns.</comment>
+
+        <delete tableName="issuer_dids"/>
+
+        <addColumn tableName="issuer_dids">
+            <column name="host" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="did_port" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="issuance_url" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="statuslist_base_url" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.awaitClientRegistered;
-import static org.niis.xroad.e2e.AdminApi.awaitMemberContextIssued;
+import static org.niis.xroad.e2e.AdminApi.awaitMemberCredentialIssued;
 import static org.niis.xroad.e2e.AdminApi.deleteClient;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.AdminApi.registerClient;
@@ -190,7 +190,7 @@ class SsMemberDeprovisioningTest extends E2eTest {
 
         then("the member's participant context and membership credential are provisioned, so the later "
                 + "absence assertions prove a real removal", () ->
-                awaitMemberContextIssued(ss0BaseUrl, ss0Session, MEMBER_CTX_ID));
+                awaitMemberCredentialIssued(ss0BaseUrl, ss0Session, MEMBER_CTX_ID));
 
         when("the member's only client on ss0 is unregistered", () ->
                 unregisterClient(ss0BaseUrl, ss0Session, clientId));

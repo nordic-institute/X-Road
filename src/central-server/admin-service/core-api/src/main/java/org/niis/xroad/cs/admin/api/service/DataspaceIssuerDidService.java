@@ -28,23 +28,25 @@ package org.niis.xroad.cs.admin.api.service;
 import java.util.List;
 
 /**
- * The Central Server's Issuer DID registry. Each Central Server node persists its own Issuer DID here at data
- * space issuer provisioning time, so that whichever node generates globalconf can publish the complete cluster
- * set as the dataspace issuer trust anchor.
+ * The Central Server's Issuer identity binding. Records the data space Issuer's identity once, at
+ * provisioning time, so that globalconf generation can publish it as the dataspace issuer trust anchor.
  */
 public interface DataspaceIssuerDidService {
 
     /**
-     * Registers the given Issuer DID for this Central Server node. Idempotent: registering the same DID again,
-     * as happens when a node re-provisions its issuer, does not create a duplicate entry.
+     * Binds the Issuer identity. Fails if the same DID is already bound: the binding happens once and is
+     * never replaced. A different DID is not rejected here.
      *
-     * @param issuerDid the node's Issuer DID
+     * @param issuerDid the Issuer's DID
+     * @param host the Issuer's published host
+     * @param didPort the Issuer's published DID port
+     * @param issuanceUrl the Issuer's published issuance URL
+     * @param statuslistBaseUrl the Issuer's published statuslist base URL
      */
-    void register(String issuerDid);
+    void register(String issuerDid, String host, int didPort, String issuanceUrl, String statuslistBaseUrl);
 
     /**
-     * @return every Issuer DID registered by any Central Server node of this instance, or an empty list if none
-     * has provisioned a data space issuer.
+     * @return every bound Issuer DID of this instance, or an empty list if none is bound
      */
     List<String> findAll();
 }

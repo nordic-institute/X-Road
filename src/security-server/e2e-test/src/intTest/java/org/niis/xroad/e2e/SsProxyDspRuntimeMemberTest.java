@@ -50,7 +50,7 @@ import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.addRestServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.awaitClientRegistered;
-import static org.niis.xroad.e2e.AdminApi.awaitMemberContextIssued;
+import static org.niis.xroad.e2e.AdminApi.awaitMemberCredentialIssued;
 import static org.niis.xroad.e2e.AdminApi.discoverBackendUrl;
 import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
@@ -86,7 +86,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * owning member has no provisioned context yet is not published anywhere at all (XRDADR-41's full
  * pre-provisioning discoverability remains a deferred follow-up). The consumer proxy derives the
  * counter-party coordinates from the provider member id, so it dials {@code DEV:COM:4321} directly;
- * {@link AdminApi#awaitMemberContextIssued} confirms that context and its membership credential are already
+ * {@link AdminApi#awaitMemberCredentialIssued} confirms that context and its membership credential are already
  * provisioned before any traffic flows, so this scenario never exercises the pre-provisioning gap. The
  * exchange rides two member contexts: the consumer side negotiates on the sender member's context
  * ({@code DEV:COM:1234}), the provider side serves the offer on the new member's <b>own</b> context
@@ -230,7 +230,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
         then("the new member's own participant context and membership credential are provisioned, independent of "
                 + "which context the transfer below ends up riding, with no restart", () ->
-                awaitMemberContextIssued(ss0BaseUrl, ss0Session, NEW_MEMBER_CTX_ID));
+                awaitMemberCredentialIssued(ss0BaseUrl, ss0Session, NEW_MEMBER_CTX_ID));
 
         and("the new member's DID now resolves with verification keys", () ->
                 awaitKeyedDidDocument(env, didResolution));
