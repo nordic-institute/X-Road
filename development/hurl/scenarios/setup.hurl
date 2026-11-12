@@ -275,6 +275,17 @@ HTTP *
 [Asserts]
 status toString matches "^(202|409)$"
 
+# A host-not-set or certificate-not-ready environment is refused by the call above too (still
+# matched by the broad 409 check), so check the real prerequisites here and fail within one
+# request instead of waiting out the bound-wait retries below.
+GET https://{{cs_host}}:4000/api/v1/issuer-service
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+[Asserts]
+jsonpath "$.host_set" == true
+jsonpath "$.certificate_ready" == true
+
 GET https://{{cs_host}}:4000/api/v1/issuer-service
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 [Options]
