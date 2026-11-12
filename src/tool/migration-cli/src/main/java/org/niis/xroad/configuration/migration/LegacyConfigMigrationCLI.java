@@ -39,12 +39,17 @@ import org.niis.xroad.migration.signer.KeyConfMigrator;
 import org.niis.xroad.migration.tokenpin.AutoLoginScriptExecutor;
 import org.niis.xroad.migration.tokenpin.TokenPinMigrator;
 import org.niis.xroad.migration.utils.DbPropertiesReader;
+import org.niis.xroad.migration.utils.InstallationType;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
@@ -108,39 +113,59 @@ public class LegacyConfigMigrationCLI {
         }
     }
 
+    private static final Set<Command> CENTRAL_SERVER_COMMANDS = EnumSet.of(
+            Command.NODE_NAME, Command.VALIDATE, Command.SIGNER_DEVICES, Command.INI_TO_DB, Command.KEYCONF,
+            Command.SIGNER_TOKEN_PINS);
+
     public static void main(String[] args) {
+        if (args.length == 0) {
+            showHelp();
+            return;
+        }
+
+        Command command = Command.fromString(args[0]);
+        if (command == null) {
+            log.error("Unknown command: {}", args[0]);
+            showHelp();
+            System.exit(1);
+        }
+
+        InstallationOption installationOption = InstallationOption.extract(shiftArgs(args));
+        InstallationType installation = installationOption.installationType();
+        requireSupportedCommand(command, args[0], installation);
+
+        run(command, installation, installationOption.remainingArgs().toArray(new String[0]));
+    }
+
+    private static void requireSupportedCommand(Command command, String commandName, InstallationType installation) {
+        if (installation == InstallationType.CENTRAL_SERVER && !CENTRAL_SERVER_COMMANDS.contains(command)) {
+            throw new MigrationException("Command '%s' is not supported with %s=%s (%s); supported commands: %s".formatted(
+                    commandName, InstallationOption.OPTION, installation.getCode(), installation.getDisplayName(),
+                    CENTRAL_SERVER_COMMANDS.stream().map(c -> c.name).collect(Collectors.joining(", "))));
+        }
+    }
+
+    private static void run(Command command, InstallationType installation, String[] args) {
         try {
-            if (args.length == 0) {
-                showHelp();
-                return;
-            }
-
-            Command command = Command.fromString(args[0]);
-            if (command == null) {
-                log.error("Unknown command: {}", args[0]);
-                showHelp();
-                System.exit(1);
-            }
-
             switch (command) {
                 case VALIDATE -> validateEnv();
-                case CONFIG -> migrateConfiguration(shiftArgs(args));
-                case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
-                case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
-                case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(shiftArgs(args));
-                case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(shiftArgs(args));
-                case KEYCONF -> migrateKeyConf(shiftArgs(args));
+                case CONFIG -> migrateConfiguration(args);
+                case PGP_KEYS -> migratePgpKeys(args);
+                case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(args);
+                case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(args);
+                case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(args);
+                case KEYCONF -> migrateKeyConf(args, installation);
                 case SIGNER_TOKEN_PINS -> {
-                    NodeOption nodeOption = NodeOption.extract(shiftArgs(args));
+                    NodeOption nodeOption = NodeOption.extract(args);
                     migrateSignerTokenPins(nodeOption.remainingArgs().toArray(new String[0]), nodeOption.nodeIdentity());
                 }
-                case NODE_NAME -> migrateNodeName(shiftArgs(args));
-                case SIGNER_DEVICES -> migrateSignerDevices(shiftArgs(args));
-                case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(shiftArgs(args));
-                case FILE_TO_DB -> migrateFileToDb(shiftArgs(args));
-                case INI_TO_DB -> migrateIniToDb(shiftArgs(args));
-                case PROPERTIES_TO_DB -> migratePropertiesToDb(shiftArgs(args));
-                case SET_PROPERTY -> setProperty(shiftArgs(args));
+                case NODE_NAME -> migrateNodeName(args);
+                case SIGNER_DEVICES -> migrateSignerDevices(args, installation);
+                case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(args);
+                case FILE_TO_DB -> migrateFileToDb(args);
+                case INI_TO_DB -> migrateIniToDb(args, installation);
+                case PROPERTIES_TO_DB -> migratePropertiesToDb(args);
+                case SET_PROPERTY -> setProperty(args);
                 default -> showHelp();
             }
         } catch (Exception e) {
@@ -165,6 +190,10 @@ public class LegacyConfigMigrationCLI {
                 Usage: migration-cli <command> [options]
 
                 Options:
+                  --installation=ss|cs           Product the tool runs on (default: ss). Accepted with any command.
+                                                 cs reads the Central Server db.properties keys and allows only
+                                                 node-name, validate, signer-devices, ini-to-db, keyconf and
+                                                 signer-token-pins.
                   --node <name>                  Cluster node the migrated data belongs to (default: node_0), used by
                                                  signer-token-pins. Central Server: the [node] name in node.ini.
 
@@ -428,7 +457,7 @@ public class LegacyConfigMigrationCLI {
 
         log.info("Starting ACME account key migration");
         var vaultClient = MigrationVaultClient.createAndPreflight();
-        var dbCredentials = DbPropertiesReader.readDbCredentials(Paths.get(dbPropertiesPath), "serverconf");
+        var dbCredentials = DbPropertiesReader.readForInstallation(Paths.get(dbPropertiesPath), InstallationType.SECURITY_SERVER);
         AcmeAccountKeyAliasResolver aliasResolver;
         try {
             aliasResolver = AcmeAccountKeyAliasResolver.fromServerconfDatabase(dbCredentials);
@@ -465,7 +494,7 @@ public class LegacyConfigMigrationCLI {
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private static void migrateKeyConf(String[] args) {
+    private static void migrateKeyConf(String[] args, InstallationType installation) throws SQLException {
         if (args.length != 2) {
             log.error("Signer keyconf migration requires 2 arguments");
             log.error("Usage: migration-cli keyconf <keyconf path> <db.properties path>");
@@ -484,13 +513,7 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        KeyConfMigrator keyConfMigrator = new KeyConfMigrator();
-        try {
-            keyConfMigrator.migrate(keyconfDir, dbPropertiesPath);
-        } catch (Exception e) {
-            log.error("Error while migrating Signer keyconf", e);
-        }
-
+        new KeyConfMigrator(installation).migrate(keyconfDir, dbPropertiesPath);
     }
 
     private static void migrateNodeName(String[] args) {
@@ -508,7 +531,7 @@ public class LegacyConfigMigrationCLI {
         NodeNameMigrator.migrate(Paths.get(args[0]), Paths.get(args[1]));
     }
 
-    private static void migrateSignerDevices(String[] args) {
+    private static void migrateSignerDevices(String[] args, InstallationType installation) {
         if (args.length != 2) {
             log.error("Signer devices migration requires 2 arguments");
             log.error("Usage: migration-cli signer-devices <devices.ini> <db.properties path>");
@@ -529,7 +552,7 @@ public class LegacyConfigMigrationCLI {
         }
 
         log.info("Starting signer devices migration from: {}", devicesIniPath);
-        new DevicesIniToDbMigrator().migrate(devicesIniPath, dbPropertiesPath);
+        new DevicesIniToDbMigrator().migrate(devicesIniPath, dbPropertiesPath, installation);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -615,7 +638,7 @@ public class LegacyConfigMigrationCLI {
         new SinglePropertySetter(propertyKey, propertyValue).migrate("cmdline", dbPropertiesPath);
     }
 
-    private static void migrateIniToDb(String[] args) {
+    private static void migrateIniToDb(String[] args, InstallationType installation) {
         if (args.length != 2) {
             log.error("INI to DB migration requires 2 arguments");
             log.error("Usage: migration-cli ini-to-db <input.ini> <db.properties path>");
@@ -636,7 +659,7 @@ public class LegacyConfigMigrationCLI {
         }
 
         log.info("Starting INI to DB migration from: {}", iniInputPath);
-        new IniToDbMigrator().migrate(iniInputPath, dbPropertiesPath);
+        new IniToDbMigrator().migrate(iniInputPath, dbPropertiesPath, installation);
     }
 
     private static void migratePropertiesToDb(String[] args) {
