@@ -8,6 +8,7 @@ services:
     pull_policy: always
     environment:
       - XROAD_HOST=localhost
+      - XROAD_NODE_NAME=test_node
     ports:
       - "0:4000"
       - "0:5432"

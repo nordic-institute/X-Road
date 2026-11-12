@@ -36,7 +36,24 @@
     "configuration_part_validation_failed": "Konfigurasiýanyň böleginiň barlagy amala aşmady",
     "configuration_part_validator_not_found": "Konfigurasiýanyň böleginiň dogrulygyny barlaýjy tapylmady",
     "csr_generation_failed": "CSR döredip bolmady",
+    "did_foreign_system": "DID bu howpsuzlyk serweriniň SYSTEM DID-i däl",
+    "did_held_by_another_server": "DID eýýäm başga howpsuzlyk serweri tarapyndan ulanylýar",
+    "did_host_differs": "DID-iň hosty howpsuzlyk serweriniň salgysy bilen gabat gelmeli",
+    "did_member_not_served": "Howpsuzlyk serweri bu agza hyzmat etmeýär",
+    "did_non_ascii_host": "DID-iň we howpsuzlyk serweriniň salgysynyň hosty ASCII bolmaly",
+    "did_not_canonical": "DID kanoniki görnüşde däl",
+    "did_not_stored": "Howpsuzlyk serwerinde çalyşmak üçin saklanan DID ýok",
+    "did_of_other_member": "DID başga agza degişli",
+    "did_too_long": "DID gaty uzyn",
+    "did_undecodable": "DID-i dekodirläp bolmaýar",
+    "did_unparseable_server_address": "Howpsuzlyk serweriniň salgysyny host hökmünde okap bolmaýar",
+    "did_wrong_scheme": "DID v1 wersiýaly did:web DID bolmaly",
     "double_file_extension": "Faýly iki esse giňeltmek rugsat berilmeýär",
+    "dsp_base_url_host_differs": "DSP esasy URL-iň hosty howpsuzlyk serweriniň salgysy bilen gabat gelmeli",
+    "dsp_base_url_malformed": "DSP esasy URL-i dogry URL däl",
+    "dsp_base_url_non_ascii_host": "DSP esasy URL-iň hosty ASCII bolmaly",
+    "dsp_base_url_not_canonical": "DSP esasy URL-i kanoniki görnüşde däl",
+    "dsp_base_url_not_https": "DSP esasy URL-i https ulanmaly",
     "error_activating_signing_key": "Gol çekme açaryny işe girizmek ýalňyşlygy",
     "error_deleting_signing_key": "Gol çekme açaryny pozmak ýalňyşlygy",
     "error_recreating_anchor": "Labyr faýlyny gaýtadan döretmek ýalňyşlygy",
@@ -105,6 +122,7 @@
     "subsystem_not_found": "Görkezilen kodly kiçi ulgam tapylmady.",
     "subsystem_not_registered_to_security_server": "Kiçi ulgam bu howpsuzlyk serwerinde hasaba alynmady.",
     "subsystem_registered_and_cannot_be_deleted": "Eýýäm hasaba alnan  kiçi ulgamy pozup bolmaýar.",
+    "system_pair_incomplete": "SYSTEM DID-i we DSP esasy URL-i bilelikde beriň ýa-da hiç birini bermäň",
     "timestamping_authority_not_found": "Wagty bellemäge ygtyýarly tapylmady",
     "token_action_not_possible": "Tokeniň hereketi mümkin däl",
     "token_activation_failed": "Tokeni işletmekde ýalňyşlyk ýüze çykdy",
@@ -365,6 +383,7 @@
     "clientEnable": "Müşderini işe giriz",
     "dialog": {
       "approve": {
+        "addressChangedNotify": "{serverId} howpsuzlyk serweriniň salgysy üýtgedildi: {address}. Operator serweri täzeden kesgitläp bilmegi üçin, howpsuzlyk serweriniň operatoryna, meselem, e-poçta arkaly habar beriň.",
         "bodyMessage": "Siz dogurdanam {serverId} serwerden gelen {id} ID-li dolandyryş talaby tassyklamak isleýärsiňizmi?",
         "newMemberWarning": "Görkezilen agza häzirki wagtda ýok. Bu talap tassyklanwagtynda agza awtomatiki usulda dörediler.",
         "successMessage": "{serverId} -dan {id} ID-li dolandyryş talap tassyklandy",
@@ -395,11 +414,26 @@
         "addedToGroup": "Topara goş",
         "confirmDelete": "Siz dogurdanam {member} agzany ulgamyň konfigurasiýasyndan pozmak isleýärsiňizmi? Tassyklamak üçin agzanyň kodyny giriziň.",
         "deleteMember": "Agzany poz",
+        "editDid": {
+          "check": {
+            "not_resolved_fetch_failure": "Agzanyň DID-i çözülmeýär: onuň DID resminamasyny almak başartmady. Ýöne ýatda saklap bilersiňiz.",
+            "not_resolved_id_mismatch": "Agzanyň DID-i çözülmeýär: DID resminamasy başga DID-e degişli. Ýöne ýatda saklap bilersiňiz.",
+            "not_resolved_malformed_did": "Agzanyň DID-i çözülmeýär: onuň DID resminamasy nädogry görnüşde. Ýöne ýatda saklap bilersiňiz.",
+            "not_resolved_no_document": "Agzanyň DID-i çözülmeýär: DID resminamasy tapylmady. Ýöne ýatda saklap bilersiňiz.",
+            "resolved": "Agzanyň DID-i çözülýär.",
+            "resolver_unavailable": "Agzanyň DID-i barlanyp bilinmedi, sebäbi Issuer Service elýeterli däl. Ýöne ýatda saklap bilersiňiz."
+          },
+          "checkDid": "DID-i barla",
+          "success": "Agzanyň DID-i üstünlikli täzelendi",
+          "title": "{server} serwerinde agzanyň DID-ini üýtget"
+        },
         "editMemberName": "Agzanyň adyny redaktirle",
         "enterCode": "Agza kodyny giriz",
         "globalGroups": "Global toparlar",
         "group": "Topar",
         "memberDeleted": "Agza üstünlikli pozuldy",
+        "memberDid": "Agzanyň DID-i",
+        "memberDidStaleWarning": "Agzanyň DID-i howpsuzlyk serweriniň salgysy bilen gabat gelmeýär. Beýleki serwerler bu agza ýetmek üçin köne DID-i ulanýar.",
         "memberNameSaved": "Agzanyň ady üstünlikli ýatda saklanyldy",
         "ownedServers": "Eýeli serwerler",
         "server": "Serwer"
@@ -447,11 +481,27 @@
       },
       "editAddress": {
         "addressField": "Howpsuzlyk serweriň salgysy",
+        "check": {
+          "not_resolved_fetch_failure": "SYSTEM DID çözülmeýär: onuň DID resminamasyny almak başartmady. Ýöne ýatda saklap bilersiňiz.",
+          "not_resolved_id_mismatch": "SYSTEM DID çözülmeýär: DID resminamasy başga DID-e degişli. Ýöne ýatda saklap bilersiňiz.",
+          "not_resolved_malformed_did": "SYSTEM DID çözülmeýär: onuň DID resminamasy nädogry görnüşde. Ýöne ýatda saklap bilersiňiz.",
+          "not_resolved_no_document": "SYSTEM DID çözülmeýär: DID resminamasy tapylmady. Ýöne ýatda saklap bilersiňiz.",
+          "resolved": "SYSTEM DID çözülýär.",
+          "resolver_unavailable": "SYSTEM DID barlanyp bilinmedi, sebäbi Issuer Service elýeterli däl. Ýöne ýatda saklap bilersiňiz."
+        },
+        "checkDid": "DID-i barla",
+        "dspBaseUrlField": "DSP esasy URL-i",
+        "notify": "Howpsuzlyk serweriniň operatoryna bu üýtgeşme barada, meselem, e-poçta arkaly habar beriň. Operator serweri täzeden kesgitleýänçä, howpsuzlyk serweri öz bahalaryny saklaýar.",
+        "oldHostWarning": "SYSTEM DID we DSP esasy URL-i henizem köne hosty ulanyp bilerler. Olary hem üýtgediň ýa-da serweri täzeden kesgitlemek üçin howpsuzlyk serweriniň operatoryna goýuň.",
+        "publishedValues": "Neşir edilen bahalar",
+        "publishedValuesHint": "Global konfigurasiýa bu bahalary beýleki serwerlere habar berýär.",
         "success": "Howpsuzlyk serweriň salgysy üstünlikli täzelendi",
+        "systemDidField": "SYSTEM DID",
         "title": "Howpsuzlyk serweriň salgysyny üýtget"
       }
     },
     "disabled": "Wagtlaýynça öçürilen",
+    "dspBaseUrl": "DSP esasy URL-i",
     "ownerClass": "Eýesiniň klassy",
     "ownerCode": "Eýesiniň kody",
     "ownerName": "Eýesiniň kody",
@@ -480,6 +530,8 @@
       }
     },
     "serverCode": "Serweriň kody",
+    "staleValuesWarning": "SYSTEM DID ýa-da DSP esasy URL-i howpsuzlyk serweriniň salgysy bilen gabat gelmeýär. Beýleki serwerler bu serwere ýetmek üçin köne bahalary ulanýar. Bahalary üýtgediň ýa-da howpsuzlyk serweriniň operatoryndan serweri täzeden kesgitlemegi soraň.",
+    "systemDid": "SYSTEM DID",
     "unregistered": "Hasaba alynmadyk"
   },
   "status": {

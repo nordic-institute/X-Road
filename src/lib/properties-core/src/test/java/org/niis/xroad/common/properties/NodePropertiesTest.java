@@ -35,7 +35,9 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.niis.xroad.common.properties.NodeProperties.NODE_NAME_ENV_VARIABLE;
 import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
 
 @ExtendWith(SystemStubsExtension.class)
@@ -78,6 +80,14 @@ class NodePropertiesTest {
 
         variables.set(NODE_TYPE_ENV_VARIABLE, "something-else");
         assertEquals(NodeProperties.NodeType.STANDALONE, NodeProperties.getServerNodeType());
+    }
+
+    @Test
+    void testGetConfiguredNodeName() {
+        assertNull(NodeProperties.getConfiguredNodeName());
+
+        variables.set(NODE_NAME_ENV_VARIABLE, "node_1");
+        assertEquals("node_1", NodeProperties.getConfiguredNodeName());
     }
 
     @Test

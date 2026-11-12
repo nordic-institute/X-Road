@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.47
+Version: 2.49
 Doc. ID: IG-CS
 
 ---
@@ -65,6 +65,8 @@ Doc. ID: IG-CS
 | 30.06.2025 | 2.45    | Update the method of adding X-Road apt repository                                                                                                                                             | Mikk-Erik Bachmann   |
 | 10.09.2026 | 2.46    | Document hardware token configuration via the `xroad.signer.modules` database property                                                                                                       | Ričardas Bučiūnas    |
 | 05.11.2026 | 2.47    | Document per-node property values in `db_property.sh`                                                                                                                                        |                      |
+| 07.11.2026 | 2.48    | Add the `db_property.sh list` command and the node name rule                                                                                                                                 |                      |
+| 11.11.2026 | 2.49    | Use the TLS certificate name keys as the per-node example and describe the default of a key without a row                                                                                    | Ričardas Bučiūnas    |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -440,27 +442,28 @@ sudo /usr/share/xroad/scripts/db_property.sh set xroad.signer.modules '{"softhsm
 - The services that read node values are the Central Server admin service, management service, registration service, signer, configuration client and Issuer Service. Each reads its settings once at startup, so restart the service after a change.
 - On the signer, the configuration client and the Issuer Service, settings that the framework publishes to the service use the shared value only, and a node value for them is ignored. An example is the `xroad.dsp.*` settings that the Issuer Service reads through the EDC settings.
 - Data that the signer keeps in its own tables, such as tokens and keys, is still shared by all nodes.
-- A node uses the name set in the `xroad.admin-service.ha-node-name` property of `/etc/xroad/conf.d/local.yaml`. If it is blank or missing, the node name is `node_0`.
-- A node name consists of ASCII letters, digits, `_` and `-`, is at most 63 characters long and starts with an ASCII letter or digit.
+- A node uses the name set in the `name` key of the `[node]` section of `/etc/xroad/conf.d/node.ini`. If it is blank or missing, the node name is `node_0`.
+- A node name consists of ASCII letters, digits, `_` and `-`, is at most 63 characters long and starts with an ASCII letter or digit. For the full rule, see [IG-CS-8](ig-cs_x-road_8_central_server_installation_guide.md#264-node-name) section 2.6.4.
+- Rows are bound to the node name. After a node is renamed, rows of the old name no longer apply; see [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) section 4.1.
+- `db_property.sh list` prints every shared row as the key, a tab and the value, sorted by key. `db_property.sh list --node <name>` prints the rows of that node only.
 - A value that starts with `-` must be preceded by `--`, so that it is not read as an option.
 - Known limitation: the admin UI and `db_property.sh get` without `--node` show the shared value, not the value that a node actually uses. Use `get --node <name>` to see the value of a node.
 
-Example `local.yaml` entry that names the node:
+Example `node.ini` entry that names the node:
 
-```yaml
-xroad:
-  admin-service:
-    ha-node-name: node_1
+```ini
+[node]
+name=node_1
 ```
 
-Example: set a property for `node_1` and read it back:
+Example: give the user interface certificate of `node_1` its own common name, and read it back. The keys `xroad.admin-service.tls.certificate-provisioning.*` and `xroad.management-service.tls.certificate-provisioning.*` set the names of the user interface and the management services certificates:
 
 ```bash
-sudo /usr/share/xroad/scripts/db_property.sh set --yes --node node_1 -- <property-key> <value>
-sudo /usr/share/xroad/scripts/db_property.sh get <property-key> --node node_1
+sudo /usr/share/xroad/scripts/db_property.sh set --yes --node node_1 -- xroad.admin-service.tls.certificate-provisioning.common-name cs1.example.org
+sudo /usr/share/xroad/scripts/db_property.sh get xroad.admin-service.tls.certificate-provisioning.common-name --node node_1
 ```
 
-Then restart the service that reads the property on `node_1`.
+The other nodes keep using the shared row of the key, or the default of the key when there is no shared row. Then restart the service that reads the property on `node_1`. The certificate names are an exception: they take effect only when the certificate key is created again, see [IG-CS-8](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2.
 
 **Migrating from a pre-version-8 `devices.ini`:** versions of X-Road before 8 configured hardware tokens in an INI file at `/etc/xroad/devices.ini`. On X-Road 8 this file is no longer read by the signer — do not create it. When upgrading, `migration-cli signer-devices <devices.ini file> <db.properties file>` converts an existing `devices.ini` into the `xroad.signer.modules` document described above; see the version 8 upgrade guide for details.
 

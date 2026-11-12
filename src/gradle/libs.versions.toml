@@ -41,7 +41,7 @@ feign = "13.17"
 testContainers = "2.0.5"
 testAllure = "2.34.0"
 shadowPlugin = "9.6.1"
-owaspDependencyCheck = "12.2.2"
+owaspDependencyCheck = "13.0.0"
 edc = "1.0.0-RC6"
 carbon-did = "0.10.0"
 nimbus = "10.10"
@@ -247,7 +247,7 @@ semver4j = { module = "org.semver4j:semver4j", version = "6.0.0" }
 systemStubs = { module = "uk.org.webcompere:system-stubs-jupiter", version = "2.1.8" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
-acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
+acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "5.1.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "5.1.2" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version.ref = "opentelemetry-javaagent" }
 opentelemetry-javaagent = { module = "io.opentelemetry.javaagent:opentelemetry-javaagent", version.ref = "opentelemetry-javaagent" }

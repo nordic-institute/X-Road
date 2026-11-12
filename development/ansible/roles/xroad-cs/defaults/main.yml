@@ -11,8 +11,8 @@ xroad_host_fqdn: "{{ inventory_hostname }}.lxd"
 # so alt-subject strings never carry a duplicate SAN.
 xroad_host_extra_dns_san: "{{ ',DNS:' + inventory_hostname if xroad_host_fqdn != inventory_hostname else '' }}"
 
-# HA node name written to /etc/xroad/conf.d/local.yaml (xroad.admin-service.ha-node-name)
-# before the package installs. Empty leaves local.yaml untouched.
+# HA node name written to /etc/xroad/conf.d/node.ini ([node] name) before the
+# package installs. Empty leaves node.ini untouched.
 xroad_cs_ha_node_name: ""
 
 # Issuer Service host set through the admin API after the install.

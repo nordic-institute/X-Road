@@ -34,6 +34,7 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable;
 import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable.Row;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
@@ -79,7 +80,8 @@ class NodeAwareLoadingTest {
 
     @Test
     void configuredNodeNameResolvesTheNodeValueInAllThreeLoadPoints() {
-        var environment = environment("node_1");
+        variables.set("XROAD_NODE_NAME", "node_1");
+        var environment = environment();
 
         assertThat(publishedValue(environment)).isEqualTo("30MB");
         assertThat(conditionValue(environment)).isEqualTo("30MB");
@@ -88,19 +90,16 @@ class NodeAwareLoadingTest {
 
     @Test
     void missingNodeNameResolvesTheNodeZeroValueInAllThreeLoadPoints() {
-        var environment = environment(null);
+        var environment = environment();
 
         assertThat(publishedValue(environment)).isEqualTo("10MB");
         assertThat(conditionValue(environment)).isEqualTo("10MB");
         assertThat(beanValue(environment)).isEqualTo("10MB");
     }
 
-    private static StandardEnvironment environment(String nodeName) {
+    private static StandardEnvironment environment() {
         var properties = new HashMap<String, Object>();
         properties.put("spring.application.name", "admin-service");
-        if (nodeName != null) {
-            properties.put("xroad.admin-service.ha-node-name", nodeName);
-        }
         var environment = new StandardEnvironment();
         environment.getPropertySources().addFirst(new MapPropertySource("test", properties));
         return environment;
@@ -122,7 +121,7 @@ class NodeAwareLoadingTest {
     private static String beanValue(StandardEnvironment environment) {
         return XRoadConfigBuilder.create()
                 .register(AdminServiceConfigKeys.instance())
-                .dbOverrides("admin-service", SpringNodeNameProvider.forEnvironment(environment))
+                .dbOverrides("admin-service", NodeNameProvider.fromEnvironment())
                 .build()
                 .value(AdminServiceConfigKeys.REQUEST_SIZE_LIMIT_BINARY_UPLOAD);
     }

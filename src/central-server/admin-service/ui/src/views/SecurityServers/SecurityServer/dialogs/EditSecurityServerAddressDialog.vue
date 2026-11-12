@@ -24,9 +24,6 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Member details view
--->
 <template>
   <XrdSimpleDialog
     title="securityServers.dialogs.editAddress.title"
@@ -36,10 +33,10 @@
     :scrollable="false"
     :loading="loading"
     :disable-save="!meta.valid || !meta.dirty"
-    @save="saveAddress"
+    @save="save"
     @cancel="close"
   >
-    <template #content>
+    <template #content="{ dialogHandler }">
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
           <v-text-field
@@ -53,18 +50,72 @@
           />
         </XrdFormBlockRow>
       </XrdFormBlock>
+      <template v-if="hasSystemPair">
+        <div class="body-regular font-weight-bold mt-4">
+          {{ $t('securityServers.dialogs.editAddress.publishedValues') }}
+        </div>
+        <div class="body-small mb-4">{{ $t('securityServers.dialogs.editAddress.publishedValuesHint') }}</div>
+        <XrdFormBlock>
+          <XrdFormBlockRow full-length>
+            <v-text-field
+              v-model="systemDidInput"
+              v-bind="systemDidInputAttrs"
+              data-test="security-server-system-did-edit-field"
+              name="systemDid"
+              class="xrd"
+              :label="$t('securityServers.dialogs.editAddress.systemDidField')"
+            />
+          </XrdFormBlockRow>
+          <XrdFormBlockRow full-length>
+            <DidCheckRow
+              button-text="securityServers.dialogs.editAddress.checkDid"
+              button-test-id="security-server-system-did-check-button"
+              result-test-id="security-server-system-did-check-result"
+              :disabled="!systemDidInput || !!errors.securityServerAddress"
+              :checking="checking"
+              :outcome="outcome"
+              @check="check(dialogHandler)"
+            />
+          </XrdFormBlockRow>
+          <XrdFormBlockRow full-length>
+            <v-text-field
+              v-model="dspBaseUrlInput"
+              v-bind="dspBaseUrlInputAttrs"
+              data-test="security-server-dsp-base-url-edit-field"
+              name="dspBaseUrl"
+              class="xrd"
+              :label="$t('securityServers.dialogs.editAddress.dspBaseUrlField')"
+            />
+          </XrdFormBlockRow>
+        </XrdFormBlock>
+      </template>
+      <v-alert
+        v-if="warningText"
+        data-test="security-server-edit-warning"
+        class="mt-4"
+        type="warning"
+        variant="outlined"
+        border="start"
+        density="compact"
+        :text="$t(warningText)"
+      />
     </template>
   </XrdSimpleDialog>
 </template>
 
 <script lang="ts" setup>
-import { useSecurityServer } from '@/store/modules/security-servers';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useForm } from 'vee-validate';
-import { XrdSimpleDialog, useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm, XrdFormBlock, XrdFormBlockRow, getErrorInfo, getTranslatedFieldErrors } from '@niis/shared-ui';
+import type { DialogSaveHandler } from '@niis/shared-ui';
+import type { AxiosError } from 'axios';
 
-/**
- * Component for a Security server details view
- */
+import DidCheckRow from '@/components/DidCheckRow.vue';
+import { useDidCheck } from '@/composables/use-did-check';
+import type { DidResolutionReason } from '@/openapi-types';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import { addressChanged, hasStoredSystemPair } from '@/util/helpers';
 
 const props = defineProps({
   securityServerId: {
@@ -75,23 +126,73 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  systemDid: {
+    type: String,
+    default: undefined,
+  },
+  dspBaseUrl: {
+    type: String,
+    default: undefined,
+  },
+  systemPairStale: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emits = defineEmits(['save', 'cancel']);
 
-const { meta, resetForm, setFieldError, defineField, handleSubmit } = useForm({
+const RESOLUTION_TEXT: Record<DidResolutionReason, string> = {
+  MALFORMED_DID: 'securityServers.dialogs.editAddress.check.not_resolved_malformed_did',
+  NO_DOCUMENT: 'securityServers.dialogs.editAddress.check.not_resolved_no_document',
+  ID_MISMATCH: 'securityServers.dialogs.editAddress.check.not_resolved_id_mismatch',
+  FETCH_FAILURE: 'securityServers.dialogs.editAddress.check.not_resolved_fetch_failure',
+};
+
+const hasSystemPair = hasStoredSystemPair(props.systemDid, props.dspBaseUrl);
+
+const { meta, errors, resetForm, setFieldError, defineField, handleSubmit } = useForm({
   validationSchema: {
     securityServerAddress: 'required|address',
+    ...(hasSystemPair ? { systemDid: 'required', dspBaseUrl: 'required' } : {}),
   },
-  initialValues: { securityServerAddress: props.address },
+  initialValues: {
+    securityServerAddress: props.address,
+    ...(hasSystemPair ? { systemDid: props.systemDid, dspBaseUrl: props.dspBaseUrl } : {}),
+  },
 });
-const [securityServerAddress, securityServerAddressAttrs] = defineField('securityServerAddress', {
-  props: (state) => ({ 'error-messages': state.errors }),
+const fieldConfig = { props: (state: { errors: string[] }) => ({ 'error-messages': state.errors }) };
+const [securityServerAddress, securityServerAddressAttrs] = defineField('securityServerAddress', fieldConfig);
+const [systemDidInput, systemDidInputAttrs] = defineField('systemDid', fieldConfig);
+const [dspBaseUrlInput, dspBaseUrlInputAttrs] = defineField('dspBaseUrl', fieldConfig);
+
+const { t } = useI18n();
+const { updateAddress, checkSystemDid } = useSecurityServer();
+const { addSuccessMessage, addError, loading } = useBasicForm();
+
+const { checking, outcome, check } = useDidCheck({
+  request: () => checkSystemDid(props.securityServerId, securityServerAddress.value as string, systemDidInput.value as string),
+  resetOn: [securityServerAddress, systemDidInput, dspBaseUrlInput],
+  texts: {
+    resolved: 'securityServers.dialogs.editAddress.check.resolved',
+    resolverUnavailable: 'securityServers.dialogs.editAddress.check.resolver_unavailable',
+    resolution: RESOLUTION_TEXT,
+  },
 });
 
-const { updateAddress } = useSecurityServer();
-const { showOrTranslateErrors, addSuccessMessage, loading } = useBasicForm(setFieldError, {
-  securityServerAddress: 'securityServerAddressDto.serverAddress',
+const addressEdited = computed(() => addressChanged(props.address, securityServerAddress.value));
+const systemPairChanged = computed(
+  () => hasSystemPair && (systemDidInput.value !== props.systemDid || dspBaseUrlInput.value !== props.dspBaseUrl),
+);
+
+const warningText = computed(() => {
+  if (!hasSystemPair || systemPairChanged.value) {
+    return undefined;
+  }
+  if (addressEdited.value) {
+    return 'securityServers.dialogs.editAddress.oldHostWarning';
+  }
+  return props.systemPairStale ? 'securityServers.staleValuesWarning' : undefined;
 });
 
 function close() {
@@ -99,16 +200,33 @@ function close() {
   emits('cancel');
 }
 
-const saveAddress = handleSubmit((values) => {
-  loading.value = true;
-  updateAddress(props.securityServerId, values.securityServerAddress)
-    .then(() => {
-      addSuccessMessage('securityServers.dialogs.editAddress.success');
-      emits('save');
-    })
-    .catch((error) => showOrTranslateErrors(error))
-    .finally(() => (loading.value = false));
-});
-</script>
+function showSaveError(error: AxiosError, handler: DialogSaveHandler) {
+  const errorInfo = getErrorInfo(error);
+  const fieldErrors = errorInfo.error?.validation_errors;
+  if (errorInfo.status === 400 && errorInfo.error?.code === 'validation_failure' && fieldErrors) {
+    setFieldError('securityServerAddress', getTranslatedFieldErrors('securityServerEditDto.serverAddress', fieldErrors));
+  } else {
+    handler.addError(error);
+  }
+}
 
-<style lang="scss" scoped></style>
+function save(evt: Event, handler: DialogSaveHandler) {
+  return handleSubmit(() => {
+    loading.value = true;
+    const systemPair = systemPairChanged.value
+      ? { system_did: systemDidInput.value as string, dsp_base_url: dspBaseUrlInput.value as string }
+      : undefined;
+    const informOperator = hasSystemPair && (addressEdited.value || systemPairChanged.value);
+    return updateAddress(props.securityServerId, securityServerAddress.value as string, systemPair)
+      .then(() => {
+        addSuccessMessage('securityServers.dialogs.editAddress.success');
+        if (informOperator) {
+          addError(t('securityServers.dialogs.editAddress.notify'), { warning: true });
+        }
+        emits('save');
+      })
+      .catch((error) => showSaveError(error, handler))
+      .finally(() => (loading.value = false));
+  })(evt);
+}
+</script>

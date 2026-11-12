@@ -24,47 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.properties.spring;
+package org.niis.xroad.ds.issuance.application;
 
+import io.smallrye.config.PropertiesConfigSource;
+import io.smallrye.config.SmallRyeConfigBuilder;
+import io.smallrye.config.source.yaml.YamlConfigSource;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.env.StandardEnvironment;
-import org.springframework.core.env.SystemEnvironmentPropertySource;
-import org.springframework.mock.env.MockEnvironment;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class SpringNodeNameProviderTest {
-
-    private static final String NODE_NAME_KEY = "xroad.admin-service.ha-node-name";
+class IssuerListenAddressExpansionTest {
 
     @Test
-    void returnsTheConfiguredName() {
-        var environment = new MockEnvironment().withProperty(NODE_NAME_KEY, "node_1");
+    void anEmptyFrameworkListenAddressExpandsToBlankInEveryPublicContext() throws Exception {
+        var config = new SmallRyeConfigBuilder()
+                .addDefaultInterceptors()
+                .withSources(new YamlConfigSource(IssuerListenAddressExpansionTest.class.getResource("/application.yaml")))
+                .withSources(new PropertiesConfigSource(Map.of("xroad.dataspace.issuer.listen-address", ""), "xroad-framework-source", 299))
+                .build();
 
-        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_1");
+        assertThat(config.getConfigValue("web.http.did.host").getValue()).isEmpty();
+        assertThat(config.getConfigValue("web.http.issuance.host").getValue()).isEmpty();
+        assertThat(config.getConfigValue("web.http.statuslist.host").getValue()).isEmpty();
     }
 
     @Test
-    void blankNameMapsToNodeZero() {
-        var environment = new MockEnvironment().withProperty(NODE_NAME_KEY, "  ");
+    void anAbsentFrameworkListenAddressExpandsToBlankInEveryPublicContext() throws Exception {
+        var config = new SmallRyeConfigBuilder()
+                .addDefaultInterceptors()
+                .withSources(new YamlConfigSource(IssuerListenAddressExpansionTest.class.getResource("/application.yaml")))
+                .build();
 
-        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_0");
-    }
-
-    @Test
-    void missingNameMapsToNodeZero() {
-        assertThat(SpringNodeNameProvider.forEnvironment(new MockEnvironment()).nodeName()).contains("node_0");
-    }
-
-    @Test
-    void readsTheNameFromTheEnvironmentVariable() {
-        var environment = new StandardEnvironment();
-        environment.getPropertySources().replace(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                new SystemEnvironmentPropertySource(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                        Map.of("XROAD_ADMIN_SERVICE_HA_NODE_NAME", "node_2")));
-
-        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_2");
+        assertThat(config.getConfigValue("web.http.did.host").getValue()).isEmpty();
+        assertThat(config.getConfigValue("web.http.issuance.host").getValue()).isEmpty();
+        assertThat(config.getConfigValue("web.http.statuslist.host").getValue()).isEmpty();
     }
 }

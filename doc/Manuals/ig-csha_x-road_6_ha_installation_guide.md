@@ -1,7 +1,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.20
+Version: 1.21
 Doc. ID: IG-CSHA
 
 ---
@@ -33,6 +33,7 @@ Doc. ID: IG-CSHA
 | 02.06.2023 | 1.18    | Minor updates                                                                                        | Justas Samuolis    |
 | 05.06.2023 | 1.19    | Update HA cluster status endpoint path                                                               | Andres Rosenthal   |
 | 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
+| 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows of a standalone server and the per-node TLS certificate names | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -54,6 +55,7 @@ Doc. ID: IG-CSHA
   - [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
   - [3.5 Post-Configuration Steps](#35-post-configuration-steps)
 - [4 General Installation of HA Support](#4-general-installation-of-ha-support)
+  - [4.1 Node name and renaming a node](#41-node-name-and-renaming-a-node)
 - [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
 - [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
   - [6.1 Configuration database (and possible replicas) is lost](#61-configuration-database-and-possible-replicas-is-lost)
@@ -177,17 +179,20 @@ The secondary hosts are assumed to use the same port (default 5432) as the prima
 The HA support requires that an external database is initialized and available (see [X-Road Central Server Installation Guide](#Ref_IG-CS) about using an external database). 
 The database can also be installed on the Central Server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
 
-In addition, it is necessary to configure a unique node name for each node participating in the cluster preferably before installing the X-Road software.
+In addition, it is necessary to configure a unique node name for each node participating in the cluster. There are two equal routes: create `node.ini` before installing the Central Server (steps 1 and 2), or answer the node name question that each node's first Central Server installation asks (steps 3 and 4; preseed key `xroad-common/node-name`; you can skip steps 1 and 2, but the notes after step 2 apply to both routes). The installation asks the question only when `node.ini` has no name yet. It checks an entered name before it writes anything, and stops with an error when the name is not valid. It does not check a name that is already in `node.ini`; the services check it when they start, and a node with an invalid name does not start.
 
-1.  On each node, edit file `/etc/xroad/conf.d/local.ini`, creating it if necessary
+1.  On each node, create the directory `/etc/xroad/conf.d` if it does not exist, and edit the file `/etc/xroad/conf.d/node.ini` in it, creating the file if necessary. The directory does not exist before the first installation. The package sets the ownership of the directory and its files when it is installed.
+    ```bash
+    sudo mkdir -p /etc/xroad/conf.d
+    ```
 2.  Add the following lines
     ```ini
-    [center]
-    ha-node-name=<node_name>
+    [node]
+    name=<node_name>
     ```
-    Where `<node_name>` is the unique name for the HA node. It is suggested to follow a naming scheme where the first node is `node_0` and subsequent ones `node_1`, `node_2`, etc..
-    
-    When upgrading an existing Central Server to HA configuration, the name of the existing server *must be* `node_0`.
+    Where `<node_name>` is the unique name for the HA node. It is suggested to follow a naming scheme where the first node is `node_0` and subsequent ones `node_1`, `node_2`, etc.. The name must follow the rule in section [4.1](#41-node-name-and-renaming-a-node). The services check the name when they start; a node with an invalid name does not start.
+
+    When upgrading an existing Central Server to HA configuration, the name of the existing server *must be* `node_0`. A Central Server that is not clustered already uses `node_0` as its default node name, so its keys in the secret store are stored under that name. The installation and the X-Road 7 migration store its configuration rows as shared rows. Setting `name=node_0` in `node.ini` turns the server into node 1 of the cluster and moves nothing: the keys are already under `node_0`, and the shared rows keep applying. From then on the server reports itself as clustered. See [IG-CS section 2.6.4](ig-cs_x-road_8_central_server_installation_guide.md#264-node-name).
 
     If upgrading an existing cluster with BDR, the name of the node **must be** the same as the local BDR node name.
 
@@ -196,6 +201,64 @@ In addition, it is necessary to configure a unique node name for each node parti
     When the installation asks for a database host, provide the details of the external database.
 
 4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the Central Server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
+
+**TLS certificate names.** The installation asks for the common name and the alternative names of the admin and management service TLS certificates ([IG-CS section 2.6](ig-cs_x-road_8_central_server_installation_guide.md#26-package-installation); preseed keys `xroad-common/admin-subject`, `xroad-common/admin-altsubject`, `xroad-common/service-subject` and `xroad-common/service-altsubject`). The installation detects the host name and the addresses of the node and suggests them. The suggested value is the value that the node uses now: its own row, else the shared row, else the preseeded answer, else the detected names. The answers are stored in the shared configuration database. An unchanged answer writes nothing. A changed answer is stored as a row of the node when the node has a node name, and as a shared row otherwise. Each node's certificates therefore get the names entered on that node.
+
+A node that has a node name and no rows yet gets a node row for each name, and a node row wins over a shared row. If a shared row must apply to all nodes, set the shared rows before the first installation of the nodes, or remove the node rows later with `db_property.sh remove <key> --node <node>`. See [IG-CS section 2.6.2](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) for the rows, the resolution order and the commands.
+
+To use other names later, for example a load balancer name, follow the same section. The names are rows in the shared configuration database, so the rows of node 2 and later can be set from the first node before the new node is installed. After a change, delete the key of each affected node and restart the services of that node.
+
+In a cluster, decide for each name whether it is the same on all nodes or specific to a node:
+
+- A name that is specific to a node, for example its own host name, is a node row (`--node <node>`).
+- A name that is the same on all nodes, for example a load balancer name, is a shared row.
+- A key without a row of its own uses the default: the value of `XROAD_HOST`, else `localhost`, with no DNS alternative names and the IP alternative name `127.0.0.1`. The defaults apply only when no installation has stored rows, for example in container images.
+
+To check the rows of a node, run `db_property.sh list --node <node>`.
+
+Each node has its own management service TLS certificate. The management services' Security Server must therefore trust the certificate of every node. Add each certificate as an internal TLS certificate on that Security Server, see [UG-SS](ug-ss_x-road_6_security_server_user_guide.md) section "Managing Information System TLS Certificates".
+
+Authentication certificate registration requests from Security Servers use the address and the management service certificate published in the configuration of the node the Security Server downloaded it from. The Security Server accepts only that exact certificate, whatever names it carries. Keep the default node-specific registration address: a registration address shared by all nodes behind a load balancer is not supported, because each node serves a different certificate.
+
+### 4.1 Node name and renaming a node
+
+The node name must follow this rule:
+
+- Use 1 to 63 characters: letters, digits, `_` and `-`.
+- The first character must be a letter or a digit.
+- The name is read as plain text, so values such as `01`, `007` and `true` are valid.
+
+The installation checks a name that is entered at the prompt with this rule before it writes anything, and stops with an error when the name is not valid. It does not check a name that is already in `node.ini`. The services check every name with this rule when they start, and a node with an invalid name does not start. In containers, set the name with the environment variable `XROAD_NODE_NAME`.
+
+The name is fixed after the node has joined the cluster. The node keeps its secrets in the secret store under its name, so changing the name in `node.ini` of a running node leaves the node without its secrets. To rename a node, remove the node and join it again under the new name:
+
+1.  Take a backup of the node and of the other nodes.
+2.  Stop the Central Server services on the node. Do not uninstall the packages yet. The entries of the old name must be deleted while the secret store is reachable, and the local secret store may be gone after the packages are removed.
+3.  Delete the secret store entries of the old name. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. With a remote secret store, use its address and a token that can delete secrets there. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<old_node_name>` with the old name:
+    ```bash
+    export BAO_ADDR=<secret store address>
+    export BAO_TOKEN=<token>
+    bao kv list xrd-secret/signer/token-pins/<old_node_name>
+    bao kv delete xrd-secret/signer/token-pins/<old_node_name>/<token_id>
+    bao kv delete xrd-secret/tls/admin-service/<old_node_name>
+    bao kv delete xrd-secret/tls/management-service/<old_node_name>
+    ```
+    Run the second command for each token ID that the first command lists. Do not delete the entries of the other nodes.
+4.  Move the configuration rows of the old name to the new name. Rows set with `db_property.sh --node <old_node_name>`, for example per-node TLS certificate names, no longer apply to the node under its new name. They stay in the configuration database until they are removed. Run the commands on any Central Server node. Replace `<old_node_name>` and `<new_node_name>` with the old and the new name. List the rows of the old name:
+    ```bash
+    sudo /usr/share/xroad/scripts/db_property.sh list --node <old_node_name>
+    ```
+    Each line shows a key, a tab and the value. For each row, set the same value for the new name and then remove the row of the old name:
+    ```bash
+    sudo /usr/share/xroad/scripts/db_property.sh set --yes --node <new_node_name> -- <key> '<value>' && \
+      sudo /usr/share/xroad/scripts/db_property.sh remove --yes --node <old_node_name> <key>
+    ```
+    Keep the single quotes around the value: without them, the shell changes values that contain spaces, braces, commas or quotes, such as JSON values, and `set` fails or stores a different value. Write a single quote inside the value as `'\''`. The `&&` runs `remove` only when `set` succeeded. After each row, check the new row with `sudo /usr/share/xroad/scripts/db_property.sh get --node <new_node_name> <key>`; it must print the same value as the `list` output.
+    Run `list --node <old_node_name>` again to check that no row is left. Shared rows are not affected.
+5.  Remove the node from the cluster: uninstall the Central Server packages from it.
+6.  On the node, set the new name in `/etc/xroad/conf.d/node.ini` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
+
+These steps do not change the other tables of the configuration database. Rows in the `ha_node_name` column of the tables for configuration sources, distributed files and system parameters keep the old node name. This guide does not describe how to move or remove them.
 
 ## 5 Monitoring HA State on a Node
 
