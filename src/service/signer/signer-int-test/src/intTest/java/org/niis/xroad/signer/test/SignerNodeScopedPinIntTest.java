@@ -40,10 +40,10 @@ import static org.awaitility.Awaitility.await;
 import static org.niis.xroad.signer.test.container.SignerIntTestContainerSetup.SIGNER;
 
 /**
- * 0450 - Signer: node-scoped PIN storage. The primary signer runs as node {@code node_a} and the secondary as
- * node {@code 0}, both storing the PIN of token {@code 0} in the shared OpenBao. Reads OpenBao directly to
- * prove that each node keeps its own PIN, that node {@code 0} and token {@code 0} do not collide, that restart
- * auto-login reads the node path without changing it, and that deleting one node's PIN leaves the other's.
+ * 0450 - Signer: node-scoped PIN storage. The primary signer runs as the default node {@code node_0} and the
+ * second Central Server node as {@code node_b}, both storing the PIN of token {@code 0} in the shared OpenBao.
+ * Reads OpenBao directly to prove that each node keeps its own PIN, that restart auto-login reads the node
+ * path without changing it, and that deleting one node's PIN leaves the other's.
  */
 @Order(450)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -52,10 +52,10 @@ class SignerNodeScopedPinIntTest extends AbstractSignerIntTest {
     private static final String OPENBAO = "openbao";
     private static final String MOUNT = "-mount=xrd-secret";
     private static final String PIN_BASE_PATH = "signer/token-pins";
-    private static final String PRIMARY_NODE_PIN_DIR = "signer/token-pins/node_a";
-    private static final String SECONDARY_NODE_PIN_DIR = "signer/token-pins/0";
-    private static final String PRIMARY_NODE_PIN_PATH = "signer/token-pins/node_a/0";
-    private static final String SECONDARY_NODE_PIN_PATH = "signer/token-pins/0/0";
+    private static final String PRIMARY_NODE_PIN_DIR = "signer/token-pins/node_0";
+    private static final String NODE_B_PIN_DIR = "signer/token-pins/node_b";
+    private static final String PRIMARY_NODE_PIN_PATH = "signer/token-pins/node_0/0";
+    private static final String NODE_B_PIN_PATH = "signer/token-pins/node_b/0";
     private static final String FLAT_PIN_PATH = "signer/token-pins/0";
     private static final String TOKEN_ID_0 = "0";
     private static final String AUTOLOGIN_PIN = "4321";
@@ -69,8 +69,8 @@ class SignerNodeScopedPinIntTest extends AbstractSignerIntTest {
     void eachNodeStoresPinUnderItsOwnPath() {
         Step.then("primary node path holds the autologin pin",
                 () -> assertThat(readPin(PRIMARY_NODE_PIN_PATH)).isEqualTo(AUTOLOGIN_PIN));
-        Step.and("secondary node path holds the autologin pin",
-                () -> assertThat(readPin(SECONDARY_NODE_PIN_PATH)).isEqualTo(AUTOLOGIN_PIN));
+        Step.and("node_b path holds the autologin pin",
+                () -> assertThat(readPin(NODE_B_PIN_PATH)).isEqualTo(AUTOLOGIN_PIN));
         Step.and("the flat token pin path is not written", () -> assertThat(pinExists(FLAT_PIN_PATH)).isFalse());
     }
 
@@ -95,8 +95,8 @@ class SignerNodeScopedPinIntTest extends AbstractSignerIntTest {
         Step.when("token '0' pin is updated on the primary node, clearing its stored pin",
                 () -> client().updateTokenPin(TOKEN_ID_0, AUTOLOGIN_PIN.toCharArray(), TEMPORARY_PIN.toCharArray()));
         Step.then("primary node path no longer holds a pin", () -> assertThat(pinExists(PRIMARY_NODE_PIN_PATH)).isFalse());
-        Step.and("secondary node path still holds its pin",
-                () -> assertThat(readPin(SECONDARY_NODE_PIN_PATH)).isEqualTo(AUTOLOGIN_PIN));
+        Step.and("node_b path still holds its pin",
+                () -> assertThat(readPin(NODE_B_PIN_PATH)).isEqualTo(AUTOLOGIN_PIN));
 
         Step.when("the original pin is restored and the signer restarted", this::restoreAutologinPin);
         Step.then("primary node path holds the autologin pin again",
@@ -140,9 +140,9 @@ class SignerNodeScopedPinIntTest extends AbstractSignerIntTest {
         return String.join("\n",
                 listKeys(PIN_BASE_PATH),
                 listKeys(PRIMARY_NODE_PIN_DIR),
-                listKeys(SECONDARY_NODE_PIN_DIR),
+                listKeys(NODE_B_PIN_DIR),
                 readPin(PRIMARY_NODE_PIN_PATH),
-                readPin(SECONDARY_NODE_PIN_PATH));
+                readPin(NODE_B_PIN_PATH));
     }
 
     private String listKeys(String path) {

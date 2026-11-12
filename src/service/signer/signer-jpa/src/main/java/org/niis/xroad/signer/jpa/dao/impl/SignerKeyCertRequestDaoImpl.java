@@ -26,10 +26,10 @@
 package org.niis.xroad.signer.jpa.dao.impl;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
+import org.niis.xroad.signer.jpa.dao.AbstractSignerDaoImpl;
 import org.niis.xroad.signer.jpa.entity.SignerCertRequestEntity;
 
 @ApplicationScoped
-public class SignerKeyCertRequestDaoImpl extends AbstractDAOImpl<SignerCertRequestEntity> {
+public class SignerKeyCertRequestDaoImpl extends AbstractSignerDaoImpl<SignerCertRequestEntity> {
 
 }

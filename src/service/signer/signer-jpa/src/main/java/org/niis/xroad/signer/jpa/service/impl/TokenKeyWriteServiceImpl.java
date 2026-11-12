@@ -30,6 +30,7 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.signer.core.service.TokenKeyWriteService;
 import org.niis.xroad.signer.jpa.dao.impl.SignerKeyDaoImpl;
 import org.niis.xroad.signer.jpa.entity.SignerKeyEntity;
@@ -42,6 +43,7 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 public class TokenKeyWriteServiceImpl implements TokenKeyWriteService {
     private final DatabaseCtx sessionProvider;
     private final SignerKeyDaoImpl keyDao;
+    private final NodeIdentity nodeIdentity;
 
     @Override
     public Long save(Long tokenId, String externalId, String publicKeyBase64, byte[] keyStore,
@@ -49,6 +51,7 @@ public class TokenKeyWriteServiceImpl implements TokenKeyWriteService {
                      String friendlyName, String label, boolean softwareKey) {
         var entity = new SignerKeyEntity();
         entity.setExternalId(externalId);
+        entity.setHaNodeName(nodeIdentity.name());
         entity.setTokenId(tokenId);
         entity.setType(softwareKey ? KeyType.SOFTWARE : KeyType.HARDWARE);
         entity.setFriendlyName(friendlyName);
