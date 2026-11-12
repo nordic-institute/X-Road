@@ -74,7 +74,8 @@ public final class DifferenceSignals {
      */
     public GlobalConfComparison compareMemberDid(DsParticipantEntity row) {
         var carried = globalConfProvider.getMemberDid(row.getMemberIdentifier(), serverId).orElse(null);
-        return GlobalConfComparison.classify(row.getDid(), carried, hostMatcher::isMemberDidStale);
+        return GlobalConfComparison.classify(row.getDid(), carried,
+                did -> !hostMatcher.didHostMatches(did));
     }
 
     /**

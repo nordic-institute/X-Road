@@ -133,7 +133,7 @@ public final class ParticipantValueValidator {
      * @return whether its host is not the registered address, or the registered address cannot be used
      */
     public boolean isMemberDidStale(String storedDid) {
-        return hostMatcher.isMemberDidStale(storedDid);
+        return !hostMatcher.didHostMatches(storedDid);
     }
 
     /**

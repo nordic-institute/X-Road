@@ -31,9 +31,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Decides whether the host of a DID is the registered address of a Security Server, and holds the two
- * rules that call a stored value stale: a member DID, and a SYSTEM DID with its DSP base URL. Pure: no storage,
- * no clock.
+ * Decides whether the host of a DID is the registered address of a Security Server, and holds the rule that
+ * calls a SYSTEM DID with its DSP base URL stale. Pure: no storage, no clock.
  *
  * <p>Hosts are compared after the canonical host rules of {@link DidAuthority}; ports are not compared. A registered
  * address that is unknown, not ASCII or not a usable host, a DID that cannot be decoded, and a DSP base URL that is
@@ -81,23 +80,12 @@ public final class RegisteredHostMatcher {
     }
 
     /**
-     * @param did a member DID
-     * @return whether its host is not the registered address, or the registered address cannot be used
-     */
-    public boolean isMemberDidStale(@Nullable String did) {
-        return !didHostMatches(did);
-    }
-
-    /**
      * @param systemDid  the SYSTEM DID
      * @param dspBaseUrl the DSP base URL
      * @return whether the host of either is not the registered address, or the registered address cannot be used
      */
     public boolean isSystemPairStale(@Nullable String systemDid, @Nullable String dspBaseUrl) {
-        return !didHostMatches(systemDid) || !dspBaseUrlHostMatches(dspBaseUrl);
-    }
-
-    private boolean dspBaseUrlHostMatches(@Nullable String url) {
-        return DidAuthority.httpsAuthority(url).filter(this::authorityHostMatches).isPresent();
+        return !didHostMatches(systemDid)
+                || DidAuthority.httpsAuthority(dspBaseUrl).filter(this::authorityHostMatches).isEmpty();
     }
 }

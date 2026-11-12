@@ -44,13 +44,13 @@ import static org.niis.xroad.common.properties.config.Validator.range;
  * <p>A key is consumed in one of three ways. An EDC extension reads a key through
  * {@code ServiceExtensionContext.getSetting}: the control-plane extensions read the catalog cache keys, the
  * built-in services keys and the issuer-trust refresh interval, and the Issuer Service's DID resolution
- * extension reads the DID resolution fetch timeout. An X-Road process reads a key through {@code XRoadConfig}: the
- * admin service reads both port keys through {@code AdminServiceProperties.Dataspace.getDidPort()} and
- * {@code getDspPort()}. An application configuration interpolates a key with {@code ${...}}: the identity hub's DID web
- * context port uses {@code ${xroad.dsp.did-port}}.
+ * extension reads the DID resolution fetch timeout. An X-Road process reads a key through {@code XRoadConfig}: the admin
+ * service reads both port keys through {@code AdminServiceProperties.Dataspace.getDidPort()} and
+ * {@code getDspPort()}. An application configuration interpolates a
+ * key with {@code ${...}}: the identity hub's DID web context port uses {@code ${xroad.dsp.did-port}}.
  *
- * <p>{@code publishedToFramework()} is set on every key, so that the packaged default and a stored row both reach
- * the framework configuration, which serves the first and the third way.
+ * <p>{@code publishedToFramework()} is set on every key so that the packaged default and a stored row both
+ * reach the framework configuration, which serves the first and the third way.
  */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class DspConfigKeys implements ConfigKeyProvider {

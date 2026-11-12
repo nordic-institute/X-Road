@@ -96,10 +96,12 @@ class DspConfigKeysTest {
     }
 
     @Test
-    void noKeyIsExposedInUi() {
+    void everyKeyIsPublishedToFrameworkAndHiddenFromUi() {
         assertThat(DspConfigKeys.instance().keys())
-                .allSatisfy(key -> assertThat(key.exposedInUi()).as("%s must not be exposed in UI", key.key())
-                        .isFalse());
+                .allSatisfy(key -> {
+                    assertThat(key.publishedToFramework()).as("%s must be published to framework", key.key()).isTrue();
+                    assertThat(key.exposedInUi()).as("%s must not be exposed in UI", key.key()).isFalse();
+                });
     }
 
     @Test

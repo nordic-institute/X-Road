@@ -150,6 +150,13 @@ public class DidAuthority {
      *         {@value #MIN_PORT} to {@value #MAX_PORT}
      */
     public static Parsed parse(String authority) {
+        return parseCanonical(authority).parsed();
+    }
+
+    private record ParsedCanonical(Parsed parsed, String canonicalHost) {
+    }
+
+    private static ParsedCanonical parseCanonical(String authority) {
         if (authority == null || authority.isEmpty()) {
             throw emptyHost(authority);
         }
@@ -167,8 +174,9 @@ public class DidAuthority {
         if (bracketed && !isIpv6Literal(host)) {
             throw malformedBrackets(authority, "does not enclose an IPv6 literal");
         }
-        canonicalHost(host);
-        return new Parsed(host, portText == null ? OptionalInt.empty() : OptionalInt.of(parsePort(authority, portText)));
+        var canonicalHost = canonicalHost(host);
+        var port = portText == null ? OptionalInt.empty() : OptionalInt.of(parsePort(authority, portText));
+        return new ParsedCanonical(new Parsed(host, port), canonicalHost);
     }
 
     /**
@@ -211,7 +219,7 @@ public class DidAuthority {
      */
     public static Optional<String> canonicalHostOf(@Nullable String authority) {
         try {
-            return Optional.of(canonicalHost(parse(authority).host()));
+            return Optional.of(parseCanonical(authority).canonicalHost());
         } catch (XrdRuntimeException _) {
             return Optional.empty();
         }
