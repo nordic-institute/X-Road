@@ -70,10 +70,12 @@ public class MembershipTestSupport {
     /**
      * Signs a member claim whose JWS header also carries the base64-encoded, DER-encoded pinned
      * OCSP response that {@code GlobalConfMemberIdClaimVerifier} reads from the {@code ocsp} header.
+     * {@code iat}/{@code exp} are derived from {@code issuedAt}, so a caller pinning the OCSP
+     * response's {@code thisUpdate} to the same instant keeps both checks on one clock.
      */
     public static String signMemberClaimWithOcsp(X509Certificate cert, PrivateKey key, String holderDid, String issuerDid,
-                                                  String pinnedOcspBase64) throws Exception {
-        return signMemberClaim(cert, key, holderDid, issuerDid, true, Instant.now(), pinnedOcspBase64);
+                                                  String pinnedOcspBase64, Instant issuedAt) throws Exception {
+        return signMemberClaim(cert, key, holderDid, issuerDid, true, issuedAt, pinnedOcspBase64);
     }
 
     private static String signMemberClaim(X509Certificate cert, PrivateKey key, String holderDid, String issuerDid,

@@ -98,5 +98,4 @@ dependencies {
   testImplementation(libs.edc.issuerservice.holder.spi)
   testImplementation(libs.edc.issuer.issuance)
   testImplementation(libs.edc.spi.identityhub.participantcontext)
-  testImplementation(libs.edc.crypto.verifiablecredentials.jwt)
 }

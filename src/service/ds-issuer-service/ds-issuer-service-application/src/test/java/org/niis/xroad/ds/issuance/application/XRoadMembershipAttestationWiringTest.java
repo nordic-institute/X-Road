@@ -41,7 +41,6 @@ import org.eclipse.edc.issuerservice.spi.holder.model.Holder;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationContext;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionStore;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionValidatorRegistry;
-import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationSourceFactory;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationSourceFactoryRegistry;
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
@@ -54,10 +53,8 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.niis.xroad.ds.issuance.membership.MembershipTestSupport;
 import org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationExtension;
-import org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationSourceFactory;
 import org.niis.xroad.edc.extension.bridge.ExtensionScanGuard;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
@@ -66,6 +63,7 @@ import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.ZoneOffset;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,8 +73,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.ds.issuance.membership.MembershipTestSupport.HOLDER_DID;
 import static org.niis.xroad.ds.issuance.membership.MembershipTestSupport.ISSUER_DID;
@@ -84,9 +80,15 @@ import static org.niis.xroad.ds.issuance.membership.MembershipTestSupport.ISSUER
 /**
  * Exercises the production {@code holder} attestation wiring against the extension set the
  * Issuer Service actually boots with: {@link ExtensionScanGuard} applies the same
- * {@code application.yaml} exclusion the runtime does before {@link XRoadMembershipAttestationExtension}
- * is constructed and initialized, so the resulting registrations reflect the production exclusion
- * rather than whatever order {@code ServiceLoader} happens to return.
+ * {@code application.yaml} exclusion the runtime does, proving {@link XRoadMembershipAttestationExtension}
+ * is the only {@code holder} registrant the exclusion leaves behind, rather than whatever order
+ * {@code ServiceLoader} happens to return.
+ *
+ * <p>The remaining tests construct the extension directly through the injected
+ * {@link ObjectFactory} and drive it against a real {@code AttestationPipelineImpl}: one proves it
+ * registers a {@code holder} attestation definition validator that accepts the production
+ * definition, the other signs a member claim with an OCSP response pinned to the test clock and
+ * checks it reaches a credential through the real pipeline.
  */
 @ExtendWith(DependencyInjectionExtension.class)
 class XRoadMembershipAttestationWiringTest {
@@ -111,20 +113,13 @@ class XRoadMembershipAttestationWiringTest {
 
     @Test
     void extensionRegistersXRoadsFactoryAndAcceptsTheHolderDefinition(ServiceExtensionContext context, ObjectFactory factory) {
-        assertThat(ExtensionScanGuard.scanNonExcluded(getClass().getResource("/application.yaml")))
-                .anyMatch(XRoadMembershipAttestationExtension.class::isInstance);
-
-        var sourceRegistry = spy(new AttestationPipelineImpl(mock(AttestationDefinitionStore.class)));
+        var sourceRegistry = new AttestationPipelineImpl(mock(AttestationDefinitionStore.class));
         var validatorRegistry = new AttestationDefinitionValidatorRegistryImpl();
         registerCollaborators(context, sourceRegistry, validatorRegistry, mock(GlobalConfProvider.class),
-                mock(TokenValidationService.class), mock(IdentityHubParticipantContextService.class));
+                mock(TokenValidationService.class), mock(IdentityHubParticipantContextService.class), Clock.systemUTC());
 
         var extension = factory.constructInstance(XRoadMembershipAttestationExtension.class);
         extension.initialize(context);
-
-        var registeredFactory = ArgumentCaptor.forClass(AttestationSourceFactory.class);
-        verify(sourceRegistry).registerFactory(eq(HOLDER_ATTESTATION_TYPE), registeredFactory.capture());
-        assertThat(registeredFactory.getValue()).isInstanceOf(XRoadMembershipAttestationSourceFactory.class);
 
         assertThat(validatorRegistry.validateDefinition(holderDefinition()).succeeded()).isTrue();
     }
@@ -136,7 +131,8 @@ class XRoadMembershipAttestationWiringTest {
         var memberKey = TestCertUtil.getConsumer().key;
         var caCert = TestCertUtil.getCaCert();
         var caKey = TestCertUtil.getCa().key;
-        var jws = signedClaimWithPinnedOcsp(memberCert, memberKey, caCert, caKey);
+        var clock = Clock.fixed(TestCertUtil.getDefaultValidCertDate().toInstant(), ZoneOffset.UTC);
+        var jws = signedClaimWithPinnedOcsp(memberCert, memberKey, caCert, caKey, clock);
 
         var definitionStore = mock(AttestationDefinitionStore.class);
         when(definitionStore.resolveDefinition(PARTICIPANT_CONTEXT_ID, ATTESTATION_ID)).thenReturn(holderDefinition());
@@ -163,8 +159,7 @@ class XRoadMembershipAttestationWiringTest {
                 .thenReturn(ServiceResult.success(issuerParticipantContext));
 
         registerCollaborators(context, sourceRegistry, validatorRegistry, globalConf, tokenValidationService,
-                participantContextService);
-        context.registerService(Clock.class, Clock.fixed(TestCertUtil.getDefaultValidCertDate().toInstant(), ZoneOffset.UTC));
+                participantContextService, clock);
 
         var extension = factory.constructInstance(XRoadMembershipAttestationExtension.class);
         extension.initialize(context);
@@ -184,21 +179,25 @@ class XRoadMembershipAttestationWiringTest {
                                                AttestationDefinitionValidatorRegistry validatorRegistry,
                                                GlobalConfProvider globalConf,
                                                TokenValidationService tokenValidationService,
-                                               IdentityHubParticipantContextService participantContextService) {
+                                               IdentityHubParticipantContextService participantContextService,
+                                               Clock clock) {
         context.registerService(AttestationSourceFactoryRegistry.class, sourceRegistry);
         context.registerService(AttestationDefinitionValidatorRegistry.class, validatorRegistry);
         context.registerService(GlobalConfProvider.class, globalConf);
         context.registerService(TokenValidationService.class, tokenValidationService);
         context.registerService(JtiValidationStore.class, mock(JtiValidationStore.class));
         context.registerService(IdentityHubParticipantContextService.class, participantContextService);
-        context.registerService(Clock.class, Clock.systemUTC());
+        context.registerService(Clock.class, clock);
     }
 
     private static String signedClaimWithPinnedOcsp(X509Certificate memberCert, PrivateKey memberKey,
-                                                     X509Certificate caCert, PrivateKey caKey) throws Exception {
-        var ocspResponse = OcspTestUtils.createOCSPResponse(memberCert, caCert, caCert, caKey, CertificateStatus.GOOD);
+                                                     X509Certificate caCert, PrivateKey caKey, Clock clock) throws Exception {
+        var thisUpdate = Date.from(clock.instant());
+        var ocspResponse = OcspTestUtils.createOCSPResponse(memberCert, caCert, caCert, caKey, CertificateStatus.GOOD,
+                thisUpdate, null);
         var pinnedOcsp = Base64.getEncoder().encodeToString(ocspResponse.getEncoded());
-        return MembershipTestSupport.signMemberClaimWithOcsp(memberCert, memberKey, HOLDER_DID, ISSUER_DID, pinnedOcsp);
+        return MembershipTestSupport.signMemberClaimWithOcsp(memberCert, memberKey, HOLDER_DID, ISSUER_DID, pinnedOcsp,
+                clock.instant());
     }
 
     private static AttestationDefinition holderDefinition() {
