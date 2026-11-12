@@ -531,7 +531,8 @@ curl --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:
     "certificate_ready": true,
     "run_in_progress": false,
     "did_to_bind": "did:web:issuer.example.org%3A6183:issuer",
-    "can_sign": true,
+    "can_sign": false,
+    "can_sign_cause": "NO_ACTIVE_KEY",
     "status": "READY_TO_INITIALIZE"
 }
 ```
@@ -545,7 +546,7 @@ curl --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:
 - `READY` — the issuer identity is bound and the Issuer Service can sign for it.
 - `FAILED` — the Issuer Service cannot sign for the bound (or to-be-bound) identity.
 
-`can_sign` and `can_sign_cause` show whether the Issuer Service can currently sign for the identity; `can_sign_cause` is present only when `can_sign` is `false`.
+`can_sign` and `can_sign_cause` show whether the Issuer Service can currently sign for the identity; `can_sign_cause` is present only when `can_sign` is `false`. Before initialization, `can_sign` is normally `false` with `NO_ACTIVE_KEY`, because the signing key does not exist yet. This does not block initialization.
 
 To set the host, call:
 
