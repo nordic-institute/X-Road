@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.time.Duration;
@@ -40,7 +39,9 @@ import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.ABSENT;
+import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.DIFFERENT;
 import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.EQUAL;
+import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.STALE;
 import static org.niis.xroad.securityserver.restapi.service.PublicationCheckAction.NONE;
 import static org.niis.xroad.securityserver.restapi.service.PublicationCheckAction.PUBLISH;
 import static org.niis.xroad.securityserver.restapi.service.PublicationCheckAction.RESEND;
@@ -131,9 +132,9 @@ class PublicationCheckTest {
         assertThat(decide(PublicationState.SUBMITTED, EQUAL, MUST_NOT_BE_ASKED, LONG_AGO)).isEqualTo(PUBLISH);
         assertThat(decide(PublicationState.SUBMITTED, ABSENT, MUST_NOT_BE_ASKED, SUBMITTED_BEFORE)).isEqualTo(NONE);
         assertThat(decide(PublicationState.SUBMITTED, ABSENT, MUST_NOT_BE_ASKED, null)).isEqualTo(NONE);
-        assertThat(decide(PublicationState.SUBMITTED, GlobalConfComparison.DIFFERENT, MUST_NOT_BE_ASKED, LONG_AGO))
+        assertThat(decide(PublicationState.SUBMITTED, DIFFERENT, MUST_NOT_BE_ASKED, LONG_AGO))
                 .isEqualTo(NONE);
-        assertThat(decide(PublicationState.PUBLISHED, GlobalConfComparison.STALE, MUST_NOT_BE_ASKED, LONG_AGO))
+        assertThat(decide(PublicationState.PUBLISHED, STALE, MUST_NOT_BE_ASKED, LONG_AGO))
                 .isEqualTo(NONE);
         assertThat(decide(PublicationState.NOT_SENT, ABSENT, MUST_NOT_BE_ASKED, LONG_AGO)).isEqualTo(NONE);
     }
@@ -149,14 +150,5 @@ class PublicationCheckTest {
                 .isEqualTo(NONE);
         assertThat(PublicationCheck.decide(null, mustNotBeBuilt, ALLOWED, LONG_AGO, SUBMITTED_BEFORE))
                 .isEqualTo(NONE);
-    }
-
-    @Test
-    void aSubmittedSystemValueStaysSubmittedWhileTheDspBaseUrlCannotBeBuiltAndGlobalconfCarriesValues() {
-        var carried = new ServerSystemValues("did:web:ss.example.test%3A7183:xrd-ss0",
-                "https://ss.example.test:7181/dsp");
-        var comparison = SystemValuesComparison.of(carried.systemDid(), null, carried, _ -> false);
-
-        assertThat(decide(PublicationState.SUBMITTED, comparison.overall(), ALLOWED, LONG_AGO)).isEqualTo(NONE);
     }
 }

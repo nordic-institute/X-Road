@@ -34,9 +34,12 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
@@ -52,8 +55,9 @@ import org.niis.xroad.securityserver.restapi.scheduling.DataspacePublicationGlob
 import org.niis.xroad.securityserver.restapi.service.ControlPlaneProvisioningClient;
 import org.niis.xroad.securityserver.restapi.service.HostStatus;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient;
-import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestSupport;
+import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,13 +71,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestSupport.inNewTransaction;
 
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
@@ -113,51 +118,43 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
     @Autowired
     private PlatformTransactionManager transactionManager;
 
+    private ParticipantRowTestUtils participantRows;
+
+    @BeforeEach
+    void setUpRows() {
+        participantRows = new ParticipantRowTestUtils(jdbcTemplate, transactionManager);
+    }
+
     @AfterEach
     void deleteRows() {
-        inNewTransaction(transactionManager, () -> {
-            jdbcTemplate.update("DELETE FROM ds_participant WHERE id = ?", MEMBER_ROW_ID);
-            jdbcTemplate.update("DELETE FROM ds_participant WHERE id = ?", SYSTEM_ROW_ID);
-        });
+        participantRows.deleteRows(MEMBER_ROW_ID, SYSTEM_ROW_ID);
+    }
+
+    static Stream<Arguments> memberMismatchCases() {
+        return Stream.of(
+                argumentSet("a submitted member whose carried DID differs", PublicationState.SUBMITTED,
+                        OTHER_DID_SAME_HOST, true),
+                argumentSet("a published member whose carried DID differs", PublicationState.PUBLISHED,
+                        OTHER_DID_SAME_HOST, true),
+                argumentSet("an equal carried DID", PublicationState.PUBLISHED, BOUND_DID, false),
+                argumentSet("a not sent member", PublicationState.NOT_SENT, OTHER_DID_SAME_HOST, false),
+                argumentSet("a rejected member", PublicationState.REJECTED, OTHER_DID_SAME_HOST, false),
+                argumentSet("a stale carried DID", PublicationState.PUBLISHED, OTHER_DID_OTHER_HOST, false));
     }
 
     @ParameterizedTest
-    @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"})
-    void aSentMemberWhoseCarriedDidDiffersShowsAMismatch(PublicationState state) {
-        insertMemberRow(state.name());
-        carry(OTHER_DID_SAME_HOST);
+    @MethodSource("memberMismatchCases")
+    void theMemberMismatchFlagFollowsThePublicationStateAndTheCarriedDid(PublicationState state, String carriedDid,
+            boolean expectedMismatch) {
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, BOUND_DID, state);
+        carry(carriedDid);
 
-        assertThat(memberContext().getGlobalconfMismatch()).isTrue();
-    }
-
-    @Test
-    void anEqualCarriedDidShowsNoMismatch() {
-        insertMemberRow("PUBLISHED");
-        carry(BOUND_DID);
-
-        assertThat(memberContext().getGlobalconfMismatch()).isFalse();
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = PublicationState.class, names = {"NOT_SENT", "REJECTED"})
-    void aMemberThatIsNotSentOrIsRejectedShowsNoMismatch(PublicationState state) {
-        insertMemberRow(state.name());
-        carry(OTHER_DID_SAME_HOST);
-
-        assertThat(memberContext().getGlobalconfMismatch()).isFalse();
-    }
-
-    @Test
-    void aStaleCarriedDidShowsNoMismatch() {
-        insertMemberRow("PUBLISHED");
-        carry(OTHER_DID_OTHER_HOST);
-
-        assertThat(memberContext().getGlobalconfMismatch()).isFalse();
+        assertThat(memberContext().getGlobalconfMismatch()).isEqualTo(expectedMismatch);
     }
 
     @Test
     void theMismatchClearsOnceGlobalconfCarriesTheBoundDidAgain() {
-        insertMemberRow("PUBLISHED");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, BOUND_DID, PublicationState.PUBLISHED);
         carry(OTHER_DID_SAME_HOST);
         assertThat(memberContext().getGlobalconfMismatch()).isTrue();
 
@@ -169,7 +166,7 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
     @ParameterizedTest
     @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"})
     void aMismatchChangesNeitherTheBindingNorThePublicationState(PublicationState state) {
-        insertMemberRow(state.name());
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, BOUND_DID, state);
         carry(OTHER_DID_SAME_HOST);
 
         assertThat(memberContext().getGlobalconfMismatch()).isTrue();
@@ -185,7 +182,7 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void theGlobalconfCheckHandsTheDifferencesToTheLogOncePerCheck() {
-        insertMemberRow("PUBLISHED");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, BOUND_DID, PublicationState.PUBLISHED);
         carry(OTHER_DID_SAME_HOST);
 
         assertThat(errorsLoggedBy(() -> {
@@ -197,68 +194,44 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
                 differences.memberMismatches().contains(MEMBER) && differences.hostStatus() == HostStatus.OK));
     }
 
-    @ParameterizedTest
-    @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"})
-    void aSentSystemDidThatDiffersFromTheBoundOneShowsASystemDidMismatch(PublicationState state) {
-        insertSystemRow(state.name());
-        carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, BUILT_DSP_BASE_URL);
-
-        assertFlags(true, false);
+    static Stream<Arguments> systemMismatchCases() {
+        return Stream.of(
+                argumentSet("a submitted system DID that differs", PublicationState.SUBMITTED,
+                        OTHER_SYSTEM_DID_SAME_HOST, BUILT_DSP_BASE_URL, true, false),
+                argumentSet("a published system DID that differs", PublicationState.PUBLISHED,
+                        OTHER_SYSTEM_DID_SAME_HOST, BUILT_DSP_BASE_URL, true, false),
+                argumentSet("a submitted DSP port that changed on the same host", PublicationState.SUBMITTED,
+                        BOUND_SYSTEM_DID, OTHER_PORT_DSP_BASE_URL, false, true),
+                argumentSet("a published DSP port that changed on the same host", PublicationState.PUBLISHED,
+                        BOUND_SYSTEM_DID, OTHER_PORT_DSP_BASE_URL, false, true),
+                argumentSet("equal system values", PublicationState.PUBLISHED,
+                        BOUND_SYSTEM_DID, BUILT_DSP_BASE_URL, false, false),
+                argumentSet("system values that globalconf does not carry", PublicationState.PUBLISHED,
+                        null, null, false, false),
+                argumentSet("not sent system values", PublicationState.NOT_SENT,
+                        OTHER_SYSTEM_DID_SAME_HOST, OTHER_PORT_DSP_BASE_URL, false, false),
+                argumentSet("rejected system values", PublicationState.REJECTED,
+                        OTHER_SYSTEM_DID_SAME_HOST, OTHER_PORT_DSP_BASE_URL, false, false),
+                argumentSet("a system DID on another host", PublicationState.PUBLISHED,
+                        OTHER_SYSTEM_DID_OTHER_HOST, OTHER_PORT_DSP_BASE_URL, false, false),
+                argumentSet("a DSP base URL on another host", PublicationState.PUBLISHED,
+                        OTHER_SYSTEM_DID_SAME_HOST, OTHER_HOST_DSP_BASE_URL, false, false));
     }
 
     @ParameterizedTest
-    @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"})
-    void aChangedStoredDspPortWithAnUnchangedHostShowsADspBaseUrlMismatch(PublicationState state) {
-        insertSystemRow(state.name());
-        carrySystemValues(BOUND_SYSTEM_DID, OTHER_PORT_DSP_BASE_URL);
+    @MethodSource("systemMismatchCases")
+    void theSystemMismatchFlagsFollowThePublicationStateAndTheCarriedValues(PublicationState state,
+            String carriedDid, String carriedDspBaseUrl, boolean expectedSystemDidMismatch,
+            boolean expectedDspBaseUrlMismatch) {
+        participantRows.systemRow(SYSTEM_ROW_ID, BOUND_SYSTEM_DID, state);
+        carrySystemValues(carriedDid, carriedDspBaseUrl);
 
-        assertFlags(false, true);
-    }
-
-    @Test
-    void equalSystemValuesShowNoMismatch() {
-        insertSystemRow("PUBLISHED");
-        carrySystemValues(BOUND_SYSTEM_DID, BUILT_DSP_BASE_URL);
-
-        assertFlags(false, false);
-    }
-
-    @Test
-    void systemValuesThatGlobalconfDoesNotCarryShowNoMismatch() {
-        insertSystemRow("PUBLISHED");
-        carrySystemValues(null, null);
-
-        assertFlags(false, false);
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = PublicationState.class, names = {"NOT_SENT", "REJECTED"})
-    void systemValuesThatAreNotSentOrAreRejectedShowNoMismatch(PublicationState state) {
-        insertSystemRow(state.name());
-        carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, OTHER_PORT_DSP_BASE_URL);
-
-        assertFlags(false, false);
-    }
-
-    @Test
-    void aSystemDidOnAnotherHostMakesThePairStaleAndShowsNoMismatch() {
-        insertSystemRow("PUBLISHED");
-        carrySystemValues(OTHER_SYSTEM_DID_OTHER_HOST, OTHER_PORT_DSP_BASE_URL);
-
-        assertFlags(false, false);
-    }
-
-    @Test
-    void aDspBaseUrlOnAnotherHostMakesThePairStaleAndShowsNoMismatch() {
-        insertSystemRow("PUBLISHED");
-        carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, OTHER_HOST_DSP_BASE_URL);
-
-        assertFlags(false, false);
+        assertFlags(expectedSystemDidMismatch, expectedDspBaseUrlMismatch);
     }
 
     @Test
     void theSystemMismatchClearsOnceGlobalconfCarriesTheBuiltValuesAgain() {
-        insertSystemRow("PUBLISHED");
+        participantRows.systemRow(SYSTEM_ROW_ID, BOUND_SYSTEM_DID, PublicationState.PUBLISHED);
         carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, OTHER_PORT_DSP_BASE_URL);
         assertFlags(true, true);
 
@@ -270,7 +243,7 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
     @ParameterizedTest
     @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"})
     void aSystemMismatchChangesNeitherTheBindingNorThePublicationState(PublicationState state) {
-        insertSystemRow(state.name());
+        participantRows.systemRow(SYSTEM_ROW_ID, BOUND_SYSTEM_DID, state);
         carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, OTHER_PORT_DSP_BASE_URL);
 
         assertFlags(true, true);
@@ -286,8 +259,8 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void bindingsAllAtTheRegisteredHostShowHostStatusOk() {
-        insertMemberRow("PUBLISHED");
-        insertSystemRow("PUBLISHED");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, BOUND_DID, PublicationState.PUBLISHED);
+        participantRows.systemRow(SYSTEM_ROW_ID, BOUND_SYSTEM_DID, PublicationState.PUBLISHED);
         registerAddress(ADDRESS);
 
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.OK);
@@ -295,8 +268,9 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void aMemberBindingAtAnotherHostShowsHostStatusDiffers() {
-        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
-        insertSystemRow("PUBLISHED");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, OTHER_DID_OTHER_HOST,
+                PublicationState.PUBLISHED);
+        participantRows.systemRow(SYSTEM_ROW_ID, BOUND_SYSTEM_DID, PublicationState.PUBLISHED);
         registerAddress(ADDRESS);
 
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
@@ -304,8 +278,8 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void theSystemBindingAtAnotherHostShowsHostStatusDiffers() {
-        insertMemberRow("PUBLISHED");
-        insertSystemRow("PUBLISHED", OTHER_SYSTEM_DID_OTHER_HOST);
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, BOUND_DID, PublicationState.PUBLISHED);
+        participantRows.systemRow(SYSTEM_ROW_ID, OTHER_SYSTEM_DID_OTHER_HOST, PublicationState.PUBLISHED);
         registerAddress(ADDRESS);
 
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
@@ -313,7 +287,8 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void anAddressThatIsNotRegisteredShowsHostStatusUnknown() {
-        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, OTHER_DID_OTHER_HOST,
+                PublicationState.PUBLISHED);
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(null);
 
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.UNKNOWN);
@@ -321,7 +296,8 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void unavailableGlobalconfShowsHostStatusUnknown() {
-        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, OTHER_DID_OTHER_HOST,
+                PublicationState.PUBLISHED);
         when(globalConfProvider.getSecurityServerAddress(SS_ID))
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR).build());
 
@@ -330,7 +306,8 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void anUnusableRegisteredAddressShowsHostStatusUnknown() {
-        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, OTHER_DID_OTHER_HOST,
+                PublicationState.PUBLISHED);
         registerAddress("b\u00fccher.example");
 
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.UNKNOWN);
@@ -338,8 +315,9 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void aDecommissionedBindingAtAnotherHostDoesNotShowHostStatusDiffers() {
-        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "DECOMMISSIONED");
-        insertSystemRow("PUBLISHED");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, OTHER_DID_OTHER_HOST,
+                ParticipantState.DECOMMISSIONED, PublicationState.PUBLISHED);
+        participantRows.systemRow(SYSTEM_ROW_ID, BOUND_SYSTEM_DID, PublicationState.PUBLISHED);
         registerAddress(ADDRESS);
 
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.OK);
@@ -347,11 +325,12 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void hostStatusClearsOnceTheBindingsAgreeWithTheRegisteredAddressAgain() {
-        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, OTHER_DID_OTHER_HOST,
+                PublicationState.PUBLISHED);
         registerAddress(ADDRESS);
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
 
-        inNewTransaction(transactionManager, () -> jdbcTemplate.update("UPDATE ds_participant SET did = ? WHERE id = ?",
+        participantRows.inNewTransaction(() -> jdbcTemplate.update("UPDATE ds_participant SET did = ? WHERE id = ?",
                 BOUND_DID, MEMBER_ROW_ID));
 
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.OK);
@@ -359,7 +338,8 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void hostStatusClearsOnceTheRegisteredAddressAgreesWithTheBindingsAgain() {
-        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, OTHER_DID_OTHER_HOST,
+                PublicationState.PUBLISHED);
         registerAddress(ADDRESS);
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
 
@@ -370,8 +350,8 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void staleGlobalconfValuesWithAllBindingsAtTheRegisteredHostShowHostStatusOkAndNoMismatch() {
-        insertMemberRow("PUBLISHED");
-        insertSystemRow("PUBLISHED");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, BOUND_DID, PublicationState.PUBLISHED);
+        participantRows.systemRow(SYSTEM_ROW_ID, BOUND_SYSTEM_DID, PublicationState.PUBLISHED);
         carry(OTHER_DID_OTHER_HOST);
         carrySystemValues(OTHER_SYSTEM_DID_OTHER_HOST, OTHER_HOST_DSP_BASE_URL);
 
@@ -382,7 +362,7 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void aBindingAtTheOldHostShowsHostStatusDiffersAndAMemberMismatchWhenGlobalconfCarriesADidAtTheNewHost() {
-        insertMemberRow("PUBLISHED");
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, BOUND_DID, PublicationState.PUBLISHED);
         registerAddress(OTHER_HOST_ADDRESS);
         when(globalConfProvider.getMemberDid(MEMBER, SS_ID)).thenReturn(Optional.of(OTHER_DID_OTHER_HOST));
 
@@ -394,8 +374,9 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
 
     @Test
     void hostStatusChangesNeitherTheBindingsNorThePublicationStates() {
-        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
-        insertSystemRow("PUBLISHED", OTHER_SYSTEM_DID_OTHER_HOST);
+        participantRows.memberRow(MEMBER_ROW_ID, MEMBER, OTHER_DID_OTHER_HOST,
+                PublicationState.PUBLISHED);
+        participantRows.systemRow(SYSTEM_ROW_ID, OTHER_SYSTEM_DID_OTHER_HOST, PublicationState.PUBLISHED);
         registerAddress(ADDRESS);
 
         assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
@@ -404,12 +385,12 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
         assertThat(jdbcTemplate.queryForMap("SELECT did, publication_state, state FROM ds_participant WHERE id = ?",
                 MEMBER_ROW_ID))
                 .containsEntry("did", OTHER_DID_OTHER_HOST)
-                .containsEntry("publication_state", "PUBLISHED")
+                .containsEntry("publication_state", PublicationState.PUBLISHED.name())
                 .containsEntry("state", "ACTIVE");
         assertThat(jdbcTemplate.queryForMap("SELECT did, publication_state, state FROM ds_participant WHERE id = ?",
                 SYSTEM_ROW_ID))
                 .containsEntry("did", OTHER_SYSTEM_DID_OTHER_HOST)
-                .containsEntry("publication_state", "PUBLISHED")
+                .containsEntry("publication_state", PublicationState.PUBLISHED.name())
                 .containsEntry("state", "ACTIVE");
     }
 
@@ -464,31 +445,6 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(ADDRESS);
         when(globalConfProvider.getServerSystemValues(SS_ID)).thenReturn(
                 did == null ? Optional.empty() : Optional.of(new ServerSystemValues(did, dspBaseUrl)));
-    }
-
-    private void insertSystemRow(String publicationState) {
-        insertSystemRow(publicationState, BOUND_SYSTEM_DID);
-    }
-
-    private void insertSystemRow(String publicationState, String did) {
-        ParticipantRowTestSupport.insertSystemRow(jdbcTemplate, transactionManager, SYSTEM_ROW_ID, did,
-                publicationState);
-    }
-
-    private void insertMemberRow(String publicationState) {
-        insertMemberRow(publicationState, BOUND_DID, "ACTIVE");
-    }
-
-    private void insertMemberRow(String publicationState, String did, String state) {
-        inNewTransaction(transactionManager, () -> jdbcTemplate.update("INSERT INTO ds_participant"
-                        + " (id, participant_type, member_identifier, ctx_id, did, scheme_version, state,"
-                        + " publication_state, created_at, updated_at)"
-                        + " VALUES (?, 'MEMBER', (SELECT id FROM identifier WHERE object_type = 'MEMBER'"
-                        + " AND xroad_instance = ? AND member_class = ? AND member_code = ?),"
-                        + " ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                MEMBER_ROW_ID, MEMBER.getXRoadInstance(), MEMBER.getMemberClass(), MEMBER.getMemberCode(),
-                ParticipantIdentifierScheme.memberCtxId(MEMBER), did, ParticipantIdentifierScheme.SCHEME_VERSION,
-                state, publicationState));
     }
 
     private static String systemDid(String authority) {

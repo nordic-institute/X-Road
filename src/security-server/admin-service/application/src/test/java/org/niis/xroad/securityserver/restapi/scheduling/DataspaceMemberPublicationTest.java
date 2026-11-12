@@ -40,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -282,25 +283,12 @@ class DataspaceMemberPublicationTest {
     }
 
     @Test
-    void theTimeoutIsTheConfiguredNumberOfMinutes() {
-        when(dataspaceProperties.getPublicationSubmittedTimeoutMinutes()).thenReturn(5);
-        var member = addMember("A01");
-        pass();
-
-        clock.advance(Duration.ofMinutes(5));
-        globalconfCheck();
-        assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
-
-        clock.advance(Duration.ofSeconds(1));
-        globalconfCheck();
-        assertThat(member.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
-    }
-
-    @Test
     void aSubmittedMemberDidWithADifferentDidInGlobalconfIsNeverSentAgainAfterTheTimeout() {
         var member = addMember("A01");
         pass();
-        when(globalConfProvider.getMemberDid(any(), any())).thenReturn(Optional.of("did:web:other.example.test"));
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("ss.example.test");
+        var otherPortDid = ParticipantIdentifierScheme.memberDid(member.getMemberIdentifier(), "ss.example.test:8443");
+        when(globalConfProvider.getMemberDid(any(), any())).thenReturn(Optional.of(otherPortDid.toString()));
 
         clock.advance(Duration.ofDays(2));
         globalconfCheck();

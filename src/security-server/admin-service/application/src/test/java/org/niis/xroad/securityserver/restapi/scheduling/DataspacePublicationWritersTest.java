@@ -37,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -91,6 +92,9 @@ class DataspacePublicationWritersTest {
     private static final ServerSystemValues CARRIED = new ServerSystemValues(SYSTEM_DID.toString(), DSP_BASE_URL);
     private static final ServerSystemValues OTHER =
             new ServerSystemValues(SYSTEM_DID.toString(), "https://old.example.test:7181/dsp");
+    private static final ServerSystemValues SAME_HOST_OTHER_PORT = new ServerSystemValues(
+            ParticipantIdentifierScheme.systemDid("ss.example.test:8443").toString(),
+            "https://ss.example.test:7182/dsp");
     private static final ParticipantContext SYSTEM_CONTEXT = new ParticipantContext("xrd-ss0", ParticipantKind.SYSTEM, null);
     private static final long ROW_ID = 17L;
 
@@ -291,7 +295,8 @@ class DataspacePublicationWritersTest {
     @Test
     void aSubmittedValueWithADifferentValueInGlobalconfIsNeverSentAgainAfterTheTimeout() {
         reconcilerPass();
-        carry(OTHER);
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("ss.example.test");
+        carry(SAME_HOST_OTHER_PORT);
 
         clock.advance(Duration.ofDays(2));
         globalconfCheck();

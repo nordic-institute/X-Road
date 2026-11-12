@@ -204,7 +204,7 @@ class DataspaceProvisioningStatusServiceTest {
     }
 
     @Test
-    void readStatusResolvesTheOwnAddressOnceWithoutAMemberContextAndASentSystemRow() {
+    void readStatusResolvesTheOwnAddressOnceWithoutAMemberContextAndARejectedSystemRow() {
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(null);
         when(serverConfRepository.getServerConf()).thenReturn(serverConf);
