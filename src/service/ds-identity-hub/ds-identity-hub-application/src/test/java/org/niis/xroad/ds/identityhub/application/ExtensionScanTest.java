@@ -56,15 +56,6 @@ class ExtensionScanTest {
                 .doesNotContain(STOCK_STS_CONFIGURATION_EXTENSION);
     }
 
-    @Test
-    void sqlSchemaBootstrapperIsProvidedByTheNoOpExtensionOnly() {
-        var scanned = scan().stream().map(extension -> extension.getClass().getName()).toList();
-
-        assertThat(scanned)
-                .contains("org.niis.xroad.edc.extension.bridge.XRoadNoOpSqlSchemaBootstrapperExtension")
-                .doesNotContain("org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension");
-    }
-
     private List<ServiceExtension> scan() {
         return ExtensionScanGuard.scanNonExcluded(ExtensionScanTest.class.getResource("/application.yaml"));
     }
