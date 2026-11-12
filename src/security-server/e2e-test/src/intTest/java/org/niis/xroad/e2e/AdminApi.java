@@ -63,6 +63,9 @@ class AdminApi {
     private static final String REGISTERED_STATUS = "REGISTERED";
     private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
     private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
+    private static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
+    private static final Duration CREDENTIAL_ISSUED_POLL_TIMEOUT = Duration.ofMinutes(5);
+    private static final Duration CREDENTIAL_ISSUED_POLL_INTERVAL = Duration.ofSeconds(5);
 
     /** The mapped {@code https://host:port} of one environment's admin UI container. */
     static String adminBaseUrl(E2eEnvironment env, String envName) {
@@ -352,6 +355,25 @@ class AdminApi {
                                 .as("status of client %s", clientId)
                                 .isEqualTo(REGISTERED_STATUS);
                     }
+                });
+    }
+
+    /**
+     * Waits until the Security Server's provisioning status reports the MEMBER participant context
+     * {@code memberCtxId} ({@code INSTANCE:CLASS:CODE}) with an ISSUED membership credential.
+     */
+    static void awaitMemberCredentialIssued(String baseUrl, AdminSession session, String memberCtxId) {
+        Awaitility.await()
+                .alias("membership credential of %s is ISSUED".formatted(memberCtxId))
+                .pollInterval(CREDENTIAL_ISSUED_POLL_INTERVAL)
+                .timeout(CREDENTIAL_ISSUED_POLL_TIMEOUT)
+                .ignoreExceptions()
+                .until(() -> {
+                    var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
+                    return response.getStatusCode() == HTTP_OK
+                            && ISSUED_CREDENTIAL_STATUS.equals(response.jsonPath().getString(
+                            "participant_contexts.find { it.kind == 'MEMBER' && it.participant_id == '"
+                                    + memberCtxId + "' }.credential_status"));
                 });
     }
 

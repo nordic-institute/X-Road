@@ -337,6 +337,7 @@ edc-iam-dcp-cel = { module = "org.eclipse.edc:decentralized-claims-cel", version
 
 # IdentityHub runtime modules (identityhub-base-bom members)
 edc-ih-common-core = { module = "org.eclipse.edc:common-core", version.ref = "edc" }
+edc-ih-common-lib = { module = "org.eclipse.edc:common-lib", version.ref = "edc" }
 edc-ih-core = { module = "org.eclipse.edc:identity-hub-core", version.ref = "edc" }
 edc-ih-did = { module = "org.eclipse.edc:identity-hub-did", version.ref = "edc" }
 edc-ih-keypairs = { module = "org.eclipse.edc:identity-hub-keypairs", version.ref = "edc" }
