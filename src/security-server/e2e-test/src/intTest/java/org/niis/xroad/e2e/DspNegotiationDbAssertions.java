@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Record-level assertions against a Security Server's ds-control-plane database for one DSP exchange,
  * shared by the scenarios that verify negotiation and transfer state beyond HTTP status
- * ({@link SsProxyDspSelfCallTest}, {@link SsProxyDspRuntimeMemberTest}).
+ * ({@link SsProxyDspSelfCallTest}, {@link SsProxyDspRuntimeMemberTest}, {@link SsProxyDspEncodedMemberTest}).
  *
  * <p>The asserted shape: the consumer side negotiates as the sender member's derived participant context
  * ({@code consumerMemberCtxId}) and dials the provider member's derived context
@@ -109,6 +110,14 @@ final class DspNegotiationDbAssertions {
     private final String consumerMemberCtxId;
     private final String providerMemberCtxId;
 
+    /** One PROVIDER-side negotiation row: its state, the counterparty's id and the callback address it sent. */
+    record ProviderNegotiation(int state, String counterpartyId, String counterpartyAddress) {
+
+        boolean isFinalized() {
+            return state == NEGOTIATION_STATE_FINALIZED;
+        }
+    }
+
     DspNegotiationDbAssertions(DsControlPlaneDbOps dbOps, String envName, String assetId,
                                String consumerMemberCtxId, String providerMemberCtxId) {
         this.dbOps = dbOps;
@@ -163,6 +172,25 @@ final class DspNegotiationDbAssertions {
         }
 
         return lastSeen.get().get(0)[WIRE_AGREEMENT_ID_COLUMN];
+    }
+
+    /**
+     * Polls until {@code assertions} holds for every PROVIDER negotiation on {@code providerMemberCtxId} whose
+     * counterparty id matches the SQL {@code LIKE} pattern {@code counterpartyIdLike}, oldest first. The
+     * {@code assertions} run on each poll and signal a mismatch with an {@link AssertionError}.
+     */
+    void awaitProviderNegotiations(String counterpartyIdLike, Consumer<List<ProviderNegotiation>> assertions) {
+        var sql = ("SELECT n.state, n.counterparty_id, n.counterparty_address FROM edc_contract_negotiation n "
+                + "WHERE n.type = '" + TYPE_PROVIDER + "' AND n.participant_context_id = '%s' "
+                + "AND n.counterparty_id LIKE '%s' ORDER BY n.id").formatted(providerMemberCtxId, counterpartyIdLike);
+        Awaitility.await()
+                .pollInterval(POLL_INTERVAL)
+                .timeout(POLL_TIMEOUT)
+                .ignoreExceptions()
+                .untilAsserted(() -> assertions.accept(parseRows(dbOps.execDsControlPlaneSql(envName, sql)).stream()
+                        .map(row -> new ProviderNegotiation(
+                                Integer.parseInt(row[0].trim()), row[1].trim(), row[2].trim()))
+                        .toList()));
     }
 
     private boolean isConsumerAndProviderPairFinalized(List<String[]> rows) {

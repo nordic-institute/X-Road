@@ -34,18 +34,24 @@ import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 import java.util.List;
 import java.util.Map;
 
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.authed;
 
 /**
  * Provisions a CA-signed SIGNING certificate on ss0's token for a member registered on ss0 at test run
  * time, shared by the scenarios that onboard a member after the stack is already running
- * ({@link SsProxyDspRuntimeMemberTest}, {@link SsProxyDspEncodedMemberTest}). The member is identified by its
- * {@code INSTANCE:CLASS:CODE} id as the admin API reports it.
+ * ({@link SsProxyDspRuntimeMemberTest}, {@link SsProxyDspEncodedMemberTest},
+ * {@link SsMemberDeprovisioningTest}). The member is identified by its {@code INSTANCE:CLASS:CODE} id as the
+ * admin API reports it.
  */
 @Slf4j
 @RequiredArgsConstructor
-@SuppressWarnings({"checkstyle:magicnumber", "unchecked"})
+@SuppressWarnings("unchecked")
 final class MemberSignCertificate {
 
     private static final String CA_ENV = "ca";
@@ -84,7 +90,7 @@ final class MemberSignCertificate {
      * The test CA's cert-issuance endpoint is plain HTTP, unlike the admin APIs, mirroring
      * {@code setup.hurl}'s own {@code http://{{ca_host}}:8888/testca/sign} calls.
      */
-    static String caBaseUrl(E2eEnvironment env) {
+    private static String caBaseUrl(E2eEnvironment env) {
         var mapping = env.getContainerMapping(CA_ENV, SsStackSetup.CA, SsStackSetup.Port.CA_API);
         return "http://%s:%s".formatted(mapping.host(), mapping.port());
     }
@@ -107,7 +113,9 @@ final class MemberSignCertificate {
      * provisioning-status timeout). An inactive sign certificate cannot issue the member's dataspace
      * membership credential.
      */
-    void provision(E2eEnvironment env, String ss0BaseUrl, AdminSession ss0, String caBaseUrl) {
+    void provision(E2eEnvironment env, AdminSession ss0) {
+        var ss0BaseUrl = adminBaseUrl(env, ss0Env);
+        var caBaseUrl = caBaseUrl(env);
         var existing = scanTokenForMemberSignMaterial(ss0BaseUrl, ss0);
         String certHash = existing.certHash();
         boolean active = existing.active();
@@ -138,7 +146,7 @@ final class MemberSignCertificate {
      */
     private TokenScanResult scanTokenForMemberSignMaterial(String ss0BaseUrl, AdminSession ss0) {
         var response = authed(ss0).get(ss0BaseUrl + "/api/v1/tokens/" + SIGN_KEY_TOKEN_ID);
-        assertThat(response.getStatusCode()).as("look up ss0's token %s", SIGN_KEY_TOKEN_ID).isEqualTo(200);
+        assertThat(response.getStatusCode()).as("look up ss0's token %s", SIGN_KEY_TOKEN_ID).isEqualTo(HTTP_OK);
 
         for (Map<String, Object> key : response.jsonPath().getList("keys", Map.class)) {
             for (Map<String, Object> cert : (List<Map<String, Object>>) key.get("certificates")) {
@@ -159,7 +167,7 @@ final class MemberSignCertificate {
 
     private String fetchCaName(String ss0BaseUrl, AdminSession ss0) {
         var response = authed(ss0).get(ss0BaseUrl + "/api/v1/certificate-authorities");
-        assertThat(response.getStatusCode()).as("look up ss0's approved certificate authorities").isEqualTo(200);
+        assertThat(response.getStatusCode()).as("look up ss0's approved certificate authorities").isEqualTo(HTTP_OK);
         return response.jsonPath().getString("[0].name");
     }
 
@@ -197,13 +205,13 @@ final class MemberSignCertificate {
         // own definition promises.
         assertThat(response.getStatusCode())
                 .as("generate a SIGNING CSR for %s on ss0's token", memberId)
-                .isEqualTo(200);
+                .isEqualTo(HTTP_OK);
         return new GeneratedCsr(response.jsonPath().getString("key.id"), response.jsonPath().getString("csr_id"));
     }
 
     private byte[] fetchCsrBytes(String ss0BaseUrl, AdminSession ss0, String keyId, String csrId) {
         var response = authed(ss0).get(ss0BaseUrl + "/api/v1/keys/" + keyId + "/csrs/" + csrId + "?csr_format=PEM");
-        assertThat(response.getStatusCode()).as("fetch CSR %s PEM for key %s", csrId, keyId).isEqualTo(200);
+        assertThat(response.getStatusCode()).as("fetch CSR %s PEM for key %s", csrId, keyId).isEqualTo(HTTP_OK);
         return response.getBody().asByteArray();
     }
 
@@ -217,7 +225,7 @@ final class MemberSignCertificate {
                 .multiPart("certreq", "sign.csr.pem", csrBytes, "application/octet-stream")
                 .multiPart("type", "sign")
                 .post(caBaseUrl + "/testca/sign");
-        assertThat(response.getStatusCode()).as("sign the member's sign CSR with the test CA").isEqualTo(200);
+        assertThat(response.getStatusCode()).as("sign the member's sign CSR with the test CA").isEqualTo(HTTP_OK);
         return response.getBody().asByteArray();
     }
 
@@ -234,7 +242,7 @@ final class MemberSignCertificate {
         var response = authed(ss0)
                 .multiPart("certificate", "sign_key_cert.pem", certBytes, "application/octet-stream")
                 .post(ss0BaseUrl + "/api/v1/token-certificates");
-        if (response.getStatusCode() == 409) {
+        if (response.getStatusCode() == HTTP_CONFLICT) {
             log.info("Sign certificate for {} already imported on a warm rerun; looking it up instead of importing again",
                     memberId);
             var existing = scanTokenForMemberSignMaterial(ss0BaseUrl, ss0);
@@ -243,7 +251,7 @@ final class MemberSignCertificate {
                     .isNotBlank();
             return new ImportedCertificate(existing.certHash(), existing.active());
         }
-        assertThat(response.getStatusCode()).as("import the member's sign certificate").isEqualTo(201);
+        assertThat(response.getStatusCode()).as("import the member's sign certificate").isEqualTo(HTTP_CREATED);
         return new ImportedCertificate(response.jsonPath().getString("certificate_details.hash"), response.jsonPath().getBoolean("active"));
     }
 
@@ -258,6 +266,6 @@ final class MemberSignCertificate {
         var response = authed(ss0).put(ss0BaseUrl + "/api/v1/token-certificates/" + certHash + "/activate");
         assertThat(response.getStatusCode())
                 .as("activate the member's sign certificate %s (204 first attempt, 409 if already active)", certHash)
-                .isIn(204, 409);
+                .isIn(HTTP_NO_CONTENT, HTTP_CONFLICT);
     }
 }

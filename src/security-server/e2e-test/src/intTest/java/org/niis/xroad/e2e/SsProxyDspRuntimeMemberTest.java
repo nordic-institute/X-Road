@@ -30,16 +30,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.ValidatableResponse;
 import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.ds.identity.DspConventions;
-import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.DidResolutionOps.DidDocumentResponse;
-import org.niis.xroad.e2e.container.SsStackSetup;
-import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -53,8 +49,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.addRestServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
-import static org.niis.xroad.e2e.AdminApi.authed;
 import static org.niis.xroad.e2e.AdminApi.awaitClientRegistered;
+import static org.niis.xroad.e2e.AdminApi.awaitMemberContextIssued;
 import static org.niis.xroad.e2e.AdminApi.discoverBackendUrl;
 import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
@@ -90,7 +86,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * owning member has no provisioned context yet is not published anywhere at all (XRDADR-41's full
  * pre-provisioning discoverability remains a deferred follow-up). The consumer proxy derives the
  * counter-party coordinates from the provider member id, so it dials {@code DEV:COM:4321} directly;
- * {@link #awaitMemberContextIssued} confirms that context and its membership credential are already
+ * {@link AdminApi#awaitMemberContextIssued} confirms that context and its membership credential are already
  * provisioned before any traffic flows, so this scenario never exercises the pre-provisioning gap. The
  * exchange rides two member contexts: the consumer side negotiates on the sender member's context
  * ({@code DEV:COM:1234}), the provider side serves the offer on the new member's <b>own</b> context
@@ -148,11 +144,14 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final String NEW_CLIENT_ID =
             X_ROAD_INSTANCE + ":" + NEW_MEMBER_CLASS + ":" + NEW_MEMBER_CODE + ":" + NEW_SUBSYSTEM_CODE;
 
+    /** The member's {@code INSTANCE:CLASS:CODE} id, as the admin API reports it. */
+    private static final String NEW_MEMBER_ID = X_ROAD_INSTANCE + ":" + NEW_MEMBER_CLASS + ":" + NEW_MEMBER_CODE;
+
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for {@code DEV:COM:4321}. */
     private static final String NEW_MEMBER_CTX_ID = "DEV:COM:4321";
 
     private static final MemberSignCertificate NEW_MEMBER_SIGN_CERTIFICATE =
-            new MemberSignCertificate(SS0_ENV, NEW_MEMBER_CTX_ID, NEW_MEMBER_CODE, "Sign key 4321");
+            new MemberSignCertificate(SS0_ENV, NEW_MEMBER_ID, NEW_MEMBER_CODE, "Sign key 4321");
 
     private static final String DID_WEB_PREFIX = "did:web:";
     private static final ClientId.Conf NEW_MEMBER = ClientId.Conf.create(X_ROAD_INSTANCE, NEW_MEMBER_CLASS, NEW_MEMBER_CODE);
@@ -167,8 +166,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
      * its member's derived context ({@link #CONSUMER_MEMBER_CTX_ID}). See the class doc's "Who the
      * consumer is".
      */
-    private static final String CONSUMER_CLIENT_ID = "DEV:COM:1234:TestService";
-    private static final String CONSUMER_X_ROAD_ID = "DEV/COM/1234/TestService";
+    private static final String CONSUMER_CLIENT_ID = Mock1Fixture.MOCK1_CLIENT_ID;
 
     /** ss0's pre-existing TestService/mock1 REST service, whose backend URL is reused for the new client. */
     private static final String EXISTING_SERVICE_ID = Mock1Fixture.MOCK1_SERVICE_ID;
@@ -180,15 +178,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
      */
     private static final String ASSET_ID = NEW_CLIENT_ID + ":" + REST_SERVICE_CODE;
 
-    private static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
-
-    private static final String REST_REQUEST_BODY = """
-            {"data": 1.0, "service": "random"}
-            """;
     private static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
 
-    private static final Duration PROVISIONING_POLL_TIMEOUT = Duration.ofMinutes(5);
-    private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration DID_RESOLUTION_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration DID_RESOLUTION_POLL_INTERVAL = Duration.ofSeconds(3);
     private static final Duration CATALOG_VISIBILITY_TIMEOUT = Duration.ofSeconds(150);
@@ -208,7 +199,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
         var csBaseUrl = CentralServerApi.baseUrl(env);
-        var caBaseUrl = MemberSignCertificate.caBaseUrl(env);
 
         var ss0Session = given("an admin session is established on ss0", () -> login(ss0BaseUrl));
 
@@ -216,7 +206,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 addLocalClient(ss0BaseUrl, ss0Session, NEW_CLIENT_ID));
 
         and("a CA-signed sign certificate for the new member is provisioned on ss0's token", () ->
-                NEW_MEMBER_SIGN_CERTIFICATE.provision(env, ss0BaseUrl, ss0Session, caBaseUrl));
+                NEW_MEMBER_SIGN_CERTIFICATE.provision(env, ss0Session));
 
         and("its registration is submitted from ss0 to the Central Server", () ->
                 registerClient(ss0BaseUrl, ss0Session, clientId));
@@ -240,7 +230,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
         then("the new member's own participant context and membership credential are provisioned, independent of "
                 + "which context the transfer below ends up riding, with no restart", () ->
-                awaitMemberContextIssued(ss0BaseUrl, ss0Session));
+                awaitMemberContextIssued(ss0BaseUrl, ss0Session, NEW_MEMBER_CTX_ID));
 
         and("the new member's DID now resolves with verification keys", () ->
                 awaitKeyedDidDocument(env, didResolution));
@@ -263,39 +253,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
         and("the transfer over that agreement succeeds", () ->
                 dspAssertions.awaitTransferSucceeded(wireAgreementId));
-    }
-
-    /**
-     * Polls the same read-only status endpoint the environment's own bring-up gates on for the HOST
-     * context (see {@code core/development/hurl/scenarios/setup.hurl}'s "DSP readiness gates"), here for
-     * the new member's context instead. This is the assertion that distinguishes a missing
-     * distribution/data-plane record (the catalog entry would come back with no transfer format, and the
-     * scenario would fail here, before any negotiation is attempted) from a transfer-level failure
-     * (which only the later negotiation/agreement/transfer assertions can catch).
-     */
-    private void awaitMemberContextIssued(String ss0BaseUrl, AdminSession ss0) {
-        try {
-            Awaitility.await()
-                    .pollInterval(PROVISIONING_POLL_INTERVAL)
-                    .timeout(PROVISIONING_POLL_TIMEOUT)
-                    .ignoreExceptions()
-                    .until(() -> {
-                        var response = authed(ss0).get(ss0BaseUrl + "/api/v1/dataspace/provisioning-status");
-                        if (response.getStatusCode() != 200) {
-                            return false;
-                        }
-                        var credentialStatus = response.jsonPath().getString(
-                                "participant_contexts.find { it.kind == 'MEMBER' && it.participant_id == '"
-                                        + NEW_MEMBER_CTX_ID + "' }.credential_status");
-                        return ISSUED_CREDENTIAL_STATUS.equals(credentialStatus);
-                    });
-        } catch (ConditionTimeoutException e) {
-            throw new ConditionTimeoutException(
-                    ("Timed out waiting for participant context '%s' to reach an ISSUED membership credential; "
-                            + "without this, the new member's catalog entry has no usable transfer format and any "
-                            + "negotiation attempt fails at offer selection, before negotiation begins")
-                            .formatted(NEW_MEMBER_CTX_ID), e);
-        }
     }
 
     private String newMemberDid(E2eEnvironment env) {
@@ -346,7 +303,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 .pollInterval(CATALOG_VISIBILITY_POLL_INTERVAL)
                 .timeout(CATALOG_VISIBILITY_TIMEOUT)
                 .untilAsserted(() -> {
-                    var response = sendConsumerCallRequest(env);
+                    var response = Mock1Fixture.callService(env, SS0_ENV, Mock1Fixture.MOCK1_X_ROAD_CLIENT, NEW_SERVICE_PATH);
                     last.set(response);
                     assertThat(response.extract().statusCode())
                             .as("consumer call via ss0 proxy (catalog visibility is bounded by the enumeration cache TTL)")
@@ -354,20 +311,4 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 });
         return last.get();
     }
-
-    /**
-     * Sends the REST request as {@link #CONSUMER_CLIENT_ID} — ss0's own {@code TestService}, not the new
-     * client — to the new client's service. See the class doc's "Why the consumer cannot be the new
-     * client calling itself".
-     */
-    private ValidatableResponse sendConsumerCallRequest(E2eEnvironment env) {
-        var mapping = env.getContainerMapping(SS0_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
-        return RestAssuredFactory.given()
-                .body(REST_REQUEST_BODY)
-                .header("Content-Type", "application/json")
-                .header("x-road-client", CONSUMER_X_ROAD_ID)
-                .post("http://%s:%s%s".formatted(mapping.host(), mapping.port(), NEW_SERVICE_PATH))
-                .then();
-    }
-
 }
