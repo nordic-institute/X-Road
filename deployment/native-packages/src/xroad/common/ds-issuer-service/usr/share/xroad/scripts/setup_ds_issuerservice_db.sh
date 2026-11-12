@@ -75,7 +75,8 @@ if [[ ! -f "$DB_PROPS" ]]; then
   chmod 640 "$DB_PROPS"
 fi
 
-jdbc_url="jdbc:postgresql://${db_host}:${db_port}/${db_database}?currentSchema=${SCHEMA_NAME},public"
+url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
+jdbc_url="${db_url}${url_concat_string}currentSchema=${SCHEMA_NAME},public"
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.driver_class" org.postgresql.Driver
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.url" "$jdbc_url"
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.username" "$ROLE_NAME"

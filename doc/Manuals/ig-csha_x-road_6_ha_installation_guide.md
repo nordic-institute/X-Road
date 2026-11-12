@@ -201,6 +201,13 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the Central Server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
 
+    The Issuer Service package (`xroad-ds-issuer-service`) creates its own database role once for the shared database. Before installing it on a subsequent node, copy the role credentials from the first node. Add these two lines from `/etc/xroad.properties` on the first node to the same file on the subsequent node, creating the file with owner `root` and mode `600` if it does not exist:
+    ```properties
+    ds-issuer-service.database.admin_user=<role_name>
+    ds-issuer-service.database.admin_password=<role_password>
+    ```
+    Without them, the package configuration on the subsequent node fails with `Failed to create role ds-issuer-service`, because the role already exists.
+
 ### 4.1 Node name and renaming a node
 
 The node name must follow this rule:
