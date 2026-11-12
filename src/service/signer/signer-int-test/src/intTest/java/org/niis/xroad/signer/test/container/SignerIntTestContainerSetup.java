@@ -48,8 +48,8 @@ import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
 
 /**
- * Signer + secondary-signer test stack: three signer nodes sharing the same serverconf database, plus the
- * test CA used to countersign generated CSRs. Boots once per JVM launcher session; the primary,
+ * Signer test stack: three signer nodes (primary, secondary and node-b) sharing the same serverconf database,
+ * plus the test CA used to countersign generated CSRs. Boots once per JVM launcher session; the primary,
  * secondary and node-b {@link SignerRpcClient}/{@link SignerSignRpcClient} pairs are created once the stack is up,
  * with the default RPC deadline.
  */

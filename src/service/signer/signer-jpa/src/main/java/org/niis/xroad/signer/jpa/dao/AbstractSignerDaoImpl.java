@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.signer.jpa.dao;
 
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
@@ -41,7 +42,7 @@ public abstract class AbstractSignerDaoImpl<T> extends AbstractDAOImpl<T> {
     /**
      * Finds all rows owned by the given node.
      */
-    public List<T> findAllByNode(Session session, Class<T> clazz, String nodeName) {
+    public List<T> findAllByNode(@Nonnull Session session, @Nonnull Class<T> clazz, @Nonnull String nodeName) {
         var criteriaBuilder = session.getCriteriaBuilder();
         CriteriaQuery<T> query = criteriaBuilder.createQuery(clazz);
         var root = query.from(clazz);
