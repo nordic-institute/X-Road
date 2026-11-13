@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.56  
+Version: 2.57  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -82,6 +82,7 @@ Doc. ID: UG-CS
 | 06.11.2026 | 2.54    | Added the member DID column, the stale DID warning and the member DID edit and check (Section 7.2.1)                                                                                                                                                                                                                                                                                                                                    | Justas Samuolis      |
 | 11.11.2026 | 2.55    | Added a note that xroad-center must be restarted before re-creating the management service key after a change of the certificate names                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas    |
 | 12.11.2026 | 2.56    | Added Issuer Service issuance settings and statuslist capacity paragraph                                                                                                                                                                                                                                                                                                                                                                | Ričardas Bučiūnas    |
+| 12.11.2026 | 2.57    | Replaced the Issuer Service host section's automatic-binding note with the operator-started initialization step                                                                                                                                                                                                                                                                                                                         | Ovidijus Narkevicius |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -519,15 +520,33 @@ Access rights: Security Officer
 
 Every membership credential names the Issuer Service by this host, so the host becomes part of the Issuer Service's permanent identity once that identity is bound. Set it after installation through the Central Server's management REST API. The user interface has no view for it. The calls need an API key with the Security Officer role; see [Managing API Keys](#24-managing-api-keys).
 
-To read the current host and whether it is bound, call:
+To read the current host, binding and initialization status, call:
 
 ```bash
 curl --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:4000/api/v1/issuer-service" -k
 {
     "host": "issuer.example.org",
-    "bound": false
+    "bound": false,
+    "host_set": true,
+    "certificate_ready": true,
+    "run_in_progress": false,
+    "did_to_bind": "did:web:issuer.example.org%3A6183:issuer",
+    "can_sign": false,
+    "can_sign_cause": "NO_ACTIVE_KEY",
+    "status": "READY_TO_INITIALIZE"
 }
 ```
+
+`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run is in progress. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `status` summarizes these into one value:
+
+- `NOT_CONFIGURED` — the host is not set yet.
+- `WAITING_FOR_CERTIFICATE` — the host is set, but the connector TLS certificate is not yet present, valid and unexpired.
+- `READY_TO_INITIALIZE` — the host and certificate are ready; initialization has not started.
+- `INITIALIZING` — an initialization run is in progress.
+- `READY` — the issuer identity is bound and the Issuer Service can sign for it.
+- `FAILED` — the Issuer Service cannot sign for the bound (or to-be-bound) identity.
+
+`can_sign` and `can_sign_cause` show whether the Issuer Service can currently sign for the identity; `can_sign_cause` is present only when `can_sign` is `false`. Before initialization, `can_sign` is normally `false` with `NO_ACTIVE_KEY`, because the signing key does not exist yet. This does not block initialization.
 
 To set the host, call:
 
@@ -539,7 +558,18 @@ Only a valid DNS name is accepted: not an IP address, not `localhost` or a name 
 
 **Recommendation:** use a separate cluster DNS name for the Issuer Service host, not the host name of a Central Server node, even on a single node. The host cannot change after binding. If you use the node's own host name and add a node later, the existing node needs a new address, and every Security Server needs a new configuration anchor. With more than one node, the host must be the cluster DNS name, never a node's own host name.
 
-**ATTENTION!** On an initialized Central Server, the Issuer Service identity is bound automatically soon after the host is set. Check the value before you send it. Once the identity is bound, a valid new host, even the same one again, is refused, and the response names the bound host.
+Once the host is set and its connector TLS certificate is ready, start the one-time initialization:
+
+```bash
+curl -X POST --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:4000/api/v1/issuer-service/initialize" -k
+```
+
+The call answers at once, without waiting for the run to finish:
+
+- `202` — accepted; the run continues in the background.
+- `409` — refused, with the first failing cause: the issuer is already initialized, the host is not set, the connector TLS certificate is missing, expired or not valid for the issuer host, or an initialization run is already in progress.
+
+**ATTENTION!** Once the identity is bound, a valid new host, even the same one again, is refused, and the response names the bound host.
 
 ### 4.6 Issuer Service Issuance Settings and Statuslist Capacity
 

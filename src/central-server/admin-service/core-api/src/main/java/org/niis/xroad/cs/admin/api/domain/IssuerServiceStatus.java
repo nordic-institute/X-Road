@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.api.domain;
 
+import jakarta.annotation.Nullable;
+
 import java.util.Objects;
 
 /**
@@ -34,6 +36,7 @@ import java.util.Objects;
  * callers gather the facts (database reads, the lease row, and a "can sign" probe to the local Issuer
  * Service) and hand them to it.
  *
+ * @param host             the issuer host this status was derived from, or {@code null} when not set
  * @param hostSet          whether the issuer host is set
  * @param certificateReady whether the connector TLS certificate is present, unexpired and valid for the host
  * @param runInProgress    whether a set-up run currently holds the lease
@@ -46,6 +49,7 @@ import java.util.Objects;
  * @param overall          the overall state derived from the rows above
  */
 public record IssuerServiceStatus(
+        @Nullable String host,
         boolean hostSet,
         boolean certificateReady,
         boolean runInProgress,
@@ -66,22 +70,29 @@ public record IssuerServiceStatus(
     }
 
     /**
-     * Derives the status from its six source facts. An absent participant context counts as "no active key":
-     * once the issuer DID is bound, that is a real failure (the key went missing); before binding, it simply
-     * does not yet affect the overall state, which is governed by {@code runInProgress} and whether a DID is
-     * bound.
+     * Derives the status from its six source facts, plus the host those facts were read for. An absent
+     * participant context counts as "no active key": once the issuer DID is bound, that is a real failure
+     * (the key went missing); before binding, it simply does not yet affect the overall state, which is
+     * governed by {@code runInProgress} and whether a DID is bound.
      *
-     * @param boundDid the bound issuer DID, or {@code null} when none is bound yet
+     * @param host          the issuer host the other facts were read for, or {@code null} when not set;
+     *                      {@code hostSet} follows from this
+     * @param boundDid      the bound issuer DID, or {@code null} when none is bound yet
+     * @param canSignResult the "can sign" probe result, or {@code null} when the probe was skipped (no issuer
+     *                      host is set, so there is nothing to probe); {@code canSign} is then {@code false}
+     *                      and {@code canSignCause} is {@code null}
      */
-    public static IssuerServiceStatus derive(boolean hostSet, boolean certificateReady, boolean runInProgress,
-            String didToBind, String boundDid, CanSignResult canSignResult) {
+    public static IssuerServiceStatus derive(@Nullable String host, boolean certificateReady, boolean runInProgress,
+            String didToBind, String boundDid, @Nullable CanSignResult canSignResult) {
+        boolean hostSet = host != null;
         boolean didBound = boundDid != null;
         String expectedDid = didBound ? boundDid : didToBind;
-        boolean matches = canSignResult.outcome() == CanSignOutcome.CAN_SIGN
+        boolean probed = canSignResult != null;
+        boolean matches = probed && canSignResult.outcome() == CanSignOutcome.CAN_SIGN
                 && Objects.equals(canSignResult.did(), expectedDid);
 
         boolean canSign = matches;
-        CanSignCause canSignCause = matches ? null
+        CanSignCause canSignCause = !probed || matches ? null
                 : switch (canSignResult.outcome()) {
                     case CAN_SIGN -> CanSignCause.DID_MISMATCH;
                     case ABSENT -> CanSignCause.NO_ACTIVE_KEY;
@@ -97,12 +108,13 @@ public record IssuerServiceStatus(
             overall = Overall.WAITING_FOR_CERTIFICATE;
         } else if (runInProgress) {
             overall = Overall.INITIALIZING;
-        } else if (canSignResult.outcome() == CanSignOutcome.ABSENT || matches) {
+        } else if (probed && (canSignResult.outcome() == CanSignOutcome.ABSENT || matches)) {
             overall = Overall.READY_TO_INITIALIZE;
         } else {
             overall = Overall.FAILED;
         }
 
-        return new IssuerServiceStatus(hostSet, certificateReady, runInProgress, didToBind, didBound, canSign, canSignCause, overall);
+        return new IssuerServiceStatus(host, hostSet, certificateReady, runInProgress, didToBind, didBound, canSign, canSignCause,
+                overall);
     }
 }

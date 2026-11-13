@@ -53,7 +53,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Exercises {@link CentralServerConnectorTlsAcmeHostContext} behind the real
@@ -79,7 +78,6 @@ class DataspaceIssuerHostReadersIntegrationTest {
                 new SystemParameterServiceImpl(repository, mock(HAConfigStatus.class), new SystemParameterMapperImpl());
         systemParameterService.updateOrCreateParameter(SystemParameterService.INSTANCE_IDENTIFIER, "TEST");
         systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS, "cs.example");
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
 
         issuerHostService = new IssuerHostServiceImpl(systemParameterService, dataspaceIssuerDidService, new DnsNameValidator(),
                 mock(IssuerSetUpLeaseService.class));

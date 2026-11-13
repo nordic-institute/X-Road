@@ -54,7 +54,12 @@ public class IssuerHostServiceImpl implements IssuerHostService {
 
     @Override
     public IssuerHostState getState() {
-        return new IssuerHostState(systemParameterService.getIssuerServiceHost(), isBound());
+        return new IssuerHostState(getHost(), isBound());
+    }
+
+    @Override
+    public String getHost() {
+        return systemParameterService.getIssuerServiceHost();
     }
 
     @Override

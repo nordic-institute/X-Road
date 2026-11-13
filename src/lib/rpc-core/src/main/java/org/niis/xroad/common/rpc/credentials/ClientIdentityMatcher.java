@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.common.rpc.credentials;
 
+import ee.ria.xroad.common.util.CertUtils;
+
 import io.grpc.util.AdvancedTlsX509TrustManager.SslSocketAndEnginePeerVerifier;
 
 import javax.naming.InvalidNameException;
@@ -38,7 +40,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,7 +50,6 @@ import java.util.stream.Stream;
  * equals a listed name, ignoring case. IP subject alternative names and patterns never match.
  */
 public final class ClientIdentityMatcher implements SslSocketAndEnginePeerVerifier {
-    private static final int DNS_NAME_TYPE = 2;
     private static final String COMMON_NAME_TYPE = "CN";
 
     private final Set<String> allowedNames;
@@ -105,14 +105,7 @@ public final class ClientIdentityMatcher implements SslSocketAndEnginePeerVerifi
 
     private static Stream<String> dnsNames(X509Certificate leaf) {
         try {
-            var alternativeNames = leaf.getSubjectAlternativeNames();
-            if (alternativeNames == null) {
-                return Stream.empty();
-            }
-            return alternativeNames.stream()
-                    .filter(entry -> entry.size() == 2 && Integer.valueOf(DNS_NAME_TYPE).equals(entry.getFirst()))
-                    .map(List::getLast)
-                    .map(String::valueOf);
+            return CertUtils.getDnsSubjectAlternativeNames(leaf).stream();
         } catch (CertificateParsingException _) {
             return Stream.empty();
         }
