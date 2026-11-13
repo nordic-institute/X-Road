@@ -170,6 +170,18 @@ class IssuerServiceApiControllerTest {
     }
 
     @Test
+    void setIssuerServiceHostReturnsTheHostAndBoundFromTheStatusWhenTheyDisagreeWithSetHost() {
+        when(issuerHostService.setHost("cs.example.org")).thenReturn(new IssuerHostState("stale.example.org", true));
+        when(issuerServiceStatusService.getStatus()).thenReturn(notConfiguredStatus("cs.example.org"));
+
+        var response = issuerServiceApiController.setIssuerServiceHost(new IssuerServiceHostDto().host("cs.example.org"));
+
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getHost()).isEqualTo("cs.example.org");
+        assertThat(response.getBody().getBound()).isFalse();
+    }
+
+    @Test
     void setIssuerServiceHostAuditsTheRejectedHostAndPropagatesTheException() {
         when(issuerHostService.setHost("not a valid host"))
                 .thenThrow(new BadRequestException(ErrorMessage.INVALID_DNS_NAME.build()));

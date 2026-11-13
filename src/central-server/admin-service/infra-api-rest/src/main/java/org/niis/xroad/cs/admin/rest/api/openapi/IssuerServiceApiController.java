@@ -72,8 +72,9 @@ public class IssuerServiceApiController implements IssuerServiceApi {
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_ISSUER_SERVICE_HOST)
     public ResponseEntity<IssuerServiceStateDto> setIssuerServiceHost(IssuerServiceHostDto issuerServiceHost) {
         auditDataHelper.put(RestApiAuditProperty.ISSUER_SERVICE_HOST, issuerServiceHost.getHost());
-        var state = issuerHostService.setHost(issuerServiceHost.getHost());
-        return ResponseEntity.ok(applyStatus(toDto(state.host(), state.bound()), issuerServiceStatusService.getStatus()));
+        issuerHostService.setHost(issuerServiceHost.getHost());
+        var status = issuerServiceStatusService.getStatus();
+        return ResponseEntity.ok(applyStatus(toDto(status.host(), status.didBound()), status));
     }
 
     @Override

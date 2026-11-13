@@ -189,8 +189,7 @@ public class CertUtilsTest {
     }
 
     @Test
-    public void testGetDnsSubjectAlternativeNamesReturnsDnsNamesOnly() throws CertificateException, IOException,
-            CertificateParsingException {
+    public void testGetDnsSubjectAlternativeNamesReturnsDnsNamesOnly() throws CertificateException, IOException {
         final String certPath = "src/test/resources/cert_multi.pem";
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         try (FileInputStream in = new FileInputStream(certPath)) {
@@ -200,8 +199,7 @@ public class CertUtilsTest {
     }
 
     @Test
-    public void testGetDnsSubjectAlternativeNamesEmptyWithoutSanExtension() throws CertificateException, IOException,
-            CertificateParsingException {
+    public void testGetDnsSubjectAlternativeNamesEmptyWithoutSanExtension() throws CertificateException, IOException {
         final String certPath = "src/test/resources/cert_empty.pem";
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         try (FileInputStream in = new FileInputStream(certPath)) {
