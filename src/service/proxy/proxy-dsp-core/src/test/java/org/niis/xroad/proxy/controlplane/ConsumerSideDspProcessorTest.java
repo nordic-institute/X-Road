@@ -576,7 +576,7 @@ class ConsumerSideDspProcessorTest {
 
     @Test
     void systemContextRequestSendsOneCallCarryingEverySystemCandidate() {
-        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "listMethods");
+        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "getSecurityServerMetrics");
         when(providerSecurityServerResolver.resolve(builtinServiceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
