@@ -16,11 +16,18 @@ dependencies {
   implementation(project(":common:common-domain"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:edc-jetty-tls"))
+  implementation(project(":lib:ds-identity-core"))
+  implementation(project(":lib:properties-core"))
   implementation(libs.nimbus.jose.jwt)
   implementation(libs.jetty.server)
+  implementation(libs.hikariCP)
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.core)
+  testImplementation(project(":tool:liquibase-executor"))
+  testImplementation(libs.liquibase.core)
+  testImplementation(libs.postgresql)
+  testImplementation(libs.testcontainers.postgresql)
 
   testFixturesImplementation(libs.nimbus.jose.jwt)
   testFixturesImplementation(project(":common:common-test"))
