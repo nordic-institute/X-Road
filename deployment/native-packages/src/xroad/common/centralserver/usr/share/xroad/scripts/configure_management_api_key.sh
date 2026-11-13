@@ -7,7 +7,7 @@ encode_token() {
 }
 
 run_psql() {
-  PGOPTIONS="${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" \
+  PGOPTIONS="-c search_path=${db_schema},public ${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" \
     psql -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -qtA -c "$1"
 }
 

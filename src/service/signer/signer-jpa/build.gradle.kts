@@ -11,4 +11,5 @@ dependencies {
   implementation(libs.quarkus.arc)
 
   testImplementation(libs.mockito.core)
+  testImplementation(libs.testcontainers.postgresql)
 }
