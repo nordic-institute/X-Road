@@ -58,6 +58,7 @@ public final class SharedParametersV7Fixture {
 
     private static final String INSTANCE = "DEV";
     private static final int OCSP_FRESHNESS_SECONDS = 3600;
+    private static final int ISSUER_DATA_FRESHNESS_SECONDS = 600;
 
     private SharedParametersV7Fixture() {
     }
@@ -73,6 +74,7 @@ public final class SharedParametersV7Fixture {
         var systemParameters = mock(SystemParameterService.class);
         when(systemParameters.getInstanceIdentifier()).thenReturn(INSTANCE);
         when(systemParameters.getOcspFreshnessSeconds()).thenReturn(OCSP_FRESHNESS_SECONDS);
+        when(systemParameters.getIssuerDataFreshnessSeconds()).thenReturn(ISSUER_DATA_FRESHNESS_SECONDS);
         var configuration = mock(ConfigurationService.class);
         when(configuration.getNodeAddressesWithOrderedConfigurationSigningKeys()).thenReturn(Map.of("cs", List.of(
                 signingKey(ConfigurationSourceType.INTERNAL), signingKey(ConfigurationSourceType.EXTERNAL))));

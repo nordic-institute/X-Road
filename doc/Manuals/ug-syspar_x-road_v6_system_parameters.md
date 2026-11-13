@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.108
+Version: 2.109
 Doc. ID: UG-SYSPAR
 
 
@@ -119,6 +119,7 @@ Doc. ID: UG-SYSPAR
 | 28.09.2026 | 2.106   | Added *dataspace.provisioning-enabled* parameter                                                                                                                                                                                                                                                                                                                                                               | Ovidijus Narkevicius       |
 | 21.10.2026 | 2.107   | Documented X-Road 8 per-request behaviour of *client-connector-max-idle-time*                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius       |
 | 06.11.2026 | 2.108   | Added *xroad.common-rpc.use-tls* parameter                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets              |
+| 13.11.2026 | 2.109   | Added new *issuerDataFreshnessSeconds* system parameter, distributed in global configuration version 7                                                                                                                                                                                                                                                                                                         | Stefan Cvetkovski          |
 
 ## Table of Contents
 
@@ -546,9 +547,11 @@ with some additional limitations on configurability (see details in proxy chapte
 
 ## 4 Central Server System Parameters
 
-The system parameters described in this chapter are used by the X-Road central server, except for the parameters *ocspFreshnessSeconds* and *timeStampingIntervalSeconds.*
+The system parameters described in this chapter are used by the X-Road central server, except for the parameters *ocspFreshnessSeconds*, *timeStampingIntervalSeconds* and *issuerDataFreshnessSeconds.*
 
 The values of *ocspFreshnessSeconds* and *timeStampingIntervalSeconds* are distributed to the security servers via the global configuration. These parameters determine the interval of calling OCSP responder services and time-stamping services (respectively) by the security servers.
+
+The value of *issuerDataFreshnessSeconds* is also distributed to the security servers via the global configuration, starting from global configuration version 7. It determines how long the security servers keep using the last good Issuer Service data when the Issuer Service cannot be reached.
 
 ### 4.1 System Parameters in the Configuration File
 
@@ -665,6 +668,7 @@ This section describes the system parameters used by the X-Road central server. 
 | confSignCertHashAlgoUri     | string         | http://www.w3.org/2001/04/xmlenc#sha512 | URI of the algorithm used for calculating the hash value of the certificate used to sign the global configuration.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512.            |
 | ocspFreshnessSeconds        | integer        | 3600                                    | Defines the validity period (in seconds) for the OCSP responses retrieved from the OCSP responders. OCSP responses older than the validity period are considered expired and cannot be used for certificate verification.                       |
 | timeStampingIntervalSeconds | integer        | 60                                      | Defines the interval of time-stamping service calls. Interval in seconds after which message log records must be timestamped. The interval must be between 60 and 86400 seconds. **Note: this value must be less than *ocspFreshnessSeconds.*** |
+| issuerDataFreshnessSeconds  | integer        | 600                                     | How long security servers keep using the last good Issuer Service data after it should have been refreshed, when the Issuer Service cannot be reached. 0 = the data is not used once a refresh fails. |
 
 ## 5 Configuration Proxy System Parameters
 
