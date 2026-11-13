@@ -39,9 +39,12 @@ xroad:
     boot:
       # jetty-core is also excluded from the runtime classpath entirely (see
       # xroad.edc-owned-jetty-conventions); this setting is defense in depth.
+      # SqlSchemaBootstrapperExtension is excluded so that no EDC code can create tables;
+      # XRoadNoOpSqlSchemaBootstrapperExtension provides the SqlSchemaBootstrapper the SQL stores inject.
       excluded-service-extensions: >-
         org.eclipse.edc.web.jetty.JettyExtension,
-        org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension
+        org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,
+        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension
 
 web:
   http:
@@ -96,6 +99,3 @@ edc:
       url: ${xroad.db.ds-issuer-service.hibernate.connection.url}
       user: ${xroad.db.ds-issuer-service.hibernate.connection.username}
       password: ${xroad.db.ds-issuer-service.hibernate.connection.password}
-  sql:
-    schema:
-      autocreate: true
