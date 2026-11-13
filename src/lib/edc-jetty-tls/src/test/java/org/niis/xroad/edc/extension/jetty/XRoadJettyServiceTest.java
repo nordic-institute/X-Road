@@ -34,11 +34,16 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -55,10 +60,12 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.keyStoreOf;
 
 class XRoadJettyServiceTest {
@@ -187,6 +194,35 @@ class XRoadJettyServiceTest {
         assertThat(configured).containsExactlyInAnyOrder("first", "second");
     }
 
+    @ParameterizedTest
+    @MethodSource("participantSegmentMappings")
+    void aParticipantPortPassesADoubleEncodedSegmentDecodedOnce(String alias, String basePath) throws Exception {
+        var port = startPathInfoService(alias, basePath);
+
+        var response = get(port, basePath + "/DEV:COM:12%252B34/profile");
+
+        assertThat(response.status()).isEqualTo(HttpServletResponse.SC_OK);
+        assertThat(response.body()).isEqualTo("/DEV:COM:12%2B34/profile");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/api/dsp/DEV:COM:12%2Fx/profile", "/api/dsp/%2e%2e/profile", "/api/dsp/DEV:COM:12%5Cx/profile"})
+    void theDspPortStillRejectsOtherAmbiguousPathEncodings(String path) throws Exception {
+        var dspPort = startPathInfoService(ApiContext.PROTOCOL, "/api/dsp");
+
+        assertThat(get(dspPort, path).status()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
+    }
+
+    @Test
+    void aNonDspPortRejectsADoubleEncodedPathSegment() throws Exception {
+        var otherPort = startPathInfoService("management", "/api/management");
+
+        assertThat(get(otherPort, "/api/management/DEV:COM:12%252B34/profile").status())
+                .isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
+        assertThat(get(otherPort, "/api/management/DEV:COM:12%2B34/profile").status())
+                .isEqualTo(HttpServletResponse.SC_OK);
+    }
+
     @Test
     void theDefaultContextAcceptsOnLoopbackAndRefusesOnANonLoopbackAddress() throws Exception {
         var nonLoopback = nonLoopbackTestAddress();
@@ -311,6 +347,33 @@ class XRoadJettyServiceTest {
             @Override
             protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
                 response.getWriter().write(body);
+            }
+        };
+    }
+
+    private static Stream<Arguments> participantSegmentMappings() {
+        return Stream.of(
+                argumentSet("dsp", ApiContext.PROTOCOL, "/api/dsp"),
+                argumentSet("credentials", "credentials", "/api/credentials"));
+    }
+
+    private int startPathInfoService(String alias, String basePath) throws Exception {
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping(alias, port, basePath));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        jettyService.registerServlet(alias, pathInfoServlet());
+        return port;
+    }
+
+    private static Servlet pathInfoServlet() {
+        return new HttpServlet() {
+            @Override
+            protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+                response.getWriter().write(request.getPathInfo());
             }
         };
     }

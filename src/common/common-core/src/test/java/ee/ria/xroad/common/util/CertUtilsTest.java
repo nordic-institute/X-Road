@@ -52,13 +52,18 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 /**
  * Unit tests for {@link CertUtils}
@@ -181,6 +186,49 @@ public class CertUtilsTest {
                             + " IP Address:192.168.7.1, email:my@example.org, DNS:*.example.org",
                     CertUtils.getSubjectAlternativeNames(cert));
         }
+    }
+
+    @Test
+    public void testGetDnsSubjectAlternativeNamesReturnsDnsNamesOnly() throws CertificateException, IOException {
+        final String certPath = "src/test/resources/cert_multi.pem";
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        try (FileInputStream in = new FileInputStream(certPath)) {
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
+            assertEquals(List.of("*.example.org"), CertUtils.getDnsSubjectAlternativeNames(cert));
+        }
+    }
+
+    @Test
+    public void testGetDnsSubjectAlternativeNamesEmptyWithoutSanExtension() throws CertificateException, IOException {
+        final String certPath = "src/test/resources/cert_empty.pem";
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        try (FileInputStream in = new FileInputStream(certPath)) {
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
+            assertEquals(List.of(), CertUtils.getDnsSubjectAlternativeNames(cert));
+        }
+    }
+
+    @Test(expected = CertificateParsingException.class)
+    public void testGetDnsSubjectAlternativeNamesPropagatesParseFailure() throws CertificateParsingException {
+        X509Certificate cert = mock(X509Certificate.class);
+        doThrow(new CertificateParsingException("bad SAN extension")).when(cert).getSubjectAlternativeNames();
+
+        CertUtils.getDnsSubjectAlternativeNames(cert);
+    }
+
+    @Test
+    public void testGetDnsSubjectAlternativeNamesKeepsCertificateOrder() throws CertificateParsingException {
+        X509Certificate cert = mock(X509Certificate.class);
+        doReturn(List.of(
+                List.of(7, "1.2.3.4"),
+                List.of(2, "zebra.example.org"),
+                List.of(1, "someone@example.org"),
+                List.of(2, "mango.example.org"),
+                List.of(2, "apple.example.org")
+        )).when(cert).getSubjectAlternativeNames();
+
+        assertEquals(List.of("zebra.example.org", "mango.example.org", "apple.example.org"),
+                CertUtils.getDnsSubjectAlternativeNames(cert));
     }
 
     /**

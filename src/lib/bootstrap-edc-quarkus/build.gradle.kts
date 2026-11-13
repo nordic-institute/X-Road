@@ -12,6 +12,7 @@ dependencies {
   implementation(libs.edc.boot)
   implementation(libs.edc.lib.core)
   implementation(libs.edc.spi.core)
+  implementation(libs.edc.core.sql.bootstrapper)
   implementation(libs.bundles.quarkus.core)
   implementation(libs.quarkus.health)
 

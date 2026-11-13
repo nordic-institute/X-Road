@@ -97,6 +97,15 @@ class SignerTokenPinsNodeTest {
     }
 
     @Test
+    void shouldAcceptCentralServerInstallationOptionNextToTheNodeOption() throws IOException {
+        String[] args = {"signer-token-pins", "--node", "node_b", "--installation=cs", fetchPinScript().toString()};
+
+        LegacyConfigMigrationCLI.main(args);
+
+        assertThat(store).containsOnlyKeys("signer/token-pins/node_b/0");
+    }
+
+    @Test
     void shouldStoreNothingWhenTheNodeNameIsInvalid() throws IOException {
         String[] args = {"signer-token-pins", "--node", "_bad", fetchPinScript().toString()};
 

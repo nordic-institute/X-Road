@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.e2e.container.SsStackSetup;
 
 import java.time.Duration;
 import java.util.List;
@@ -82,7 +81,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 class SsStatusListRolloverTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
-    private static final String CA_ENV = "ca";
 
     private static final String X_ROAD_INSTANCE = "DEV";
     private static final String MEMBER_CLASS = "COM";
@@ -105,12 +103,12 @@ class SsStatusListRolloverTest extends E2eTest {
             new Member("6002", "RolloverService2"));
 
     private record Member(String code, String subsystem) {
-        String ctxId() {
+        String memberId() {
             return X_ROAD_INSTANCE + ":" + MEMBER_CLASS + ":" + code;
         }
 
         String clientId() {
-            return ctxId() + ":" + subsystem;
+            return memberId() + ":" + subsystem;
         }
 
         String servicePath() {
@@ -135,13 +133,11 @@ class SsStatusListRolloverTest extends E2eTest {
         when("the active status list is marked full", () -> markActiveStatusListFull(issuerDb));
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
         var csBaseUrl = CentralServerApi.baseUrl(env);
-        var caBaseUrl = caBaseUrl(env);
         var ss0Session = given("an admin session is established on ss0", () -> login(ss0BaseUrl));
         and("two new members are added to ss0 with CA-signed sign certificates and submitted for registration", () -> {
             for (var member : MEMBERS) {
                 addLocalClient(ss0BaseUrl, ss0Session, member.clientId());
-                provisionSignCertificate(ss0BaseUrl, ss0Session, caBaseUrl, env.securityServerAddress(SS0_ENV),
-                        member.ctxId(), member.code());
+                provisionSignCertificate(env, ss0Session, member.memberId());
                 registerClient(ss0BaseUrl, ss0Session, member.clientId());
             }
         });
@@ -160,7 +156,7 @@ class SsStatusListRolloverTest extends E2eTest {
         });
         then("both members' membership credentials are issued", () -> {
             for (var member : MEMBERS) {
-                awaitMemberCredentialIssued(ss0BaseUrl, ss0Session, member.ctxId());
+                awaitMemberCredentialIssued(ss0BaseUrl, ss0Session, member.memberId());
             }
         });
         then("the established consumer reaches both members through ss0's proxy, verifying their credentials", () -> {
@@ -222,10 +218,5 @@ class SsStatusListRolloverTest extends E2eTest {
                 SELECT COUNT(*) FROM updated
                 """.formatted(ACTIVE_STATUS_LIST_FILTER, NOT_FULL_FILTER);
         assertThat(querySingleInt(issuerDb, sql)).as("active status list rows marked full").isEqualTo(1);
-    }
-
-    private String caBaseUrl(E2eEnvironment env) {
-        var mapping = env.getContainerMapping(CA_ENV, SsStackSetup.CA, SsStackSetup.Port.CA_API);
-        return "http://%s:%s".formatted(mapping.host(), mapping.port());
     }
 }

@@ -42,10 +42,11 @@ import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.sql.DriverManager;
+import java.sql.Timestamp;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -112,13 +113,15 @@ class IssuerDidPostgresTest {
             entityManager.close();
         }
 
-        assertEquals(Map.of(
-                        "did", DID,
-                        "host", HOST,
-                        "did_port", DID_PORT,
-                        "issuance_url", ISSUANCE_URL,
-                        "statuslist_base_url", STATUSLIST_BASE_URL),
-                readStoredRow());
+        var storedRow = readStoredRow();
+        assertThat(storedRow.id()).isPositive();
+        assertThat(storedRow.did()).isEqualTo(DID);
+        assertThat(storedRow.host()).isEqualTo(HOST);
+        assertThat(storedRow.didPort()).isEqualTo(DID_PORT);
+        assertThat(storedRow.issuanceUrl()).isEqualTo(ISSUANCE_URL);
+        assertThat(storedRow.statuslistBaseUrl()).isEqualTo(STATUSLIST_BASE_URL);
+        assertThat(storedRow.createdAt()).isNotNull();
+        assertThat(storedRow.updatedAt()).isNotNull();
     }
 
     @Test
@@ -131,10 +134,13 @@ class IssuerDidPostgresTest {
                 return null;
             });
 
-            assertThrows(RuntimeException.class, () -> withTransaction(entityManager, () -> {
-                repository.insert(DID, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL);
-                return null;
-            }));
+            entityManager.getTransaction().begin();
+            try {
+                assertThrows(RuntimeException.class,
+                        () -> repository.insert(DID, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL));
+            } finally {
+                entityManager.getTransaction().rollback();
+            }
         } finally {
             entityManager.close();
         }
@@ -165,19 +171,33 @@ class IssuerDidPostgresTest {
         assertThrows(Exception.class, () -> insertRawWithNullColumn("did"));
     }
 
-    private Map<String, Object> readStoredRow() throws Exception {
+    private record StoredIssuerDidRow(
+            int id,
+            String did,
+            String host,
+            int didPort,
+            String issuanceUrl,
+            String statuslistBaseUrl,
+            Timestamp createdAt,
+            Timestamp updatedAt) {
+    }
+
+    private StoredIssuerDidRow readStoredRow() throws Exception {
         try (var connection = DriverManager.getConnection(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
                 var statement = connection.prepareStatement(
-                        "SELECT did, host, did_port, issuance_url, statuslist_base_url FROM "
+                        "SELECT id, did, host, did_port, issuance_url, statuslist_base_url, created_at, updated_at FROM "
                                 + IssuerDidEntity.TABLE_NAME)) {
             try (var resultSet = statement.executeQuery()) {
                 resultSet.next();
-                return Map.of(
-                        "did", resultSet.getString("did"),
-                        "host", resultSet.getString("host"),
-                        "did_port", resultSet.getInt("did_port"),
-                        "issuance_url", resultSet.getString("issuance_url"),
-                        "statuslist_base_url", resultSet.getString("statuslist_base_url"));
+                return new StoredIssuerDidRow(
+                        resultSet.getInt("id"),
+                        resultSet.getString("did"),
+                        resultSet.getString("host"),
+                        resultSet.getInt("did_port"),
+                        resultSet.getString("issuance_url"),
+                        resultSet.getString("statuslist_base_url"),
+                        resultSet.getTimestamp("created_at"),
+                        resultSet.getTimestamp("updated_at"));
             }
         }
     }

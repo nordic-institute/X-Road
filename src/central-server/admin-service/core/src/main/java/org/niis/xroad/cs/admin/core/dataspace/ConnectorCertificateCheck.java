@@ -34,8 +34,6 @@ import org.springframework.stereotype.Component;
 
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Whether the connector TLS certificate in the {@code tls/ds-https} OpenBao slot is ready for the issuer
@@ -45,9 +43,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class ConnectorCertificateCheck {
-
-    /** {@code GeneralName} tag for a DNS subject alternative name entry (RFC 5280). */
-    private static final int GENERAL_NAME_DNS = 2;
 
     /** Fewest labels a wildcard name may have: {@code *} plus at least two more, so {@code *.org} never matches. */
     private static final int MIN_WILDCARD_LABELS = 3;
@@ -60,21 +55,12 @@ public class ConnectorCertificateCheck {
     }
 
     private static boolean hasDnsSubjectAlternativeName(X509Certificate certificate, String host) {
-        Collection<List<?>> subjectAlternativeNames;
         try {
-            subjectAlternativeNames = certificate.getSubjectAlternativeNames();
+            return CertUtils.getDnsSubjectAlternativeNames(certificate).stream()
+                    .anyMatch(san -> matchesHost(san, host));
         } catch (CertificateParsingException _) {
             return false;
         }
-        if (subjectAlternativeNames == null) {
-            return false;
-        }
-        return subjectAlternativeNames.stream()
-                .filter(san -> san.size() > 1 && Integer.valueOf(GENERAL_NAME_DNS).equals(san.get(0)))
-                .map(san -> san.get(1))
-                .filter(String.class::isInstance)
-                .map(String.class::cast)
-                .anyMatch(san -> matchesHost(san, host));
     }
 
     /**

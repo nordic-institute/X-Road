@@ -31,12 +31,14 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.migration.utils.DbCredentials;
 import org.niis.xroad.migration.utils.DbPropertiesReader;
+import org.niis.xroad.migration.utils.InstallationType;
 import org.niis.xroad.signer.keyconf.CertRequestType;
 import org.niis.xroad.signer.keyconf.CertificateType;
 import org.niis.xroad.signer.keyconf.DeviceType;
@@ -59,6 +61,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
+@RequiredArgsConstructor
 @SuppressWarnings("checkstyle:MagicNumber")
 public class KeyConfMigrator {
 
@@ -68,6 +71,11 @@ public class KeyConfMigrator {
     private static final int PIN_SALT_LENGTH = 16;
 
     private final SecureRandom secureRandom = new SecureRandom();
+    private final InstallationType installationType;
+
+    public KeyConfMigrator() {
+        this(InstallationType.SECURITY_SERVER);
+    }
 
     public void migrate(String keyconfPath, String dbPropertiesPath, NodeIdentity nodeIdentity) throws SQLException {
         KeyConfType keyConf = parseKeyConf(Path.of(keyconfPath, "keyconf.xml"));
@@ -151,7 +159,7 @@ public class KeyConfMigrator {
     }
 
     protected SignerRepository getSignerRepository(String dbPropertiesPath, NodeIdentity nodeIdentity) {
-        DbCredentials dbCredentials = DbPropertiesReader.readDbCredentials(Paths.get(dbPropertiesPath), "serverconf");
+        DbCredentials dbCredentials = DbPropertiesReader.readForInstallation(Paths.get(dbPropertiesPath), installationType);
         return new SignerRepository(dbCredentials, nodeIdentity);
     }
 

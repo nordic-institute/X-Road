@@ -266,7 +266,7 @@ HTTP 200
 
 # Initialize the Issuer Service now that the connector TLS certificate is in place, then wait
 # until the issuer identity is bound. Bounded by retries so a broken Issuer Service fails this
-# script instead of hanging it. 409 ("already initialized" or "already running") is accepted too, so a
+# script instead of hanging it. 409 ("already bound" or "already running") is accepted too, so a
 # re-run against an already-bound issuer stays idempotent.
 POST https://{{cs_host}}:4000/api/v1/issuer-service/initialize
 X-XSRF-TOKEN: {{cs_xsrf_token}}
@@ -274,6 +274,17 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 HTTP *
 [Asserts]
 status toString matches "^(202|409)$"
+
+# A host-not-set or certificate-not-ready environment is refused by the call above too (still
+# matched by the broad 409 check), so check the real prerequisites here and fail within one
+# request instead of waiting out the bound-wait retries below.
+GET https://{{cs_host}}:4000/api/v1/issuer-service
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+[Asserts]
+jsonpath "$.host_set" == true
+jsonpath "$.certificate_ready" == true
 
 GET https://{{cs_host}}:4000/api/v1/issuer-service
 X-XSRF-TOKEN: {{cs_xsrf_token}}
@@ -1044,6 +1055,29 @@ GET https://{{is_host}}:{{is_did_port}}/issuer/did.json
 HTTP 200
 [Asserts]
 jsonpath "$.id" == "did:web:{{is_host}}%3A{{is_did_port}}:issuer"
+
+# Gate: waits until each Security Server's own copy of the global configuration carries its SYSTEM DID
+# and DSP base URL (publication_state PUBLISHED). It runs before the first DSP-routed request, the
+# TestClient registration.
+GET https://{{ss0_host}}:4000/api/v1/dataspace/provisioning-status
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.server.publication_state" == "PUBLISHED"
+
+GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.server.publication_state" == "PUBLISHED"
 
 # Add TestClient to SS1 Security Server
 POST https://{{ss1_host}}:4000/api/v1/clients

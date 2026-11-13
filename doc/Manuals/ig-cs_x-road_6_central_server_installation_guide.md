@@ -465,7 +465,7 @@ sudo /usr/share/xroad/scripts/db_property.sh get xroad.admin-service.tls.certifi
 
 The other nodes keep using the shared row of the key, or the default of the key when there is no shared row. Then restart the service that reads the property on `node_1`. The certificate names are an exception: they take effect only when the certificate key is created again, see [IG-CS-8](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2.
 
-**Migrating from a pre-version-8 `devices.ini`:** versions of X-Road before 8 configured hardware tokens in an INI file at `/etc/xroad/devices.ini`. On X-Road 8 this file is no longer read by the signer — do not create it. When upgrading, `migration-cli signer-devices <devices.ini file> <db.properties file>` converts an existing `devices.ini` into the `xroad.signer.modules` document described above; see the version 8 upgrade guide for details.
+**Migrating from a pre-version-8 `devices.ini`:** versions of X-Road before 8 configured hardware tokens in an INI file at `/etc/xroad/devices.ini`. On X-Road 8 this file is no longer read by the signer — do not create it. When upgrading, `migration-cli signer-devices --installation=cs <devices.ini file> <db.properties file>` converts an existing `devices.ini` into the `xroad.signer.modules` document described above; see the version 8 upgrade guide for details.
 
 ### 2.9 Installing the Support for Monitoring
 
