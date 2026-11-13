@@ -7,13 +7,13 @@
 
 metrics = "4.2.40"
 jersey = "4.0.3"
-jetty = "12.1.14"
+jetty = "12.1.15"
 jaxb = "4.0.9"
 hibernate = "7.4.14.Final"
 bytebuddy = "1.18.17"
 mapstruct = "1.6.3"
-jackson = "3.2.4"
-jacksonAnnotations = "2.22"
+jackson = "3.3.0"
+jacksonAnnotations = "2.23"
 mockito = "5.24.0"
 springBoot = "4.1.2"
 springFramework = "7.0.10"
@@ -47,7 +47,7 @@ edc = "1.0.0-RC6"
 carbon-did = "0.10.0"
 nimbus = "10.10"
 opentelemetry-javaagent = "2.33.1"
-opentelemetry-sdk-testing = "1.67.0"
+opentelemetry-sdk-testing = "1.68.0"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -429,7 +429,7 @@ quarkus-containerized = [
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.27.0" }
-sonarqube = { id = "org.sonarqube", version = "7.3.1.8318" }
+sonarqube = { id = "org.sonarqube", version = "7.5.0.8588" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }
