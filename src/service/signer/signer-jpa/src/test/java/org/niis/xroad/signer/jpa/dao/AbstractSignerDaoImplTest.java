@@ -48,13 +48,18 @@ class AbstractSignerDaoImplTest {
 
     @Test
     void shouldRefuseToFindAllRowsWithoutANode() {
-        assertThatThrownBy(() -> new SignerTokenDaoImpl().findAll(session, SignerTokenEntity.class))
+        var tokenDao = new SignerTokenDaoImpl();
+        var keyDao = new SignerKeyDaoImpl();
+        var certDao = new SignerKeyCertDaoImpl();
+        var certRequestDao = new SignerKeyCertRequestDaoImpl();
+
+        assertThatThrownBy(() -> tokenDao.findAll(session, SignerTokenEntity.class))
                 .isInstanceOf(XrdRuntimeException.class);
-        assertThatThrownBy(() -> new SignerKeyDaoImpl().findAll(session, SignerKeyEntity.class))
+        assertThatThrownBy(() -> keyDao.findAll(session, SignerKeyEntity.class))
                 .isInstanceOf(XrdRuntimeException.class);
-        assertThatThrownBy(() -> new SignerKeyCertDaoImpl().findAll(session, SignerCertificateEntity.class))
+        assertThatThrownBy(() -> certDao.findAll(session, SignerCertificateEntity.class))
                 .isInstanceOf(XrdRuntimeException.class);
-        assertThatThrownBy(() -> new SignerKeyCertRequestDaoImpl().findAll(session, SignerCertRequestEntity.class))
+        assertThatThrownBy(() -> certRequestDao.findAll(session, SignerCertRequestEntity.class))
                 .isInstanceOf(XrdRuntimeException.class);
 
         verifyNoInteractions(session);
@@ -62,13 +67,18 @@ class AbstractSignerDaoImplTest {
 
     @Test
     void shouldRefuseToFindARowByIdWithoutANode() {
-        assertThatThrownBy(() -> new SignerTokenDaoImpl().findById(session, SignerTokenEntity.class, 1L))
+        var tokenDao = new SignerTokenDaoImpl();
+        var keyDao = new SignerKeyDaoImpl();
+        var certDao = new SignerKeyCertDaoImpl();
+        var certRequestDao = new SignerKeyCertRequestDaoImpl();
+
+        assertThatThrownBy(() -> tokenDao.findById(session, SignerTokenEntity.class, 1L))
                 .isInstanceOf(XrdRuntimeException.class);
-        assertThatThrownBy(() -> new SignerKeyDaoImpl().findById(session, SignerKeyEntity.class, 1L))
+        assertThatThrownBy(() -> keyDao.findById(session, SignerKeyEntity.class, 1L))
                 .isInstanceOf(XrdRuntimeException.class);
-        assertThatThrownBy(() -> new SignerKeyCertDaoImpl().findById(session, SignerCertificateEntity.class, 1L))
+        assertThatThrownBy(() -> certDao.findById(session, SignerCertificateEntity.class, 1L))
                 .isInstanceOf(XrdRuntimeException.class);
-        assertThatThrownBy(() -> new SignerKeyCertRequestDaoImpl().findById(session, SignerCertRequestEntity.class, 1L))
+        assertThatThrownBy(() -> certRequestDao.findById(session, SignerCertRequestEntity.class, 1L))
                 .isInstanceOf(XrdRuntimeException.class);
 
         verifyNoInteractions(session);

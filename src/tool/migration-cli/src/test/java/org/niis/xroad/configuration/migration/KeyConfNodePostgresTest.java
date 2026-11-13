@@ -114,7 +114,7 @@ class KeyConfNodePostgresTest {
     }
 
     @Test
-    void shouldWriteAllRowsUnderTheNodeGiven() throws Exception {
+    void shouldWriteAllRowsUnderTheNodeGiven() {
         runKeyconf("--node", "node_b");
 
         assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
@@ -122,14 +122,14 @@ class KeyConfNodePostgresTest {
     }
 
     @Test
-    void shouldWriteUnderNode0WhenNoNodeIsGiven() throws Exception {
+    void shouldWriteUnderNode0WhenNoNodeIsGiven() {
         runKeyconf();
 
         assertThat(rowCountsByNode("node_0")).containsExactly(2, 3, 3, 1);
     }
 
     @Test
-    void shouldChangeNothingWhenRunAgainForTheSameNode() throws Exception {
+    void shouldChangeNothingWhenRunAgainForTheSameNode() {
         runKeyconf("--node", "node_b");
         List<String> afterFirstRun = snapshot();
 
@@ -140,7 +140,7 @@ class KeyConfNodePostgresTest {
     }
 
     @Test
-    void shouldKeepEachNodesRowsApartWhenTheTokenIdentifiersAreTheSame() throws Exception {
+    void shouldKeepEachNodesRowsApartWhenTheTokenIdentifiersAreTheSame() {
         runKeyconf("--node", "node_a");
         List<String> nodeARows = snapshotOf("node_a");
 
@@ -168,7 +168,7 @@ class KeyConfNodePostgresTest {
         LegacyConfigMigrationCLI.main(args.toArray(new String[0]));
     }
 
-    private List<Integer> rowCountsByNode(String node) throws SQLException {
+    private List<Integer> rowCountsByNode(String node) {
         return SIGNER_TABLES.stream()
                 .map(table -> queryInt("SELECT count(*) FROM " + table + " WHERE ha_node_name = '" + node + "'"))
                 .toList();

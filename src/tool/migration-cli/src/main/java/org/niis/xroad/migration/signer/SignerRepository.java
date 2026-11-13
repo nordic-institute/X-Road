@@ -51,6 +51,15 @@ import java.util.Optional;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class SignerRepository {
+    private static final String FIND_TOKEN_ID =
+            "SELECT id FROM signer_tokens WHERE ha_node_name = ? AND external_id = ?";
+    private static final String FIND_KEY_ID =
+            "SELECT id FROM signer_keys WHERE ha_node_name = ? AND external_id = ?";
+    private static final String FIND_CERTIFICATE_ID =
+            "SELECT id FROM signer_certificates WHERE ha_node_name = ? AND external_id = ?";
+    private static final String FIND_CERTIFICATE_REQUEST_ID =
+            "SELECT id FROM signer_certificate_requests WHERE ha_node_name = ? AND external_id = ?";
+
     private final Connection connection;
     private final String nodeName;
 
@@ -71,9 +80,8 @@ public class SignerRepository {
         }
     }
 
-    private Optional<Long> findId(String table, String externalId) throws SQLException {
-        String sql = "SELECT id FROM " + table + " WHERE ha_node_name = ? AND external_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    private Optional<Long> findId(String query, String externalId) throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, nodeName);
             ps.setString(2, externalId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -86,7 +94,7 @@ public class SignerRepository {
     }
 
     Optional<Long> getTokenId(String externalId) throws SQLException {
-        return findId("signer_tokens", externalId);
+        return findId(FIND_TOKEN_ID, externalId);
     }
 
     long saveToken(DeviceType deviceType, byte[] pinHash) throws SQLException {
@@ -113,7 +121,7 @@ public class SignerRepository {
     }
 
     Optional<Long> getKeyId(String externalId) throws SQLException {
-        return findId("signer_keys", externalId);
+        return findId(FIND_KEY_ID, externalId);
     }
 
     long saveKey(KeyType keyType, long tokenId, boolean isSoftToken, byte[] keystore) throws SQLException {
@@ -143,7 +151,7 @@ public class SignerRepository {
     }
 
     Optional<Long> getCertificateId(String externalId) throws SQLException {
-        return findId("signer_certificates", externalId);
+        return findId(FIND_CERTIFICATE_ID, externalId);
     }
 
     void saveCertificate(CertificateType cert, long keyId) throws SQLException {
@@ -168,7 +176,7 @@ public class SignerRepository {
     }
 
     Optional<Long> getCertificateRequestId(String externalId) throws SQLException {
-        return findId("signer_certificate_requests", externalId);
+        return findId(FIND_CERTIFICATE_REQUEST_ID, externalId);
     }
 
     void saveCertificateRequest(CertRequestType certRequest, long keyId) throws SQLException {
