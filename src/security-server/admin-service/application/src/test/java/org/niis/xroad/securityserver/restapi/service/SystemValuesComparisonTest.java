@@ -27,6 +27,9 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,16 +45,11 @@ class SystemValuesComparisonTest {
     private static final String OTHER_DID = "did:web:ss.example.test%3A8443:system";
     private static final String OTHER_URL = "https://ss.example.test:9999/dsp";
 
-    @Test
-    void valuesThatGlobalconfDoesNotCarryAreAbsent() {
-        var comparison = SystemValuesComparison.of(DID, URL, null, _ -> false);
-
-        assertThat(comparison).isEqualTo(new SystemValuesComparison(ABSENT, ABSENT));
-    }
-
-    @Test
-    void valuesThatGlobalconfDoesNotCarryAreAbsentWhileTheDspBaseUrlCannotBeBuilt() {
-        assertThat(SystemValuesComparison.of(DID, null, null, _ -> false))
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = URL)
+    void valuesThatGlobalconfDoesNotCarryAreAbsentWhetherOrNotTheDspBaseUrlCanBeBuilt(String builtDspBaseUrl) {
+        assertThat(SystemValuesComparison.of(DID, builtDspBaseUrl, null, _ -> false))
                 .isEqualTo(new SystemValuesComparison(ABSENT, ABSENT));
     }
 
@@ -75,19 +73,10 @@ class SystemValuesComparisonTest {
     void aStalePairMakesEveryDifferingValueStale() {
         var carried = new ServerSystemValues(OTHER_DID, OTHER_URL);
 
-        assertThat(SystemValuesComparison.of(DID, URL, carried, _ -> true))
+        assertThat(SystemValuesComparison.of(DID, URL, carried, pair -> pair.equals(carried)))
                 .isEqualTo(new SystemValuesComparison(STALE, STALE));
         assertThat(SystemValuesComparison.of(DID, URL, new ServerSystemValues(DID, OTHER_URL), _ -> true))
                 .isEqualTo(new SystemValuesComparison(EQUAL, STALE));
-    }
-
-    @Test
-    void theStalenessIsJudgedForTheCarriedPair() {
-        var carried = new ServerSystemValues(OTHER_DID, OTHER_URL);
-
-        var comparison = SystemValuesComparison.of(DID, URL, carried, pair -> pair.equals(carried));
-
-        assertThat(comparison).isEqualTo(new SystemValuesComparison(STALE, STALE));
     }
 
     @Test

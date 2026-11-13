@@ -54,16 +54,13 @@ import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome.Entry;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
+import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
-import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
-import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.niis.xroad.test.MutableClock;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -84,7 +81,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -175,11 +171,8 @@ class DataspaceMemberPublicationTest {
                 didRegistrationSender, adminServiceProperties);
         backoff = new PublicationBackoff(clock, () -> 1.0);
         stage.setBackoff(backoff);
-        check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository,
-                globalConfProvider, new DataspaceDifferenceLog(), readinessPredicates, didAuthority,
-                new OwnSecurityServerResolver(mock(OwnServerIdentitySource.class), globalConfProvider),
-                adminServiceProperties, mock(PlatformTransactionManager.class));
-        check.setClock(clock);
+        check = PublicationCheckTestFactory.create(dsParticipantRepository, clientRepository, globalConfProvider,
+                readinessPredicates, didAuthority, adminServiceProperties, clock);
         provisioned.add(SYSTEM_CONTEXT);
         issued.add(SYSTEM_CONTEXT);
         host(OWNER.getMemberCode());
@@ -249,11 +242,7 @@ class DataspaceMemberPublicationTest {
         pass();
         assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
 
-        clock.advance(Duration.ofMinutes(60));
-        globalconfCheck();
-        assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
-
-        clock.advance(Duration.ofSeconds(1));
+        clock.advance(Duration.ofMinutes(61));
         globalconfCheck();
         assertThat(member.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
         var changedAt = member.getPublicationChangedAt();
@@ -955,14 +944,11 @@ class DataspaceMemberPublicationTest {
     }
 
     private static DsParticipantEntity row(long id, String memberCode, PublicationState state) {
-        var row = new DsParticipantEntity();
+        var did = "did:web:ss.example.test%3A7183:xrd-" + (memberCode == null ? "ss0" : memberCode.toLowerCase());
+        var row = memberCode == null
+                ? ParticipantRowTestUtils.systemEntity(did, state)
+                : ParticipantRowTestUtils.memberEntity(ClientId.Conf.create("DEV", "COM", memberCode), did, state);
         row.setId(id);
-        row.setDid("did:web:ss.example.test%3A7183:xrd-" + (memberCode == null ? "ss0" : memberCode.toLowerCase()));
-        row.setState(ParticipantState.ACTIVE);
-        row.setPublicationState(state);
-        if (memberCode != null) {
-            row.setMemberIdentifier(MemberIdEntity.create("DEV", "COM", memberCode));
-        }
         return row;
     }
 

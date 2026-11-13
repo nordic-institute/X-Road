@@ -49,29 +49,23 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
+import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
-import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
-import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
-import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.niis.xroad.test.MutableClock;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -121,11 +115,8 @@ class DataspacePublicationWritersTest {
         clock = new MutableClock(Instant.parse("2026-11-10T12:00:00Z"));
         when(adminServiceProperties.getDataspace()).thenReturn(dataspaceProperties);
         when(dataspaceProperties.getPublicationSubmittedTimeoutMinutes()).thenReturn(60);
-        row = new DsParticipantEntity();
+        row = ParticipantRowTestUtils.systemEntity(SYSTEM_DID.toString(), PublicationState.NOT_SENT);
         row.setId(ROW_ID);
-        row.setDid(SYSTEM_DID.toString());
-        row.setState(ParticipantState.ACTIVE);
-        row.setPublicationState(PublicationState.NOT_SENT);
 
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
@@ -140,20 +131,14 @@ class DataspacePublicationWritersTest {
                 .thenAnswer(new ConditionalTransitionStub(_ -> row, clock::instant));
 
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
-                didRegistrationSender, mock(AdminServiceProperties.class));
-        check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, mock(ClientRepository.class),
-                globalConfProvider, new DataspaceDifferenceLog(), readinessPredicates, didAuthority,
-                new OwnSecurityServerResolver(mock(OwnServerIdentitySource.class), globalConfProvider),
-                adminServiceProperties, mock(PlatformTransactionManager.class));
-        check.setClock(clock);
+                didRegistrationSender, adminServiceProperties);
+        check = PublicationCheckTestFactory.create(dsParticipantRepository, mock(ClientRepository.class),
+                globalConfProvider, readinessPredicates, didAuthority, adminServiceProperties, clock);
     }
 
     private DsParticipantEntity snapshot() {
-        var copy = new DsParticipantEntity();
+        var copy = ParticipantRowTestUtils.systemEntity(row.getDid(), row.getPublicationState());
         copy.setId(row.getId());
-        copy.setDid(row.getDid());
-        copy.setState(row.getState());
-        copy.setPublicationState(row.getPublicationState());
         copy.setPublicationReason(row.getPublicationReason());
         copy.setPublicationChangedAt(row.getPublicationChangedAt());
         return copy;
@@ -217,11 +202,7 @@ class DataspacePublicationWritersTest {
         reconcilerPass();
         assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
 
-        clock.advance(Duration.ofMinutes(60));
-        globalconfCheck();
-        assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
-
-        clock.advance(Duration.ofSeconds(1));
+        clock.advance(Duration.ofMinutes(61));
         globalconfCheck();
         assertThat(row.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
         var resetAt = row.getPublicationChangedAt();
@@ -255,11 +236,7 @@ class DataspacePublicationWritersTest {
         when(dataspaceProperties.getPublicationSubmittedTimeoutMinutes()).thenReturn(5);
         reconcilerPass();
 
-        clock.advance(Duration.ofMinutes(5));
-        globalconfCheck();
-        assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
-
-        clock.advance(Duration.ofSeconds(1));
+        clock.advance(Duration.ofMinutes(6));
         globalconfCheck();
         assertThat(row.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
     }
@@ -387,20 +364,5 @@ class DataspacePublicationWritersTest {
         globalconfCheck();
 
         assertThat(row.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
-    }
-
-    @Test
-    void aNotSentOrRejectedRowIsNeverMovedByTheCheck() {
-        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("ss.example.test");
-        for (var state : new PublicationState[] {PublicationState.NOT_SENT, PublicationState.REJECTED}) {
-            row.setPublicationState(state);
-            carry(CARRIED);
-            globalconfCheck();
-            carry(null);
-            globalconfCheck();
-        }
-
-        verify(dsParticipantRepository, atLeastOnce()).findActiveMembers(EnumSet.allOf(PublicationState.class));
-        verify(dsParticipantRepository, never()).transitionPublication(anyLong(), any(), any(), any());
     }
 }

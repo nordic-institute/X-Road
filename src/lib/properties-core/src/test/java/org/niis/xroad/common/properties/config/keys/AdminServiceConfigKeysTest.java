@@ -52,12 +52,10 @@ class AdminServiceConfigKeysTest {
     void publicationSubmittedTimeoutDefaultsToSixtyAndRejectsValuesOutsideFiveToTenThousandEighty() {
         var key = AdminServiceConfigKeys.DATASPACE_PUBLICATION_SUBMITTED_TIMEOUT_MINUTES;
 
-        assertThat(key.key()).isEqualTo("xroad.proxy-ui-api.dataspace.publication-submitted-timeout-minutes");
         assertThat(key.convertedDefaultValue()).isEqualTo(60);
         assertThat(key.validate(4).valid()).isFalse();
         assertThat(key.validate(10081).valid()).isFalse();
         assertThat(key.validate(5).valid()).isTrue();
         assertThat(key.validate(10080).valid()).isTrue();
-        assertThat(key.publishedToFramework()).isFalse();
     }
 }

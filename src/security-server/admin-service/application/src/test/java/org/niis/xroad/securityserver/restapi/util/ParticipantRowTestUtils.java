@@ -29,8 +29,11 @@ package org.niis.xroad.securityserver.restapi.util;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
+import org.niis.xroad.serverconf.model.ParticipantType;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -42,8 +45,8 @@ import java.util.Arrays;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW;
 
 /**
- * Writes binding rows straight to the database for tests that run outside a test transaction. Every write commits in
- * its own transaction.
+ * Writes binding rows straight to the database for tests that run outside a test transaction, each write committing in
+ * its own transaction, and builds unsaved binding entities for tests that persist them another way.
  */
 @RequiredArgsConstructor
 public class ParticipantRowTestUtils {
@@ -52,11 +55,36 @@ public class ParticipantRowTestUtils {
     private final PlatformTransactionManager transactionManager;
 
     /**
+     * Builds an unsaved active SYSTEM binding entity.
+     */
+    public static DsParticipantEntity systemEntity(String did, PublicationState publicationState) {
+        var entity = new DsParticipantEntity();
+        entity.setParticipantType(ParticipantType.SYSTEM);
+        entity.setCtxId(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+        entity.setDid(did);
+        entity.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
+        entity.setState(ParticipantState.ACTIVE);
+        entity.setPublicationState(publicationState);
+        return entity;
+    }
+
+    /**
+     * Builds an unsaved active MEMBER binding entity.
+     */
+    public static DsParticipantEntity memberEntity(ClientId member, String did, PublicationState publicationState) {
+        var entity = new DsParticipantEntity();
+        entity.setParticipantType(ParticipantType.MEMBER);
+        entity.setMemberIdentifier(ClientIdEntityFactory.create(member));
+        entity.setCtxId(ParticipantIdentifierScheme.memberCtxId(member));
+        entity.setDid(did);
+        entity.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
+        entity.setState(ParticipantState.ACTIVE);
+        entity.setPublicationState(publicationState);
+        return entity;
+    }
+
+    /**
      * Inserts an active SYSTEM binding row.
-     *
-     * @param id               the row id
-     * @param did              the bound SYSTEM DID
-     * @param publicationState the publication state of the row
      */
     public void systemRow(long id, String did, PublicationState publicationState) {
         inNewTransaction(() -> jdbcTemplate.update("INSERT INTO ds_participant"
@@ -69,11 +97,6 @@ public class ParticipantRowTestUtils {
 
     /**
      * Inserts an active MEMBER binding row.
-     *
-     * @param id               the row id
-     * @param member           the member the row is bound to
-     * @param did              the bound member DID
-     * @param publicationState the publication state of the row
      */
     public void memberRow(long id, ClientId member, String did, PublicationState publicationState) {
         memberRow(id, member, did, ParticipantState.ACTIVE, publicationState);
@@ -81,12 +104,6 @@ public class ParticipantRowTestUtils {
 
     /**
      * Inserts a MEMBER binding row.
-     *
-     * @param id               the row id
-     * @param member           the member the row is bound to
-     * @param did              the bound member DID
-     * @param state            the lifecycle state of the row
-     * @param publicationState the publication state of the row
      */
     public void memberRow(long id, ClientId member, String did, ParticipantState state,
             PublicationState publicationState) {
@@ -103,8 +120,6 @@ public class ParticipantRowTestUtils {
 
     /**
      * Deletes binding rows.
-     *
-     * @param ids the ids of the rows to delete
      */
     public void deleteRows(long... ids) {
         inNewTransaction(() -> Arrays.stream(ids).forEach(id ->
@@ -113,8 +128,6 @@ public class ParticipantRowTestUtils {
 
     /**
      * Runs the work in a new transaction that commits on return.
-     *
-     * @param work the work to run
      */
     public void inNewTransaction(Runnable work) {
         new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(PROPAGATION_REQUIRES_NEW))

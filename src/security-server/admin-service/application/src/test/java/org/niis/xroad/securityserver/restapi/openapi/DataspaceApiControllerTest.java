@@ -89,7 +89,7 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
     void provisioningStatusCarriesTheServerLevelObject() {
         when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
                 new ServerStatus(true, "https://ss.example.test:7181/dsp", PublicationState.REJECTED, "DID_TAKEN",
-                        false, false, HostStatus.OK)));
+                        true, false, HostStatus.OK)));
 
         var response = dataspaceApiController.getDataspaceProvisioningStatus();
 
@@ -99,6 +99,8 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
         assertThat(server.getDspBaseUrl()).isEqualTo("https://ss.example.test:7181/dsp");
         assertThat(server.getPublicationState()).isEqualTo(DataspacePublicationStateDto.REJECTED);
         assertThat(server.getPublicationReason()).isEqualTo("DID_TAKEN");
+        assertThat(server.getSystemDidMismatch()).isTrue();
+        assertThat(server.getDspBaseUrlMismatch()).isFalse();
         assertThat(response.getBody().getParticipantContexts()).hasSize(1);
     }
 
@@ -176,19 +178,6 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
         assertThat(contexts.getFirst().getGlobalconfMismatch()).isNull();
         assertThat(contexts.get(1).getGlobalconfMismatch()).isTrue();
         assertThat(contexts.get(2).getGlobalconfMismatch()).isFalse();
-    }
-
-    @Test
-    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
-    void provisioningStatusCarriesTheServerLevelMismatchFlags() {
-        when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
-                new ServerStatus(true, "https://ss.example.test:7181/dsp", PublicationState.PUBLISHED, null,
-                        true, false, HostStatus.OK)));
-
-        var server = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getServer();
-
-        assertThat(server.getSystemDidMismatch()).isTrue();
-        assertThat(server.getDspBaseUrlMismatch()).isFalse();
     }
 
     @ParameterizedTest

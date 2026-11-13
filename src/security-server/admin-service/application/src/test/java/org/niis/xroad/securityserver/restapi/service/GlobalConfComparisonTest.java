@@ -26,9 +26,14 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.ABSENT;
 import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.DIFFERENT;
 import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.EQUAL;
@@ -39,29 +44,19 @@ class GlobalConfComparisonTest {
     private static final String HELD = "did:web:ss.example.test%3A7183:xrd-ss0-m01";
     private static final String OTHER = "did:web:other.example.test%3A7183:xrd-ss0-m01";
 
-    @Test
-    void noCarriedValueIsAbsent() {
-        assertThat(GlobalConfComparison.classify(HELD, null, _ -> false)).isEqualTo(ABSENT);
-        assertThat(GlobalConfComparison.classify(HELD, null, _ -> true)).isEqualTo(ABSENT);
+    static Stream<Arguments> classifications() {
+        return Stream.of(
+                argumentSet("no carried value", null, false, ABSENT),
+                argumentSet("no carried value, staleness test rejects everything", null, true, ABSENT),
+                argumentSet("the held value carried unchanged", HELD, false, EQUAL),
+                argumentSet("the held value, staleness test rejects everything", HELD, true, EQUAL),
+                argumentSet("another carried value", OTHER, false, DIFFERENT),
+                argumentSet("another carried value that is stale", OTHER, true, STALE));
     }
 
-    @Test
-    void theHeldValueCarriedUnchangedIsEqual() {
-        assertThat(GlobalConfComparison.classify(HELD, HELD, _ -> false)).isEqualTo(EQUAL);
-    }
-
-    @Test
-    void anotherCarriedValueIsDifferent() {
-        assertThat(GlobalConfComparison.classify(HELD, OTHER, _ -> false)).isEqualTo(DIFFERENT);
-    }
-
-    @Test
-    void aStaleCarriedValueIsStaleEvenThoughItDiffers() {
-        assertThat(GlobalConfComparison.classify(HELD, OTHER, OTHER::equals)).isEqualTo(STALE);
-    }
-
-    @Test
-    void theHeldValueIsEqualEvenWhenTheStalenessTestRejectsIt() {
-        assertThat(GlobalConfComparison.classify(HELD, HELD, _ -> true)).isEqualTo(EQUAL);
+    @ParameterizedTest
+    @MethodSource("classifications")
+    void theCarriedValueIsClassifiedAgainstTheHeldValue(String carried, boolean stale, GlobalConfComparison expected) {
+        assertThat(GlobalConfComparison.classify(HELD, carried, _ -> stale)).isEqualTo(expected);
     }
 }

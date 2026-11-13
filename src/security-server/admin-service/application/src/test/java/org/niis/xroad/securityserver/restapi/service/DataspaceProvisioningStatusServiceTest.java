@@ -37,10 +37,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
-import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -55,8 +53,6 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.ParticipantState;
-import org.niis.xroad.serverconf.model.ParticipantType;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.util.EnumSet;
@@ -69,6 +65,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.memberEntity;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.systemEntity;
 
 @ExtendWith(MockitoExtension.class)
 class DataspaceProvisioningStatusServiceTest {
@@ -129,20 +127,16 @@ class DataspaceProvisioningStatusServiceTest {
 
         var ownSecurityServerResolver = new OwnSecurityServerResolver(
                 new ServerConfRepositoryIdentitySource(serverConfRepository), globalConfProvider);
+        var didAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties);
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
-                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
-
-        var statusDidAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties);
+                clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider, didAuthority);
         statusService = new DataspaceProvisioningStatusService(provisioningService, readinessPredicates,
-                statusDidAuthority, dsParticipantRepository, ownSecurityServerResolver, globalConfProvider);
+                didAuthority, dsParticipantRepository, ownSecurityServerResolver, globalConfProvider);
     }
 
     @Test
     void readStatusReportsServerLevelPublicationOfTheSystemValues() {
-        var systemRow = new DsParticipantEntity();
-        systemRow.setState(ParticipantState.ACTIVE);
-        systemRow.setPublicationState(PublicationState.REJECTED);
+        var systemRow = systemEntity(null, PublicationState.REJECTED);
         systemRow.setPublicationReason("conflict-reason");
         when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
@@ -153,14 +147,11 @@ class DataspaceProvisioningStatusServiceTest {
         assertThat(server.dspBaseUrl()).contains("ss.example.test").contains("7181");
         assertThat(server.publicationState()).isEqualTo(PublicationState.REJECTED);
         assertThat(server.publicationReason()).isEqualTo("conflict-reason");
-        assertThat(server.systemDidMismatch()).isFalse();
-        assertThat(server.dspBaseUrlMismatch()).isFalse();
     }
 
     @Test
     void readStatusReportsNotSentWhenTheSystemRowHasNoPublicationState() {
-        var systemRow = new DsParticipantEntity();
-        systemRow.setState(ParticipantState.ACTIVE);
+        var systemRow = systemEntity(null, null);
         when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
 
         var server = statusService.readStatus().server();
@@ -177,37 +168,10 @@ class DataspaceProvisioningStatusServiceTest {
 
         assertThat(server.publicationState()).isEqualTo(PublicationState.NOT_SENT);
         assertThat(server.publicationReason()).isNull();
-        assertThat(server.systemDidMismatch()).isFalse();
-        assertThat(server.dspBaseUrlMismatch()).isFalse();
     }
 
     @Test
-    void readStatusFlagsBothSystemValuesWhenASubmittedRowDiffersFromTheCarriedNotStaleValues() {
-        var systemRow = systemRow(ParticipantIdentifierScheme.systemDid("ss.example.test:7183"));
-        systemRow.setPublicationState(PublicationState.SUBMITTED);
-        when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
-        when(globalConfProvider.getServerSystemValues(any())).thenReturn(Optional.of(new ServerSystemValues(
-                ParticipantIdentifierScheme.systemDid("ss.example.test:8443").toString(),
-                DspConventions.dspBaseUrl("ss.example.test", 9999))));
-
-        var server = statusService.readStatus().server();
-
-        assertThat(server.systemDidMismatch()).isTrue();
-        assertThat(server.dspBaseUrlMismatch()).isTrue();
-    }
-
-    @Test
-    void readStatusReportsHostStatusDiffersForTheSystemBindingAndReadsTheMembersOfEveryPublicationState() {
-        when(dsParticipantRepository.findActiveSystemParticipant())
-                .thenReturn(Optional.of(systemRow(ParticipantIdentifierScheme.systemDid("ih.other.test:7183"))));
-        when(dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class)))
-                .thenReturn(List.of(memberRow(ParticipantIdentifierScheme.memberDid(OWNER, "ss.example.test:8443"))));
-
-        assertThat(statusService.readStatus().server().hostStatus()).isEqualTo(HostStatus.DIFFERS);
-    }
-
-    @Test
-    void readStatusReportsHostStatusDiffersForAMemberBindingAtAnotherHostWhileTheSystemBindingMatches() {
+    void readStatusReadsTheMembersOfEveryPublicationStateAndReportsHostStatusDiffersForAMemberBindingAtAnotherHost() {
         when(dsParticipantRepository.findActiveSystemParticipant())
                 .thenReturn(Optional.of(systemRow(ParticipantIdentifierScheme.systemDid("ss.example.test:7183"))));
         when(dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class)))
@@ -219,32 +183,26 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusReportsHostStatusUnknownAndStillShowsThePublicationStatesWhenTheAddressIsNotRegistered() {
         when(globalConfProvider.getSecurityServerAddress(any())).thenReturn(null);
-        var systemRow = systemRow(ParticipantIdentifierScheme.systemDid("ss.example.test:7183"));
-        systemRow.setPublicationState(PublicationState.SUBMITTED);
+        var systemRow = systemEntity(ParticipantIdentifierScheme.systemDid("ss.example.test:7183").toString(),
+                PublicationState.SUBMITTED);
         when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
-        var memberRow = memberRow(ParticipantIdentifierScheme.memberDid(OWNER, "ss.example.test:7183"));
-        memberRow.setPublicationState(PublicationState.PUBLISHED);
+        var memberRow = memberEntity(OWNER, ParticipantIdentifierScheme.memberDid(OWNER, "ss.example.test:7183").toString(),
+                PublicationState.PUBLISHED);
         when(dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class)))
                 .thenReturn(List.of(memberRow));
 
         var status = statusService.readStatus();
 
         assertThat(status.server().hostStatus()).isEqualTo(HostStatus.UNKNOWN);
-        assertThat(status.server().systemDidMismatch()).isFalse();
-        assertThat(status.server().dspBaseUrlMismatch()).isFalse();
         assertThat(status.server().publicationState()).isEqualTo(PublicationState.SUBMITTED);
         assertThat(status.memberPublications().get(OWNER_CTX_ID).publicationState())
                 .isEqualTo(PublicationState.PUBLISHED);
-        assertThat(status.memberPublications().get(OWNER_CTX_ID).globalconfMismatch()).isFalse();
     }
 
     @Test
     void readStatusReportsThePublicationOfAMemberRowAndNoneForTheSystemContext() {
-        var memberRow = new DsParticipantEntity();
-        memberRow.setState(ParticipantState.ACTIVE);
-        memberRow.setPublicationState(PublicationState.REJECTED);
+        var memberRow = memberEntity(OWNER, null, PublicationState.REJECTED);
         memberRow.setPublicationReason("conflict-reason");
-        memberRow.setMemberIdentifier(ClientIdEntityFactory.create(OWNER));
         when(dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class)))
                 .thenReturn(List.of(memberRow));
         when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
@@ -453,13 +411,7 @@ class DataspaceProvisioningStatusServiceTest {
     }
 
     private static DsParticipantEntity systemRow(Did did) {
-        var row = new DsParticipantEntity();
-        row.setParticipantType(ParticipantType.SYSTEM);
-        row.setCtxId(SYSTEM_PARTICIPANT_ID);
-        row.setDid(did.toString());
-        row.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
-        row.setState(ParticipantState.ACTIVE);
-        return row;
+        return systemEntity(did.toString(), null);
     }
 
     @Test
@@ -476,14 +428,7 @@ class DataspaceProvisioningStatusServiceTest {
     }
 
     private static DsParticipantEntity memberRow(Did did) {
-        var row = new DsParticipantEntity();
-        row.setParticipantType(ParticipantType.MEMBER);
-        row.setMemberIdentifier(ClientIdEntityFactory.create(OWNER));
-        row.setCtxId(OWNER_CTX_ID);
-        row.setDid(did.toString());
-        row.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
-        row.setState(ParticipantState.ACTIVE);
-        return row;
+        return memberEntity(OWNER, did.toString(), null);
     }
 
     @Test

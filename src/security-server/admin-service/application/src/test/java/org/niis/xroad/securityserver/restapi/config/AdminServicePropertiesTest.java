@@ -45,12 +45,6 @@ class AdminServicePropertiesTest {
                 .isEqualTo(90);
     }
 
-    @Test
-    void thePublicationSubmittedTimeoutDefaultsToSixtyMinutes() {
-        assertThat(new AdminServiceProperties(config(Map.of())).getDataspace()
-                .getPublicationSubmittedTimeoutMinutes()).isEqualTo(60);
-    }
-
     private static XRoadConfig config(Map<String, String> overrides) {
         return XRoadConfigBuilder.create().register(AdminServiceConfigKeys.instance()).overrides(overrides).build();
     }

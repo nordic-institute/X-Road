@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.time.Duration;
@@ -52,7 +53,6 @@ class PublicationCheckTest {
     private static final Instant SUBMITTED_BEFORE = Instant.parse("2026-11-10T11:00:00Z");
     private static final Instant LONG_AGO = SUBMITTED_BEFORE.minus(Duration.ofDays(1));
     private static final BooleanSupplier ALLOWED = () -> true;
-    private static final BooleanSupplier NOT_ALLOWED = () -> false;
     private static final BooleanSupplier MUST_NOT_BE_ASKED = () -> {
         throw new AssertionError("the resend guard must not be asked");
     };
@@ -63,31 +63,22 @@ class PublicationCheckTest {
     }
 
     @ParameterizedTest
-    @CsvSource(nullValues = "NULL", textBlock = """
-            SUBMITTED, EQUAL,     PUBLISH
-            SUBMITTED, ABSENT,    RESEND_AFTER_TIMEOUT
-            SUBMITTED, DIFFERENT, NONE
-            SUBMITTED, STALE,     NONE
-            PUBLISHED, EQUAL,     NONE
-            PUBLISHED, ABSENT,    RESEND
-            PUBLISHED, DIFFERENT, NONE
-            PUBLISHED, STALE,     NONE
-            NOT_SENT,  EQUAL,     NONE
-            NOT_SENT,  ABSENT,    NONE
-            NOT_SENT,  DIFFERENT, NONE
-            NOT_SENT,  STALE,     NONE
-            REJECTED,  EQUAL,     NONE
-            REJECTED,  ABSENT,    NONE
-            REJECTED,  DIFFERENT, NONE
-            REJECTED,  STALE,     NONE
-            NULL,      EQUAL,     NONE
-            NULL,      ABSENT,    NONE
-            NULL,      DIFFERENT, NONE
-            NULL,      STALE,     NONE
+    @CsvSource(textBlock = """
+            SUBMITTED, EQUAL,     true,  PUBLISH
+            SUBMITTED, EQUAL,     false, PUBLISH
+            SUBMITTED, ABSENT,    true,  RESEND_AFTER_TIMEOUT
+            SUBMITTED, ABSENT,    false, NONE
+            SUBMITTED, DIFFERENT, true,  NONE
+            SUBMITTED, STALE,     true,  NONE
+            PUBLISHED, EQUAL,     true,  NONE
+            PUBLISHED, ABSENT,    true,  RESEND
+            PUBLISHED, ABSENT,    false, NONE
+            PUBLISHED, DIFFERENT, true,  NONE
+            PUBLISHED, STALE,     true,  NONE
             """)
     void everyStateAndComparisonMapsToOneAction(PublicationState state, GlobalConfComparison comparison,
-            PublicationCheckAction expected) {
-        assertThat(decide(state, comparison, ALLOWED, LONG_AGO)).isEqualTo(expected);
+            boolean resendAllowed, PublicationCheckAction expected) {
+        assertThat(decide(state, comparison, () -> resendAllowed, LONG_AGO)).isEqualTo(expected);
     }
 
     @Test
@@ -112,21 +103,6 @@ class PublicationCheckTest {
     }
 
     @Test
-    void aPublishedRowIsNeverSentAgainWhenTheResendGuardIsFalse() {
-        assertThat(decide(PublicationState.PUBLISHED, ABSENT, NOT_ALLOWED, LONG_AGO)).isEqualTo(NONE);
-    }
-
-    @Test
-    void aSubmittedRowIsNeverSentAgainByTheTimeoutWhenTheResendGuardIsFalse() {
-        assertThat(decide(PublicationState.SUBMITTED, ABSENT, NOT_ALLOWED, LONG_AGO)).isEqualTo(NONE);
-    }
-
-    @Test
-    void aSubmittedRowIsStillPublishedWhenTheResendGuardIsFalse() {
-        assertThat(decide(PublicationState.SUBMITTED, EQUAL, NOT_ALLOWED, LONG_AGO)).isEqualTo(PUBLISH);
-    }
-
-    @Test
     void theResendGuardIsAskedOnlyWhenItCanChangeTheDecision() {
         assertThat(decide(PublicationState.PUBLISHED, EQUAL, MUST_NOT_BE_ASKED, LONG_AGO)).isEqualTo(NONE);
         assertThat(decide(PublicationState.SUBMITTED, EQUAL, MUST_NOT_BE_ASKED, LONG_AGO)).isEqualTo(PUBLISH);
@@ -140,6 +116,7 @@ class PublicationCheckTest {
     }
 
     @ParameterizedTest
+    @NullSource
     @EnumSource(value = PublicationState.class, names = {"NOT_SENT", "REJECTED"})
     void theComparisonIsBuiltOnlyForASubmittedOrPublishedRow(PublicationState state) {
         Supplier<GlobalConfComparison> mustNotBeBuilt = () -> {
@@ -147,8 +124,6 @@ class PublicationCheckTest {
         };
 
         assertThat(PublicationCheck.decide(state, mustNotBeBuilt, ALLOWED, LONG_AGO, SUBMITTED_BEFORE))
-                .isEqualTo(NONE);
-        assertThat(PublicationCheck.decide(null, mustNotBeBuilt, ALLOWED, LONG_AGO, SUBMITTED_BEFORE))
                 .isEqualTo(NONE);
     }
 }

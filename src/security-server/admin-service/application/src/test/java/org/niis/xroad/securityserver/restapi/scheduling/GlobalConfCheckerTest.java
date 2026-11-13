@@ -703,9 +703,11 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
             TestTransaction.flagForRollback();
             TestTransaction.end();
         }
-        participantRows.deleteRows(SYSTEM_ROW_ID, MEMBER_ROW_ID);
-        participantRows.inNewTransaction(() -> clientStatusSnapshot.forEach((id, status) ->
-                jdbcTemplate.update("UPDATE client SET clientstatus = ? WHERE id = ?", status, id)));
+        participantRows.inNewTransaction(() -> {
+            jdbcTemplate.update("DELETE FROM ds_participant WHERE id IN (?, ?)", SYSTEM_ROW_ID, MEMBER_ROW_ID);
+            clientStatusSnapshot.forEach((id, status) ->
+                    jdbcTemplate.update("UPDATE client SET clientstatus = ? WHERE id = ?", status, id));
+        });
     }
 
     private void carrySystemValues(String did, String dspBaseUrl) {
