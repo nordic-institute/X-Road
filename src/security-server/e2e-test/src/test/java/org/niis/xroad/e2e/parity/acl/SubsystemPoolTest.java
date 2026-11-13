@@ -42,7 +42,8 @@ class SubsystemPoolTest {
 
         assertThat(grouped.keySet()).containsExactly(SubsystemPool.SS1, SubsystemPool.SS0);
         assertThat(grouped.get(SubsystemPool.SS0)).extracting(Entry::clientId)
-                .containsExactly(SubsystemPool.UNREGISTERED_PROVIDER, SubsystemPool.SECOND_OWNER);
+                .containsExactly(SubsystemPool.UNREGISTERED_PROVIDER, SubsystemPool.SECOND_OWNER,
+                        SubsystemPool.EXTRA_MEMBER);
         assertThat(grouped.get(SubsystemPool.SS1)).extracting(Entry::clientId)
                 .containsExactly(SubsystemPool.SIBLING_OF_CONSUMER, SubsystemPool.SECOND_CONSUMER);
     }
@@ -50,7 +51,8 @@ class SubsystemPoolTest {
     @Test
     void onlyRegisterEntriesAreSelectedForRegistration() {
         assertThat(SubsystemPool.clientIdsToRegister(SubsystemPool.entries()))
-                .containsExactly(SubsystemPool.SIBLING_OF_CONSUMER, SubsystemPool.SECOND_CONSUMER)
+                .containsExactly(SubsystemPool.SIBLING_OF_CONSUMER, SubsystemPool.SECOND_CONSUMER,
+                        SubsystemPool.EXTRA_MEMBER)
                 .doesNotContain(SubsystemPool.UNREGISTERED_PROVIDER, SubsystemPool.SECOND_OWNER);
     }
 
@@ -63,8 +65,21 @@ class SubsystemPoolTest {
     }
 
     @Test
-    void entryRejectsAMemberIdAndABlankHost() {
-        assertThatThrownBy(() -> new Entry("DEV:COM:4321", SubsystemPool.SS1, true))
+    void entryAcceptsAMemberIdAndKnowsItIsAMember() {
+        assertThat(new Entry(SubsystemPool.EXTRA_MEMBER, SubsystemPool.SS0, true).isMember()).isTrue();
+        assertThat(new Entry("DEV:COM:4321:Sub", SubsystemPool.SS0, true).isMember()).isFalse();
+    }
+
+    @Test
+    void theExtraMemberIsHostedOnSs0AndRegistered() {
+        assertThat(SubsystemPool.entries()).contains(new Entry(SubsystemPool.EXTRA_MEMBER, SubsystemPool.SS0, true));
+    }
+
+    @Test
+    void entryRejectsAnIdOfTheWrongSizeAndABlankHost() {
+        assertThatThrownBy(() -> new Entry("DEV:COM", SubsystemPool.SS1, true))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new Entry("DEV:COM:4321:Sub:X", SubsystemPool.SS1, true))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new Entry("DEV:COM:4321:Sub", " ", true))
                 .isInstanceOf(IllegalArgumentException.class);

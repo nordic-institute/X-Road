@@ -45,19 +45,23 @@ import static org.niis.xroad.e2e.AdminApi.awaitClientsRegistered;
 import static org.niis.xroad.e2e.AdminApi.globalClientKnown;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.AdminApi.registerClient;
+import static org.niis.xroad.e2e.SignCertificateOps.provisionSignCertificate;
 
 /**
- * Adds and registers the {@link SubsystemPool} on the Security Servers that host it. Every subsystem is
+ * Adds and registers the {@link SubsystemPool} on the Security Servers that host it. Every client is
  * added and every registration submitted first, then the registrations are awaited, so registration
- * latency is paid once for the batch. A subsystem left by an earlier run is reused: the add and register
- * calls tolerate it, and a subsystem that is already REGISTERED passes the wait at once. Last, the other
- * Security Servers are awaited to know every registered subsystem from global configuration. Nothing is
+ * latency is paid once for the batch. A member, hosted on ss0 only, gets a CA-signed sign certificate on ss0's
+ * token before its registration is submitted. A client left by an earlier run is reused, with its sign
+ * certificate: the add and register calls tolerate it, and a client that is already REGISTERED passes the
+ * wait at once. Last, the other
+ * Security Servers are awaited to know every registered client from global configuration. Nothing is
  * torn down afterwards.
  */
 @Slf4j
 @UtilityClass
 class SubsystemPoolSetup {
 
+    private static final String MEMBER_HOST = "ss0";
     private static final Duration REGISTRATION_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration VISIBILITY_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration VISIBILITY_INTERVAL = Duration.ofSeconds(2);
@@ -79,7 +83,15 @@ class SubsystemPoolSetup {
         var baseUrl = adminBaseUrl(env, host);
         var session = login(baseUrl);
         entries.forEach(entry -> addLocalClient(baseUrl, session, entry.clientId()));
+        entries.stream().filter(entry -> entry.isMember() && entry.register())
+                .forEach(entry -> provisionMemberSignCertificate(env, host, session, entry.clientId()));
         SubsystemPool.clientIdsToRegister(entries).forEach(clientId -> registerClient(baseUrl, session, clientId));
+    }
+
+    private static void provisionMemberSignCertificate(E2eEnvironment env, String host, AdminSession session,
+                                                       String memberId) {
+        assertThat(host).as("host of the member-level client %s", memberId).isEqualTo(MEMBER_HOST);
+        provisionSignCertificate(env, session, memberId);
     }
 
     private static void awaitRegistered(E2eEnvironment env, String host, List<Entry> entries, String csBaseUrl,

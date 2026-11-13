@@ -114,6 +114,7 @@ import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.row;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.soapRequest;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.wsdl;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.wsdlService;
+import static org.niis.xroad.e2e.parity.acl.SubsystemPool.EXTRA_MEMBER;
 import static org.niis.xroad.e2e.parity.acl.SubsystemPool.SECOND_CONSUMER;
 import static org.niis.xroad.e2e.parity.acl.SubsystemPool.SECOND_OWNER;
 import static org.niis.xroad.e2e.parity.acl.SubsystemPool.SIBLING_OF_CONSUMER;
@@ -205,6 +206,7 @@ public final class AclScenarioCatalogue {
             row("V92", provided(wsdlService(SINGLE, List.of(List.of())), rest(List.of()), new UndefinedService()), allowed(metaSoap("getWsdl", 0, "v1", Expectation.listing(List.of(0), List.of()))), check(metaSoap("getWsdl", 1, Expectation.NONE), INVALID_SERVICE_TYPE), check(metaSoap("getWsdl", 2, Expectation.NONE), UNKNOWN_SERVICE)).as("getWsdl of a WSDL service, a REST service and a service no description defines"),
             row("V93", providedWith(List.of(new Disable(0, null)), new OpenApiService(STATUS_ONLY, List.of(), List.of(), null)), allowed(metaRest("getOpenAPI", 0, Expectation.carrying("/status")))).as("getOpenAPI needs no grant and ignores a disabled description"),
             row("V94", restService(List.of()), check(new MetaserviceRequest(CONSUMER, Transport.REST, "listMethods", "POST", NO_SERVICE, null, Expectation.NONE), UNKNOWN_SERVICE)).as("REST metaservice code called with POST is an unknown service"),
+            row("V95", provided(EXTRA_MEMBER, wsdlService(SINGLE, List.of(CONSUMER_ONLY))), allowed(metaSoap("listMethods", NO_SERVICE, Expectation.listing(List.of(0), List.of()))), allowed(metaSoap("allowedMethods", NO_SERVICE, Expectation.listing(List.of(0), List.of()))), allowed(metaSoap("getWsdl", 0, "v1", Expectation.listing(List.of(0), List.of())))).as("SOAP metaservices addressed to a member that owns no Security Server, hosted next to the owner"),
             row("V96", provided(OWNER_MEMBER), check(monitoring(MEMBER_OF_CONSUMER, SoapRequests.METRICS, null, Expectation.NONE), ACCESS_DENIED), check(monitoring(CONSUMER, SoapRequests.METRICS, null, Expectation.NONE), ACCESS_DENIED)).as("getSecurityServerMetrics is refused to a caller that is neither owner nor monitoring client"),
             row("V97", provided(OWNER_MEMBER), allowed(monitoring(CONSUMER, SoapRequests.HEALTH_DATA, CONSUMER, new Expectation(List.of("getSecurityServerHealthDataResponse", "statisticsPeriodSeconds"), List.of("serviceEvents"), List.of(), List.of()))), allowed(monitoring(CONSUMER, SoapRequests.OPERATIONAL_DATA, null, Expectation.carrying("getSecurityServerOperationalDataResponse")))).as("Health data and operational data of the owner's Security Server need no grant"),
             row("V98", provided(OWNER_MEMBER), allowed(new ListClientsRequest(Expectation.carrying("1234", "4321", "Test member", "Test client")))).as("listClients answers without a client header and lists the members of the instance"),

@@ -45,7 +45,8 @@ public final class SoapRequests {
 
     /**
      * Client and provider ids are {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM}; the optional security server hint is
-     * {@code INSTANCE:CLASS:MEMBER:SERVERCODE}. A {@code null} version or hint leaves its header element out.
+     * {@code INSTANCE:CLASS:MEMBER:SERVERCODE}. A {@code null} version or hint leaves its header element out. A
+     * provider id without a subsystem names the member.
      */
     public static String envelope(String consumerClientId, String providerClientId, String serviceCode,
                                   String serviceVersion, String securityServerHint, String messageId) {
@@ -142,7 +143,7 @@ public final class SoapRequests {
                                    String serviceVersion, String securityServerHint, String messageId,
                                    String body) {
         var consumer = parts(consumerClientId);
-        var provider = parts(providerClientId);
+        var provider = clientParts(providerClientId);
         var version = serviceVersion == null
                 ? "" : "<iden:serviceVersion>%s</iden:serviceVersion>".formatted(serviceVersion);
         var server = securityServerHint == null ? "" : securityServerElement(parts(securityServerHint));
@@ -157,10 +158,7 @@ public final class SoapRequests {
                             <iden:subsystemCode>%s</iden:subsystemCode>
                         </xro:client>
                         <xro:service iden:objectType="SERVICE">
-                            <iden:xRoadInstance>%s</iden:xRoadInstance>
-                            <iden:memberClass>%s</iden:memberClass>
-                            <iden:memberCode>%s</iden:memberCode>
-                            <iden:subsystemCode>%s</iden:subsystemCode>
+                            %s
                             <iden:serviceCode>%s</iden:serviceCode>
                             %s
                         </xro:service>
@@ -173,7 +171,7 @@ public final class SoapRequests {
                         %s
                     </soapenv:Body>
                 </soapenv:Envelope>
-                """.formatted(Stream.of(List.of(consumer), List.of(provider),
+                """.formatted(Stream.of(List.of(consumer), List.<Object>of(identifierElements(provider)),
                         List.of(serviceCode, version, server, messageId, body))
                 .flatMap(List::stream).toArray());
     }
