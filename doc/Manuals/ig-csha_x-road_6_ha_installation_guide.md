@@ -270,13 +270,31 @@ The secret store setup of a node runs in the unit `xroad-secret-store-local.serv
 
 Keep a copy of the unseal keys outside the cluster, in a safe place. The root token can be regenerated from the unseal keys, but not the other way round, and node backups contain neither of them.
 
-**Copying the files.** Copy a file between nodes so that the content does not appear in the command line or the shell history, and the owner and mode stay the same. Run the command on a node that has the file. The account on the target node needs `sudo` without a password prompt, because the file is sent through the standard input:
+**Copying the files.** Copy a file between nodes so that the content does not appear in the command line or the shell history. The command writes the content to a temporary file on the target node, checks that the file is not empty, sets the owner `root:root` and the mode `600`, and only then replaces the target file. If reading the file or any step on the target node fails, the existing target file is left untouched. Run the command on a node that has the file. The account on the target node needs `sudo` without a password prompt, because the file is sent through the standard input.
+
+Root token:
 
 ```bash
-sudo cat /etc/openbao/root-token | ssh <admin>@<target-node> 'sudo sh -c "umask 077 && cat > /etc/openbao/root-token" && sudo chown root:root /etc/openbao/root-token'
+sudo cat /etc/openbao/root-token | ssh <admin>@<target-node> \
+  'sudo sh -c "umask 077 \
+    && cat > /etc/openbao/root-token.new \
+    && test -s /etc/openbao/root-token.new \
+    && chown root:root /etc/openbao/root-token.new \
+    && chmod 600 /etc/openbao/root-token.new \
+    && mv /etc/openbao/root-token.new /etc/openbao/root-token"'
 ```
 
-Use the same command with `/etc/openbao/unseal-keys` to copy the unseal keys.
+Unseal keys:
+
+```bash
+sudo cat /etc/openbao/unseal-keys | ssh <admin>@<target-node> \
+  'sudo sh -c "umask 077 \
+    && cat > /etc/openbao/unseal-keys.new \
+    && test -s /etc/openbao/unseal-keys.new \
+    && chown root:root /etc/openbao/unseal-keys.new \
+    && chmod 600 /etc/openbao/unseal-keys.new \
+    && mv /etc/openbao/unseal-keys.new /etc/openbao/unseal-keys"'
+```
 
 **A lost or rebuilt node.** A node that has lost the root token file gets it from another node, with the command above. When the setup of a node finds no root token and no valid client token, it stops with an error that names these steps. Then:
 
@@ -286,7 +304,7 @@ Use the same command with `/etc/openbao/unseal-keys` to copy the unseal keys.
     sudo systemctl restart xroad-secret-store-local.service
     systemctl status xroad-secret-store-local.service
     ```
-    After a successful run the status is `active (exited)` and the last line of `journalctl -u xroad-secret-store-local.service` is `OpenBao setup completed`. After a failure the status is `failed` and the journal shows the error.
+    After a successful run the status is `active (exited)` and the journal of the unit (`journalctl -u xroad-secret-store-local.service`) contains `OpenBao setup completed` for the latest run. After a failure the status is `failed` and the journal shows the error.
 3.  Restart the X-Road services on the node, because they read the client token only when they start:
     ```bash
     sudo systemctl restart 'xroad-*'
