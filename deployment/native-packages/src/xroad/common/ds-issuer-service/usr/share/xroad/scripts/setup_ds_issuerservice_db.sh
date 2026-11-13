@@ -13,6 +13,10 @@ die() {
   exit 1
 }
 
+get_prop() {
+  crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
+}
+
 gen_pw() { head -c 24 /dev/urandom | base64 | tr "/+" "_-"; }
 
 DB_NAME="ds-issuer-service"
@@ -21,53 +25,62 @@ ROLE_NAME="ds-issuer-service"
 ROOT_PROPS="/etc/xroad.properties"
 DB_PROPS="/etc/xroad/db.properties"
 
+# The Issuer Service schema lives in the Central Server database and is owned by the Central
+# Server admin role. The Issuer Service itself runs as ROLE_NAME, which only has DML rights.
 prepare_db_props
 
-stored_pw=$(crudini --get "$ROOT_PROPS" '' "${DB_NAME}.database.admin_password" 2>/dev/null || true)
+db_admin_user=$(get_prop "$ROOT_PROPS" 'centerui.database.admin_user' "$db_user")
+db_admin_password=$(get_prop "$ROOT_PROPS" 'centerui.database.admin_password' "$db_password")
+[[ -n "$db_admin_user" && -n "$db_admin_password" ]] ||
+  die "Central Server database admin credentials (centerui.database.admin_user, centerui.database.admin_password) not found in ${ROOT_PROPS}"
 
-# Role login is probed over TCP with the role's own credentials, not via the
-# (possibly socket-based) master connection used for provisioning.
+url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
+jdbc_url="${db_url}${url_concat_string}currentSchema=${SCHEMA_NAME},public"
+
+runtime_pw=$(get_prop "$DB_PROPS" "xroad.db.${DB_NAME}.hibernate.connection.password" "")
+
 role_probe() {
-  PGCONNECT_TIMEOUT=5 PGPASSWORD="$stored_pw" psql -h "$db_host" -p "$db_port" -U "$ROLE_NAME" -d "$db_database" -qtA -c "\q" &>/dev/null
+  PGCONNECT_TIMEOUT=5 PGPASSWORD="$runtime_pw" psql -h "$db_host" -p "$db_port" -U "$ROLE_NAME" -d "$db_database" -qtA -c "\q" &>/dev/null
 }
 
-if [[ -n "$stored_pw" ]] && role_probe; then
-  log "Database role $ROLE_NAME already exists and stored credentials are valid, skipping database setup."
-  issuer_pw="$stored_pw"
+psql_admin() {
+  PGPASSWORD="$db_admin_password" psql -h "$db_host" -p "$db_port" -U "$db_admin_user" -d "$db_database" -v ON_ERROR_STOP=1 -qtA "$@"
+}
+
+master_conn_user=$(get_prop "$ROOT_PROPS" postgres.connection.user 'postgres')
+master_pw=$(get_prop "$ROOT_PROPS" postgres.connection.password "")
+if [[ -n "$master_pw" ]]; then
+  psql_master() {
+    PGPASSWORD="$master_pw" psql -h "$db_host" -p "$db_port" -U "$master_conn_user" -v ON_ERROR_STOP=1 -qtA "$@"
+  }
 else
-  master_user=$(crudini --get "$ROOT_PROPS" '' postgres.connection.user 2>/dev/null || echo "postgres")
-  master_pw=$(crudini --get "$ROOT_PROPS" '' postgres.connection.password 2>/dev/null || true)
+  psql_master() {
+    su -l -c "psql -p ${PGPORT:-$db_port} -v ON_ERROR_STOP=1 -qtA ${*@Q}" postgres
+  }
+fi
 
-  if [[ -n "$master_pw" ]]; then
-    psql_master() {
-      PGPASSWORD="$master_pw" psql -h "$db_host" -p "$db_port" -U "$master_user" -v ON_ERROR_STOP=1 -qtA "$@"
-    }
-  else
-    psql_master() {
-      su -l -c "psql -p $db_port -v ON_ERROR_STOP=1 -qtA $*" postgres
-    }
+if [[ -n "$runtime_pw" ]] && role_probe; then
+  log "Database role $ROLE_NAME already exists and stored credentials are valid, skipping role setup."
+else
+  role_exists=$(psql_master -d postgres -c "SELECT 1 FROM pg_roles WHERE rolname = '${ROLE_NAME}'") ||
+    die "Failed to look up database role $ROLE_NAME"
+  if [[ -n "$role_exists" ]]; then
+    die "Database role $ROLE_NAME exists but its credentials in ${DB_PROPS} are missing or invalid. On a subsequent node of a shared database, copy ${DB_PROPS} from the first node, or set XROAD_IGNORE_DATABASE_SETUP to skip database setup."
   fi
 
-  issuer_pw="${stored_pw:-$(gen_pw)}"
+  runtime_pw="${runtime_pw:-$(gen_pw)}"
 
-  psql_master -d postgres <<SQL || die "Failed to create role $ROLE_NAME. If the role already exists on a shared database, preseed ${DB_NAME}.database.admin_user and ${DB_NAME}.database.admin_password in $ROOT_PROPS (copy from the first node), or set XROAD_IGNORE_DATABASE_SETUP to skip database setup."
-CREATE ROLE "$ROLE_NAME" LOGIN PASSWORD '$issuer_pw';
-SQL
-
-  if [[ ! -f "$ROOT_PROPS" ]]; then
-    touch "$ROOT_PROPS"
-    chown root:root "$ROOT_PROPS"
-    chmod 600 "$ROOT_PROPS"
-  fi
-  crudini --set --inplace "$ROOT_PROPS" '' "${DB_NAME}.database.admin_user" "$ROLE_NAME"
-  crudini --set --inplace "$ROOT_PROPS" '' "${DB_NAME}.database.admin_password" "$issuer_pw"
-
-  psql_master -d "$db_database" <<SQL || die "Failed to provision schema $SCHEMA_NAME in $db_database"
-CREATE SCHEMA IF NOT EXISTS "$SCHEMA_NAME" AUTHORIZATION "$ROLE_NAME";
-GRANT USAGE ON SCHEMA "$SCHEMA_NAME" TO "$ROLE_NAME";
-GRANT CONNECT ON DATABASE "$db_database" TO "$ROLE_NAME";
+  psql_master -d postgres <<SQL || die "Failed to create role $ROLE_NAME"
+CREATE ROLE "$ROLE_NAME" LOGIN PASSWORD '$runtime_pw';
+GRANT TEMPORARY,CONNECT ON DATABASE "$db_database" TO "$ROLE_NAME";
+\c "$db_database"
+GRANT USAGE ON SCHEMA public TO "$ROLE_NAME";
 SQL
 fi
+
+psql_admin <<SQL || die "Failed to create schema $SCHEMA_NAME in $db_database as $db_admin_user"
+CREATE SCHEMA IF NOT EXISTS "$SCHEMA_NAME" AUTHORIZATION "$db_admin_user";
+SQL
 
 if [[ ! -f "$DB_PROPS" ]]; then
   touch "$DB_PROPS"
@@ -75,19 +88,18 @@ if [[ ! -f "$DB_PROPS" ]]; then
   chmod 640 "$DB_PROPS"
 fi
 
-url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
-jdbc_url="${db_url}${url_concat_string}currentSchema=${SCHEMA_NAME},public"
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.driver_class" org.postgresql.Driver
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.url" "$jdbc_url"
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.username" "$ROLE_NAME"
-crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.password" "$issuer_pw"
+crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.password" "$runtime_pw"
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.hikari.dataSource.currentSchema" "${SCHEMA_NAME},public"
 
-LIQUIBASE_COMMAND_PASSWORD="$issuer_pw" /usr/share/xroad/db/liquibase.sh \
+LIQUIBASE_COMMAND_PASSWORD="$db_admin_password" /usr/share/xroad/db/liquibase.sh \
   --changelog="$DB_NAME" \
   --url="$jdbc_url" \
-  --username="$ROLE_NAME" \
+  --username="$db_admin_user" \
   --defaultSchemaName="$SCHEMA_NAME" \
-  --contexts=user \
+  --prop-db-user="$ROLE_NAME" \
+  --contexts=admin \
   update ||
   die "Running database migrations failed, please check database availability and configuration in ${DB_PROPS}"

@@ -202,12 +202,12 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the Central Server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
 
-    The Issuer Service package (`xroad-ds-issuer-service`) creates its own database role once for the shared database. Before installing it on a subsequent node, copy the role credentials from the first node. Add these two lines from `/etc/xroad.properties` on the first node to the same file on the subsequent node, creating the file with owner `root` and mode `600` if it does not exist:
+    The Issuer Service package (`xroad-ds-issuer-service`) keeps its schema `ds-issuer-service` in the shared Central Server database. The Central Server database admin role owns the schema and runs its migrations. The package creates its own runtime role `ds-issuer-service` once for the shared database. The runtime role credentials are in the `/etc/xroad/db.properties` file that you copied. Before installing the package on a subsequent node, make sure `/etc/xroad.properties` on that node holds the Central Server database admin credentials of the first node (creating the file with owner `root` and mode `600` if it does not exist):
     ```properties
-    ds-issuer-service.database.admin_user=ds-issuer-service
-    ds-issuer-service.database.admin_password=<role_password>
+    centerui.database.admin_user=<admin_user>
+    centerui.database.admin_password=<admin_password>
     ```
-    Without them, the package configuration on the subsequent node fails with `Failed to create role ds-issuer-service`, because the role already exists.
+    Without them, the package configuration on the subsequent node cannot run the Issuer Service database migrations.
 
 **TLS certificate names.** The installation asks for the common name and the alternative names of the admin and management service TLS certificates ([IG-CS section 2.6](ig-cs_x-road_8_central_server_installation_guide.md#26-package-installation); preseed keys `xroad-common/admin-subject`, `xroad-common/admin-altsubject`, `xroad-common/service-subject` and `xroad-common/service-altsubject`). The installation detects the host name and the addresses of the node and suggests them. The suggested value is the value that the node uses now: its own row, else the shared row, else the preseeded answer, else the detected names. The answers are stored in the shared configuration database. An unchanged answer writes nothing. A changed answer is stored as a row of the node when the node has a node name, and as a shared row otherwise. Each node's certificates therefore get the names entered on that node.
 

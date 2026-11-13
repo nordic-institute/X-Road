@@ -224,6 +224,27 @@ services:
       - POSTGRES_PASSWORD=ds_issuer_service_admin_secret
       - POSTGRES_USER=postgres
       - POSTGRES_DB=ds-issuer-service
+    command: >
+      bash -c "
+        docker-entrypoint.sh postgres &
+        until pg_isready -U postgres -h localhost; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done;
+
+        psql -U postgres -d ds-issuer-service -c \"
+          DO \\\$\$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ds_issuer_service'
+            ) THEN
+              CREATE ROLE ds_issuer_service LOGIN PASSWORD 'secret';
+            END IF;
+          END
+          \\\$\$;
+        \"
+        wait
+      "
     networks:
       - xrd-ss-network
     ports:
@@ -249,6 +270,7 @@ services:
       - JDBC_PASSWORD=ds_issuer_service_admin_secret
       - CHANGELOG=ds-issuer-service
       - DEFAULT_SCHEMA_NAME=public
+      - PROP_DB_USER=ds_issuer_service
     depends_on:
       db-ds-issuer-service:
         condition: service_healthy
@@ -271,8 +293,8 @@ services:
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
       - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service
-      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME=postgres
-      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD=ds_issuer_service_admin_secret
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME=ds_issuer_service
+      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD=secret
       - EDC_STATUSLIST_CALLBACK_ADDRESS=https://ds-issuer-service:6187/statuslist
       - DEBUG=true
     healthcheck:
