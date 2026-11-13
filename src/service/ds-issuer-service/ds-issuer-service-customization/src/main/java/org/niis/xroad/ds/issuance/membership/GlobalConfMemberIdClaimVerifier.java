@@ -68,7 +68,7 @@ import java.util.Objects;
  *       verified via {@link OcspVerifier}; a missing or invalid response is rejected.</li>
  *   <li>JWS signature verification by feeding the cert's public key to EDC's
  *       {@link TokenValidationService} together with the registered rules
- *       (audience, sub-equals, JTI replay, iat/exp window). Nimbus does the signature
+ *       (audience, sub-equals, JTI replay, iat/exp window, claim age). Nimbus does the signature
  *       check inside the validation service; the rules check claim semantics.</li>
  *   <li>Extract verified {@link ClientId} via
  *       {@link GlobalConfProvider#getSubjectName(SignCertificateProfileInfo.Parameters,
@@ -158,12 +158,13 @@ class GlobalConfMemberIdClaimVerifier implements MemberIdClaimVerifier {
         return extractSubjectIdentity(cert);
     }
 
-    private List<TokenValidationRule> rules(String expectedHolderDid, String expectedIssuerDid) {
+    List<TokenValidationRule> rules(String expectedHolderDid, String expectedIssuerDid) {
         return List.of(
                 new AudienceValidationRule(expectedIssuerDid),
                 new SubjectEqualsRule(expectedHolderDid),
                 new JtiValidationRule(jtiValidationStore, monitor),
-                new ExpirationIssuedAtValidationRule(clock, (int) properties.leewaySeconds(), false));
+                new ExpirationIssuedAtValidationRule(clock, (int) properties.leewaySeconds(), false),
+                new MemberClaimAgeRule(clock, properties.lifetimeSeconds(), properties.leewaySeconds()));
     }
 
     private boolean globalConfReady() {

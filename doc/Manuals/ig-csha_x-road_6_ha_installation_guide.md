@@ -1,7 +1,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.21
+Version: 1.22
 Doc. ID: IG-CSHA
 
 ---
@@ -34,6 +34,7 @@ Doc. ID: IG-CSHA
 | 05.06.2023 | 1.19    | Update HA cluster status endpoint path                                                               | Andres Rosenthal   |
 | 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
 | 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows and signer rows of a standalone server, the node name check of an existing name, the signer rows after a rename and the per-node TLS certificate names | Ričardas Bučiūnas  |
+| 12.11.2026 | 1.22    | Document the root token file and the unseal keys that every node keeps, and upgrading all nodes in one window | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -56,6 +57,7 @@ Doc. ID: IG-CSHA
   - [3.5 Post-Configuration Steps](#35-post-configuration-steps)
 - [4 General Installation of HA Support](#4-general-installation-of-ha-support)
   - [4.1 Node name and renaming a node](#41-node-name-and-renaming-a-node)
+  - [4.2 Root token file and unseal keys on every node](#42-root-token-file-and-unseal-keys-on-every-node)
 - [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
 - [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
   - [6.1 Configuration database (and possible replicas) is lost](#61-configuration-database-and-possible-replicas-is-lost)
@@ -154,7 +156,7 @@ Additionally, creating an HA setup requires that all nodes can access the shared
 
 Referencing steps in section [4](#4-general-installation-of-ha-support).
 
-1.  Upgrade the software of the existing nodes to the latest version available, verify system health on all nodes.
+1.  Upgrade the software of the existing nodes to the latest version available, all nodes in one maintenance window (see section [4.2](#42-root-token-file-and-unseal-keys-on-every-node)), and verify system health on all nodes.
 2.  Create a backup system configuration of the existing nodes and store it in a safe place.
 3.  Prepare the node for HA configuration as described in section [4](#4-general-installation-of-ha-support).
 4.  Install the X-Road Central Server software as described in the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] to each of the new nodes.
@@ -241,7 +243,7 @@ The name is fixed after the node has joined the cluster. The node keeps its secr
 
 1.  Take a backup of the node and of the other nodes.
 2.  Stop the Central Server services on the node. Do not uninstall the packages yet. The entries of the old name must be deleted while the secret store is reachable, and the local secret store may be gone after the packages are removed.
-3.  Delete the secret store entries of the old name. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. With a remote secret store, use its address and a token that can delete secrets there. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<old_node_name>` with the old name:
+3.  Delete the secret store entries of the old name. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`; every node keeps this file (see section [4.2](#42-root-token-file-and-unseal-keys-on-every-node)). If the node has lost it, restore it from another node first. With a remote secret store, use its address and a token that can delete secrets there. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<old_node_name>` with the old name:
     ```bash
     export BAO_ADDR=<secret store address>
     export BAO_TOKEN=<token>
@@ -266,6 +268,56 @@ The name is fixed after the node has joined the cluster. The node keeps its secr
 6.  On the node, set the new name in `/etc/xroad/conf.d/node.ini` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
 
 These steps do not change the other tables of the configuration database. Rows in the `ha_node_name` column of the tables for configuration sources, distributed files and system parameters keep the old node name. So do the signer rows: tokens, keys, certificates and certificate requests. After the rename, the signer of the node no longer sees its old rows. This guide does not describe how to move or remove them.
+
+### 4.2 Root token file and unseal keys on every node
+
+The local secret store has a root token, kept in the file `/etc/openbao/root-token`, and unseal keys, kept in `/etc/openbao/unseal-keys`. Every node of the cluster keeps the same root token file, owned by `root:root` with the mode `600`. The file is copied to a node together with the unseal keys when the node joins the cluster. This guide does not describe the join steps.
+
+The secret store setup of a node runs in the unit `xroad-secret-store-local.service` at every start and at every upgrade. It waits for OpenBao, initializes it if needed, unseals it, creates the storage areas if they are missing, writes the access policy and checks the client token of the node. A node issues its own client token when it has none or its token is not valid. Never copy a client token between nodes.
+
+Keep a copy of the unseal keys outside the cluster, in a safe place. The root token can be regenerated from the unseal keys, but not the other way round, and node backups contain neither of them.
+
+**Copying the files.** Copy a file between nodes so that the content does not appear in the command line or the shell history. The command writes the content to a temporary file on the target node, checks that the file is not empty, sets the owner `root:root` and the mode `600`, and only then replaces the target file. If reading the file or any step on the target node fails, the existing target file is left untouched. Run the command on a node that has the file. The account on the target node needs `sudo` without a password prompt, because the file is sent through the standard input.
+
+Root token:
+
+```bash
+sudo cat /etc/openbao/root-token | ssh <admin>@<target-node> \
+  'sudo sh -c "umask 077 \
+    && cat > /etc/openbao/root-token.new \
+    && test -s /etc/openbao/root-token.new \
+    && chown root:root /etc/openbao/root-token.new \
+    && chmod 600 /etc/openbao/root-token.new \
+    && mv /etc/openbao/root-token.new /etc/openbao/root-token"'
+```
+
+Unseal keys:
+
+```bash
+sudo cat /etc/openbao/unseal-keys | ssh <admin>@<target-node> \
+  'sudo sh -c "umask 077 \
+    && cat > /etc/openbao/unseal-keys.new \
+    && test -s /etc/openbao/unseal-keys.new \
+    && chown root:root /etc/openbao/unseal-keys.new \
+    && chmod 600 /etc/openbao/unseal-keys.new \
+    && mv /etc/openbao/unseal-keys.new /etc/openbao/unseal-keys"'
+```
+
+**A lost or rebuilt node.** A node that has lost the root token file gets it from another node, with the command above. When the setup of a node finds no root token and no valid client token, it stops with an error that names these steps. Then:
+
+1.  Copy the root token file from another node of the cluster.
+2.  Restart the secret store setup and check that it succeeds:
+    ```bash
+    sudo systemctl restart xroad-secret-store-local.service
+    systemctl status xroad-secret-store-local.service
+    ```
+    After a successful run the status is `active (exited)` and the journal of the unit (`journalctl -u xroad-secret-store-local.service`) contains `OpenBao setup completed` for the latest run. After a failure the status is `failed` and the journal shows the error.
+3.  Restart the X-Road services on the node, because they read the client token only when they start:
+    ```bash
+    sudo systemctl restart 'xroad-*'
+    ```
+
+**Upgrade.** An upgrade restarts the secret store setup, which writes the access policy of the new release. Upgrade all nodes of the cluster in one maintenance window. A node that is not upgraded yet and restarts writes the old access policy back.
 
 ## 5 Monitoring HA State on a Node
 
@@ -325,12 +377,12 @@ Recovery procedure depends on the type of the failure and database used. If conf
 
 ### 6.2 One or more cental server nodes lost, backup available
 
-* Setup the missing nodes like described in [3.4](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
+* Setup the missing nodes like described in [3.4](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration). A rebuilt node gets the root token file and the unseal keys from another node, see section [4.2](#42-root-token-file-and-unseal-keys-on-every-node).
 * Restore configuration from a backup, skipping database restoration (see \[[UG-CS](#Ref_UG-CS)\]).
 
 ### 6.3 Some Central Server nodes lost, backup not available
 
-See [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
+See [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration). A rebuilt node gets the root token file and the unseal keys from another node, see section [4.2](#42-root-token-file-and-unseal-keys-on-every-node).
 
 ## Appendix A. Setting up a replicated PostgreSQL database
 

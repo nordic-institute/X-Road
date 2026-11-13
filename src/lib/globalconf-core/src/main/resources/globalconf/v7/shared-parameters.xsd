@@ -234,6 +234,15 @@
                     </documentation>
                 </annotation>
             </element>
+            <element name="issuerDataFreshnessSeconds" type="integer">
+                <annotation>
+                    <documentation>
+                        How long, in seconds, Security Servers keep using the last good Issuer Service data after it
+                        should have been refreshed, when the Issuer Service cannot be reached.
+                        0 means the data is not used once a refresh fails.
+                    </documentation>
+                </annotation>
+            </element>
             <element name="member" type="tns:MemberType" minOccurs="0" maxOccurs="unbounded">
                 <annotation>
                     <documentation>

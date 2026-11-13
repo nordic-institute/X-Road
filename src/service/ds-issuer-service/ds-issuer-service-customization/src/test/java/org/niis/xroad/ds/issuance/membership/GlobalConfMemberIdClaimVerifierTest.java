@@ -29,35 +29,26 @@ package org.niis.xroad.ds.issuance.membership;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.util.Base64;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
-import java.math.BigInteger;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -66,11 +57,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.ds.issuance.membership.MembershipTestSupport.HOLDER_DID;
+import static org.niis.xroad.ds.issuance.membership.MembershipTestSupport.ISSUER_DID;
 
 class GlobalConfMemberIdClaimVerifierTest {
-
-    private static final String HOLDER_DID = "did:web:holder";
-    private static final String ISSUER_DID = "did:web:issuer";
 
     private GlobalConfProvider globalConf;
     private CertChainValidator certChainValidator;
@@ -89,7 +79,7 @@ class GlobalConfMemberIdClaimVerifierTest {
         tokenValidationService = mock(TokenValidationService.class);
         jtiStore = mock(JtiValidationStore.class);
         properties = new MemberClaimVerifierProperties(300L, 30L);
-        clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
+        clock = Clock.fixed(Instant.now().truncatedTo(ChronoUnit.SECONDS), ZoneOffset.UTC);
 
         lenient().when(ocspVerifier.verify(any(), any())).thenReturn(Result.success());
 
@@ -114,8 +104,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsGlobalconfUnavailableWhenGlobalconfNotReady() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, false);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, false);
         doThrowOnVerifyValidity();
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
@@ -132,8 +122,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsClaimMalformedWhenX5cHeaderMissing() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, false);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, false);
 
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
@@ -142,8 +132,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsCertChainInvalidWhenCertchainValidatorFails() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any()))
                 .thenReturn(Result.failure(MembershipVerificationFailureReason.CERT_CHAIN_INVALID.name() + ": untrusted"));
 
@@ -154,8 +144,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsOcspInvalidWhenOcspVerifierFails() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(ocspVerifier.verify(any(), any()))
                 .thenReturn(Result.failure(MembershipVerificationFailureReason.OCSP_INVALID.name() + ": stale"));
@@ -168,8 +158,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsSignatureInvalidWhenTokenValidationFailsGeneric() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.failure("signature mismatch"));
@@ -181,8 +171,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsClaimReplayedWhenTokenValidationReportsJtiReuse() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.failure("The JWT id 'xyz' was already used."));
@@ -194,8 +184,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsClaimExpiredWhenTokenValidationReportsExpired() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.failure("Token has expired (exp)"));
@@ -207,8 +197,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void returnsClaimAudienceInvalidWhenTokenValidationReportsAudMismatch() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.failure("'aud' claim does not match expected audience"));
@@ -219,9 +209,94 @@ class GlobalConfMemberIdClaimVerifierTest {
     }
 
     @Test
+    void returnsClaimExpiredWhenTokenValidationReportsMissingIat() throws Exception {
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        when(certChainValidator.validate(any())).thenReturn(Result.success());
+        Result<Void> ageRuleFailure = new MemberClaimAgeRule(clock, properties.lifetimeSeconds(), properties.leewaySeconds())
+                .checkRule(ClaimToken.Builder.newInstance().build(), null);
+        when(tokenValidationService.validate(anyString(), any(), any(List.class)))
+                .thenReturn(Result.failure(ageRuleFailure.getFailureMessages()));
+
+        Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
+
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_EXPIRED.name()));
+    }
+
+    @Test
+    void returnsClaimExpiredWhenTokenValidationReportsClaimTooOld() throws Exception {
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        when(certChainValidator.validate(any())).thenReturn(Result.success());
+        var tooOldClaim = ClaimToken.Builder.newInstance()
+                .claim("iat", clock.instant().minusSeconds(properties.lifetimeSeconds() + properties.leewaySeconds() + 1)
+                        .getEpochSecond())
+                .build();
+        Result<Void> ageRuleFailure = new MemberClaimAgeRule(clock, properties.lifetimeSeconds(), properties.leewaySeconds())
+                .checkRule(tooOldClaim, null);
+        when(tokenValidationService.validate(anyString(), any(), any(List.class)))
+                .thenReturn(Result.failure(ageRuleFailure.getFailureMessages()));
+
+        Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
+
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_EXPIRED.name()));
+    }
+
+    @Test
+    void rulesIncludeAgeRuleFedFromConfiguredLifetimeAndLeeway() {
+        List<TokenValidationRule> rules = verifier.rules(HOLDER_DID, ISSUER_DID);
+        TokenValidationRule ageRule = rules.stream()
+                .filter(MemberClaimAgeRule.class::isInstance)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("MemberClaimAgeRule not found in rules()"));
+
+        var atTheLifetimePlusLeewayBoundary = ClaimToken.Builder.newInstance()
+                .claim("iat", clock.instant().minusSeconds(properties.lifetimeSeconds() + properties.leewaySeconds())
+                        .getEpochSecond())
+                .build();
+        var pastTheLifetimePlusLeewayBoundary = ClaimToken.Builder.newInstance()
+                .claim("iat", clock.instant().minusSeconds(properties.lifetimeSeconds() + properties.leewaySeconds() + 1)
+                        .getEpochSecond())
+                .build();
+
+        assertTrue(ageRule.checkRule(atTheLifetimePlusLeewayBoundary, null).succeeded());
+        assertTrue(ageRule.checkRule(pastTheLifetimePlusLeewayBoundary, null).failed());
+    }
+
+    @Test
+    void realRulesPipelineAcceptsFreshClaimAndRejectsOneOlderThanLifetimePlusLeeway() throws Exception {
+        MemberClaimVerifierProperties shortProperties = new MemberClaimVerifierProperties(100L, 10L);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        JtiValidationStore realJtiStore = mock(JtiValidationStore.class);
+        when(realJtiStore.storeEntry(any())).thenReturn(StoreResult.success());
+        when(certChainValidator.validate(any())).thenReturn(Result.success());
+        when(globalConf.getInstanceIdentifier()).thenReturn("DEV");
+        when(globalConf.getSubjectName(any(), any())).thenReturn(ClientId.Conf.create("DEV", "COM", "SS0"));
+        GlobalConfMemberIdClaimVerifier realRulesVerifier = new GlobalConfMemberIdClaimVerifier(globalConf,
+                certChainValidator,
+                ocspVerifier,
+                new TokenValidationServiceImpl(),
+                realJtiStore,
+                shortProperties,
+                mock(Monitor.class),
+                clock);
+
+        String freshJws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true, clock.instant());
+        Result<ClientId> freshResult = realRulesVerifier.verify(freshJws, HOLDER_DID, ISSUER_DID);
+        assertTrue(freshResult.succeeded(), freshResult.getFailureDetail());
+
+        Instant tooOldIssuedAt = clock.instant()
+                .minusSeconds(shortProperties.lifetimeSeconds() + shortProperties.leewaySeconds() + 1);
+        String tooOldJws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true, tooOldIssuedAt);
+        Result<ClientId> tooOldResult = realRulesVerifier.verify(tooOldJws, HOLDER_DID, ISSUER_DID);
+        assertTrue(tooOldResult.failed());
+        assertTrue(tooOldResult.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_EXPIRED.name()));
+    }
+
+    @Test
     void returnsSuccessWithCertSubjectClientidOnHappyPath() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         when(tokenValidationService.validate(anyString(), any(), any(List.class)))
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
@@ -237,8 +312,8 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     @Test
     void passesCertPublicKeyToTokenValidationService() throws Exception {
-        TestKeyAndCert keyAndCert = TestKeyAndCert.generate();
-        String jws = signJwt(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
         when(certChainValidator.validate(any())).thenReturn(Result.success());
         ArgumentCaptor<org.eclipse.edc.keys.spi.PublicKeyResolver> resolverCaptor =
                 ArgumentCaptor.forClass(org.eclipse.edc.keys.spi.PublicKeyResolver.class);
@@ -250,7 +325,7 @@ class GlobalConfMemberIdClaimVerifierTest {
         verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
         PublicKey resolved = resolverCaptor.getValue().resolveKey("any-kid").getContent();
-        assertEquals(keyAndCert.cert.getPublicKey(), resolved);
+        assertEquals(keyAndCert.cert().getPublicKey(), resolved);
     }
 
     private void doThrowOnVerifyValidity() {
@@ -259,54 +334,6 @@ class GlobalConfMemberIdClaimVerifierTest {
 
     private static void doThrowOn(GlobalConfProvider mock) {
         org.mockito.Mockito.doThrow(new RuntimeException("not loaded")).when(mock).verifyValidity();
-    }
-
-    private static String signJwt(TestKeyAndCert keyAndCert, String holderDid, String issuerDid, boolean includeCert) throws Exception {
-        Instant now = Instant.now();
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(holderDid)
-                .subject(holderDid)
-                .audience(issuerDid)
-                .issueTime(Date.from(now))
-                .expirationTime(Date.from(now.plusSeconds(300)))
-                .jwtID(UUID.randomUUID().toString())
-                .build();
-        JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
-        if (includeCert) {
-            headerBuilder.x509CertChain(List.of(Base64.encode(keyAndCert.cert.getEncoded())));
-        }
-        SignedJWT jwt = new SignedJWT(headerBuilder.build(), claims);
-        JWSSigner signer = new RSASSASigner(keyAndCert.privateKey);
-        jwt.sign(signer);
-        return jwt.serialize();
-    }
-
-    private record TestKeyAndCert(PrivateKey privateKey, X509Certificate cert) {
-        static TestKeyAndCert generate() throws Exception {
-            var kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(2048);
-            var kp = kpg.generateKeyPair();
-            X509Certificate cert = SelfSignedCertGen.generate(kp.getPublic(), kp.getPrivate());
-            return new TestKeyAndCert(kp.getPrivate(), cert);
-        }
-    }
-
-    /**
-     * Minimal self-signed cert generator using BouncyCastle's BC provider, which is already
-     * on the classpath via globalconf-impl.
-     */
-    private static final class SelfSignedCertGen {
-        static X509Certificate generate(PublicKey publicKey, PrivateKey privateKey) throws Exception {
-            var name = new org.bouncycastle.asn1.x500.X500Name("CN=Test, O=NIIS, C=EE");
-            var serial = BigInteger.valueOf(System.currentTimeMillis());
-            var notBefore = new Date(System.currentTimeMillis() - 60_000);
-            var notAfter = new Date(System.currentTimeMillis() + 3_600_000L);
-            var builder = new org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder(
-                    name, serial, notBefore, notAfter, name, publicKey);
-            var signer = new org.bouncycastle.operator.jcajce.JcaContentSignerBuilder("SHA256WithRSA").build(privateKey);
-            var holder = builder.build(signer);
-            return new org.bouncycastle.cert.jcajce.JcaX509CertificateConverter().getCertificate(holder);
-        }
     }
 
     @SuppressWarnings("unused")

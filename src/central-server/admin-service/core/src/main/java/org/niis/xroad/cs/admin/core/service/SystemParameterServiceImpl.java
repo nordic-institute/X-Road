@@ -67,6 +67,8 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     public static final Integer DEFAULT_OCSP_FRESHNESS_SECONDS = 3600;
     public static final String LEGACY_PROTOCOL_DISABLED = "legacyProtocolDisabled";
     public static final boolean DEFAULT_LEGACY_PROTOCOL_DISABLED = false;
+    public static final String ISSUER_DATA_FRESHNESS_SECONDS = "issuerDataFreshnessSeconds";
+    public static final Integer DEFAULT_ISSUER_DATA_FRESHNESS_SECONDS = 600;
     public static final String TIME_STAMPING_INTERVAL_SECONDS = "timeStampingIntervalSeconds";
     public static final Integer DEFAULT_TIME_STAMPING_INTERVAL_SECONDS = 60;
 
@@ -161,6 +163,11 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     @Override
     public Integer getOcspFreshnessSeconds() {
         return getParameterValue(OCSP_FRESHNESS_SECONDS, DEFAULT_OCSP_FRESHNESS_SECONDS, Integer::parseInt);
+    }
+
+    @Override
+    public Integer getIssuerDataFreshnessSeconds() {
+        return getParameterValue(ISSUER_DATA_FRESHNESS_SECONDS, DEFAULT_ISSUER_DATA_FRESHNESS_SECONDS, Integer::parseInt);
     }
 
     @Override

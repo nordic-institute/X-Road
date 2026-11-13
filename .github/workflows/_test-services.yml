@@ -427,3 +427,22 @@ jobs:
           display-badge: false
           display-table: true
           pr-comment: false
+
+  test-secret-store-init:
+    name: secret-store-init-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run secret-store-init-test
+        run: ./scripts/images/test-secret-store-init.sh "${{ inputs.image_registry }}/openbao-dev:${{ inputs.service_image_tag }}"

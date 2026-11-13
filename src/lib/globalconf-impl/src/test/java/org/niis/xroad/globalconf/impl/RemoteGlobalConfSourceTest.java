@@ -164,6 +164,7 @@ class RemoteGlobalConfSourceTest {
                         <internalVerificationCert>dGVzdA==</internalVerificationCert>
                         <externalVerificationCert>dGVzdA==</externalVerificationCert>
                     </source>
+                    <issuerDataFreshnessSeconds>600</issuerDataFreshnessSeconds>
                     <member id="m0">
                         <memberClass>
                             <code>COM</code>

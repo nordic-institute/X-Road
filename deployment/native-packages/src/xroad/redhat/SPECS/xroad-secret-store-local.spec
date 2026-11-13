@@ -82,5 +82,7 @@ if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
     systemctl enable xroad-secret-store-local.service
     systemctl start xroad-secret-store-local.service
 else
-    echo "Upgrade detected, skipping initialization"
+    echo "Upgrade detected, skipping initialization; rerunning the OpenBao setup"
+    systemctl restart xroad-secret-store-local.service ||
+        echo "OpenBao setup failed, see: systemctl status xroad-secret-store-local.service"
 fi
