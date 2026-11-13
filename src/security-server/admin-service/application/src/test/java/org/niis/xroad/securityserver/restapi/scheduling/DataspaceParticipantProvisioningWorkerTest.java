@@ -43,6 +43,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
@@ -142,6 +144,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(dataspaceProvisioningService.readContextStatus(any())).thenReturn(UNBOUND_CONTEXT);
         when(participantBindingService.bindSystemIfAbsent(any())).thenReturn(true);
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
+        when(readinessPredicates.isGlobalConfUsable()).thenReturn(true);
         when(participantBindingService.bindMembersIfAbsent(any()))
                 .thenAnswer(invocation -> new ArrayList<ClientId>(invocation.<Map<ClientId, Did>>getArgument(0).keySet()));
         appender.start();
@@ -646,6 +649,71 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
         verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantStartsNoNewWorkWhileGlobalConfIsExpired() {
+        givenExpiredGlobalConf();
+        doThrow(expiredGlobalConf()).when(dataspaceProvisioningService).ensureMembershipCredential(any());
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        assertThat(credentialStepFailures()).isEmpty();
+    }
+
+    @Test
+    void provisionParticipantBindsAndRequestsCredentialsOnceGlobalConfIsValidAgain() {
+        givenExpiredGlobalConf();
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
+
+        when(readinessPredicates.isGlobalConfUsable()).thenReturn(true);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
+        worker.provisionParticipant();
+
+        verify(participantBindingService).bindSystemIfAbsent(any());
+        verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantStopsTheCredentialStepWhenGlobalConfExpiresDuringThePass() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(any()))
+                .thenReturn(statusOf(false, CredentialStatus.ABSENT, IdentityStatus.OK));
+        doThrow(expiredGlobalConf()).when(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
+        assertThat(credentialStepFailures()).isEmpty();
+    }
+
+    private void givenExpiredGlobalConf() {
+        when(readinessPredicates.isGlobalConfUsable()).thenReturn(false);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(false, CredentialStatus.ABSENT, IdentityStatus.OK));
+    }
+
+    private static XrdRuntimeException expiredGlobalConf() {
+        return XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OUTDATED).build();
+    }
+
+    private List<String> credentialStepFailures() {
+        return workerAppender.list.stream()
+                .filter(event -> event.getLevel() == Level.ERROR)
+                .map(ILoggingEvent::getFormattedMessage)
+                .filter(message -> message.contains("credential step failed"))
+                .toList();
     }
 
     @Test

@@ -48,7 +48,7 @@ import java.util.concurrent.RejectedExecutionException;
  *
  * <p>Best-effort by design: the cache expiry stays in place as the correctness backstop, so a lost
  * or failed signal degrades latency, never correctness. A no-op until the instance is ready for data
- * space traffic, so an instance whose globalconf lists no credential issuer never attempts the call.</p>
+ * space traffic: a valid (unexpired) globalconf lists a credential issuer. Until then the call is never attempted.</p>
  *
  * <p>The gRPC call is dispatched off the caller's thread, and — when a transaction is active around
  * the caller — deferred until that transaction commits. Firing beforehand would let a concurrent

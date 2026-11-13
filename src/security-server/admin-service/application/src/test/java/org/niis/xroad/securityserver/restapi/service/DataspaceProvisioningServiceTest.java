@@ -78,6 +78,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -241,6 +242,19 @@ class DataspaceProvisioningServiceTest {
 
         assertThat(service.ensureMembershipCredential(GENERIC_CONTEXT)).isEqualTo(CredentialStatus.ERROR);
 
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void ensureMembershipCredentialFailsClosedAndSubmitsNothingWhenGlobalConfIsExpired() {
+        doThrow(XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OUTDATED).build())
+                .when(globalConfProvider).verifyValidity();
+
+        assertThatThrownBy(() -> service.ensureMembershipCredential(GENERIC_CONTEXT))
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.GLOBAL_CONF_OUTDATED.code()));
+
+        verify(identityHubClient, never()).getCredentialRequestState(any(), any());
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 
