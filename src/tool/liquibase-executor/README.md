@@ -13,6 +13,9 @@ The three dataspace changelogs create the tables of the EDC (Eclipse Dataspace C
 | `ds-identity-hub` | identity hub | `ds-identity-hub/000-baseline.xml` |
 | `ds-issuer-service` | Issuer Service | `ds-issuer-service/000-baseline.xml` |
 
+The control plane also carries `ds-control-plane/001-xroad-additions.xml`: an index that X-Road adds and EDC
+does not ship (see "Upgrading EDC", step 3).
+
 Liquibase is the only thing that creates or changes these tables. EDC's table-creation extension
 (`SqlSchemaBootstrapperExtension`) is excluded in all three runtimes, so the setting
 `edc.sql.schema.autocreate` has no effect. A missing table shows at the first query, not at boot.
@@ -74,8 +77,8 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
    - A store that now loads a new `*-schema.sql` file adds a new table: treat it as a difference too.
 
 3. **Add changesets for each difference.** Add a new file next to `000-baseline.xml` in every affected
-   component directory (for example `ds-control-plane/001-<description>.xml`) and `<include>` it from the
-   component's `ds-*-changelog.xml` after the previous file.
+   component directory (for example `ds-control-plane/NNN-<description>.xml`, with `NNN` the next unused
+   number) and `<include>` it from the component's `ds-*-changelog.xml` after the previous file.
    - A new file copies the header and attributes of `000-baseline.xml`: the `databaseChangeLog` element with
      `logicalFilePath` set to the new file's path under `liquibase/`, and every `changeSet` with
      `author="niis"` and `objectQuotingStrategy="QUOTE_ALL_OBJECTS"`.
@@ -83,8 +86,15 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
    - One changeset per EDC script, with a `<comment>` naming the EDC version and file.
    - Exception: an X-Road addition that EDC does not ship (for example an extra index) goes in a separate
      `NNN-xroad-additions.xml` file, with a `<comment>` that says it is an X-Road addition, and a matching
-     statement in the component's additions file `src/test/resources/parity/<component>-additions.sql`
-     (step 4.3). Only `ds-control-plane` has one so far.
+     statement in the component's additions file
+     `src/tool/liquibase-executor/src/test/resources/parity/<component>-additions.sql` (step 4.3). A later
+     addition is a new changeset in a new `NNN-xroad-additions.xml` file. Only `ds-control-plane` has one so far.
+   - Retiring an addition: at every EDC upgrade, check each statement of the additions file against the new
+     tag. If EDC now ships an index for it:
+     - same name and definition as the addition: remove the statement from the additions file and add no
+       changeset;
+     - otherwise: drop the X-Road index in a new `NNN-xroad-additions.xml` changeset (the applied one stays
+       unchanged), add EDC's index as above, and remove the statement from the additions file.
    - Never edit an applied changeset, including the baseline: its checksum is stored in `databasechangelog`.
    - A store used by several components (jti, participant context, key pairs, ...) changes in each
      component's directory.
@@ -132,13 +142,10 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
       Then apply the component's X-Road additions file, if it has one, so the diff in 4.5 stays empty. For
       `ds-control-plane`:
       ```
-      docker exec -i edc-check psql -v ON_ERROR_STOP=1 -q -U postgres -d ref \
-        < src/tool/liquibase-executor/src/test/resources/parity/ds-control-plane-additions.sql
+      { echo 'SET search_path TO public;'; cat src/tool/liquibase-executor/src/test/resources/parity/ds-control-plane-additions.sql; } |
+        docker exec -i edc-check psql -v ON_ERROR_STOP=1 -q -U postgres -d ref
       ```
-      At every EDC upgrade, check each statement of the additions file against the new tag. If EDC now ships an
-      equal index, retire the addition instead of creating a duplicate: drop the X-Road index in a new changeset
-      (the applied one stays unchanged), add EDC's index as in step 3, and remove the statement from the
-      additions file.
+      When EDC now ships an addition, retire it as step 3 says.
    4. In `lb`, run the executor twice with `update`. The password goes through the environment, not the
       command line. The second run must apply nothing: the `databasechangelog` row count does not change.
       Logback errors about `/var/log/xroad` on a machine without X-Road are harmless.
