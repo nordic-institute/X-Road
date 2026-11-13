@@ -44,7 +44,8 @@ xroad:
       excluded-service-extensions: >-
         org.eclipse.edc.web.jetty.JettyExtension,
         org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,
-        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension
+        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension,
+        org.eclipse.edc.issuerservice.issuance.attestation.holder.HolderAttestationExtension
 
 web:
   http:
