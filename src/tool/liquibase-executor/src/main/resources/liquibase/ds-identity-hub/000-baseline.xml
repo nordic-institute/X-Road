@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="ds-identity-hub/000-baseline.xml">
+
+    <changeSet author="niis" id="000-baseline-credentials" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 identity-hub-credentials-store-sql: credentials-schema.sql</comment>
+        <createTable tableName="credential_resource">
+            <column name="id" type="VARCHAR" remarks="ID of the VC, duplicated here for indexing purposes">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_timestamp" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="issuer_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="holder_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vc_state" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadata" type="JSON" defaultValue="{}"/>
+            <column name="issuance_policy" type="JSON"/>
+            <column name="reissuance_policy" type="JSON"/>
+            <column name="raw_vc" type="VARCHAR" remarks="Representation of the VC exactly as it was received by the issuer. Can be JWT or JSON(-LD)"/>
+            <column name="vc_format" type="INTEGER" remarks="0 = JSON-LD, 1 = JWT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="verifiable_credential" type="JSON"
+                    remarks="JSON-representation of the VerifiableCredential">
+                <constraints nullable="false"/>
+            </column>
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="usage" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="credential_resource" columnNames="participant_context_id, id"
+                       constraintName="credential_resource_participant_id_pk"/>
+        <createIndex indexName="credential_resource_participant_usage_state" tableName="credential_resource">
+            <column name="participant_context_id"/>
+            <column name="usage"/>
+            <column name="vc_state"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-did" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 identity-hub-did-store-sql: did-schema.sql</comment>
+        <createTable tableName="did_resources">
+            <column name="did" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="create_timestamp" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_timestamp" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="did_document" type="JSON">
+                <constraints nullable="false"/>
+            </column>
+            <column name="participant_context_id" type="VARCHAR"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-keypairs" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 identity-hub-keypair-store-sql: keypairs-schema.sql</comment>
+        <createTable tableName="keypair_resource">
+            <column name="id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="participant_context_id" type="VARCHAR"/>
+            <column name="timestamp" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="group_name" type="VARCHAR"/>
+            <column name="is_default_pair" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="use_duration" type="BIGINT"/>
+            <column name="rotation_duration" type="BIGINT"/>
+            <column name="serialized_public_key" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="private_key_alias" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="private_key_managed" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="INTEGER" defaultValueNumeric="100">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key_context" type="VARCHAR"/>
+            <column name="usage" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="keypair_resource_participant_context_id" tableName="keypair_resource">
+            <column name="participant_context_id"/>
+        </createIndex>
+        <sql>CREATE UNIQUE INDEX keypair_resource_participant_key_id ON keypair_resource (participant_context_id, key_id) WHERE state IN (100, 200)</sql>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-holder-credential-request" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 holder-credential-request-store-sql: holder-credential-request-schema.sql</comment>
+        <createTable tableName="edc_holder_credentialrequest">
+            <column name="id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="state" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_count" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_time_stamp" type="BIGINT"/>
+            <column name="created_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trace_context" type="JSON"/>
+            <column name="error_detail" type="VARCHAR"/>
+            <column name="pending" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="issuer_did" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ids_and_formats" type="JSON">
+                <constraints nullable="false"/>
+            </column>
+            <column name="issuer_pid" type="VARCHAR"/>
+            <column name="leased_by" type="VARCHAR"/>
+            <column name="leased_at" type="BIGINT" remarks="posix timestamp of lease"/>
+            <column name="lease_duration" type="INTEGER" remarks="duration of lease in milliseconds"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"
+                    remarks="version of the entity, incremented on every save, used for optimistic locking">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="holder_credentialrequest_state" tableName="edc_holder_credentialrequest">
+            <column name="state"/>
+            <column name="state_time_stamp"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-credential-offer" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 holder-credential-offer-store-sql: credential-offer-schema.sql</comment>
+        <createTable tableName="edc_credential_offers">
+            <column name="id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="state" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_count" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_time_stamp" type="BIGINT"/>
+            <column name="created_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trace_context" type="JSON"/>
+            <column name="error_detail" type="VARCHAR"/>
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="issuer_did" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="credentials" type="JSON" defaultValue="{}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="leased_by" type="VARCHAR"/>
+            <column name="leased_at" type="BIGINT" remarks="posix timestamp of lease"/>
+            <column name="lease_duration" type="INTEGER" remarks="duration of lease in milliseconds"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"
+                    remarks="version of the entity, incremented on every save, used for optimistic locking">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="credential_offer_state" tableName="edc_credential_offers">
+            <column name="state"/>
+            <column name="state_time_stamp"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-sts-client" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 sts-client-store-sql: sts-client-schema.sql</comment>
+        <createTable tableName="edc_sts_client">
+            <column name="id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="client_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="did" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="secret_alias" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="sts_client_client_id_index" tableName="edc_sts_client" unique="true">
+            <column name="client_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-jti-validation" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 jti-validation-store-sql: jti-validation-schema.sql</comment>
+        <createTable tableName="edc_jti_validation">
+            <column name="token_id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="expires_at" type="BIGINT"/>
+        </createTable>
+        <createIndex indexName="jti_validation_expires_at_index" tableName="edc_jti_validation">
+            <column name="expires_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-participant-context" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 participantcontext-store-sql: participant-context-schema.sql</comment>
+        <createTable tableName="participant_context">
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="identity" type="VARCHAR">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="created_date" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="BIGINT"/>
+            <column name="state" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="properties" type="JSON" defaultValue="{}"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-participant-context-config" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 participantcontext-config-store-sql: participant-context-config-schema.sql</comment>
+        <createTable tableName="edc_participant_context_config">
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_date" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="BIGINT"/>
+            <column name="entries" type="JSON" defaultValue="{}"/>
+            <column name="private_entries" type="JSON" defaultValue="{}"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

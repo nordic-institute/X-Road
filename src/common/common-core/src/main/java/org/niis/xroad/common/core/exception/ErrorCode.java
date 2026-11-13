@@ -331,7 +331,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DSP_OFFERS_NOT_FOUND("dsp_offers_not_found"),
     DSP_PULL_DISTRIBUTION_MISSING("dsp_pull_distribution_missing"),
     DSP_PARTICIPANT_CONTEXT_FAILED("dsp_participant_context_failed"),
-    DSP_PARTICIPANT_CONTEXT_CONFLICT("dsp_participant_context_conflict"),
+    PARTICIPANT_CONTEXT_CONFLICT("dsp_participant_context_conflict"),
     DSP_DATAADDRESS_INVALID("dsp_dataaddress_invalid"),
     DSP_ACQUISITION_TIMEOUT("dsp_acquisition_timeout"),
     DSP_NEGOTIATION_FAILED("dsp_negotiation_failed"),

@@ -40,7 +40,6 @@ import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -122,25 +121,14 @@ class IssuerSetUpServiceImplTest {
     }
 
     @Test
-    void refusesAlreadyRunningWhenAnotherNodeHoldsTheLease() {
+    void refusesAlreadyRunningWhenTheLeaseIsHeld() {
         givenEveryPrerequisiteCheckPasses();
-        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.of("node-b"));
-
-        var result = issuerSetUpService.start();
-
-        assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING));
-        verifyNoInteractions(dataspaceIssuerProvisioningService);
-    }
-
-    @Test
-    void refusesAlreadyRunningWhenAcquiringTheFreeLeaseRacesAnotherNode() {
-        givenEveryPrerequisiteCheckPasses();
-        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(false);
 
         var result = issuerSetUpService.start();
 
         assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING));
+        verify(issuerSetUpLeaseService, never()).currentHolder();
         verifyNoInteractions(dataspaceIssuerProvisioningService);
     }
 
@@ -149,7 +137,6 @@ class IssuerSetUpServiceImplTest {
         when(issuerHostService.getState())
                 .thenReturn(new IssuerHostState(HOST, false), new IssuerHostState(HOST, true));
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
-        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
         when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);
 
@@ -170,7 +157,6 @@ class IssuerSetUpServiceImplTest {
     @Test
     void acceptsAndRunsTodaysProvisioningSequenceInTheBackgroundWhenEveryCheckPasses() throws Exception {
         givenEveryPrerequisiteCheckPasses();
-        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
         when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);
 
@@ -219,7 +205,6 @@ class IssuerSetUpServiceImplTest {
      */
     private void assertLeaseTtlCoversTheWorstCaseRun(int deadlineAfterMs) {
         givenEveryPrerequisiteCheckPasses();
-        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
         when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(deadlineAfterMs);
 
@@ -241,7 +226,6 @@ class IssuerSetUpServiceImplTest {
     @Test
     void releasesTheLeaseAfterAFailingRun() throws Exception {
         givenEveryPrerequisiteCheckPasses();
-        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
         when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);
 
@@ -266,8 +250,7 @@ class IssuerSetUpServiceImplTest {
     @Test
     void secondConcurrentCallIsRefusedAlreadyRunningWhileTheFirstIsStillAccepted() throws Exception {
         givenEveryPrerequisiteCheckPasses();
-        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty(), Optional.of(NODE));
-        when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
+        when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true, false);
         when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);
         var runFinished = new CountDownLatch(1);
         doAnswer(invocation -> {

@@ -220,7 +220,7 @@ class CandidateHandshakeRaceTest {
         try (var response = client.newCall(warmUpRequest).execute()) {
             assertThat(response.code()).isEqualTo(200);
         }
-        assertThat(warm.handshakesCompleted()).hasValue(1);
+        await().atMost(8, TimeUnit.SECONDS).untilAsserted(() -> assertThat(warm.handshakesCompleted()).hasValue(1));
         warm.holdHandshakes();
         fresh.holdHandshakes();
 
@@ -331,7 +331,7 @@ class CandidateHandshakeRaceTest {
         var order = race.order(List.of(candidate("trusted", trusted))).get(10, TimeUnit.SECONDS);
 
         assertThat(order).extracting(Candidate::counterPartyId).containsExactly("trusted");
-        assertThat(trusted.handshakesCompleted()).hasValue(1);
+        await().atMost(8, TimeUnit.SECONDS).untilAsserted(() -> assertThat(trusted.handshakesCompleted()).hasValue(1));
         assertThat(cooldownTracker.isCoolingDown(trusted.address())).isFalse();
     }
 

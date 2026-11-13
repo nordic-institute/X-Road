@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.test-fixtures-conventions")
 }
 
 dependencies {
@@ -19,6 +20,9 @@ dependencies {
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.core)
+
+  testFixturesImplementation(libs.nimbus.jose.jwt)
+  testFixturesImplementation(project(":common:common-test"))
 
   constraints {
     implementation(libs.jakarta.validationApi)

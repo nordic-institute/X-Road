@@ -3530,7 +3530,8 @@ paths:
         <p>
         Runs the initialization prerequisite checks and answers at once. Either accepted, with the run
         continuing in the background, or refused with the first failing cause (issuer already initialized,
-        host not set, or connector TLS certificate missing, expired or not valid for the issuer host).
+        host not set, connector TLS certificate missing, expired or not valid for the issuer host, or an
+        initialization run already in progress).
         </p>
       operationId: initializeIssuerService
       responses:

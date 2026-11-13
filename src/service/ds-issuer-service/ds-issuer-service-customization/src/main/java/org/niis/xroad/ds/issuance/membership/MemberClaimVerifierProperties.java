@@ -31,8 +31,9 @@ import java.time.Duration;
 /**
  * Verifier-side configuration for the X-Road MemberId claim JWS lifetime checks.
  *
- * @param lifetimeSeconds maximum age of the assertion ({@code iat} to {@code exp}); holders
- *                        should match the {@code xroad.identityhub.claim.lifetime-seconds} setting.
+ * @param lifetimeSeconds maximum age of the assertion, measured from {@code iat}; a claim is
+ *                        rejected once {@code iat} is older than this plus {@code leewaySeconds}.
+ *                        Holders should match the {@code xroad.identityhub.claim.lifetime-seconds} setting.
  * @param leewaySeconds   allowed clock skew when checking {@code iat} / {@code exp}.
  */
 public record MemberClaimVerifierProperties(long lifetimeSeconds, long leewaySeconds) {

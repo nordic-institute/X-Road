@@ -86,9 +86,6 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
         if (!connectorCertificateCheck.isReadyFor(state.host())) {
             return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.CERTIFICATE_NOT_READY);
         }
-        if (issuerSetUpLeaseService.currentHolder().isPresent()) {
-            return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING);
-        }
 
         var node = haConfigStatus.getCurrentHaNodeName();
         if (!issuerSetUpLeaseService.tryAcquire(node, leaseTtl())) {

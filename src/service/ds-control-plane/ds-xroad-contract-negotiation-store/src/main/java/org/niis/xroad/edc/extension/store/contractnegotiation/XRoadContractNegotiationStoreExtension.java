@@ -37,7 +37,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
@@ -48,12 +47,11 @@ import java.time.Duration;
 import static org.niis.xroad.edc.extension.store.contractnegotiation.XRoadContractNegotiationStoreExtension.EXTENSION_NAME;
 
 /**
- * Takes over both duties of the stock {@code SqlContractNegotiationStoreExtension}, which is excluded from the
- * runtime via {@code xroad.edc.boot.excluded-service-extensions} so that this extension is the sole
+ * Replaces the stock {@code SqlContractNegotiationStoreExtension}, which is excluded from the runtime via
+ * {@code xroad.edc.boot.excluded-service-extensions} so that this extension is the sole
  * {@link ContractNegotiationStore} provider: it constructs the stock SQL store, wrapped in
- * {@link XRoadContractNegotiationStore}, and registers the stock schema DDL with the SQL schema bootstrapper. The
- * excluded extension's jar stays on the runtime classpath so its store class and schema resource remain available
- * to this extension.
+ * {@link XRoadContractNegotiationStore}. The excluded extension's jar stays on the runtime classpath so its store
+ * class remains available to this extension.
  *
  * <p>Statements are always {@link XRoadPostgresContractNegotiationStatements}: the converge mechanism is
  * Postgres-specific SQL (the deployment database is Postgres in every X-Road topology), so there is no
@@ -64,8 +62,6 @@ import static org.niis.xroad.edc.extension.store.contractnegotiation.XRoadContra
 public class XRoadContractNegotiationStoreExtension implements ServiceExtension {
 
     public static final String EXTENSION_NAME = "X-Road Contract Negotiation Store";
-
-    private static final String CONTRACT_NEGOTIATION_SCHEMA_RESOURCE = "contract-negotiation-schema.sql";
 
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE,
             key = "edc.sql.store.contractnegotiation.datasource")
@@ -92,9 +88,6 @@ public class XRoadContractNegotiationStoreExtension implements ServiceExtension 
     @Inject
     private QueryExecutor queryExecutor;
 
-    @Inject
-    private SqlSchemaBootstrapper sqlSchemaBootstrapper;
-
     @Override
     public String name() {
         return EXTENSION_NAME;
@@ -110,7 +103,5 @@ public class XRoadContractNegotiationStoreExtension implements ServiceExtension 
                 typeManager::getMapper, statements, queryExecutor, context.getRuntimeId(), clock);
 
         context.registerService(ContractNegotiationStore.class, store);
-
-        sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, CONTRACT_NEGOTIATION_SCHEMA_RESOURCE);
     }
 }

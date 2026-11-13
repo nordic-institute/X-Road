@@ -120,6 +120,9 @@ public final class CertUtils {
     private static final int KEY_ENCIPHERMENT_IDX = 2;
     private static final int DATA_ENCIPHERMENT_IDX = 3;
 
+    /** {@code GeneralName} tag for a DNS subject alternative name entry (RFC 5280). */
+    private static final int GENERAL_NAME_DNS = 2;
+
     private static final List<String> FIELD_NAMES = List.of(
             "othername", "email", "DNS", "x400", "DirName", "ediPartyName",
             "URI", "IP Address", "Registered ID");
@@ -206,6 +209,26 @@ public final class CertUtils {
             }
         }
         return builder.isEmpty() ? null : builder.toString();
+    }
+
+    /**
+     * Reads the DNS-type subject alternative names from a certificate, in certificate order.
+     *
+     * @param cert certificate for which to get the DNS subject alternative names
+     * @return the DNS subject alternative name values, or an empty list when the certificate has none
+     * @throws CertificateParsingException if the certificate's subject alternative names cannot be parsed
+     */
+    public static List<String> getDnsSubjectAlternativeNames(X509Certificate cert) throws CertificateParsingException {
+        Collection<List<?>> subjectAlternativeNames = cert.getSubjectAlternativeNames();
+        if (subjectAlternativeNames == null) {
+            return List.of();
+        }
+        return subjectAlternativeNames.stream()
+                .filter(san -> san.size() > 1 && Integer.valueOf(GENERAL_NAME_DNS).equals(san.get(0)))
+                .map(san -> san.get(1))
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .toList();
     }
 
     public static String getSubjectAlternativeNameFromCsr(byte[] certRequest) throws IOException {

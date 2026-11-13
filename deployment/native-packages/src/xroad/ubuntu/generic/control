@@ -196,7 +196,7 @@ Description: X-Road DS Identity Hub
 
 Package: xroad-ds-issuer-service
 Architecture: all
-Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-center (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
 Description: X-Road DS Issuer Service
  X-Road Data Space Issuer Service component for the Central Server.

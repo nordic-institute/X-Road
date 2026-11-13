@@ -82,6 +82,38 @@ type `kubernetes.io/basic-auth`, ExternalName Service alias to the CNPG
 `-rw` primary). Any other provider — an operator-managed cluster, an
 `ExternalSecret`, etc. — must match the same names and keys.
 
+### Schema init Jobs
+
+The `pre-install,pre-upgrade` Liquibase init Jobs read their connection settings from
+`init.<entry>` in `values.yaml`. Each Job reads its credentials from the Secret
+`db-<job name>`. The `ds-*` entries render only when `services.<name>.replicas` is above 0.
+
+| Key | Default | Meaning |
+|---|---|---|
+| `init.<entry>.host`, `port`, `database` | per entry | Database the Job connects to |
+| `init.<entry>.schema` | `public` | Liquibase default schema (`DEFAULT_SCHEMA_NAME`) |
+| `init.<entry>.changelogName` | entry job name | Changelog the Job runs |
+| `init.<entry>.username` | per entry | Value of `PROP_DB_USER`; the variable is omitted when unset. `serverconf`, `messagelog` and `opmonitor` set it; the `ds-*` entries leave it unset |
+| `init.<entry>.userSecretKey` | unset | Secret key holding the JDBC user. Unset: the Job connects as `postgres` |
+| `init.<entry>.passwordSecretKey` | `postgres-password` | Secret key holding the JDBC password |
+
+| Entry | Job name and Secret | `username` | `userSecretKey` | `passwordSecretKey` | Renders when |
+|---|---|---|---|---|---|
+| `serverconf` | `serverconf`, `db-serverconf` | `serverconf` | unset (`postgres`) | `postgres-password` | always |
+| `messagelog` | `messagelog`, `db-messagelog` | `messagelog` | unset (`postgres`) | `postgres-password` | always |
+| `opmonitor` | `opmonitor`, `db-opmonitor` | `opmonitor` | unset (`postgres`) | `postgres-password` | `services.op-monitor.enabled` |
+| `dsControlPlane` | `ds-control-plane`, `db-ds-control-plane` | unset | `username` | `password` | `services.ds-control-plane.replicas > 0` |
+| `dsIdentityHub` | `ds-identity-hub`, `db-ds-identity-hub` | unset | `username` | `password` | `services.ds-identity-hub.replicas > 0` |
+| `dsIssuerService` | `ds-issuer-service`, `db-ds-issuer-service` | unset | `username` | `password` | `services.ds-issuer-service.replicas > 0` |
+
+The `ds-*` Jobs run as the database owner role from the Secret, so the EDC tables belong
+to the role the service uses at runtime.
+The Liquibase init Jobs are the only thing that creates the EDC tables: the EDC components
+run with automatic table creation off. A `helm upgrade` of a release whose EDC tables were
+created by the earlier automatic creation fails the `ds-*` init Jobs with "relation already
+exists". Recreate those EDC databases (`ds-control-plane`, `ds-identity-hub`,
+`ds-issuer-service`) before such an upgrade.
+
 ## 5. Compose → Helm parity table
 
 This table is the **canonical anti-drift artefact**. Every compose
@@ -94,9 +126,12 @@ MUST map to a Helm template; every env var, port, probe, and
 | `db-ds-control-plane` | external (cloudnative_pg ansible role) — chart expects bare Service `db-ds-control-plane` and Secret `db-ds-control-plane/password` | — (provisioned outside chart) | 5432 | CNPG-managed | — (no depends_on) | compose lines 19–42 |
 | `db-ds-identity-hub` | external (cloudnative_pg ansible role) — chart expects bare Service `db-ds-identity-hub` and Secret `db-ds-identity-hub/password` | — (provisioned outside chart) | 5432 | CNPG-managed | — (no depends_on) | compose lines 93–114 |
 | `db-ds-issuer-service` | external (cloudnative_pg ansible role) — chart expects bare Service `db-ds-issuer-service` and Secret `db-ds-issuer-service/password` | — (provisioned outside chart) | 5432 | CNPG-managed | — (no depends_on) | compose lines 150–171 |
-| `ds-control-plane` | `services.ds-control-plane` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `DB_CONFIG_SOURCE_URL`, `DB_CONFIG_SOURCE_USERNAME`, `DB_CONFIG_SOURCE_PASSWORD` (secretKeyRef) | 8181, 8183, 8185, 5461, 4099, 9999 | `httpGet :4099/q/health/ready` (readiness), `:4099/q/health/live` (liveness) (HTTP) — 5s/40/initialDelay=5s | `db-ds-control-plane` → `wait-db`; `configuration-client` → `wait-config-client`; `ds-identity-hub` → `wait-identity-hub` | compose lines 44–91 |
-| `ds-identity-hub` | `services.ds-identity-hub` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `EDC_IH_DID_PUBLIC_HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `DEBUG` | 7181, 7183, 7184, 7185, 5460, 9999 | `httpGet :4099/q/health/ready` (readiness), `:4099/q/health/live` (liveness) (HTTP) — 5s/40/initialDelay=5s | `db-ds-identity-hub` → `wait-db` | compose lines 116–148 |
-| `ds-issuer-service` | `services.ds-issuer-service` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `DEBUG` | 6181, 6183, 6185, 6187, 9999 | `httpGet :4099/q/health/ready` (readiness), `:4099/q/health/live` (liveness) (HTTP) — 5s/40/initialDelay=5s | `db-ds-issuer-service` → `wait-db` | compose lines 173–213 |
+| `db-ds-control-plane-init` | `init.dsControlPlane` in `values.yaml` + `templates/_init_db.tpl` (pre-install/pre-upgrade Job `ds-control-plane-db-init`) | `JDBC_URL`, `JDBC_USER` (secretKeyRef `username`), `JDBC_PASSWORD` (secretKeyRef `password`), `CHANGELOG`, `DEFAULT_SCHEMA_NAME` | — | Job completion | `db-ds-control-plane` → `check-db-ready` | `db-ds-control-plane-init` service |
+| `db-ds-identity-hub-init` | `init.dsIdentityHub` in `values.yaml` + `templates/_init_db.tpl` (Job `ds-identity-hub-db-init`) | same as above | — | Job completion | `db-ds-identity-hub` → `check-db-ready` | `db-ds-identity-hub-init` service |
+| `db-ds-issuer-service-init` | `init.dsIssuerService` in `values.yaml` + `templates/_init_db.tpl` (Job `ds-issuer-service-db-init`) | same as above | — | Job completion | `db-ds-issuer-service` → `check-db-ready` | `db-ds-issuer-service-init` service |
+| `ds-control-plane` | `services.ds-control-plane` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `DB_CONFIG_SOURCE_URL`, `DB_CONFIG_SOURCE_USERNAME`, `DB_CONFIG_SOURCE_PASSWORD` (secretKeyRef) | 8181, 8183, 8185, 5461, 4099, 9999 | `httpGet :4099/q/health/ready` (readiness), `:4099/q/health/live` (liveness) (HTTP) — 5s/40/initialDelay=5s | `db-ds-control-plane` → `wait-db`; `db-ds-control-plane-init` → Job `ds-control-plane-db-init` (pre-install,pre-upgrade hook, completes before the pod starts); `configuration-client` → `wait-config-client`; `ds-identity-hub` → `wait-identity-hub` | compose lines 44–91 |
+| `ds-identity-hub` | `services.ds-identity-hub` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `EDC_IH_DID_PUBLIC_HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `DEBUG` | 7181, 7183, 7184, 7185, 5460, 9999 | `httpGet :4099/q/health/ready` (readiness), `:4099/q/health/live` (liveness) (HTTP) — 5s/40/initialDelay=5s | `db-ds-identity-hub` → `wait-db`; `db-ds-identity-hub-init` → Job `ds-identity-hub-db-init` (pre-install,pre-upgrade hook, completes before the pod starts) | compose lines 116–148 |
+| `ds-issuer-service` | `services.ds-issuer-service` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `DEBUG` | 6181, 6183, 6185, 6187, 9999 | `httpGet :4099/q/health/ready` (readiness), `:4099/q/health/live` (liveness) (HTTP) — 5s/40/initialDelay=5s | `db-ds-issuer-service` → `wait-db`; `db-ds-issuer-service-init` → Job `ds-issuer-service-db-init` (pre-install,pre-upgrade hook, completes before the pod starts) | compose lines 173–213 |
 
 ## 6. Single-release-per-namespace constraint (dsp)
 
@@ -175,7 +210,12 @@ replacing it.
 The `Chart.yaml` `version` key is bumped only when the chart's public
 contract changes materially:
 
-- **Current version:** `0.5.0` — bumped from `0.4.0` alongside the
+- **Current version:** `0.6.0` — bumped from `0.5.0` alongside the
+  `init.dsControlPlane`, `init.dsIdentityHub` and `init.dsIssuerService`
+  values and the `userSecretKey` / `passwordSecretKey` init keys, which add
+  the three dataspace schema init Jobs (rendered only when the matching
+  `services.<name>.replicas` is above 0; default render unchanged).
+  Previously bumped to `0.5.0` from `0.4.0` alongside the
   `secretStore.tls` OpenBao CA trust knob (default empty, byte-identical
   render).
   Previously bumped to `0.4.0` from `0.3.0` alongside the

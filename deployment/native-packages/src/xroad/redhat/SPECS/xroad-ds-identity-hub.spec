@@ -82,7 +82,7 @@ if systemctl is-active %{name} &> /dev/null; then
 fi
 
 %define init_xroad_ds_identity_hub_db()                       \
-    /usr/share/xroad/scripts/setup_ds_identityhub_db.sh ""
+    /usr/share/xroad/scripts/setup_ds_identityhub_db.sh "" || exit $?
 
 %post -p /bin/bash
 umask 027

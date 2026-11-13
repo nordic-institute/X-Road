@@ -9,7 +9,6 @@ dependencies {
   implementation(libs.edc.lib.core)
   implementation(libs.edc.sql.lease)
   implementation(libs.edc.sql.lease.spi)
-  implementation(libs.edc.core.sql.bootstrapper)
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.jupiter)

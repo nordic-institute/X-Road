@@ -33,12 +33,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.web.spi.WebServer;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.ee10.servlet.Source;
 import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -97,6 +99,7 @@ public final class XRoadJettyService implements WebServer {
 
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private static final String ROOT_PATH = "/";
+    private static final String CREDENTIALS_CONTEXT_NAME = "credentials";
     private static final int MAX_CAUSE_LENGTH = 300;
 
     /**
@@ -369,7 +372,7 @@ public final class XRoadJettyService implements WebServer {
     }
 
     private ServerConnector createConnector(PortMapping mapping, SslContextFactory.Server factory) {
-        var connector = new ServerConnector(server, sslConnectionFactory(factory), httpsConnectionFactory(mapping.port()));
+        var connector = new ServerConnector(server, sslConnectionFactory(factory), httpsConnectionFactory(mapping));
         connector.setName(mapping.name());
         connector.setPort(mapping.port());
         var bindHost = bindHost(mapping);
@@ -399,17 +402,33 @@ public final class XRoadJettyService implements WebServer {
         return new SslConnectionFactory(factory, HttpVersion.HTTP_1_1.asString());
     }
 
-    private static ConnectionFactory httpsConnectionFactory(int port) {
+    private static ConnectionFactory httpsConnectionFactory(PortMapping mapping) {
         var httpsConfiguration = new HttpConfiguration();
         httpsConfiguration.setSecureScheme("https");
-        httpsConfiguration.setSecurePort(port);
+        httpsConfiguration.setSecurePort(mapping.port());
+        if (carriesEncodedParticipantSegment(mapping)) {
+            httpsConfiguration.setUriCompliance(
+                    UriCompliance.DEFAULT.with("dsp-participant-segment", UriCompliance.Violation.AMBIGUOUS_PATH_ENCODING));
+        }
         httpsConfiguration.addCustomizer(new SecureRequestCustomizer());
         return new HttpConnectionFactory(httpsConfiguration);
+    }
+
+    /**
+     * The DSP port and the identity hub credentials port carry the participant context id as a path segment in
+     * which a literal percent sign travels as {@code %25}; Jetty classes any encoded percent sign as ambiguous
+     * path encoding and rejects it by default.
+     */
+    private static boolean carriesEncodedParticipantSegment(PortMapping mapping) {
+        return ApiContext.PROTOCOL.equals(mapping.name()) || CREDENTIALS_CONTEXT_NAME.equals(mapping.name());
     }
 
     private ServletContextHandler createHandler(PortMapping mapping) {
         var handler = new ServletContextHandler(ROOT_PATH, 0);
         handler.setVirtualHosts(List.of("@" + mapping.name()));
+        if (carriesEncodedParticipantSegment(mapping)) {
+            handler.getServletHandler().setDecodeAmbiguousURIs(true);
+        }
         return handler;
     }
 

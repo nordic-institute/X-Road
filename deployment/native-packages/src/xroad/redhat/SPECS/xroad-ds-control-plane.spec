@@ -82,7 +82,7 @@ if systemctl is-active %{name} &> /dev/null; then
 fi
 
 %define init_xroad_ds_control_plane_db()                       \
-    /usr/share/xroad/scripts/setup_ds_controlplane_db.sh ""
+    /usr/share/xroad/scripts/setup_ds_controlplane_db.sh "" || exit $?
 
 %post -p /bin/bash
 umask 027
