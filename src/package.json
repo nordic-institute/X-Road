@@ -49,7 +49,7 @@
     "vite": "^8.3.7",
     "@vitest/browser": "5.1.0",
     "@vitest/browser-playwright": "5.1.0",
-    "msw": "^2.15.0",
+    "msw": "^3.0.4",
     "openapi-msw": "^2.1.1",
     "openapi-typescript": "^7.13.0",
     "ajv": "^8.20.0",
