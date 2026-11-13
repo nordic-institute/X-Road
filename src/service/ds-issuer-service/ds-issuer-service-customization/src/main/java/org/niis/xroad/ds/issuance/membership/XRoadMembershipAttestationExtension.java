@@ -49,7 +49,7 @@ import static org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationEx
 
 /**
  * Registers the X-Road MemberId-claim-verifying attestation source under the {@code holder}
- * type, replacing EDC's built-in DID-control attestation ({@link ReplacesExtensions}).
+ * type, declaring through {@link ReplacesExtensions} that it replaces EDC's built-in DID-control attestation.
  *
  * <p>Cred-defs continue to reference {@code attestationType: holder} unchanged. Behavior
  * becomes: holder must present a signed X-Road MemberId claim in the DCP JWT, verified

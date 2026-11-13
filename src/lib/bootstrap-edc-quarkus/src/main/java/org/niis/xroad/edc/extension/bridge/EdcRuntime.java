@@ -110,25 +110,33 @@ public class EdcRuntime extends BaseRuntime {
     @Override
     protected DependencyGraph buildDependencyGraph(ServiceExtensionContext context) {
         var loaded = extensionLoader.loadExtensions(ServiceExtension.class, true);
-        var extensions = filterExcluded(loaded, context);
+        var filtered = applyExclusions(loaded, context);
         log.info("EDC boot: {} service extensions loaded, {} after exclusions (list: '{}', code-replaced: '{}')",
-                loaded.size(), extensions.size(), context.getSetting(SETTING_EXCLUDED_SERVICE_EXTENSIONS, ""),
-                declaredReplacedExtensionTypes(loaded));
-        return DependencyGraph.of(context, extensions);
+                loaded.size(), filtered.extensions().size(), context.getSetting(SETTING_EXCLUDED_SERVICE_EXTENSIONS, ""),
+                filtered.appliedReplacements().stream().sorted().collect(Collectors.joining(", ")));
+        return DependencyGraph.of(context, filtered.extensions());
     }
 
     static List<ServiceExtension> filterExcluded(List<ServiceExtension> extensions, ServiceExtensionContext context) {
+        return applyExclusions(extensions, context).extensions();
+    }
+
+    private static ExclusionResult applyExclusions(List<ServiceExtension> extensions, ServiceExtensionContext context) {
         var excluded = excludedServiceExtensionTypes(context);
         var afterConfigExclusion = extensions.stream()
                 .filter(extension -> !excluded.contains(extension.getClass().getName()))
                 .toList();
         var replaced = declaredReplacedExtensionTypes(afterConfigExclusion);
         if (excluded.isEmpty() && replaced.isEmpty()) {
-            return extensions;
+            return new ExclusionResult(extensions, replaced);
         }
-        return afterConfigExclusion.stream()
+        var filtered = afterConfigExclusion.stream()
                 .filter(extension -> !replaced.contains(extension.getClass().getName()))
                 .toList();
+        return new ExclusionResult(filtered, replaced);
+    }
+
+    private record ExclusionResult(List<ServiceExtension> extensions, Set<String> appliedReplacements) {
     }
 
     private static Set<String> declaredReplacedExtensionTypes(List<ServiceExtension> extensions) {

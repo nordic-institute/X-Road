@@ -4,7 +4,6 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(libs.edc.issuerservice.issuance.spi)
   implementation(libs.edc.issuerservice.holder.spi)
   implementation(libs.edc.spi.identityhub.dcp)
@@ -13,6 +12,7 @@ dependencies {
   implementation(libs.edc.spi.core)
   implementation(libs.edc.lib.core)
   implementation(libs.edc.crypto.verifiablecredentials.jwt)
+  api(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":common:common-domain"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:edc-jetty-tls"))

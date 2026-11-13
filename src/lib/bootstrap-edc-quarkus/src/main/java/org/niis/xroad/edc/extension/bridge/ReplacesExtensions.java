@@ -38,6 +38,9 @@ import java.util.Set;
 public interface ReplacesExtensions {
 
     /**
+     * Called on the {@code ServiceLoader}-constructed instance before field injection runs, so an implementation
+     * must not read an {@code @Inject}ed field here. Must return a non-null constant set.
+     *
      * @return the fully qualified class names of the upstream {@link ServiceExtension}s this extension replaces
      */
     Set<String> replacedExtensions();

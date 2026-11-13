@@ -44,7 +44,8 @@ import java.util.Map;
 
 /**
  * Loads every {@link ServiceExtension} from the current classpath, drops the ones the given
- * {@code application.yaml} excludes, and runs EDC's injection point scan on the rest, as the runtime does at boot.
+ * {@code application.yaml} excludes together with any extension a loaded {@link ReplacesExtensions} instance
+ * declares replaced, and runs EDC's injection point scan on the rest, as the runtime does at boot.
  * The scan reflects over the declared fields of each extension, so a field whose type is missing from the
  * classpath fails here with the same error the runtime would hit.
  */
@@ -52,7 +53,8 @@ import java.util.Map;
 public class ExtensionScanGuard {
 
     /**
-     * Scans the extensions that remain after applying the exclusions of the given {@code application.yaml}.
+     * Scans the extensions that remain after applying the exclusions of the given {@code application.yaml} and
+     * any replacement a loaded {@link ReplacesExtensions} instance declares.
      *
      * @param applicationYaml the application's {@code application.yaml}
      * @return the extensions that were scanned

@@ -92,10 +92,10 @@ class EdcRuntimeTest {
     }
 
     @Test
-    void filterExcludedKeepsUpstreamExtensionWhenReplacingExtensionIsNotLoaded() {
-        when(context.getSetting(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS, "")).thenReturn("");
+    void filterExcludedKeepsUpstreamExtensionWhenReplacingExtensionIsConfigExcluded() {
+        when(context.getSetting(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS, "")).thenReturn(ReplacingExtension.class.getName());
 
-        var result = EdcRuntime.filterExcluded(List.of(new UpstreamExtension()), context);
+        var result = EdcRuntime.filterExcluded(List.of(new ReplacingExtension(), new UpstreamExtension()), context);
 
         assertThat(result).singleElement().isInstanceOf(UpstreamExtension.class);
     }
