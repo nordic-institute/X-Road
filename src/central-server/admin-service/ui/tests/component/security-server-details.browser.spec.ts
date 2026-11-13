@@ -224,6 +224,7 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
     await page.getByTestId('security-server-address').getByRole('button').click();
     const dialog = page.getByTestId('security-server-address-edit-dialog');
     await expect.element(dialog).toBeVisible();
+    await expect.element(dialog.getByTestId('security-server-address-edit-field').getByRole('textbox')).toHaveFocus();
     return dialog;
   }
 
