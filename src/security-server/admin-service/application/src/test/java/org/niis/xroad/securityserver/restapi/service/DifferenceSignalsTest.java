@@ -218,19 +218,19 @@ class DifferenceSignalsTest {
                 .evaluate(null, List.of(row(PublicationState.PUBLISHED, BOUND), atOtherHost));
 
         assertThat(differences.hostStatus()).isEqualTo(HostStatus.DIFFERS);
-        assertThat(differences.hostDiffering()).containsExactly(atOtherHost);
+        assertThat(differences.hostDiffering()).containsExactly(MEMBER.asEncodedId());
     }
 
     @Test
     void hostStatusDiffersWhenTheSystemBindingIsAtAnotherHost() {
-        var system = systemRow(PublicationState.PUBLISHED);
+        var system = new DsParticipantEntity();
         system.setDid(systemDid("ss1.example.org:7183"));
 
         var differences = signals(ADDRESS, null)
                 .evaluate(system, List.of(row(PublicationState.PUBLISHED, BOUND)));
 
         assertThat(differences.hostStatus()).isEqualTo(HostStatus.DIFFERS);
-        assertThat(differences.hostDiffering()).containsExactly(system);
+        assertThat(differences.hostDiffering()).containsExactly("SYSTEM");
     }
 
     @ParameterizedTest
@@ -265,7 +265,7 @@ class DifferenceSignalsTest {
         assertThat(differences.hostStatus()).isEqualTo(HostStatus.DIFFERS);
         assertThat(differences.systemMismatch()).isEqualTo(new DifferenceSignals.SystemMismatch(true, false));
         assertThat(differences.memberMismatches()).containsExactly(MEMBER);
-        assertThat(differences.hostDiffering()).containsExactly(atOtherHost);
+        assertThat(differences.hostDiffering()).containsExactly("DEV:COM:333");
     }
 
     @Test

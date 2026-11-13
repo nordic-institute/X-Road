@@ -38,7 +38,6 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,6 +49,8 @@ import java.util.stream.Stream;
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DifferenceSignals {
+
+    private static final String SYSTEM_NAME = "SYSTEM";
 
     private final SecurityServerId serverId;
     private final GlobalConfProvider globalConfProvider;
@@ -110,7 +111,8 @@ public final class DifferenceSignals {
      *
      * @param system  the active SYSTEM binding row, {@code null} when there is none
      * @param members the active member binding rows, whatever their publication state
-     * @return the host status, the SYSTEM mismatches, the members with a mismatch and the rows at another host
+     * @return the host status, the SYSTEM mismatches, the members with a mismatch and the names of the bindings at
+     * another host
      */
     public Differences evaluate(@Nullable DsParticipantEntity system, Collection<DsParticipantEntity> members) {
         if (!hostMatcher.isRegisteredAddressUsable()) {
@@ -121,9 +123,14 @@ public final class DifferenceSignals {
                 .<ClientId>map(DsParticipantEntity::getMemberIdentifier)
                 .collect(Collectors.toUnmodifiableSet());
         var systemMismatch = system == null ? SystemMismatch.NONE : systemMismatch(system);
-        var hostDiffering = Stream.concat(members.stream(), Stream.ofNullable(system))
-                .filter(row -> !hostMatcher.didHostMatches(row.getDid()))
-                .toList();
+        var hostDiffering = Stream.concat(
+                        members.stream()
+                                .filter(row -> !hostMatcher.didHostMatches(row.getDid()))
+                                .map(row -> row.getMemberIdentifier().asEncodedId()),
+                        Stream.ofNullable(system)
+                                .filter(row -> !hostMatcher.didHostMatches(row.getDid()))
+                                .map(_ -> SYSTEM_NAME))
+                .collect(Collectors.toUnmodifiableSet());
         return new Differences(hostDiffering.isEmpty() ? HostStatus.OK : HostStatus.DIFFERS, systemMismatch,
                 memberMismatches, hostDiffering);
     }
@@ -145,12 +152,13 @@ public final class DifferenceSignals {
      * @param hostStatus       whether the DIDs of all active bindings carry the registered address as their host
      * @param systemMismatch   which SYSTEM values differ from the ones globalconf carries
      * @param memberMismatches the members whose carried DID differs from the bound one
-     * @param hostDiffering    the active bindings whose DID host is not the registered address
+     * @param hostDiffering    the names of the active bindings whose DID host is not the registered address:
+     *                         {@code SYSTEM} or the encoded member identifier
      */
     public record Differences(HostStatus hostStatus, SystemMismatch systemMismatch, Set<ClientId> memberMismatches,
-                              List<DsParticipantEntity> hostDiffering) {
+                              Set<String> hostDiffering) {
 
         public static final Differences UNKNOWN =
-                new Differences(HostStatus.UNKNOWN, SystemMismatch.NONE, Set.of(), List.of());
+                new Differences(HostStatus.UNKNOWN, SystemMismatch.NONE, Set.of(), Set.of());
     }
 }

@@ -35,12 +35,9 @@ import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.securityserver.restapi.service.DifferenceSignals.Differences;
 import org.niis.xroad.securityserver.restapi.service.DifferenceSignals.SystemMismatch;
 import org.niis.xroad.securityserver.restapi.service.HostStatus;
-import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.model.ParticipantType;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
@@ -52,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class DataspaceDifferenceLogTest {
 
-    private static final int MEMBER_COUNT = 12;
+    private static final String HOST_MEMBER = "DEV:COM:HOST";
 
     private final DataspaceDifferenceLog differenceLog = new DataspaceDifferenceLog();
     private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
@@ -72,169 +69,121 @@ class DataspaceDifferenceLogTest {
     }
 
     @Test
-    void manyMemberDidDifferencesAreOneWarningWithTheChangeTheTotalAndTheFirstTenIds() {
-        differenceLog.record(memberMismatches(MEMBER_COUNT));
+    void manyAppearedEntriesAreOneWarningWithTheCountAndTheFirstTen() {
+        differenceLog.record(differences(Set.of(), true, true, 12));
 
-        var warnings = lines(Level.WARN);
-        assertThat(warnings).hasSize(1);
-        assertThat(warnings.getFirst()).startsWith("Dataspace globalconf difference appeared: member DID, ")
-                .contains("12 new, 12 in total").endsWith("and more");
-        assertThat(idsIn(warnings.getFirst())).containsExactlyElementsOf(memberIds(10));
+        assertThat(lines(Level.WARN)).containsExactly(
+                "Dataspace globalconf differences appeared, 14 new: [DSP base URL, SYSTEM DID, %s] and more"
+                        .formatted(String.join(", ", memberEntries(8))));
+        assertThat(lines(Level.INFO)).isEmpty();
     }
 
     @Test
-    void moreThanTenChangedIdsPutTheFullListOnOneDebugLine() {
-        differenceLog.record(memberMismatches(MEMBER_COUNT));
+    void everyKindOfEntryCanBeInTheSameLine() {
+        differenceLog.record(differences(Set.of(HOST_MEMBER), true, true, 1));
 
-        var debug = lines(Level.DEBUG);
-        assertThat(debug).hasSize(1);
-        assertThat(debug.getFirst()).contains("changed participants");
-        assertThat(idsIn(debug.getFirst())).containsExactlyElementsOf(memberIds(MEMBER_COUNT));
+        assertThat(lines(Level.WARN)).containsExactly(
+                "Dataspace globalconf differences appeared, 4 new: [DID host DEV:COM:HOST, DSP base URL, SYSTEM DID,"
+                        + " member DID DEV:COM:M00]");
     }
 
     @Test
-    void tenOrFewerChangedIdsWriteNoDebugLine() {
-        differenceLog.record(memberMismatches(DataspaceDifferenceLog.MAX_LOGGED_IDS));
-        differenceLog.record(memberMismatches(0));
+    void onlyTheSystemDidFlagIsASystemDidEntry() {
+        differenceLog.record(differences(Set.of(), true, false, 0));
 
-        assertThat(lines(Level.DEBUG)).isEmpty();
-        assertThat(lines(Level.WARN)).hasSize(1);
-        assertThat(lines(Level.INFO)).hasSize(1);
+        assertThat(lines(Level.WARN)).containsExactly("Dataspace globalconf differences appeared, 1 new: [SYSTEM DID]");
     }
 
     @Test
-    void everyKindOfDifferenceIsOneWarningAndTheNonListingKindsCarryOnlyTheSubject() {
-        differenceLog.record(new Differences(HostStatus.DIFFERS, new SystemMismatch(true, true),
-                memberSet(MEMBER_COUNT), hostRows(MEMBER_COUNT)));
+    void onlyTheDspBaseUrlFlagIsADspBaseUrlEntry() {
+        differenceLog.record(differences(Set.of(), false, true, 0));
 
-        var warnings = lines(Level.WARN);
-        assertThat(warnings).containsExactlyInAnyOrder(
-                "Dataspace globalconf difference appeared: SYSTEM DID",
-                "Dataspace globalconf difference appeared: DSP base URL",
-                warningOf("DID host"),
-                warningOf("member DID"));
+        assertThat(lines(Level.WARN)).containsExactly(
+                "Dataspace globalconf differences appeared, 1 new: [DSP base URL]");
     }
 
     @Test
-    void aClearedKindIsOneInfoLineWithTheClearedCountTheRemainingTotalAndTheFirstTenIds() {
-        differenceLog.record(memberMismatches(MEMBER_COUNT));
+    void aSystemBindingAtAnotherHostIsADidHostEntryNamedSystem() {
+        differenceLog.record(differences(Set.of("SYSTEM"), false, false, 0));
+
+        assertThat(lines(Level.WARN)).containsExactly(
+                "Dataspace globalconf differences appeared, 1 new: [DID host SYSTEM]");
+    }
+
+    @Test
+    void manyClearedEntriesAreOneInfoLineWithTheCountAndTheFirstTen() {
+        differenceLog.record(differences(Set.of(), true, true, 12));
         appender.list.clear();
 
-        differenceLog.record(memberMismatches(0));
+        differenceLog.record(differences(Set.of(), false, false, 0));
 
-        var infos = lines(Level.INFO);
-        assertThat(infos).hasSize(1);
-        assertThat(infos.getFirst()).startsWith("Dataspace globalconf difference cleared: member DID, ")
-                .contains("12 cleared, 0 in total").endsWith("and more").doesNotContain("differs");
-        assertThat(idsIn(infos.getFirst())).containsExactlyElementsOf(memberIds(10));
+        assertThat(lines(Level.INFO)).containsExactly(
+                "Dataspace globalconf differences cleared, 14: [DSP base URL, SYSTEM DID, %s] and more"
+                        .formatted(String.join(", ", memberEntries(8))));
         assertThat(lines(Level.WARN)).isEmpty();
     }
 
     @Test
-    void aPartialClearReportsWhatRemains() {
-        differenceLog.record(memberMismatches(13));
+    void aClearedDidHostEntryIsNamedInTheInfoLine() {
+        differenceLog.record(differences(Set.of("SYSTEM"), false, false, 0));
         appender.list.clear();
 
-        differenceLog.record(memberMismatches(11));
+        differenceLog.record(differences(Set.of(), false, false, 0));
 
-        assertThat(lines(Level.INFO)).containsExactly(
-                "Dataspace globalconf difference cleared: member DID, 2 cleared, 11 in total: [%s, %s]"
-                        .formatted(memberId(11), memberId(12)));
+        assertThat(lines(Level.INFO)).containsExactly("Dataspace globalconf differences cleared, 1: [DID host SYSTEM]");
     }
 
     @Test
-    void clearedNonListingKindsCarryOnlyTheSubject() {
-        differenceLog.record(new Differences(HostStatus.OK, new SystemMismatch(true, true), Set.of(), List.of()));
+    void aCheckWithAppearedAndClearedEntriesLogsOneLineOfEach() {
+        differenceLog.record(differences(Set.of(), true, false, 1));
         appender.list.clear();
 
-        differenceLog.record(memberMismatches(0));
+        differenceLog.record(differences(Set.of(), false, true, 1));
 
-        assertThat(lines(Level.INFO)).containsExactlyInAnyOrder(
-                "Dataspace globalconf difference cleared: SYSTEM DID",
-                "Dataspace globalconf difference cleared: DSP base URL");
+        assertThat(lines(Level.WARN)).containsExactly(
+                "Dataspace globalconf differences appeared, 1 new: [DSP base URL]");
+        assertThat(lines(Level.INFO)).containsExactly(
+                "Dataspace globalconf differences cleared, 1: [SYSTEM DID]");
     }
 
     @Test
     void anUnchangedSetLogsNothing() {
-        differenceLog.record(memberMismatches(MEMBER_COUNT));
+        differenceLog.record(differences(Set.of(HOST_MEMBER), true, true, 12));
         appender.list.clear();
 
-        differenceLog.record(memberMismatches(MEMBER_COUNT));
+        differenceLog.record(differences(Set.of(HOST_MEMBER), true, true, 12));
 
         assertThat(appender.list).isEmpty();
     }
 
     @Test
-    void onlyTheDifferencesThatAppearedAreNamed() {
-        differenceLog.record(memberMismatches(2));
+    void anEvaluationWithAnUnusableAddressLogsNothingAboveDebugAndKeepsThePreviousSet() {
+        differenceLog.record(differences(Set.of(), false, false, 2));
         appender.list.clear();
 
-        differenceLog.record(memberMismatches(3));
+        differenceLog.record(Differences.UNKNOWN);
+        differenceLog.record(differences(Set.of(), false, false, 2));
 
-        var warnings = lines(Level.WARN);
-        assertThat(warnings).hasSize(1);
-        assertThat(warnings.getFirst()).contains("member DID, 1 new, 3 in total: [");
-        assertThat(idsIn(warnings.getFirst())).containsExactly(memberId(2));
+        assertThat(appender.list).extracting(ILoggingEvent::getLevel).containsOnly(Level.DEBUG);
     }
 
-    @Test
-    void anEvaluationWithAnUnusableAddressLeavesTheKeptDifferencesAsTheyAre() {
-        differenceLog.record(memberMismatches(2));
-        differenceLog.record(new Differences(HostStatus.UNKNOWN, new SystemMismatch(false, false), Set.of(), List.of()));
-        appender.list.clear();
-
-        differenceLog.record(memberMismatches(2));
-
-        assertThat(appender.list).isEmpty();
-    }
-
-    private static String warningOf(String subject) {
-        return "Dataspace globalconf difference appeared: %s, 12 new, 12 in total: %s and more"
-                .formatted(subject, memberIds(10));
-    }
-
-    private static Differences memberMismatches(int count) {
-        return new Differences(HostStatus.OK, new SystemMismatch(false, false), memberSet(count), List.of());
-    }
-
-    private static Set<ClientId> memberSet(int count) {
-        return IntStream.range(0, count).mapToObj(DataspaceDifferenceLogTest::member)
+    private static Differences differences(Set<String> hostDiffering, boolean systemDid, boolean dspBaseUrl,
+            int memberCount) {
+        var members = IntStream.range(0, memberCount).mapToObj(DataspaceDifferenceLogTest::member)
                 .collect(Collectors.toUnmodifiableSet());
-    }
-
-    private static List<DsParticipantEntity> hostRows(int count) {
-        return IntStream.range(0, count).mapToObj(index -> {
-            var row = new DsParticipantEntity();
-            row.setParticipantType(ParticipantType.MEMBER);
-            row.setMemberIdentifier(ClientIdEntityFactory.create(member(index)));
-            return row;
-        }).toList();
+        return new Differences(HostStatus.DIFFERS, new SystemMismatch(systemDid, dspBaseUrl), members, hostDiffering);
     }
 
     private static ClientId member(int index) {
-        return ClientId.Conf.create("DEV", "COM", memberCode(index));
+        return ClientId.Conf.create("DEV", "COM", "M%02d".formatted(index));
     }
 
-    private static String memberCode(int index) {
-        return "M%02d".formatted(index);
-    }
-
-    private static String memberId(int index) {
-        return member(index).asEncodedId();
-    }
-
-    private static List<String> memberIds(int count) {
-        return IntStream.range(0, count).mapToObj(DataspaceDifferenceLogTest::memberId).toList();
+    private static List<String> memberEntries(int count) {
+        return IntStream.range(0, count).mapToObj(index -> "member DID " + member(index).asEncodedId()).toList();
     }
 
     private List<String> lines(Level level) {
         return appender.list.stream().filter(event -> event.getLevel() == level)
                 .map(ILoggingEvent::getFormattedMessage).toList();
-    }
-
-    private static List<String> idsIn(String line) {
-        var start = line.indexOf('[');
-        var end = line.indexOf(']');
-        return List.of(line.substring(start + 1, end).split(", "));
     }
 }
