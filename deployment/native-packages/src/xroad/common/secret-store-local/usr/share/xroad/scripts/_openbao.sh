@@ -33,7 +33,10 @@ bao_api() {
   body=$(echo "$response" | grep -v "HTTP_STATUS")
 
   echo "[OPENBAO] $description - Status: $http_status" >&2
-  echo "[OPENBAO] $description - Response: $body" >&2
+  case "$endpoint" in
+    /v1/sys/init|/v1/auth/token/create) ;;
+    *) echo "[OPENBAO] $description - Response: $body" >&2 ;;
+  esac
 
   if [ "$http_status" != "200" ] && [ "$http_status" != "204" ]; then
     return 1
@@ -82,7 +85,8 @@ initialize() {
 
   echo "[OPENBAO] Initializing OpenBao with $shares shares and threshold $threshold" >&2
 
-  local init_response=$(bao_api "PUT" "$addr" "/v1/sys/init" \
+  local init_response
+  init_response=$(bao_api "PUT" "$addr" "/v1/sys/init" \
     "{\"secret_shares\": $shares, \"secret_threshold\": $threshold}" \
     "" "Initializing OpenBao")
 
@@ -294,10 +298,11 @@ create_token() {
 
   if [ -n "$token_id" ]; then
     payload_json=$(echo "$payload_json" | jq --arg id "$token_id" '. + {id: $id}')
-    echo "[OPENBAO] Using custom token ID: $token_id" >&2
+    echo "[OPENBAO] Using custom token ID" >&2
   fi
 
-  local token_response=$(bao_api "POST" "$addr" "/v1/auth/token/create" \
+  local token_response
+  token_response=$(bao_api "POST" "$addr" "/v1/auth/token/create" \
     "$payload_json" \
     "$token" "Creating token with policy: $policy")
 
@@ -306,6 +311,11 @@ create_token() {
     return 1
   fi
 
-  local client_token=$(echo "$token_response" | jq -r '.auth.client_token')
+  local client_token
+  client_token=$(echo "$token_response" | jq -r '.auth.client_token // empty')
+  if [ -z "$client_token" ]; then
+    echo "[OPENBAO] Failed to create token: no client token in the response" >&2
+    return 1
+  fi
   echo "$client_token"
 }

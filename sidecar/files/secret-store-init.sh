@@ -275,9 +275,13 @@ fi
 export BAO_TOKEN=${BAO_TOKEN:-$(cat "$ROOT_TOKEN_FILE")}
 
 if curl -s -k -H "X-Vault-Token: $BAO_TOKEN" "$BAO_ADDR/v1/sys/mounts" | jq -e 'has("xrd-pki/")' >/dev/null; then
-  log "PKI store already configured"
+  log "PKI store already configured; writing access policy..."
+  configure_policy "$BAO_ADDR" "$BAO_TOKEN" || {
+    warn "Failed to write access policy"
+    exit 1
+  }
 else
-  log "Configuring PKI store..."
+  log "Configuring PKI store and writing access policy..."
   configure_pki "$BAO_ADDR" "$BAO_TOKEN" || {
     warn "Failed to configure PKI"
     exit 1

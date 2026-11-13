@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+umask 077
 
 . /usr/share/xroad/scripts/_openbao.sh
 
@@ -59,32 +60,28 @@ else
   done < "$UNSEAL_KEYS_FILE"
 fi
 
-has_root_token=false
-if [ -n "${BAO_TOKEN:-}" ]; then
-  has_root_token=true
-elif [ -s "$ROOT_TOKEN_FILE" ]; then
+if [ -z "${BAO_TOKEN:-}" ] && [ -s "$ROOT_TOKEN_FILE" ]; then
   BAO_TOKEN=$(cat "$ROOT_TOKEN_FILE")
-  has_root_token=true
 fi
-export BAO_TOKEN
 
-if [ "$has_root_token" = "true" ]; then
-  # Configure PKI if needed
+if [ -n "${BAO_TOKEN:-}" ]; then
+  export BAO_TOKEN
+
+  # configure_pki writes the access policy as its last step; an existing PKI
+  # store only needs the policy refreshed.
   if curl -s -k -H "X-Vault-Token: $BAO_TOKEN" "$BAO_ADDR/v1/sys/mounts" | jq -e 'has("xrd-pki/")' >/dev/null; then
-    echo "PKI store already configured"
+    echo "PKI store already configured; writing access policy..."
+    configure_policy "$BAO_ADDR" "$BAO_TOKEN" || {
+      echo "Failed to write access policy" >&2
+      exit 1
+    }
   else
-    echo "Configuring PKI store..."
+    echo "Configuring PKI store and writing access policy..."
     configure_pki "$BAO_ADDR" "$BAO_TOKEN" || {
       echo "Failed to configure PKI" >&2
       exit 1
     }
   fi
-
-  echo "Writing access policy..."
-  configure_policy "$BAO_ADDR" "$BAO_TOKEN" || {
-    echo "Failed to write access policy" >&2
-    exit 1
-  }
 
   # Configure KV stores (xrd-secret KV v1 + xrd-ds-secret KV v2). configure_kv
   # is idempotent and provisions whichever mount is missing.
@@ -104,11 +101,12 @@ CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 client_token_status() {
   local token="$1"
   local attempt=1
-  local max_attempts=4
+  local max_attempts=10
   local status
   while true; do
     status=$(curl -s -k -o /dev/null -w "%{http_code}" \
       --connect-timeout 5 \
+      --max-time 10 \
       -H "X-Vault-Token: $token" \
       "$BAO_ADDR/v1/auth/token/lookup-self") || true
     case "$status" in
@@ -142,10 +140,10 @@ if [ -f "$CLIENT_TOKEN_FILE" ]; then
   esac
 fi
 
-if [ "$regenerate_client_token" = "true" ] && [ "$has_root_token" != "true" ]; then
+if [ "$regenerate_client_token" = "true" ] && [ -z "${BAO_TOKEN:-}" ]; then
   echo "The X-Road client token is missing or invalid and this node has no root token." >&2
-  echo "Copy the client token file $CLIENT_TOKEN_FILE from the main node, keep its owner and mode," >&2
-  echo "then restart the setup unit: systemctl restart xroad-secret-store-local.service" >&2
+  echo "Copy the root token file $ROOT_TOKEN_FILE from another node of the cluster (owner root:root, mode 600)," >&2
+  echo "restart xroad-secret-store-local.service, then restart the X-Road services on this node." >&2
   exit 1
 fi
 
@@ -154,14 +152,17 @@ if [ "$regenerate_client_token" = "true" ]; then
   echo "Generating X-Road client token.."
   # Use custom token ID if provided via environment variable (useful for dev/test)
   XROAD_SECRET_STORE_TOKEN_OVERRIDE="${XROAD_SECRET_STORE_TOKEN_OVERRIDE:-}"
-  CLIENT_TOKEN=$(create_token "$BAO_ADDR" "$BAO_TOKEN" "xroad-policy" "0" "xroad-client" "$XROAD_SECRET_STORE_TOKEN_OVERRIDE")
-  if [ $? -ne 0 ]; then
-    echo " Failed to create X-Road client token" >&2
+  CLIENT_TOKEN=$(create_token "$BAO_ADDR" "$BAO_TOKEN" "xroad-policy" "0" "xroad-client" "$XROAD_SECRET_STORE_TOKEN_OVERRIDE") || {
+    echo "Failed to create X-Road client token" >&2
     exit 1
-  fi
+  }
   echo "$CLIENT_TOKEN" > "$CLIENT_TOKEN_FILE"
   chmod 640 "$CLIENT_TOKEN_FILE"
   chown xroad:xroad "$CLIENT_TOKEN_FILE"
 fi
 
-echo "OpenBao initialization completed successfully"
+if [ -n "${BAO_TOKEN:-}" ]; then
+  echo "OpenBao setup completed"
+else
+  echo "OpenBao setup completed without root steps: mounts, policy and client token left as they are"
+fi
