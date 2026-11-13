@@ -6,6 +6,8 @@ plugins {
 dependencies {
   implementation(libs.edc.issuerservice.issuance.spi)
   implementation(libs.edc.issuerservice.holder.spi)
+  implementation(libs.edc.issuerservice.credential.spi)
+  implementation(libs.edc.issuer.dcp.issuer.spi)
   implementation(libs.edc.spi.identityhub.dcp)
   implementation(libs.edc.spi.identityhub.participantcontext)
   implementation(libs.edc.spi.identityhub)
@@ -30,6 +32,8 @@ dependencies {
   testImplementation(libs.liquibase.core)
   testImplementation(libs.postgresql)
   testImplementation(libs.testcontainers.postgresql)
+  // jakarta.ws.rs.ext.RuntimeDelegate provider, needed to build a jakarta.ws.rs.core.Response in-process
+  testRuntimeOnly(libs.jersey.common)
 
   testFixturesImplementation(libs.nimbus.jose.jwt)
   testFixturesImplementation(project(":common:common-test"))

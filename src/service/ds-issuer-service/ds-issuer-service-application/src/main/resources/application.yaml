@@ -43,10 +43,14 @@ xroad:
       # xroad.edc-owned-jetty-conventions); this setting is defense in depth.
       # SqlSchemaBootstrapperExtension is excluded so that no EDC code can create tables;
       # XRoadNoOpSqlSchemaBootstrapperExtension provides the SqlSchemaBootstrapper the SQL stores inject.
+      # LocalStatusListCredentialPublisherExtension is excluded because its initialize() reads the
+      # Hostname eagerly, which throws until the issuer identity is bound; XRoadStatusListCredentialPublisherExtension
+      # mounts the statuslist endpoint instead, reading the bound identity lazily per request.
       excluded-service-extensions: >-
         org.eclipse.edc.web.jetty.JettyExtension,
         org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,
-        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension
+        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension,
+        org.eclipse.edc.issuerservice.publisher.LocalStatusListCredentialPublisherExtension
 
 web:
   http:

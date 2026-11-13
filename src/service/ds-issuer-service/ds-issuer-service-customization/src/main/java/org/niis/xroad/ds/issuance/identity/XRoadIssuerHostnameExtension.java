@@ -47,6 +47,10 @@ import static org.niis.xroad.ds.issuance.identity.XRoadIssuerHostnameExtension.N
  * <p>The {@code @Inject CriterionOperatorRegistry} field forces EDC's dependency resolver to run this
  * extension after {@code RuntimeCoreServicesExtension}, whose {@code @Provider Hostname} would otherwise be
  * the last registered instance.
+ *
+ * <p>This extension also provides the {@link BoundIssuerIdentityHolder} it builds, so every other EDC override
+ * that needs the bound identity reads it from the one holder this extension owns, instead of building a second
+ * one that polls the Central Server database independently.
  */
 @Extension(NAME)
 public class XRoadIssuerHostnameExtension implements ServiceExtension {
@@ -100,6 +104,16 @@ public class XRoadIssuerHostnameExtension implements ServiceExtension {
         return () -> holder.identity()
                 .map(BoundIssuerIdentity::host)
                 .orElseThrow(() -> new EdcException(NAME + ": the issuer identity is not bound yet"));
+    }
+
+    /**
+     * Exposes the one {@link BoundIssuerIdentityHolder} this extension owns as an injectable EDC service, so
+     * {@code XRoadStatusListCredentialPublisherExtension} and {@code XRoadIssuanceGateExtension} read the same
+     * holder instead of each building its own.
+     */
+    @Provider
+    public BoundIssuerIdentityHolder boundIssuerIdentityHolder() {
+        return holder;
     }
 
     private static BoundIssuerIdentityReader newReader(ServiceExtensionContext context) {

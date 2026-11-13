@@ -34,10 +34,12 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Holds the issuer identity the Central Server operator bound, once bound. Polls {@link
- * BoundIssuerIdentityReader#read()} at {@link PeriodicMaterialReloader#DEFAULT_PENDING_INTERVAL} until the
- * first bound result, then stops polling for good: a binding never changes, so there is nothing left to poll
- * for. The reader connection opened while waiting is closed as soon as the holder stops.
+ * Holds the issuer identity the Central Server operator bound, once bound. {@link #start()} tries {@link
+ * BoundIssuerIdentityReader#read()} once synchronously, so a node that starts after binding is ready as soon
+ * as {@link #start()} returns; only a failed first attempt falls back to polling, at {@link
+ * PeriodicMaterialReloader#DEFAULT_PENDING_INTERVAL}, until the first bound result. Either way, polling then
+ * stops for good: a binding never changes, so there is nothing left to poll for. The reader connection opened
+ * while waiting is closed as soon as the holder stops.
  *
  * <p>A reader that fails to construct (the Central Server database is unreachable) or fails to read is
  * treated the same as an unbound result: the holder stays unbound and the next poll tries again, reusing the
@@ -72,10 +74,18 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
     }
 
     /**
-     * Starts polling for the binding. Never throws: a reader that cannot be built or read yet is simply polled
-     * again at the next interval.
+     * Attempts one synchronous load before scheduling any polling, so a node that starts after binding is
+     * ready as soon as this call returns, with no poll interval to wait out. Never throws: a first attempt
+     * that fails, because the identity is not bound yet or the reader cannot be built or read, is logged and
+     * falls back to polling at {@link #pendingInterval} like every later attempt.
      */
     public void start() {
+        try {
+            applyAndStop(load().material());
+            return;
+        } catch (Exception e) {
+            monitor.warning(NAME + ": the first load did not find a binding; starting degraded and polling", e);
+        }
         reloader = PeriodicMaterialReloader.scheduleUntilFirstLoad(NAME, pendingInterval, pendingInterval, 1, Duration.ZERO,
                 this::load, this::applyAndStop, monitor, null);
         if (stopRequested) {

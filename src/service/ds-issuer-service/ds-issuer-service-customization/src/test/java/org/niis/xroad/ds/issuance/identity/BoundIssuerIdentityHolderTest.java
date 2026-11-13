@@ -35,7 +35,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class BoundIssuerIdentityHolderTest {
 
@@ -138,18 +141,17 @@ class BoundIssuerIdentityHolderTest {
     /**
      * {@link BoundIssuerIdentityHolder#start()} closes the reloader it just scheduled only after the
      * assignment that stores it; the reloader's own completion callback also closes it, through that same
-     * late-bound reference, from the scheduler's own thread. A zero pending interval lets the scheduled cycle
-     * run as soon as possible, maximising the chance the two race, so a design that only worked by virtue of
-     * the production default (several seconds) would show up here as a reader called more than once.
+     * late-bound reference, from the scheduler's own thread. The first read fails, so {@link
+     * BoundIssuerIdentityHolder#start()} falls back to scheduling a reloader instead of resolving
+     * synchronously; a zero pending interval then lets the scheduled cycle run as soon as possible, maximising
+     * the chance the two race, so a design that only worked by virtue of the production default (several
+     * seconds) would show up here as a reader called more than twice.
      */
     @Test
     void closingFromWithinTheOnChangeCallbackIsSafeEvenWhenItRacesTheFieldAssignment() {
         var bound = identity("DID-RACE");
         var reads = new AtomicInteger();
-        BoundIssuerIdentityReader reader = () -> {
-            reads.incrementAndGet();
-            return Optional.of(bound);
-        };
+        BoundIssuerIdentityReader reader = () -> reads.incrementAndGet() == 1 ? Optional.empty() : Optional.of(bound);
         var holder = new BoundIssuerIdentityHolder(() -> reader, monitor, Duration.ZERO);
 
         holder.start();
@@ -174,6 +176,35 @@ class BoundIssuerIdentityHolderTest {
         assertThat(holder.identity()).isEmpty();
 
         holder.close();
+    }
+
+    @Test
+    void theHolderReturnsTheBoundIdentityAsSoonAsStartReturnsWhenABindingAlreadyExists() {
+        var bound = identity("DID-SYNCHRONOUS");
+        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL);
+
+        holder.start();
+        try {
+            assertThat(holder.identity()).contains(bound);
+        } finally {
+            holder.close();
+        }
+    }
+
+    @Test
+    void startLogsAndReturnsUnboundWithoutThrowingWhenTheDatabaseIsUnreachable() {
+        var holder = new BoundIssuerIdentityHolder(() -> {
+            throw new IllegalStateException("the Central Server database is unreachable");
+        }, monitor, CHECK_INTERVAL);
+
+        try {
+            assertThat(holder.identity()).isEmpty();
+            holder.start();
+            assertThat(holder.identity()).isEmpty();
+            verify(monitor).warning(anyString(), any(Throwable.class));
+        } finally {
+            holder.close();
+        }
     }
 
     private static BoundIssuerIdentity identity(String did) {
