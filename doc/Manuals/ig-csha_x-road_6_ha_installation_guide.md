@@ -33,7 +33,7 @@ Doc. ID: IG-CSHA
 | 02.06.2023 | 1.18    | Minor updates                                                                                        | Justas Samuolis    |
 | 05.06.2023 | 1.19    | Update HA cluster status endpoint path                                                               | Andres Rosenthal   |
 | 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
-| 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows and signer rows of a standalone server and the per-node TLS certificate names | Ričardas Bučiūnas  |
+| 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows and signer rows of a standalone server, the node name check of an existing name, the signer rows after a rename and the per-node TLS certificate names | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -179,7 +179,7 @@ The secondary hosts are assumed to use the same port (default 5432) as the prima
 The HA support requires that an external database is initialized and available (see [X-Road Central Server Installation Guide](#Ref_IG-CS) about using an external database). 
 The database can also be installed on the Central Server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
 
-In addition, it is necessary to configure a unique node name for each node participating in the cluster. There are two equal routes: create `node.ini` before installing the Central Server (steps 1 and 2), or answer the node name question that each node's first Central Server installation asks (steps 3 and 4; preseed key `xroad-common/node-name`; you can skip steps 1 and 2, but the notes after step 2 apply to both routes). The installation asks the question only when `node.ini` has no name yet. It checks an entered name before it writes anything, and stops with an error when the name is not valid. It does not check a name that is already in `node.ini`; the services check it when they start, and a node with an invalid name does not start.
+In addition, it is necessary to configure a unique node name for each node participating in the cluster. There are two equal routes: create `node.ini` before installing the Central Server (steps 1 and 2), or answer the node name question that each node's first Central Server installation asks (steps 3 and 4; preseed key `xroad-common/node-name`; you can skip steps 1 and 2, but the notes after step 2 apply to both routes). The installation asks the question only when `node.ini` has no name yet. It checks an entered name before it writes anything, and stops with an error when the name is not valid. The package database setup checks a name that is already in `node.ini` on install, upgrade and reconfigure, and stops with an error when the name is not valid. The services also check every name when they start, and a node with an invalid name does not start.
 
 1.  On each node, create the directory `/etc/xroad/conf.d` if it does not exist, and edit the file `/etc/xroad/conf.d/node.ini` in it, creating the file if necessary. The directory does not exist before the first installation. The package sets the ownership of the directory and its files when it is installed.
     ```bash
@@ -228,7 +228,7 @@ The node name must follow this rule:
 - The first character must be a letter or a digit.
 - The name is read as plain text, so values such as `01`, `007` and `true` are valid.
 
-The installation checks a name that is entered at the prompt with this rule before it writes anything, and stops with an error when the name is not valid. It does not check a name that is already in `node.ini`. The services check every name with this rule when they start, and a node with an invalid name does not start. In containers, set the name with the environment variable `XROAD_NODE_NAME`.
+The installation checks a name that is entered at the prompt with this rule before it writes anything, and stops with an error when the name is not valid. The package database setup checks a name that is already in `node.ini` with this rule on install, upgrade and reconfigure, and stops with an error when the name is not valid. The services also check every name with this rule when they start, and a node with an invalid name does not start. In containers, set the name with the environment variable `XROAD_NODE_NAME`.
 
 The name is fixed after the node has joined the cluster. The node keeps its secrets in the secret store under its name, so changing the name in `node.ini` of a running node leaves the node without its secrets. To rename a node, remove the node and join it again under the new name:
 
@@ -258,7 +258,7 @@ The name is fixed after the node has joined the cluster. The node keeps its secr
 5.  Remove the node from the cluster: uninstall the Central Server packages from it.
 6.  On the node, set the new name in `/etc/xroad/conf.d/node.ini` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
 
-These steps do not change the other tables of the configuration database. Rows in the `ha_node_name` column of the tables for configuration sources, distributed files and system parameters keep the old node name. This guide does not describe how to move or remove them.
+These steps do not change the other tables of the configuration database. Rows in the `ha_node_name` column of the tables for configuration sources, distributed files and system parameters keep the old node name. So do the signer rows: tokens, keys, certificates and certificate requests. After the rename, the signer of the node no longer sees its old rows. This guide does not describe how to move or remove them.
 
 ## 5 Monitoring HA State on a Node
 
