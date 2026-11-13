@@ -6,7 +6,7 @@ prepare_db_props() {
   db_url=$(get_cs_db_prop 'spring.datasource.url' 'jdbc:postgresql://127.0.0.1:5432/centerui_production')
   db_user=$(get_cs_db_prop 'spring.datasource.username' 'centerui')
   db_password=$(get_cs_db_prop 'spring.datasource.password')
-  db_schema=$(get_cs_db_prop 'spring.datasource.hikari.data-source-properties.currentSchema', "${db_user},public")
+  db_schema=$(get_cs_db_prop 'spring.datasource.hikari.data-source-properties.currentSchema' "${db_user},public")
 
   db_schema=${db_schema%%,*}
 
