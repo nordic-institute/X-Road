@@ -71,6 +71,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -694,6 +695,28 @@ class DataspaceParticipantProvisioningWorkerTest {
         verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
         assertThat(credentialStepFailures()).isEmpty();
+    }
+
+    @Test
+    void provisionParticipantBindsAndRequestsNothingInABatchThatStartsAfterGlobalConfExpired() {
+        var expired = new AtomicBoolean();
+        when(dataspace.getProvisioningBatchSize()).thenReturn(1);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(readinessPredicates.isGlobalConfUsable()).thenAnswer(_ -> !expired.get());
+        when(readinessPredicates.isDataspaceReady()).thenAnswer(_ -> !expired.get());
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_CONTEXT)).thenAnswer(_ -> {
+            expired.set(true);
+            return true;
+        });
+
+        worker.provisionParticipant();
+
+        verify(participantBindingService).bindSystemIfAbsent(any());
+        verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
     }
 
     private void givenExpiredGlobalConf() {

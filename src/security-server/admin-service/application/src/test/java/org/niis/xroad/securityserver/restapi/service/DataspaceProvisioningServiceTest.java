@@ -71,6 +71,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -78,6 +79,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
@@ -255,6 +257,27 @@ class DataspaceProvisioningServiceTest {
                         e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.GLOBAL_CONF_OUTDATED.code()));
 
         verify(identityHubClient, never()).getCredentialRequestState(any(), any());
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void ensureMembershipCredentialSubmitsNothingWhenGlobalConfExpiresDuringTheSlotScan() {
+        var expired = new AtomicBoolean();
+        doAnswer(_ -> {
+            if (expired.get()) {
+                throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OUTDATED).build();
+            }
+            return null;
+        }).when(globalConfProvider).verifyValidity();
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenAnswer(_ -> {
+            expired.set(true);
+            return null;
+        });
+
+        assertThatThrownBy(() -> service.ensureMembershipCredential(GENERIC_CONTEXT))
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.GLOBAL_CONF_OUTDATED.code()));
+
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 

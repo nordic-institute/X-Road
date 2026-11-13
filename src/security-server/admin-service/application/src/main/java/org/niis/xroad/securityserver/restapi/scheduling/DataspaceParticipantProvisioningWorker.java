@@ -247,8 +247,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * certificate, which for SYSTEM is the approval of its registration; a context that already holds an
      * active binding row is provisioned regardless of readiness, so it recovers from a lost hub or Control Plane
      * context even while the registered address is unknown. The credential step is the exception: it is skipped
-     * for the pass while the globalconf is not usable (expired, not loaded or unreadable): no credential request
-     * is made and the identity hub's credential state is left alone.
+     * for a batch while the globalconf is not usable (expired, not loaded or unreadable): no credential request
+     * is made and the identity hub's credential state is left alone. Dataspace readiness, globalconf usability and
+     * the registered address are read again before each batch; the authentication certificate check is read once per pass.
      * A context whose identity is drifted, unreadable, rejected or of an unsupported scheme version is neither
      * bound nor provisioned: such contexts are dropped before the ensure pass. Each tick logs one line per rejected, drifted
      * or unsupported-version status with the count and the first participant ids: at WARN when a context not
@@ -304,13 +305,6 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     private List<ParticipantContext> provisionNonConverged(List<ParticipantContext> nonConverged,
             Map<ParticipantContext, ParticipantContextStatus> statuses) {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        boolean dataspaceReady = readinessPredicates.isDataspaceReady();
-        boolean globalConfUsable = readinessPredicates.isGlobalConfUsable();
-        boolean addressKnown = dataspaceProvisioningService.registeredAddressKnown();
-        log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={} globalConfUsable={}"
-                + " registeredAddressKnown={}", dataspaceReady, authCertRegistered, globalConfUsable, addressKnown);
-
-        boolean mayRequestCredentials = authCertRegistered && globalConfUsable;
         logSkippedContexts(nonConverged, statuses);
 
         int batchSize = adminServiceProperties.getDataspace().getProvisioningBatchSize();
@@ -318,19 +312,23 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         List<ParticipantContext> ensured = new ArrayList<>();
         for (int from = 0; from < ordered.size(); from += batchSize) {
             var batch = ordered.subList(from, Math.min(ordered.size(), from + batchSize));
-            ensured.addAll(provisionBatch(batch, statuses, dataspaceReady && authCertRegistered && addressKnown,
-                    mayRequestCredentials));
+            ensured.addAll(provisionBatch(batch, statuses, authCertRegistered));
         }
         return ensured;
     }
 
     private List<ParticipantContext> provisionBatch(List<ParticipantContext> batch,
-            Map<ParticipantContext, ParticipantContextStatus> statuses, boolean mayBind,
-            boolean mayRequestCredentials) {
-        var provisionable = provisionableContexts(batch, statuses, mayBind);
+            Map<ParticipantContext, ParticipantContextStatus> statuses, boolean authCertRegistered) {
+        boolean dataspaceReady = readinessPredicates.isDataspaceReady();
+        boolean globalConfUsable = readinessPredicates.isGlobalConfUsable();
+        boolean addressKnown = dataspaceProvisioningService.registeredAddressKnown();
+        log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={} globalConfUsable={}"
+                + " registeredAddressKnown={}", dataspaceReady, authCertRegistered, globalConfUsable, addressKnown);
+
+        var provisionable = provisionableContexts(batch, statuses, dataspaceReady && authCertRegistered && addressKnown);
         var ensuredContexts = ensureContexts(provisionable);
 
-        if (mayRequestCredentials) {
+        if (authCertRegistered && globalConfUsable) {
             ensureCredentials(ensuredContexts, statuses);
         }
         return ensuredContexts;
