@@ -112,6 +112,32 @@ class XRoadMembershipAttestationWiringTest {
     }
 
     @Test
+    void blankExclusionOverrideLeavesXRoadsExtensionAsTheOnlyHolderRegistrant() {
+        var scanned = ExtensionScanGuard.scanNonExcluded("");
+
+        assertThat(scanned)
+                .filteredOn(XRoadMembershipAttestationExtension.class::isInstance)
+                .hasSize(1);
+        assertThat(scanned)
+                .extracting(extension -> extension.getClass().getName())
+                .doesNotContain(EDC_HOLDER_ATTESTATION_EXTENSION);
+    }
+
+    @Test
+    void exclusionOverrideWithoutTheHolderEntryLeavesXRoadsExtensionAsTheOnlyHolderRegistrant() {
+        var scanned = ExtensionScanGuard.scanNonExcluded(
+                "org.eclipse.edc.web.jetty.JettyExtension,org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,"
+                        + "org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension");
+
+        assertThat(scanned)
+                .filteredOn(XRoadMembershipAttestationExtension.class::isInstance)
+                .hasSize(1);
+        assertThat(scanned)
+                .extracting(extension -> extension.getClass().getName())
+                .doesNotContain(EDC_HOLDER_ATTESTATION_EXTENSION);
+    }
+
+    @Test
     void extensionRegistersXRoadsFactoryAndAcceptsTheHolderDefinition(ServiceExtensionContext context, ObjectFactory factory) {
         var sourceRegistry = new AttestationPipelineImpl(mock(AttestationDefinitionStore.class));
         var validatorRegistry = new AttestationDefinitionValidatorRegistryImpl();

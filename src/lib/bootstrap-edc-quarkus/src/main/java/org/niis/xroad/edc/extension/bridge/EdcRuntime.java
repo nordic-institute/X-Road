@@ -102,27 +102,41 @@ public class EdcRuntime extends BaseRuntime {
 
     /**
      * Loads {@link ServiceExtension}s the same way {@link BaseRuntime} does, except extensions whose class name is
-     * listed under {@value SETTING_EXCLUDED_SERVICE_EXTENSIONS} (comma-separated, fully qualified) are dropped
-     * before the dependency graph is built. This lets an X-Road-side replacement extension supersede an upstream
-     * one without resorting to classpath surgery.
+     * listed under {@value SETTING_EXCLUDED_SERVICE_EXTENSIONS} (comma-separated, fully qualified), or declared
+     * replaced by a loaded {@link ReplacesExtensions} instance, are dropped before the dependency graph is built.
+     * This lets an X-Road-side replacement extension supersede an upstream one without resorting to classpath
+     * surgery.
      */
     @Override
     protected DependencyGraph buildDependencyGraph(ServiceExtensionContext context) {
         var loaded = extensionLoader.loadExtensions(ServiceExtension.class, true);
         var extensions = filterExcluded(loaded, context);
-        log.info("EDC boot: {} service extensions loaded, {} after exclusions (list: '{}')",
-                loaded.size(), extensions.size(), context.getSetting(SETTING_EXCLUDED_SERVICE_EXTENSIONS, ""));
+        log.info("EDC boot: {} service extensions loaded, {} after exclusions (list: '{}', code-replaced: '{}')",
+                loaded.size(), extensions.size(), context.getSetting(SETTING_EXCLUDED_SERVICE_EXTENSIONS, ""),
+                declaredReplacedExtensionTypes(loaded));
         return DependencyGraph.of(context, extensions);
     }
 
     static List<ServiceExtension> filterExcluded(List<ServiceExtension> extensions, ServiceExtensionContext context) {
         var excluded = excludedServiceExtensionTypes(context);
-        if (excluded.isEmpty()) {
-            return extensions;
-        }
-        return extensions.stream()
+        var afterConfigExclusion = extensions.stream()
                 .filter(extension -> !excluded.contains(extension.getClass().getName()))
                 .toList();
+        var replaced = declaredReplacedExtensionTypes(afterConfigExclusion);
+        if (excluded.isEmpty() && replaced.isEmpty()) {
+            return extensions;
+        }
+        return afterConfigExclusion.stream()
+                .filter(extension -> !replaced.contains(extension.getClass().getName()))
+                .toList();
+    }
+
+    private static Set<String> declaredReplacedExtensionTypes(List<ServiceExtension> extensions) {
+        return extensions.stream()
+                .filter(ReplacesExtensions.class::isInstance)
+                .map(ReplacesExtensions.class::cast)
+                .flatMap(extension -> extension.replacedExtensions().stream())
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     private static Set<String> excludedServiceExtensionTypes(ServiceExtensionContext context) {

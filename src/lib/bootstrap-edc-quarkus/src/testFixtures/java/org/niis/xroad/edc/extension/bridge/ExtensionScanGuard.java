@@ -58,7 +58,21 @@ public class ExtensionScanGuard {
      * @return the extensions that were scanned
      */
     public static List<ServiceExtension> scanNonExcluded(URL applicationYaml) {
-        var context = new DefaultServiceExtensionContext(new ConsoleMonitor(), ConfigFactory.fromMap(excludedSettingFrom(applicationYaml)));
+        return scanNonExcluded(excludedSettingFrom(applicationYaml));
+    }
+
+    /**
+     * Scans the extensions that remain after applying the given exclusion setting value, in place of whatever
+     * {@code application.yaml} would otherwise supply.
+     *
+     * @param excludedServiceExtensions the value of {@value EdcRuntime#SETTING_EXCLUDED_SERVICE_EXTENSIONS}, or blank
+     * @return the extensions that were scanned
+     */
+    public static List<ServiceExtension> scanNonExcluded(String excludedServiceExtensions) {
+        var settings = excludedServiceExtensions == null || excludedServiceExtensions.isBlank()
+                ? Map.<String, String>of()
+                : Map.of(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS, excludedServiceExtensions);
+        var context = new DefaultServiceExtensionContext(new ConsoleMonitor(), ConfigFactory.fromMap(settings));
         context.initialize();
 
         var loaded = new ExtensionLoader(new ServiceLocatorImpl()).loadExtensions(ServiceExtension.class, true);
@@ -67,10 +81,9 @@ public class ExtensionScanGuard {
         return scanned;
     }
 
-    private static Map<String, String> excludedSettingFrom(URL applicationYaml) {
+    private static String excludedSettingFrom(URL applicationYaml) {
         try {
-            var excluded = new YamlConfigSource(applicationYaml).getValue(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS);
-            return excluded == null ? Map.of() : Map.of(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS, excluded);
+            return new YamlConfigSource(applicationYaml).getValue(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
