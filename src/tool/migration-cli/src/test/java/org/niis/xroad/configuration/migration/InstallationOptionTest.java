@@ -27,13 +27,8 @@
 package org.niis.xroad.configuration.migration;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.migration.utils.InstallationType;
-
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -58,9 +53,9 @@ class InstallationOptionTest {
 
     @Test
     void shouldTakeTheTypeFromSeparateArgument() {
-        InstallationOption option = InstallationOption.extract(new String[]{"--installation", "ss", "/some/file.ini"});
+        InstallationOption option = InstallationOption.extract(new String[]{"--installation", "cs", "/some/file.ini"});
 
-        assertThat(option.installationType()).isEqualTo(InstallationType.SECURITY_SERVER);
+        assertThat(option.installationType()).isEqualTo(InstallationType.CENTRAL_SERVER);
         assertThat(option.remainingArgs()).containsExactly("/some/file.ini");
     }
 
@@ -84,18 +79,19 @@ class InstallationOptionTest {
                 .hasMessageContaining("accepted values: ss, cs");
     }
 
-    @ParameterizedTest
-    @MethodSource("argsWithoutType")
-    void shouldRejectOptionWithoutType(String[] args) {
-        assertThatThrownBy(() -> InstallationOption.extract(args))
+    @Test
+    void shouldRejectOptionAsLastArgumentWithoutValue() {
+        assertThatThrownBy(() -> InstallationOption.extract(new String[]{"/some/file.ini", "--installation"}))
                 .isInstanceOf(MigrationException.class)
-                .hasMessageContaining("accepted values: ss, cs");
+                .hasMessageContaining("requires a value")
+                .hasMessageContaining("ss, cs");
     }
 
-    static Stream<Arguments> argsWithoutType() {
-        return Stream.of(
-                Arguments.of((Object) new String[]{"--installation"}),
-                Arguments.of((Object) new String[]{"--installation="}));
+    @Test
+    void shouldRejectOptionWithEmptyValue() {
+        assertThatThrownBy(() -> InstallationOption.extract(new String[]{"--installation="}))
+                .isInstanceOf(MigrationException.class)
+                .hasMessageContaining("accepted values: ss, cs");
     }
 
     @Test

@@ -27,10 +27,12 @@
 
 package org.niis.xroad.migration.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -49,30 +51,25 @@ class DbPropertiesReaderTest {
     Path tempDir;
 
     @Test
-    void shouldReadCredentialsWithCustomDbKey() throws IOException {
-        Path propertiesPath = writeProperties("messagelog", """
-            xroad.db.messagelog.hibernate.connection.url=jdbc:postgresql://127.0.0.1:5432/messagelog
-            xroad.db.messagelog.hibernate.hikari.dataSource.currentSchema=messagelog
-            xroad.db.messagelog.hibernate.connection.username=messagelog
-            xroad.db.messagelog.hibernate.connection.password=topsecret
-            """);
-
-        DbCredentials credentials = DbPropertiesReader.readDbCredentials(propertiesPath, "messagelog");
-
-        assertEquals("jdbc:postgresql://127.0.0.1:5432/messagelog", credentials.jdbcUrl());
-        assertEquals("messagelog", credentials.username());
-        assertArrayEquals("topsecret".toCharArray(), credentials.password());
-        assertEquals("messagelog", credentials.schema());
-    }
-
-    @Test
     void shouldFailWhenRequiredPropertyMissing() throws IOException {
         Path propertiesPath = writeProperties("serverconf", """
             xroad.db.serverconf.hibernate.connection.url=jdbc:postgresql://127.0.0.1:5432/serverconf
             xroad.db.serverconf.hibernate.connection.username=serverconf
             """);
 
-        assertThrows(RuntimeException.class, () -> DbPropertiesReader.readDbCredentials(propertiesPath, null));
+        assertThrows(IllegalStateException.class,
+                () -> DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.SECURITY_SERVER));
+    }
+
+    @ParameterizedTest
+    @EnumSource(InstallationType.class)
+    void shouldNameMissingFileExactlyOnce(InstallationType installationType) {
+        Path missing = tempDir.resolve("absent.properties");
+
+        var exception = assertThrows(IllegalStateException.class,
+                () -> DbPropertiesReader.readForInstallation(missing, installationType));
+
+        assertEquals(1, StringUtils.countMatches(exception.getMessage(), missing.toString()));
     }
 
     @Test
@@ -126,36 +123,25 @@ class DbPropertiesReaderTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "spring.datasource.url",
-        "spring.datasource.username",
-        "spring.datasource.password"})
-    void shouldNameFileAndKeyWhenCentralServerKeyIsMissing(String missingKey) throws IOException {
-        Path propertiesPath = writeProperties("cs", centralServerProperties("")
+    @CsvSource({
+        "CENTRAL_SERVER, spring.datasource.url",
+        "CENTRAL_SERVER, spring.datasource.username",
+        "CENTRAL_SERVER, spring.datasource.password",
+        "SECURITY_SERVER, xroad.db.serverconf.hibernate.connection.url",
+        "SECURITY_SERVER, xroad.db.serverconf.hibernate.connection.username",
+        "SECURITY_SERVER, xroad.db.serverconf.hibernate.connection.password"})
+    void shouldNameFileAndKeyWhenKeyIsMissing(InstallationType installationType, String missingKey) throws IOException {
+        String contents = switch (installationType) {
+            case CENTRAL_SERVER -> centralServerProperties("");
+            case SECURITY_SERVER -> securityServerProperties("");
+        };
+        Path propertiesPath = writeProperties("db", contents
                 .lines()
                 .filter(line -> !line.startsWith(missingKey + "="))
                 .collect(Collectors.joining("\n")));
 
         var exception = assertThrows(IllegalStateException.class,
-                () -> DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.CENTRAL_SERVER));
-
-        assertTrue(exception.getMessage().contains(propertiesPath.toString()));
-        assertTrue(exception.getMessage().contains("'" + missingKey + "'"));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "xroad.db.serverconf.hibernate.connection.url",
-        "xroad.db.serverconf.hibernate.connection.username",
-        "xroad.db.serverconf.hibernate.connection.password"})
-    void shouldNameFileAndKeyWhenSecurityServerKeyIsMissing(String missingKey) throws IOException {
-        Path propertiesPath = writeProperties("ss", securityServerProperties("")
-                .lines()
-                .filter(line -> !line.startsWith(missingKey + "="))
-                .collect(Collectors.joining("\n")));
-
-        var exception = assertThrows(IllegalStateException.class,
-                () -> DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.SECURITY_SERVER));
+                () -> DbPropertiesReader.readForInstallation(propertiesPath, installationType));
 
         assertTrue(exception.getMessage().contains(propertiesPath.toString()));
         assertTrue(exception.getMessage().contains("'" + missingKey + "'"));

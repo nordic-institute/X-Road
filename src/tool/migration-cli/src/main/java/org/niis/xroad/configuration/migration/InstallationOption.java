@@ -65,7 +65,10 @@ record InstallationOption(InstallationType installationType, List<String> remain
             }
             given = true;
             if (separate) {
-                value = argIterator.hasNext() ? argIterator.next() : null;
+                if (!argIterator.hasNext()) {
+                    throw new MigrationException(OPTION + " requires a value; accepted values: " + ACCEPTED_VALUES);
+                }
+                value = argIterator.next();
             } else {
                 value = arg.substring(OPTION.length() + 1);
             }

@@ -27,6 +27,7 @@
 
 package org.niis.xroad.migration.utils;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,12 +35,11 @@ import java.util.Properties;
 
 public final class DbPropertiesReader {
 
-    private static final String SERVERCONF_DB_KEY = "serverconf";
-
-    private static final String JDBC_URL_KEY = "xroad.db.%s.hibernate.connection.url";
-    private static final String SCHEMA_KEY = "xroad.db.%s.hibernate.hikari.dataSource.currentSchema";
-    private static final String USERNAME_KEY = "xroad.db.%s.hibernate.connection.username";
-    private static final String PASSWORD_KEY = "xroad.db.%s.hibernate.connection.password";
+    private static final PropertyKeys SECURITY_SERVER_KEYS = new PropertyKeys(
+            "xroad.db.serverconf.hibernate.connection.url",
+            "xroad.db.serverconf.hibernate.connection.username",
+            "xroad.db.serverconf.hibernate.connection.password",
+            "xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema");
 
     private static final PropertyKeys CENTRAL_SERVER_KEYS = new PropertyKeys(
             "spring.datasource.url",
@@ -60,57 +60,37 @@ public final class DbPropertiesReader {
      */
     public static DbCredentials readForInstallation(Path propertiesPath, InstallationType installationType) {
         return switch (installationType) {
-            case SECURITY_SERVER -> read(propertiesPath, securityServerKeys(SERVERCONF_DB_KEY));
+            case SECURITY_SERVER -> read(propertiesPath, SECURITY_SERVER_KEYS);
             case CENTRAL_SERVER -> read(propertiesPath, CENTRAL_SERVER_KEYS);
         };
     }
 
-    /**
-     * Reads the {@code db.properties} file from the given {@link Path} and returns the parsed database credentials.
-     *
-     * @param propertiesPath path to the {@code db.properties} file
-     * @param dbKey          value that replaces the {@code serverconf} segment in property keys
-     * @return {@link DbCredentials} containing the JDBC URL, username, password and schema
-     */
-    public static DbCredentials readDbCredentials(Path propertiesPath, String dbKey) {
-        String resolvedDbKey = trimToNull(dbKey);
-        if (resolvedDbKey == null) {
-            throw new IllegalStateException("Failed to read DB credentials from " + propertiesPath + ": dbKey is null");
-        }
-        return read(propertiesPath, securityServerKeys(resolvedDbKey));
-    }
-
-    private static PropertyKeys securityServerKeys(String dbKey) {
-        return new PropertyKeys(
-                JDBC_URL_KEY.formatted(dbKey),
-                USERNAME_KEY.formatted(dbKey),
-                PASSWORD_KEY.formatted(dbKey),
-                SCHEMA_KEY.formatted(dbKey));
-    }
-
     private static DbCredentials read(Path propertiesPath, PropertyKeys keys) {
-        try {
-            Properties properties = new Properties();
-            try (Reader reader = Files.newBufferedReader(propertiesPath)) {
-                properties.load(reader);
-            }
+        Properties properties = load(propertiesPath);
 
-            String jdbcUrl = requireProperty(properties, keys.url());
-            String username = requireProperty(properties, keys.username());
-            String password = requireProperty(properties, keys.password());
-            String schema = trimToNull(properties.getProperty(keys.schema()));
+        String jdbcUrl = requireProperty(properties, keys.url(), propertiesPath);
+        String username = requireProperty(properties, keys.username(), propertiesPath);
+        String password = requireProperty(properties, keys.password(), propertiesPath);
+        String schema = trimToNull(properties.getProperty(keys.schema()));
 
-            return new DbCredentials(jdbcUrl, username, password.toCharArray(), schema);
-        } catch (Exception e) {
-            throw new IllegalStateException(
-                    "Failed to read DB credentials from " + propertiesPath + ": " + e.getMessage(), e);
-        }
+        return new DbCredentials(jdbcUrl, username, password.toCharArray(), schema);
     }
 
-    private static String requireProperty(Properties properties, String key) {
+    private static Properties load(Path propertiesPath) {
+        Properties properties = new Properties();
+        try (Reader reader = Files.newBufferedReader(propertiesPath)) {
+            properties.load(reader);
+        } catch (IOException | IllegalArgumentException e) {
+            throw new IllegalStateException("Failed to read DB credentials from " + propertiesPath, e);
+        }
+        return properties;
+    }
+
+    private static String requireProperty(Properties properties, String key, Path propertiesPath) {
         String value = trimToNull(properties.getProperty(key));
         if (value == null) {
-            throw new IllegalArgumentException("missing property '" + key + "'");
+            throw new IllegalStateException(
+                    "Failed to read DB credentials from " + propertiesPath + ": missing property '" + key + "'");
         }
         return value;
     }

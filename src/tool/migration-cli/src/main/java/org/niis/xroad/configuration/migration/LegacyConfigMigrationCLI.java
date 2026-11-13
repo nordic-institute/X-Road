@@ -64,7 +64,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LegacyConfigMigrationCLI {
 
-    private enum Command {
+    enum Command {
         VALIDATE("validate", "Check for probable config migration issues"),
         CONFIG("config", "Migrate configuration files (INI/properties to DB)"),
         PGP_KEYS("pgp-keys", "Migrate PGP keys from GPG to Vault"),
@@ -130,19 +130,37 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        InstallationOption installationOption = InstallationOption.extract(shiftArgs(args));
-        InstallationType installation = installationOption.installationType();
-        requireSupportedCommand(command, args[0], installation);
+        InstallationOption installationOption = resolveInstallation(command, args);
 
-        run(command, installation, installationOption.remainingArgs().toArray(new String[0]));
+        run(command, installationOption.installationType(),
+                installationOption.remainingArgs().toArray(new String[0]));
+    }
+
+    private static InstallationOption resolveInstallation(Command command, String[] args) {
+        try {
+            InstallationOption installationOption = InstallationOption.extract(shiftArgs(args));
+            requireSupportedCommand(command, args[0], installationOption.installationType());
+            return installationOption;
+        } catch (MigrationException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
     }
 
     private static void requireSupportedCommand(Command command, String commandName, InstallationType installation) {
-        if (installation == InstallationType.CENTRAL_SERVER && !CENTRAL_SERVER_COMMANDS.contains(command)) {
+        if (!isSupported(command, installation)) {
             throw new MigrationException("Command '%s' is not supported with %s=%s (%s); supported commands: %s".formatted(
                     commandName, InstallationOption.OPTION, installation.getCode(), installation.getDisplayName(),
-                    CENTRAL_SERVER_COMMANDS.stream().map(c -> c.name).collect(Collectors.joining(", "))));
+                    centralServerCommandNames()));
         }
+    }
+
+    static boolean isSupported(Command command, InstallationType installation) {
+        return installation != InstallationType.CENTRAL_SERVER || CENTRAL_SERVER_COMMANDS.contains(command);
+    }
+
+    private static String centralServerCommandNames() {
+        return CENTRAL_SERVER_COMMANDS.stream().map(c -> c.name).collect(Collectors.joining(", "));
     }
 
     private static void run(Command command, InstallationType installation, String[] args) {
@@ -190,10 +208,9 @@ public class LegacyConfigMigrationCLI {
                 Usage: migration-cli <command> [options]
 
                 Options:
-                  --installation=ss|cs           Product the tool runs on (default: ss). Accepted with any command.
+                  --installation=ss|cs           Product the tool runs on (default: ss). Given after the command name.
                                                  cs reads the Central Server db.properties keys and allows only
-                                                 node-name, validate, signer-devices, ini-to-db, keyconf and
-                                                 signer-token-pins.
+                                                 these commands: %s.
                   --node <name>                  Cluster node the migrated data belongs to (default: node_0), used by
                                                  signer-token-pins. Central Server: the [node] name in node.ini.
 
@@ -244,7 +261,7 @@ public class LegacyConfigMigrationCLI {
                   Migrate signer key configuration from keyconf.xml and keys files to database.
                   Arguments:
                     <keyconf path>       Path to directory containing keyconf.xml and softtoken keys
-                    <db.properties path> Path to database properties file (serverconf)
+                    <db.properties path> Path to database properties file
 
                 Configuration Anchor Migration:
                   migration-cli configuration-anchor <anchor-file> <db.properties path>
@@ -263,7 +280,7 @@ public class LegacyConfigMigrationCLI {
                     an alias with no matching client is skipped, not fatal to the rest of the batch.
                     Arguments:
                       <acme.p12>            Path to PKCS12 keystore holding the ACME account key pair(s)
-                      <db.properties path>  Path to database properties file (serverconf)
+                      <db.properties path>  Path to database properties file
                     Env vars:
                       XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD  Keystore password (required)
 
@@ -278,7 +295,7 @@ public class LegacyConfigMigrationCLI {
                       - A blank or missing ha-node-name changes nothing
                       - A name that breaks the node name rule stops the tool before any write
                       - A different name already in node.ini stops the tool before any write
-                """);
+                """.formatted(centralServerCommandNames()));
         showRemainingHelp();
     }
 
@@ -289,7 +306,7 @@ public class LegacyConfigMigrationCLI {
                     Migrates signer devices configuration from devices.ini to the database.
                     Arguments:
                       <devices.ini>        Path to signer devices.ini file
-                      <db.properties path> Path to database properties file (signer)
+                      <db.properties path> Path to database properties file
 
                 File-to-DB Migration:
                   migration-cli file-to-db <input-file> <db.properties path> <property key>
@@ -349,6 +366,7 @@ public class LegacyConfigMigrationCLI {
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
                   migration-cli file-to-db /etc/xroad/conf.d/acme.yml /etc/xroad/db.properties xroad.acme proxy-ui-api
                   migration-cli ini-to-db /etc/xroad/conf.d/local.ini /etc/xroad/db.properties
+                  migration-cli ini-to-db --installation=cs /etc/xroad/conf.d/local.ini /etc/xroad/db.properties
                   migration-cli properties-to-db /etc/xroad/conf.d/local.properties /etc/xroad/db.properties proxy-ui-api
                   migration-cli set-property /etc/xroad/db.properties xroad.proxy.batch-signing-enabled true
                   migration-cli signer-token-pins
@@ -432,7 +450,7 @@ public class LegacyConfigMigrationCLI {
             log.error("ACME account key migration requires 2 arguments");
             log.error("Usage: migration-cli acme-account-keys <acme.p12> <db.properties path>");
             log.error("  <acme.p12>            Path to PKCS12 keystore holding the ACME account key pair(s)");
-            log.error("  <db.properties path>  Path to database properties file (serverconf)");
+            log.error("  <db.properties path>  Path to database properties file");
             log.error("Env vars:");
             log.error("  {}  Keystore password (required)", ACME_KEYSTORE_PASSWORD_ENV);
             System.exit(1);
@@ -499,7 +517,7 @@ public class LegacyConfigMigrationCLI {
             log.error("Signer keyconf migration requires 2 arguments");
             log.error("Usage: migration-cli keyconf <keyconf path> <db.properties path>");
             log.error("  <keyconf path>       Path to directory containing keyconf.xml and softtoken keys");
-            log.error("  <db.properties path> Path to database properties file (serverconf)");
+            log.error("  <db.properties path> Path to database properties file");
             System.exit(1);
         }
 
@@ -536,7 +554,7 @@ public class LegacyConfigMigrationCLI {
             log.error("Signer devices migration requires 2 arguments");
             log.error("Usage: migration-cli signer-devices <devices.ini> <db.properties path>");
             log.error("  <devices.ini>        Path to signer devices.ini file");
-            log.error("  <db.properties path> Path to database properties file (signer)");
+            log.error("  <db.properties path> Path to database properties file");
             System.exit(1);
         }
 
