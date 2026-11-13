@@ -16,6 +16,7 @@ dependencies {
   implementation(project(":common:common-domain"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:edc-jetty-tls"))
+  implementation(project(":lib:edc-tls-reload"))
   implementation(project(":lib:ds-identity-core"))
   implementation(project(":lib:properties-core"))
   implementation(libs.nimbus.jose.jwt)
@@ -24,6 +25,7 @@ dependencies {
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.core)
+  testImplementation(libs.awaitility)
   testImplementation(project(":tool:liquibase-executor"))
   testImplementation(libs.liquibase.core)
   testImplementation(libs.postgresql)
