@@ -40,7 +40,7 @@
 # gets the keys imported into its openbao. The xroad client token (read from
 # /etc/xroad/secret-store-client-token, exported by secret-store-local.conf into every xroad-*
 # process's environment) already carries write access to xrd-secret/message-log/archival/pgp/*
-# via the xroad-policy ACL (_openbao.sh configure_pki). KV v1 write: POST /v1/<mount>/<path> with
+# via the xroad-policy ACL (_openbao.sh configure_policy). KV v1 write: POST /v1/<mount>/<path> with
 # a "payload" field, mirroring `bao write xrd-secret/message-log/archival/pgp/public-keys
 # payload=@public-keys.asc`.
 - name: copy PGP public keys fixture to SS host
