@@ -52,6 +52,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -91,6 +93,7 @@ class DataspaceReadinessPredicatesTest {
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of());
 
         assertThat(predicates.isDataspaceReady()).isFalse();
+        verify(globalConfProvider, never()).isValid();
     }
 
     @Test
@@ -124,8 +127,8 @@ class DataspaceReadinessPredicatesTest {
 
     @Test
     void isDataspaceNotReadyAndGlobalConfNotUsableWhenGlobalConfIsExpired() {
-        lenient().when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
-        lenient().when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of("did:web:issuer.example"));
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of("did:web:issuer.example"));
         when(globalConfProvider.isValid()).thenReturn(false);
 
         assertThat(predicates.isDataspaceReady()).isFalse();

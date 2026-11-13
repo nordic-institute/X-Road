@@ -247,7 +247,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * certificate, which for SYSTEM is the approval of its registration; a context that already holds an
      * active binding row is provisioned regardless of readiness, so it recovers from a lost hub or Control Plane
      * context even while the registered address is unknown. The credential step is the exception: it is skipped
-     * for the pass while the globalconf is not usable (expired), and stored credential statuses stay as they are.
+     * for the pass while the globalconf is not usable (expired, not loaded or unreadable): no credential request
+     * is made and the identity hub's credential state is left alone.
      * A context whose identity is drifted, unreadable, rejected or of an unsupported scheme version is neither
      * bound nor provisioned: such contexts are dropped before the ensure pass. Each tick logs one line per rejected, drifted
      * or unsupported-version status with the count and the first participant ids: at WARN when a context not

@@ -130,7 +130,7 @@ public class DataspaceReadinessPredicates {
     }
 
     /**
-     * Returns {@code true} if the global configuration is valid now, that is, not expired.
+     * Returns {@code true} if the global configuration is usable now: loaded, readable and not expired.
      * Read on every call so the answer follows the next valid configuration download.
      */
     public boolean isGlobalConfUsable() {
@@ -145,8 +145,8 @@ public class DataspaceReadinessPredicates {
      */
     public boolean isDataspaceReady() {
         try {
-            return isGlobalConfUsable()
-                    && !globalConfProvider.getCredentialIssuerDids(globalConfProvider.getInstanceIdentifier()).isEmpty();
+            return !globalConfProvider.getCredentialIssuerDids(globalConfProvider.getInstanceIdentifier()).isEmpty()
+                    && isGlobalConfUsable();
         } catch (RuntimeException e) {
             log.debug("Data space: readiness check failed, treating the instance as not ready: {}",
                     e.getMessage());

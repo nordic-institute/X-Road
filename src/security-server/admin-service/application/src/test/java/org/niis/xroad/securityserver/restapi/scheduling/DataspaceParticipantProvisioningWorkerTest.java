@@ -682,6 +682,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     @Test
     void provisionParticipantStopsTheCredentialStepWhenGlobalConfExpiresDuringThePass() {
+        when(dataspace.getProvisioningBatchSize()).thenReturn(100);
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
         when(dataspaceProvisioningService.readContextStatus(any()))
@@ -753,6 +754,19 @@ class DataspaceParticipantProvisioningWorkerTest {
         assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
         verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantContinuesAndLogsErrorWhenACredentialStepFailsForAnotherReason() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.ensureMembershipCredential(SYSTEM_CONTEXT))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR).build());
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_CONTEXT);
+        assertThat(credentialStepFailures()).hasSize(1);
     }
 
     @Test
