@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+                   logicalFilePath="centerui/202611131200-ds-issuer-service-grants.xml">
+
+    <changeSet author="niis" id="202611131200-ds-issuer-service-grants" runAlways="true" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">SELECT count(*) FROM pg_roles WHERE rolname = 'ds-issuer-service'</sqlCheck>
+        </preConditions>
+        <comment>Grants the ds-issuer-service role schema usage and read access to the issuer identity, so
+            every Issuer Service node can read the bound identity directly from this schema. Runs on every
+            migration, including after a restore, since a restored dump carries no privileges. A no-op,
+            without error, while that role does not exist yet.</comment>
+        <sql splitStatements="false"><![CDATA[
+            grant usage on schema "${db_schema}" to "ds-issuer-service";
+            grant select on "${db_schema}".issuer_dids, "${db_schema}".system_parameters,
+                "${db_schema}".configuration_properties to "ds-issuer-service";
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

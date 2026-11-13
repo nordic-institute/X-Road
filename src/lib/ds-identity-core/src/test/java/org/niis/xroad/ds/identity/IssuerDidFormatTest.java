@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,18 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.dataspace;
+package org.niis.xroad.ds.identity;
 
-import lombok.experimental.UtilityClass;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-/**
- * Builds the issuer's {@code did:web} identifier from its published host and DID port. The provisioning run
- * and the derived status both need the same identifier, so this is its one source.
- */
-@UtilityClass
-class IssuerDidFormat {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    String didFor(String host, int didPort) {
-        return "did:web:" + host + "%3A" + didPort + ":issuer";
+class IssuerDidFormatTest {
+
+    @ParameterizedTest
+    @CsvSource({
+            "cs0.example.org, 7183, did:web:cs0.example.org%3A7183:issuer",
+            "cs0.example.org, 6183, did:web:cs0.example.org%3A6183:issuer",
+            "cs1.example.org, 7183, did:web:cs1.example.org%3A7183:issuer"
+    })
+    void shouldBuildIssuerDid(String host, int didPort, String expected) {
+        assertThat(IssuerDidFormat.didFor(host, didPort)).isEqualTo(expected);
     }
 }
