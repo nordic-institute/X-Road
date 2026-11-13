@@ -58,6 +58,7 @@
     <credentialIssuer>
         <did>did:web:cs.dev%3A443:issuer</did>
     </credentialIssuer>
+    <issuerDataFreshnessSeconds>600</issuerDataFreshnessSeconds>
     <member id="id0">
         <memberClass>
             <code>COM</code>

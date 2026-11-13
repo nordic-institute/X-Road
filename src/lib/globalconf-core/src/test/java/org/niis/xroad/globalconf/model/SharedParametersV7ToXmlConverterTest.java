@@ -64,6 +64,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 @Slf4j
 class SharedParametersV7ToXmlConverterTest {
 
+    private static final int ISSUER_DATA_FRESHNESS_SECONDS = 600;
     private static final Map<String, String> FIELD_NAME_MAP = Map.ofEntries(
             entry("securityServer", "securityServers"),
             entry("source", "sources"),
@@ -139,7 +140,7 @@ class SharedParametersV7ToXmlConverterTest {
                         "credentialIssuer"
                 )
                 .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
-                        "globalSettings.ocspFreshnessSeconds")
+                        "globalSettings.ocspFreshnessSeconds", "issuerDataFreshnessSeconds")
                 .build();
 
         assertThat(xmlType)
@@ -256,6 +257,21 @@ class SharedParametersV7ToXmlConverterTest {
     }
 
     @Test
+    void shouldWriteIssuerDataFreshnessSecondsNextToCredentialIssuerAndReadItBack() {
+        var sharedParameters = minimalSharedParameters(List.of()).toBuilder()
+                .credentialIssuerDids(getCredentialIssuerDids())
+                .issuerDataFreshnessSeconds(120)
+                .build();
+
+        var xml = new SharedParametersV7Marshaller().marshall(sharedParameters);
+
+        assertThat(xml).containsPattern(
+                "</credentialIssuer>\\s*<issuerDataFreshnessSeconds>120</issuerDataFreshnessSeconds>\\s*<globalSettings>");
+        assertThat(new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters().getIssuerDataFreshnessSeconds())
+                .isEqualTo(120);
+    }
+
+    @Test
     void shouldWriteAndReadBackXrdAdr44Example() {
         var sharedParameters = xrdAdr44Example();
         var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
@@ -366,7 +382,8 @@ class SharedParametersV7ToXmlConverterTest {
                 "https://ss0.example.org:8183/api/dsp"));
 
         return new SharedParameters("DEV", getConfigurationSources(), List.of(), List.of(), List.of(), List.of(),
-                List.of(member), List.of(server), List.of(), new SharedParameters.GlobalSettings(List.of(), 60, false));
+                ISSUER_DATA_FRESHNESS_SECONDS, List.of(member), List.of(server), List.of(),
+                new SharedParameters.GlobalSettings(List.of(), 60, false));
     }
 
     private static int idIndex(String id) {
@@ -387,6 +404,7 @@ class SharedParametersV7ToXmlConverterTest {
         sharedParamsBuilder.sources(getConfigurationSources());
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, false));
         sharedParamsBuilder.credentialIssuerDids(credentialIssuerDids);
+        sharedParamsBuilder.issuerDataFreshnessSeconds(ISSUER_DATA_FRESHNESS_SECONDS);
         var xml = new SharedParametersV7Marshaller().marshall(sharedParamsBuilder.build());
         var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
         return afterMarshalling.getCredentialIssuerDids();
@@ -397,6 +415,7 @@ class SharedParametersV7ToXmlConverterTest {
         sharedParamsBuilder.instanceIdentifier("CS");
         sharedParamsBuilder.sources(getConfigurationSources());
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, legacyProtocolDisabled));
+        sharedParamsBuilder.issuerDataFreshnessSeconds(ISSUER_DATA_FRESHNESS_SECONDS);
         return new SharedParametersV7Marshaller().marshall(sharedParamsBuilder.build());
     }
 
@@ -407,6 +426,7 @@ class SharedParametersV7ToXmlConverterTest {
         sharedParamsBuilder.sources(getConfigurationSources());
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, false));
         sharedParamsBuilder.approvedConnectorTlsCAs(approvedConnectorTlsCAs);
+        sharedParamsBuilder.issuerDataFreshnessSeconds(ISSUER_DATA_FRESHNESS_SECONDS);
         return sharedParamsBuilder.build();
     }
 
@@ -449,7 +469,8 @@ class SharedParametersV7ToXmlConverterTest {
     private static SharedParameters getSharedParameters() {
         return new SharedParameters("INSTANCE", getConfigurationSources(), List.of(getApprovedCA()),
                 List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8), CostType.PAID)),
-                List.of(getApprovedConnectorTlsCA()), getCredentialIssuerDids(), getMembers(), List.of(getSecurityServer()),
+                List.of(getApprovedConnectorTlsCA()), getCredentialIssuerDids(), 300, getMembers(),
+                List.of(getSecurityServer()),
                 List.of(new SharedParameters.GlobalGroup("group-code",
                 "group-description", List.of(subsystemId(memberId(), "SUB1")))),
                 new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333, true));

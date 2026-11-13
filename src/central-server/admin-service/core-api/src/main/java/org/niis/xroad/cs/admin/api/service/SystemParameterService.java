@@ -68,6 +68,8 @@ public interface SystemParameterService {
 
     Integer getOcspFreshnessSeconds();
 
+    Integer getIssuerDataFreshnessSeconds();
+
     boolean isLegacyProtocolDisabled();
 
     SystemParameter updateOrCreateParameter(String lookupKey, String updateValue);

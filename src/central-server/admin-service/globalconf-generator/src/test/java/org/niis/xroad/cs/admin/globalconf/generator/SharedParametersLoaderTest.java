@@ -135,6 +135,7 @@ class SharedParametersLoaderTest {
     private static final String MEMBER_CLASS_CODE = "MCLASS";
     private static final String MEMBER_CLASS_DESCRIPTION = "Member class description";
     private static final int OCSP_FRESHNESS_SECONDS = 333;
+    private static final int ISSUER_DATA_FRESHNESS_SECONDS = 444;
     private static final String CENTRAL_SERVICE = "cs";
     private static final byte[] CONFIGURATION_SIGNING_CERT = "conf signing cert".getBytes(UTF_8);
 
@@ -180,6 +181,7 @@ class SharedParametersLoaderTest {
         assertApproveTsa(parameters);
         assertApprovedConnectorTlsCAs(parameters);
         assertThat(parameters.getCredentialIssuerDids()).containsExactlyInAnyOrder(ISSUER_DID_1, ISSUER_DID_2);
+        assertThat(parameters.getIssuerDataFreshnessSeconds()).isEqualTo(ISSUER_DATA_FRESHNESS_SECONDS);
         assertSecurityServers(parameters);
         assertGlobalGroups(parameters);
         assertGlobalSettings(parameters);
@@ -484,6 +486,7 @@ class SharedParametersLoaderTest {
 
         when(memberClassService.findAll()).thenReturn(List.of(new MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION)));
         when(systemParameterService.getOcspFreshnessSeconds()).thenReturn(OCSP_FRESHNESS_SECONDS);
+        when(systemParameterService.getIssuerDataFreshnessSeconds()).thenReturn(ISSUER_DATA_FRESHNESS_SECONDS);
     }
 
     private void stubEnabledServerClients(int serverId, List<FlattenedSecurityServerClientView> enabledServerClients) {
