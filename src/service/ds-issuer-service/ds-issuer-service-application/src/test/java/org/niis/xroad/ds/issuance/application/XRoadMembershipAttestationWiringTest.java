@@ -48,6 +48,7 @@ import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.jetbrains.annotations.Nullable;
@@ -56,6 +57,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.ds.issuance.membership.MembershipTestSupport;
 import org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationExtension;
 import org.niis.xroad.edc.extension.bridge.ExtensionScanGuard;
+import org.niis.xroad.edc.extension.bridge.ReplacesExtensions;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.security.PrivateKey;
@@ -79,10 +81,15 @@ import static org.niis.xroad.ds.issuance.membership.MembershipTestSupport.ISSUER
 
 /**
  * Exercises the production {@code holder} attestation wiring against the extension set the
- * Issuer Service actually boots with: {@link ExtensionScanGuard} applies the same
- * {@code application.yaml} exclusion the runtime does, proving {@link XRoadMembershipAttestationExtension}
- * is the only {@code holder} registrant the exclusion leaves behind, rather than whatever order
- * {@code ServiceLoader} happens to return.
+ * Issuer Service actually boots with: {@link ExtensionScanGuard} applies the same exclusion filtering
+ * the runtime does, proving {@link XRoadMembershipAttestationExtension} is the only {@code holder}
+ * registrant the filtering leaves behind, rather than whatever order {@code ServiceLoader} happens
+ * to return.
+ *
+ * <p>The first test scans against the production {@code application.yaml}. The other two override the
+ * exclusion setting instead — once blank, once naming unrelated extensions only — to prove that
+ * {@link XRoadMembershipAttestationExtension}'s code-declared replacement ({@link ReplacesExtensions})
+ * drops EDC's upstream {@code HolderAttestationExtension} regardless of the configured exclusion list.
  *
  * <p>The remaining tests construct the extension directly through the injected
  * {@link ObjectFactory} and drive it against a real {@code AttestationPipelineImpl}: one proves it
@@ -103,6 +110,26 @@ class XRoadMembershipAttestationWiringTest {
     void productionExclusionLeavesXRoadsExtensionAsTheOnlyHolderRegistrant() {
         var scanned = ExtensionScanGuard.scanNonExcluded(getClass().getResource("/application.yaml"));
 
+        assertXRoadIsOnlyHolderRegistrant(scanned);
+    }
+
+    @Test
+    void blankExclusionOverrideLeavesXRoadsExtensionAsTheOnlyHolderRegistrant() {
+        var scanned = ExtensionScanGuard.scanNonExcluded("");
+
+        assertXRoadIsOnlyHolderRegistrant(scanned);
+    }
+
+    @Test
+    void exclusionOverrideWithoutTheHolderEntryLeavesXRoadsExtensionAsTheOnlyHolderRegistrant() {
+        var scanned = ExtensionScanGuard.scanNonExcluded(
+                "org.eclipse.edc.web.jetty.JettyExtension,org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,"
+                        + "org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension");
+
+        assertXRoadIsOnlyHolderRegistrant(scanned);
+    }
+
+    private static void assertXRoadIsOnlyHolderRegistrant(List<ServiceExtension> scanned) {
         assertThat(scanned)
                 .filteredOn(XRoadMembershipAttestationExtension.class::isInstance)
                 .hasSize(1);

@@ -38,17 +38,18 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.validator.spi.ValidationResult;
+import org.niis.xroad.edc.extension.bridge.ReplacesExtensions;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 import java.time.Clock;
+import java.util.Set;
 
 import static org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationExtension.NAME;
 
 /**
  * Registers the X-Road MemberId-claim-verifying attestation source under the {@code holder}
- * type, taking over from EDC's built-in DID-control attestation, which the Issuer Service
- * excludes from boot.
+ * type, declaring through {@link ReplacesExtensions} that it replaces EDC's built-in DID-control attestation.
  *
  * <p>Cred-defs continue to reference {@code attestationType: holder} unchanged. Behavior
  * becomes: holder must present a signed X-Road MemberId claim in the DCP JWT, verified
@@ -56,16 +57,19 @@ import static org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationEx
  * {@link GlobalConfProvider} is resolved through EDC {@code @Inject} (which delegates to
  * Quarkus CDI for beans not provided by an EDC extension).
  *
- * <p>Also registers the {@code holder} attestation definition validator, which EDC's excluded
+ * <p>Also registers the {@code holder} attestation definition validator, which the replaced
  * {@code HolderAttestationExtension} would otherwise provide, so Central Server provisioning
  * of the membership credential definition keeps working.
  */
 @Extension(NAME)
-public class XRoadMembershipAttestationExtension implements ServiceExtension {
+public class XRoadMembershipAttestationExtension implements ServiceExtension, ReplacesExtensions {
 
     static final String NAME = "X-Road Membership Attestation Extension";
 
     static final String ATTESTATION_TYPE = "holder";
+
+    static final String REPLACED_HOLDER_ATTESTATION_EXTENSION =
+            "org.eclipse.edc.issuerservice.issuance.attestation.holder.HolderAttestationExtension";
 
     @Setting(key = "xroad.issuer.claim.lifetime-seconds",
             description = "Maximum age in seconds of the X-Road MemberId claim JWS, measured from iat; "
@@ -102,6 +106,11 @@ public class XRoadMembershipAttestationExtension implements ServiceExtension {
     @Override
     public String name() {
         return NAME;
+    }
+
+    @Override
+    public Set<String> replacedExtensions() {
+        return Set.of(REPLACED_HOLDER_ATTESTATION_EXTENSION);
     }
 
     @Override
