@@ -29,9 +29,11 @@ package org.niis.xroad.configuration.migration;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.support.VaultResponse;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -102,6 +104,19 @@ class MigrationVaultClientTest {
         MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         assertThat(client.getTokenPin("tok1")).isEmpty();
+    }
+
+    @Test
+    void testRetryBudgetViewKeepsThePinBehaviour() {
+        VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
+
+        VaultClient view = client.withRetryBudget(Duration.ZERO);
+        view.setTokenPin("tok1", "s3cr3t".toCharArray());
+
+        Map<String, String> expected = new HashMap<>();
+        expected.put("pin", "s3cr3t");
+        verify(kvOps).put("signer/token-pins/node_0/tok1", expected);
     }
 
     @Test
