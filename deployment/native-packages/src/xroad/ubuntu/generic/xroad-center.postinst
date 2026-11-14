@@ -5,6 +5,7 @@
 trap db_stop EXIT
 
 . /usr/share/xroad/scripts/write_tls_config.sh
+. /usr/share/xroad/scripts/_setup_db.sh
 
 readonly NODE_INI=/etc/xroad/conf.d/node.ini
 readonly NODE_NAME_PATTERN='^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$'
@@ -125,45 +126,27 @@ setup_database() {
 
         db_password=$(gen_pw)
         echo "Creating database"
-        psql_master <<EOF || abort "Creating database '${db_database}' on '${db_host}' failed."
-CREATE DATABASE "${db_database}" ENCODING 'UTF8';
-REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
-DO \$\$
-BEGIN
-  CREATE ROLE "${db_admin_user}" LOGIN PASSWORD '${db_admin_password}';
-  GRANT "${db_admin_user}" TO "${db_master_user}";
-  EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_admin_user already exists';
-END
-\$\$;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_admin_user}";
-\c "${db_database}"
-CREATE EXTENSION hstore;
-CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_admin_user}";
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public TO "${db_admin_user}";
-EOF
-        echo "Creating database plain user"
-        psql_master <<EOF || abort "Creating plain user failed."
-DO \$\$
-BEGIN
-  CREATE ROLE "${db_plain_user}" LOGIN PASSWORD '${db_password}';
-  GRANT "${db_plain_user}" TO "${db_master_user}";
-  EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_plain_user already exists';
-END
-\$\$;
-\c "${db_database}"
-GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
-GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
-EOF
-        crudini --set "${db_properties}" '' spring.datasource.hikari.data-source-properties.currentSchema "${db_schema},public"
-        crudini --set "${db_properties}" '' spring.datasource.username "centerui"
-        crudini --set "${db_properties}" '' spring.datasource.password "${db_password}"
+        run_db_bootstrap \
+            db_name="${db_database}" \
+            admin_role="${db_admin_user}" \
+            admin_password="${db_admin_password}" \
+            runtime_role="${db_plain_user}" \
+            runtime_password="${db_password}" \
+            master_role="${db_master_user}" \
+            schema_name="${db_schema}" \
+            hstore=on \
+            single_role=off \
+            || abort "Creating database '${db_database}' on '${db_host}' failed."
 
         crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_user' "${db_admin_conn_user}"
         crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_password' "${db_admin_password}"
+
+        crudini --set "${db_properties}" '' spring.datasource.hikari.data-source-properties.currentSchema "${db_schema},public"
+        crudini --set "${db_properties}" '' spring.datasource.username "${db_user}"
+        crudini --set "${db_properties}" '' spring.datasource.password "${db_password}"
     fi
+
+    check_runtime_login "${db_plain_user}" "${db_properties}" || exit 1
 
     if [ "$skip_migrations" = true ] ; then
       echo "skipping database migrations"

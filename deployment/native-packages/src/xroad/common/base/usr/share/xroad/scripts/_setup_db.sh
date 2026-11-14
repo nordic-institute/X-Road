@@ -52,6 +52,14 @@ run_db_bootstrap() {
   } | psql_master
 }
 
+# Logs a message naming the role and returns 1 when the runtime role cannot log in. The caller defines psql_dbuser.
+# Arguments: $1 - runtime role, $2 - properties file holding its stored password
+check_runtime_login() {
+  PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null && return 0
+  log "Logging in as database role '$1' failed after database setup. If the role already existed, its password differs from the one in $2: set the stored password to match, or drop the role and rerun."
+  return 1
+}
+
 setup_database() {
   local -r db_name="$1"
   local -r db_default_user="$2"
@@ -217,8 +225,7 @@ setup_database() {
     crudini --set ${db_properties} '' "xroad.db.$db_name.hibernate.connection.password" "${db_password}"
   fi
 
-  PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null ||
-    die "Logging in as database role '${db_user}' failed after database setup. If the role already existed, its password differs from the one in ${db_properties}: set the stored password to match, or drop the role and rerun."
+  check_runtime_login "$db_user" "$db_properties" || exit 1
 
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then
