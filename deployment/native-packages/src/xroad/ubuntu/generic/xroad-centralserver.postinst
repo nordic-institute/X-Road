@@ -8,10 +8,9 @@ if [ "$1" = "configure" ]; then
   rm -f /etc/xroad/backup.d/??_xroad-confclient
 fi
 
-if [ "$1" = abort-upgrade ]; then
+if [ "$1" = abort-upgrade ] || [ "$1" = abort-remove ] || [ "$1" = abort-deconfigure ]; then
   exit 0
 fi
-
 
 abort() {
     local rc=$?
@@ -20,23 +19,23 @@ abort() {
 }
 log() { echo "xroad-centralserver: $*" >&2; }
 
-# ensure valid api key configured for management & registration services
-
-skip_migrations=$(crudini --get /etc/xroad/db.properties '' skip_migrations 2>/dev/null || true)
-
 configure_api_key() {
   local service="$1"
   if /usr/share/xroad/scripts/configure_management_api_key.sh "$service"; then
     return 0
   fi
+  local skip_migrations
+  skip_migrations=$(crudini --get /etc/xroad/db.properties '' skip_migrations 2>/dev/null)
   if [ "$skip_migrations" = true ]; then
-    log "WARNING: API key setup for ${service} failed because database migrations were skipped. Once the schema is migrated, run:"
+    log "WARNING: API key setup for ${service} failed. Database migrations were skipped, so the schema may not exist yet. Once the schema is migrated, run:"
     log "  /usr/share/xroad/scripts/configure_management_api_key.sh ${service}"
+    log "then restart xroad-center-management-service and xroad-center-registration-service, which read the key only at startup."
     return 0
   fi
   abort "API key setup for ${service} failed. ABORTING."
 }
 
+# ensure valid api key configured for management & registration services
 configure_api_key management-service
 configure_api_key registration-service
 
