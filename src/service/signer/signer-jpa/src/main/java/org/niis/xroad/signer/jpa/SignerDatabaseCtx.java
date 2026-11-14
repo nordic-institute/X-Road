@@ -48,9 +48,10 @@ public class SignerDatabaseCtx extends DatabaseCtx {
             "password", "connection.password",
             "driver-class-name", "connection.driver_class",
             "dialect", "dialect",
-            "hikari.data-source-properties.currentSchema", "connection.defaultSchemaName",
             "hbm2ddl.auto", "hbm2ddl.auto"
     );
+    private static final String SPRING_DATA_SOURCE_PROPERTIES_PREFIX = "hikari.data-source-properties.";
+    private static final String HIKARI_DATA_SOURCE_PREFIX = "hikari.dataSource.";
 
     public SignerDatabaseCtx(@ConfigProperty(name = "xroad.db.serverconf.hibernate") Optional<Map<String, String>> serverconfProps,
                              @ConfigProperty(name = "xroad.db.confproxy.hibernate") Optional<Map<String, String>> confProxyProps,
@@ -66,15 +67,20 @@ public class SignerDatabaseCtx extends DatabaseCtx {
             return hibernateBased.get();
         } else if (centerUiProps.isPresent()) {
             return centerUiProps.get().entrySet().stream()
-                    .filter(entry -> SPRING_TO_DB_PROP_MAPPING.containsKey(entry.getKey()))
-                    .map(entry -> {
-                        String dbPropKey = SPRING_TO_DB_PROP_MAPPING.get(entry.getKey());
-                        return dbPropKey != null ? Map.entry(dbPropKey, entry.getValue()) : entry;
-                    })
+                    .flatMap(entry -> toHibernateProperty(entry.getKey())
+                            .map(dbPropKey -> Map.entry(dbPropKey, entry.getValue()))
+                            .stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         } else {
             throw new IllegalStateException("No database configuration found for signer");
         }
+    }
+
+    private static Optional<String> toHibernateProperty(String springKey) {
+        if (springKey.startsWith(SPRING_DATA_SOURCE_PROPERTIES_PREFIX)) {
+            return Optional.of(HIKARI_DATA_SOURCE_PREFIX + springKey.substring(SPRING_DATA_SOURCE_PROPERTIES_PREFIX.length()));
+        }
+        return Optional.ofNullable(SPRING_TO_DB_PROP_MAPPING.get(springKey));
     }
 
     @PreDestroy
