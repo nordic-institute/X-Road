@@ -48,16 +48,17 @@ import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
 
 /**
- * Signer + secondary-signer test stack: two signer nodes sharing the same serverconf database, plus the
- * test CA used to countersign generated CSRs. Boots once per JVM launcher session; the primary and
- * secondary {@link SignerRpcClient}/{@link SignerSignRpcClient} pairs are created once the stack is up,
- * with the default RPC deadline.
+ * Signer test stack: three signer nodes (primary, secondary and node-b) sharing the same serverconf database,
+ * plus the test CA used to countersign generated CSRs. Boots once per JVM launcher session; the primary and
+ * secondary {@link SignerRpcClient}/{@link SignerSignRpcClient} pairs and the node-b {@link SignerRpcClient} are
+ * created once the stack is up, with the default RPC deadline.
  */
 @Slf4j
 public class SignerIntTestContainerSetup extends BaseComposeSetup {
 
     public static final String SIGNER = "signer";
     public static final String SIGNER_SECONDARY = "signer-secondary";
+    public static final String SIGNER_NODE_B = "signer-node-b";
     public static final String TESTCA = "testca";
     public static final String DB_SERVERCONF = "db-serverconf";
 
@@ -74,6 +75,8 @@ public class SignerIntTestContainerSetup extends BaseComposeSetup {
     private SignerRpcClient secondarySignerClient;
     @Getter
     private SignerSignRpcClient secondarySignerSignClient;
+    @Getter
+    private SignerRpcClient nodeBSignerClient;
 
     public SignerIntTestContainerSetup(ApiTestCoreProperties coreProperties) {
         super(coreProperties);
@@ -90,10 +93,12 @@ public class SignerIntTestContainerSetup extends BaseComposeSetup {
                 new File(coreProperties.resourceDir() + COMPOSE_FILE))
                 .withExposedService(SIGNER, SIGNER_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(SIGNER_STARTUP_TIMEOUT))
                 .withExposedService(SIGNER_SECONDARY, SIGNER_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(SIGNER_STARTUP_TIMEOUT))
+                .withExposedService(SIGNER_NODE_B, SIGNER_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(SIGNER_STARTUP_TIMEOUT))
                 .withExposedService(DB_SERVERCONF, Port.DB, Wait.forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, Wait.forLogMessage(".*nginx entered RUNNING state.*", 1))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
-                .withLogConsumer(SIGNER_SECONDARY, createLogConsumer(SIGNER_SECONDARY));
+                .withLogConsumer(SIGNER_SECONDARY, createLogConsumer(SIGNER_SECONDARY))
+                .withLogConsumer(SIGNER_NODE_B, createLogConsumer(SIGNER_NODE_B));
     }
 
     @Override
@@ -106,6 +111,9 @@ public class SignerIntTestContainerSetup extends BaseComposeSetup {
         secondarySignerClient = newSignerClient(SIGNER_SECONDARY, DEFAULT_DEADLINE_MILLIS);
         secondarySignerClient.init();
         secondarySignerSignClient = newSignerSignClient(SIGNER_SECONDARY, DEFAULT_DEADLINE_MILLIS);
+
+        nodeBSignerClient = newSignerClient(SIGNER_NODE_B, DEFAULT_DEADLINE_MILLIS);
+        nodeBSignerClient.init();
     }
 
     /**
@@ -146,6 +154,20 @@ public class SignerIntTestContainerSetup extends BaseComposeSetup {
     public String testCaBaseUrl() {
         var mapping = getContainerMapping(TESTCA, Port.TEST_CA);
         return "http://%s:%d/testca".formatted(mapping.host(), mapping.port());
+    }
+
+    /**
+     * Runs a SQL statement against the shared serverconf database with {@code psql} and returns its unaligned,
+     * tuples-only output, one row per line with columns separated by {@code |}.
+     */
+    @SneakyThrows
+    public String queryDatabase(String sql) {
+        var result = env.getContainerByServiceName(DB_SERVERCONF).orElseThrow()
+                .execInContainer("psql", "-U", "serverconf", "-d", "serverconf", "-v", "ON_ERROR_STOP=1", "-At", "-c", sql);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("psql failed: " + result.getStderr());
+        }
+        return result.getStdout().strip();
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
