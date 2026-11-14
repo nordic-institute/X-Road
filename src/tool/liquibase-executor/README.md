@@ -85,16 +85,12 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
    - Use typed changes (`createTable`, `addColumn`, `modifyDataType`, `createIndex`, `dropColumn`, ...).
    - One changeset per EDC script, with a `<comment>` naming the EDC version and file.
    - Exception: an X-Road addition that EDC does not ship (for example an extra index) goes in a separate
-     `NNN-xroad-additions.xml` file, with a `<comment>` that says it is an X-Road addition, and a matching
-     statement in the component's additions file
-     `src/tool/liquibase-executor/src/test/resources/parity/<component>-additions.sql` (step 4.3). A later
+     `NNN-xroad-additions.xml` file, with a `<comment>` that says it is an X-Road addition. A later
      addition is a new changeset in a new `NNN-xroad-additions.xml` file. Only `ds-control-plane` has one so far.
-   - Retiring an addition: at every EDC upgrade, check each statement of the additions file against the new
-     tag. If EDC now ships an index for it:
-     - same name and definition as the addition: remove the statement from the additions file and add no
-       changeset;
-     - otherwise: drop the X-Road index in a new `NNN-xroad-additions.xml` changeset (the applied one stays
-       unchanged), add EDC's index as above, and remove the statement from the additions file.
+   - Retiring an addition: at every EDC upgrade, while you diff EDC's `*-schema.sql` between the old and new
+     tag, check each `NNN-xroad-additions.xml` changeset against the new tag. If EDC now ships an index for it,
+     drop the X-Road index in a new `NNN-xroad-additions.xml` changeset (the applied one stays unchanged),
+     then add EDC's index as above.
    - Never edit an applied changeset, including the baseline: its checksum is stored in `databasechangelog`.
    - A store used by several components (jti, participant context, key pairs, ...) changes in each
      component's directory.
@@ -139,13 +135,6 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
           docker exec -i edc-check psql -v ON_ERROR_STOP=1 -q -U postgres -d ref || break
       done
       ```
-      Then apply the component's X-Road additions file, if it has one, so the diff in 4.5 stays empty. For
-      `ds-control-plane`:
-      ```
-      { echo 'SET search_path TO public;'; cat src/tool/liquibase-executor/src/test/resources/parity/ds-control-plane-additions.sql; } |
-        docker exec -i edc-check psql -v ON_ERROR_STOP=1 -q -U postgres -d ref
-      ```
-      When EDC now ships an addition, retire it as step 3 says.
    4. In `lb`, run the executor twice with `update`. The password goes through the environment, not the
       command line. The second run must apply nothing: the `databasechangelog` row count does not change.
       Logback errors about `/var/log/xroad` on a machine without X-Road are harmless.
@@ -161,7 +150,9 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
       For `ds-issuer-service` on the native layout, change the arguments to `--changelog=ds-issuer-service`,
       `--url='jdbc:postgresql://127.0.0.1:55432/lb?currentSchema=ds-issuer-service,public'` and
       `--defaultSchemaName=ds-issuer-service`, and count the rows of `"ds-issuer-service".databasechangelog`.
-   5. Dump both databases and compare. The `diff` must print nothing:
+   5. Dump both databases and compare. The `diff` may show only objects created by the component's
+      `NNN-xroad-additions.xml` changesets (for `ds-control-plane`: the `tasks_timestamp_index` index on
+      `edc_tasks`). Any other object in the diff means a changeset is missing or wrong:
       ```
       dump() {
         docker exec edc-check pg_dump -s --no-owner --no-privileges \
