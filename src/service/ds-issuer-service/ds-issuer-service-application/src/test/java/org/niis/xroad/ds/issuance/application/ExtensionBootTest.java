@@ -27,7 +27,10 @@
 package org.niis.xroad.ds.issuance.application;
 
 import org.eclipse.edc.issuerservice.publisher.LocalStatusListCredentialPublisherExtension;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.vault.VaultClient;
@@ -39,14 +42,16 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
  * Initializes the Issuer Service's real EDC extension set — every {@link ServiceExtension} the application
  * module's runtime classpath offers, after the application's own {@code excluded-service-extensions} —
  * through the inject → {@code initialize()} → provide steps of the runtime's boot lifecycle, with the
- * identity database settings present and absent, and the statuslist callback setting set and unset. The
- * following {@code prepare()}/{@code start()} phases are not covered: {@link VaultClient}, {@link
+ * identity database settings present and absent, the statuslist callback setting set and unset, and a
+ * leftover {@code edc.hostname} setting present with no binding. The following {@code prepare()}/{@code
+ * start()} phases are not covered: {@link VaultClient}, {@link
  * RpcCredentialsConfigurer} and {@link GlobalConfProvider} are Quarkus CDI beans the container wires in at
  * boot, and only a plain mock of each is registered here, so every other extension on the classpath still
  * initializes for real.
@@ -59,6 +64,9 @@ class ExtensionBootTest {
 
     private static final String CALLBACK_SETTING = "edc.statuslist.callback.address";
     private static final String CALLBACK_ADDRESS = "https://callback.example:6187/statuslist";
+
+    private static final String HOSTNAME_SETTING = "edc.hostname";
+    private static final String LEFTOVER_HOSTNAME = "leftover-node.example";
 
     private static final String VAULT_TOKEN_SETTING = "edc.vault.hashicorp.token";
     private static final String VAULT_TOKEN = "test-token";
@@ -88,6 +96,13 @@ class ExtensionBootTest {
         assertLocalPublisherExtensionNotLoaded(boot(withIdentityDbSettings(Map.of())));
     }
 
+    @Test
+    void bootsWithALeftoverHostnameSettingAndNoBindingTheHostnameRefuses() {
+        var context = bootCapturingContext(Map.of(HOSTNAME_SETTING, LEFTOVER_HOSTNAME));
+
+        assertThatThrownBy(() -> context.getService(Hostname.class).get()).isInstanceOf(EdcException.class);
+    }
+
     private static Map<String, String> withIdentityDbSettings(Map<String, String> base) {
         var settings = new HashMap<>(base);
         settings.put(IDENTITY_DB_URL_SETTING, "jdbc:postgresql://identity-db.example:5432/centerui");
@@ -105,6 +120,19 @@ class ExtensionBootTest {
             context.registerService(GlobalConfProvider.class, mock(GlobalConfProvider.class));
             context.registerService(VaultClient.class, mock(VaultClient.class));
         });
+    }
+
+    private static ServiceExtensionContext bootCapturingContext(Map<String, String> overrides) {
+        var settings = new HashMap<>(Map.of(VAULT_TOKEN_SETTING, VAULT_TOKEN));
+        settings.putAll(overrides);
+        var contextHolder = new ServiceExtensionContext[1];
+        ExtensionScanGuard.initializeNonExcluded(ExtensionBootTest.class.getResource("/application.yaml"), settings, context -> {
+            contextHolder[0] = context;
+            context.registerService(RpcCredentialsConfigurer.class, mock(RpcCredentialsConfigurer.class));
+            context.registerService(GlobalConfProvider.class, mock(GlobalConfProvider.class));
+            context.registerService(VaultClient.class, mock(VaultClient.class));
+        });
+        return contextHolder[0];
     }
 
     private static void assertLocalPublisherExtensionNotLoaded(List<ServiceExtension> extensions) {

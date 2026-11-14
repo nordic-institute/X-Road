@@ -70,7 +70,6 @@ web:
       host: ${xroad.dataspace.issuer.listen-address:}
 
 edc:
-  hostname: ${HOSTNAME}
   issuance:
     anonymous:
       allowed: true # Bypass mandatory creation of a holder as X-Road credential issuance trust model doesn't require it
