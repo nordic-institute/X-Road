@@ -54,7 +54,8 @@ import static org.mockito.Mockito.when;
 
 class DidResolutionGrpcServiceTest {
 
-    private static final Duration CALL_DEADLINE = Duration.ofSeconds(2);
+    private static final Duration RESPONSE_RESERVE = Duration.ofSeconds(1);
+    private static final Duration CALL_DEADLINE = Duration.ofSeconds(3);
 
     private final SubmittedDidResolver resolver = mock(SubmittedDidResolver.class);
 
@@ -64,7 +65,8 @@ class DidResolutionGrpcServiceTest {
 
     @BeforeEach
     void startServer() throws Exception {
-        var service = new DidResolutionGrpcService(new BatchDidResolver(resolver, mock(Monitor.class)), new RpcResponseHandler());
+        var service = new DidResolutionGrpcService(
+                new BatchDidResolver(resolver, mock(Monitor.class)), new RpcResponseHandler(), RESPONSE_RESERVE);
         server = ServerBuilder.forPort(0).addService(service).build().start();
         channel = ManagedChannelBuilder.forAddress("localhost", server.getPort()).usePlaintext().build();
         client = DidResolutionServiceGrpc.newBlockingStub(channel);
