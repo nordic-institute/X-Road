@@ -1,7 +1,8 @@
 ARG DOCKER_REGISTRY=""
 FROM ${DOCKER_REGISTRY}eclipse-temurin:25-jre-alpine
 
-RUN apk add --no-cache bash \
+RUN apk add --no-cache bash postgresql18-client \
+    && psql --version \
     && addgroup -g 1001 liquibase && adduser -u 1001 -G liquibase -h /home/liquibase -s /bin/bash -D liquibase \
     && mkdir -p /var/log/xroad && chown liquibase:liquibase /var/log/xroad
 
@@ -9,6 +10,8 @@ COPY --from=build-artifacts /liquibase-executor.jar /app/liquibase-executor.jar
 
 COPY --from=license /LICENSE.txt /app/LICENSE.txt
 COPY --from=license /3RD-PARTY-NOTICES.txt /app/3RD-PARTY-NOTICES.txt
+
+COPY --from=bootstrap-sql bootstrap-cluster.sql bootstrap-database.sql /usr/share/xroad/db/
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh

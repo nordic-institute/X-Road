@@ -117,6 +117,24 @@ class BootstrapSqlTest {
     }
 
     @Test
+    void publicSchemaIsTakenOverByTheAdminRoleSoItCanCreateTablesThere() throws Exception {
+        var scenario = scenario("pub", false, false).withMaster(postgres.getUsername(), postgres.getPassword())
+                .withPublicSchema();
+        assertSuccess(apply(scenario, FIRST_PASSWORD_SUFFIX));
+        assertSuccess(apply(scenario, SECOND_PASSWORD_SUFFIX));
+        assertThat(query(scenario.name(), "SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname = 'public'"))
+                .containsExactly(scenario.adminRole());
+        assertThat(hasSchemaPrivilege(scenario, scenario.adminRole(), "public", "CREATE")).isTrue();
+        assertThat(hasSchemaPrivilege(scenario, scenario.runtimeRole(), "public", "USAGE")).isTrue();
+        assertThat(hasSchemaPrivilege(scenario, scenario.runtimeRole(), "public", "CREATE")).isFalse();
+        assertThat(query(scenario.name(), "SELECT 1 FROM pg_namespace WHERE nspname = " + literal(scenario.name()))).isEmpty();
+        try (var connection = DriverManager.getConnection(url(scenario.name()), scenario.adminRole(),
+                scenario.adminPassword(FIRST_PASSWORD_SUFFIX));
+                var statement = connection.createStatement()) {
+            statement.execute("CREATE TABLE public.probe (id int)");
+        }
+    }
+    @Test
     void masterWithoutCreateroleMakesPsqlExitNonZero() throws Exception {
         var master = "master_d" + SEQUENCE.incrementAndGet();
         execute("CREATE ROLE \"%s\" LOGIN PASSWORD '%s' CREATEDB".formatted(master, MASTER_PASSWORD));
@@ -130,7 +148,7 @@ class BootstrapSqlTest {
 
     private static Scenario scenario(String namePrefix, boolean hstore, boolean singleRole) {
         var name = namePrefix + "-" + SEQUENCE.incrementAndGet();
-        return new Scenario(name, hstore, singleRole, null, null, "", "");
+        return new Scenario(name, hstore, singleRole, null, null, "", "", false);
     }
 
     private static void assertAppliedTwice(Scenario scenario) throws Exception {
@@ -239,7 +257,7 @@ class BootstrapSqlTest {
                 """.formatted(psqlQuote(scenario.name()), psqlQuote(scenario.adminRole()),
                 psqlQuote(scenario.adminPassword(passwordSuffix)), psqlQuote(scenario.runtimeRole()),
                 psqlQuote(scenario.runtimePassword(passwordSuffix)), psqlQuote(scenario.master()),
-                psqlQuote(scenario.name()), scenario.hstore() ? "on" : "off", scenario.singleRole() ? "on" : "off");
+                psqlQuote(scenario.schema()), scenario.hstore() ? "on" : "off", scenario.singleRole() ? "on" : "off");
     }
 
     private static String psqlQuote(String value) {
@@ -291,19 +309,26 @@ class BootstrapSqlTest {
     }
 
     private record Scenario(String name, boolean hstore, boolean singleRole, String master, String masterPassword,
-                            String passwordTail, String pgOptions) {
+                            String passwordTail, String pgOptions, boolean publicSchema) {
 
         Scenario withMaster(String newMaster, String newMasterPassword) {
-            return new Scenario(name, hstore, singleRole, newMaster, newMasterPassword, passwordTail, pgOptions);
+            return new Scenario(name, hstore, singleRole, newMaster, newMasterPassword, passwordTail, pgOptions,
+                    publicSchema);
         }
 
         Scenario withPasswordTail(String newTail) {
-            return new Scenario(name, hstore, singleRole, master, masterPassword, newTail, pgOptions);
+            return new Scenario(name, hstore, singleRole, master, masterPassword, newTail, pgOptions, publicSchema);
         }
 
         Scenario withRemoteSearchPath() {
             return new Scenario(name, hstore, singleRole, master, masterPassword, passwordTail,
-                    "PGOPTIONS='-c client-min-messages=warning -c search_path=%s,public'".formatted(name));
+                    "PGOPTIONS='-c client-min-messages=warning -c search_path=%s,public'".formatted(name), publicSchema);
+        }
+        Scenario withPublicSchema() {
+            return new Scenario(name, hstore, singleRole, master, masterPassword, passwordTail, pgOptions, true);
+        }
+        String schema() {
+            return publicSchema ? "public" : name;
         }
 
         String adminRole() {
