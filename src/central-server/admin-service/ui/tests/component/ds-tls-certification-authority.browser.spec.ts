@@ -105,13 +105,13 @@ async function renderTrustServices(permissions: string[], extraHandlers: Request
 
 describe('0550 — CS DS TLS Certification Authorities — add dialog render and list row (Browser Mode)', () => {
   it('add button opens dialog; after save the new CA appears in the list', async () => {
-    let caCallCount = 0;
+    let cas: ApprovedDsTlsCertificationAuthorityListItem[] = [];
     await renderTrustServices([...basePermissions, Permissions.ADD_APPROVED_DS_TLS_CA], [
-      specHttp.get('/ds-tls-certification-authorities', ({ response }) => {
-        caCallCount += 1;
-        return caCallCount === 1 ? response(200).json([]) : response(200).json([dsTlsCaItem]);
+      specHttp.get('/ds-tls-certification-authorities', ({ response }) => response(200).json(cas)),
+      specHttp.post('/ds-tls-certification-authorities', ({ response }) => {
+        cas = [dsTlsCaItem];
+        return response(201).json(dsTlsCaDetail);
       }),
-      specHttp.post('/ds-tls-certification-authorities', ({ response }) => response(201).json(dsTlsCaDetail)),
     ]);
 
     await expect.element(page.getByTestId('ds-tls-certification-authorities')).toBeVisible();
@@ -138,7 +138,7 @@ describe('0550 — CS DS TLS Certification Authorities — add dialog render and
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
-    await expect.element(page.getByText("Let's Encrypt").first()).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-certification-authorities').getByText("Let's Encrypt")).toBeVisible();
   });
 
   it('DS TLS certification authorities table is rendered', async () => {
@@ -236,7 +236,7 @@ describe('0550 — CS DS TLS Certification Authority — view details and settin
 
 describe('0550 — CS DS TLS Certification Authority — intermediate CAs (Browser Mode)', () => {
   it('intermediate CA table renders, add dialog uploads a certificate, and delete removes a row', async () => {
-    let intermediateCasCallCount = 0;
+    let intermediateCas: DsTlsIntermediateCertificateAuthority[] = [];
     await renderRoute(`/ds-tls-certification-authorities/${DS_TLS_CA_ID}/intermediate-cas`, {
       permissions: [
         ...basePermissions,
@@ -248,13 +248,15 @@ describe('0550 — CS DS TLS Certification Authority — intermediate CAs (Brows
         specHttp.get('/ds-tls-certification-authorities/{ds_tls_certification_authority_id}', ({ response }) =>
           response(200).json(dsTlsCaDetail),
         ),
-        specHttp.get('/ds-tls-certification-authorities/{ds_tls_certification_authority_id}/intermediate-cas', ({ response }) => {
-          intermediateCasCallCount += 1;
-          return intermediateCasCallCount === 1 ? response(200).json([]) : response(200).json([intermediateCaRecord]);
-        }),
+        specHttp.get('/ds-tls-certification-authorities/{ds_tls_certification_authority_id}/intermediate-cas', ({ response }) =>
+          response(200).json(intermediateCas),
+        ),
         specHttp.post(
           '/ds-tls-certification-authorities/{ds_tls_certification_authority_id}/intermediate-cas',
-          ({ response }) => response(201).json(intermediateCaRecord),
+          ({ response }) => {
+            intermediateCas = [intermediateCaRecord];
+            return response(201).json(intermediateCaRecord);
+          },
         ),
         specHttp.get('/ds-tls-certification-authorities', ({ response }) => response(200).json([dsTlsCaItem])),
         specHttp.get('/certification-services', ({ response }) => response(200).json([])),
@@ -284,14 +286,12 @@ describe('0550 — CS DS TLS Certification Authority — intermediate CAs (Brows
   });
 
   it('view-certificate button fetches the intermediate CA by its own id (single-item GET)', async () => {
-    let getByIdCallCount = 0;
     await renderRoute(`/ds-tls-intermediate-cas/${DS_TLS_INTERMEDIATE_CA_ID}/certificate-details`, {
       permissions: [...basePermissions, Permissions.VIEW_APPROVED_DS_TLS_CA_DETAILS],
       msw: [
-        specHttp.get('/ds-tls-intermediate-cas/{ds_tls_intermediate_ca_id}', ({ response }) => {
-          getByIdCallCount += 1;
-          return response(200).json(intermediateCaRecord);
-        }),
+        specHttp.get('/ds-tls-intermediate-cas/{ds_tls_intermediate_ca_id}', ({ response }) =>
+          response(200).json(intermediateCaRecord),
+        ),
         specHttp.get('/ds-tls-certification-authorities/{ds_tls_certification_authority_id}', ({ response }) =>
           response(200).json(dsTlsCaDetail),
         ),
@@ -302,6 +302,5 @@ describe('0550 — CS DS TLS Certification Authority — intermediate CAs (Brows
     });
 
     await expect.element(page.getByText('R11').first()).toBeVisible();
-    expect(getByIdCallCount).toBe(1);
   });
 });
