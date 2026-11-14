@@ -13,6 +13,20 @@ dependencies {
   compileOnly(project(":common:common-core"))
 
   testImplementation(libs.h2database)
+  testImplementation(libs.assertj.core)
+  testImplementation(libs.jackson.annotations)
+  testImplementation(libs.junit.jupiter.params)
+  testImplementation(libs.testcontainers.junit)
+  testImplementation(libs.testcontainers.postgresql)
+}
+
+val bootstrapSqlDir = rootProject.layout.projectDirectory.dir("../deployment/native-packages/src/xroad/common/base/usr/share/xroad/db")
+
+tasks.test {
+  inputs.files(fileTree(bootstrapSqlDir) { include("bootstrap-*.sql") })
+    .withPropertyName("bootstrapSql")
+    .withPathSensitivity(PathSensitivity.RELATIVE)
+  systemProperty("bootstrap.sql.dir", bootstrapSqlDir.asFile.absolutePath)
 }
 
 tasks.shadowJar {
