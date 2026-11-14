@@ -55,18 +55,12 @@ const uploadedBackup: Backup = {
 describe('1100 — CS Backup and Restore — download trigger + upload updates count (Browser Mode)', () => {
   it('download button triggers download; uploading a new backup file increments the row count', async () => {
     const downloadSpy = vi.fn();
-    let backupsCallCount = 0;
+    let backups: Backup[] = [existingBackup];
 
     await renderRoute(BACKUP_PATH, {
       permissions: [Permissions.BACKUP_CONFIGURATION],
       msw: [
-        specHttp.get('/backups', ({ response }) => {
-          backupsCallCount += 1;
-          // first call: one existing backup; second call (after upload): two backups
-          return backupsCallCount === 1
-            ? response(200).json([existingBackup])
-            : response(200).json([existingBackup, uploadedBackup]);
-        }),
+        specHttp.get('/backups', ({ response }) => response(200).json(backups)),
         specHttp.untyped.get(
           '/api/v1/backups/:filename/download',
           () => {
@@ -76,7 +70,10 @@ describe('1100 — CS Backup and Restore — download trigger + upload updates c
             });
           },
         ),
-        specHttp.post('/backups/upload', ({ response }) => response(201).json(uploadedBackup)),
+        specHttp.post('/backups/upload', ({ response }) => {
+          backups = [existingBackup, uploadedBackup];
+          return response(201).json(uploadedBackup);
+        }),
       ],
     });
 

@@ -166,22 +166,18 @@ describe('0810 — CS Config Parts — upload disabled for non-optional PRIVATE-
 // Representative for optional upload: MONITORING covers the upload flow (same pattern for FETCHINTERVAL, NEXTUPDATE)
 describe('0810 — CS Config Parts — upload optional part (MONITORING) updates part row (Browser Mode)', () => {
   it('upload button opens file dialog; after upload the part row shows an updated timestamp', async () => {
-    let partsCallCount = 0;
+    let parts = [optionalPartNoFile('MONITORING')];
     await renderRoute(INTERNAL_PATH, {
       permissions: basePermissions,
       msw: [
         tokensHandler(),
         anchorHandler(),
         downloadUrlHandler(),
-        specHttp.get('/configuration-sources/{configuration_type}/configuration-parts', ({ response }) => {
-          partsCallCount += 1;
-          return partsCallCount === 1
-            ? response(200).json([optionalPartNoFile('MONITORING')])
-            : response(200).json([optionalPartWithFile('MONITORING')]);
+        specHttp.get('/configuration-sources/{configuration_type}/configuration-parts', ({ response }) => response(200).json(parts)),
+        specHttp.post('/configuration-sources/{configuration_type}/configuration-parts', ({ response }) => {
+          parts = [optionalPartWithFile('MONITORING')];
+          return response(204).empty();
         }),
-        specHttp.post('/configuration-sources/{configuration_type}/configuration-parts', ({ response }) =>
-          response(204).empty(),
-        ),
       ],
     });
 
