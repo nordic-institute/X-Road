@@ -42,6 +42,7 @@ import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
@@ -178,8 +179,8 @@ public class SignerConfig {
     }
 
     @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity) {
-        return new QuarkusVaultClient(kvSecretEngine, nodeIdentity);
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity, XRoadConfig xRoadConfig) {
+        return new QuarkusVaultClient(kvSecretEngine, nodeIdentity, xRoadConfig.value(CommonConfigKeys.VAULT_RETRY_BUDGET));
     }
 
     private static DeploymentMode deploymentMode() {

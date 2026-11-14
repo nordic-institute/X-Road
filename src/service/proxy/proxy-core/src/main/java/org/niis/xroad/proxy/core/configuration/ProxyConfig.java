@@ -218,8 +218,9 @@ class ProxyConfig {
     }
 
     @ApplicationScoped
-    VaultClient vaultClient(VaultKeyClient vaultKeyClient, VaultKVSecretEngine kvSecretEngine) {
-        QuarkusVaultClient vaultClient = new QuarkusVaultClient(kvSecretEngine);
+    VaultClient vaultClient(VaultKeyClient vaultKeyClient, VaultKVSecretEngine kvSecretEngine, XRoadConfig xRoadConfig) {
+        QuarkusVaultClient vaultClient = new QuarkusVaultClient(kvSecretEngine,
+                xRoadConfig.value(CommonConfigKeys.VAULT_RETRY_BUDGET));
         try {
             ensureInternalTlsKeyPresent(vaultKeyClient, vaultClient);
         } catch (Exception e) {

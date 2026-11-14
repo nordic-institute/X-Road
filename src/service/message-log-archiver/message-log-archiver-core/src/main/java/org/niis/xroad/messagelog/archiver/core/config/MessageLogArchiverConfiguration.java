@@ -36,6 +36,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
@@ -76,8 +77,8 @@ public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig 
     }
 
     @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, XRoadConfig xRoadConfig) {
+        return new QuarkusVaultClient(kvSecretEngine, xRoadConfig.value(CommonConfigKeys.VAULT_RETRY_BUDGET));
     }
 
 }

@@ -45,7 +45,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SECRET_STORE_UNAVAI
  * budget passes. A failure that is not retryable is rethrown unchanged after one attempt. When the budget runs out
  * on a retryable failure, the call fails with {@code SECRET_STORE_UNAVAILABLE}.
  * <p>
- * The budget cannot cut short an attempt already in flight, so a call can last the budget plus one client timeout.
+ * The retry decision is made when an attempt fails, and an attempt in flight is not cut short, so a call can last
+ * the budget plus one backoff wait plus one client timeout.
  */
 @Slf4j
 public final class ResilientVaultCall {

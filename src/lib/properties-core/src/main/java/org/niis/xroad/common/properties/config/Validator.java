@@ -240,6 +240,27 @@ public interface Validator<T> {
         };
     }
 
+    /**
+     * @param min inclusive lower bound
+     * @param max inclusive upper bound
+     * @return validator accepting durations within {@code [min, max]}
+     */
+    static Validator<Duration> durationBetween(Duration min, Duration max) {
+        return new Validator<>() {
+            @Override
+            public Result validate(Duration value) {
+                return value != null && value.compareTo(min) >= 0 && value.compareTo(max) <= 0
+                        ? Result.ok()
+                        : Result.error("must be within [%s, %s]".formatted(min, max));
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("within [%s, %s]".formatted(min, max));
+            }
+        };
+    }
+
     /** @return validator rejecting null, zero, and negative integers */
     static Validator<Integer> positiveInt() {
         return new Validator<>() {

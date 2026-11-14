@@ -275,6 +275,8 @@ The local secret store has a root token, kept in the file `/etc/openbao/root-tok
 
 The secret store setup of a node runs in the unit `xroad-secret-store-local.service` at every start and at every upgrade. It waits for OpenBao, initializes it if needed, unseals it, creates the storage areas if they are missing, writes the access policy and checks the client token of the node. A node issues its own client token when it has none or its token is not valid. Never copy a client token between nodes.
 
+The services retry a call to the secret store for a limited time; see [System Parameters User Guide](ug-syspar_x-road_v6_system_parameters.md#4112-secret-store-retry-xroadcommonvault-retry).
+
 Keep a copy of the unseal keys outside the cluster, in a safe place. The root token can be regenerated from the unseal keys, but not the other way round, and node backups contain neither of them.
 
 **Copying the files.** Copy a file between nodes so that the content does not appear in the command line or the shell history. The command writes the content to a temporary file on the target node, checks that the file is not empty, sets the owner `root:root` and the mode `600`, and only then replaces the target file. If reading the file or any step on the target node fails, the existing target file is left untouched. Run the command on a node that has the file. The account on the target node needs `sudo` without a password prompt, because the file is sent through the standard input.

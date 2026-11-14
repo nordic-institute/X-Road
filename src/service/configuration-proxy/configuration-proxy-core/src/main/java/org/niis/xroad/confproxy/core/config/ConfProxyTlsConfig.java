@@ -33,6 +33,8 @@ import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
@@ -56,8 +58,9 @@ class ConfProxyTlsConfig {
     }
 
     @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, VaultKeyClient vaultKeyClient) {
-        VaultClient vaultClient = new QuarkusVaultClient(kvSecretEngine);
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, VaultKeyClient vaultKeyClient, XRoadConfig xRoadConfig) {
+        VaultClient vaultClient = new QuarkusVaultClient(kvSecretEngine,
+                xRoadConfig.value(CommonConfigKeys.VAULT_RETRY_BUDGET));
         try {
             ensureTlsKeyPresent(vaultKeyClient, vaultClient);
         } catch (Exception e) {

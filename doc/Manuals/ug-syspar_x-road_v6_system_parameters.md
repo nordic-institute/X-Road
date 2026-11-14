@@ -149,6 +149,7 @@ Doc. ID: UG-SYSPAR
         - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
             - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
                 - [4.1.1.1 Internal gRPC connections: `xroad.common-rpc`](#4111-internal-grpc-connections-xroadcommon-rpc)
+                - [4.1.1.2 Secret store retry: `xroad.common.vault-retry`](#4112-secret-store-retry-xroadcommonvault-retry)
             - [4.1.2 Center parameters: `[center]`](#412-center-parameters-center)
             - [4.1.3 Center parameters: `[admin-service]`](#413-center-parameters-admin-service)
             - [4.1.4 Signer parameters: `[signer]`](#414-signer-parameters-signer)
@@ -282,6 +283,8 @@ This chapter describes the system parameters used by the components of the X-Roa
 | grpc-internal-keystore-password   | \<generated-value>                               | gRPC keystore password.                                              |
 | grpc-internal-truststore          | /var/run/xroad/xroad-grpc-internal-keystore.p12 | gRPC truststore for mTLS configuration.                              |
 | grpc-internal-truststore-password | \<generated-value>                               | gRPC truststore password.                                            |
+
+The time limit for retrying calls to the secret store is the X-Road 8 configuration property `xroad.common.vault-retry.budget`. It has the same default value of 30 s on the Security Server and on the Central Server. See section [4.1.1.2](#4112-secret-store-retry-xroadcommonvault-retry).
 
 ### 3.2 Proxy parameters: `[proxy]`
 
@@ -573,6 +576,26 @@ The parameter in this section is an X-Road 8 configuration property, not an INI 
 | **Parameter**              | **Default value** | **Description** |
 |----------------------------|-------------------|-----------------|
 | `xroad.common-rpc.use-tls` | true              | For testing only; do not set to *false* in production. When enabled, mutual TLS is used for all gRPC communication between the internal services of the server. On the Security Server this includes the connection to the operational monitoring daemon. When *false*, every internal gRPC connection is unencrypted. On the Security Server, the Operational Monitoring CA and `xroad.op-monitor.rpc.allowed-client-names` \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\] are then not applied, so traffic to an external operational monitoring daemon is neither encrypted nor authenticated. |
+
+##### 4.1.1.2 Secret store retry: `xroad.common.vault-retry`
+
+The parameter in this section is an X-Road 8 configuration property, not an INI file parameter. It applies to the Security Server and to the Central Server. It is not shown in the System Parameters view of the user interface. Set it in the database with the script `/usr/share/xroad/scripts/db_property.sh`, for example:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.common.vault-retry.budget 30s
+```
+
+The services read the value once when they start, so restart the services of the server after a change. A value outside the allowed range stops the services from starting. The script `db_property.sh` does not check the value.
+
+| **Parameter**                    | **Default value** | **Description** |
+|----------------------------------|-------------------|-----------------|
+| `xroad.common.vault-retry.budget` | 30s               | Total time a call to the secret store (OpenBao) is retried before it fails. Allowed values are from 0 to 5 minutes. The value 0 turns retrying off. Accepted formats are `30s`, `PT30S` (ISO-8601) and `30` (seconds). |
+
+When a call to the secret store fails because the secret store is not available, the service waits and tries again until the time limit is used up. The time limit is the total elapsed time. An attempt that fails just before the limit is still followed by one more wait (up to 5 s) and one more attempt (up to the connect timeout of 5 s plus the read timeout of 10 s). With the default values, a call fails after about 50 s at most. The wait between attempts grows from 500 ms, doubles after each attempt and stays at 5 s at most. Each failed attempt writes one WARN line to the log of the service. When the time limit is used up, the call fails with the error code `SECRET_STORE_UNAVAILABLE`.
+
+These failures are retried: HTTP status 5xx and 307 (for example, a secret store that is sealed, starting up or has no leader), refused connections and timeouts. Other failures, such as the status 404 for a missing secret or any other 4xx status, are never retried.
+
+Each HTTP request to the secret store has a connect timeout of 5 s and a read timeout of 10 s. They apply to all X-Road services. The services based on Quarkus use the Quarkus properties `quarkus.vault.connect-timeout` and `quarkus.vault.read-timeout`. The services based on Spring Boot use `spring.cloud.vault.connection-timeout` and `spring.cloud.vault.read-timeout`. Both are part of the packaged defaults of the services.
 
 #### 4.1.2 Center parameters: `[center]`
 

@@ -71,7 +71,11 @@ public class QuarkusVaultClient implements VaultClient {
     private final ResilientVaultCall resilientCall;
 
     public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine) {
-        this(kvSecretEngine, NodeIdentity.resolve(null));
+        this(kvSecretEngine, ResilientVaultCall.DEFAULT_BUDGET);
+    }
+
+    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, Duration retryBudget) {
+        this(kvSecretEngine, NodeIdentity.resolve(null), retryBudget);
     }
 
     public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity) {
