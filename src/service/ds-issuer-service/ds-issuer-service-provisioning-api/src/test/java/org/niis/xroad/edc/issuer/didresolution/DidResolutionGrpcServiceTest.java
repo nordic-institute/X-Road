@@ -26,10 +26,12 @@
  */
 package org.niis.xroad.edc.issuer.didresolution;
 
+import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,9 +44,12 @@ import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionReason;
 import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionResult;
 import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionServiceGrpc;
 import org.niis.xroad.edc.issuer.provisioning.proto.ResolveDidsReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.ResolveDidsResp;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +59,10 @@ import static org.mockito.Mockito.when;
 
 class DidResolutionGrpcServiceTest {
 
-    private static final Duration CALL_DEADLINE = Duration.ofSeconds(2);
+    private static final Duration TEST_RESPONSE_RESERVE = Duration.ofSeconds(1);
+    private static final Duration CALL_DEADLINE = Duration.ofSeconds(3);
+    private static final Duration INJECTED_RESERVE = Duration.ofSeconds(10);
+    private static final Duration SHORT_DEADLINE = Duration.ofMillis(100);
 
     private final SubmittedDidResolver resolver = mock(SubmittedDidResolver.class);
 
@@ -64,7 +72,8 @@ class DidResolutionGrpcServiceTest {
 
     @BeforeEach
     void startServer() throws Exception {
-        var service = new DidResolutionGrpcService(new BatchDidResolver(resolver, mock(Monitor.class)), new RpcResponseHandler());
+        var service = new DidResolutionGrpcService(
+                new BatchDidResolver(resolver, mock(Monitor.class)), new RpcResponseHandler(), TEST_RESPONSE_RESERVE);
         server = ServerBuilder.forPort(0).addService(service).build().start();
         channel = ManagedChannelBuilder.forAddress("localhost", server.getPort()).usePlaintext().build();
         client = DidResolutionServiceGrpc.newBlockingStub(channel);
@@ -130,6 +139,74 @@ class DidResolutionGrpcServiceTest {
         assertThat(results).extracting(DidResolutionResult::getReason)
                 .containsExactly(DidResolutionReason.FETCH_FAILURE, DidResolutionReason.DID_RESOLUTION_REASON_NONE);
         assertThat(results.getFirst().getOutcome()).isEqualTo(DidResolutionOutcome.NOT_RESOLVED);
+    }
+
+    @Test
+    void aReserveAboveTheCallDeadlineLeavesNoBudgetSoEveryDidIsUnfinished() {
+        var service = new DidResolutionGrpcService(
+                new BatchDidResolver(resolver, mock(Monitor.class)), new RpcResponseHandler(), INJECTED_RESERVE);
+        var dids = List.of(didOn("host-a", 1), didOn("host-b", 2));
+
+        var results = resolveWithin(service, CALL_DEADLINE, dids);
+
+        assertAllUnfinishedWithoutResolving(results, dids);
+    }
+
+    @Test
+    void theProductionConstructorReservesMoreThanAShortCallDeadlineSoEveryDidIsUnfinished() {
+        var service = new DidResolutionGrpcService(
+                new BatchDidResolver(resolver, mock(Monitor.class)), new RpcResponseHandler());
+        var dids = List.of(didOn("host-a", 1), didOn("host-b", 2));
+
+        var results = resolveWithin(service, SHORT_DEADLINE, dids);
+
+        assertAllUnfinishedWithoutResolving(results, dids);
+    }
+
+    private void assertAllUnfinishedWithoutResolving(List<DidResolutionResult> results, List<String> dids) {
+        assertThat(results).extracting(DidResolutionResult::getDid).containsExactlyElementsOf(dids);
+        assertThat(results).extracting(DidResolutionResult::getOutcome)
+                .containsOnly(DidResolutionOutcome.NOT_RESOLVED);
+        assertThat(results).extracting(DidResolutionResult::getReason)
+                .containsOnly(DidResolutionReason.FETCH_FAILURE);
+        verifyNoInteractions(resolver);
+    }
+
+    private static List<DidResolutionResult> resolveWithin(
+            DidResolutionGrpcService service, Duration deadline, List<String> dids) {
+        var observer = new CapturingObserver();
+        var request = ResolveDidsReq.newBuilder().addAllDids(dids).build();
+        var scheduler = Executors.newSingleThreadScheduledExecutor();
+        try (var context = Context.current().withDeadlineAfter(deadline.toMillis(), TimeUnit.MILLISECONDS, scheduler)) {
+            context.run(() -> service.resolveDids(request, observer));
+        } finally {
+            scheduler.shutdownNow();
+        }
+
+        assertThat(observer.errors).isEmpty();
+        assertThat(observer.completed).isTrue();
+        return observer.responses.getFirst().getResultsList();
+    }
+
+    private static final class CapturingObserver implements StreamObserver<ResolveDidsResp> {
+        private final List<ResolveDidsResp> responses = new ArrayList<>();
+        private final List<Throwable> errors = new ArrayList<>();
+        private boolean completed;
+
+        @Override
+        public void onNext(ResolveDidsResp response) {
+            responses.add(response);
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            errors.add(error);
+        }
+
+        @Override
+        public void onCompleted() {
+            completed = true;
+        }
     }
 
     private static String didOn(String host, int code) {
