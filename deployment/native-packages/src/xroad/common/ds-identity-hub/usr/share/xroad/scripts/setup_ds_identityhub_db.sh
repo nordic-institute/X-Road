@@ -21,7 +21,9 @@ setup_database "ds-identity-hub" "ds-identity-hub" "$default_host"
 db_properties=/etc/xroad/db.properties
 url_key="xroad.db.ds-identity-hub.hibernate.connection.url"
 url=$(get_prop "$db_properties" "$url_key" '')
-if [[ -n "$url" && "$url" != *currentSchema=* ]]; then
+if [[ ! -w "$db_properties" ]]; then
+    echo >&2 "$db_properties is not writable, skipping currentSchema setup"
+elif [[ -n "$url" && "$url" != *currentSchema=* ]]; then
     schema=$(get_prop "$db_properties" "xroad.db.ds-identity-hub.hibernate.hikari.dataSource.currentSchema" 'ds-identity-hub')
     schema="${schema%%,*}"
     separator="$([[ "$url" == *"?"* ]] && echo "&" || echo "?")"
