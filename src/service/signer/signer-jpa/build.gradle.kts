@@ -10,6 +10,7 @@ dependencies {
   implementation(project(":common:common-db-identifiers"))
   implementation(libs.quarkus.arc)
 
+  testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.core)
   testImplementation(libs.testcontainers.postgresql)
 }

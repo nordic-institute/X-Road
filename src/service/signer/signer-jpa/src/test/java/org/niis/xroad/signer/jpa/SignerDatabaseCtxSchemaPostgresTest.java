@@ -36,7 +36,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class SignerDatabaseCtxSchemaPostgresTest {
@@ -71,8 +71,8 @@ class SignerDatabaseCtxSchemaPostgresTest {
 
         var ctx = new SignerDatabaseCtx(Optional.empty(), Optional.empty(), Optional.of(springDatasource));
         try {
-            assertEquals(SCHEMA, currentSchema(ctx));
-            assertEquals(APPLICATION_NAME, applicationName(ctx));
+            assertThat(currentSchema(ctx)).isEqualTo(SCHEMA);
+            assertThat(applicationName(ctx)).isEqualTo(APPLICATION_NAME);
         } finally {
             ctx.destroy();
         }
@@ -89,7 +89,7 @@ class SignerDatabaseCtxSchemaPostgresTest {
 
         var ctx = new SignerDatabaseCtx(Optional.of(serverconf), Optional.empty(), Optional.empty());
         try {
-            assertEquals(SCHEMA, currentSchema(ctx));
+            assertThat(currentSchema(ctx)).isEqualTo(SCHEMA);
         } finally {
             ctx.destroy();
         }
