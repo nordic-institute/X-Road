@@ -316,6 +316,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     MEMBER_CLASS_EXISTS("member_class_exists"),
 
     MISSING_SECRET("missing_secret"),
+    SECRET_STORE_UNAVAILABLE("secret_store_unavailable"),
 
     PGP_INTERNAL_ERROR("pgp_internal_error"),
     PGP_ENCODE_FAILED("pgp_encode_failed"),

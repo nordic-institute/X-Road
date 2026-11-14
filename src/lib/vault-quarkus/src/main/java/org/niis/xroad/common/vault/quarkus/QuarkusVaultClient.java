@@ -40,6 +40,7 @@ import org.niis.xroad.common.vault.AgreementTokenVaultDataUtils;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.NodeScopedSecretPaths;
+import org.niis.xroad.common.vault.ResilientVaultCall;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.io.ByteArrayInputStream;
@@ -50,6 +51,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -66,14 +68,20 @@ public class QuarkusVaultClient implements VaultClient {
 
     private final VaultKVSecretEngine kvSecretEngine;
     private final NodeScopedSecretPaths nodePaths;
+    private final ResilientVaultCall resilientCall;
 
     public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine) {
         this(kvSecretEngine, NodeIdentity.resolve(null));
     }
 
     public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity) {
+        this(kvSecretEngine, nodeIdentity, ResilientVaultCall.DEFAULT_BUDGET);
+    }
+
+    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity, Duration retryBudget) {
         this.kvSecretEngine = kvSecretEngine;
         this.nodePaths = new NodeScopedSecretPaths(nodeIdentity);
+        this.resilientCall = new ResilientVaultCall(QuarkusVaultFailures::isRetryable, retryBudget);
     }
 
     @Override
@@ -133,7 +141,7 @@ public class QuarkusVaultClient implements VaultClient {
 
     @Override
     public void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
-        kvSecretEngine.writeSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH, toDsTlsEnrollmentStatusSecret(status));
+        writeSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH, toDsTlsEnrollmentStatusSecret(status));
     }
 
     @Override
@@ -143,12 +151,12 @@ public class QuarkusVaultClient implements VaultClient {
 
     @Override
     public void createOpMonitorCa(X509Certificate certificate) {
-        kvSecretEngine.writeSecret(OPMONITOR_CA_PATH, toOpMonitorCaSecret(certificate));
+        writeSecret(OPMONITOR_CA_PATH, toOpMonitorCaSecret(certificate));
     }
 
     @Override
     public void clearOpMonitorCa() {
-        kvSecretEngine.writeSecret(OPMONITOR_CA_PATH, toClearedOpMonitorCaSecret());
+        writeSecret(OPMONITOR_CA_PATH, toClearedOpMonitorCaSecret());
     }
 
     @Override
@@ -156,7 +164,7 @@ public class QuarkusVaultClient implements VaultClient {
         var secret = new HashMap<String, String>();
 
         secret.put(PAYLOAD_KEY, armoredPrivateKey);
-        kvSecretEngine.writeSecret(MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH, secret);
+        writeSecret(MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH, secret);
     }
 
     @Override
@@ -170,7 +178,7 @@ public class QuarkusVaultClient implements VaultClient {
         var secret = new HashMap<String, String>();
 
         secret.put(PAYLOAD_KEY, armoredRecipientPublicKeys);
-        kvSecretEngine.writeSecret(MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH, secret);
+        writeSecret(MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH, secret);
     }
 
     @Override
@@ -183,14 +191,14 @@ public class QuarkusVaultClient implements VaultClient {
     public void setMLogDBEncryptionSecretKey(String keyId, String base64SecretKey) {
         var secret = MessageLogVaultDataUtils.createEncryptionKeySecret(base64SecretKey);
         String path = MessageLogVaultDataUtils.buildEncryptionKeyPath(keyId);
-        kvSecretEngine.writeSecret(path, secret);
+        writeSecret(path, secret);
         log.info("Stored encryption key in Vault at path: {}", path);
     }
 
     @Override
     public Map<String, String> getMLogDBEncryptionSecretKeys() {
         return MessageLogVaultDataUtils.getMLogDBEncryptionSecretKeys(
-                kvSecretEngine::listSecrets,
+                this::listSecrets,
                 this::readSecret
         );
     }
@@ -200,7 +208,7 @@ public class QuarkusVaultClient implements VaultClient {
         var secret = new HashMap<String, String>();
         secret.put(PIN_KEY, new String(pin));
         String path = nodePaths.tokenPin(tokenId);
-        kvSecretEngine.writeSecret(path, secret);
+        writeSecret(path, secret);
     }
 
     @Override
@@ -213,7 +221,7 @@ public class QuarkusVaultClient implements VaultClient {
     @Override
     public void deleteTokenPin(String tokenId) {
         String path = nodePaths.tokenPin(tokenId);
-        kvSecretEngine.deleteSecret(path);
+        deleteSecret(path);
     }
 
 
@@ -227,7 +235,7 @@ public class QuarkusVaultClient implements VaultClient {
         }
         secret.put(PUBLICKEY_KEY, toPem(acmeAccountKey.publicKey()));
         secret.put(EXPIRES_AT_KEY, acmeAccountKey.expiresAt().toString());
-        kvSecretEngine.writeSecret(getAcmeAccountKeyPath(alias), secret);
+        writeSecret(getAcmeAccountKeyPath(alias), secret);
     }
 
     @Override
@@ -255,7 +263,7 @@ public class QuarkusVaultClient implements VaultClient {
     public void createAgreementTokenSigningKey(String keyId, String keyPairJwk) {
         var secret = AgreementTokenVaultDataUtils.createSigningKeySecret(keyPairJwk);
         String path = AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId);
-        kvSecretEngine.writeSecret(path, secret);
+        writeSecret(path, secret);
         log.info("Stored agreement-token signing key in Vault at path: {}", path);
     }
 
@@ -269,7 +277,7 @@ public class QuarkusVaultClient implements VaultClient {
 
     @Override
     public void deleteAgreementTokenSigningKey(String keyId) {
-        kvSecretEngine.deleteSecret(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
+        deleteSecret(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
     }
 
     /**
@@ -281,7 +289,7 @@ public class QuarkusVaultClient implements VaultClient {
      */
     private List<String> listAgreementTokenSigningKeyIds(String path) {
         try {
-            var keys = kvSecretEngine.listSecrets(path);
+            var keys = listSecrets(path);
             return keys == null ? List.of() : keys;
         } catch (VaultClientException e) {
             if (Objects.equals(e.getStatus(), HTTP_NOT_FOUND)) {
@@ -306,7 +314,7 @@ public class QuarkusVaultClient implements VaultClient {
         }
 
         try {
-            var vaultResponse = kvSecretEngine.readSecret(path);
+            var vaultResponse = readRawSecret(path);
             if (vaultResponse == null) {
                 return Optional.empty();
             }
@@ -319,6 +327,28 @@ public class QuarkusVaultClient implements VaultClient {
             log.warn("Failed to read secret from Vault at path {}: {} status {}", path, e.getMessage(), e.getStatus());
             throw e;
         }
+    }
+
+    private void writeSecret(String path, Map<String, String> secret) {
+        resilientCall.execute("write", path, () -> {
+            kvSecretEngine.writeSecret(path, secret);
+            return null;
+        });
+    }
+
+    private Map<String, String> readRawSecret(String path) {
+        return resilientCall.execute("read", path, () -> kvSecretEngine.readSecret(path));
+    }
+
+    private void deleteSecret(String path) {
+        resilientCall.execute("delete", path, () -> {
+            kvSecretEngine.deleteSecret(path);
+            return null;
+        });
+    }
+
+    private List<String> listSecrets(String path) {
+        return resilientCall.execute("list", path, () -> kvSecretEngine.listSecrets(path));
     }
 
     private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -347,7 +377,7 @@ public class QuarkusVaultClient implements VaultClient {
 
         secret.put(CERTIFICATE_KEY, sb.toString());
         secret.put(PRIVATEKEY_KEY, toPem(internalSSLKey.getKey()));
-        kvSecretEngine.writeSecret(path, secret);
+        writeSecret(path, secret);
     }
 
 }

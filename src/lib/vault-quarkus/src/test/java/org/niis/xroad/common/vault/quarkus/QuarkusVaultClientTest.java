@@ -41,6 +41,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
@@ -51,6 +53,7 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -80,7 +83,7 @@ class QuarkusVaultClientTest {
 
     @BeforeEach
     void setUp() {
-        vaultClient = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_0"));
+        vaultClient = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_0"), Duration.ZERO);
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);
@@ -233,14 +236,27 @@ class QuarkusVaultClientTest {
         assertThat(vaultClient.getOpMonitorCa()).isEmpty();
     }
 
+    @Test
+    void shouldPropagateAnOpMonitorCaReadForbiddenFailureUnchanged() {
+        when(kvSecretEngine.readSecret(VaultClient.OPMONITOR_CA_PATH))
+                .thenThrow(new VaultClientException("read", VaultClient.OPMONITOR_CA_PATH, 403, "failure", null));
+
+        assertThatThrownBy(() -> vaultClient.getOpMonitorCa())
+                .isInstanceOfSatisfying(VaultClientException.class, e -> assertThat(e.getStatus()).isEqualTo(403));
+    }
+
     @ParameterizedTest
-    @ValueSource(ints = {403, 500, 503})
-    void shouldPropagateAnOpMonitorCaReadFailureOtherThanNotFound(int status) {
+    @ValueSource(ints = {500, 503})
+    void shouldReportAnOpMonitorCaServerErrorAsSecretStoreUnavailable(int status) {
         when(kvSecretEngine.readSecret(VaultClient.OPMONITOR_CA_PATH))
                 .thenThrow(new VaultClientException("read", VaultClient.OPMONITOR_CA_PATH, status, "failure", null));
 
         assertThatThrownBy(() -> vaultClient.getOpMonitorCa())
-                .isInstanceOfSatisfying(VaultClientException.class, e -> assertThat(e.getStatus()).isEqualTo(status));
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.isCausedBy(ErrorCode.SECRET_STORE_UNAVAILABLE)).isTrue();
+                    assertThat(e.getCause()).isInstanceOfSatisfying(VaultClientException.class,
+                            cause -> assertThat(cause.getStatus()).isEqualTo(status));
+                });
     }
 
     @Test
@@ -298,7 +314,8 @@ class QuarkusVaultClientTest {
                 .thenThrow(new VaultClientException("list", "agreement-token/signing-keys", 500, "sealed", null));
 
         assertThatThrownBy(() -> vaultClient.getAgreementTokenSigningKeys())
-                .isInstanceOf(VaultClientException.class);
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.isCausedBy(ErrorCode.SECRET_STORE_UNAVAILABLE)).isTrue());
     }
 
     @Test
