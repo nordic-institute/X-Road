@@ -31,6 +31,8 @@ import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -39,21 +41,51 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Minimal OpenBao KV v2 stand-in served over real HTTP on a free port.
+ * Minimal OpenBao KV v2 stand-in served over real HTTP.
  */
 final class FakeOpenBao implements AutoCloseable {
+
+    private static final String LEADER_PATH = "/leader";
+    private static final String SECRET_PATH = "/v1/xrd-secret";
+
+    /**
+     * What the fake does to a secret request instead of answering it.
+     */
+    enum Failure {
+        /** Answers with the given status. */
+        STATUS,
+        /** Answers 307 with a {@code Location} on a port nothing listens on. */
+        REDIRECT_TO_DEAD_LEADER,
+        /** Waits before answering. */
+        SLEEP,
+        /** Closes the connection without any response. */
+        CLOSE
+    }
 
     private final HttpServer server;
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final List<String> hits = new CopyOnWriteArrayList<>();
     private final AtomicInteger failuresLeft = new AtomicInteger();
-    private volatile int failureStatus;
+    private final int deadLeaderPort = unusedPort();
+    private volatile Failure failure = Failure.STATUS;
+    private volatile int status;
+    private volatile long sleepMillis;
 
     FakeOpenBao() throws IOException {
-        server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        this(0);
+    }
+
+    FakeOpenBao(int port) throws IOException {
+        server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
         server.setExecutor(executor);
         server.createContext("/", this::handle);
         server.start();
+    }
+
+    static int unusedPort() throws IOException {
+        try (var socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        }
     }
 
     int port() {
@@ -61,15 +93,21 @@ final class FakeOpenBao implements AutoCloseable {
     }
 
     /**
-     * Answers the next {@code count} secret requests with {@code status}, then succeeds.
+     * Applies {@code newFailure} to the next {@code count} secret requests, then answers normally.
      */
-    void failNext(int count, int status) {
-        failureStatus = status;
+    void failNext(int count, Failure newFailure, int newStatus, long newSleepMillis) {
+        failure = newFailure;
+        status = newStatus;
+        sleepMillis = newSleepMillis;
         failuresLeft.set(count);
     }
 
     List<String> secretHits() {
-        return hits.stream().filter(h -> h.contains("/xrd-secret")).toList();
+        return hits.stream().filter(h -> h.contains(SECRET_PATH)).toList();
+    }
+
+    List<String> leaderHits() {
+        return hits.stream().filter(h -> h.contains(" " + LEADER_PATH + "/")).toList();
     }
 
     @Override
@@ -81,18 +119,54 @@ final class FakeOpenBao implements AutoCloseable {
     private void handle(HttpExchange ex) throws IOException {
         try (ex) {
             var method = ex.getRequestMethod();
-            var path = ex.getRequestURI().getPath();
+            var uri = ex.getRequestURI();
             ex.getRequestBody().readAllBytes();
-            hits.add(method + " " + path);
-            if (!path.startsWith("/v1/xrd-secret")) {
+            hits.add(method + " " + uri.getPath());
+            var path = uri.getPath();
+            if (path.startsWith(LEADER_PATH + "/") || !path.startsWith(SECRET_PATH)) {
                 send(ex, 200, "{\"data\":{}}");
             } else if (failuresLeft.getAndUpdate(n -> Math.max(0, n - 1)) > 0) {
-                send(ex, failureStatus, "{\"errors\":[\"fake failure\"]}");
-            } else if ("GET".equals(method)) {
-                send(ex, 200, "{\"data\":{\"data\":{\"payload\":\"v\"},\"metadata\":{\"version\":1}}}");
+                fail(ex, method, uri);
             } else {
-                ex.sendResponseHeaders(204, -1);
+                succeed(ex, method, uri);
             }
+        }
+    }
+
+    private void fail(HttpExchange ex, String method, URI uri) throws IOException {
+        switch (failure) {
+            case STATUS -> send(ex, status, "{\"errors\":[\"fake failure\"]}");
+            case REDIRECT_TO_DEAD_LEADER -> {
+                ex.getResponseHeaders().add("Location", "http://127.0.0.1:" + deadLeaderPort + uri);
+                ex.sendResponseHeaders(307, -1);
+            }
+            case SLEEP -> {
+                sleep();
+                succeed(ex, method, uri);
+            }
+            case CLOSE -> throw new IOException("fake closes the connection without a response");
+            default -> throw new IllegalStateException("Unexpected failure " + failure);
+        }
+    }
+
+    private void sleep() {
+        try {
+            Thread.sleep(sleepMillis);
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private static void succeed(HttpExchange ex, String method, URI uri) throws IOException {
+        var query = uri.getQuery() == null ? "" : uri.getQuery();
+        if ("LIST".equals(method) || query.contains("list=true")) {
+            send(ex, 200, "{\"data\":{\"keys\":[\"k1\"]}}");
+        } else if ("GET".equals(method)) {
+            send(ex, 200, "{\"data\":{\"data\":{\"payload\":\"v\"},\"metadata\":{\"version\":1}}}");
+        } else if ("DELETE".equals(method)) {
+            ex.sendResponseHeaders(204, -1);
+        } else {
+            send(ex, 200, "{\"data\":{\"version\":2}}");
         }
     }
 
