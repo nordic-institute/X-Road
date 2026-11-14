@@ -121,12 +121,16 @@ start_real_server() {
   docker run -d --name "${CONTAINER}" \
     -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
     -e 'BAO_CONFIG=disable_mlock = true
-storage "file" { path = "/openbao/file" }
+storage "raft" {
+  path = "/openbao/file"
+  node_id = "node1"
+}
 listener "tcp" {
   address = "127.0.0.1:8200"
   tls_disable = true
 }
-api_addr = "http://127.0.0.1:8200"' \
+api_addr = "http://127.0.0.1:8200"
+cluster_addr = "http://127.0.0.1:8201"' \
     --entrypoint sh "${IMAGE}" -c '
       mkdir -p /etc/openbao /etc/xroad
       chown xroad:xroad /etc/xroad

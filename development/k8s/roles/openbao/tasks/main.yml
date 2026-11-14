@@ -100,6 +100,7 @@
     name: openbao
     chart_ref: "{{ openbao_chart }}"
     chart_version: "{{ openbao_chart_version | default(omit, true) }}"
+    update_repo_cache: true
     release_namespace: "{{ security_server_namespace }}"
     create_namespace: true
     kubeconfig: "{{ kubeconfig_path }}"
