@@ -25,6 +25,7 @@ done
 shift $(($OPTIND - 1))
 
 prepare_db_props
+prepare_ha_node_name_args || abort "Restore stopped: cannot determine the node name."
 
 DUMP_FILE=$1
 MASTER_USER=postgres
@@ -127,6 +128,7 @@ LIQUIBASE_COMMAND_PASSWORD="${ADMIN_PASSWORD}" /usr/share/xroad/db/liquibase.sh 
   --username="${ADMIN_USER}" \
   --defaultSchemaName="${SCHEMA}" \
   --prop-db-user="${USER}" \
+  "${ha_node_name_args[@]}" \
   $context \
   update \
   || abort "Database schema migration failed."

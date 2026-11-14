@@ -30,6 +30,7 @@ package org.niis.xroad.signer.jpa.config;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.signer.core.service.TokenKeyCertRequestWriteService;
@@ -54,46 +55,50 @@ public class ServicesConfig {
     @ApplicationScoped
     TokenKeyCertRequestWriteService tokenKeyCertRequestWriteService(DatabaseCtx sessionProvider,
                                                                     SignerKeyCertRequestDaoImpl keyCertRequestDao,
-                                                                    IdentifierDAOImpl identifierDAO) {
+                                                                    IdentifierDAOImpl identifierDAO,
+                                                                    NodeIdentity nodeIdentity) {
         if (NodeProperties.isSecondaryNode()) {
             // no write operations allowed on secondary node
             return new TokenKeyCertRequestWriteNoopServiceImpl();
         }
 
-        return new TokenKeyCertRequestWriteServiceImpl(sessionProvider, keyCertRequestDao, identifierDAO);
+        return new TokenKeyCertRequestWriteServiceImpl(sessionProvider, keyCertRequestDao, identifierDAO, nodeIdentity);
     }
 
     @ApplicationScoped
     TokenKeyCertWriteService tokenKeyCertWriteService(DatabaseCtx sessionProvider,
                                                       SignerKeyCertDaoImpl keyCertDao,
-                                                      IdentifierDAOImpl identifierDAO) {
+                                                      IdentifierDAOImpl identifierDAO,
+                                                      NodeIdentity nodeIdentity) {
         if (NodeProperties.isSecondaryNode()) {
             // no write operations allowed on secondary node
             return new TokenKeyCertWriteNoopServiceImpl();
         }
 
-        return new TokenKeyCertWriteServiceImpl(sessionProvider, keyCertDao, identifierDAO);
+        return new TokenKeyCertWriteServiceImpl(sessionProvider, keyCertDao, identifierDAO, nodeIdentity);
     }
 
     @ApplicationScoped
     TokenKeyWriteService tokenKeyWriteService(DatabaseCtx sessionProvider,
-                                              SignerKeyDaoImpl keyDao) {
+                                              SignerKeyDaoImpl keyDao,
+                                              NodeIdentity nodeIdentity) {
         if (NodeProperties.isSecondaryNode()) {
             // no write operations allowed on secondary node
             return new TokenKeyWriteNoopServiceImpl();
         }
-        return new TokenKeyWriteServiceImpl(sessionProvider, keyDao);
+        return new TokenKeyWriteServiceImpl(sessionProvider, keyDao, nodeIdentity);
     }
 
     @ApplicationScoped
     TokenWriteService tokenWriteService(DatabaseCtx sessionProvider,
                                         SignerTokenDaoImpl tokenDao,
-                                        SignerKeyDaoImpl keyDao) {
+                                        SignerKeyDaoImpl keyDao,
+                                        NodeIdentity nodeIdentity) {
         if (NodeProperties.isSecondaryNode()) {
             // no write operations allowed on secondary node
             return new TokenWriteNoopServiceImpl();
         }
-        return new TokenWriteServiceImpl(sessionProvider, tokenDao, keyDao);
+        return new TokenWriteServiceImpl(sessionProvider, tokenDao, keyDao, nodeIdentity);
     }
 
 }

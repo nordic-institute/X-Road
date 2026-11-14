@@ -27,12 +27,12 @@ package org.niis.xroad.signer.jpa.dao.impl;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.hibernate.Session;
-import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
+import org.niis.xroad.signer.jpa.dao.AbstractSignerDaoImpl;
 import org.niis.xroad.signer.jpa.entity.SignerKeyEntity;
 import org.niis.xroad.signer.jpa.entity.type.KeyUsage;
 
 @ApplicationScoped
-public class SignerKeyDaoImpl extends AbstractDAOImpl<SignerKeyEntity> {
+public class SignerKeyDaoImpl extends AbstractSignerDaoImpl<SignerKeyEntity> {
 
     public boolean updateKeystore(Session session, Long id, byte[] keystore) {
         var query = session.createMutationQuery("UPDATE SignerKeyEntity SET keyStore = :keystore WHERE id = :id");

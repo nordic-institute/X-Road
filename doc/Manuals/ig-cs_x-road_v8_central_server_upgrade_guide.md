@@ -226,19 +226,20 @@ for ini in /etc/xroad/conf.d/override-*.ini /etc/xroad/conf.d/local.ini; do
   [ -f "$ini" ] && java -jar /var/tmp/migration-cli.jar ini-to-db --installation=cs "$ini" /etc/xroad/db.properties
 done
 
+# <node> is the node name from step 10; --node may be left out only for node_0
+
 # keyconf — signer state (soft token PIN required)
 XROAD_MIGRATION_SOFTTOKEN_PIN='<pin>' \
-  java -jar /var/tmp/migration-cli.jar keyconf --installation=cs /etc/xroad/signer /etc/xroad/db.properties
+  java -jar /var/tmp/migration-cli.jar keyconf --installation=cs --node <node> /etc/xroad/signer /etc/xroad/db.properties
 
 # signer-token-pins — only if xroad-autologin is installed
-# <node> is the node name from step 10; --node may be left out only for node_0
 if [ -f /usr/share/xroad/autologin/custom-fetch-pin.sh ] \
    || [ -f /usr/share/xroad/autologin/default-fetch-pin.sh ]; then
   java -jar /var/tmp/migration-cli.jar signer-token-pins --installation=cs --node <node>
 fi
 ```
 
-With `--node <node>`, the PINs are stored in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
+With `--node <node>`, `keyconf` writes the signer keys and certificates under the node name, so the signer on this node sees only its own rows, and `signer-token-pins` stores the PINs in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
 
 Review the `keyconf` output. A ⚠ line that says `already exists` is expected when you run the step again. Act only on lines marked ❌ and on lines that say a key was skipped. Such a line means that a soft token key file was not migrated; `keyconf` still exits with status 0. To restore the key, put `<keyId>.p12` back under `/etc/xroad/signer/softtoken/` and run `keyconf` again. Running `keyconf` again is safe: it saves only the items that are not yet in the database.
 
