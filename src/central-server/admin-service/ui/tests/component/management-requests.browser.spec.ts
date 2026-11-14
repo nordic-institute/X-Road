@@ -311,16 +311,17 @@ describe('0900 — CS Management Requests — pending toggle + search; back navi
       status: 'REVOKED',
     };
 
-    let listCallCount = 0;
     await renderRoute(MR_LIST_PATH, {
       permissions: basePermissions,
       msw: [
-        specHttp.get('/management-requests', ({ response }) => {
-          listCallCount += 1;
-          // first call: pending only; second: all; third: after back
-          return listCallCount === 1
+        specHttp.get('/management-requests', ({ request, response }) => {
+          const status = new URL(request.url).searchParams.get('status');
+          return status === 'WAITING'
             ? response(200).json(singleItemPage(waitingRequest) as never)
-            : response(200).json(singleItemPage(allStatuses) as never);
+            : response(200).json({
+                items: [waitingRequest, allStatuses],
+                paging_metadata: { total_items: 2, items: 2, limit: 25, offset: 0 },
+              } as never);
         }),
         specHttp.get('/management-requests/{management_request_id}', ({ response }) =>
           response(200).json(detailedRequest as never),

@@ -148,19 +148,15 @@ describe('1000 — CS Security Server Details — edit address dialog cancel and
   it('cancel keeps the old address; save updates the rendered address', async () => {
     const updatedAddress = 'security-server-address-E2E-SS1-updated';
 
-    let serverCallCount = 0;
+    let currentServer = serverFixture;
     await renderRoute(`/security-servers/${encodeURIComponent(SERVER_ID)}/details`, {
       permissions: editPermissions,
       msw: [
-        specHttp.get('/security-servers/{server_id}', ({ response }) => {
-          serverCallCount += 1;
-          return serverCallCount === 1
-            ? response(200).json(serverFixture as never)
-            : response(200).json({ ...serverFixture, server_address: updatedAddress } as never);
+        specHttp.get('/security-servers/{server_id}', ({ response }) => response(200).json(currentServer as never)),
+        specHttp.patch('/security-servers/{server_id}', ({ response }) => {
+          currentServer = { ...serverFixture, server_address: updatedAddress };
+          return response(200).json(currentServer as never);
         }),
-        specHttp.patch('/security-servers/{server_id}', ({ response }) =>
-          response(200).json({ ...serverFixture, server_address: updatedAddress } as never),
-        ),
       ],
     });
 
