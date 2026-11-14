@@ -34,6 +34,7 @@ import org.niis.xroad.common.properties.config.Prefix;
 
 import java.util.Set;
 
+import static org.niis.xroad.common.properties.config.Validator.oneOfIgnoreCase;
 import static org.niis.xroad.common.properties.config.Validator.range;
 
 /** Op-monitor keys ({@code xroad.op-monitor.*}, incl. the {@code .rpc} sub-tree). */
@@ -42,6 +43,7 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
 
     private static final Prefix OP_MONITOR = Prefix.of(Category.OP_MONITOR_DAEMON, "xroad.op-monitor");
     private static final Prefix RPC = OP_MONITOR.subPrefix("rpc");
+    private static final Prefix FILE_IDENTITY = RPC.subPrefix("file-identity");
 
     private static final OpMonitorConfigKeys INSTANCE = new OpMonitorConfigKeys();
 
@@ -120,6 +122,31 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
             .withConverter(OpMonitorConfigKeys::parseAllowedClientNames)
             .withDefaultValue("")
             .exposedInUi()
+            .build();
+
+    /** {@code xroad.op-monitor.rpc.identity-source}: {@code openbao} or {@code file}. */
+    public static final ConfigKey<String> RPC_IDENTITY_SOURCE = RPC
+            .string("identity-source")
+            .withDefaultValue("openbao")
+            .withValidator(oneOfIgnoreCase("openbao", "file"))
+            .build();
+
+    /** {@code xroad.op-monitor.rpc.file-identity.private-key-path}. */
+    public static final ConfigKey<String> RPC_FILE_IDENTITY_PRIVATE_KEY_PATH = FILE_IDENTITY
+            .string("private-key-path")
+            .withDefaultValue("")
+            .build();
+
+    /** {@code xroad.op-monitor.rpc.file-identity.certificate-path}. */
+    public static final ConfigKey<String> RPC_FILE_IDENTITY_CERTIFICATE_PATH = FILE_IDENTITY
+            .string("certificate-path")
+            .withDefaultValue("")
+            .build();
+
+    /** {@code xroad.op-monitor.rpc.file-identity.trusted-ca-path}. */
+    public static final ConfigKey<String> RPC_FILE_IDENTITY_TRUSTED_CA_PATH = FILE_IDENTITY
+            .string("trusted-ca-path")
+            .withDefaultValue("")
             .build();
 
     private OpMonitorConfigKeys() {

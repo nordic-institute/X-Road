@@ -34,6 +34,6 @@ import org.junit.platform.suite.api.Suite;
  */
 @Suite
 @SelectClasses({OpMonitorIntTest.class, OpMonitorCaOpenBaoIntTest.class, OpMonitorChannelTrustOpenBaoIntTest.class,
-        OpMonitorWithoutGlobalConfigurationIntTest.class})
+        OpMonitorWithoutGlobalConfigurationIntTest.class, OpMonitorFileIdentityIntTest.class})
 public class OpMonitorIntTestSuite {
 }
