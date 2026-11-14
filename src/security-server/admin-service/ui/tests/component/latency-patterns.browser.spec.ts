@@ -77,6 +77,7 @@ describe('Latency patterns — loading state (Browser Mode)', () => {
     await expect.element(page.getByTestId('add-rest-button')).toBeVisible();
     await page.getByTestId('add-rest-button').click();
 
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
     await page.getByTestId('service-url-text-field').getByRole('textbox').fill('https://example.com/api');
     const codeInput = page.getByTestId('service-code-text-field').getByRole('textbox');

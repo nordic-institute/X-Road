@@ -93,6 +93,7 @@ describe('Client Services page-flow (Browser Mode)', () => {
     await expect.element(saveBtn).toBeVisible();
     await expect.element(saveBtn).toBeDisabled();
 
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
