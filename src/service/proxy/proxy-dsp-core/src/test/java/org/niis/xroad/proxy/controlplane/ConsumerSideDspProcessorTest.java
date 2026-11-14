@@ -208,7 +208,7 @@ class ConsumerSideDspProcessorTest {
 
     @Test
     void builtinServiceTargetsDerivedSystemDidAndUrlAndNegotiatesAsSenderMemberContext() {
-        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "listMethods");
+        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "getSecurityServerMetrics");
         when(providerSecurityServerResolver.resolve(builtinServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
@@ -279,10 +279,19 @@ class ConsumerSideDspProcessorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"listMethods", "allowedMethods", "getWsdl", "getOpenAPI"})
-    void serverLevelMetaserviceDoesNotBypassDsp(String serviceCode) {
+    void memberAddressedMetaserviceBypassesDsp(String serviceCode) {
         var metaservice = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, serviceCode);
 
-        assertThat(processor.bypassesDsp(new DspRequest(metaservice, SENDER, null, false))).isFalse();
+        assertThat(processor.bypassesDsp(new DspRequest(metaservice, SENDER, null, false))).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"getSecurityServerMetrics", "getSecurityServerOperationalData",
+            "getSecurityServerHealthData", "testService"})
+    void memberAddressedNonMetaserviceDoesNotBypassDsp(String serviceCode) {
+        var service = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, serviceCode);
+
+        assertThat(processor.bypassesDsp(new DspRequest(service, SENDER, null, false))).isFalse();
     }
 
     @ParameterizedTest
@@ -567,7 +576,7 @@ class ConsumerSideDspProcessorTest {
 
     @Test
     void systemContextRequestSendsOneCallCarryingEverySystemCandidate() {
-        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "listMethods");
+        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "getSecurityServerMetrics");
         when(providerSecurityServerResolver.resolve(builtinServiceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),

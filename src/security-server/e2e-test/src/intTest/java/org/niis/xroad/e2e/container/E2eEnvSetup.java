@@ -60,6 +60,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
 
     private static final String AUX_ENV = "aux";
+    private static final String CA_ENV = "ca";
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
     private static final Duration PROXY_RESTART_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration PROXY_RESTART_POLL_INTERVAL = Duration.ofSeconds(5);
@@ -153,8 +154,14 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         return mapEnvironment(envName).getContainerMapping(composeServiceName(envName, service), originalPort);
     }
 
-    /** The aux stack's admin UI is the compose service {@code cs}; the other environments' is {@code ui}. */
+    /**
+     * The aux stack's admin UI is the compose service {@code cs}; the other environments' is {@code ui}.
+     * The test CA env resolves to the aux stack's {@code testca}, exposed only in ACL parity mode.
+     */
     private static String composeServiceName(String envName, String service) {
+        if (CA_ENV.equals(envName) && SsStackSetup.CA.equals(service)) {
+            return AuxStackSetup.TESTCA;
+        }
         return AUX_ENV.equals(envName) && SsStackSetup.UI.equals(service) ? AuxStackSetup.CS : service;
     }
 
@@ -266,7 +273,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         return switch (name) {
             case "ss0" -> ss0;
             case "ss1" -> ss1;
-            case AUX_ENV -> aux;
+            case AUX_ENV, CA_ENV -> aux;
             default -> throw new IllegalArgumentException("Unknown environment: " + name);
         };
     }
