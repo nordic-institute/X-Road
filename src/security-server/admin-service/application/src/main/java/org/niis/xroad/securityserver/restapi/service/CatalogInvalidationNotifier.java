@@ -47,8 +47,8 @@ import java.util.concurrent.RejectedExecutionException;
  * admin service is connected to; other instances pick the change up when their caches expire.</p>
  *
  * <p>Best-effort by design: the cache expiry stays in place as the correctness backstop, so a lost
- * or failed signal degrades latency, never correctness. A no-op until the instance is ready for data
- * space traffic, so an instance whose globalconf lists no credential issuer never attempts the call.</p>
+ * or failed signal degrades latency, never correctness. A no-op while the instance is not ready for data
+ * space traffic, that is, while no valid (unexpired) globalconf lists a credential issuer.</p>
  *
  * <p>The gRPC call is dispatched off the caller's thread, and — when a transaction is active around
  * the caller — deferred until that transaction commits. Firing beforehand would let a concurrent

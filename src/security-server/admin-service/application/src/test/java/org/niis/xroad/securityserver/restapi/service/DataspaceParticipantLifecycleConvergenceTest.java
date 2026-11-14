@@ -136,6 +136,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
+        when(readinessPredicates.isGlobalConfUsable()).thenReturn(true);
         when(clientRepository.getAllLocalClients()).thenReturn(List.of());
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of("did:web:issuer.example.test"));

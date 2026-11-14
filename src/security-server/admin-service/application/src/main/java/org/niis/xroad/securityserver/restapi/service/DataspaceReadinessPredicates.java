@@ -130,13 +130,23 @@ public class DataspaceReadinessPredicates {
     }
 
     /**
-     * Returns {@code true} if globalconf lists at least one credential issuer for this instance.
+     * Returns {@code true} if the global configuration is usable now: loaded, readable and not expired.
+     * Read on every call so the answer follows the next valid configuration download.
+     */
+    public boolean isGlobalConfUsable() {
+        return globalConfProvider.isValid();
+    }
+
+    /**
+     * Returns {@code true} if the global configuration is usable and lists at least one credential issuer
+     * for this instance.
      * Read on every call so the answer follows globalconf additions and removals.
      * Treats any globalconf failure (no anchor yet, no shared parameters yet) as "not ready".
      */
     public boolean isDataspaceReady() {
         try {
-            return !globalConfProvider.getCredentialIssuerDids(globalConfProvider.getInstanceIdentifier()).isEmpty();
+            return !globalConfProvider.getCredentialIssuerDids(globalConfProvider.getInstanceIdentifier()).isEmpty()
+                    && isGlobalConfUsable();
         } catch (RuntimeException e) {
             log.debug("Data space: readiness check failed, treating the instance as not ready: {}",
                     e.getMessage());

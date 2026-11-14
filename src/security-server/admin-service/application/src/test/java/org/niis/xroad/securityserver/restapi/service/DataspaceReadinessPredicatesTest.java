@@ -51,6 +51,9 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,6 +76,7 @@ class DataspaceReadinessPredicatesTest {
         var whileEveryMockCertIsValid = CertificateTestUtils.getMockCertificate().getNotAfter().toInstant()
                 .minus(Duration.ofDays(1));
         predicates.setClock(Clock.fixed(whileEveryMockCertIsValid, ZoneOffset.UTC));
+        lenient().when(globalConfProvider.isValid()).thenReturn(true);
     }
 
     @Test
@@ -89,6 +93,7 @@ class DataspaceReadinessPredicatesTest {
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of());
 
         assertThat(predicates.isDataspaceReady()).isFalse();
+        verify(globalConfProvider, never()).isValid();
     }
 
     @Test
@@ -118,6 +123,16 @@ class DataspaceReadinessPredicatesTest {
         assertThat(predicates.isDataspaceReady()).isTrue();
         assertThat(predicates.isDataspaceReady()).isFalse();
         assertThat(predicates.isDataspaceReady()).isTrue();
+    }
+
+    @Test
+    void isDataspaceNotReadyAndGlobalConfNotUsableWhenGlobalConfIsExpired() {
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of("did:web:issuer.example"));
+        when(globalConfProvider.isValid()).thenReturn(false);
+
+        assertThat(predicates.isDataspaceReady()).isFalse();
+        assertThat(predicates.isGlobalConfUsable()).isFalse();
     }
 
     @Test
