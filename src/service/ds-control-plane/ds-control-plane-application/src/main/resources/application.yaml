@@ -121,6 +121,10 @@ edc:
       url: ${xroad.db.ds-control-plane.hibernate.connection.url}
       user: ${xroad.db.ds-control-plane.hibernate.connection.username}
       password: ${xroad.db.ds-control-plane.hibernate.connection.password}
+      pool:
+        connections:
+          max-total: ${xroad.dsp.control-plane.pool.max-total}
+          max-idle: ${xroad.dsp.control-plane.pool.max-idle}
   iam:
     dcp:
       scopes:

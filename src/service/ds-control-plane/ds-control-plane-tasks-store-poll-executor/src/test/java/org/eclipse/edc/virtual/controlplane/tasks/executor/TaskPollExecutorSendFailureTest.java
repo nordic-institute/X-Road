@@ -89,6 +89,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -100,6 +101,7 @@ class TaskPollExecutorSendFailureTest {
     private static final int CONFIGURED_SEND_RETRY_LIMIT = 1;
     private static final int MAX_SEND_RETRY_LIMIT_UNDER_POLLER_CAP = 3;
     private static final int POLLER_MAX_RETRY = 3;
+    private static final int SINGLE_WORKER = 1;
 
     private final Clock clock = Clock.systemUTC();
     private final List<Integer> savedNegotiationStates = new CopyOnWriteArrayList<>();
@@ -224,9 +226,22 @@ class TaskPollExecutorSendFailureTest {
 
     private void startPoller(ContractNegotiationTaskExecutor negotiationExecutor,
                              TransferProcessTaskExecutor transferExecutor, Monitor monitor) {
-        poller = new TaskPollExecutor(new TaskPollConfig(10, POLLER_MAX_RETRY), noopInstrumentation(),
-                negotiationExecutor, transferExecutor, taskStore, transactionContext, monitor, clock);
+        poller = new TaskPollExecutor(new TaskPollConfig(10, POLLER_MAX_RETRY), SINGLE_WORKER, noopInstrumentation(),
+                negotiationExecutor, transferExecutor, taskStore, transactionContext, monitor, clock, alwaysAvailableProcessLock());
         poller.start();
+    }
+
+    /**
+     * This test runs the real task executors against in-memory stores with no real database behind them, so the
+     * process lock itself is not under test here; it only needs to never block a task from reaching the executor.
+     */
+    private static ProcessLock alwaysAvailableProcessLock() {
+        var processLock = mock(ProcessLock.class);
+        lenient().when(processLock.tryLockContractNegotiation(any())).thenReturn(true);
+        lenient().when(processLock.tryLockTransferProcess(any())).thenReturn(true);
+        lenient().when(processLock.contractNegotiationExists(any())).thenReturn(true);
+        lenient().when(processLock.transferProcessExists(any())).thenReturn(true);
+        return processLock;
     }
 
     private static EntityRetryProcessConfiguration retryConfiguration(int sendRetryLimit) {

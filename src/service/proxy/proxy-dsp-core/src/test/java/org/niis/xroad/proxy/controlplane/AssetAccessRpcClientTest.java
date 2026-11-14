@@ -362,19 +362,21 @@ class AssetAccessRpcClientTest {
         int threadCount = 8;
         var executor = Executors.newFixedThreadPool(threadCount);
         var startGate = new CountDownLatch(1);
+        var aboutToCall = new CountDownLatch(threadCount);
         var futures = new ArrayList<Future<?>>();
 
         try {
             for (int i = 0; i < threadCount; i++) {
                 futures.add(executor.submit(() -> {
                     startGate.await();
+                    aboutToCall.countDown();
                     return client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, TIMEOUT);
                 }));
             }
             startGate.countDown();
-            // Allow worker threads to pile up at Caffeine's per-key loader lock — only one
-            // is permitted to call the gRPC loader, the rest must wait for its result.
-            Thread.sleep(200);
+            // Wait for every caller to start before letting the held gRPC call return. While it is held, callers
+            // share the cache's single in-flight future for this key, so only one gRPC call is made.
+            assertThat(aboutToCall.await(5, TimeUnit.SECONDS)).as("all callers started").isTrue();
             holdLatch.countDown();
 
             for (var future : futures) {

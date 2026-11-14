@@ -34,24 +34,38 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockingDetails;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class TaskPollExecutorTest {
+
+    private static final int SINGLE_WORKER = 1;
 
     private final ContractNegotiationTaskExecutor contractNegotiationTaskExecutor = mock();
     private final TransferProcessTaskExecutor transferProcessTaskExecutor = mock();
@@ -60,27 +74,202 @@ class TaskPollExecutorTest {
     private final Monitor monitor = mock();
     private final ExecutorInstrumentation instrumentation = mock();
     private final Clock clock = Clock.systemUTC();
+    private final ProcessLock processLock = mock();
     private TaskPollExecutor pollExecutor;
 
     @BeforeEach
     void setUp() {
         when(instrumentation.instrument(any(), anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(processLock.tryLockContractNegotiation(any())).thenReturn(true);
+        lenient().when(processLock.tryLockTransferProcess(any())).thenReturn(true);
+        lenient().when(processLock.contractNegotiationExists(any())).thenReturn(true);
+        lenient().when(processLock.transferProcessExists(any())).thenReturn(true);
 
+        pollExecutor = newPollExecutor(SINGLE_WORKER);
+    }
+
+    private TaskPollExecutor newPollExecutor(int workerCount) {
         var cfg = new TaskPollConfig(10, 2);
-        pollExecutor = new TaskPollExecutor(
-                cfg, instrumentation,
+        return new TaskPollExecutor(
+                cfg, workerCount, instrumentation,
                 contractNegotiationTaskExecutor,
                 transferProcessTaskExecutor,
                 taskStore,
                 transactionContext,
                 monitor,
-                clock
+                clock,
+                processLock
         );
+    }
+
+    private static Task negotiationTask(String processId) {
+        var payload = RequestNegotiation.Builder.newInstance()
+                .processId(processId)
+                .processState(100)
+                .processType("CONSUMER")
+                .build();
+        return Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
     }
 
     @AfterEach
     void tearDown() {
         pollExecutor.stop();
+    }
+
+    @Test
+    void negotiationTaskLocksTheNegotiationProcessBeforeHandling() {
+        var task = negotiationTask("negotiation-lock-check");
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(contractNegotiationTaskExecutor.handle(any())).thenReturn(StatusResult.success());
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(processLock).tryLockContractNegotiation("negotiation-lock-check")
+        );
+    }
+
+    @Test
+    void transferTaskLocksTheTransferProcessBeforeHandling() {
+        var payload = PrepareTransfer.Builder.newInstance()
+                .processId("transfer-lock-check")
+                .processState(100)
+                .processType("CONSUMER")
+                .build();
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(transferProcessTaskExecutor.handle(any())).thenReturn(StatusResult.success());
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(processLock).tryLockTransferProcess("transfer-lock-check")
+        );
+    }
+
+    @Test
+    void lockIsAcquiredBeforeTheHandlerRuns() {
+        var task = negotiationTask("negotiation-lock-order");
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(contractNegotiationTaskExecutor.handle(any())).thenReturn(StatusResult.success());
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(contractNegotiationTaskExecutor).handle(any())
+        );
+        var inOrder = inOrder(processLock, contractNegotiationTaskExecutor);
+        inOrder.verify(processLock).tryLockContractNegotiation("negotiation-lock-order");
+        inOrder.verify(contractNegotiationTaskExecutor).handle(any());
+    }
+
+    @Test
+    void missingNegotiationProcessIsDroppedAsStaleWithoutInvokingTheHandler() {
+        var task = negotiationTask("negotiation-missing");
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(processLock.contractNegotiationExists("negotiation-missing")).thenReturn(false);
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore).delete(task.getId())
+        );
+        verifyNoInteractions(contractNegotiationTaskExecutor);
+        verify(taskStore, never()).update(any());
+    }
+
+    @Test
+    void missingTransferProcessIsDroppedAsStaleWithoutInvokingTheHandler() {
+        var payload = PrepareTransfer.Builder.newInstance()
+                .processId("transfer-missing")
+                .processState(100)
+                .processType("CONSUMER")
+                .build();
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(processLock.transferProcessExists("transfer-missing")).thenReturn(false);
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore).delete(task.getId())
+        );
+        verifyNoInteractions(transferProcessTaskExecutor);
+        verify(taskStore, never()).update(any());
+    }
+
+    @Test
+    void busyNegotiationProcessIsRequeuedAtThePollDelayWithRetryCountUnchangedWithoutInvokingTheHandler() {
+        var task = negotiationTask("negotiation-busy").toBuilder().retryCount(2).build();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(processLock.tryLockContractNegotiation("negotiation-busy")).thenReturn(false);
+        var beforeStart = clock.millis();
+
+        pollExecutor.start();
+
+        var captor = forClass(Task.class);
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore).update(captor.capture())
+        );
+        var requeued = captor.getValue();
+        assertThat(requeued.getId()).isEqualTo(task.getId());
+        assertThat(requeued.getRetryCount()).isEqualTo(2);
+        assertThat(requeued.getAt()).isGreaterThanOrEqualTo(beforeStart + 90);
+        verifyNoInteractions(contractNegotiationTaskExecutor);
+        verify(taskStore, never()).delete(any());
+    }
+
+    @Test
+    void busyTransferProcessIsRequeuedAtThePollDelayWithRetryCountUnchangedWithoutInvokingTheHandler() {
+        var payload = PrepareTransfer.Builder.newInstance()
+                .processId("transfer-busy")
+                .processState(100)
+                .processType("CONSUMER")
+                .build();
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .retryCount(2)
+                .build();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(processLock.tryLockTransferProcess("transfer-busy")).thenReturn(false);
+        var beforeStart = clock.millis();
+
+        pollExecutor.start();
+
+        var captor = forClass(Task.class);
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore).update(captor.capture())
+        );
+        var requeued = captor.getValue();
+        assertThat(requeued.getId()).isEqualTo(task.getId());
+        assertThat(requeued.getRetryCount()).isEqualTo(2);
+        assertThat(requeued.getAt()).isGreaterThanOrEqualTo(beforeStart + 90);
+        verifyNoInteractions(transferProcessTaskExecutor);
+        verify(taskStore, never()).delete(any());
     }
 
     @Test
@@ -382,6 +571,155 @@ class TaskPollExecutorTest {
             verify(transferProcessTaskExecutor).handle(any());
             verify(taskStore, times(2)).delete(any());
         });
+    }
+
+    @Test
+    void nWorkersRunBlockingTasksForDifferentProcessesConcurrently() {
+        var workerCount = 3;
+        pollExecutor = newPollExecutor(workerCount);
+
+        var tasks = IntStream.range(0, workerCount)
+                .mapToObj(i -> negotiationTask("negotiation-" + i))
+                .toList();
+        var nextTask = new AtomicInteger();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenAnswer(invocation -> {
+            var index = nextTask.getAndIncrement();
+            return index < tasks.size() ? List.of(tasks.get(index)) : List.of();
+        });
+
+        var runningCount = new AtomicInteger();
+        var maxConcurrent = new AtomicInteger();
+        var release = new CountDownLatch(1);
+        when(contractNegotiationTaskExecutor.handle(any())).thenAnswer(invocation -> {
+            var current = runningCount.incrementAndGet();
+            maxConcurrent.updateAndGet(max -> Math.max(max, current));
+            release.await(5, TimeUnit.SECONDS);
+            runningCount.decrementAndGet();
+            return StatusResult.success();
+        });
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                assertThat(runningCount.get()).isEqualTo(workerCount)
+        );
+        release.countDown();
+
+        assertThat(maxConcurrent.get()).isEqualTo(workerCount);
+    }
+
+    @Test
+    void workersRunOnDistinctlyNamedThreads() {
+        var workerCount = 3;
+        pollExecutor = newPollExecutor(workerCount);
+
+        Set<String> threadNames = new CopyOnWriteArraySet<>();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenAnswer(invocation -> {
+            threadNames.add(Thread.currentThread().getName());
+            return List.of();
+        });
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(threadNames).hasSize(workerCount));
+        assertThat(threadNames).allMatch(name -> name.matches("TaskPollExecutor-\\d+"));
+    }
+
+    @Test
+    void shutdownStopsEveryWorkerWithinTheTimeout() {
+        var workerCount = 3;
+        pollExecutor = newPollExecutor(workerCount);
+        when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenReturn(List.of());
+
+        pollExecutor.start();
+
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore, atLeast(workerCount)).fetchForUpdate(any(QuerySpec.class))
+        );
+
+        pollExecutor.stop();
+
+        var callCountAfterStop = mockingDetails(taskStore).getInvocations().size();
+
+        await().during(500, TimeUnit.MILLISECONDS).atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                assertThat(mockingDetails(taskStore).getInvocations()).hasSize(callCountAfterStop)
+        );
+    }
+
+    @Test
+    void rePollHappensImmediatelyAfterWorkAndIsDelayedAfterAnEmptyFetch() {
+        var task = negotiationTask("negotiation-timing");
+        List<Long> fetchTimestamps = new CopyOnWriteArrayList<>();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenAnswer(invocation -> {
+            fetchTimestamps.add(System.nanoTime());
+            return fetchTimestamps.size() == 1 ? List.of(task) : List.of();
+        });
+        when(contractNegotiationTaskExecutor.handle(any())).thenReturn(StatusResult.success());
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).until(() -> fetchTimestamps.size() >= 3);
+
+        var gapAfterWork = Duration.ofNanos(fetchTimestamps.get(1) - fetchTimestamps.get(0)).toMillis();
+        var gapAfterEmptyFetch = Duration.ofNanos(fetchTimestamps.get(2) - fetchTimestamps.get(1)).toMillis();
+
+        assertThat(gapAfterWork).isLessThan(50);
+        assertThat(gapAfterEmptyFetch).isGreaterThanOrEqualTo(90);
+    }
+
+    @Test
+    void rePollIsDelayedAfterHandlerThrows() {
+        var task = negotiationTask("negotiation-handler-throw");
+        List<Long> fetchTimestamps = new CopyOnWriteArrayList<>();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenAnswer(invocation -> {
+            fetchTimestamps.add(System.nanoTime());
+            return fetchTimestamps.size() == 1 ? List.of(task) : List.of();
+        });
+        when(contractNegotiationTaskExecutor.handle(any())).thenThrow(new RuntimeException("handler failure"));
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).until(() -> fetchTimestamps.size() >= 2);
+
+        var gapAfterThrow = Duration.ofNanos(fetchTimestamps.get(1) - fetchTimestamps.get(0)).toMillis();
+        assertThat(gapAfterThrow).isGreaterThanOrEqualTo(90);
+    }
+
+    @Test
+    void rePollIsDelayedAfterRetryRequeueAndRetryCapStillEndsTheTask() {
+        var payload = RequestNegotiation.Builder.newInstance()
+                .processId("negotiation-retry-timing")
+                .processState(100)
+                .processType("CONSUMER")
+                .build();
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+
+        List<Long> fetchTimestamps = new CopyOnWriteArrayList<>();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenAnswer(invocation -> {
+            fetchTimestamps.add(System.nanoTime());
+            return switch (fetchTimestamps.size()) {
+                case 1 -> List.of(task);
+                case 2 -> List.of(task.toBuilder().retryCount(task.getRetryCount() + 1).build());
+                case 3 -> List.of(task.toBuilder().retryCount(task.getRetryCount() + 2).build());
+                default -> List.of();
+            };
+        });
+        when(contractNegotiationTaskExecutor.handle(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            verify(taskStore, atLeast(3)).fetchForUpdate(any(QuerySpec.class));
+            verify(taskStore).delete(task.getId());
+        });
+
+        var gapAfterFirstRetry = Duration.ofNanos(fetchTimestamps.get(1) - fetchTimestamps.get(0)).toMillis();
+        var gapAfterSecondRetry = Duration.ofNanos(fetchTimestamps.get(2) - fetchTimestamps.get(1)).toMillis();
+        assertThat(gapAfterFirstRetry).isGreaterThanOrEqualTo(90);
+        assertThat(gapAfterSecondRetry).isGreaterThanOrEqualTo(90);
     }
 
     /**
