@@ -33,7 +33,6 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -45,17 +44,15 @@ import tools.jackson.databind.ObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class XRoadContractNegotiationStoreExtensionTest {
 
     @Test
-    void initializeRegistersSoleConvergingStoreAndTakesOverSchemaDdl(ServiceExtensionContext context, ObjectFactory factory) {
+    void initializeRegistersSoleConvergingStore(ServiceExtensionContext context, ObjectFactory factory) {
         var leaseContextBuilderProvider = mock(SqlLeaseContextBuilderProvider.class);
         when(leaseContextBuilderProvider.createContextBuilder(any())).thenReturn(mock());
-        var sqlSchemaBootstrapper = mock(SqlSchemaBootstrapper.class);
         var typeManager = mock(TypeManager.class);
         when(typeManager.getMapper()).thenReturn(new ObjectMapper());
 
@@ -63,7 +60,6 @@ class XRoadContractNegotiationStoreExtensionTest {
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
         context.registerService(TypeManager.class, typeManager);
         context.registerService(QueryExecutor.class, mock(QueryExecutor.class));
-        context.registerService(SqlSchemaBootstrapper.class, sqlSchemaBootstrapper);
         context.registerService(SqlLeaseContextBuilderProvider.class, leaseContextBuilderProvider);
 
         var extension = factory.constructInstance(XRoadContractNegotiationStoreExtension.class);
@@ -74,7 +70,5 @@ class XRoadContractNegotiationStoreExtensionTest {
         assertThat(registered).extracting("statements").isInstanceOf(XRoadPostgresContractNegotiationStatements.class);
         assertThat(registered).extracting("delegate").extracting("statements")
                 .isInstanceOf(XRoadPostgresContractNegotiationStatements.class);
-
-        verify(sqlSchemaBootstrapper).addStatementFromResource(DataSourceRegistry.DEFAULT_DATASOURCE, "contract-negotiation-schema.sql");
     }
 }

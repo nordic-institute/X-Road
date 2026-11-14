@@ -73,12 +73,14 @@ public class SharedParametersV7Converter {
         List<SharedParameters.ApprovedConnectorTlsCA> approvedConnectorTlsCAs =
                 getApprovedConnectorTlsCAs(source.getApprovedConnectorTlsCA());
         List<String> credentialIssuerDids = getCredentialIssuerDids(source.getCredentialIssuer());
+        Integer issuerDataFreshnessSeconds = source.getIssuerDataFreshnessSeconds().intValue();
         List<SharedParameters.Member> members = getMembers(instanceIdentifier, source.getMember());
         List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source);
         List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source.getGlobalGroup());
         SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source.getGlobalSettings());
         return new SharedParameters(instanceIdentifier, configurationSources, approvedCAs, approvedTSAs,
-                approvedConnectorTlsCAs, credentialIssuerDids, members, securityServers, globalGroups, globalSettings);
+                approvedConnectorTlsCAs, credentialIssuerDids, issuerDataFreshnessSeconds, members, securityServers,
+                globalGroups, globalSettings);
     }
 
     private List<SharedParameters.ConfigurationSource> getConfigurationSources(List<ConfigurationSourceType> sources) {

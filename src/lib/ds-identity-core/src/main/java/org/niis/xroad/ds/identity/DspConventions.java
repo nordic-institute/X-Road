@@ -158,10 +158,7 @@ public class DspConventions {
      * participant context and the DSP profile) of a member participant served at the given Security
      * Server address.
      *
-     * <p>The context id is embedded as a percent-encoded path segment: a ctx-id may itself contain
-     * literal {@code %} (from {@code enc()}-escaped member codes), and the provider's JAX-RS layer
-     * decodes the segment once, so the {@code %} must ride the wire as {@code %25} to decode back
-     * to the registered context id. {@code :} needs no escaping — it is a legal pchar.
+     * <p>The context id is embedded as a path segment encoded by {@link #participantPathSegment(String)}.
      *
      * @param member    the provider member; must not carry a subsystem code
      * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
@@ -169,8 +166,26 @@ public class DspConventions {
      *         an IPv6 literal address is bracketed
      */
     public static String memberCounterPartyAddress(ClientId member, String ssAddress) {
-        var ctxIdPathSegment = ParticipantIdentifierScheme.memberCtxId(member).replace("%", "%25");
-        return "%s/%s/%s".formatted(dspBaseUrl(ssAddress, DSP_PORT), ctxIdPathSegment, DSP_PROFILE_ID);
+        return counterPartyAddress(ParticipantIdentifierScheme.memberCtxId(member), ssAddress);
+    }
+
+    /**
+     * Encodes a participant context id, as {@link ParticipantIdentifierScheme} produces it, for use as one URL path
+     * segment. A context id may itself contain a literal
+     * {@code %} (from {@code enc()}-escaped member codes) and the receiving JAX-RS layer decodes the segment once, so
+     * the {@code %} must travel as {@code %25} to decode back to the registered context id. Nothing else is encoded:
+     * the context-id scheme emits unreserved characters, {@code :} and {@code %XX} triplets only, and {@code :} is a
+     * legal path-segment character.
+     *
+     * @param participantContextId a context id from {@link ParticipantIdentifierScheme}; must not be null
+     * @return the id with every {@code %} replaced by {@code %25}
+     */
+    public static String participantPathSegment(String participantContextId) {
+        return participantContextId.replace("%", "%25");
+    }
+
+    private static String counterPartyAddress(String participantContextId, String ssAddress) {
+        return "%s/%s/%s".formatted(dspBaseUrl(ssAddress, DSP_PORT), participantPathSegment(participantContextId), DSP_PROFILE_ID);
     }
 
     /**
@@ -189,7 +204,8 @@ public class DspConventions {
      *
      * @param identityHubHost      host the identity hub is reached at; an IPv6 literal may be bare or bracketed
      * @param credentialsPort      the identity hub's credentials API port
-     * @param participantContextId the participant context id, percent-encoded as one path segment
+     * @param participantContextId the raw participant context id; the URI constructor percent-encodes it as one path
+     *                             segment, which yields the same segment as {@link #participantPathSegment(String)}
      * @return the credential-service URL
      */
     public static String credentialServiceUrl(String identityHubHost, int credentialsPort, String participantContextId) {
@@ -219,14 +235,13 @@ public class DspConventions {
      * Security Server address.
      *
      * <p>The context segment is the fixed literal {@link ParticipantIdentifierScheme#SYSTEM_SEGMENT},
-     * so unlike {@link #memberCounterPartyAddress}, no percent-encoding is involved.
+     * which {@link #participantPathSegment(String)} leaves unchanged.
      *
      * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
      * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/system/http-dsp-profile-2025-1};
      *         an IPv6 literal address is bracketed
      */
     public static String systemCounterPartyAddress(String ssAddress) {
-        return "%s/%s/%s".formatted(
-                dspBaseUrl(ssAddress, DSP_PORT), ParticipantIdentifierScheme.SYSTEM_SEGMENT, DSP_PROFILE_ID);
+        return counterPartyAddress(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ssAddress);
     }
 }

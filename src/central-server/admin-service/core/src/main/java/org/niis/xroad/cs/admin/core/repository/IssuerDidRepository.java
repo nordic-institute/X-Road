@@ -31,8 +31,8 @@ import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 public interface IssuerDidRepository extends GenericRepository<IssuerDidEntity, Integer> {
 
     /**
-     * Inserts a DID, silently doing nothing if it is already registered (the unique constraint on {@code did}
-     * is what makes this idempotent under concurrent registrations from different Central Server nodes).
+     * Inserts the Issuer identity binding. Fails if the same DID is already bound, so a second bind of
+     * one identity is never silently ignored.
      */
-    void insertIgnoreConflict(String did);
+    void insert(String did, String host, int didPort, String issuanceUrl, String statuslistBaseUrl);
 }

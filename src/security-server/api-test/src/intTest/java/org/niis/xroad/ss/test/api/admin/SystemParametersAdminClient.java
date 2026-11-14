@@ -173,6 +173,17 @@ public class SystemParametersAdminClient {
     }
 
     /**
+     * Updates a configurable property without naming a scope; the server derives the scope from the key.
+     */
+    public ValidatableResponse updateConfigurableProperty(String propertyName, String propertyValue) {
+        return session.given()
+                .contentType(ContentType.JSON)
+                .body(Map.of("property_name", propertyName, "property_value", propertyValue))
+                .patch("/system/property")
+                .then();
+    }
+
+    /**
      * Updates a configurable property.
      */
     public ValidatableResponse updateConfigurableProperty(String propertyName, String propertyValue, String scope) {

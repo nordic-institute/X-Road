@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
-import org.niis.xroad.common.properties.dbsource.NodeName;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,15 +34,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CurrentHAConfigStatus {
 
-    /**
-     * The node name is per-node install-time identity read from the {@code XROAD_NODE_NAME} environment
-     * variable, which the service launcher takes from {@code node.ini}. The backup and restore scripts read
-     * the same {@code node.ini} key.
-     */
     @Bean
-    HAConfigStatus currentHaConfigStatus() {
-        var nodeName = NodeName.fromEnvironment();
-        return new HAConfigStatus(nodeName.name(), nodeName.configured());
+    HAConfigStatus currentHaConfigStatus(NodeIdentity nodeIdentity) {
+        return new HAConfigStatus(nodeIdentity.name(), nodeIdentity.configured());
     }
-
 }

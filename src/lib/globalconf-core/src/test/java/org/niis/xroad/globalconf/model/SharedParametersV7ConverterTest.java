@@ -44,6 +44,7 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v7.SharedParametersType
 import javax.xml.namespace.QName;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -61,6 +62,7 @@ import static org.assertj.core.api.Assertions.entry;
 class SharedParametersV7ConverterTest {
 
     private static final String V7_FIXTURE = "src/test/resources/globalconf_good_v7/EE/shared-params.xml";
+    private static final String ISSUER_DATA_FRESHNESS_600 = "<issuerDataFreshnessSeconds>600</issuerDataFreshnessSeconds>";
     private static final String MEMBER_DID_0 = "did:web:ss0.example.org%3A7183:v1:EE:BUSINESS:producer";
     private static final String MEMBER_DID_1 = "did:web:ss1.example.org%3A7183:v1:EE:BUSINESS:producer";
     private static final String SYSTEM_DID = "did:web:ss0.example.org%3A7183:v1:system";
@@ -130,6 +132,22 @@ class SharedParametersV7ConverterTest {
                 .isEqualTo(new ServerSystemValues(SYSTEM_DID, DSP_BASE_URL));
         assertThat(parameters.getSecurityServers().getLast().getSystemValues()).isNull();
         assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void shouldReadIssuerDataFreshnessSecondsOfZero() {
+        var xml = document("", server("s0", "m0", "ss0", "", null, null))
+                .replace(ISSUER_DATA_FRESHNESS_600, "<issuerDataFreshnessSeconds>0</issuerDataFreshnessSeconds>");
+
+        assertThat(read(xml).getIssuerDataFreshnessSeconds()).isZero();
+    }
+
+    @Test
+    void shouldRejectDocumentWithoutIssuerDataFreshnessSeconds() {
+        var xml = document("", server("s0", "m0", "ss0", "", null, null)).replace(ISSUER_DATA_FRESHNESS_600, "");
+        assertThat(xml).doesNotContain("issuerDataFreshnessSeconds");
+
+        assertMalformed(xml);
     }
 
     @Test
@@ -425,6 +443,7 @@ class SharedParametersV7ConverterTest {
         server.setServerCode("ss0");
         var source = new SharedParametersTypeV7();
         source.setInstanceIdentifier("EE");
+        source.setIssuerDataFreshnessSeconds(BigInteger.valueOf(600));
         source.getMember().add(member);
         source.getSecurityServer().add(server);
         return source;
@@ -446,6 +465,7 @@ class SharedParametersV7ConverterTest {
                         <internalVerificationCert>dGVzdA==</internalVerificationCert>
                         <externalVerificationCert>dGVzdA==</externalVerificationCert>
                     </source>
+                    <issuerDataFreshnessSeconds>600</issuerDataFreshnessSeconds>
                     <member id="m0">
                         <memberClass>
                             <code>BUSINESS</code>

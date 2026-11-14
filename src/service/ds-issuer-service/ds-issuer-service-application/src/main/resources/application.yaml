@@ -39,9 +39,13 @@ xroad:
     boot:
       # jetty-core is also excluded from the runtime classpath entirely (see
       # xroad.edc-owned-jetty-conventions); this setting is defense in depth.
+      # SqlSchemaBootstrapperExtension is excluded so that no EDC code can create tables;
+      # XRoadNoOpSqlSchemaBootstrapperExtension provides the SqlSchemaBootstrapper the SQL stores inject.
       excluded-service-extensions: >-
         org.eclipse.edc.web.jetty.JettyExtension,
-        org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension
+        org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,
+        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension,
+        org.eclipse.edc.issuerservice.issuance.attestation.holder.HolderAttestationExtension
 
 web:
   http:
@@ -50,12 +54,15 @@ web:
     did:
       port: 6183
       path: /
+      host: ${xroad.dataspace.issuer.listen-address:}
     issuance:
       port: 6185
       path: /api/issuance
+      host: ${xroad.dataspace.issuer.listen-address:}
     statuslist:
       port: 6187
       path: /statuslist
+      host: ${xroad.dataspace.issuer.listen-address:}
 
 edc:
   hostname: ${HOSTNAME}
@@ -65,6 +72,16 @@ edc:
   issuer:
     dcp:
       profile: vc20-bssl/jwt
+    issuance:
+      # A full batch must finish shorter than the lease: batch-size x call-timeout < lease-duration.
+      state-machine:
+        lease-duration-millis: 300000
+        batch-size: 10
+      send:
+        call-timeout:
+          ms: 15000
+        connect-timeout:
+          ms: 5000
   vault:
     hashicorp:
       url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
@@ -83,6 +100,3 @@ edc:
       url: ${xroad.db.ds-issuer-service.hibernate.connection.url}
       user: ${xroad.db.ds-issuer-service.hibernate.connection.username}
       password: ${xroad.db.ds-issuer-service.hibernate.connection.password}
-  sql:
-    schema:
-      autocreate: true

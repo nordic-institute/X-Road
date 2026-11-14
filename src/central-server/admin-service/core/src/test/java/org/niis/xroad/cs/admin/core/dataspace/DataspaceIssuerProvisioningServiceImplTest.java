@@ -33,27 +33,40 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.cs.admin.api.domain.CanSignCause;
+import org.niis.xroad.cs.admin.api.domain.CanSignResult;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 
 @ExtendWith(MockitoExtension.class)
 class DataspaceIssuerProvisioningServiceImplTest {
 
     private static final String HOST = "issuer.example.test";
-    private static final int DID_PORT = 6183;
-    private static final int ISSUANCE_PORT = 6185;
+    private static final int DID_PORT = 7183;
+    private static final int ISSUANCE_PORT = 7185;
+    private static final int STATUSLIST_PORT = 7187;
     private static final String SCHEMA_URL = "https://example.com/schema/XRoadMembershipCredential.json";
+    private static final String EXPECTED_DID = "did:web:" + HOST + "%3A" + DID_PORT + ":issuer";
 
     @Mock
     private IssuerProvisioningRpcClient rpcClient;
@@ -61,16 +74,47 @@ class DataspaceIssuerProvisioningServiceImplTest {
     private DataspaceIssuerProperties properties;
     @Mock
     private DataspaceIssuerDidService dataspaceIssuerDidService;
+    @Mock
+    private ConnectorCertificateCheck connectorCertificateCheck;
 
     private DataspaceIssuerProvisioningServiceImpl service;
 
     @BeforeEach
     void setUp() {
         when(properties.getHost()).thenReturn(HOST);
-        when(properties.getDidPort()).thenReturn(DID_PORT);
-        when(properties.getIssuancePort()).thenReturn(ISSUANCE_PORT);
-        when(properties.getCredentialJsonSchemaUrl()).thenReturn(SCHEMA_URL);
-        service = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, dataspaceIssuerDidService);
+        lenient().when(properties.getDidPort()).thenReturn(DID_PORT);
+        lenient().when(properties.getIssuancePort()).thenReturn(ISSUANCE_PORT);
+        lenient().when(properties.getStatuslistPort()).thenReturn(STATUSLIST_PORT);
+        lenient().when(properties.getCredentialJsonSchemaUrl()).thenReturn(SCHEMA_URL);
+        lenient().when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
+        lenient().when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.absent(), CanSignResult.canSign(EXPECTED_DID));
+        service = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, dataspaceIssuerDidService, connectorCertificateCheck);
+        service.sleeper = duration -> { };
+    }
+
+    @Test
+    void provisionIssuerFailsAndCreatesNothingWhenTheCertificateIsNotReady() {
+        when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.provisionIssuer())
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue());
+
+        verify(rpcClient, never()).canSign(any());
+        verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void provisionIssuerFailsAndCreatesNothingWhenTheHostIsNull() {
+        when(properties.getHost()).thenReturn(null);
+
+        assertThatThrownBy(() -> service.provisionIssuer())
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue());
+
+        verify(rpcClient, never()).canSign(any());
+        verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
     }
 
     @Test
@@ -155,16 +199,175 @@ class DataspaceIssuerProvisioningServiceImplTest {
     }
 
     @Test
+    void provisionIssuerBindsTheHostItCheckedEvenWhenTheConfiguredHostChangesDuringTheRun() {
+        when(properties.getHost()).thenReturn(HOST, "other.example.test");
+
+        service.provisionIssuer();
+
+        verify(connectorCertificateCheck).isReadyFor(HOST);
+        verify(dataspaceIssuerDidService).register(anyString(), eq(HOST), anyInt(), anyString(), anyString());
+    }
+
+    @Test
     void provisionIssuerRegistersItsDidAfterProvisioningSucceeds() {
         service.provisionIssuer();
 
-        verify(dataspaceIssuerDidService).register("did:web:" + HOST + "%3A" + DID_PORT + ":issuer");
+        String expectedDid = "did:web:" + HOST + "%3A" + DID_PORT + ":issuer";
+        String expectedIssuanceUrl = "https://" + HOST + ":" + ISSUANCE_PORT + "/api/issuance/v1/participants/issuer";
+        verify(dataspaceIssuerDidService).register(eq(expectedDid), eq(HOST), eq(DID_PORT), eq(expectedIssuanceUrl), anyString());
 
         InOrder order = inOrder(rpcClient, dataspaceIssuerDidService);
         order.verify(rpcClient).createCredentialDefinition(
                 anyString(), anyString(), anyString(), anyString(), anyString(), anyString(),
                 anyLong(), anyList(), anyList());
-        order.verify(dataspaceIssuerDidService).register(anyString());
+        order.verify(dataspaceIssuerDidService).register(anyString(), anyString(), eq(DID_PORT), anyString(), anyString());
+    }
+
+    @Test
+    void provisionIssuerBuildsStatuslistBaseUrlFromHostAndStatuslistPort() {
+        service.provisionIssuer();
+
+        ArgumentCaptor<String> statuslistBaseUrlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(dataspaceIssuerDidService).register(anyString(), anyString(), anyInt(), anyString(), statuslistBaseUrlCaptor.capture());
+
+        assertThat(statuslistBaseUrlCaptor.getValue()).isEqualTo("https://" + HOST + ":" + STATUSLIST_PORT + "/statuslist");
+    }
+
+    @Test
+    void provisionIssuerCreatesParticipantContextOnlyWhenCanSignIsAbsent() {
+        service.provisionIssuer();
+
+        verify(rpcClient).createParticipantContext(anyString(), anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void provisionIssuerSkipsCreationWhenIssuerAlreadyCanSignForTheIntendedDid() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.canSign(EXPECTED_DID));
+
+        service.provisionIssuer();
+
+        verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
+        verify(dataspaceIssuerDidService).register(eq(EXPECTED_DID), eq(HOST), eq(DID_PORT), anyString(), anyString());
+    }
+
+    @Test
+    void provisionIssuerFailsAndCreatesNothingWhenTheIssuerCannotSignBeforeCreate() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.cannotSign(CanSignCause.NO_ACTIVE_KEY));
+
+        assertThatThrownBy(() -> service.provisionIssuer())
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue();
+                    assertThat(e.getMessage())
+                            .contains("existing participant context")
+                            .contains(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID)
+                            .contains("cannot sign")
+                            .contains(CanSignCause.NO_ACTIVE_KEY.toString())
+                            .doesNotContain("before set-up created anything");
+                });
+
+        verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
+        verify(rpcClient, never()).createAttestationDefinition(any(), any(), any());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void provisionIssuerFailsAndCreatesNothingWhenTheIssuerCanSignForADifferentDidBeforeCreate() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.canSign("did:web:other.example.test%3A7183:issuer"));
+
+        assertThatThrownBy(() -> service.provisionIssuer())
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(DSP_PARTICIPANT_DID_DRIFT)).isTrue());
+
+        verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
+        verify(rpcClient, never()).createAttestationDefinition(any(), any(), any());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void provisionIssuerFailsAndNeverBindsWhenTheFinalCanSignCheckFails() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.absent(), CanSignResult.cannotSign(CanSignCause.DID_NOT_PUBLISHED));
+
+        assertThatThrownBy(() -> service.provisionIssuer())
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue());
+
+        verify(rpcClient).createParticipantContext(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void provisionIssuerFailsAndNeverBindsWhenTheFinalCanSignCheckFindsAnotherDid() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.absent(), CanSignResult.canSign("did:web:other.example.test%3A7183:issuer"));
+
+        assertThatThrownBy(() -> service.provisionIssuer())
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue());
+
+        verify(rpcClient).createParticipantContext(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void provisionIssuerChecksCanSignCreatesThenChecksAgainBeforeBinding() {
+        service.provisionIssuer();
+
+        InOrder order = inOrder(rpcClient, dataspaceIssuerDidService);
+        order.verify(rpcClient).canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID);
+        order.verify(rpcClient).createParticipantContext(anyString(), anyString(), anyString(), anyString(), anyString());
+        order.verify(rpcClient).createAttestationDefinition(anyString(), anyString(), anyString());
+        order.verify(rpcClient).createCredentialDefinition(
+                anyString(), anyString(), anyString(), anyString(), anyString(), anyString(),
+                anyLong(), anyList(), anyList());
+        order.verify(rpcClient).canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID);
+        order.verify(dataspaceIssuerDidService).register(anyString(), anyString(), anyInt(), anyString(), anyString());
+    }
+
+    @Test
+    void provisionIssuerRetriesATransientCanSignFailureThenSucceeds() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(
+                        CanSignResult.cannotSign(CanSignCause.TIMEOUT),
+                        CanSignResult.cannotSign(CanSignCause.ISSUER_SERVICE_UNREACHABLE),
+                        CanSignResult.absent(),
+                        CanSignResult.canSign(EXPECTED_DID));
+
+        service.provisionIssuer();
+
+        verify(rpcClient, times(4)).canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID);
+        verify(dataspaceIssuerDidService).register(eq(EXPECTED_DID), eq(HOST), eq(DID_PORT), anyString(), anyString());
+    }
+
+    @Test
+    void provisionIssuerStopsAfterTheRetryBoundWhenCanSignKeepsFailingTransiently() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.cannotSign(CanSignCause.TIMEOUT));
+
+        assertThatThrownBy(() -> service.provisionIssuer())
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue();
+                    assertThat(e.getMessage())
+                            .contains("did not answer the can-sign check")
+                            .contains(CanSignCause.TIMEOUT.toString())
+                            .doesNotContain("existing participant context");
+                });
+
+        verify(rpcClient, times(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS))
+                .canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID);
+        verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void provisionIssuerDoesNotRetryANonTransientCannotSignCause() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.cannotSign(CanSignCause.NO_ACTIVE_KEY));
+
+        assertThatThrownBy(() -> service.provisionIssuer())
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(DSP_PROVISIONING_FAILED)).isTrue());
+
+        verify(rpcClient, times(1)).canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID);
     }
 
 }

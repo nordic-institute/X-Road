@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -39,19 +40,27 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
+import org.niis.xroad.cs.admin.api.domain.MemberServer;
+import org.niis.xroad.cs.admin.api.domain.MemberServer.MemberDid;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberDidRow;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
@@ -66,23 +75,28 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
+import org.niis.xroad.cs.admin.core.repository.MemberDidRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
@@ -108,6 +122,10 @@ class MemberServiceImplTest {
     private MemberClassRepository memberClassRepository;
     @Mock
     private SecurityServerRepository securityServerRepository;
+    @Mock
+    private MemberDidRepository memberDidRepository;
+    @Mock
+    private ParticipantValueStore participantValueStore;
     @Mock
     private IdentifierRepository<MemberIdEntity> memberIds;
     @Mock
@@ -356,7 +374,7 @@ class MemberServiceImplTest {
             doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
             doReturn(securityServersMock).when(xRoadMember).getOwnedServers();
 
-            final List<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
+            final List<MemberServer> result = memberService.getMemberOwnedServers(clientId);
 
             verify(xRoadMemberRepository).findMember(clientId);
             verify(xRoadMember).getOwnedServers();
@@ -364,15 +382,51 @@ class MemberServiceImplTest {
             assertEquals(securityServersMock.size(), result.size());
 
             Assertions.assertThat(result.stream()
-                    .map(SecurityServer::getServerCode).collect(toList()))
+                    .map(memberServer -> memberServer.server().getServerCode()).toList())
                     .hasSameElementsAs(List.of("SS0", "SS1"));
+        }
+
+        @Test
+        void shouldAddMemberDidAndStaleFlagOfEachServerWithAStoredDid() {
+            var memberRowId = 11L;
+            var current = ownedServer("SS0", 1, "ss0.example.org");
+            var moved = ownedServer("SS1", 2, "ss1.example.org");
+            var withoutDid = ownedServer("SS2", 3, "ss2.example.org");
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Set.of(current, moved, withoutDid)).when(xRoadMember).getOwnedServers();
+            doReturn(memberRowId).when(xRoadMember).getId();
+            var currentDid = "did:web:ss0.example.org%3A7183:v1:TEST:CLASS:MEMBER";
+            var movedDid = "did:web:old.example.org%3A7183:v1:TEST:CLASS:MEMBER";
+            when(memberDidRepository.findRowsByMemberId(memberRowId)).thenReturn(List.of(
+                    new MemberDidRow(1, "TEST", MEMBER_CLASS, "MEMBER", currentDid),
+                    new MemberDidRow(2, "TEST", MEMBER_CLASS, "MEMBER", movedDid)));
+
+            var result = memberService.getMemberOwnedServers(clientId);
+
+            assertThat(result).extracting(m -> m.server().getServerCode(), MemberServer::memberDid)
+                    .containsExactlyInAnyOrder(
+                            tuple("SS0", new MemberDid(currentDid, false)),
+                            tuple("SS1", new MemberDid(movedDid, true)),
+                            tuple("SS2", null));
+            verify(memberDidRepository).findRowsByMemberId(memberRowId);
+            verifyNoMoreInteractions(memberDidRepository);
+        }
+
+        private SecurityServerEntity ownedServer(String code, int id, String address) {
+            var owner = mock(XRoadMemberEntity.class);
+            lenient().doReturn(MemberIdEntity.create(MemberId.create("TEST", MEMBER_CLASS, "MEMBER"))).when(owner).getIdentifier();
+            var server = new SecurityServerEntity(owner, code);
+            server.setAddress(address);
+            ReflectionTestUtils.setField(server, "id", id);
+            when(securityServerMapper.toTarget(server)).thenReturn(new SecurityServer(null, code));
+            return server;
         }
 
         @Test
         void shouldReturnEmptySetWhenMemberNotFound() {
             doReturn(Optional.empty()).when(xRoadMemberRepository).findMember(clientId);
 
-            final List<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
+            final List<MemberServer> result = memberService.getMemberOwnedServers(clientId);
 
             verify(xRoadMemberRepository).findMember(clientId);
             assertTrue(CollectionUtils.isEmpty(result));
@@ -415,12 +469,165 @@ class MemberServiceImplTest {
             when(securityServerMapper.toTarget(ss3)).thenReturn(new SecurityServer(null, "SS3"));
             when(securityServerMapper.toTarget(ss4)).thenReturn(new SecurityServer(null, "SS4"));
 
-            final List<SecurityServer> result = memberService.getMemberClientOfServers(clientId);
+            final List<MemberServer> result = memberService.getMemberClientOfServers(clientId);
 
             assertEquals(3, result.size());
             Assertions.assertThat(result.stream()
-                    .map(SecurityServer::getServerCode).collect(toList()))
+                    .map(memberServer -> memberServer.server().getServerCode()).toList())
                     .containsExactlyInAnyOrder("SS1", "SS3", "SS4");
+        }
+
+        @Test
+        void shouldAddMemberDidOfAServerWhereOnlyASubsystemIsClient() {
+            var memberRowId = 12L;
+            var owner = mock(XRoadMemberEntity.class);
+            lenient().doReturn(MemberIdEntity.create(MemberId.create("TEST", MEMBER_CLASS, "OWNER"))).when(owner).getIdentifier();
+            var server = new SecurityServerEntity(owner, "SS1");
+            server.setAddress("ss1.example.org");
+            ReflectionTestUtils.setField(server, "id", 5);
+            var subsystem = mock(SubsystemEntity.class);
+            doReturn(Set.of(new ServerClientEntity(server, subsystem))).when(subsystem).getServerClients();
+            doReturn(Set.of(subsystem)).when(xRoadMember).getSubsystems();
+            doReturn(Set.of()).when(xRoadMember).getServerClients();
+            doReturn(memberRowId).when(xRoadMember).getId();
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findOneBy(clientId);
+            when(securityServerMapper.toTarget(server)).thenReturn(new SecurityServer(null, "SS1"));
+            var did = "did:web:ss1.example.org%3A7183:v1:TEST:CLASS:MEMBER";
+            when(memberDidRepository.findRowsByMemberId(memberRowId))
+                    .thenReturn(List.of(new MemberDidRow(5, "TEST", MEMBER_CLASS, "MEMBER", did)));
+
+            var result = memberService.getMemberClientOfServers(clientId);
+
+            assertThat(result).singleElement()
+                    .extracting(MemberServer::memberDid)
+                    .isEqualTo(new MemberDid(did, false));
+        }
+    }
+
+    @Nested
+    @DisplayName("editMemberDid()")
+    class EditMemberDid {
+        private static final int SERVER_ROW_ID = 7;
+        private static final String NEW_DID = "did:web:ss.example.org%3A7183:v1:TEST:CLASS:MEMBER";
+
+        private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
+        private final SecurityServerId serverId = SecurityServerId.Conf.create("TEST", MEMBER_CLASS, "OWNER", "server");
+
+        private void givenServerRow() {
+            givenMember();
+            var server = mock(SecurityServerEntity.class);
+            when(server.getId()).thenReturn(SERVER_ROW_ID);
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(server));
+        }
+
+        private void givenMember() {
+            when(xRoadMemberRepository.count(clientId)).thenReturn(1L);
+        }
+
+        @Test
+        void shouldReplaceWithoutLockingTheServerRow() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.STORED));
+
+            memberService.editMemberDid(serverId, clientId, NEW_DID);
+
+            verify(participantValueStore).replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID));
+            verify(securityServerRepository, never()).lockForUpdateBy(any());
+            verify(securityServerRepository, never()).lockForUpdateById(any());
+        }
+
+        @Test
+        void shouldPutAuditData() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.STORED));
+
+            memberService.editMemberDid(serverId, clientId, NEW_DID);
+
+            verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            verify(auditData).put(MEMBER_CODE, "MEMBER");
+            verify(auditData).put(RestApiAuditProperty.SERVER_CODE, "server");
+            verify(auditData).put(RestApiAuditProperty.OWNER_CLASS, MEMBER_CLASS);
+            verify(auditData).put(RestApiAuditProperty.OWNER_CODE, "OWNER");
+            verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
+        }
+
+        @Test
+        void shouldSucceedWhenTheStoredDidIsEqual() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.UNCHANGED));
+
+            assertDoesNotThrow(() -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            verify(participantValueStore).replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID));
+            verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
+        }
+
+        @Test
+        void shouldFailWhenTheServerDoesNotExist() {
+            givenMember();
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.empty());
+
+            assertThrows(SecurityServerNotFoundException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            verify(participantValueStore, never()).replaceMemberDids(anyInt(), any());
+        }
+
+        @Test
+        void shouldFailAsMemberNotFoundWhenTheMemberDoesNotExist() {
+            when(xRoadMemberRepository.count(clientId)).thenReturn(0L);
+
+            var failure = assertThrows(NotFoundException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            assertEquals(ErrorMessage.MEMBER_NOT_FOUND.code(), failure.getErrorDeviation().code());
+            verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
+            verify(participantValueStore, never()).replaceMemberDids(anyInt(), any());
+        }
+
+        @Test
+        void shouldFailWithTheCodeOfTheReasonTheStoreRefusesTheDid() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.rejected(ParticipantValueRejection.DID_OF_OTHER_MEMBER)));
+
+            var failure = assertThrows(BadRequestException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            assertEquals("did_of_other_member", failure.getErrorDeviation().code());
+            verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
+        }
+
+        @Test
+        void shouldFailLoudlyForAReasonThatAnEditCannotProduce() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.rejected(ParticipantValueRejection.VALUE_DIFFERS)));
+
+            assertThrows(IllegalStateException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+        }
+
+        @Test
+        void shouldFailAsHeldByAnotherServerWhenTheDatabaseRefusesTheSameDidOnTwoServers() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenThrow(new DataIntegrityViolationException("member_dids_did_excl"));
+
+            var failure = assertThrows(BadRequestException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            assertEquals("did_held_by_another_server", failure.getErrorDeviation().code());
+        }
+
+        @Test
+        void shouldRethrowADatabaseRefusalOfAnotherConstraint() {
+            givenServerRow();
+            var failure = new DataIntegrityViolationException("member_dids_member_id_fk");
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID))).thenThrow(failure);
+
+            var thrown = assertThrows(DataIntegrityViolationException.class,
+                    () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            assertThat(thrown).isSameAs(failure);
         }
     }
 }

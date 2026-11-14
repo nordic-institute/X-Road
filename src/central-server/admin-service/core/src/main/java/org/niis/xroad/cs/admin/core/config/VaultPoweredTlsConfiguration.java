@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.config;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.restapi.vault.AdminServiceSslBundleRegistrar;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +41,9 @@ public class VaultPoweredTlsConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = AdminServiceSslBundleRegistrar.BUNDLE_NAME)
-    public SslBundleRegistrar vaultSslBundleRegistrar(VaultKeyClient vaultKeyClient, VaultClient vaultClient) {
+    public SslBundleRegistrar vaultSslBundleRegistrar(
+            @Qualifier(BootstrapConfiguration.ADMIN_SERVICE_VAULT_KEY_CLIENT) VaultKeyClient vaultKeyClient,
+            VaultClient vaultClient) {
         return new AdminServiceSslBundleRegistrar(vaultKeyClient, vaultClient);
     }
 

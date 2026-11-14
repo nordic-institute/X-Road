@@ -34,25 +34,38 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.keyStoreOf;
 
 class XRoadJettyServiceTest {
@@ -181,6 +194,139 @@ class XRoadJettyServiceTest {
         assertThat(configured).containsExactlyInAnyOrder("first", "second");
     }
 
+    @ParameterizedTest
+    @MethodSource("participantSegmentMappings")
+    void aParticipantPortPassesADoubleEncodedSegmentDecodedOnce(String alias, String basePath) throws Exception {
+        var port = startPathInfoService(alias, basePath);
+
+        var response = get(port, basePath + "/DEV:COM:12%252B34/profile");
+
+        assertThat(response.status()).isEqualTo(HttpServletResponse.SC_OK);
+        assertThat(response.body()).isEqualTo("/DEV:COM:12%2B34/profile");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/api/dsp/DEV:COM:12%2Fx/profile", "/api/dsp/%2e%2e/profile", "/api/dsp/DEV:COM:12%5Cx/profile"})
+    void theDspPortStillRejectsOtherAmbiguousPathEncodings(String path) throws Exception {
+        var dspPort = startPathInfoService(ApiContext.PROTOCOL, "/api/dsp");
+
+        assertThat(get(dspPort, path).status()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
+    }
+
+    @Test
+    void aNonDspPortRejectsADoubleEncodedPathSegment() throws Exception {
+        var otherPort = startPathInfoService("management", "/api/management");
+
+        assertThat(get(otherPort, "/api/management/DEV:COM:12%252B34/profile").status())
+                .isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
+        assertThat(get(otherPort, "/api/management/DEV:COM:12%2B34/profile").status())
+                .isEqualTo(HttpServletResponse.SC_OK);
+    }
+
+    @Test
+    void theDefaultContextAcceptsOnLoopbackAndRefusesOnANonLoopbackAddress() throws Exception {
+        var nonLoopback = nonLoopbackTestAddress();
+        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping(XRoadJettyService.DEFAULT_CONTEXT_NAME, port, "/api"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.registerServlet(XRoadJettyService.DEFAULT_CONTEXT_NAME, echoServlet("default-ok"));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+
+        assertThat(get(port, "/api").body()).isEqualTo("default-ok");
+        assertThatThrownBy(() -> new Socket(nonLoopback.get(), port).close()).isInstanceOf(ConnectException.class);
+    }
+
+    @Test
+    void aNamedContextWithAConfiguredHostBindsOnlyToThatAddress() throws Exception {
+        var nonLoopback = nonLoopbackTestAddress();
+        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("named", port, "/api"));
+        var configuredHost = nonLoopback.get().getHostAddress();
+        jettyService = new XRoadJettyService(MONITOR, registry, contextName -> "named".equals(contextName) ? configuredHost : null);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.registerServlet("named", echoServlet("named-ok"));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+
+        assertThat(get(configuredHost, port, "/api").body()).isEqualTo("named-ok");
+        assertThatThrownBy(() -> new Socket("127.0.0.1", port).close()).isInstanceOf(ConnectException.class);
+    }
+
+    @Test
+    void aNamedContextWithoutAConfiguredHostBindsToEveryInterface() throws Exception {
+        var nonLoopback = nonLoopbackTestAddress();
+        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("named", port, "/api"));
+        jettyService = new XRoadJettyService(MONITOR, registry, contextName -> null);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.registerServlet("named", echoServlet("named-ok"));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+
+        assertThat(get(port, "/api").body()).isEqualTo("named-ok");
+        assertThat(get(nonLoopback.get().getHostAddress(), port, "/api").body()).isEqualTo("named-ok");
+    }
+
+    @Test
+    void aNamedContextWithABlankConfiguredHostBindsToEveryInterface() throws Exception {
+        var nonLoopback = nonLoopbackTestAddress();
+        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("named", port, "/api"));
+        jettyService = new XRoadJettyService(MONITOR, registry, contextName -> " ");
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.registerServlet("named", echoServlet("named-ok"));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+
+        assertThat(get(port, "/api").body()).isEqualTo("named-ok");
+        assertThat(get(nonLoopback.get().getHostAddress(), port, "/api").body()).isEqualTo("named-ok");
+    }
+
+    @Test
+    void aHostSettingForTheDefaultContextHasNoEffect() throws Exception {
+        var nonLoopback = nonLoopbackTestAddress();
+        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping(XRoadJettyService.DEFAULT_CONTEXT_NAME, port, "/api"));
+        jettyService = new XRoadJettyService(MONITOR, registry, contextName -> nonLoopback.get().getHostAddress());
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.registerServlet(XRoadJettyService.DEFAULT_CONTEXT_NAME, echoServlet("default-ok"));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+
+        assertThat(get(port, "/api").body()).isEqualTo("default-ok");
+        assertThatThrownBy(() -> new Socket(nonLoopback.get(), port).close()).isInstanceOf(ConnectException.class);
+    }
+
+    /**
+     * The first address of a non-loopback, up network interface on the test host, used to prove a connector
+     * refuses or accepts connections from outside loopback. Some hosts (a sandboxed CI runner) have none.
+     */
+    private static Optional<InetAddress> nonLoopbackTestAddress() throws Exception {
+        for (var networkInterface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+            if (!networkInterface.isUp() || networkInterface.isLoopback()) {
+                continue;
+            }
+            for (var address : Collections.list(networkInterface.getInetAddresses())) {
+                if (address instanceof Inet4Address && !address.isLoopbackAddress()) {
+                    return Optional.of(address);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
     /**
      * The test certificates' subjects do not match "localhost", so Jetty's default SNI host check would
      * reject every request with HTTP 400 before it reaches a servlet. Production traffic dials the
@@ -205,11 +351,42 @@ class XRoadJettyServiceTest {
         };
     }
 
+    private static Stream<Arguments> participantSegmentMappings() {
+        return Stream.of(
+                argumentSet("dsp", ApiContext.PROTOCOL, "/api/dsp"),
+                argumentSet("credentials", "credentials", "/api/credentials"));
+    }
+
+    private int startPathInfoService(String alias, String basePath) throws Exception {
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping(alias, port, basePath));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        jettyService.registerServlet(alias, pathInfoServlet());
+        return port;
+    }
+
+    private static Servlet pathInfoServlet() {
+        return new HttpServlet() {
+            @Override
+            protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+                response.getWriter().write(request.getPathInfo());
+            }
+        };
+    }
+
     private record Response(int status, String body) {
     }
 
     private static Response get(int port, String path) throws Exception {
-        var connection = openTrustingConnection(port, path);
+        return get("localhost", port, path);
+    }
+
+    private static Response get(String host, int port, String path) throws Exception {
+        var connection = openTrustingConnection(host, port, path);
         try {
             var status = connection.getResponseCode();
             var stream = status < HttpServletResponse.SC_BAD_REQUEST ? connection.getInputStream() : connection.getErrorStream();
@@ -221,7 +398,7 @@ class XRoadJettyServiceTest {
     }
 
     private static X509Certificate servedCertificate(int port, String path) throws Exception {
-        var connection = openTrustingConnection(port, path);
+        var connection = openTrustingConnection("localhost", port, path);
         try {
             connection.connect();
             return (X509Certificate) connection.getServerCertificates()[0];
@@ -230,8 +407,8 @@ class XRoadJettyServiceTest {
         }
     }
 
-    private static HttpsURLConnection openTrustingConnection(int port, String path) throws Exception {
-        var url = URI.create("https://localhost:" + port + path).toURL();
+    private static HttpsURLConnection openTrustingConnection(String host, int port, String path) throws Exception {
+        var url = URI.create("https://" + host + ":" + port + path).toURL();
         var connection = (HttpsURLConnection) url.openConnection();
         connection.setSSLSocketFactory(ConnectorTlsTestSupport.trustAllTlsContext().getSocketFactory());
         connection.setHostnameVerifier((hostname, session) -> true);

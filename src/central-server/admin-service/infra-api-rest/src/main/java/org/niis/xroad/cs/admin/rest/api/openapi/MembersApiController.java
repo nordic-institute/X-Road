@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,21 +31,26 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.service.MemberDidCheckService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
+import org.niis.xroad.cs.admin.rest.api.converter.DidCheckDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.GroupMemberConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.MemberCreationRequestMapper;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
-import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
+import org.niis.xroad.cs.admin.rest.api.converter.db.MemberServerDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.cs.openapi.MembersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
+import org.niis.xroad.cs.openapi.model.DidCheckDto;
 import org.niis.xroad.cs.openapi.model.MemberAddDto;
+import org.niis.xroad.cs.openapi.model.MemberDidEditDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.cs.openapi.model.MemberNameDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerDto;
+import org.niis.xroad.cs.openapi.model.MemberServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
@@ -59,14 +64,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_MEMBER_ID;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.CHECK_MEMBER_DID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_DID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_MEMBER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_DID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_DID_CHECK_STATUS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 import static org.springframework.http.ResponseEntity.noContent;
+import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -75,6 +91,8 @@ import static org.springframework.http.ResponseEntity.noContent;
 public class MembersApiController implements MembersApi {
 
     private final MemberService memberService;
+    private final MemberDidCheckService memberDidCheckService;
+    private final DidCheckDtoConverter didCheckDtoConverter;
     private final SubsystemService subsystemService;
     private final SecurityServerService securityServerService;
     private final ClientDtoConverter clientDtoConverter;
@@ -82,8 +100,9 @@ public class MembersApiController implements MembersApi {
     private final SubsystemDtoConverter subsystemDtoConverter;
     private final GroupMemberConverter groupMemberConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
-    private final SecurityServerDtoConverter securityServerDtoConverter;
+    private final MemberServerDtoConverter memberServerDtoConverter;
     private final MemberCreationRequestMapper memberCreationRequestMapper;
+    private final AuditDataHelper auditDataHelper;
 
     @Override
     @PreAuthorize("hasAuthority('ADD_NEW_MEMBER')")
@@ -145,24 +164,24 @@ public class MembersApiController implements MembersApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<List<SecurityServerDto>> getOwnedServers(final String memberId) {
+    public ResponseEntity<List<MemberServerDto>> getOwnedServers(final String memberId) {
         verifyMemberId(memberId);
 
         return ResponseEntity.ok(
                 memberService.getMemberOwnedServers(clientIdConverter.convertId(memberId)).stream()
-                        .map(securityServerDtoConverter::toDto)
+                        .map(memberServerDtoConverter::toDto)
                         .toList()
         );
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<List<SecurityServerDto>> getUsedServers(String memberId) {
+    public ResponseEntity<List<MemberServerDto>> getUsedServers(String memberId) {
         verifyMemberId(memberId);
 
         return ResponseEntity.ok(
                 memberService.getMemberClientOfServers(clientIdConverter.convertId(memberId)).stream()
-                        .map(securityServerDtoConverter::toDto)
+                        .map(memberServerDtoConverter::toDto)
                         .toList()
         );
     }
@@ -177,6 +196,36 @@ public class MembersApiController implements MembersApi {
 
         securityServerService.deleteClient(securityServerId, clientId);
         return noContent().build();
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_MEMBER_DID')")
+    @AuditEventMethod(event = EDIT_MEMBER_DID)
+    public ResponseEntity<Void> updateMemberDid(String memberId, String serverId, MemberDidEditDto memberDidEdit) {
+        verifyMemberId(memberId);
+        ClientId clientId = clientIdConverter.convertId(memberId);
+        SecurityServerId securityServerId = requireNonNull(securityServerIdConverter.convertId(serverId));
+        memberService.editMemberDid(securityServerId, clientId, memberDidEdit.getMemberDid());
+        return noContent().build();
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_MEMBER_DID')")
+    @AuditEventMethod(event = CHECK_MEMBER_DID)
+    public ResponseEntity<DidCheckDto> checkMemberDid(String memberId, String serverId, MemberDidEditDto request) {
+        verifyMemberId(memberId);
+        ClientId clientId = clientIdConverter.convertId(memberId);
+        SecurityServerId securityServerId = requireNonNull(securityServerIdConverter.convertId(serverId));
+        auditDataHelper.put(MEMBER_CLASS, clientId.getMemberClass());
+        auditDataHelper.put(MEMBER_CODE, clientId.getMemberCode());
+        auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());
+        auditDataHelper.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+        auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+        auditDataHelper.put(MEMBER_DID, request.getMemberDid());
+
+        var check = memberDidCheckService.check(securityServerId, clientId, request.getMemberDid());
+        auditDataHelper.put(MEMBER_DID_CHECK_STATUS, check.status());
+        return ok(didCheckDtoConverter.toTarget(check));
     }
 
     @Override

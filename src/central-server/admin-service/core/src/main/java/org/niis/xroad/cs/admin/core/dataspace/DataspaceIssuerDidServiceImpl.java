@@ -43,15 +43,9 @@ public class DataspaceIssuerDidServiceImpl implements DataspaceIssuerDidService 
 
     private final IssuerDidRepository issuerDidRepository;
 
-    /**
-     * Registers a DID, relying on the repository's conflict-ignoring insert for idempotency rather than a
-     * check-then-write: a preceding existence check would only race the same unique constraint under
-     * concurrent registrations from different Central Server nodes, so the insert alone is both the check
-     * and the write.
-     */
     @Override
-    public void register(String issuerDid) {
-        issuerDidRepository.insertIgnoreConflict(issuerDid);
+    public void register(String issuerDid, String host, int didPort, String issuanceUrl, String statuslistBaseUrl) {
+        issuerDidRepository.insert(issuerDid, host, didPort, issuanceUrl, statuslistBaseUrl);
     }
 
     @Override

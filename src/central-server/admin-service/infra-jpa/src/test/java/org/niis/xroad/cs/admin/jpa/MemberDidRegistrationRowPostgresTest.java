@@ -42,6 +42,7 @@ import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.entity.MemberDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
@@ -123,11 +124,11 @@ class MemberDidRegistrationRowPostgresTest extends AbstractCentralServerPostgres
                 .thenAnswer(inv -> transactions.execute(status -> memberHandler.add(inv.getArgument(0))));
         var configProperties = mock(ManagementServiceConfigProperties.class);
         when(configProperties.getMemberDidRegMaxEntries()).thenReturn(MAX_ENTRIES);
-        service = new MemberDidRegistrationServiceImpl(dids -> dids.stream()
+        service = new MemberDidRegistrationServiceImpl(new DidBatchResolution(dids -> dids.stream()
                 .map(did -> unresolvableDids.contains(did)
                         ? DidResolution.notResolved(did, DidResolutionReason.NO_DOCUMENT)
                         : DidResolution.resolved(did))
-                .toList(), store, servers, managementRequestService, configProperties);
+                .toList()), store, servers, managementRequestService, configProperties);
     }
 
     @Test

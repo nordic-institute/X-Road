@@ -46,6 +46,12 @@ public interface JpaMemberDidRepository extends JpaRepository<MemberDidEntity, I
     List<MemberDidRow> findAllRows();
 
     @Override
+    @Query("select new org.niis.xroad.cs.admin.core.entity.MemberDidRow("
+            + "d.securityServer.id, i.xRoadInstance, i.memberClass, i.memberCode, d.did) "
+            + "from MemberDidEntity d join d.member m join m.identifier i where m.id = :memberId")
+    List<MemberDidRow> findRowsByMemberId(Long memberId);
+
+    @Override
     @Query("select distinct d.did from MemberDidEntity d where d.did in :dids and d.securityServer.id <> :securityServerId")
     List<String> findDidsHeldByOtherServers(Collection<String> dids, Integer securityServerId);
 }

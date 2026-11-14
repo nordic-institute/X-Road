@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.migration.utils.DbCredentials;
 import org.niis.xroad.migration.utils.DbPropertiesReader;
+import org.niis.xroad.migration.utils.InstallationType;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import java.nio.file.Paths;
@@ -50,8 +51,8 @@ public class DbRepository implements AutoCloseable {
             "INSERT INTO configuration_client(name, content) VALUES ('configuration-anchor', ?) "
                     + " ON CONFLICT (name) DO UPDATE SET content = EXCLUDED.content";
 
-    public DbRepository(String dbPropertiesFilePath) {
-        DbCredentials dbCredentials = DbPropertiesReader.readDbCredentials(Paths.get(dbPropertiesFilePath), "serverconf");
+    public DbRepository(String dbPropertiesFilePath, InstallationType installationType) {
+        DbCredentials dbCredentials = DbPropertiesReader.readForInstallation(Paths.get(dbPropertiesFilePath), installationType);
         init(dbCredentials);
     }
 

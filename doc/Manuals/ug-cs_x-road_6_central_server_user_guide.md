@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.53  
+Version: 2.57  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -79,6 +79,10 @@ Doc. ID: UG-CS
 | 20.10.2025 | 2.51    | Add information about paid and free tsp and ocsp responders                                                                                                                                                                                                                                                                                                                                                                             | Mikk-Erik Bachmann   |
 | 05.11.2025 | 2.52    | Add information about the approved CAs default CSR format                                                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 20.10.2026 | 2.53    | Added Issuer Service host configuration paragraph                                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
+| 06.11.2026 | 2.54    | Added the member DID column, the stale DID warning and the member DID edit and check (Section 7.2.1)                                                                                                                                                                                                                                                                                                                                    | Justas Samuolis      |
+| 11.11.2026 | 2.55    | Added a note that xroad-center must be restarted before re-creating the management service key after a change of the certificate names                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas    |
+| 12.11.2026 | 2.56    | Added Issuer Service issuance settings and statuslist capacity paragraph                                                                                                                                                                                                                                                                                                                                                                | Ričardas Bučiūnas    |
+| 12.11.2026 | 2.57    | Replaced the Issuer Service host section's automatic-binding note with the operator-started initialization step                                                                                                                                                                                                                                                                                                                         | Ovidijus Narkevicius |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -110,6 +114,9 @@ Doc. ID: UG-CS
     - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
       - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
   - [4.5 Configuring the Issuer Service Host](#45-configuring-the-issuer-service-host)
+  - [4.6 Issuer Service Issuance Settings and Statuslist Capacity](#46-issuer-service-issuance-settings-and-statuslist-capacity)
+    - [4.6.1 Issuance Settings](#461-issuance-settings)
+    - [4.6.2 Statuslist Capacity](#462-statuslist-capacity)
 - [5. Configuration Management](#5-configuration-management)
   - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
   - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
@@ -133,6 +140,7 @@ Doc. ID: UG-CS
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
   - [7.1 Adding a Member](#71-adding-a-member)
   - [7.2 Viewing the Member Details](#72-viewing-the-member-details)
+    - [7.2.1 Viewing and Correcting the Member DID](#721-viewing-and-correcting-the-member-did)
   - [7.3 Adding a Subsystem to an X-Road Member](#73-adding-a-subsystem-to-an-x-road-member)
   - [7.4 Registering a Member's Security Server](#74-registering-a-members-security-server)
   - [7.5 Registering a Client to a Security Server](#75-registering-a-client-to-a-security-server)
@@ -481,6 +489,8 @@ To re-create Management Service key and self-signed certificate, follow these st
 3. Confirm the re-creating by clicking Confirm.
 4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
 
+The new certificate gets the names that are stored in the configuration database. The user interface service `xroad-center` reads these names once, when it starts. If you changed the names after `xroad-center` started, restart `xroad-center` before you click Re-create key. Otherwise the new certificate gets the old names. See [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2 for how to change the names.
+
 To generate Management Service certificate signing request, follow these steps.
 
 1. In the Navigation tabs, select Settings --> TLS certificates.
@@ -502,7 +512,7 @@ When the key and certificate are rotated, and mTLS is enabled between the manage
 
 **ATTENTION!**
 - The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
-- The changed TLS certificate is automatically detected by Nginx within five minutes after the change.
+- The running management services keep serving the old certificate until they are restarted. Restart `xroad-center-management-service`, then `xroad-center-registration-service`, in this order. See [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2.
 
 ### 4.5 Configuring the Issuer Service Host
 
@@ -510,15 +520,33 @@ Access rights: Security Officer
 
 Every membership credential names the Issuer Service by this host, so the host becomes part of the Issuer Service's permanent identity once that identity is bound. Set it after installation through the Central Server's management REST API. The user interface has no view for it. The calls need an API key with the Security Officer role; see [Managing API Keys](#24-managing-api-keys).
 
-To read the current host and whether it is bound, call:
+To read the current host, binding and initialization status, call:
 
 ```bash
 curl --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:4000/api/v1/issuer-service" -k
 {
     "host": "issuer.example.org",
-    "bound": false
+    "bound": false,
+    "host_set": true,
+    "certificate_ready": true,
+    "run_in_progress": false,
+    "did_to_bind": "did:web:issuer.example.org%3A6183:issuer",
+    "can_sign": false,
+    "can_sign_cause": "NO_ACTIVE_KEY",
+    "status": "READY_TO_INITIALIZE"
 }
 ```
+
+`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run is in progress. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `status` summarizes these into one value:
+
+- `NOT_CONFIGURED` — the host is not set yet.
+- `WAITING_FOR_CERTIFICATE` — the host is set, but the connector TLS certificate is not yet present, valid and unexpired.
+- `READY_TO_INITIALIZE` — the host and certificate are ready; initialization has not started.
+- `INITIALIZING` — an initialization run is in progress.
+- `READY` — the issuer identity is bound and the Issuer Service can sign for it.
+- `FAILED` — the Issuer Service cannot sign for the bound (or to-be-bound) identity.
+
+`can_sign` and `can_sign_cause` show whether the Issuer Service can currently sign for the identity; `can_sign_cause` is present only when `can_sign` is `false`. Before initialization, `can_sign` is normally `false` with `NO_ACTIVE_KEY`, because the signing key does not exist yet. This does not block initialization.
 
 To set the host, call:
 
@@ -530,7 +558,47 @@ Only a valid DNS name is accepted: not an IP address, not `localhost` or a name 
 
 **Recommendation:** use a separate cluster DNS name for the Issuer Service host, not the host name of a Central Server node, even on a single node. The host cannot change after binding. If you use the node's own host name and add a node later, the existing node needs a new address, and every Security Server needs a new configuration anchor. With more than one node, the host must be the cluster DNS name, never a node's own host name.
 
-**ATTENTION!** On an initialized Central Server, the Issuer Service identity is bound automatically soon after the host is set. Check the value before you send it. Once the identity is bound, a valid new host, even the same one again, is refused, and the response names the bound host.
+Once the host is set and its connector TLS certificate is ready, start the one-time initialization:
+
+```bash
+curl -X POST --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:4000/api/v1/issuer-service/initialize" -k
+```
+
+The call answers at once, without waiting for the run to finish:
+
+- `202` — accepted; the run continues in the background.
+- `409` — refused, with the first failing cause: the issuer is already initialized, the host is not set, the connector TLS certificate is missing, expired or not valid for the issuer host, or an initialization run is already in progress.
+
+**ATTENTION!** Once the identity is bound, a valid new host, even the same one again, is refused, and the response names the bound host.
+
+### 4.6 Issuer Service Issuance Settings and Statuslist Capacity
+
+#### 4.6.1 Issuance Settings
+
+The Issuer Service issues credentials in batches. In each state-machine iteration it takes a time-limited lease on a whole batch of issuance requests, not one lease per delivery. If a node stalls for longer than the lease, another node can take the requests over, and a credential can be delivered twice. A full batch must therefore finish shorter than the lease: the batch size multiplied by the delivery call timeout must be smaller than the lease duration.
+
+The shipped configuration sets these values explicitly, so that a software upgrade cannot change them unnoticed:
+
+| Setting                                                   | Value  | Meaning                                                              |
+|-----------------------------------------------------------|--------|----------------------------------------------------------------------|
+| `edc.issuer.issuance.state-machine.lease-duration-millis` | 300000 | How long a node holds the lease on an issuance request, in ms        |
+| `edc.issuer.issuance.state-machine.batch-size`            | 10     | How many issuance requests a node processes in one batch             |
+| `edc.issuer.issuance.send.call-timeout.ms`                | 15000  | Time limit for one delivery call to a Security Server, in ms         |
+| `edc.issuer.issuance.send.connect-timeout.ms`             | 5000   | Time limit for opening the connection of a delivery call, in ms      |
+
+The default values need no change. To override a value, set the same key in `/etc/xroad/conf.d/local-ds-issuer-service.yaml` and restart the `xroad-ds-issuer-service` service. The override file is local to the node. On a clustered Central Server, set the override on every node and restart the service on each of them. Keep the batch size multiplied by the call timeout smaller than the lease duration.
+
+#### 4.6.2 Statuslist Capacity
+
+Every credential holds one slot in a statuslist, which records whether the credential is revoked. A statuslist has at least 131072 slots. Each renewal of a credential takes a new slot. Credentials are valid for 30 days and are renewed 7 days before they expire by default, so with this default a participant uses about 15.87 slots per year.
+
+The number of participants N counts each member once for every Security Server that hosts it, plus each Security Server. A member has a separate dataspace identity on every Security Server that hosts it. The number of statuslists needed after Y years is:
+
+`lists after Y years = ceil(N × 15.87 × Y / 131072)`
+
+For example, 5000 participants after 5 years need ceil(5000 × 15.87 × 5 / 131072) = 4 statuslists.
+
+When a statuslist is full, the Issuer Service adds a new one automatically and issues later credentials from it. The size of a statuslist is set by `edc.issuer.statuslist.bitstring.size`. Its minimum and default is 131072. X-Road does not set it, so no action is needed.
 
 ## 5. Configuration Management
 
@@ -801,9 +869,50 @@ The view consists of five sections and a tab Subsystems.
 1. "Member name"
 2. "Member class"
 3. "Member code"
-4. "Owned Servers" – displays the codes of servers owned by this member.
+4. "Owned Servers" – displays the codes of servers owned by this member and the member's DID on each server (see [7.2.1](#721-viewing-and-correcting-the-member-did)).
 5. "Global Groups" – displays information about the group membership of the member or its subsystems.
 6. "Subsystems" tab – displays a list of member's subsystems. If a subsystem is not a client of any Security Servers, then subsystem status is UNREGISTERED.
+
+#### 7.2.1 Viewing and Correcting the Member DID
+
+Access rights: Registration Officer
+
+The "Owned Servers" and "Used Servers" lists have a "Member DID" column. The column shows the DID that the global configuration announces for the member on that Security Server. Other Security Servers use this DID to reach the member. If the member has no DID on the Security Server, the column shows "-".
+
+If the host of the DID does not match the address of the Security Server, for example after the address of the Security Server was changed, a warning is shown below the DID. The warning means that other Security Servers still use the old DID to reach the member.
+
+To correct the DID of the member on a Security Server, follow these steps.
+1. In the "Owned Servers" or "Used Servers" list, click Edit next to the DID. The button is disabled where the member has no DID.
+2. In the window that opens, change the DID.
+3. Optionally, click Check DID. The Central Server asks the Issuer Service to resolve the DID, that is, to fetch the DID document from the host that the DID names. The window shows one of these results:
+   - the DID resolves;
+   - the DID does not resolve, with the reason: its DID document is malformed, no DID document was found, the DID document belongs to another DID, or the DID document could not be fetched;
+   - the DID could not be checked because the Issuer Service is unreachable;
+   - the DID is refused, with the reason from the table below.
+
+   The result of the check does not prevent saving the DID.
+4. Click Save. The Central Server replaces the stored DID, and the next global configuration contains the new DID. The "Owned Servers" and "Used Servers" lists are reloaded.
+5. Inform the Security Server operator about the change, for example by email. The Central Server shows a reminder after saving. The Security Server keeps its own values until the operator re-identifies it.
+
+If the new DID is the same as the stored DID, saving changes nothing. This works only while the DID is valid for the address of the Security Server. If the stored DID is stale, or the address cannot be read as a host, the Central Server refuses it like any other DID.
+
+The Central Server refuses a DID that does not meet the rules below. The window stays open, shows the message of the reason, and the stored DID does not change.
+
+| Reason | Message shown |
+|--------|---------------|
+| The DID is not a did:web DID of version v1 | The DID must be a did:web DID of version v1 |
+| The DID is too long | The DID is too long |
+| The host of the DID or the address of the Security Server contains non-ASCII characters | The host of the DID and the security server address must be ASCII |
+| The DID cannot be decoded | The DID cannot be decoded |
+| The DID is not in its canonical form | The DID is not in its canonical form |
+| The host of the DID does not match the address of the Security Server | The host of the DID must match the security server address |
+| The DID is the DID of another member | The DID belongs to another member |
+| The Security Server does not serve the member | The security server does not serve this member |
+| The address of the Security Server cannot be read as a host | The security server address cannot be read as a host |
+| Another Security Server already uses the DID, including when another administrator saved it at the same time | The DID is already used by another security server |
+| The member has no stored DID on the Security Server, so there is nothing to replace | The security server has no stored DID to replace |
+
+The Central Server writes the events "Edit member DID" and "Check member DID" to the audit log (see [Chapter 13](#13-audit-log) and [SPEC-AL](#13-references)).
 
 ### 7.3 Adding a Subsystem to an X-Road Member
 

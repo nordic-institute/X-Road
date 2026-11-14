@@ -42,7 +42,7 @@ public class DataspaceIssuerProperties {
     private final IssuerHostService issuerHostService;
 
     public String getHost() {
-        return issuerHostService.getState().host();
+        return issuerHostService.getHost();
     }
 
     public boolean isHostConfigured() {
@@ -55,6 +55,10 @@ public class DataspaceIssuerProperties {
 
     public int getIssuancePort() {
         return config.value(DataspaceConfigKeys.ISSUER_ISSUANCE_PORT);
+    }
+
+    public int getStatuslistPort() {
+        return config.value(DataspaceConfigKeys.ISSUER_STATUSLIST_PORT);
     }
 
     public String getCredentialJsonSchemaUrl() {

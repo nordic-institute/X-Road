@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.signer.keyconf.DeviceType;
 import org.niis.xroad.signer.keyconf.KeyConfType;
 import org.niis.xroad.signer.keyconf.KeyType;
@@ -51,6 +52,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class KeyConfMigratorTest {
+
+    private static final NodeIdentity NODE = NodeIdentity.resolve(null);
 
     private final KeyConfMigrator migrator = new KeyConfMigrator();
 
@@ -93,7 +96,7 @@ class KeyConfMigratorTest {
         when(signerRepositoryMock.saveToken(any(), any())).thenReturn(0L);
         when(signerRepositoryMock.saveKey(any(), anyLong(), anyBoolean(), any())).thenReturn(0L);
 
-        keyConfMigrator.migrate(keyconfPath, "not/used/in/test");
+        keyConfMigrator.migrate(keyconfPath, "not/used/in/test", NODE);
 
         verify(signerRepositoryMock, times(2)).saveToken(any(), any());
         verify(signerRepositoryMock, times(3)).saveKey(any(), anyLong(), anyBoolean(), any());
@@ -106,7 +109,7 @@ class KeyConfMigratorTest {
         Path keyConfPath = Paths.get(getClass().getClassLoader().getResource("signer-malformed").toURI());
 
         var exception = assertThrows(IllegalStateException.class, () -> migrator.migrate(keyConfPath.toString(),
-                "not/used/in/test"));
+                "not/used/in/test", NODE));
         assertTrue(exception.getMessage().startsWith("Unable to parse keyconf.xml file"));
     }
 
@@ -121,7 +124,7 @@ class KeyConfMigratorTest {
         }
 
         @Override
-        protected SignerRepository getSignerRepository(String dbPropertiesPath) {
+        protected SignerRepository getSignerRepository(String dbPropertiesPath, NodeIdentity nodeIdentity) {
             return signerRepository;
         }
 

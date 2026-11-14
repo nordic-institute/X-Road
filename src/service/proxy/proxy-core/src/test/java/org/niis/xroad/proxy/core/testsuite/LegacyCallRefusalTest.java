@@ -47,7 +47,9 @@ import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.addon.metaservice.testcases.GetWSDLMessage;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
@@ -86,6 +88,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJ
  */
 class LegacyCallRefusalTest {
 
+    private static final AcquisitionCandidate WINNER = new AcquisitionCandidate(
+            "did:web:ss-a.example%3A7183:v1:DEV:COM:222",
+            "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     private static final String OWN_INSTANCE = "EE";
     private static final String AGREEMENT_TOKEN_REJECTED_FAULT = SERVER_SERVERPROXY_X + "." + AGREEMENT_TOKEN_REJECTED.code();
 
@@ -278,9 +283,10 @@ class LegacyCallRefusalTest {
 
     private void stubAssetAccess(ClientId client, ServiceId service) {
         var endpoint = "http://127.0.0.1:" + PROXY_TEST_SUITE_HELPER.proxyProperties.serverProxyPort() + "/";
-        var response = new AssetAccessResponse(endpoint, mintToken(client, service));
+        var response = new AssetAccessResponse(endpoint, mintToken(client, service), WINNER);
+        when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(false);
         when(ctx.getConsumerSideDspProcessor().execute(argThat(req -> service.equals(req.serviceId()))))
-                .thenReturn(response);
+                .thenReturn(new DspAcquisition(response, 1));
     }
 
     private static Map<String, String> withLocalRefusal() {

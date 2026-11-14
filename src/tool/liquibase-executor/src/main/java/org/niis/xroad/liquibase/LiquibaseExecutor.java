@@ -53,7 +53,8 @@ public class LiquibaseExecutor implements Callable<Integer> {
     private static final String DEFAULT_SCHEMA_NAME_ARG_EQ = DEFAULT_SCHEMA_NAME_ARG + "=";
 
     @Option(names = "--changelog", required = true,
-            description = "Database changelog name (serverconf, centerui, messagelog, op-monitor)")
+            description = "Database changelog name (serverconf, centerui, messagelog, op-monitor, confproxy, "
+                    + "ds-control-plane, ds-identity-hub, ds-issuer-service)")
     String changelog;
 
     @Option(names = "--url", required = true,

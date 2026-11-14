@@ -135,6 +135,7 @@ class SharedParametersLoaderTest {
     private static final String MEMBER_CLASS_CODE = "MCLASS";
     private static final String MEMBER_CLASS_DESCRIPTION = "Member class description";
     private static final int OCSP_FRESHNESS_SECONDS = 333;
+    private static final int ISSUER_DATA_FRESHNESS_SECONDS = 444;
     private static final String CENTRAL_SERVICE = "cs";
     private static final byte[] CONFIGURATION_SIGNING_CERT = "conf signing cert".getBytes(UTF_8);
 
@@ -180,6 +181,7 @@ class SharedParametersLoaderTest {
         assertApproveTsa(parameters);
         assertApprovedConnectorTlsCAs(parameters);
         assertThat(parameters.getCredentialIssuerDids()).containsExactlyInAnyOrder(ISSUER_DID_1, ISSUER_DID_2);
+        assertThat(parameters.getIssuerDataFreshnessSeconds()).isEqualTo(ISSUER_DATA_FRESHNESS_SECONDS);
         assertSecurityServers(parameters);
         assertGlobalGroups(parameters);
         assertGlobalSettings(parameters);
@@ -348,6 +350,23 @@ class SharedParametersLoaderTest {
     }
 
     @Test
+    void loadReadsTheNewMemberDidAfterTheStoredDidIsReplaced() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        var replacedDid = "did:web:security-server-address%3A7184:v1:XRD:CLASS:M2";
+        var member = ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2");
+        when(dataspaceMemberDidService.findAll())
+                .thenReturn(List.of(new StoredMemberDid(SECURITY_SERVER_ID, member, CLIENT_DID)))
+                .thenReturn(List.of(new StoredMemberDid(SECURITY_SERVER_ID, member, replacedDid)));
+
+        var before = sharedParametersLoader.loadWithMemberDids();
+        var after = sharedParametersLoader.loadWithMemberDids();
+
+        assertThat(didsByMember(before)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, CLIENT_DID)));
+        assertThat(didsByMember(after)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, replacedDid)));
+    }
+
+    @Test
     void loadLeavesMemberDidsOutAndNeverReadsThem() {
         stubDependencies();
         when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
@@ -467,6 +486,7 @@ class SharedParametersLoaderTest {
 
         when(memberClassService.findAll()).thenReturn(List.of(new MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION)));
         when(systemParameterService.getOcspFreshnessSeconds()).thenReturn(OCSP_FRESHNESS_SECONDS);
+        when(systemParameterService.getIssuerDataFreshnessSeconds()).thenReturn(ISSUER_DATA_FRESHNESS_SECONDS);
     }
 
     private void stubEnabledServerClients(int serverId, List<FlattenedSecurityServerClientView> enabledServerClients) {

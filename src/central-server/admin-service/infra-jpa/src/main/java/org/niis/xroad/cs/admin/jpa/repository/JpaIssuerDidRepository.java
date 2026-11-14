@@ -28,17 +28,17 @@ package org.niis.xroad.cs.admin.jpa.repository;
 import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface JpaIssuerDidRepository extends JpaRepository<IssuerDidEntity, Integer>, IssuerDidRepository {
 
+    /**
+     * Flushes instantly so a duplicate DID is refused by the unique constraint at this call, not deferred
+     * to a later, unrelated flush.
+     */
     @Override
-    @Modifying
-    @Query(value = "INSERT INTO " + IssuerDidEntity.TABLE_NAME + " (id, did, created_at, updated_at) "
-            + "VALUES (nextval('" + IssuerDidEntity.TABLE_NAME + "_id_seq'), :did, now(), now()) "
-            + "ON CONFLICT (did) DO NOTHING", nativeQuery = true)
-    void insertIgnoreConflict(String did);
+    default void insert(String did, String host, int didPort, String issuanceUrl, String statuslistBaseUrl) {
+        saveAndFlush(new IssuerDidEntity(did, host, didPort, issuanceUrl, statuslistBaseUrl));
+    }
 }

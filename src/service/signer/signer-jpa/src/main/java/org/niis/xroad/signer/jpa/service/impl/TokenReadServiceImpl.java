@@ -33,6 +33,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.signer.core.model.BasicCertInfo;
 import org.niis.xroad.signer.core.model.BasicKeyInfo;
 import org.niis.xroad.signer.core.model.BasicTokenInfo;
@@ -70,6 +71,7 @@ public class TokenReadServiceImpl implements TokenReadService {
     private final KeyMapper keyMapper;
     private final CertMapper certMapper;
     private final CertRequestMapper certRequestMapper;
+    private final NodeIdentity nodeIdentity;
 
     @Override
     public LoadedTokens loadAllTokens() {
@@ -77,21 +79,22 @@ public class TokenReadServiceImpl implements TokenReadService {
     }
 
     private LoadedTokens loadedTokens(Session session) {
-        Set<BasicTokenInfo> tokens = tokenDao.findAll(session, SignerTokenEntity.class).stream()
+        var node = nodeIdentity.name();
+        Set<BasicTokenInfo> tokens = tokenDao.findAllByNode(session, SignerTokenEntity.class, node).stream()
                 .map(tokenMapper::toTarget)
                 .collect(Collectors.toSet());
 
-        Map<Long, List<BasicKeyInfo>> keys = keyDao.findAll(session, SignerKeyEntity.class).stream()
+        Map<Long, List<BasicKeyInfo>> keys = keyDao.findAllByNode(session, SignerKeyEntity.class, node).stream()
                 .map(keyMapper::toTarget)
                 .collect(Collectors.groupingBy(BasicKeyInfo::tokenId,
                         Collectors.mapping(key -> key, Collectors.toList())));
 
-        Map<Long, List<BasicCertInfo>> certs = certDao.findAll(session, SignerCertificateEntity.class).stream()
+        Map<Long, List<BasicCertInfo>> certs = certDao.findAllByNode(session, SignerCertificateEntity.class, node).stream()
                 .map(certMapper::toTarget)
                 .collect(Collectors.groupingBy(BasicCertInfo::keyId,
                         Collectors.mapping(cert -> cert, Collectors.toList())));
 
-        Map<Long, List<CertRequestData>> certRequests = certRequestDao.findAll(session, SignerCertRequestEntity.class).stream()
+        Map<Long, List<CertRequestData>> certRequests = certRequestDao.findAllByNode(session, SignerCertRequestEntity.class, node).stream()
                 .map(certRequestMapper::toTarget)
                 .collect(Collectors.groupingBy(CertRequestData::keyId,
                         Collectors.mapping(certRequest -> certRequest, Collectors.toList())));

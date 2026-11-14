@@ -29,6 +29,7 @@ package org.niis.xroad.ds.issuance.application;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.vault.VaultKVSecretEngine;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 
@@ -42,6 +43,6 @@ class VaultClientConfig {
     @Unremovable
     @ApplicationScoped
     VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
+        return new QuarkusVaultClient(kvSecretEngine, NodeIdentity.fromEnvironment());
     }
 }

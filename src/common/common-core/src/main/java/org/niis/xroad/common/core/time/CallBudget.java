@@ -72,14 +72,6 @@ public final class CallBudget {
         return min(cap, remaining());
     }
 
-    /**
-     * @return the time the next of {@code partiesLeft} alternatives may take: its own {@code cap}, or an even
-     *         share of the time left when that is shorter
-     */
-    public Duration share(Duration cap, int partiesLeft) {
-        return min(cap, remaining().dividedBy(Math.max(1, partiesLeft)));
-    }
-
     private static Duration min(Duration first, Duration second) {
         return first.compareTo(second) <= 0 ? first : second;
     }

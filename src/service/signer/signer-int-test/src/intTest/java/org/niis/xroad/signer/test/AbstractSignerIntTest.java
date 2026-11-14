@@ -39,12 +39,14 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.niis.xroad.signer.test.container.SignerIntTestContainerSetup;
 import org.niis.xroad.test.apitest.core.junit.ApiStackExtension;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,6 +54,7 @@ import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_EC
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.niis.xroad.common.properties.NodeProperties.NodeType.PRIMARY;
 
 /**
@@ -66,6 +69,8 @@ import static org.niis.xroad.common.properties.NodeProperties.NodeType.PRIMARY;
 abstract class AbstractSignerIntTest {
 
     private static final int HTTP_OK = 200;
+    private static final Duration TOKEN_ACTIVE_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration TOKEN_ACTIVE_POLL_INTERVAL = Duration.ofMillis(500);
 
     private final Map<String, String> tokenFriendlyNameToIdMapping = new HashMap<>();
     private final Map<String, String> tokenLabelToIdMapping = new HashMap<>();
@@ -83,6 +88,27 @@ abstract class AbstractSignerIntTest {
 
     protected SignerRpcClient client(NodeProperties.NodeType nodeType) {
         return containerSetup.client(nodeType);
+    }
+
+    protected SignerRpcClient nodeBClient() {
+        return containerSetup.getNodeBSignerClient();
+    }
+
+    /**
+     * Initialises the software token with the given PIN when it is not initialised yet, logs it in when it is
+     * not active, and waits until the node reports it active.
+     */
+    protected void ensureTokenActive(SignerRpcClient nodeClient, String tokenId, String pin) {
+        if (nodeClient.getToken(tokenId).getStatus() == TokenStatusInfo.NOT_INITIALIZED) {
+            nodeClient.initSoftwareToken(pin.toCharArray());
+        }
+        if (!nodeClient.getToken(tokenId).isActive()) {
+            nodeClient.activateToken(tokenId, pin.toCharArray());
+        }
+        await().atMost(TOKEN_ACTIVE_TIMEOUT)
+                .pollInterval(TOKEN_ACTIVE_POLL_INTERVAL)
+                .ignoreExceptions()
+                .untilAsserted(() -> assertThat(nodeClient.getToken(tokenId).isActive()).isTrue());
     }
 
     protected SignerSignRpcClient signClient(NodeProperties.NodeType nodeType) {

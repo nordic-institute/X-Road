@@ -47,6 +47,7 @@ import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 
@@ -128,7 +129,8 @@ class MemberDidRegistrationServiceImplTest {
             return request;
         });
         when(configProperties.getMemberDidRegMaxEntries()).thenReturn(maxEntries);
-        return new MemberDidRegistrationServiceImpl(resolver, store, servers, managementRequestService, configProperties).add(request);
+        return new MemberDidRegistrationServiceImpl(
+                new DidBatchResolution(resolver), store, servers, managementRequestService, configProperties).add(request);
     }
 
     private Entry[] threeEntries() {

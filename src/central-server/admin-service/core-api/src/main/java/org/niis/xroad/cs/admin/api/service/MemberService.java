@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,9 +27,10 @@
 package org.niis.xroad.cs.admin.api.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.MemberServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 
@@ -46,8 +47,20 @@ public interface MemberService {
 
     List<GlobalGroupMember> getMemberGlobalGroups(ClientId memberId);
 
-    List<SecurityServer> getMemberOwnedServers(ClientId memberId);
-    List<SecurityServer> getMemberClientOfServers(ClientId memberId);
+    List<MemberServer> getMemberOwnedServers(ClientId memberId);
+    List<MemberServer> getMemberClientOfServers(ClientId memberId);
 
     Optional<XRoadMember> updateMemberName(ClientId clientId, String newName);
+
+    /**
+     * Replaces the stored DID of a member on a Security Server. Replacing a DID with an equal one changes nothing.
+     *
+     * @param serverId  the Security Server
+     * @param memberId  the member whose DID is replaced
+     * @param memberDid the new DID
+     * @throws org.niis.xroad.common.exception.SecurityServerNotFoundException when the server does not exist
+     * @throws org.niis.xroad.common.exception.BadRequestException             when the DID is refused or the member has no
+     *                                                                         stored DID on the server
+     */
+    void editMemberDid(SecurityServerId serverId, ClientId memberId, String memberDid);
 }

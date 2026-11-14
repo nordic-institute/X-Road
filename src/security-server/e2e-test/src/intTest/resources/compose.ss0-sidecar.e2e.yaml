@@ -13,11 +13,6 @@ services:
       # resolution port (7183), which in the sidecar is served by this container under its own
       # ds-identity-hub network alias.
       - XROAD_DATASPACE_IDENTITY_HUB_URL=https://${SS_NAME:-ss0}-ds-identity-hub:7183
-      # ds-control-plane builds its own self-callback URL (used even for a same-SS negotiation,
-      # e.g. the management Security Server registering its own clients) from this address. Without
-      # it, it falls back to the container's own auto-assigned Docker hostname, which is not in the
-      # provisioned DS TLS certificate's SAN list, so the callback's TLS handshake fails.
-      - EDC_DSP_CALLBACK_ADDRESS=https://${SS_NAME:-ss0}-ds-control-plane:8183/api/dsp/%s
     volumes:
       - ./container-files/etc/xroad/entrypoint.d:/etc/xroad/entrypoint.d:ro
     deploy:
@@ -30,11 +25,7 @@ services:
     # so every alias resolves as soon as the container exists rather than only once the sidecar's slow
     # cold start finishes. The one container answers to every alias the multi-container stack spreads
     # across its ui, proxy, signer, configuration-client, ds-control-plane and ds-identity-hub services,
-    # plus the xrd-<name> messaging alias the proxy alone carries there. The ds-control-plane/
-    # ds-identity-hub aliases matter even though compose-mode DSP assertions self-skip: dataspace
-    # asset-access acquisition is the actual wire mechanism message exchange and management requests
-    # negotiate over, so a counterparty resolving those hostnames is required for any cross-SS call to
-    # reach the sidecar, not only for DSP-specific test scenarios.
+    # plus the xrd-<name> alias counterparties reach it on, which is also its registered address.
     networks:
       xroad-network:
         aliases:

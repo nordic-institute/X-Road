@@ -24,16 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.cs.management.core.configuration;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.properties.config.keys.CsManagementServiceConfigKeys;
-import org.niis.xroad.common.vault.config.CertificateProvisioningConfig;
 import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
-
-import java.util.Arrays;
-import java.util.List;
+import org.niis.xroad.common.vault.spring.config.ManagementServiceCertificateProvisioning;
 
 @RequiredArgsConstructor
 public class ManagementServiceTlsProperties {
@@ -41,16 +38,6 @@ public class ManagementServiceTlsProperties {
     private final XRoadConfig xRoadConfig;
 
     public CertificateProvisioningProperties getCertificateProvisioning() {
-        return new CertificateProvisioningConfig(
-                xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_ISSUANCE_ROLE_NAME),
-                xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_COMMON_NAME),
-                toList(xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_ALT_NAMES)),
-                toList(xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES)),
-                xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_TTL),
-                xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_SECRET_STORE_PKI_PATH));
-    }
-
-    private static List<String> toList(String[] values) {
-        return Arrays.stream(values).filter(value -> !value.isBlank()).toList();
+        return ManagementServiceCertificateProvisioning.from(xRoadConfig);
     }
 }

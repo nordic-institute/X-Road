@@ -29,15 +29,20 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.rpc.test.TestCa;
 
 import javax.net.ssl.SSLEngine;
+import javax.security.auth.x500.X500Principal;
 
 import java.net.Socket;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 class ClientIdentityMatcherTest {
 
@@ -119,6 +124,17 @@ class ClientIdentityMatcherTest {
         var matcher = new ClientIdentityMatcher(List.of("Security Server CA"));
 
         assertThat(matcher.matches(chain("proxy", List.of(), List.of()))).isFalse();
+    }
+
+    @Test
+    void dnsNameLookupFailureIsSwallowedAndCommonNameStillMatches() throws Exception {
+        X509Certificate leaf = mock(X509Certificate.class);
+        doReturn(new X500Principal("CN=proxy")).when(leaf).getSubjectX500Principal();
+        doThrow(new CertificateParsingException("bad SAN extension")).when(leaf).getSubjectAlternativeNames();
+
+        var matcher = new ClientIdentityMatcher(List.of("proxy"));
+
+        assertThat(matcher.matches(new X509Certificate[] {leaf})).isTrue();
     }
 
     @Test
