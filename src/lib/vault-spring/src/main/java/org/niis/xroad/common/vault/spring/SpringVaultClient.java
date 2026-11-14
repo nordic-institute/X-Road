@@ -50,6 +50,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -81,6 +82,10 @@ public class SpringVaultClient implements VaultClient {
         }
     }
 
+    @Override
+    public VaultClient withRetryBudget(Duration budget) {
+        return this;
+    }
     @Override
     public InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return getTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH);

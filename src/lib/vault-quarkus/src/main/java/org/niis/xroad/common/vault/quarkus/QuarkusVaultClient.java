@@ -87,6 +87,16 @@ public class QuarkusVaultClient implements VaultClient {
         this.nodePaths = new NodeScopedSecretPaths(nodeIdentity);
         this.resilientCall = new ResilientVaultCall(QuarkusVaultFailures::isRetryable, retryBudget);
     }
+    private QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, NodeScopedSecretPaths nodePaths,
+                               ResilientVaultCall resilientCall) {
+        this.kvSecretEngine = kvSecretEngine;
+        this.nodePaths = nodePaths;
+        this.resilientCall = resilientCall;
+    }
+    @Override
+    public VaultClient withRetryBudget(Duration budget) {
+        return new QuarkusVaultClient(kvSecretEngine, nodePaths, resilientCall.withBudget(budget));
+    }
 
     @Override
     public InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {

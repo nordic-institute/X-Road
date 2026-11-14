@@ -79,11 +79,11 @@ class QuarkusVaultClientTest {
 
     private final Map<String, Map<String, String>> secretsByPath = new HashMap<>();
 
-    private QuarkusVaultClient vaultClient;
+    private VaultClient vaultClient;
 
     @BeforeEach
     void setUp() {
-        vaultClient = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_0"), Duration.ZERO);
+        vaultClient = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_0")).withRetryBudget(Duration.ZERO);
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);

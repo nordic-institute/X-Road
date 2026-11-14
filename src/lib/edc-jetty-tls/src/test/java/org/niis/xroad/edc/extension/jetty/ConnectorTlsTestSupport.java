@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.Loaded;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.MaterialLoader;
 
@@ -46,11 +47,19 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class ConnectorTlsTestSupport {
 
     static final String WRONG_KEY_PASSWORD = "not-the-keystore-password";
 
+    static VaultClient singleAttemptVaultClient() {
+        var vaultClient = mock(VaultClient.class);
+        when(vaultClient.withRetryBudget(Duration.ZERO)).thenReturn(vaultClient);
+        return vaultClient;
+    }
     static KeyStore keyStoreOf(TestCertUtil.PKCS12 credentials) throws Exception {
         return keyStoreOf(credentials, InternalSSLKey.getKEY_PASSWORD());
     }
