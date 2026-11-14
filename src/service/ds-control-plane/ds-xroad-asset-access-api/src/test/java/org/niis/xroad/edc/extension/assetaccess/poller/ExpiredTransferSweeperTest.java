@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -202,6 +203,10 @@ class ExpiredTransferSweeperTest {
         verify(transferProcessStore, times(2)).findAll(captor.capture());
         var offsets = captor.getAllValues().stream().map(QuerySpec::getOffset).sorted().toList();
         assertThat(offsets).containsExactly(0, BATCH_SIZE);
+        assertThat(captor.getAllValues()).allSatisfy(spec -> {
+            assertThat(spec.getSortField()).isEqualTo("id");
+            assertThat(spec.getSortOrder()).isEqualTo(SortOrder.ASC);
+        });
     }
 
     @Test

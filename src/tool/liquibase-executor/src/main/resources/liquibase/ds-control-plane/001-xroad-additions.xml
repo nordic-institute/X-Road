@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="ds-control-plane/001-xroad-additions.xml">
+
+    <changeSet author="niis" id="001-xroad-additions-tasks-timestamp-index" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>X-Road addition, not taken from EDC: the task poller selects the oldest task by timestamp</comment>
+        <createIndex indexName="tasks_timestamp_index" tableName="edc_tasks">
+            <column name="timestamp"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

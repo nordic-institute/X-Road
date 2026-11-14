@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.edc.extension.assetaccess.token.AgreementTokenExpiry;
 
@@ -170,6 +171,8 @@ public class ExpiredTransferSweeper {
                 .filter(List.of(
                         Criterion.criterion("type", "=", TransferProcess.Type.CONSUMER.name()),
                         Criterion.criterion("state", "=", TransferProcessStates.STARTED.code())))
+                .sortField("id")
+                .sortOrder(SortOrder.ASC)
                 .offset(offset)
                 .limit(READ_BATCH_SIZE)
                 .build();
