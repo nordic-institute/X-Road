@@ -24,7 +24,6 @@ services:
     environment:
       - POSTGRES_PASSWORD=admin_secret
       - POSTGRES_USER=postgres
-      - POSTGRES_DB=confproxy
     networks:
       - xroad-network
     ports:
@@ -40,34 +39,17 @@ services:
           memory: 64M
         limits:
           memory: 256M
-    command: >
-      bash -c "
-        docker-entrypoint.sh postgres &
-        until pg_isready -U postgres -h localhost; do
-          echo 'Waiting for PostgreSQL to be ready...'
-          sleep 1
-        done;
-
-        psql -U postgres -d confproxy -c \"
-          DO \\\$\$
-          BEGIN
-            IF NOT EXISTS (
-              SELECT FROM pg_catalog.pg_roles WHERE rolname = 'confproxy'
-            ) THEN
-              CREATE ROLE confproxy LOGIN PASSWORD 'secret';
-            END IF;
-          END
-          \\\$\$;
-        \"
-        wait
-      "
   db-confproxy-init:
     image: ${DB_INIT_IMG}
     pull_policy: always
     environment:
+      - DB_BOOTSTRAP=on
       - JDBC_URL=jdbc:postgresql://db-confproxy:5432/confproxy
-      - JDBC_USER=postgres
-      - JDBC_PASSWORD=admin_secret
+      - DB_MASTER_USER=postgres
+      - DB_MASTER_PASSWORD=admin_secret
+      - DB_ADMIN_PASSWORD=owner_secret
+      - DB_RUNTIME_PASSWORD=secret
+      - DB_HSTORE=on
       - CHANGELOG=confproxy
       - DEFAULT_SCHEMA_NAME=public
       - PROP_DB_USER=confproxy
