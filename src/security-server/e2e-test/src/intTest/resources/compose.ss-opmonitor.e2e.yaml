@@ -63,7 +63,7 @@ services:
       - DB_ADMIN_PASSWORD=owner_secret
       - DB_RUNTIME_PASSWORD=secret
       - CHANGELOG=op-monitor
-      - DEFAULT_SCHEMA_NAME=public
+      - DEFAULT_SCHEMA_NAME=opmonitor
       - PROP_DB_USER=opmonitor
     depends_on:
       db-opmonitor:

@@ -32,7 +32,7 @@ services:
       - DB_ADMIN_PASSWORD=owner_secret
       - DB_RUNTIME_PASSWORD=secret
       - CHANGELOG=ds-control-plane
-      - DEFAULT_SCHEMA_NAME=public
+      - DEFAULT_SCHEMA_NAME=ds_control_plane
       - PROP_DB_USER=ds_control_plane
     depends_on:
       db-ds-control-plane:
@@ -132,7 +132,7 @@ services:
       - DB_ADMIN_PASSWORD=owner_secret
       - DB_RUNTIME_PASSWORD=secret
       - CHANGELOG=ds-identity-hub
-      - DEFAULT_SCHEMA_NAME=public
+      - DEFAULT_SCHEMA_NAME=ds_identity_hub
       - PROP_DB_USER=ds_identity_hub
     depends_on:
       db-ds-identity-hub:

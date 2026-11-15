@@ -51,7 +51,7 @@ services:
       - DB_RUNTIME_PASSWORD=secret
       - DB_HSTORE=on
       - CHANGELOG=confproxy
-      - DEFAULT_SCHEMA_NAME=public
+      - DEFAULT_SCHEMA_NAME=confproxy
       - PROP_DB_USER=confproxy
     depends_on:
       db-confproxy:
