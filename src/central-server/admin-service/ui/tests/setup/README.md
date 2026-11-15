@@ -74,8 +74,9 @@ validation fails on any fixture that no longer matches its schema.
 
 A handler never answers by how often it was called: components re-fetch, and a
 request left over from the previous test can reach the next test's handler.
-Keep the answer in one local variable per test; the create, edit or delete
-handler reassigns it and the read handler returns it.
+Keep the answer in one local variable per read endpoint (the state the reads
+return); the create, edit or delete handler reassigns or appends to it and the
+read handler returns it.
 
 ```ts
 let keys = [createdKey];
@@ -96,6 +97,24 @@ msw: [
 - The final assertion must be false until the read after the change has rendered,
   so it proves the change request was sent. An assertion that already holds on
   the first load proves nothing.
+- Scope the final assertion to the table or list container, so a dialog,
+  snackbar or hint with the same text can't satisfy it.
+
+## Dialog autofocus
+
+Vuetify focuses a dialog's `autofocus` field about 50 ms after the dialog opens.
+A test that fills another field or opens a select first can lose focus to that
+late focus call. Before typing into another field or opening a select, wait
+inline for the autofocus field:
+
+```ts
+await page.getByTestId('add-global-group-button').click();
+await expect.element(page.getByTestId('add-global-group-code-input').getByRole('textbox')).toHaveFocus();
+await page.getByTestId('add-global-group-description-input').getByRole('textbox').fill('Test Group');
+```
+
+Skip the wait when the autofocus field is disabled, or when the dialog has only
+one text field.
 
 ## Browser-mode limitations
 

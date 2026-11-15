@@ -257,15 +257,16 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
 
   describe(`0600/0610 — CS Signing Keys [${label}] — delete signing key (Browser Mode)`, () => {
     it('clicking Delete on key_1 removes it from the list and re-enables Add Key', async () => {
-      const keyWithDelete = makeKey('key-1', sourceType, ['DELETE']);
+      const keyToDelete = makeKey('key-1', sourceType, ['DELETE']);
+      const keyToKeep = makeKey('key-2', sourceType, ['DELETE']);
 
-      let keys: ConfigurationSigningKey[] = [keyWithDelete];
+      let keys: ConfigurationSigningKey[] = [keyToDelete, keyToKeep];
       await renderRoute(path, {
         permissions: basePermissions,
         msw: [
-          specHttp.get('/tokens', ({ response }) => response(200).json([loggedInToken(keys)])),
+          specHttp.get('/tokens', ({ response }) => response(200).json([loggedInToken(keys, keys.length < 2, keys.length < 2)])),
           specHttp.delete('/signing-keys/{sign_key_id}', ({ response }) => {
-            keys = [];
+            keys = keys.filter((key) => key.id !== keyToDelete.id);
             return response(204).empty();
           }),
           ...anchorHandlers(),
@@ -275,13 +276,15 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       await expandToken();
 
       await expect.element(page.getByTestId('key-key-1-delete-button')).toBeVisible();
+      await expect.element(page.getByTestId('token-add-key-button')).toBeDisabled();
 
       await page.getByTestId('key-key-1-delete-button').click();
       await expect.element(page.getByTestId('dialog-save-button')).toBeVisible();
       await page.getByTestId('dialog-save-button').click();
 
-      // key-1 gone from list; Add Key re-enabled
+      // key-1 gone from list, key-2 kept; Add Key re-enabled
       await expect.element(page.getByTestId('key-key-1-delete-button')).not.toBeInTheDocument();
+      await expect.element(page.getByTestId('key-key-2-delete-button')).toBeVisible();
       await expect.element(page.getByTestId('token-add-key-button')).not.toBeDisabled();
     });
   });

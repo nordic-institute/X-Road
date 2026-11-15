@@ -222,6 +222,7 @@ describe('0480 — CS Global Group Members — add members to non-owner group sh
     await page.getByTestId('select-members-list').getByRole('checkbox').nth(1).click();
     await page.getByTestId('select-members-list').getByRole('checkbox').nth(2).click();
 
+    await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
     const membersTable = page.getByTestId('global-group-members');

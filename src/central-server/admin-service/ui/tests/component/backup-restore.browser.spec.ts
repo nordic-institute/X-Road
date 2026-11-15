@@ -53,7 +53,7 @@ const uploadedBackup: Backup = {
 };
 
 describe('1100 — CS Backup and Restore — download trigger + upload updates count (Browser Mode)', () => {
-  it('download button triggers download; uploading a new backup file increments the row count', async () => {
+  it('download button triggers download; uploading a new backup file adds it to the list', async () => {
     const downloadSpy = vi.fn();
     let backups: Backup[] = [existingBackup];
 

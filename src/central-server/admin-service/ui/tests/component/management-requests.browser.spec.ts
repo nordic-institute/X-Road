@@ -315,13 +315,17 @@ describe('0900 — CS Management Requests — pending toggle + search; back navi
       permissions: basePermissions,
       msw: [
         specHttp.get('/management-requests', ({ request, response }) => {
-          const status = new URL(request.url).searchParams.get('status');
-          return status === 'WAITING'
-            ? response(200).json(singleItemPage(waitingRequest) as never)
-            : response(200).json({
-                items: [waitingRequest, allStatuses],
-                paging_metadata: { total_items: 2, items: 2, limit: 25, offset: 0 },
-              } as never);
+          const params = new URL(request.url).searchParams;
+          if (params.get('status') === 'WAITING') {
+            return response(200).json(singleItemPage(waitingRequest) as never);
+          }
+          if (params.get('query')) {
+            return response(200).json(singleItemPage(allStatuses) as never);
+          }
+          return response(200).json({
+            items: [waitingRequest, allStatuses],
+            paging_metadata: { total_items: 2, items: 2, limit: 25, offset: 0 },
+          } as never);
         }),
         specHttp.get('/management-requests/{management_request_id}', ({ response }) =>
           response(200).json(detailedRequest as never),
@@ -352,6 +356,8 @@ describe('0900 — CS Management Requests — pending toggle + search; back navi
     await expect.element(page.getByTestId('search-query-field').getByRole('textbox')).toHaveValue(
       'e2e-tc1',
     );
+    await expect.element(page.getByTestId('management-requests-table').getByText('103')).toBeVisible();
+    await expect.element(page.getByTestId('management-requests-table').getByText('101', { exact: true })).not.toBeInTheDocument();
   });
 });
 

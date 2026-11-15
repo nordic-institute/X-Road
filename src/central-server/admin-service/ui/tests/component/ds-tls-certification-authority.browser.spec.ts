@@ -235,7 +235,7 @@ describe('0550 — CS DS TLS Certification Authority — view details and settin
 });
 
 describe('0550 — CS DS TLS Certification Authority — intermediate CAs (Browser Mode)', () => {
-  it('intermediate CA table renders, add dialog uploads a certificate, and delete removes a row', async () => {
+  it('intermediate CA table renders and add dialog uploads a certificate', async () => {
     let intermediateCas: DsTlsIntermediateCertificateAuthority[] = [];
     await renderRoute(`/ds-tls-certification-authorities/${DS_TLS_CA_ID}/intermediate-cas`, {
       permissions: [

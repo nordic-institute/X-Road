@@ -174,6 +174,7 @@ describe('1000 — CS Security Server Details — edit address dialog cancel and
 
     await expect.element(page.getByTestId('security-server-address-edit-dialog')).not.toBeInTheDocument();
     await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(ADDRESS);
+    await expect.element(page.getByTestId('security-server-address')).not.toMatchTextContent(updatedAddress);
 
     await page.getByTestId('security-server-address').getByRole('button').click();
 
