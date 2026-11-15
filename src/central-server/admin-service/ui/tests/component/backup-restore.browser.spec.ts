@@ -92,6 +92,6 @@ describe('1100 — CS Backup and Restore — download trigger + upload updates c
     await page.elementLocator(fileInput).upload(gpgFile);
 
     // After upload the list re-fetches and the new backup appears
-    await expect.element(page.getByText(uploadedBackup.filename)).toBeVisible();
+    await expect.element(page.getByRole('table').getByText(uploadedBackup.filename)).toBeVisible();
   });
 });
