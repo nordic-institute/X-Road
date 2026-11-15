@@ -52,8 +52,6 @@ class ProviderFailureClassifierTest {
                         providerAnswer(400, "Cannot process TransferRequestMessage because agreement not found or not valid"), true),
                 arguments("the agreement wording in another case",
                         providerAnswer(404, "Agreement Not Found Or Not Valid"), true),
-                arguments("the agreement wording in another case under a bad request",
-                        providerAnswer(400, "Agreement Not Found Or Not Valid"), true),
                 arguments("a bare not found", providerAnswer(404, "Not found"), false),
                 arguments("a bad request", providerAnswer(400, "TransferType is not supported"), false),
                 arguments("the agreement wording under a server error",

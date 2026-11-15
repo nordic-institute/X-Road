@@ -27,6 +27,9 @@
 
 package org.niis.xroad.edc.protocol.assetaccess;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -36,13 +39,14 @@ import java.util.regex.Pattern;
  * <p>The consumer receives the provider's HTTP answer as one sentence, {@code Counter Party responded with
  * Response{protocol=.., code=NNN, ..}. Body: ..}, inside the transfer failure detail. A provider refusal is
  * a 409, or a 400 or 404 whose body says {@value #AGREEMENT_NOT_VALID}: the provider no longer holds the
- * agreement valid. A bare 400 (an unsupported transfer type), a bare 404 (the provider could not verify the
- * request token) and every other status are not refusals.
+ * agreement valid. A bare 400 (for example an unsupported transfer type), a bare 404 (the provider could not
+ * verify the request token) and every other status are not refusals.
  *
  * <p>{@link #isRefusal} returning {@code false} says nothing more than "not a refusal". A detail without a
  * provider sentence is not the same as a failed connection: provider-side termination reasons, consumer-local
  * failures and connection failures all carry no such sentence and cannot be told apart by their text.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ProviderFailureClassifier {
 
     /** The wording EDC puts in the body of a transfer request answer naming an agreement it does not hold valid. */
@@ -53,9 +57,6 @@ public final class ProviderFailureClassifier {
     private static final int NOT_FOUND = 404;
     private static final Pattern PROVIDER_STATUS =
             Pattern.compile("Counter Party responded with Response\\{[^}]*?\\bcode=(\\d{3})\\b");
-
-    private ProviderFailureClassifier() {
-    }
 
     /**
      * Tells whether the failure detail describes a provider refusal of the agreement.
@@ -72,8 +73,7 @@ public final class ProviderFailureClassifier {
             return false;
         }
         var code = Integer.parseInt(status.group(1));
-        return code == CONFLICT
-                || (code == BAD_REQUEST || code == NOT_FOUND)
-                && failureDetail.toLowerCase(Locale.ROOT).contains(AGREEMENT_NOT_VALID);
+        var namesInvalidAgreement = failureDetail.toLowerCase(Locale.ROOT).contains(AGREEMENT_NOT_VALID);
+        return code == CONFLICT || ((code == BAD_REQUEST || code == NOT_FOUND) && namesInvalidAgreement);
     }
 }
