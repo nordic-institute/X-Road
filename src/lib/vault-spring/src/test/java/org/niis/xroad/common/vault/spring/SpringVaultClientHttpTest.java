@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.common.vault.FakeOpenBao;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.vault.config.VaultAutoConfiguration;
@@ -38,17 +39,20 @@ import org.springframework.vault.VaultException;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.niis.xroad.common.vault.spring.FakeOpenBao.Failure.CLOSE;
-import static org.niis.xroad.common.vault.spring.FakeOpenBao.Failure.REDIRECT_TO_DEAD_LEADER;
-import static org.niis.xroad.common.vault.spring.FakeOpenBao.Failure.SLEEP;
-import static org.niis.xroad.common.vault.spring.FakeOpenBao.Failure.STATUS;
+import static org.niis.xroad.common.vault.FakeOpenBao.Failure.CLOSE;
+import static org.niis.xroad.common.vault.FakeOpenBao.Failure.REDIRECT_TO_UNREACHABLE_LEADER;
+import static org.niis.xroad.common.vault.FakeOpenBao.Failure.SLEEP;
+import static org.niis.xroad.common.vault.FakeOpenBao.Failure.STATUS;
+import static org.niis.xroad.common.vault.FakeOpenBao.KvVersion.V1;
 import static org.niis.xroad.common.vault.spring.SpringVaultClientHttpTest.Operation.DELETE;
 import static org.niis.xroad.common.vault.spring.SpringVaultClientHttpTest.Operation.LIST;
 import static org.niis.xroad.common.vault.spring.SpringVaultClientHttpTest.Operation.READ;
@@ -61,22 +65,30 @@ class SpringVaultClientHttpTest {
     private static final long DELAYED_START_MILLIS = 1500;
 
     enum Operation {
-        READ(client -> client.getMLogArchivalSigningSecretKey()),
-        WRITE(client -> client.setMLogArchivalSigningSecretKey("v")),
-        DELETE(client -> client.deleteAgreementTokenSigningKey("k1")),
-        LIST(client -> client.getAgreementTokenSigningKeys());
+        READ(client -> client.getMLogArchivalSigningSecretKey(), Optional.of("v")),
+        WRITE(client -> {
+            client.setMLogArchivalSigningSecretKey("v");
+            return null;
+        }, null),
+        DELETE(client -> {
+            client.deleteAgreementTokenSigningKey("k1");
+            return null;
+        }, null),
+        LIST(client -> client.getAgreementTokenSigningKeys(), Map.of("k1", "v"));
 
-        private final Consumer<SpringVaultClient> call;
+        private final Function<SpringVaultClient, Object> call;
+        private final Object expectedResult;
 
-        Operation(Consumer<SpringVaultClient> call) {
+        Operation(Function<SpringVaultClient, Object> call, Object expectedResult) {
             this.call = call;
+            this.expectedResult = expectedResult;
         }
     }
 
     static Stream<Arguments> recoveringScenarios() {
         return Stream.of(
                 Arguments.of("500", STATUS, 500, READ),
-                Arguments.of("307 to a dead leader", REDIRECT_TO_DEAD_LEADER, 307, LIST),
+                Arguments.of("307 to an unreachable leader", REDIRECT_TO_UNREACHABLE_LEADER, 307, LIST),
                 Arguments.of("read timeout", SLEEP, 200, DELETE),
                 Arguments.of("connection closed with no response", CLOSE, 0, WRITE));
     }
@@ -85,63 +97,56 @@ class SpringVaultClientHttpTest {
     @MethodSource("recoveringScenarios")
     void shouldRecoverWhenFakeRecovers(String scenario, FakeOpenBao.Failure failure, int status, Operation operation)
             throws IOException {
-        try (var server = new FakeOpenBao()) {
+        try (var server = FakeOpenBao.started(V1)) {
             server.failNext(1, failure, status, SERVER_SLEEP_MILLIS);
 
-            runner(server.port()).run(context -> operation.call.accept(context.getBean(SpringVaultClient.class)));
+            runner(server.port()).run(context -> assertThat(operation.call.apply(context.getBean(SpringVaultClient.class)))
+                    .isEqualTo(operation.expectedResult));
 
             assertThat(server.secretHits()).hasSizeGreaterThanOrEqualTo(2);
         }
     }
 
     @Test
-    void shouldStoreWriteWhenRedirectedToDeadLeaderFirst() throws IOException {
-        try (var server = new FakeOpenBao()) {
-            server.failNext(1, REDIRECT_TO_DEAD_LEADER, 307, 0);
+    void shouldStoreWriteWhenRedirectedToUnreachableLeaderFirst() throws IOException {
+        try (var server = FakeOpenBao.started(V1)) {
+            server.failNext(1, REDIRECT_TO_UNREACHABLE_LEADER, 307, 0);
 
-            runner(server.port()).run(context -> WRITE.call.accept(context.getBean(SpringVaultClient.class)));
+            runner(server.port()).run(context -> WRITE.call.apply(context.getBean(SpringVaultClient.class)));
 
             assertThat(server.storedBodies()).singleElement().asString().contains("\"v\"");
         }
     }
 
     @Test
-    void shouldRecoverWhenConnectionIsRefusedUntilFakeStarts() throws IOException {
-        var port = FakeOpenBao.unusedPort();
-        var delayedServer = CompletableFuture.supplyAsync(() -> startAt(port),
-                CompletableFuture.delayedExecutor(DELAYED_START_MILLIS, TimeUnit.MILLISECONDS));
-        try {
-            runner(port).run(context -> LIST.call.accept(context.getBean(SpringVaultClient.class)));
-        } finally {
-            try (var server = delayedServer.join()) {
-                assertThat(server.secretHits()).hasSizeGreaterThanOrEqualTo(1);
-            }
+    void shouldRetryResetConnectionsUntilServerStartsServing() throws IOException {
+        try (var server = FakeOpenBao.resettingConnections(V1)) {
+            var delayedServe = CompletableFuture.runAsync(server::serve,
+                    CompletableFuture.delayedExecutor(DELAYED_START_MILLIS, TimeUnit.MILLISECONDS));
+
+            runner(server.port()).run(context -> assertThat(LIST.call.apply(context.getBean(SpringVaultClient.class)))
+                    .isEqualTo(LIST.expectedResult));
+
+            delayedServe.join();
+            assertThat(server.connectionAttempts()).isGreaterThanOrEqualTo(2);
         }
     }
 
     @Test
     void shouldFailAtOnceWithOriginalExceptionWhenWriteIsForbidden() throws IOException {
-        try (var server = new FakeOpenBao()) {
+        try (var server = FakeOpenBao.started(V1)) {
             server.failNext(1, STATUS, 403, 0);
 
             runner(server.port()).run(context -> {
                 var client = context.getBean(SpringVaultClient.class);
 
-                assertThatThrownBy(() -> WRITE.call.accept(client))
+                assertThatThrownBy(() -> WRITE.call.apply(client))
                         .isExactlyInstanceOf(VaultException.class)
                         .hasCauseInstanceOf(HttpClientErrorException.Forbidden.class);
             });
 
             assertThat(server.secretHits()).hasSize(1);
             assertThat(server.storedBodies()).isEmpty();
-        }
-    }
-
-    private static FakeOpenBao startAt(int port) {
-        try {
-            return new FakeOpenBao(port);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
         }
     }
 

@@ -42,21 +42,24 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.vault.FakeOpenBao;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.niis.xroad.common.vault.quarkus.FakeOpenBao.Failure.CLOSE;
-import static org.niis.xroad.common.vault.quarkus.FakeOpenBao.Failure.REDIRECT_TO_DEAD_LEADER;
-import static org.niis.xroad.common.vault.quarkus.FakeOpenBao.Failure.SLEEP;
-import static org.niis.xroad.common.vault.quarkus.FakeOpenBao.Failure.STATUS;
+import static org.niis.xroad.common.vault.FakeOpenBao.Failure.CLOSE;
+import static org.niis.xroad.common.vault.FakeOpenBao.Failure.REDIRECT_TO_LEADER;
+import static org.niis.xroad.common.vault.FakeOpenBao.Failure.SLEEP;
+import static org.niis.xroad.common.vault.FakeOpenBao.Failure.STATUS;
+import static org.niis.xroad.common.vault.FakeOpenBao.KvVersion.V1;
 import static org.niis.xroad.common.vault.quarkus.QuarkusVaultClientHttpTest.Operation.DELETE;
 import static org.niis.xroad.common.vault.quarkus.QuarkusVaultClientHttpTest.Operation.LIST;
 import static org.niis.xroad.common.vault.quarkus.QuarkusVaultClientHttpTest.Operation.READ;
@@ -72,15 +75,23 @@ class QuarkusVaultClientHttpTest {
     private static Vertx vertx;
 
     enum Operation {
-        READ(client -> client.getMLogArchivalSigningSecretKey()),
-        WRITE(client -> client.setMLogArchivalSigningSecretKey("v")),
-        DELETE(client -> client.deleteAgreementTokenSigningKey("k1")),
-        LIST(client -> client.getAgreementTokenSigningKeys());
+        READ(client -> client.getMLogArchivalSigningSecretKey(), Optional.of("v")),
+        WRITE(client -> {
+            client.setMLogArchivalSigningSecretKey("v");
+            return null;
+        }, null),
+        DELETE(client -> {
+            client.deleteAgreementTokenSigningKey("k1");
+            return null;
+        }, null),
+        LIST(client -> client.getAgreementTokenSigningKeys(), Map.of("k1", "v"));
 
-        private final Consumer<QuarkusVaultClient> call;
+        private final Function<QuarkusVaultClient, Object> call;
+        private final Object expectedResult;
 
-        Operation(Consumer<QuarkusVaultClient> call) {
+        Operation(Function<QuarkusVaultClient, Object> call, Object expectedResult) {
             this.call = call;
+            this.expectedResult = expectedResult;
         }
     }
 
@@ -96,8 +107,8 @@ class QuarkusVaultClientHttpTest {
 
     static Stream<Arguments> recoveringScenarios() {
         return Stream.of(
-                Arguments.of("500", STATUS, 500, READ),
-                Arguments.of("307 to a dead leader", REDIRECT_TO_DEAD_LEADER, 307, WRITE),
+                Arguments.of("500", STATUS, 500, WRITE),
+                Arguments.of("307 to a leader path", REDIRECT_TO_LEADER, 307, READ),
                 Arguments.of("read timeout", SLEEP, 200, DELETE),
                 Arguments.of("connection closed with no response", CLOSE, 0, LIST));
     }
@@ -106,51 +117,57 @@ class QuarkusVaultClientHttpTest {
     @MethodSource("recoveringScenarios")
     void shouldRecoverWhenFakeRecovers(String scenario, FakeOpenBao.Failure failure, int status, Operation operation)
             throws IOException {
-        try (var server = new FakeOpenBao()) {
+        try (var server = FakeOpenBao.started(V1)) {
             server.failNext(1, failure, status, SERVER_SLEEP_MILLIS);
             var client = client(server.port());
 
-            operation.call.accept(client);
+            var result = operation.call.apply(client);
 
+            assertThat(result).isEqualTo(operation.expectedResult);
             assertThat(server.secretHits()).hasSizeGreaterThanOrEqualTo(2);
             assertThat(server.leaderHits()).isEmpty();
         }
     }
 
     @Test
-    void shouldRecoverWhenConnectionIsRefusedUntilFakeStarts() throws IOException {
-        var port = FakeOpenBao.unusedPort();
-        var client = client(port);
-        var delayedServer = CompletableFuture.supplyAsync(() -> startAt(port),
-                CompletableFuture.delayedExecutor(DELAYED_START_MILLIS, TimeUnit.MILLISECONDS));
-        try {
-            LIST.call.accept(client);
-        } finally {
-            try (var server = delayedServer.join()) {
-                assertThat(server.secretHits()).hasSizeGreaterThanOrEqualTo(2);
-                assertThat(server.leaderHits()).isEmpty();
-            }
+    void shouldRetryResetConnectionsUntilServerStartsServing() throws IOException {
+        try (var server = FakeOpenBao.resettingConnections(V1)) {
+            var client = client(server.port());
+            var delayedServe = CompletableFuture.runAsync(server::serve,
+                    CompletableFuture.delayedExecutor(DELAYED_START_MILLIS, TimeUnit.MILLISECONDS));
+
+            var result = LIST.call.apply(client);
+
+            delayedServe.join();
+            assertThat(result).isEqualTo(LIST.expectedResult);
+            assertThat(server.connectionAttempts()).isGreaterThanOrEqualTo(2);
+            assertThat(server.leaderHits()).isEmpty();
+        }
+    }
+
+    @Test
+    void shouldReturnEmptyAtOnceWhenSecretIsMissing() throws IOException {
+        try (var server = FakeOpenBao.started(V1)) {
+            server.failNext(1, STATUS, 404, 0);
+            var client = client(server.port());
+
+            var result = READ.call.apply(client);
+
+            assertThat(result).isEqualTo(Optional.empty());
+            assertThat(server.secretHits()).hasSize(1);
         }
     }
 
     @Test
     void shouldFailAtOnceWithOriginalExceptionWhenWriteIsForbidden() throws IOException {
-        try (var server = new FakeOpenBao()) {
+        try (var server = FakeOpenBao.started(V1)) {
             server.failNext(1, STATUS, 403, 0);
             var client = client(server.port());
 
-            assertThatThrownBy(() -> WRITE.call.accept(client))
+            assertThatThrownBy(() -> WRITE.call.apply(client))
                     .isExactlyInstanceOf(VaultClientException.class)
                     .hasFieldOrPropertyWithValue("status", 403);
             assertThat(server.secretHits()).hasSize(1);
-        }
-    }
-
-    private static FakeOpenBao startAt(int port) {
-        try {
-            return new FakeOpenBao(port);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
         }
     }
 
@@ -160,7 +177,7 @@ class QuarkusVaultClientHttpTest {
                 "quarkus.vault.authentication.client-token", "test-token",
                 "quarkus.vault.connect-timeout", CLIENT_TIMEOUT_SECONDS + "S",
                 "quarkus.vault.read-timeout", CLIENT_TIMEOUT_SECONDS + "S",
-                "quarkus.vault.kv-secret-engine-version", "2",
+                "quarkus.vault.kv-secret-engine-version", "1",
                 "quarkus.vault.kv-secret-engine-mount-path", "xrd-secret");
         var config = new SmallRyeConfigBuilder()
                 .withMapping(VaultRuntimeConfig.class)
