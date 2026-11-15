@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
-
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import io.smallrye.config.SmallRyeConfig;
@@ -53,6 +51,7 @@ import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.vault.TlsKeyProvisioning;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
@@ -85,13 +84,7 @@ import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.util.stream.Stream;
-
-import static java.util.Arrays.stream;
+import java.security.GeneralSecurityException;
 
 @Slf4j
 class ProxyConfig {
@@ -99,7 +92,6 @@ class ProxyConfig {
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .register(CommonRpcConfigKeys.instance())
                 .register(ProxyConfigKeys.instance())
                 .register(MessageLogEncryptionConfigKeys.instance())
@@ -230,18 +222,11 @@ class ProxyConfig {
     }
 
     private void ensureInternalTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient)
-            throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        try {
-            vaultClient.getInternalTlsCredentials();
-        } catch (Exception e) {
-            log.warn("Unable to locate internal TLS credentials, attempting to create new ones", e);
-            VaultKeyClient.VaultKeyData vaultKeyData = vaultKeyClient.provisionNewCerts();
-            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
-                    .toArray(X509Certificate[]::new);
-            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createInternalTlsCredentials(internalTlsKey);
-            log.info("Successfully created internal TLS credentials");
-        }
+            throws IOException, GeneralSecurityException {
+        TlsKeyProvisioning.readOrProvision("internal",
+                vaultClient::getInternalTlsCredentials,
+                vaultClient::createInternalTlsCredentials,
+                vaultKeyClient);
     }
 
     @ApplicationScoped

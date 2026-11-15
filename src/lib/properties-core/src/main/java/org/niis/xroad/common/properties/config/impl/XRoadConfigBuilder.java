@@ -69,14 +69,12 @@ public final class XRoadConfigBuilder {
     }
 
     /**
-     * Registers a provider; a provider that is already registered is ignored.
+     * Registers a provider.
      * @param provider provider to register
      * @return this builder
      */
     public XRoadConfigBuilder register(ConfigKeyProvider provider) {
-        if (!providers.contains(provider)) {
-            providers.add(provider);
-        }
+        providers.add(provider);
         return this;
     }
 

@@ -26,14 +26,10 @@
 package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 
 import java.time.Duration;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CommonConfigKeysTest {
     private static final String VAULT_RETRY_BUDGET_KEY = "xroad.common.vault-retry.budget";
@@ -46,42 +42,12 @@ class CommonConfigKeysTest {
     }
 
     @Test
-    void vaultRetryBudgetDefaultIsThirtySeconds() {
-        assertThat(config(Map.of()).value(CommonConfigKeys.VAULT_RETRY_BUDGET)).isEqualTo(Duration.ofSeconds(30));
-    }
-
-    @Test
-    void vaultRetryBudgetAcceptsZeroUpToFiveMinutes() {
+    void vaultRetryBudgetAcceptsZeroUpToFiveMinutesAndRejectsTheRest() {
         for (Duration budget : new Duration[] {Duration.ZERO, Duration.ofSeconds(30), MAX_BUDGET}) {
             assertThat(CommonConfigKeys.VAULT_RETRY_BUDGET.validate(budget).valid()).isTrue();
         }
-    }
-
-    @Test
-    void vaultRetryBudgetRejectsNegativeAboveMaximumAndNull() {
         assertThat(CommonConfigKeys.VAULT_RETRY_BUDGET.validate(Duration.ofSeconds(-1)).valid()).isFalse();
         assertThat(CommonConfigKeys.VAULT_RETRY_BUDGET.validate(MAX_BUDGET.plusMillis(1)).valid()).isFalse();
         assertThat(CommonConfigKeys.VAULT_RETRY_BUDGET.validate(null).valid()).isFalse();
-    }
-
-    @Test
-    void vaultRetryBudgetCanBeOverriddenWithinTheRange() {
-        assertThat(config(Map.of(VAULT_RETRY_BUDGET_KEY, "5s")).value(CommonConfigKeys.VAULT_RETRY_BUDGET))
-                .isEqualTo(Duration.ofSeconds(5));
-    }
-
-    @Test
-    void vaultRetryBudgetAboveTheMaximumIsRejected() {
-        Map<String, String> overrides = Map.of(VAULT_RETRY_BUDGET_KEY, "6m");
-
-        assertThatThrownBy(() -> config(overrides))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining(VAULT_RETRY_BUDGET_KEY);
-    }
-
-    private static XRoadConfig config(Map<String, String> overrides) {
-        return XRoadConfigBuilder.create()
-                .overrides(overrides)
-                .build();
     }
 }

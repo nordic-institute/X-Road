@@ -53,17 +53,21 @@ class DsHttpsKeyStoreLoaderTest {
 
     @Mock
     private VaultClient vaultClient;
+
     @BeforeEach
     void readThroughTheSingleAttemptView() {
         when(vaultClient.withRetryBudget(Duration.ZERO)).thenReturn(vaultClient);
     }
+
     @Test
     void readsCredentialsOnlyThroughTheZeroBudgetView() throws Exception {
         var singleAttemptView = mock(VaultClient.class);
         when(vaultClient.withRetryBudget(Duration.ZERO)).thenReturn(singleAttemptView);
         when(singleAttemptView.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("connection refused"));
         var loader = new DsHttpsKeyStoreLoader(vaultClient);
+
         assertThatThrownBy(loader::load).isInstanceOf(ConnectorTlsKeyStoreLoadException.class);
+
         verify(vaultClient, never()).getDsHttpsTlsCredentials();
         verify(singleAttemptView).getDsHttpsTlsCredentials();
     }

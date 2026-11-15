@@ -105,15 +105,6 @@ class XRoadConfigBuilderTest {
     }
 
     @Test
-    void registeringTheSameProviderTwiceKeepsItOnce() {
-        var builder = XRoadConfigBuilder.create().register(CommonConfigKeys.instance());
-
-        assertThat(builder.build().value(CommonConfigKeys.VAULT_RETRY_BUDGET)).isEqualTo(Duration.ofSeconds(30));
-        assertThat(builder.ignoredEnvVars(Map.of("XROAD_COMMON_VAULT_RETRY_BUDGET", "1")))
-                .containsExactly("XROAD_COMMON_VAULT_RETRY_BUDGET");
-    }
-
-    @Test
     void ignoredEnvVarsEmptyWhenNoEnvEntryMatches() {
         var builder = XRoadConfigBuilder.create().register(provider);
 

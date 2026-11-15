@@ -30,8 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.NodeScopedSecretPaths;
-import org.niis.xroad.common.vault.ResilientVaultCall;
-import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.spring.SpringVaultClient;
 import org.springframework.vault.VaultException;
 import org.springframework.vault.authentication.TokenAuthentication;
@@ -73,24 +71,12 @@ public class MigrationVaultClient extends SpringVaultClient {
     // SpringVaultClient.vaultClient is private final; subclass cannot inherit access. Shadow with own ref.
     private final VaultKeyValueOperations kvOps;
 
-    private final NodeIdentity nodeIdentity;
-
     private final NodeScopedSecretPaths nodePaths;
 
     MigrationVaultClient(VaultKeyValueOperations kvOps, NodeIdentity nodeIdentity) {
-        this(kvOps, nodeIdentity, ResilientVaultCall.DEFAULT_BUDGET);
-    }
-
-    private MigrationVaultClient(VaultKeyValueOperations kvOps, NodeIdentity nodeIdentity, Duration retryBudget) {
-        super(kvOps, null, retryBudget);
+        super(kvOps, null, Duration.ZERO);
         this.kvOps = kvOps;
-        this.nodeIdentity = nodeIdentity;
         this.nodePaths = new NodeScopedSecretPaths(nodeIdentity);
-    }
-
-    @Override
-    public VaultClient withRetryBudget(Duration budget) {
-        return new MigrationVaultClient(kvOps, nodeIdentity, budget);
     }
 
     /**

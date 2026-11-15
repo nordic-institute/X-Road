@@ -60,6 +60,7 @@ final class ConnectorTlsTestSupport {
         when(vaultClient.withRetryBudget(Duration.ZERO)).thenReturn(vaultClient);
         return vaultClient;
     }
+
     static KeyStore keyStoreOf(TestCertUtil.PKCS12 credentials) throws Exception {
         return keyStoreOf(credentials, InternalSSLKey.getKEY_PASSWORD());
     }

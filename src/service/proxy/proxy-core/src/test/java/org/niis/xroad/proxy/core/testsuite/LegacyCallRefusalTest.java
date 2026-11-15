@@ -41,7 +41,6 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -117,7 +116,6 @@ class LegacyCallRefusalTest {
 
         PROXY_TEST_SUITE_HELPER.proxyProperties = buildProxyProperties(PROPS);
         PROXY_TEST_SUITE_HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", "build/"))
                 .build());
         PROXY_TEST_SUITE_HELPER.startTestServices();

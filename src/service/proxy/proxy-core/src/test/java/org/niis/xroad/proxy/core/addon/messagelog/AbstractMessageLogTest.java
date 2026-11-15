@@ -38,7 +38,6 @@ import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
@@ -83,7 +82,6 @@ abstract class AbstractMessageLogTest {
     ProxyProperties proxyProperties;
     ProxyMessageLogProperties messageLogProperties;
     CommonProperties commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
-            .register(CommonConfigKeys.instance())
             .overrides(Map.of("xroad.common.temp-files-path", "build/tmp"))
             .build());
     GlobalConfProvider globalConfProvider;
