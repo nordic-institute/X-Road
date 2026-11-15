@@ -31,8 +31,11 @@ import org.eclipse.edc.encryption.EncryptionAlgorithmRegistryImpl;
 import org.eclipse.edc.participantcontext.config.defaults.store.InMemoryParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.config.service.ParticipantContextConfigServiceImpl;
 import org.eclipse.edc.participantcontext.config.validation.ParticipantContextConfigValidatorRegistryImpl;
+import org.eclipse.edc.participantcontext.defaults.store.InMemoryParticipantContextStore;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,8 +60,10 @@ class ParticipantMemberIdConfigTest {
 
     @BeforeEach
     void setUp() {
+        var participantContextStore = new InMemoryParticipantContextStore(CriterionOperatorRegistryImpl.ofDefaults());
+        participantContextStore.create(ParticipantContext.Builder.newInstance().id(CONTEXT_ID).identity(CONTEXT_ID).build());
         configService = new ParticipantContextConfigServiceImpl(new EncryptionAlgorithmRegistryImpl(), null,
-                new InMemoryParticipantContextConfigStore(), new NoopTransactionContext(), Clock.systemUTC(),
+                new InMemoryParticipantContextConfigStore(), participantContextStore, new NoopTransactionContext(), Clock.systemUTC(),
                 new ParticipantContextConfigValidatorRegistryImpl(false));
         memberIdConfig = new ParticipantMemberIdConfig(configService);
     }
