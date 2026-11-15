@@ -48,3 +48,5 @@ RUN chmod 755 /usr/share/xroad/scripts/generate_gpg_keypair.sh
 # Cleanup mirror configuration (restore public mirrors for published image)
 RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
     /bin/bash /tmp/cleanup-mirror-apt.sh
+
+USER xroad
