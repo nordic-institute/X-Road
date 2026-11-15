@@ -303,6 +303,22 @@ await page.getByTestId('dialog-confirm-btn').click();
 await expect.element(page.getByTestId('dialog-heading')).not.toBeVisible();
 ```
 
+### Dialog autofocus
+
+Vuetify focuses a dialog's `autofocus` field about 50 ms after the dialog opens.
+A test that fills another field or opens a select first can lose focus to that
+late focus call. Before typing into another field or opening a select, wait
+inline for the autofocus field:
+
+```ts
+await page.getByTestId('add-rest-button').click();
+await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
+await page.getByTestId('rest-radio-button').getByRole('radio').click();
+```
+
+Skip the wait when the autofocus field is disabled, or when the dialog has only
+one text field.
+
 ### v-snackbar
 
 Before the snackbar is triggered its content is not in the DOM (not just hidden).
