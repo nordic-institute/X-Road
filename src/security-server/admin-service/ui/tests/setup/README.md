@@ -101,10 +101,9 @@ worker.use(
   specHttp.get(
     '/clients',
     async ({ response }) => {
-      await delay(200);          // finite delay — response will land on its own
+      await delay(200);          // finite delay on every request — each one resolves on its own
       return response(200).json(clientsFixture);
     },
-    { once: true },              // only delay the first request; fall through after
   ),
 );
 
@@ -114,13 +113,15 @@ await expect.element(page.getByRole('progressbar')).toBeVisible();
 await expect.element(page.getByTestId('client-name').first()).toBeVisible();
 ```
 
-`{ once: true }` is essential: without it, every subsequent `GET /clients`
-(re-renders, polling, reactivity) hits the delayed handler again and the loading
-state never clears.
+Answer every request to the endpoint the same way, with a finite delay. Never
+use `{ once: true }` for a mount-time GET: a leftover or duplicate request takes
+the once-handler, and the app's real request then gets the default answer
+immediately, so the test no longer checks what its title says. The loading state
+clears because each request resolves after its delay.
 
 Use `delay('infinite')` only for user-action-triggered requests (POST, PUT,
 DELETE) that fire after user interaction — those have no mount-time race. For
-mount-time GETs always use a finite delay with `{ once: true }`.
+mount-time GETs always use a finite delay.
 
 ### VDataTable loading row
 

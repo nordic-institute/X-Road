@@ -41,14 +41,10 @@ const SERVICES_PATH = `/clients/subsystem/${encodeURIComponent(CLIENT_ID)}/servi
 describe('Latency patterns — loading state (Browser Mode)', () => {
   it('Spec A: data table shows loading indicator while GET /clients is in-flight, then renders rows', async () => {
     worker.use(
-      specHttp.get(
-        '/clients',
-        async ({ response }) => {
-          await delay(200);
-          return response(200).json(clientsFixture);
-        },
-        { once: true },
-      ),
+      specHttp.get('/clients', async ({ response }) => {
+        await delay(200);
+        return response(200).json(clientsFixture);
+      }),
     );
 
     await renderRoute('/clients');
