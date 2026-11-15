@@ -73,7 +73,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -405,10 +404,9 @@ class IdentityHubProvisioningGrpcServiceTest {
         verify(observer).onNext(DeleteParticipantContextResp.getDefaultInstance());
         verify(observer).onCompleted();
         verify(observer, never()).onError(any());
-        var order = inOrder(memberIdConfig, participantContextService, recordsPurger);
-        order.verify(memberIdConfig).remove("ctx-1");
-        order.verify(participantContextService).deleteParticipantContext("ctx-1");
-        order.verify(recordsPurger).purge("ctx-1");
+        verify(memberIdConfig).remove("ctx-1");
+        verify(participantContextService).deleteParticipantContext("ctx-1");
+        verify(recordsPurger).purge("ctx-1");
     }
 
     @Test

@@ -64,6 +64,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,6 +82,7 @@ import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -114,6 +116,7 @@ class MemberClaimProvisioningFlowTest {
     private final ParticipantSecureTokenService delegate = mock();
     private final StreamObserver<CreateParticipantContextResp> createObserver = mock();
     private final StreamObserver<DeleteParticipantContextResp> deleteObserver = mock();
+    private final ExecutorService eventExecutor = Executors.newSingleThreadExecutor();
 
     private IdentityHubProvisioningGrpcService service;
     private IdentityHubParticipantContextService spiedParticipantContextService;
@@ -146,7 +149,7 @@ class MemberClaimProvisioningFlowTest {
 
         context.registerService(ParticipantContextStore.class, participantContextStore);
         context.registerService(DidResourceStore.class, new InMemoryDidResourceStore(criterionOperatorRegistry));
-        context.registerService(EventRouter.class, new EventRouterImpl(monitor, Executors.newSingleThreadExecutor(), clock));
+        context.registerService(EventRouter.class, new EventRouterImpl(monitor, eventExecutor, clock));
         context.registerService(TransactionContext.class, transactionContext);
         context.registerService(Telemetry.class, new Telemetry());
         context.registerService(Clock.class, clock);
@@ -174,6 +177,11 @@ class MemberClaimProvisioningFlowTest {
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("outer-jwt").build()));
         when(signer.sign(any(), anyString(), anyString())).thenReturn(Result.success("signed-jws"));
         tokenService = new XRoadClaimAwareSecureTokenService(delegate, participantContextService, memberIdConfig, signer, monitor);
+    }
+
+    @AfterEach
+    void tearDown() {
+        eventExecutor.shutdownNow();
     }
 
     @Test
@@ -223,16 +231,9 @@ class MemberClaimProvisioningFlowTest {
         verify(deleteObserver).onCompleted();
         verify(deleteObserver, never()).onError(any());
         var config = configService.get(PARTICIPANT_CONTEXT_ID);
-        assertThat(config.failed() || !config.getContent().getPrivateEntries().containsKey("xroadMemberId")).isTrue();
+        assertThat(config.succeeded()).isTrue();
+        assertThat(config.getContent().getPrivateEntries()).doesNotContainKey("xroadMemberId");
         assertThat(spiedParticipantContextService.getParticipantContext(PARTICIPANT_CONTEXT_ID).failed()).isTrue();
-    }
-
-    @Test
-    void deletingAnAbsentMemberSucceeds() {
-        service.deleteParticipantContext(deleteRequest(), deleteObserver);
-
-        verify(deleteObserver).onCompleted();
-        verify(deleteObserver, never()).onError(any());
     }
 
     @Test

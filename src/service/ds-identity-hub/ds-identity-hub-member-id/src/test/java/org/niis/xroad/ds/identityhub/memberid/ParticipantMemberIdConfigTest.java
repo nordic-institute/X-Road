@@ -136,6 +136,9 @@ class ParticipantMemberIdConfigTest {
         participantContextStore.deleteById(CONTEXT_ID);
 
         assertThat(memberIdConfig.remove(CONTEXT_ID).succeeded()).isTrue();
+
+        assertThat(configService.get(CONTEXT_ID).getContent().getPrivateEntries())
+                .containsEntry(ParticipantMemberIdConfig.MEMBER_ID_KEY, MEMBER_ID);
     }
 
     @Test
