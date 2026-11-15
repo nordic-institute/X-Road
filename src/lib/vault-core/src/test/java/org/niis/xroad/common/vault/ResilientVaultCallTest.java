@@ -39,12 +39,9 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.slf4j.LoggerFactory;
 
-import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -59,7 +56,7 @@ class ResilientVaultCallTest {
     private static final Logger CALL_LOGGER = (Logger) LoggerFactory.getLogger(ResilientVaultCall.class);
     private static final ListAppender<ILoggingEvent> LOG_EVENTS = new ListAppender<>();
 
-    private final FakeClock clock = new FakeClock();
+    private final AtomicLong nanos = new AtomicLong();
 
     @BeforeAll
     static void captureLogs() {
@@ -77,12 +74,10 @@ class ResilientVaultCallTest {
     void shouldSucceedWhenTheFailureEndsWithinTheBudget() {
         var call = newCall(Duration.ofSeconds(30));
         var attempts = new AtomicInteger();
-        var start = clock.instant();
 
         var result = call.execute("read", "path/failover", () -> {
-            attempts.incrementAndGet();
-            clock.advance(Duration.ofSeconds(5));
-            if (Duration.between(start, clock.instant()).compareTo(Duration.ofSeconds(20)) <= 0) {
+            advance(Duration.ofSeconds(5));
+            if (attempts.incrementAndGet() <= 4) {
                 throw new IllegalStateException("leader gone");
             }
             return "value";
@@ -100,7 +95,7 @@ class ResilientVaultCallTest {
 
         assertThatThrownBy(() -> call.execute("write", "path/outage", () -> {
             attempts.incrementAndGet();
-            clock.advance(Duration.ofSeconds(10));
+            advance(Duration.ofSeconds(10));
             lastFailure.set(new IllegalStateException("still down"));
             throw lastFailure.get();
         })).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
@@ -119,7 +114,7 @@ class ResilientVaultCallTest {
         var path = "path/logged";
 
         assertThatThrownBy(() -> call.execute("list", path, () -> {
-            clock.advance(Duration.ofSeconds(10));
+            advance(Duration.ofSeconds(10));
             throw new IllegalStateException("down");
         })).isInstanceOf(XrdRuntimeException.class);
 
@@ -192,30 +187,10 @@ class ResilientVaultCallTest {
     }
 
     private ResilientVaultCall newCall(Duration budget) {
-        return new ResilientVaultCall(RETRY_ILLEGAL_STATE, budget, clock, FAST_BACKOFF);
+        return new ResilientVaultCall(RETRY_ILLEGAL_STATE, budget, nanos::get, FAST_BACKOFF);
     }
 
-    private static final class FakeClock extends Clock {
-
-        private final AtomicReference<Instant> now = new AtomicReference<>(Instant.parse("2026-01-01T00:00:00Z"));
-
-        void advance(Duration duration) {
-            now.updateAndGet(current -> current.plus(duration));
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return ZoneOffset.UTC;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return this;
-        }
-
-        @Override
-        public Instant instant() {
-            return now.get();
-        }
+    private void advance(Duration duration) {
+        nanos.addAndGet(duration.toNanos());
     }
 }

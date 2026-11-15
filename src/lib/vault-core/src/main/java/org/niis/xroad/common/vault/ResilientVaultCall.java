@@ -32,10 +32,10 @@ import io.github.resilience4j.retry.RetryConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.LongSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -63,18 +63,19 @@ public final class ResilientVaultCall {
 
     private final Predicate<Throwable> retryable;
     private final Duration budget;
-    private final Clock clock;
+    private final LongSupplier nanoClock;
     private final IntervalFunction backoff;
     private final RetryConfig template;
 
     public ResilientVaultCall(Predicate<Throwable> retryable, Duration budget) {
-        this(retryable, budget, Clock.systemUTC(), DEFAULT_BACKOFF);
+        this(retryable, budget, System::nanoTime, DEFAULT_BACKOFF);
     }
 
-    ResilientVaultCall(Predicate<Throwable> retryable, Duration budget, Clock clock, IntervalFunction backoff) {
+    ResilientVaultCall(Predicate<Throwable> retryable, Duration budget, LongSupplier nanoClock,
+                       IntervalFunction backoff) {
         this.retryable = retryable;
         this.budget = budget;
-        this.clock = clock;
+        this.nanoClock = nanoClock;
         this.backoff = backoff;
         this.template = RetryConfig.custom()
                 .maxAttempts(Integer.MAX_VALUE)
@@ -83,7 +84,7 @@ public final class ResilientVaultCall {
     }
 
     public ResilientVaultCall withBudget(Duration newBudget) {
-        return new ResilientVaultCall(retryable, newBudget, clock, backoff);
+        return new ResilientVaultCall(retryable, newBudget, nanoClock, backoff);
     }
 
     public void run(String operation, String path, Runnable call) {
@@ -94,10 +95,11 @@ public final class ResilientVaultCall {
     }
 
     public <T> T execute(String operation, String path, Supplier<T> call) {
-        var deadline = clock.instant().plus(budget);
+        var start = nanoClock.getAsLong();
+        var budgetNanos = budget.toNanos();
         var attempts = new AtomicInteger();
         var retry = Retry.of(operation, RetryConfig.from(template)
-                .retryOnException(e -> retryable.test(e) && clock.instant().isBefore(deadline))
+                .retryOnException(e -> retryable.test(e) && nanoClock.getAsLong() - start < budgetNanos)
                 .build());
 
         try {
