@@ -49,7 +49,6 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier;
 
@@ -106,7 +105,6 @@ class ProviderRefusalCanaryTest {
     }
 
     @Test
-    @Disabled("RC7 answers an invalid agreement with 400; the refusal rule follows in its own change")
     void anAgreementThatIsNoLongerValidIsAnAnswerTheRecogniserTakesForARefusal() {
         var participantAgent = mock(ParticipantAgent.class);
         when(protocolTokenValidator.verify(eq(participantContext), eq(token), any(), any()))
@@ -119,8 +117,10 @@ class ProviderRefusalCanaryTest {
 
         var failure = requestTransfer();
 
-        assertThat(failure.getReason()).isEqualTo(ServiceFailure.Reason.CONFLICT);
-        assertThat(ProviderFailureClassifier.isRefusal(consumerSideDetail(409, failure))).isTrue();
+        assertThat(failure.getReason()).isEqualTo(ServiceFailure.Reason.BAD_REQUEST);
+        assertThat(failure.getFailureDetail().toLowerCase())
+                .contains(ProviderFailureClassifier.AGREEMENT_NOT_VALID);
+        assertThat(ProviderFailureClassifier.isRefusal(consumerSideDetail(400, failure))).isTrue();
     }
 
     @Test
