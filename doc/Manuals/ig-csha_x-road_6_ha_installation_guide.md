@@ -320,7 +320,7 @@ sudo cat /etc/openbao/unseal-keys | ssh <admin>@<target-node> \
 
 **Upgrade.** An upgrade restarts the secret store setup, which writes the access policy of the new release. Upgrade all nodes of the cluster in one maintenance window. A node that is not upgraded yet and restarts writes the old access policy back.
 
-**Secret store failover.** The services retry their key-value calls to the secret store, such as secrets, token PINs, TLS credentials and message log keys, for a limited time. Certificate issuing (PKI) calls and the access of the dataspace connector to the secret store are not retried. A call that fails after the time limit returns the error code `secret_store_unavailable`. See [System Parameters User Guide](ug-syspar_x-road_v6_system_parameters.md#4112-secret-store-retry-xroadcommonvault-retry).
+**Secret store failover.** The services retry their key-value calls to the secret store, such as secrets, token PINs and TLS credentials, for a limited time. The reload of the dataspace HTTPS keystore is not covered by this time limit: after the first load, each periodic reload makes up to 3 attempts, 2 s apart, and then waits for the next periodic reload. The certificate issuing (PKI) calls make one attempt and are not retried. The Issuer Service has its own vault client, which is not covered by this time limit either; it retries its connection failures itself. A call that fails after the time limit returns the error code `secret_store_unavailable`. See [System Parameters User Guide](ug-syspar_x-road_v6_system_parameters.md#4112-secret-store-retry-xroadcommonvault-retry).
 
 ## 5 Monitoring HA State on a Node
 

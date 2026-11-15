@@ -588,8 +588,10 @@ sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.common.vault-ret
 
 The services read the value once when they start, so after a change restart these services:
 
-* Security Server: all the X-Road services (`xroad-signer`, `xroad-confclient`, `xroad-proxy`, `xroad-monitor`, `xroad-auxiliary-service`, `xroad-proxy-ui-api`, `xroad-ds-control-plane`, `xroad-ds-identity-hub`, and `xroad-opmonitor` if installed).
-* Central Server: `xroad-center`, `xroad-signer`, `xroad-confclient`, `xroad-ds-issuer-service`, `xroad-center-management-service` and `xroad-center-registration-service`.
+* Security Server: `xroad-signer`, `xroad-proxy`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-ds-control-plane` and `xroad-ds-identity-hub`.
+* Central Server: `xroad-center`, `xroad-signer`, `xroad-ds-issuer-service`, `xroad-center-management-service`, `xroad-center-registration-service` and `xroad-confproxy` if installed.
+
+The other X-Road services do not call the secret store key-value API, so they do not need a restart.
 
 A value that cannot be parsed or is outside the allowed range stops the services from starting. The script `db_property.sh` does not check the value.
 
@@ -597,7 +599,9 @@ A value that cannot be parsed or is outside the allowed range stops the services
 |-----------------------------------|-------------------|-----------------|
 | `xroad.common.vault-retry.budget` | 30s               | Total time a call to the secret store (OpenBao) is retried before it fails. Allowed values are from 0 to 5 minutes. With the value 0, a call makes one attempt and is not retried. If the secret store is not available, the call still fails with the error code `secret_store_unavailable`. Accepted formats are a number with the unit `ms`, `s`, `m`, `h` or `d` (for example `500ms`, `30s` or `5m`), an ISO-8601 duration (for example `PT30S`) and a bare number of seconds (for example `30`). |
 
-The retry covers the calls that the X-Road services make to the secret store through their key-value client: secrets, token PINs, TLS credentials and message log keys. It does not cover the calls that issue certificates (PKI) or the access of the dataspace connector to the secret store through its own vault client. These calls make one attempt and fail on the first error.
+The retry covers the calls that the X-Road services make to the secret store through their key-value client: secrets, token PINs, TLS credentials and message log keys. The reload of the dataspace HTTPS keystore is the exception among the TLS credentials: this setting does not cover it. After the first load, each periodic reload makes up to 3 attempts, 2 s apart, and then waits for the next periodic reload. The calls that issue certificates (PKI) are not covered either. They make one attempt and fail on the first error.
+
+The dataspace connector (`xroad-ds-control-plane`), the identity hub (`xroad-ds-identity-hub`) and the Issuer Service (`xroad-ds-issuer-service`) are built on EDC and access the secret store through EDC's own vault client. This setting does not cover that client. EDC retries its connection failures itself. It does not retry error responses.
 
 When a call to the secret store fails because the secret store is not available, the service waits and tries again until the time limit is used up. The time limit is the total elapsed time. An attempt that fails just before the limit is still followed by one more wait (up to 5 s) and one more attempt (up to the connect timeout of 5 s plus the read timeout of 10 s). With the default values, a call fails after about 50 s at most. The wait between attempts grows from 500 ms, doubles after each attempt and stays at 5 s at most. Each failed attempt writes one WARN line to the log of the service. When the time limit is used up, the call fails with the error code `secret_store_unavailable`. The details of the failure contain the last cause.
 
