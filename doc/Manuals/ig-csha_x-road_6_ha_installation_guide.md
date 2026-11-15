@@ -1,7 +1,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.22
+Version: 1.23
 Doc. ID: IG-CSHA
 
 ---
@@ -35,6 +35,7 @@ Doc. ID: IG-CSHA
 | 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
 | 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows and signer rows of a standalone server, the node name check of an existing name, the signer rows after a rename and the per-node TLS certificate names | Ričardas Bučiūnas  |
 | 12.11.2026 | 1.22    | Document the root token file and the unseal keys that every node keeps, and upgrading all nodes in one window | Ričardas Bučiūnas  |
+| 15.11.2026 | 1.23    | Document that the secret store retry covers key-value calls only                                              | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -275,8 +276,6 @@ The local secret store has a root token, kept in the file `/etc/openbao/root-tok
 
 The secret store setup of a node runs in the unit `xroad-secret-store-local.service` at every start and at every upgrade. It waits for OpenBao, initializes it if needed, unseals it, creates the storage areas if they are missing, writes the access policy and checks the client token of the node. A node issues its own client token when it has none or its token is not valid. Never copy a client token between nodes.
 
-The services retry a call to the secret store for a limited time; see [System Parameters User Guide](ug-syspar_x-road_v6_system_parameters.md#4112-secret-store-retry-xroadcommonvault-retry).
-
 Keep a copy of the unseal keys outside the cluster, in a safe place. The root token can be regenerated from the unseal keys, but not the other way round, and node backups contain neither of them.
 
 **Copying the files.** Copy a file between nodes so that the content does not appear in the command line or the shell history. The command writes the content to a temporary file on the target node, checks that the file is not empty, sets the owner `root:root` and the mode `600`, and only then replaces the target file. If reading the file or any step on the target node fails, the existing target file is left untouched. Run the command on a node that has the file. The account on the target node needs `sudo` without a password prompt, because the file is sent through the standard input.
@@ -320,6 +319,8 @@ sudo cat /etc/openbao/unseal-keys | ssh <admin>@<target-node> \
     ```
 
 **Upgrade.** An upgrade restarts the secret store setup, which writes the access policy of the new release. Upgrade all nodes of the cluster in one maintenance window. A node that is not upgraded yet and restarts writes the old access policy back.
+
+**Secret store failover.** The services retry their key-value calls to the secret store, such as secrets, token PINs, TLS credentials and message log keys, for a limited time. Certificate issuing (PKI) calls and the access of the dataspace connector to the secret store are not retried. A call that fails after the time limit returns the error code `secret_store_unavailable`. See [System Parameters User Guide](ug-syspar_x-road_v6_system_parameters.md#4112-secret-store-retry-xroadcommonvault-retry).
 
 ## 5 Monitoring HA State on a Node
 

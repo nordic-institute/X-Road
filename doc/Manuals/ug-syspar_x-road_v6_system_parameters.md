@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.109
+Version: 2.110
 Doc. ID: UG-SYSPAR
 
 
@@ -120,6 +120,7 @@ Doc. ID: UG-SYSPAR
 | 21.10.2026 | 2.107   | Documented X-Road 8 per-request behaviour of *client-connector-max-idle-time*                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius       |
 | 06.11.2026 | 2.108   | Added *xroad.common-rpc.use-tls* parameter                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets              |
 | 13.11.2026 | 2.109   | Added new *issuerDataFreshnessSeconds* system parameter, distributed in global configuration version 7                                                                                                                                                                                                                                                                                                         | Stefan Cvetkovski          |
+| 15.11.2026 | 2.110   | Documented the scope, the value 0 and the services to restart of the *xroad.common.vault-retry.budget* secret store retry                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas          |
 
 ## Table of Contents
 
@@ -582,20 +583,27 @@ The parameter in this section is an X-Road 8 configuration property, not an INI 
 The parameter in this section is an X-Road 8 configuration property, not an INI file parameter. It applies to the Security Server and to the Central Server. It is not shown in the System Parameters view of the user interface. Set it in the database with the script `/usr/share/xroad/scripts/db_property.sh`, for example:
 
 ```bash
-sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.common.vault-retry.budget 30s
+sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.common.vault-retry.budget 45s
 ```
 
-The services read the value once when they start, so restart the services of the server after a change. A value outside the allowed range stops the services from starting. The script `db_property.sh` does not check the value.
+The services read the value once when they start, so after a change restart these services:
 
-| **Parameter**                    | **Default value** | **Description** |
-|----------------------------------|-------------------|-----------------|
-| `xroad.common.vault-retry.budget` | 30s               | Total time a call to the secret store (OpenBao) is retried before it fails. Allowed values are from 0 to 5 minutes. The value 0 turns retrying off. Accepted formats are `30s`, `PT30S` (ISO-8601) and `30` (seconds). |
+* Security Server: all the X-Road services (`xroad-signer`, `xroad-confclient`, `xroad-proxy`, `xroad-monitor`, `xroad-auxiliary-service`, `xroad-proxy-ui-api`, `xroad-ds-control-plane`, `xroad-ds-identity-hub`, and `xroad-opmonitor` if installed).
+* Central Server: `xroad-center`, `xroad-signer`, `xroad-confclient`, `xroad-ds-issuer-service`, `xroad-center-management-service` and `xroad-center-registration-service`.
 
-When a call to the secret store fails because the secret store is not available, the service waits and tries again until the time limit is used up. The time limit is the total elapsed time. An attempt that fails just before the limit is still followed by one more wait (up to 5 s) and one more attempt (up to the connect timeout of 5 s plus the read timeout of 10 s). With the default values, a call fails after about 50 s at most. The wait between attempts grows from 500 ms, doubles after each attempt and stays at 5 s at most. Each failed attempt writes one WARN line to the log of the service. When the time limit is used up, the call fails with the error code `SECRET_STORE_UNAVAILABLE`.
+A value that cannot be parsed or is outside the allowed range stops the services from starting. The script `db_property.sh` does not check the value.
 
-These failures are retried: HTTP status 5xx and 307 (for example, a secret store that is sealed, starting up or has no leader), refused connections and timeouts. Other failures, such as the status 404 for a missing secret or any other 4xx status, are never retried.
+| **Parameter**                     | **Default value** | **Description** |
+|-----------------------------------|-------------------|-----------------|
+| `xroad.common.vault-retry.budget` | 30s               | Total time a call to the secret store (OpenBao) is retried before it fails. Allowed values are from 0 to 5 minutes. With the value 0, a call makes one attempt and is not retried. If the secret store is not available, the call still fails with the error code `secret_store_unavailable`. Accepted formats are a number with the unit `ms`, `s`, `m`, `h` or `d` (for example `500ms`, `30s` or `5m`), an ISO-8601 duration (for example `PT30S`) and a bare number of seconds (for example `30`). |
 
-Each HTTP request to the secret store has a connect timeout of 5 s and a read timeout of 10 s. They apply to all X-Road services. The services based on Quarkus use the Quarkus properties `quarkus.vault.connect-timeout` and `quarkus.vault.read-timeout`. The services based on Spring Boot use `spring.cloud.vault.connection-timeout` and `spring.cloud.vault.read-timeout`. Both are part of the packaged defaults of the services.
+The retry covers the calls that the X-Road services make to the secret store through their key-value client: secrets, token PINs, TLS credentials and message log keys. It does not cover the calls that issue certificates (PKI) or the access of the dataspace connector to the secret store through its own vault client. These calls make one attempt and fail on the first error.
+
+When a call to the secret store fails because the secret store is not available, the service waits and tries again until the time limit is used up. The time limit is the total elapsed time. An attempt that fails just before the limit is still followed by one more wait (up to 5 s) and one more attempt (up to the connect timeout of 5 s plus the read timeout of 10 s). With the default values, a call fails after about 50 s at most. The wait between attempts grows from 500 ms, doubles after each attempt and stays at 5 s at most. Each failed attempt writes one WARN line to the log of the service. When the time limit is used up, the call fails with the error code `secret_store_unavailable`. The details of the failure contain the last cause.
+
+These failures are retried: HTTP status 5xx and 307 (for example, a secret store that is sealed, starting up or has no leader), refused connections and timeouts. Other failures are never retried: the status 404 for a missing secret, any other 4xx status, and TLS handshake failures, for example a certificate that the client rejects.
+
+Each HTTP request to the secret store has a connect timeout of 5 s and a read timeout of 10 s. They apply to every call of the X-Road services to the secret store, including the calls that issue certificates. The services based on Quarkus use the Quarkus properties `quarkus.vault.connect-timeout` and `quarkus.vault.read-timeout`. The services based on Spring Boot use `spring.cloud.vault.connection-timeout` and `spring.cloud.vault.read-timeout`. Both are part of the packaged defaults of the services. The dataspace connector's own vault client does not use these properties.
 
 #### 4.1.2 Center parameters: `[center]`
 
