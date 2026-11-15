@@ -71,7 +71,7 @@ class OcspClientTimeoutTest {
         OcspClient ocspClient = new OcspClient(mock(GlobalConfProvider.class), signerProperties);
 
         // A bound server socket accepts the TCP handshake through its backlog, so connect() succeeds
-        try (ServerSocket server = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+        try (ServerSocket server = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
             URL url = new URL("http://127.0.0.1:" + server.getLocalPort() + "/");
             HttpURLConnection connection = ocspClient.createConnection(url);
             connection.disconnect();
