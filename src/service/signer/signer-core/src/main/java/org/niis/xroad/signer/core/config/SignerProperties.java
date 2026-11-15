@@ -41,6 +41,8 @@ import static org.niis.xroad.signer.common.config.SignerConfigKeys.KEY_NAMED_CUR
 import static org.niis.xroad.signer.common.config.SignerConfigKeys.MODULES;
 import static org.niis.xroad.signer.common.config.SignerConfigKeys.MODULE_MANAGER_UPDATE_INTERVAL;
 import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_CACHE_PATH;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_CLIENT_CONNECT_TIMEOUT;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_CLIENT_READ_TIMEOUT;
 import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_PRIORITIZATION_STRATEGY;
 import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_RESPONSE_RETRIEVAL_ACTIVE;
 import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_RETRY_DELAY;
@@ -90,6 +92,16 @@ public class SignerProperties {
     /** @return OCSP responder prioritization strategy */
     public ServicePrioritizationStrategy ocspPrioritizationStrategy() {
         return xRoadConfig.value(OCSP_PRIORITIZATION_STRATEGY);
+    }
+
+    /** @return connect timeout in milliseconds for OCSP responder requests */
+    public int ocspClientConnectTimeout() {
+        return xRoadConfig.value(OCSP_CLIENT_CONNECT_TIMEOUT);
+    }
+
+    /** @return read timeout in milliseconds for OCSP responder requests */
+    public int ocspClientReadTimeout() {
+        return xRoadConfig.value(OCSP_CLIENT_READ_TIMEOUT);
     }
 
     /** @return module-manager reload interval in seconds */
