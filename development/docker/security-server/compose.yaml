@@ -70,7 +70,7 @@ services:
       - DB_RUNTIME_PASSWORD=secret
       - DB_HSTORE=on
       - CHANGELOG=serverconf
-      - DEFAULT_SCHEMA_NAME=public
+      - DEFAULT_SCHEMA_NAME=serverconf
       - PROP_DB_USER=serverconf
     depends_on:
       db-serverconf:
@@ -94,7 +94,7 @@ services:
       - DB_ADMIN_PASSWORD=owner_secret
       - DB_RUNTIME_PASSWORD=secret
       - CHANGELOG=messagelog
-      - DEFAULT_SCHEMA_NAME=public
+      - DEFAULT_SCHEMA_NAME=messagelog
       - PROP_DB_USER=messagelog
     depends_on:
       db-messagelog:
@@ -336,8 +336,10 @@ services:
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_SERVERCONF_DB_SCHEMA=serverconf
       - XROAD_SERVERCONF_DB_PASSWORD=secret
-      - XROAD_SERVERCONF_DB_ADMIN_PASSWORD=admin_secret
+      - XROAD_SERVERCONF_DB_ADMIN_USER=serverconf_admin
+      - XROAD_SERVERCONF_DB_ADMIN_PASSWORD=owner_secret
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
       - DB_CONFIG_SOURCE_PASSWORD=secret
