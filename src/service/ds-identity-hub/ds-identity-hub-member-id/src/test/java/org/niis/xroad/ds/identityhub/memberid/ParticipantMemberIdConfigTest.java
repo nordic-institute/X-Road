@@ -46,6 +46,7 @@ import java.time.Clock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -55,12 +56,13 @@ class ParticipantMemberIdConfigTest {
     private static final String MEMBER_ID = "DEV/COM/222";
     private static final String OTHER_MEMBER_ID = "DEV/COM/333";
 
+    private InMemoryParticipantContextStore participantContextStore;
     private ParticipantContextConfigService configService;
     private ParticipantMemberIdConfig memberIdConfig;
 
     @BeforeEach
     void setUp() {
-        var participantContextStore = new InMemoryParticipantContextStore(CriterionOperatorRegistryImpl.ofDefaults());
+        participantContextStore = new InMemoryParticipantContextStore(CriterionOperatorRegistryImpl.ofDefaults());
         participantContextStore.create(ParticipantContext.Builder.newInstance().id(CONTEXT_ID).identity(CONTEXT_ID).build());
         configService = new ParticipantContextConfigServiceImpl(new EncryptionAlgorithmRegistryImpl(), null,
                 new InMemoryParticipantContextConfigStore(), participantContextStore, new NoopTransactionContext(), Clock.systemUTC(),
@@ -126,5 +128,26 @@ class ParticipantMemberIdConfigTest {
         assertThat(memberIdConfig.remove("unknown").succeeded()).isTrue();
 
         assertThat(configService.get("unknown").failed()).isTrue();
+    }
+
+    @Test
+    void removingFromDeletedContextWithLeftoverConfigurationSucceeds() {
+        memberIdConfig.save(CONTEXT_ID, MEMBER_ID);
+        participantContextStore.deleteById(CONTEXT_ID);
+
+        assertThat(memberIdConfig.remove(CONTEXT_ID).succeeded()).isTrue();
+    }
+
+    @Test
+    void unexpectedFailureWhileRemovingIsReported() {
+        var failingService = mock(ParticipantContextConfigService.class);
+        when(failingService.get(CONTEXT_ID)).thenReturn(ServiceResult.success(
+                ParticipantContextConfiguration.Builder.newInstance().participantContextId(CONTEXT_ID).build()));
+        when(failingService.merge(any())).thenReturn(ServiceResult.unexpected("store unavailable"));
+
+        var removed = new ParticipantMemberIdConfig(failingService).remove(CONTEXT_ID);
+
+        assertThat(removed.failed()).isTrue();
+        assertThat(removed.getFailureDetail()).contains("store unavailable");
     }
 }
