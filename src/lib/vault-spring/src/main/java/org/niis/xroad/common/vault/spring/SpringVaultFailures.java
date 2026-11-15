@@ -28,14 +28,18 @@ package org.niis.xroad.common.vault.spring;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
+
+import javax.net.ssl.SSLException;
 
 import java.io.IOException;
 
 /**
  * Decides which failures of a Spring secret store call are worth retrying: server errors and connection or
- * timeout failures anywhere in the cause chain. Client errors such as 403 and 404 are never retried.
+ * timeout failures anywhere in the cause chain. Client errors such as 403 and 404 and TLS failures such as a
+ * rejected certificate are never retried.
  * A redirect needs no case of its own: the HTTP client follows it before any status reaches this check, and a
  * redirect to an unreachable leader surfaces as a connection failure.
  */
@@ -45,7 +49,11 @@ final class SpringVaultFailures {
     private static final int HTTP_SERVER_ERROR = 500;
 
     static boolean isRetryable(Throwable failure) {
-        for (var cause = failure; cause != null; cause = cause.getCause() == cause ? null : cause.getCause()) {
+        var chain = ExceptionUtils.getThrowableList(failure);
+        if (chain.stream().anyMatch(SSLException.class::isInstance)) {
+            return false;
+        }
+        for (var cause : chain) {
             if (cause instanceof RestClientResponseException responseFailure) {
                 return responseFailure.getStatusCode().value() >= HTTP_SERVER_ERROR;
             }

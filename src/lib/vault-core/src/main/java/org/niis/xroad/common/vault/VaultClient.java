@@ -242,6 +242,7 @@ public interface VaultClient {
      * @return a client sharing this client's connection and settings, with the given retry budget
      */
     VaultClient withRetryBudget(Duration budget);
+
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();
         try (PemWriter pemWriter = new PemWriter(stringWriter)) {

@@ -316,7 +316,6 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     MEMBER_CLASS_EXISTS("member_class_exists"),
 
     MISSING_SECRET("missing_secret"),
-    SECRET_STORE_UNAVAILABLE("secret_store_unavailable"),
 
     PGP_INTERNAL_ERROR("pgp_internal_error"),
     PGP_ENCODE_FAILED("pgp_encode_failed"),
@@ -346,6 +345,9 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     SYSTEM_DID_FINAL_CONFLICT("system_did_final_conflict"),
     SYSTEM_DID_FIXABLE_CONFLICT("system_did_fixable_conflict"),
     SYSTEM_DID_NOT_RESOLVED("system_did_not_resolved"),
+
+    // ===== SECRET STORE ERRORS =====
+    SECRET_STORE_UNAVAILABLE("secret_store_unavailable"),
 
     // ===== DS TLS CERTIFICATE ERRORS =====
     DS_TLS_KEY_NOT_GENERATED("ds_tls_key_not_generated"),

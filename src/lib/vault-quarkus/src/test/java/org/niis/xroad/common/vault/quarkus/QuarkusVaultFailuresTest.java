@@ -27,8 +27,16 @@
 package org.niis.xroad.common.vault.quarkus;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import javax.net.ssl.SSLHandshakeException;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.concurrent.CompletionException;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,5 +48,23 @@ class QuarkusVaultFailuresTest {
 
         assertThat(QuarkusVaultFailures.isRetryable(failure)).isFalse();
         assertThat(QuarkusVaultFailures.isRetryable(new CompletionException(failure))).isFalse();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("ioFailures")
+    void shouldRetryAnIoFailureExceptATlsHandshakeFailure(String name, Throwable failure, boolean retryable) {
+        assertThat(QuarkusVaultFailures.isRetryable(failure)).isEqualTo(retryable);
+    }
+
+    private static Stream<Arguments> ioFailures() {
+        var handshake = new SSLHandshakeException("PKIX path building failed");
+
+        return Stream.of(
+                Arguments.of("connection failure", new IOException("Connection refused"), true),
+                Arguments.of("unknown host", new UnknownHostException("openbao"), true),
+                Arguments.of("bare handshake failure", handshake, false),
+                Arguments.of("handshake failure inside an IOException", new IOException("tls", handshake), false),
+                Arguments.of("handshake failure inside a CompletionException",
+                        new CompletionException(new IOException("tls", handshake)), false));
     }
 }

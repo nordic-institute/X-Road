@@ -31,6 +31,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.client.VaultClientException;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -62,6 +64,7 @@ import java.util.Optional;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 @Slf4j
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class QuarkusVaultClient implements VaultClient {
 
     private static final int HTTP_NOT_FOUND = 404;
@@ -70,29 +73,15 @@ public class QuarkusVaultClient implements VaultClient {
     private final NodeScopedSecretPaths nodePaths;
     private final ResilientVaultCall resilientCall;
 
-    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine) {
-        this(kvSecretEngine, ResilientVaultCall.DEFAULT_BUDGET);
-    }
-
     public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, Duration retryBudget) {
         this(kvSecretEngine, NodeIdentity.resolve(null), retryBudget);
     }
 
-    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity) {
-        this(kvSecretEngine, nodeIdentity, ResilientVaultCall.DEFAULT_BUDGET);
+    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity, Duration retryBudget) {
+        this(kvSecretEngine, new NodeScopedSecretPaths(nodeIdentity),
+                new ResilientVaultCall(QuarkusVaultFailures::isRetryable, retryBudget));
     }
 
-    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity, Duration retryBudget) {
-        this.kvSecretEngine = kvSecretEngine;
-        this.nodePaths = new NodeScopedSecretPaths(nodeIdentity);
-        this.resilientCall = new ResilientVaultCall(QuarkusVaultFailures::isRetryable, retryBudget);
-    }
-    private QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, NodeScopedSecretPaths nodePaths,
-                               ResilientVaultCall resilientCall) {
-        this.kvSecretEngine = kvSecretEngine;
-        this.nodePaths = nodePaths;
-        this.resilientCall = resilientCall;
-    }
     @Override
     public VaultClient withRetryBudget(Duration budget) {
         return new QuarkusVaultClient(kvSecretEngine, nodePaths, resilientCall.withBudget(budget));
@@ -344,10 +333,7 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     private void writeSecret(String path, Map<String, String> secret) {
-        resilientCall.execute("write", path, () -> {
-            kvSecretEngine.writeSecret(path, secret);
-            return null;
-        });
+        resilientCall.run("write", path, () -> kvSecretEngine.writeSecret(path, secret));
     }
 
     private Map<String, String> readRawSecret(String path) {
@@ -355,10 +341,7 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     private void deleteSecret(String path) {
-        resilientCall.execute("delete", path, () -> {
-            kvSecretEngine.deleteSecret(path);
-            return null;
-        });
+        resilientCall.run("delete", path, () -> kvSecretEngine.deleteSecret(path));
     }
 
     private List<String> listSecrets(String path) {

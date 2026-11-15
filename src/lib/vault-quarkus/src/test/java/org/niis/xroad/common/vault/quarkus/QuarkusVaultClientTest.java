@@ -83,7 +83,7 @@ class QuarkusVaultClientTest {
 
     @BeforeEach
     void setUp() {
-        vaultClient = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_0")).withRetryBudget(Duration.ZERO);
+        vaultClient = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_0"), Duration.ZERO);
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);
@@ -403,8 +403,8 @@ class QuarkusVaultClientTest {
 
     @Test
     void shouldKeepTokenPinsOfDifferentNodesSeparate() {
-        var nodeA = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_a"));
-        var nodeZero = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("0"));
+        var nodeA = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_a"), Duration.ZERO);
+        var nodeZero = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("0"), Duration.ZERO);
 
         nodeA.setTokenPin("0", "1111".toCharArray());
         nodeZero.setTokenPin("0", "2222".toCharArray());

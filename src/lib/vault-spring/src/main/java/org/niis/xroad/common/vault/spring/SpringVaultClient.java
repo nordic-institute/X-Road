@@ -30,6 +30,8 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.annotation.Nullable;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -62,20 +64,13 @@ import java.util.Optional;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 @Slf4j
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SpringVaultClient implements VaultClient {
+
     private final VaultKeyValueOperations vaultClient;
     private final String adminServiceTlsPath;
     private final String managementServiceTlsPath;
     private final ResilientVaultCall resilientCall;
-
-    /**
-     * @param vaultClient  the key-value operations of the secret store
-     * @param nodeIdentity the identity of the node whose name scopes the admin and management service TLS keys,
-     *                     or {@code null} to keep them at the plain, node-independent paths
-     */
-    public SpringVaultClient(VaultKeyValueOperations vaultClient, @Nullable NodeIdentity nodeIdentity) {
-        this(vaultClient, nodeIdentity, ResilientVaultCall.DEFAULT_BUDGET);
-    }
 
     /**
      * @param vaultClient  the key-value operations of the secret store
@@ -97,17 +92,12 @@ public class SpringVaultClient implements VaultClient {
         this.resilientCall = new ResilientVaultCall(SpringVaultFailures::isRetryable, retryBudget);
     }
 
-    private SpringVaultClient(SpringVaultClient source, ResilientVaultCall resilientCall) {
-        this.vaultClient = source.vaultClient;
-        this.adminServiceTlsPath = source.adminServiceTlsPath;
-        this.managementServiceTlsPath = source.managementServiceTlsPath;
-        this.resilientCall = resilientCall;
-    }
-
     @Override
     public VaultClient withRetryBudget(Duration budget) {
-        return new SpringVaultClient(this, resilientCall.withBudget(budget));
+        return new SpringVaultClient(vaultClient, adminServiceTlsPath, managementServiceTlsPath,
+                resilientCall.withBudget(budget));
     }
+
     @Override
     public InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return getTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH);
@@ -321,10 +311,7 @@ public class SpringVaultClient implements VaultClient {
     }
 
     private void writeSecret(String path, Map<String, String> secret) {
-        resilientCall.execute("write", path, () -> {
-            vaultClient.put(path, secret);
-            return null;
-        });
+        resilientCall.run("write", path, () -> vaultClient.put(path, secret));
     }
 
     private VaultResponse readRawSecret(String path) {
@@ -332,10 +319,7 @@ public class SpringVaultClient implements VaultClient {
     }
 
     private void deleteSecret(String path) {
-        resilientCall.execute("delete", path, () -> {
-            vaultClient.delete(path);
-            return null;
-        });
+        resilientCall.run("delete", path, () -> vaultClient.delete(path));
     }
 
     private List<String> listSecrets(String path) {

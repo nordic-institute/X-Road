@@ -34,6 +34,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -43,7 +44,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SECRET_STORE_UNAVAI
 /**
  * Runs one secret store call and retries failures the stack classifies as retryable until a total elapsed-time
  * budget passes. A failure that is not retryable is rethrown unchanged after one attempt. When the budget runs out
- * on a retryable failure, the call fails with {@code SECRET_STORE_UNAVAILABLE}.
+ * on a retryable failure, the call fails with {@code SECRET_STORE_UNAVAILABLE}, carrying the last failure as its
+ * cause. A thread interrupt while waiting between attempts rethrows the last failure unchanged and keeps the
+ * interrupt flag set.
  * <p>
  * The retry decision is made when an attempt fails, and an attempt in flight is not cut short, so a call can last
  * the budget plus one backoff wait plus one client timeout.
@@ -52,6 +55,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SECRET_STORE_UNAVAI
 public final class ResilientVaultCall {
 
     public static final Duration DEFAULT_BUDGET = Duration.ofSeconds(30);
+
+    private static final long MILLIS_PER_SECOND = 1000;
 
     private static final IntervalFunction DEFAULT_BACKOFF =
             IntervalFunction.ofExponentialBackoff(Duration.ofMillis(500), 2.0, Duration.ofSeconds(5));
@@ -81,6 +86,13 @@ public final class ResilientVaultCall {
         return new ResilientVaultCall(retryable, newBudget, clock, backoff);
     }
 
+    public void run(String operation, String path, Runnable call) {
+        execute(operation, path, () -> {
+            call.run();
+            return null;
+        });
+    }
+
     public <T> T execute(String operation, String path, Supplier<T> call) {
         var deadline = clock.instant().plus(budget);
         var attempts = new AtomicInteger();
@@ -91,7 +103,7 @@ public final class ResilientVaultCall {
         try {
             return retry.executeSupplier(() -> attempt(operation, path, call, attempts));
         } catch (RuntimeException e) {
-            if (retryable.test(e)) {
+            if (!Thread.currentThread().isInterrupted() && retryable.test(e)) {
                 throw unavailable(operation, path, attempts.get(), e);
             }
             throw e;
@@ -105,7 +117,7 @@ public final class ResilientVaultCall {
         } catch (RuntimeException e) {
             if (retryable.test(e)) {
                 log.warn("Secret store {} at path {} failed on attempt {} (retry budget {}): {}",
-                        operation, path, attemptNumber, budget, e.toString());
+                        operation, path, attemptNumber, formatBudget(), e.toString());
             }
             throw e;
         }
@@ -113,7 +125,17 @@ public final class ResilientVaultCall {
 
     private XrdRuntimeException unavailable(String operation, String path, int attempts, RuntimeException cause) {
         return XrdRuntimeException.systemException(SECRET_STORE_UNAVAILABLE, cause,
-                "Secret store %s at path %s failed after %d attempt(s), retry budget %s",
-                operation, path, attempts, budget);
+                "Secret store %s at path %s failed after %d attempt(s), retry budget %s: %s",
+                operation, path, attempts, formatBudget(), describe(cause));
+    }
+
+    private static String describe(Throwable failure) {
+        return Objects.requireNonNullElse(failure.getMessage(), failure.getClass().getSimpleName());
+    }
+
+    private String formatBudget() {
+        return budget.toMillis() % MILLIS_PER_SECOND == 0
+                ? budget.toSeconds() + "s"
+                : budget.toMillis() + "ms";
     }
 }

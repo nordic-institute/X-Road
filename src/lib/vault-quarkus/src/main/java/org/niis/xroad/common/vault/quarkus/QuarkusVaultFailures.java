@@ -29,6 +29,9 @@ package org.niis.xroad.common.vault.quarkus;
 import io.quarkus.vault.client.VaultClientException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import javax.net.ssl.SSLException;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -36,7 +39,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Decides which failures of a Quarkus secret store call are worth retrying: server errors, a redirect to a leader
  * the extension does not follow, and connection or timeout failures anywhere in the cause chain.
- * Client errors such as 403 and 404 are never retried.
+ * Client errors such as 403 and 404 and TLS failures such as a rejected certificate are never retried.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class QuarkusVaultFailures {
@@ -46,7 +49,11 @@ final class QuarkusVaultFailures {
     private static final String VAULT_CLIENT_PACKAGE = "io.quarkus.vault.client.";
 
     static boolean isRetryable(Throwable failure) {
-        for (var cause = failure; cause != null; cause = cause.getCause() == cause ? null : cause.getCause()) {
+        var chain = ExceptionUtils.getThrowableList(failure);
+        if (chain.stream().anyMatch(SSLException.class::isInstance)) {
+            return false;
+        }
+        for (var cause : chain) {
             if (cause instanceof VaultClientException vaultFailure && vaultFailure.getStatus() != null) {
                 return isRetryableStatus(vaultFailure.getStatus());
             }

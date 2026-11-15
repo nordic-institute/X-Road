@@ -105,7 +105,8 @@ class ResilientVaultCallTest {
             throw lastFailure.get();
         })).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
             assertThat(e.isCausedBy(ErrorCode.SECRET_STORE_UNAVAILABLE)).isTrue();
-            assertThat(e.getDetails()).contains("write", "path/outage", "after 3 attempt(s)", "PT30S");
+            assertThat(e.getDetails()).contains("write", "path/outage", "after 3 attempt(s)", "retry budget 30s",
+                    "still down");
             assertThat(e.getCause()).isSameAs(lastFailure.get());
         });
 
@@ -140,6 +141,40 @@ class ResilientVaultCallTest {
                 e -> assertThat(e.isCausedBy(ErrorCode.SECRET_STORE_UNAVAILABLE)).isTrue());
 
         assertThat(attempts).hasValue(1);
+    }
+
+    @Test
+    void shouldRethrowTheLastFailureAndKeepTheInterruptFlagWhenInterruptedBetweenAttempts() {
+        var call = newCall(Duration.ofSeconds(30));
+        var attempts = new AtomicInteger();
+        var failure = new IllegalStateException("leader gone");
+
+        try {
+            assertThatThrownBy(() -> call.execute("read", "path/interrupted", () -> {
+                attempts.incrementAndGet();
+                Thread.currentThread().interrupt();
+                throw failure;
+            })).isSameAs(failure);
+
+            assertThat(Thread.currentThread().isInterrupted()).isTrue();
+            assertThat(attempts).hasValue(1);
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test
+    void shouldRunARunnableThroughTheSameRetryLoop() {
+        var call = newCall(Duration.ofSeconds(30));
+        var attempts = new AtomicInteger();
+
+        call.run("write", "path/runnable", () -> {
+            if (attempts.incrementAndGet() < 3) {
+                throw new IllegalStateException("leader gone");
+            }
+        });
+
+        assertThat(attempts).hasValue(3);
     }
 
     @Test
