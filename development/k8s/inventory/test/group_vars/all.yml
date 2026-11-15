@@ -28,10 +28,6 @@ external_service_bridge_chart_version: "0.1.0"
 
 postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
 
-openbao_chart_repo: "https://openbao.github.io/openbao-helm"
-openbao_chart: "openbao/openbao"
-openbao_chart_version: "0.30.7"
-
 prometheus_chart_repo: "https://prometheus-community.github.io/helm-charts"
 prometheus_chart: "prometheus-community/kube-prometheus-stack"
 prometheus_chart_version: "80.4.1"

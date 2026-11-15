@@ -9,12 +9,6 @@
       metadata:
         name: "{{ security_server_namespace }}"
 
-- name: Add openbao helm repo
-  kubernetes.core.helm_repository:
-    name: openbao
-    repo_url: "{{ openbao_chart_repo }}"
-  when: not (openbao_chart_repo | regex_search('^oci://'))
-
 - name: Provision openbao postgres cluster (CNPG)
   ansible.builtin.include_role:
     name: cloudnative_pg
@@ -99,8 +93,8 @@
   kubernetes.core.helm:
     name: openbao
     chart_ref: "{{ openbao_chart }}"
+    chart_repo_url: "{{ omit if openbao_chart_repo is match('^oci://') else openbao_chart_repo }}"
     chart_version: "{{ openbao_chart_version | default(omit, true) }}"
-    update_repo_cache: true
     release_namespace: "{{ security_server_namespace }}"
     create_namespace: true
     kubeconfig: "{{ kubeconfig_path }}"
