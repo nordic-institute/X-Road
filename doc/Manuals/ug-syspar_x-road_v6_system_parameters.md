@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.110
+Version: 2.111
 Doc. ID: UG-SYSPAR
 
 
@@ -121,6 +121,7 @@ Doc. ID: UG-SYSPAR
 | 06.11.2026 | 2.108   | Added *xroad.common-rpc.use-tls* parameter                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets              |
 | 13.11.2026 | 2.109   | Added new *issuerDataFreshnessSeconds* system parameter, distributed in global configuration version 7                                                                                                                                                                                                                                                                                                         | Stefan Cvetkovski          |
 | 15.11.2026 | 2.110   | Documented the scope, the value 0 and the services to restart of the *xroad.common.vault-retry.budget* secret store retry                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas          |
+| 16.11.2026 | 2.111   | Documented that the dataspace services are covered by the secret store retry, and the daily secret store token renewal                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas          |
 
 ## Table of Contents
 
@@ -601,13 +602,15 @@ A value that cannot be parsed or is outside the allowed range stops the services
 
 The retry covers the calls that the X-Road services make to the secret store through their key-value client: secrets, token PINs, TLS credentials and message log keys. The reload of the dataspace HTTPS keystore is the exception among the TLS credentials: this setting does not cover it. After the first load, each periodic reload makes up to 3 attempts, 2 s apart, and then waits for the next periodic reload. The calls that issue certificates (PKI) are not covered either. They make one attempt and fail on the first error.
 
-The dataspace connector (`xroad-ds-control-plane`), the identity hub (`xroad-ds-identity-hub`) and the Issuer Service (`xroad-ds-issuer-service`) are built on EDC and access the secret store through EDC's own vault client. This setting does not cover that client. EDC retries its connection failures itself. It does not retry error responses.
+The dataspace connector (`xroad-ds-control-plane`), the identity hub (`xroad-ds-identity-hub`) and the Issuer Service (`xroad-ds-issuer-service`) are built on EDC. They access the secret store through the X-Road EDC Vault, which uses the same retrying client as the other services, so this setting covers them. When the time limit is used up, a read fails with the error code `secret_store_unavailable`, and a write or a delete returns a failure that can be retried. A missing secret is not an error: a read returns no value.
 
 When a call to the secret store fails because the secret store is not available, the service waits and tries again until the time limit is used up. The time limit is the total elapsed time. An attempt that fails just before the limit is still followed by one more wait (up to 5 s) and one more attempt (up to the connect timeout of 5 s plus the read timeout of 10 s). With the default values, a call fails after about 50 s at most. The wait between attempts grows from 500 ms, doubles after each attempt and stays at 5 s at most. Each failed attempt writes one WARN line to the log of the service. When the time limit is used up, the call fails with the error code `secret_store_unavailable`. The details of the failure contain the last cause.
 
 These failures are retried: HTTP status 5xx and 307 (for example, a secret store that is sealed, starting up or has no leader), refused connections and timeouts. Other failures are never retried: the status 404 for a missing secret, any other 4xx status, and TLS handshake failures, for example a certificate that the client rejects.
 
-Each HTTP request to the secret store has a connect timeout of 5 s and a read timeout of 10 s. They apply to every call of the X-Road services to the secret store, including the calls that issue certificates. The services based on Quarkus use the Quarkus properties `quarkus.vault.connect-timeout` and `quarkus.vault.read-timeout`. The services based on Spring Boot use `spring.cloud.vault.connection-timeout` and `spring.cloud.vault.read-timeout`. Both are part of the packaged defaults of the services. The dataspace connector's own vault client does not use these properties.
+Each HTTP request to the secret store has a connect timeout of 5 s and a read timeout of 10 s. They apply to every call of the X-Road services to the secret store, including the calls that issue certificates. The services based on Quarkus, including the dataspace connector, the identity hub and the Issuer Service, use the Quarkus properties `quarkus.vault.connect-timeout` and `quarkus.vault.read-timeout`. The services based on Spring Boot use `spring.cloud.vault.connection-timeout` and `spring.cloud.vault.read-timeout`. Both are part of the packaged defaults of the services.
+
+**Token renewal.** The services share one secret store token on each node. Every long-running service that uses the secret store renews this token when it starts and then once a day. The command-line tools, such as the Signer console, do not renew it. A renewal is retried within the time limit above, and each failed attempt writes a WARN line as described above. If the renewal still fails, the service writes one more WARN line with the cause and the time limit, and the next daily renewal still runs. A token that cannot be renewed, for example an external token supplied by the operator for an external secret store, makes the service write this WARN line once a day. The WARN does not stop the service. It is not retried, because the secret store refuses the request. To stop the warnings, supply a renewable token.
 
 #### 4.1.2 Center parameters: `[center]`
 
