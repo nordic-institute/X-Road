@@ -100,6 +100,7 @@ public final class FakeOpenBao implements AutoCloseable {
     private final ExecutorService executor = Executors.newCachedThreadPool(daemonThreads());
     private final Set<Socket> openSockets = ConcurrentHashMap.newKeySet();
     private final List<String> hits = new CopyOnWriteArrayList<>();
+    private final List<String> rawHits = new CopyOnWriteArrayList<>();
     private final List<String> storedBodies = new CopyOnWriteArrayList<>();
     private final Map<String, String> secrets = new ConcurrentHashMap<>();
     private final AtomicInteger failuresLeft = new AtomicInteger();
@@ -183,6 +184,12 @@ public final class FakeOpenBao implements AutoCloseable {
         return hits.stream().filter(h -> h.contains(" " + secretPath + "/")).toList();
     }
 
+    /**
+     * Like {@link #secretHits()}, with the request path exactly as it went over the wire.
+     */
+    public List<String> rawSecretHits() {
+        return rawHits.stream().filter(h -> h.contains(" " + secretPath + "/")).toList();
+    }
     public List<String> leaderHits() {
         return hits.stream().filter(h -> h.contains(" " + LEADER_PATH + "/")).toList();
     }
@@ -271,6 +278,7 @@ public final class FakeOpenBao implements AutoCloseable {
             var uri = ex.getRequestURI();
             var body = new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             hits.add(method + " " + uri.getPath());
+            rawHits.add(method + " " + uri.getRawPath());
             var path = uri.getPath();
             if (path.startsWith(DOWN_LEADER_PATH + "/")) {
                 throw new IOException("fake leader is unreachable");

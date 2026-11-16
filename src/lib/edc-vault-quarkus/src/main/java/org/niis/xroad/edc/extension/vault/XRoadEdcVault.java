@@ -29,9 +29,12 @@ package org.niis.xroad.edc.extension.vault;
 import io.quarkus.vault.client.VaultClient;
 import io.quarkus.vault.client.VaultClientException;
 import io.quarkus.vault.client.api.secrets.kv2.VaultSecretsKV2;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.jetbrains.annotations.Nullable;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.ResilientVaultCall;
 
 import java.net.URLEncoder;
@@ -45,7 +48,12 @@ import java.util.concurrent.CompletionStage;
  * {@code ds/<k>} in field {@value #CONTENT_FIELD}, the layout stock EDC 1.0.0-RC7 uses. Every call goes
  * through {@link ResilientVaultCall} and nothing is cached, so each read sees the current OpenBao value.
  * Delete removes the secret metadata, the only delete the {@code ds} policy allows.
+ * <p>
+ * When the retry budget runs out, a read fails with {@code SECRET_STORE_UNAVAILABLE} and a write or delete returns
+ * a retryable failure. A refused request that is not retryable, such as a 403, reads as null and fails a write or
+ * delete without retry.
  */
+@Slf4j
 final class XRoadEdcVault implements Vault {
 
     static final String MOUNT = "xrd-ds-secret";
@@ -65,23 +73,38 @@ final class XRoadEdcVault implements Vault {
     @Override
     public @Nullable String resolveSecret(String key) {
         var path = path(key);
-        return resilientCall.execute("read", path, () -> read(path));
+        try {
+            return resilientCall.execute("read", path, () -> read(path));
+        } catch (VaultClientException e) {
+            log.warn("Secret store read at path {} was refused: {}", path, e.getMessage());
+            return null;
+        }
     }
-
     @Override
     public Result<Void> storeSecret(String key, String value) {
         var path = path(key);
-        resilientCall.run("write", path, () -> await(kv2.updateSecret(path, null, Map.of(CONTENT_FIELD, value))));
-        return Result.success();
+        return write("write", path,
+                () -> await(kv2.updateSecret(path, null, Map.of(CONTENT_FIELD, value))));
     }
-
     @Override
     public Result<Void> deleteSecret(String key) {
         var path = path(key);
-        resilientCall.run("delete", path, () -> deleteMetadata(path));
-        return Result.success();
+        return write("delete", path, () -> deleteMetadata(path));
     }
-
+    private Result<Void> write(String operation, String path, Runnable call) {
+        try {
+            resilientCall.run(operation, path, call);
+            return Result.success();
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(ErrorCode.SECRET_STORE_UNAVAILABLE)) {
+                return Result.retryableFailure(e.getMessage());
+            }
+            throw e;
+        } catch (VaultClientException e) {
+            return Result.failure("Secret store %s at path %s was refused: %s"
+                    .formatted(operation, path, e.getMessage()));
+        }
+    }
     private @Nullable String read(String path) {
         try {
             var data = await(kv2.readSecret(path)).getData();
