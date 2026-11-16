@@ -45,7 +45,9 @@ public class LegacyConfigPathMapping {
 
     /**
      * Legacy keys that X-Road 7 read with lower priority than another legacy key mapped to the same
-     * X-Road 8 key, keyed by the key they lose to when both are present in the same source.
+     * X-Road 8 key, keyed by the key they lose to when both are present in the same source. For an operator
+     * INI file the source is its whole {@code override-*.ini} and {@code local.ini} chain, which X-Road 7
+     * merged before reading either key.
      */
     private static final Map<String, String> SUPERSEDED_BY = Map.of(
             "message-log.message-body-logging", "message-log.soap-body-logging");

@@ -136,6 +136,55 @@ class MessageLogBodyLoggingAndNewKeysTest {
         assertThat(migrateToDb(file)).containsEntry(MESSAGE_BODY_LOGGING_KEY, "true");
     }
 
+    @Test
+    void soapBodyLoggingInEarlierOverrideWinsOverMessageBodyLoggingInLocalIni() throws IOException {
+        var override = write("override-90-operator.ini", """
+                [message-log]
+                soap-body-logging=false
+                """);
+        var local = write("local.ini", """
+                [message-log]
+                message-body-logging=true
+                """);
+
+        Map<String, String> db = new TreeMap<>();
+        db.putAll(migrateToDb(override));
+        db.putAll(migrateToDb(local));
+
+        assertThat(db).containsEntry(MESSAGE_BODY_LOGGING_KEY, "false");
+    }
+
+    @Test
+    void nestedLoaderSkipsMessageBodyLoggingWhenSoapBodyLoggingIsSetElsewhereInTheChain() throws IOException {
+        write("override-90-operator.ini", """
+                [message-log]
+                soap-body-logging=false
+                """);
+        var local = write("local.ini", """
+                [message-log]
+                message-body-logging=true
+                """);
+
+        var flat = new TreeMap<String, Object>();
+        flatten("", iniUtil.loadToNestedMap(local.toString(), "xroad"), flat);
+
+        assertThat(flat).doesNotContainKey(MESSAGE_BODY_LOGGING_KEY);
+    }
+
+    @Test
+    void messageBodyLoggingFromOverrideIsMigratedWhenNoFileSetsSoapBodyLogging() throws IOException {
+        var override = write("override-securityserver-fi.ini", """
+                [message-log]
+                message-body-logging=false
+                """);
+        write("local.ini", """
+                [message-log]
+                clean-transaction-batch=5000
+                """);
+
+        assertThat(migrateToDb(override)).containsEntry(MESSAGE_BODY_LOGGING_KEY, "false");
+    }
+
     private Map<String, String> migrateToDb(Path file) {
         try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
             var migrator = new IniToDbMigrator() {
