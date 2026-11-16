@@ -132,11 +132,10 @@ class TaskPollExecutorSendFailureTest {
     void consumerRequestSendFailureEndsTerminatedAfterTwoSendsWithErrorDetail() {
         var negotiation = requestingNegotiation();
         startNegotiationPoller(CONFIGURED_SEND_RETRY_LIMIT, SendRequestNegotiation.Builder.newInstance(), negotiation);
-        await().atMost(Duration.ofSeconds(10)).until(() -> isTerminated(negotiation));
+        await().atMost(Duration.ofSeconds(10)).until(() -> isTerminated(negotiation) && taskStoreEmpty());
         var stored = negotiationStore.findById(negotiation.getId());
         assertThat(dispatchCount.get()).isEqualTo(2);
         assertThat(stored.getErrorDetail()).contains("Failed to request contract to provider");
-        assertThat(taskStoreEmpty()).isTrue();
     }
 
     @Test
@@ -166,10 +165,10 @@ class TaskPollExecutorSendFailureTest {
     void transferRequestSendFailureEndsTerminatedAfterTwoSendsWithErrorDetail() {
         var transfer = requestingTransfer();
         startTransferPoller(CONFIGURED_SEND_RETRY_LIMIT, transfer);
-        await().atMost(Duration.ofSeconds(10)).until(() -> transferState(transfer) == TransferProcessStates.TERMINATED.code());
+        await().atMost(Duration.ofSeconds(10))
+                .until(() -> transferState(transfer) == TransferProcessStates.TERMINATED.code() && taskStoreEmpty());
         assertThat(dispatchCount.get()).isEqualTo(2);
         assertThat(transferStore.findById(transfer.getId()).getErrorDetail()).isNotBlank();
-        assertThat(taskStoreEmpty()).isTrue();
     }
 
     private <T extends ContractNegotiationTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> void startNegotiationPoller(
