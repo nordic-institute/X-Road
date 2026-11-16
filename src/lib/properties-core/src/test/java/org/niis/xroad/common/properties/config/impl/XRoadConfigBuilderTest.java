@@ -36,22 +36,28 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Prefix;
 import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Validator;
+import org.niis.xroad.common.properties.config.Value;
 import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable;
 import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable.Row;
 import org.slf4j.LoggerFactory;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
 import java.nio.file.Path;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,6 +87,9 @@ class XRoadConfigBuilderTest {
 
     @SystemStub
     private final EnvironmentVariables variables = new EnvironmentVariables();
+
+    @SystemStub
+    private final SystemProperties properties = new SystemProperties();
 
     @BeforeAll
     static void createConfigurationTable() throws SQLException {
@@ -267,6 +276,128 @@ class XRoadConfigBuilderTest {
         assertThat(logMessages())
                 .anyMatch(message -> message.startsWith("DB config source disabled for 'test-app'"))
                 .noneMatch(message -> message.contains("packaged defaults only"));
+    }
+
+    @Test
+    void precedenceIsDbThenFileThenDefaultKeyByKey() {
+        var file = Map.of(
+                "xroad.test.with-container", "from-file",
+                "xroad.test.native-only", "from-file");
+
+        var config = configuredDbBuilder().fileOverrides(SETTINGS_PATH, file).dbOverrides("test-app").build();
+
+        assertThat(config.get(withContainerDefault)).extracting(Value::value, Value::source)
+                .containsExactly("from-db", Source.DB);
+        assertThat(config.get(ranged)).extracting(Value::value, Value::source)
+                .containsExactly(3, Source.DB);
+        assertThat(config.get(nativeOnly)).extracting(Value::value, Value::source)
+                .containsExactly("from-file", Source.FILE);
+        assertThat(config.get(unsetEverywhere)).extracting(Value::value, Value::source)
+                .containsExactly("native", Source.DEFAULT);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"environment variable", "system property"})
+    void environmentVariableAndSystemPropertyNeitherSupplyNorOverrideAKey(String channel) {
+        var file = Map.of("xroad.test.native-only", "from-file");
+        databaseEnvironment.forEach(variables::set);
+        for (var key : List.of(withContainerDefault, nativeOnly, unsetEverywhere)) {
+            setThroughChannel(channel, key.key(), "from-channel");
+        }
+
+        var config = XRoadConfigBuilder.create().register(provider)
+                .fileOverrides(SETTINGS_PATH, file).dbOverrides("test-app").build();
+
+        assertThat(config.get(withContainerDefault)).extracting(Value::value, Value::source)
+                .containsExactly("from-db", Source.DB);
+        assertThat(config.get(nativeOnly)).extracting(Value::value, Value::source)
+                .containsExactly("from-file", Source.FILE);
+        assertThat(config.get(unsetEverywhere)).extracting(Value::value, Value::source)
+                .containsExactly("native", Source.DEFAULT);
+        assertThat(logMessages()).contains(
+                "Config key xroad.test.with-container resolved from source DB",
+                "Config key xroad.test.native-only resolved from source FILE (/test/settings.yaml)",
+                "Config key xroad.test.unset resolved from source DEFAULT");
+    }
+
+    @Test
+    void unknownFileKeyGivesOneWarningNamingTheKeyAndTheFile() {
+        var file = Map.of("xroad.test.nativ-only", "typo", "xroad.test.native-only", "from-file");
+
+        var config = XRoadConfigBuilder.create().register(provider).fileOverrides(SETTINGS_PATH, file).build();
+
+        assertThat(warnings()).singleElement().asString()
+                .contains("xroad.test.nativ-only")
+                .contains("/test/settings.yaml");
+        assertThat(config.get(nativeOnly).value()).isEqualTo("from-file");
+        assertThat(config.get(withContainerDefault).value()).isEqualTo("native");
+    }
+
+    @Test
+    void registeredFileKeysGiveNoWarning() {
+        var file = Map.of("xroad.test.native-only", "from-file");
+
+        XRoadConfigBuilder.create().register(provider).fileOverrides(SETTINGS_PATH, file).build();
+
+        assertThat(warnings()).isEmpty();
+    }
+
+    @Test
+    void fileValueAppliesOnceTheDbRowIsRemoved() throws SQLException {
+        var environment = NodeConfigTestTable.create("builderrowremoval", List.of(
+                new Row("xroad.test.native-only", "from-db", null)));
+        environment.forEach(variables::set);
+        var file = Map.of("xroad.test.native-only", "from-file");
+
+        var withRow = XRoadConfigBuilder.create().register(provider)
+                .fileOverrides(SETTINGS_PATH, file).dbOverrides("test-app").build();
+        deleteAllRows(environment);
+        var withoutRow = XRoadConfigBuilder.create().register(provider)
+                .fileOverrides(SETTINGS_PATH, file).dbOverrides("test-app").build();
+
+        assertThat(withRow.get(nativeOnly)).extracting(Value::value, Value::source)
+                .containsExactly("from-db", Source.DB);
+        assertThat(withoutRow.get(nativeOnly)).extracting(Value::value, Value::source)
+                .containsExactly("from-file", Source.FILE);
+    }
+
+    @Test
+    void ignoredEnvVarWarningNamesTheSettingsFileOnlyWhenTheFileLayerIsEnabled() {
+        var env = Map.of("XROAD_TEST_WITH_CONTAINER", "from-env");
+
+        XRoadConfigBuilder.create().register(provider).fileOverrides(SETTINGS_PATH, Map.of()).warnIgnoredEnvVars(env);
+        var withFileLayer = warnings();
+        logEvents.list.clear();
+        XRoadConfigBuilder.create().register(provider).warnIgnoredEnvVars(env);
+        var withoutFileLayer = warnings();
+
+        assertThat(withFileLayer).singleElement().asString()
+                .contains("XROAD_TEST_WITH_CONTAINER").contains("settings file").contains("configuration_properties");
+        assertThat(withoutFileLayer).singleElement().asString()
+                .contains("XROAD_TEST_WITH_CONTAINER").contains("configuration_properties")
+                .doesNotContain("settings file");
+    }
+
+    private void setThroughChannel(String channel, String key, String value) {
+        if (channel.equals("environment variable")) {
+            variables.set(key.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]", "_"), value);
+        } else {
+            properties.set(key, value);
+        }
+    }
+
+    private static void deleteAllRows(Map<String, String> environment) throws SQLException {
+        try (var connection = DriverManager.getConnection(environment.get("DB_CONFIG_SOURCE_URL"), "sa", "");
+             var statement = connection.createStatement()) {
+            statement.execute("DELETE FROM " + environment.get("DB_CONFIG_SOURCE_TABLE_NAME"));
+        }
+    }
+
+    private List<String> warnings() {
+        return logEvents.list.stream()
+                .filter(event -> event.getLevel() == Level.WARN)
+                .map(ILoggingEvent::getFormattedMessage)
+                .toList();
     }
 
     private XRoadConfigBuilder configuredDbBuilder() {

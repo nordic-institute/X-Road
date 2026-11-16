@@ -30,6 +30,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -41,8 +42,10 @@ import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Slf4j
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class OpMonitorConfig {
@@ -65,6 +68,9 @@ public class OpMonitorConfig {
                 .deploymentMode(deploymentMode);
         if (deploymentMode == DeploymentMode.NATIVE) {
             builder.fileOverrides(settingsFile, SettingsFileReader.read(settingsFile));
+        } else if (Files.exists(settingsFile)) {
+            log.warn("Settings file {} is ignored: a containerized op-monitor reads its settings from the "
+                    + "configuration database and the container defaults only", settingsFile);
         }
         return builder.dbOverrides(appName).build();
     }

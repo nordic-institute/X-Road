@@ -157,18 +157,33 @@ public final class XRoadConfigBuilder {
     /** @return resolved configuration with values cached at build time */
     public XRoadConfig build() {
         warnIgnoredEnvVars(System.getenv());
+        warnUnknownFileKeys();
         return new DefaultXRoadConfig(providers, overrides, fileOrigin, fileValues, deploymentMode);
     }
 
     void warnIgnoredEnvVars(Map<String, String> env) {
         var ignored = ignoredEnvVars(env);
-        if (!ignored.isEmpty()) {
-            log.warn("Environment variable(s) [{}] match registered xroad.* config keys but are IGNORED: "
-                            + "XRoadConfig resolves DB overrides, the settings file "
-                            + "(when enabled) and defaults only. "
-                            + "Set the value(s) in the configuration_properties table or the settings file instead.",
-                    String.join(", ", ignored));
+        if (ignored.isEmpty()) {
+            return;
         }
+        var layers = fileOrigin == null ? "DB overrides" : "DB overrides, the settings file";
+        var advice = fileOrigin == null
+                ? "the configuration_properties table"
+                : "the configuration_properties table or the settings file";
+        log.warn("Environment variable(s) [{}] match registered xroad.* config keys but are IGNORED: "
+                        + "XRoadConfig resolves {} and defaults only. Set the value(s) in {} instead.",
+                String.join(", ", ignored), layers, advice);
+    }
+
+    private void warnUnknownFileKeys() {
+        var registered = providers.stream()
+                .flatMap(provider -> provider.keys().stream())
+                .map(ConfigKey::key)
+                .collect(Collectors.toSet());
+        fileValues.keySet().stream()
+                .filter(key -> !registered.contains(key))
+                .sorted()
+                .forEach(key -> log.warn("Unknown key '{}' in settings file {} is ignored", key, fileOrigin));
     }
 
     List<String> ignoredEnvVars(Map<String, String> env) {

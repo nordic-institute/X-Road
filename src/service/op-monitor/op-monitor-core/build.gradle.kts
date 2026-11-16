@@ -18,7 +18,6 @@ dependencies {
   annotationProcessor(libs.mapstructProcessor)
   annotationProcessor(libs.lombokMapstructBinding)
 
-  implementation(platform(libs.jackson.bom))
   implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
   implementation(libs.jakarta.validationApi)
   implementation(libs.bundles.metrics)
