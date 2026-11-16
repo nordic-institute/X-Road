@@ -121,6 +121,7 @@ public class XRoadIssuerHostnameExtension implements ServiceExtension {
                 context.getSetting(IDENTITY_DB_URL_SETTING, null),
                 context.getSetting(IDENTITY_DB_USERNAME_SETTING, null),
                 context.getSetting(IDENTITY_DB_PASSWORD_SETTING, null),
-                context.getSetting(IDENTITY_DB_SCHEMA_SETTING, null));
+                context.getSetting(IDENTITY_DB_SCHEMA_SETTING, null),
+                context.getMonitor());
     }
 }

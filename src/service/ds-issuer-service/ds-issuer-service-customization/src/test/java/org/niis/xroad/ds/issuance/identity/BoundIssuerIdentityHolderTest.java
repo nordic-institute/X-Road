@@ -66,36 +66,45 @@ class BoundIssuerIdentityHolderTest {
             await().atMost(Duration.ofSeconds(2)).until(() -> holder.identity().isPresent());
             var readsWhenBound = reads.get();
 
-            Thread.sleep(CHECK_INTERVAL.toMillis() * 5);
+            await().pollInterval(Duration.ofMillis(5))
+                    .during(CHECK_INTERVAL.multipliedBy(5))
+                    .atMost(Duration.ofSeconds(2))
+                    .until(() -> reads.get() == readsWhenBound);
 
-            assertThat(reads).hasValue(readsWhenBound);
             assertThat(holder.identity()).contains(bound);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         } finally {
             holder.close();
         }
     }
 
+    /**
+     * A failing poll before the bound result logs a warning ({@link
+     * PeriodicMaterialReloader#logPendingFailure}); a reloader that keeps running after that bound result
+     * logs one on every further cycle too, since each one finds the reader already closed. Asserting on the
+     * warning count, not only on {@code reads}, is what makes this test fail if polling is not actually
+     * stopped: the closed-reader guard alone already keeps {@code reads} from growing further.
+     */
     @Test
     void sequenceUnboundThenBoundThenAFurtherPollAttemptLeavesTheBoundIdentityUnchanged() {
         var bound = identity("DID-SEQUENCE");
         var reads = new AtomicInteger();
         BoundIssuerIdentityReader reader = () -> reads.incrementAndGet() <= 2 ? Optional.empty() : Optional.of(bound);
-        var holder = new BoundIssuerIdentityHolder(() -> reader, monitor, CHECK_INTERVAL);
+        var recordingMonitor = new RecordingMonitor();
+        var holder = new BoundIssuerIdentityHolder(() -> reader, recordingMonitor, CHECK_INTERVAL);
 
         holder.start();
         try {
             await().atMost(Duration.ofSeconds(2)).until(() -> holder.identity().isPresent());
             assertThat(reads.get()).isGreaterThanOrEqualTo(3);
             var readsWhenBound = reads.get();
+            var warningsWhenBound = recordingMonitor.warnings.size();
 
-            Thread.sleep(CHECK_INTERVAL.toMillis() * 5);
+            await().pollInterval(Duration.ofMillis(5))
+                    .during(CHECK_INTERVAL.multipliedBy(5))
+                    .atMost(Duration.ofSeconds(2))
+                    .until(() -> reads.get() == readsWhenBound && recordingMonitor.warnings.size() == warningsWhenBound);
 
             assertThat(holder.identity()).contains(bound);
-            assertThat(reads).hasValue(readsWhenBound);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         } finally {
             holder.close();
         }
@@ -201,11 +210,10 @@ class BoundIssuerIdentityHolderTest {
             await().atMost(Duration.ofSeconds(2)).until(() -> holder.identity().isPresent());
             var readsWhenBound = reads.get();
 
-            Thread.sleep(50);
-
-            assertThat(reads).hasValue(readsWhenBound);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            await().pollInterval(Duration.ofMillis(5))
+                    .during(Duration.ofMillis(50))
+                    .atMost(Duration.ofSeconds(2))
+                    .until(() -> reads.get() == readsWhenBound);
         } finally {
             holder.close();
         }
@@ -224,7 +232,7 @@ class BoundIssuerIdentityHolderTest {
             factoryEntered.countDown();
             try {
                 releaseFactory.await();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException _) {
                 Thread.currentThread().interrupt();
             }
             return new ClosingReader(readerClosed);
@@ -282,17 +290,13 @@ class BoundIssuerIdentityHolderTest {
 
     @Test
     void startLogsAndReturnsUnboundWithoutThrowingWhenTheDatabaseIsUnreachable() {
-        var holder = new BoundIssuerIdentityHolder(() -> {
+        try (var holder = new BoundIssuerIdentityHolder(() -> {
             throw new IllegalStateException("the Central Server database is unreachable");
-        }, monitor, CHECK_INTERVAL);
-
-        try {
+        }, monitor, CHECK_INTERVAL)) {
             assertThat(holder.identity()).isEmpty();
             holder.start();
             assertThat(holder.identity()).isEmpty();
             verify(monitor).warning(anyString(), any(Throwable.class));
-        } finally {
-            holder.close();
         }
     }
 

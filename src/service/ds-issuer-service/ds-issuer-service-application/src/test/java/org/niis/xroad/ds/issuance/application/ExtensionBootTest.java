@@ -99,8 +99,9 @@ class ExtensionBootTest {
     @Test
     void bootsWithALeftoverHostnameSettingAndNoBindingTheHostnameRefuses() {
         var context = bootCapturingContext(Map.of(HOSTNAME_SETTING, LEFTOVER_HOSTNAME));
+        var hostname = context.getService(Hostname.class);
 
-        assertThatThrownBy(() -> context.getService(Hostname.class).get()).isInstanceOf(EdcException.class);
+        assertThatThrownBy(hostname::get).isInstanceOf(EdcException.class);
     }
 
     private static Map<String, String> withIdentityDbSettings(Map<String, String> base) {

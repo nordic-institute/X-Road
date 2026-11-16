@@ -28,6 +28,7 @@ package org.niis.xroad.ds.issuance.identity;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.ds.identity.IssuerDidFormat;
 
 import java.sql.Connection;
@@ -35,6 +36,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys.ISSUER_DID_PORT;
 
@@ -47,17 +49,24 @@ import static org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys.I
  */
 public class JdbcBoundIssuerIdentityReader implements BoundIssuerIdentityReader, AutoCloseable {
 
+    private static final String NAME = "bound-issuer-identity-reader";
+
     private static final String ISSUER_HOST_KEY = "issuerServiceHost";
 
     private final HikariDataSource dataSource;
+    private final Monitor monitor;
+
+    private final AtomicReference<String> lastUnmatchedDid = new AtomicReference<>();
 
     /**
      * @param url the Central Server database's JDBC URL
      * @param username the {@code ds-issuer-service} role's username
      * @param password the {@code ds-issuer-service} role's password
      * @param schema the Central Server schema the issuer identity tables live in (e.g. {@code centerui})
+     * @param monitor logs a warning the first time the rebuilt DID matches no {@code issuer_dids} row, while
+     *     the host is set; repeats of the same mismatch are not logged again
      */
-    public JdbcBoundIssuerIdentityReader(String url, String username, String password, String schema) {
+    public JdbcBoundIssuerIdentityReader(String url, String username, String password, String schema, Monitor monitor) {
         var hikariConfig = new HikariConfig();
         hikariConfig.setMaximumPoolSize(1);
         hikariConfig.setJdbcUrl(url);
@@ -65,6 +74,7 @@ public class JdbcBoundIssuerIdentityReader implements BoundIssuerIdentityReader,
         hikariConfig.setPassword(password);
         hikariConfig.setSchema(schema);
         this.dataSource = new HikariDataSource(hikariConfig);
+        this.monitor = monitor;
     }
 
     @Override
@@ -76,9 +86,26 @@ public class JdbcBoundIssuerIdentityReader implements BoundIssuerIdentityReader,
             }
             var didPort = readDidPort(connection);
             var did = IssuerDidFormat.didFor(host.get(), didPort);
-            return readIssuerDid(connection, did);
+            var bound = readIssuerDid(connection, did);
+            if (bound.isEmpty()) {
+                warnOnceAboutUnmatchedDid(did);
+            } else {
+                lastUnmatchedDid.set(null);
+            }
+            return bound;
         } catch (SQLException e) {
             throw new IllegalStateException("bound-issuer-identity-reader: could not read the bound issuer identity", e);
+        }
+    }
+
+    /**
+     * Logs a warning only the first time a given rebuilt DID matches no {@code issuer_dids} row, so the
+     * holder's repeated polling while the mismatch lasts does not log once per poll.
+     */
+    private void warnOnceAboutUnmatchedDid(String did) {
+        if (!did.equals(lastUnmatchedDid.getAndSet(did))) {
+            monitor.warning(NAME + ": the issuer host is set but no issuer_dids row matches the rebuilt DID " + did
+                    + "; the binding may use a different published DID port");
         }
     }
 

@@ -30,6 +30,7 @@ import liquibase.Scope;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.command.CommandScope;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,9 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -68,6 +72,8 @@ class JdbcBoundIssuerIdentityReaderPostgresTest {
     private static final String STATUSLIST_BASE_URL = "https://cs.example:6187/statuslist";
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
+
+    private final RecordingMonitor monitor = new RecordingMonitor();
 
     @BeforeAll
     static void migrateAndGrant() throws Exception {
@@ -99,10 +105,26 @@ class JdbcBoundIssuerIdentityReaderPostgresTest {
     @Test
     void unboundWithNoIssuerDidsRow() throws Exception {
         setHost(HOST);
+        var rebuiltDid = IssuerDidFormat.didFor(HOST, LISTEN_DID_PORT);
 
         try (var reader = reader()) {
             assertThat(reader.read()).isEmpty();
         }
+
+        assertThat(monitor.warnings).hasSize(1);
+        assertThat(monitor.warnings.getFirst()).contains(rebuiltDid);
+    }
+
+    @Test
+    void warnsOnceWhenTheSameMismatchPersistsAcrossRepeatedReads() throws Exception {
+        setHost(HOST);
+
+        try (var reader = reader()) {
+            assertThat(reader.read()).isEmpty();
+            assertThat(reader.read()).isEmpty();
+        }
+
+        assertThat(monitor.warnings).hasSize(1);
     }
 
     @Test
@@ -124,6 +146,8 @@ class JdbcBoundIssuerIdentityReaderPostgresTest {
         try (var reader = reader()) {
             assertThat(reader.read()).isEmpty();
         }
+
+        assertThat(monitor.warnings).isEmpty();
     }
 
     @Test
@@ -165,8 +189,17 @@ class JdbcBoundIssuerIdentityReaderPostgresTest {
         }
     }
 
-    private static JdbcBoundIssuerIdentityReader reader() {
-        return new JdbcBoundIssuerIdentityReader(POSTGRES.getJdbcUrl(), ROLE, ROLE_PASSWORD, SCHEMA);
+    private JdbcBoundIssuerIdentityReader reader() {
+        return new JdbcBoundIssuerIdentityReader(POSTGRES.getJdbcUrl(), ROLE, ROLE_PASSWORD, SCHEMA, monitor);
+    }
+
+    private static final class RecordingMonitor implements Monitor {
+        private final List<String> warnings = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void warning(Supplier<String> supplier, Throwable... errors) {
+            warnings.add(supplier.get());
+        }
     }
 
     private static void setHost(String host) throws SQLException {

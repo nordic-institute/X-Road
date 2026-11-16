@@ -33,6 +33,7 @@ import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
@@ -63,10 +64,10 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
 
     private final Object readerLock = new Object();
 
-    private volatile BoundIssuerIdentity identity;
-    private volatile PeriodicMaterialReloader<BoundIssuerIdentity> reloader;
+    private final AtomicReference<BoundIssuerIdentity> identity = new AtomicReference<>();
+    private final AtomicReference<PeriodicMaterialReloader<BoundIssuerIdentity>> reloader = new AtomicReference<>();
+    private final AtomicReference<BoundIssuerIdentityReader> reader = new AtomicReference<>();
     private volatile boolean stopRequested;
-    private volatile BoundIssuerIdentityReader reader;
     private boolean readerClosed;
 
     public BoundIssuerIdentityHolder(Supplier<BoundIssuerIdentityReader> readerFactory, Monitor monitor) {
@@ -86,10 +87,11 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
         } catch (Exception e) {
             monitor.warning(NAME + ": the first load did not find a binding; starting degraded and polling", e);
         }
-        reloader = PeriodicMaterialReloader.scheduleUntilFirstLoad(NAME, pendingInterval, pendingInterval, 1, Duration.ZERO,
+        var scheduled = PeriodicMaterialReloader.scheduleUntilFirstLoad(NAME, pendingInterval, pendingInterval, 1, Duration.ZERO,
                 this::load, this::applyAndStop, monitor, null);
+        reloader.set(scheduled);
         if (stopRequested) {
-            reloader.close();
+            scheduled.close();
         }
     }
 
@@ -97,7 +99,7 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
      * @return the bound issuer identity, or empty while no binding has been loaded yet
      */
     public Optional<BoundIssuerIdentity> identity() {
-        return Optional.ofNullable(identity);
+        return Optional.ofNullable(identity.get());
     }
 
     @Override
@@ -118,14 +120,14 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
      * instead of being kept, so every poll after that builds and discards one.
      */
     private BoundIssuerIdentityReader acquireReader() {
-        var existing = reader;
+        var existing = reader.get();
         if (existing != null) {
             return existing;
         }
         var created = readerFactory.get();
         synchronized (readerLock) {
             if (!readerClosed) {
-                reader = created;
+                reader.set(created);
                 return created;
             }
         }
@@ -138,14 +140,14 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
     }
 
     private void applyAndStop(BoundIssuerIdentity bound) {
-        identity = bound;
+        identity.set(bound);
         closeReader();
         stopPolling();
     }
 
     private void stopPolling() {
         stopRequested = true;
-        var current = reloader;
+        var current = reloader.get();
         if (current != null) {
             current.close();
         }
@@ -154,8 +156,8 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
     private void closeReader() {
         synchronized (readerLock) {
             readerClosed = true;
-            closeQuietly(reader);
-            reader = null;
+            closeQuietly(reader.get());
+            reader.set(null);
         }
     }
 
