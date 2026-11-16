@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 # Writes the X-Road OpenBao server configuration and the systemd drop-in that makes
-# openbao.service read only that file. The OpenBao package's own configuration file is
+# openbao.service read only that file, unseal OpenBao after every start and restart it on
+# failure. The OpenBao package's own configuration file is
 # not read. The database connection comes from /etc/openbao/openbao.env.
 #
 # Usage: secret-store-cluster-config.sh
@@ -11,6 +12,7 @@ CONFIG_FILE=/etc/openbao/xroad-openbao.hcl
 DROP_IN_DIR=/etc/systemd/system/openbao.service.d
 DROP_IN_FILE="${DROP_IN_DIR}/xroad.conf"
 BAO_BINARY=/usr/bin/bao
+UNSEAL_SCRIPT=/usr/share/xroad/scripts/secret-store-unseal.sh
 TLS_CERT_FILE=/opt/openbao/tls/tls.crt
 TLS_KEY_FILE=/opt/openbao/tls/tls.key
 LOCAL_ADDRESS=127.0.0.1
@@ -58,6 +60,9 @@ drop_in() {
 [Service]
 ExecStart=
 ExecStart=${BAO_BINARY} server -config=${CONFIG_FILE}
+ExecStartPost=-+${UNSEAL_SCRIPT}
+Restart=on-failure
+RestartSec=5
 EOF
 }
 

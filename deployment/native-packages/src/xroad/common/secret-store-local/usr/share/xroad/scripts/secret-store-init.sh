@@ -34,30 +34,16 @@ else
   chown root:root "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"
 fi
 
-# Check if sealed and unseal if needed
+# Unsealing is the job of secret-store-unseal.sh, which also runs after every OpenBao start.
+# A freshly initialized store is still sealed, so unseal it here and require the result.
+/usr/share/xroad/scripts/secret-store-unseal.sh
 if is_sealed; then sealed_rc=0; else sealed_rc=$?; fi
 if [ "$sealed_rc" -eq 2 ]; then
   echo "Cannot determine OpenBao seal status; aborting" >&2
   exit 1
-elif [ "$sealed_rc" -ne 0 ]; then
-  echo "OpenBao is already unsealed"
-else
-  echo "Unsealing OpenBao..."
-  while IFS= read -r key || [ -n "$key" ]; do
-    if ! unseal "$BAO_ADDR" "$key"; then
-      echo "Failed to unseal OpenBao" >&2
-      exit 1
-    fi
-
-    if is_sealed; then sealed_rc=0; else sealed_rc=$?; fi
-    if [ "$sealed_rc" -eq 2 ]; then
-      echo "Cannot verify seal status after unseal; aborting" >&2
-      exit 1
-    elif [ "$sealed_rc" -ne 0 ]; then
-      echo "Successfully unsealed OpenBao"
-      break
-    fi
-  done < "$UNSEAL_KEYS_FILE"
+elif [ "$sealed_rc" -eq 0 ]; then
+  echo "OpenBao is sealed; aborting" >&2
+  exit 1
 fi
 
 wait_until_active || true

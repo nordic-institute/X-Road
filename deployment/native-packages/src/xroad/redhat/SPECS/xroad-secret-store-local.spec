@@ -46,6 +46,7 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/_openbao.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-unseal.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init-db.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-cluster-config.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/backup_openbao_db.sh

@@ -15,6 +15,7 @@ bao_api() {
     --connect-timeout 5 \
     --retry 3 \
     --retry-delay 2 \
+    ${BAO_API_MAX_TIME:+--max-time "$BAO_API_MAX_TIME"} \
     -X "$method" \
     "$host$endpoint" \
     -H "Content-Type: application/json" \

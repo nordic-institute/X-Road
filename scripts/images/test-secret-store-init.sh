@@ -29,6 +29,7 @@ CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 SETUP_SCRIPT="/usr/share/xroad/scripts/secret-store-init.sh"
 CONFIG_WRITER="/usr/share/xroad/scripts/secret-store-cluster-config.sh"
 TLS_SCRIPT="/usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh"
+UNSEAL_SCRIPT=""
 XROAD_CONFIG_FILE="/etc/openbao/xroad-openbao.hcl"
 DROP_IN_FILE="/etc/systemd/system/openbao.service.d/xroad.conf"
 BAO_LOG="/var/log/bao.log"
@@ -165,6 +166,30 @@ run_setup() {
   for arg in "$@"; do env_args+=(-e "${arg}"); done
   docker exec "${env_args[@]}" "${CONTAINER}" bash "${SETUP_SCRIPT}" >"${OUT_FILE}" 2>"${ERR_FILE}"
   RC=$?
+}
+
+# run_unseal [address]; runs the script the drop-in names as ExecStartPost, sets RC and the output files.
+run_unseal() {
+  docker exec -e "BAO_ADDR=${1:-${ADDR}}" "${CONTAINER}" timeout 150 bash "${UNSEAL_SCRIPT}" >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
+}
+
+start_hanging_listener() {
+  docker exec -d "${CONTAINER}" sh -c 'nc -ll -p 9999 -e sleep 600'
+  sleep 1
+}
+
+wait_for_active() {
+  for _ in $(seq 1 40); do
+    if [[ "$(in_container curl -sk -o /dev/null -w '%{http_code}' "${ADDR}/v1/sys/health")" == 200 ]]; then return 0; fi
+    sleep 1
+  done
+  log_error "OpenBao did not become active in the test container"
+  exit 1
+}
+
+seal_status_field() {
+  in_container curl -sk "${ADDR}/v1/sys/seal-status" | jq -r ".$1"
 }
 
 run_setup_with_curl_shim() {
@@ -434,6 +459,10 @@ scenario_initializing_node() {
   check_eq "drop-in: one -config argument" 1 "$(in_container grep -o -- '-config=' "${DROP_IN_FILE}" | wc -l | tr -d ' ')"
   check "drop-in: ExecStart is cleared first" in_container grep -qx 'ExecStart=' "${DROP_IN_FILE}"
   check "drop-in: only the X-Road file is read" in_container grep -qE "^ExecStart=/usr/bin/bao server -config=${XROAD_CONFIG_FILE}\$" "${DROP_IN_FILE}"
+  UNSEAL_SCRIPT="$(in_container sed -n 's/^ExecStartPost=[-+@!:]*//p' "${DROP_IN_FILE}")"
+  check_eq "drop-in: ExecStartPost runs the unseal-only script" /usr/share/xroad/scripts/secret-store-unseal.sh "${UNSEAL_SCRIPT}"
+  check "drop-in: OpenBao restarts on failure" in_container grep -qx 'Restart=on-failure' "${DROP_IN_FILE}"
+  check "drop-in: restart delay is set" in_container grep -qE '^RestartSec=[0-9]+$' "${DROP_IN_FILE}"
   check "OpenBao log: no unknown or unsupported field" test "$(in_container grep -c 'unknown or unsupported field' "${BAO_LOG}")" -eq 0
   local config_before
   config_before="$(config_state)"
@@ -455,7 +484,54 @@ scenario_initializing_node() {
   check "initialised node rerun: exit 0" test "${RC}" -eq 0
   check_eq "initialised node rerun: state unchanged" "${before}" "${after}"
   check_modes "initialised node rerun"
-  log_info "Scenario: sealed OpenBao after a restart"
+
+  log_info "Scenario: unseal-only script on a sealed OpenBao after a restart"
+  docker restart "${CONTAINER}" >/dev/null
+  wait_for_server
+  check_eq "after restart: OpenBao is sealed" true "$(seal_status_field sealed)"
+  run_unseal
+  check "unseal-only: exit 0" test "${RC}" -eq 0
+  check_eq "unseal-only: OpenBao is unsealed" false "$(seal_status_field sealed)"
+  check_no_issued_secrets_in_output "unseal-only"
+  wait_for_active
+
+  log_info "Scenario: unseal-only script on an unsealed OpenBao"
+  run_unseal
+  check "unseal-only on unsealed: exit 0" test "${RC}" -eq 0
+  check "unseal-only on unsealed: reports it is already unsealed" grep -q "already unsealed" "${OUT_FILE}"
+  check_eq "unseal-only on unsealed: OpenBao stays unsealed" false "$(seal_status_field sealed)"
+  check_eq "unseal-only on unsealed: state unchanged" "${before}" "$(state_snapshot)"
+
+  log_info "Scenario: unseal-only script with OpenBao unreachable"
+  run_unseal "https://127.0.0.1:9"
+  check "unseal-only unreachable: exit 0" test "${RC}" -eq 0
+  check "unseal-only unreachable: stops after the last readiness attempt" grep -q "attempt 30/30" "${OUT_FILE}"
+  check "unseal-only unreachable: logs why" grep -q "not reachable" "${ERR_FILE}"
+
+  log_info "Scenario: unseal-only script with a listener that accepts and never answers"
+  start_hanging_listener
+  run_unseal "http://127.0.0.1:9999"
+  check "unseal-only hung: exit 0" test "${RC}" -eq 0
+  check "unseal-only hung: each call is cut off by its time limit" grep -q "Connection failed (exit code: 28)" "${ERR_FILE}"
+  check "unseal-only hung: logs that the run was cut off" grep -q "did not complete within" "${ERR_FILE}"
+
+  log_info "Scenario: unseal-only script on a sealed OpenBao without usable unseal keys"
+  docker restart "${CONTAINER}" >/dev/null
+  wait_for_server
+  check_eq "no keys: OpenBao is sealed" true "$(seal_status_field sealed)"
+  in_container mv "${UNSEAL_KEYS_FILE}" "${UNSEAL_KEYS_FILE}.saved"
+  run_unseal
+  check "missing keys file: exit 0" test "${RC}" -eq 0
+  check "missing keys file: logs the keys file is missing or empty" grep -q "missing or empty" "${ERR_FILE}"
+  check_eq "missing keys file: OpenBao stays sealed" true "$(seal_status_field sealed)"
+  in_container sh -c ": > ${UNSEAL_KEYS_FILE}"
+  run_unseal
+  check "empty keys file: exit 0" test "${RC}" -eq 0
+  check "empty keys file: logs the keys file is missing or empty" grep -q "missing or empty" "${ERR_FILE}"
+  check_eq "empty keys file: OpenBao stays sealed" true "$(seal_status_field sealed)"
+  in_container mv "${UNSEAL_KEYS_FILE}.saved" "${UNSEAL_KEYS_FILE}"
+
+  log_info "Scenario: setup script on a sealed OpenBao after a restart"
   docker restart "${CONTAINER}" >/dev/null
   wait_for_server
   check_eq "after restart: configuration unchanged" "${config_before}" "$(config_state)"
@@ -463,6 +539,7 @@ scenario_initializing_node() {
   check_provisioned "after restart"
   check_eq "after restart: state unchanged" "${before}" "$(state_snapshot)"
 }
+
 if ! command -v jq >/dev/null 2>&1; then
   log_error "jq is required on the host"
   exit 1
