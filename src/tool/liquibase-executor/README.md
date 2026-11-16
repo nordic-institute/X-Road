@@ -38,7 +38,7 @@ Every EDC version bump (`edc` in `src/gradle/libs.versions.toml`) needs these st
 1. **List the stores each component loads.** EDC is built from two repositories,
    [Connector](https://github.com/eclipse-edc/Connector) and
    [IdentityHub](https://github.com/eclipse-edc/IdentityHub). Check out both at the tag `v<version>`, with
-   `<version>` the `edc` value in `src/gradle/libs.versions.toml` (for example `v1.0.0-RC6`).
+   `<version>` the `edc` value in `src/gradle/libs.versions.toml` (for example `v1.0.0-RC7`).
    Take the dependencies whose artifact in `src/gradle/libs.versions.toml` ends in `-store-sql` in
    `ds-control-plane-db/build.gradle.kts`, `ds-identity-hub-db/build.gradle.kts` and
    `ds-issuer-service-application/build.gradle.kts`. The `sql-core`, `sql-pool` and `sql-lease` modules
