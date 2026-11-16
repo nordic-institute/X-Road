@@ -68,12 +68,14 @@ class SharedParametersV7MarshallerTest {
         sharedParamsBuilder.approvedConnectorTlsCAs(List.of(approvedConnectorTlsCA));
 
         sharedParamsBuilder.credentialIssuerDids(List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer"));
+        sharedParamsBuilder.issuerDataFreshnessSeconds(600);
 
         final String result = marshaller.marshall(sharedParamsBuilder.build());
 
         assertThat(result).isNotBlank();
         assertThat(result).contains("approvedConnectorTlsCA", "connectorTlsCertificateProfileId", "credentialIssuer",
-                "did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer");
+                "did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer",
+                "<issuerDataFreshnessSeconds>600</issuerDataFreshnessSeconds>");
         System.out.println(result);
     }
 

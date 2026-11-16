@@ -8788,7 +8788,7 @@ components:
         dataspace_ready:
           type: boolean
           readOnly: true
-          description: whether the data space is ready, that is globalconf lists a credential issuer for this instance
+          description: whether the data space is ready, that is a valid (unexpired) globalconf lists a credential issuer for this instance
         dsp_base_url:
           type: string
           readOnly: true

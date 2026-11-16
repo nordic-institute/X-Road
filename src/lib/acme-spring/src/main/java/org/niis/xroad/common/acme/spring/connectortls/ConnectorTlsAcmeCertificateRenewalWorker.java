@@ -26,6 +26,7 @@
 package org.niis.xroad.common.acme.spring.connectortls;
 
 import ee.ria.xroad.common.crypto.RsaKeyManager;
+import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,6 @@ import java.security.SignatureException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -74,7 +74,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class ConnectorTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
     private static final int DS_TLS_KEY_LENGTH = 2048;
-    private static final int GENERAL_NAME_DNS = 2;
 
     private final GlobalConfProvider globalConfProvider;
     private final DsTlsCertificateService connectorTlsCertificateService;
@@ -190,22 +189,11 @@ public class ConnectorTlsAcmeCertificateRenewalWorker implements AcmeRenewalWork
     }
 
     private static String firstDnsSan(X509Certificate certificate) {
-        Collection<List<?>> sans;
         try {
-            sans = certificate.getSubjectAlternativeNames();
+            return CertUtils.getDnsSubjectAlternativeNames(certificate).stream().findFirst().orElse(null);
         } catch (CertificateParsingException e) {
             throw XrdRuntimeException.systemException(e);
         }
-        if (sans == null) {
-            return null;
-        }
-        return sans.stream()
-                .filter(san -> san.size() > 1 && Integer.valueOf(GENERAL_NAME_DNS).equals(san.get(0)))
-                .map(san -> san.get(1))
-                .filter(String.class::isInstance)
-                .map(String.class::cast)
-                .findFirst()
-                .orElse(null);
     }
 
     /**

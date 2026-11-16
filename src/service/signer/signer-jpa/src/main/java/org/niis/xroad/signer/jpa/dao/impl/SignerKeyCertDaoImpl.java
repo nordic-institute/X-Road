@@ -27,13 +27,13 @@ package org.niis.xroad.signer.jpa.dao.impl;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.hibernate.Session;
-import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
+import org.niis.xroad.signer.jpa.dao.AbstractSignerDaoImpl;
 import org.niis.xroad.signer.jpa.entity.SignerCertificateEntity;
 
 import java.time.Instant;
 
 @ApplicationScoped
-public class SignerKeyCertDaoImpl extends AbstractDAOImpl<SignerCertificateEntity> {
+public class SignerKeyCertDaoImpl extends AbstractSignerDaoImpl<SignerCertificateEntity> {
 
     public boolean setActive(Session session, Long id, boolean active) {
         var query = session.createMutationQuery("UPDATE SignerCertificateEntity SET active = :active WHERE id = :id");

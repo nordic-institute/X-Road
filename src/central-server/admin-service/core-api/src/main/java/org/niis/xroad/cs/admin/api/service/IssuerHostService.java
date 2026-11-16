@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import jakarta.annotation.Nullable;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
 
 /**
@@ -38,6 +39,13 @@ public interface IssuerHostService {
      * @return the current issuer host and whether the issuer identity is bound
      */
     IssuerHostState getState();
+
+    /**
+     * @return the current issuer host, or {@code null} when not set, without reading whether the issuer
+     * identity is bound
+     */
+    @Nullable
+    String getHost();
 
     /**
      * Stores the given host as the Issuer Service's shared host.

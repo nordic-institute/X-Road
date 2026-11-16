@@ -178,6 +178,7 @@ describe('Local Groups — add dialog: invalid description blocked (Browser Mode
 
     await expect.element(page.getByTestId('dialog-save-button')).toBeVisible();
     await expect.element(page.getByTestId('dialog-save-button')).toBeDisabled();
+    await expect.element(page.getByTestId('add-local-group-code-input').getByRole('textbox')).toHaveFocus();
 
     await page.getByTestId('add-local-group-code-input').getByRole('textbox').fill('group-1');
 

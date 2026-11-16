@@ -41,7 +41,6 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
@@ -128,7 +127,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         XRoadConfig proxyServerUrlXRoadConfig() {
             return XRoadConfigBuilder.create()
                     .register(CommonRpcConfigKeys.instance())
-                    .register(CommonConfigKeys.instance())
                     .register(AdminServiceConfigKeys.instance())
                     .register(OcspVerifierConfigKeys.instance())
                     .register(GlobalConfConfigKeys.instance())

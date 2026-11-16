@@ -29,10 +29,16 @@ package org.niis.xroad.common.vault;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
 public class NoopVaultClient implements VaultClient {
+    @Override
+    public VaultClient withRetryBudget(Duration budget) {
+        return this;
+    }
+
     @Override
     public InternalSSLKey getInternalTlsCredentials() {
         return new InternalSSLKey(null, new X509Certificate[]{});

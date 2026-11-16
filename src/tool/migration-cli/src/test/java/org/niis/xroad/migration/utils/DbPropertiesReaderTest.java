@@ -27,38 +27,28 @@
 
 package org.niis.xroad.migration.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DbPropertiesReaderTest {
 
     @TempDir
     Path tempDir;
-
-    @Test
-    void shouldReadCredentialsWithCustomDbKey() throws IOException {
-        Path propertiesPath = writeProperties("messagelog", """
-            xroad.db.messagelog.hibernate.connection.url=jdbc:postgresql://127.0.0.1:5432/messagelog
-            xroad.db.messagelog.hibernate.hikari.dataSource.currentSchema=messagelog
-            xroad.db.messagelog.hibernate.connection.username=messagelog
-            xroad.db.messagelog.hibernate.connection.password=topsecret
-            """);
-
-        DbCredentials credentials = DbPropertiesReader.readDbCredentials(propertiesPath, "messagelog");
-
-        assertEquals("jdbc:postgresql://127.0.0.1:5432/messagelog", credentials.jdbcUrl());
-        assertEquals("messagelog", credentials.username());
-        assertArrayEquals("topsecret".toCharArray(), credentials.password());
-        assertEquals("messagelog", credentials.schema());
-    }
 
     @Test
     void shouldFailWhenRequiredPropertyMissing() throws IOException {
@@ -67,7 +57,132 @@ class DbPropertiesReaderTest {
             xroad.db.serverconf.hibernate.connection.username=serverconf
             """);
 
-        assertThrows(RuntimeException.class, () -> DbPropertiesReader.readDbCredentials(propertiesPath, null));
+        assertThrows(IllegalStateException.class,
+                () -> DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.SECURITY_SERVER));
+    }
+
+    @ParameterizedTest
+    @EnumSource(InstallationType.class)
+    void shouldNameMissingFileExactlyOnce(InstallationType installationType) {
+        Path missing = tempDir.resolve("absent.properties");
+
+        var exception = assertThrows(IllegalStateException.class,
+                () -> DbPropertiesReader.readForInstallation(missing, installationType));
+
+        assertEquals(1, StringUtils.countMatches(exception.getMessage(), missing.toString()));
+    }
+
+    @Test
+    void shouldReadCentralServerKeysKeepingSchemaListUnchanged() throws IOException {
+        Path propertiesPath = writeProperties("cs", centralServerProperties("""
+            spring.datasource.hikari.data-source-properties.currentSchema=centerui,public
+            """));
+
+        DbCredentials credentials =
+                DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.CENTRAL_SERVER);
+
+        assertEquals("jdbc:postgresql://127.0.0.1:5432/centerui_production", credentials.jdbcUrl());
+        assertEquals("centerui", credentials.username());
+        assertArrayEquals("cs-secret".toCharArray(), credentials.password());
+        assertEquals("centerui,public", credentials.schema());
+    }
+
+    @Test
+    void shouldReadSecurityServerKeysIncludingSchema() throws IOException {
+        Path propertiesPath = writeProperties("ss", securityServerProperties("""
+            xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema=serverconf
+            """));
+
+        DbCredentials credentials =
+                DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.SECURITY_SERVER);
+
+        assertEquals("jdbc:postgresql://127.0.0.1:5432/serverconf", credentials.jdbcUrl());
+        assertEquals("serverconf", credentials.username());
+        assertArrayEquals("ss-secret".toCharArray(), credentials.password());
+        assertEquals("serverconf", credentials.schema());
+    }
+
+    @Test
+    void shouldReturnNoSchemaWhenCentralServerSchemaKeyIsAbsent() throws IOException {
+        Path propertiesPath = writeProperties("cs", centralServerProperties(""));
+
+        DbCredentials credentials =
+                DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.CENTRAL_SERVER);
+
+        assertNull(credentials.schema());
+    }
+
+    @Test
+    void shouldReturnNoSchemaWhenSecurityServerSchemaKeyIsAbsent() throws IOException {
+        Path propertiesPath = writeProperties("ss", securityServerProperties(""));
+
+        DbCredentials credentials =
+                DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.SECURITY_SERVER);
+
+        assertNull(credentials.schema());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "CENTRAL_SERVER, spring.datasource.url",
+        "CENTRAL_SERVER, spring.datasource.username",
+        "CENTRAL_SERVER, spring.datasource.password",
+        "SECURITY_SERVER, xroad.db.serverconf.hibernate.connection.url",
+        "SECURITY_SERVER, xroad.db.serverconf.hibernate.connection.username",
+        "SECURITY_SERVER, xroad.db.serverconf.hibernate.connection.password"})
+    void shouldNameFileAndKeyWhenKeyIsMissing(InstallationType installationType, String missingKey) throws IOException {
+        String contents = switch (installationType) {
+            case CENTRAL_SERVER -> centralServerProperties("");
+            case SECURITY_SERVER -> securityServerProperties("");
+        };
+        Path propertiesPath = writeProperties("db", contents
+                .lines()
+                .filter(line -> !line.startsWith(missingKey + "="))
+                .collect(Collectors.joining("\n")));
+
+        var exception = assertThrows(IllegalStateException.class,
+                () -> DbPropertiesReader.readForInstallation(propertiesPath, installationType));
+
+        assertTrue(exception.getMessage().contains(propertiesPath.toString()));
+        assertTrue(exception.getMessage().contains("'" + missingKey + "'"));
+    }
+
+    @Test
+    void shouldFailOnSecurityServerFileInCentralServerMode() throws IOException {
+        Path propertiesPath = writeProperties("ss", securityServerProperties(""));
+
+        var exception = assertThrows(IllegalStateException.class,
+                () -> DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.CENTRAL_SERVER));
+
+        assertTrue(exception.getMessage().contains(propertiesPath.toString()));
+        assertTrue(exception.getMessage().contains("'spring.datasource.url'"));
+    }
+
+    @Test
+    void shouldFailOnCentralServerFileInSecurityServerMode() throws IOException {
+        Path propertiesPath = writeProperties("cs", centralServerProperties(""));
+
+        var exception = assertThrows(IllegalStateException.class,
+                () -> DbPropertiesReader.readForInstallation(propertiesPath, InstallationType.SECURITY_SERVER));
+
+        assertTrue(exception.getMessage().contains(propertiesPath.toString()));
+        assertTrue(exception.getMessage().contains("'xroad.db.serverconf.hibernate.connection.url'"));
+    }
+
+    private static String centralServerProperties(String extra) {
+        return """
+            spring.datasource.url=jdbc:postgresql://127.0.0.1:5432/centerui_production
+            spring.datasource.username=centerui
+            spring.datasource.password=cs-secret
+            """ + extra;
+    }
+
+    private static String securityServerProperties(String extra) {
+        return """
+            xroad.db.serverconf.hibernate.connection.url=jdbc:postgresql://127.0.0.1:5432/serverconf
+            xroad.db.serverconf.hibernate.connection.username=serverconf
+            xroad.db.serverconf.hibernate.connection.password=ss-secret
+            """ + extra;
     }
 
     private Path writeProperties(String filePrefix, String contents) throws IOException {

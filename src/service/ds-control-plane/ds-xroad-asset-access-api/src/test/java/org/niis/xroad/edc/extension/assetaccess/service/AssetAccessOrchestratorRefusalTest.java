@@ -33,6 +33,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -73,11 +74,12 @@ class AssetAccessOrchestratorRefusalTest extends AssetAccessOrchestratorTestSupp
         assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-1");
     }
 
-    @Test
-    void aProviderRefusalRemovesTheEntryAndRenegotiatesExactlyOnce() throws Exception {
+    @ParameterizedTest
+    @ValueSource(ints = {400, 404})
+    void aProviderRefusalRemovesTheEntryAndRenegotiatesExactlyOnce(int status) throws Exception {
         stubRenegotiationAfterReuse();
         when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
-                Stream.of(terminatedTransfer("tp-1", providerAnswer(404, "agreement not found or not valid"))));
+                Stream.of(terminatedTransfer("tp-1", providerAnswer(status, "agreement not found or not valid"))));
         startedAddress("tp-2", "http://provider/data-tp-2");
 
         var result = acquire(GROUP_CLIENT_A);

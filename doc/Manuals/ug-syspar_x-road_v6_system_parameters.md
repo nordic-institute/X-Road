@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.108
+Version: 2.110
 Doc. ID: UG-SYSPAR
 
 
@@ -119,6 +119,8 @@ Doc. ID: UG-SYSPAR
 | 28.09.2026 | 2.106   | Added *dataspace.provisioning-enabled* parameter                                                                                                                                                                                                                                                                                                                                                               | Ovidijus Narkevicius       |
 | 21.10.2026 | 2.107   | Documented X-Road 8 per-request behaviour of *client-connector-max-idle-time*                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius       |
 | 06.11.2026 | 2.108   | Added *xroad.common-rpc.use-tls* parameter                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets              |
+| 13.11.2026 | 2.109   | Added new *issuerDataFreshnessSeconds* system parameter, distributed in global configuration version 7                                                                                                                                                                                                                                                                                                         | Stefan Cvetkovski          |
+| 15.11.2026 | 2.110   | Documented the scope, the value 0 and the services to restart of the *xroad.common.vault-retry.budget* secret store retry                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas          |
 
 ## Table of Contents
 
@@ -148,6 +150,7 @@ Doc. ID: UG-SYSPAR
         - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
             - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
                 - [4.1.1.1 Internal gRPC connections: `xroad.common-rpc`](#4111-internal-grpc-connections-xroadcommon-rpc)
+                - [4.1.1.2 Secret store retry: `xroad.common.vault-retry`](#4112-secret-store-retry-xroadcommonvault-retry)
             - [4.1.2 Center parameters: `[center]`](#412-center-parameters-center)
             - [4.1.3 Center parameters: `[admin-service]`](#413-center-parameters-admin-service)
             - [4.1.4 Signer parameters: `[signer]`](#414-signer-parameters-signer)
@@ -281,6 +284,8 @@ This chapter describes the system parameters used by the components of the X-Roa
 | grpc-internal-keystore-password   | \<generated-value>                               | gRPC keystore password.                                              |
 | grpc-internal-truststore          | /var/run/xroad/xroad-grpc-internal-keystore.p12 | gRPC truststore for mTLS configuration.                              |
 | grpc-internal-truststore-password | \<generated-value>                               | gRPC truststore password.                                            |
+
+The time limit for retrying calls to the secret store is the X-Road 8 configuration property `xroad.common.vault-retry.budget`. It has the same default value of 30 s on the Security Server and on the Central Server. See section [4.1.1.2](#4112-secret-store-retry-xroadcommonvault-retry).
 
 ### 3.2 Proxy parameters: `[proxy]`
 
@@ -546,9 +551,11 @@ with some additional limitations on configurability (see details in proxy chapte
 
 ## 4 Central Server System Parameters
 
-The system parameters described in this chapter are used by the X-Road central server, except for the parameters *ocspFreshnessSeconds* and *timeStampingIntervalSeconds.*
+The system parameters described in this chapter are used by the X-Road central server, except for the parameters *ocspFreshnessSeconds*, *timeStampingIntervalSeconds* and *issuerDataFreshnessSeconds.*
 
 The values of *ocspFreshnessSeconds* and *timeStampingIntervalSeconds* are distributed to the security servers via the global configuration. These parameters determine the interval of calling OCSP responder services and time-stamping services (respectively) by the security servers.
+
+The value of *issuerDataFreshnessSeconds* is also distributed to the security servers via the global configuration, starting from global configuration version 7. It determines how long the security servers keep using the last good Issuer Service data when the Issuer Service cannot be reached.
 
 ### 4.1 System Parameters in the Configuration File
 
@@ -570,6 +577,37 @@ The parameter in this section is an X-Road 8 configuration property, not an INI 
 | **Parameter**              | **Default value** | **Description** |
 |----------------------------|-------------------|-----------------|
 | `xroad.common-rpc.use-tls` | true              | For testing only; do not set to *false* in production. When enabled, mutual TLS is used for all gRPC communication between the internal services of the server. On the Security Server this includes the connection to the operational monitoring daemon. When *false*, every internal gRPC connection is unencrypted. On the Security Server, the Operational Monitoring CA and `xroad.op-monitor.rpc.allowed-client-names` \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\] are then not applied, so traffic to an external operational monitoring daemon is neither encrypted nor authenticated. |
+
+##### 4.1.1.2 Secret store retry: `xroad.common.vault-retry`
+
+The parameter in this section is an X-Road 8 configuration property, not an INI file parameter. It applies to the Security Server and to the Central Server. It is not shown in the System Parameters view of the user interface. Set it in the database with the script `/usr/share/xroad/scripts/db_property.sh`, for example:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.common.vault-retry.budget 45s
+```
+
+The services read the value once when they start, so after a change restart these services:
+
+* Security Server: `xroad-signer`, `xroad-proxy`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-ds-control-plane` and `xroad-ds-identity-hub`.
+* Central Server: `xroad-center`, `xroad-signer`, `xroad-ds-issuer-service`, `xroad-center-management-service`, `xroad-center-registration-service` and `xroad-confproxy` if installed.
+
+The other X-Road services do not call the secret store key-value API, so they do not need a restart.
+
+A value that cannot be parsed or is outside the allowed range stops the services from starting. The script `db_property.sh` does not check the value.
+
+| **Parameter**                     | **Default value** | **Description** |
+|-----------------------------------|-------------------|-----------------|
+| `xroad.common.vault-retry.budget` | 30s               | Total time a call to the secret store (OpenBao) is retried before it fails. Allowed values are from 0 to 5 minutes. With the value 0, a call makes one attempt and is not retried. If the secret store is not available, the call still fails with the error code `secret_store_unavailable`. Accepted formats are a number with the unit `ms`, `s`, `m`, `h` or `d` (for example `500ms`, `30s` or `5m`), an ISO-8601 duration (for example `PT30S`) and a bare number of seconds (for example `30`). |
+
+The retry covers the calls that the X-Road services make to the secret store through their key-value client: secrets, token PINs, TLS credentials and message log keys. The reload of the dataspace HTTPS keystore is the exception among the TLS credentials: this setting does not cover it. After the first load, each periodic reload makes up to 3 attempts, 2 s apart, and then waits for the next periodic reload. The calls that issue certificates (PKI) are not covered either. They make one attempt and fail on the first error.
+
+The dataspace connector (`xroad-ds-control-plane`), the identity hub (`xroad-ds-identity-hub`) and the Issuer Service (`xroad-ds-issuer-service`) are built on EDC and access the secret store through EDC's own vault client. This setting does not cover that client. EDC retries its connection failures itself. It does not retry error responses.
+
+When a call to the secret store fails because the secret store is not available, the service waits and tries again until the time limit is used up. The time limit is the total elapsed time. An attempt that fails just before the limit is still followed by one more wait (up to 5 s) and one more attempt (up to the connect timeout of 5 s plus the read timeout of 10 s). With the default values, a call fails after about 50 s at most. The wait between attempts grows from 500 ms, doubles after each attempt and stays at 5 s at most. Each failed attempt writes one WARN line to the log of the service. When the time limit is used up, the call fails with the error code `secret_store_unavailable`. The details of the failure contain the last cause.
+
+These failures are retried: HTTP status 5xx and 307 (for example, a secret store that is sealed, starting up or has no leader), refused connections and timeouts. Other failures are never retried: the status 404 for a missing secret, any other 4xx status, and TLS handshake failures, for example a certificate that the client rejects.
+
+Each HTTP request to the secret store has a connect timeout of 5 s and a read timeout of 10 s. They apply to every call of the X-Road services to the secret store, including the calls that issue certificates. The services based on Quarkus use the Quarkus properties `quarkus.vault.connect-timeout` and `quarkus.vault.read-timeout`. The services based on Spring Boot use `spring.cloud.vault.connection-timeout` and `spring.cloud.vault.read-timeout`. Both are part of the packaged defaults of the services. The dataspace connector's own vault client does not use these properties.
 
 #### 4.1.2 Center parameters: `[center]`
 
@@ -665,6 +703,7 @@ This section describes the system parameters used by the X-Road central server. 
 | confSignCertHashAlgoUri     | string         | http://www.w3.org/2001/04/xmlenc#sha512 | URI of the algorithm used for calculating the hash value of the certificate used to sign the global configuration.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512.            |
 | ocspFreshnessSeconds        | integer        | 3600                                    | Defines the validity period (in seconds) for the OCSP responses retrieved from the OCSP responders. OCSP responses older than the validity period are considered expired and cannot be used for certificate verification.                       |
 | timeStampingIntervalSeconds | integer        | 60                                      | Defines the interval of time-stamping service calls. Interval in seconds after which message log records must be timestamped. The interval must be between 60 and 86400 seconds. **Note: this value must be less than *ocspFreshnessSeconds.*** |
+| issuerDataFreshnessSeconds  | integer        | 600                                     | How long security servers keep using the last good Issuer Service data after it should have been refreshed, when the Issuer Service cannot be reached. 0 = the data is not used once a refresh fails. |
 
 ## 5 Configuration Proxy System Parameters
 

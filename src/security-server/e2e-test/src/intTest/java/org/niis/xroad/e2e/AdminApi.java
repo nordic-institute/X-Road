@@ -39,6 +39,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_CREATED;
@@ -59,10 +61,12 @@ class AdminApi {
 
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
+    private static final int MEMBER_ID_PARTS = 3;
     private static final int CLIENT_ID_PARTS = 4;
     private static final String REGISTERED_STATUS = "REGISTERED";
     private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
     private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
+    /** The {@code credential_status} of a participant context whose membership credential has been issued. */
     private static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
     private static final Duration CREDENTIAL_ISSUED_POLL_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration CREDENTIAL_ISSUED_POLL_INTERVAL = Duration.ofSeconds(5);
@@ -262,25 +266,27 @@ class AdminApi {
     }
 
     /**
-     * Adds the subsystem {@code clientId} ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}) as a local client,
-     * tolerating a warm rerun where it already exists: {@code ClientService} rejects a duplicate with
-     * {@code ClientAlreadyExistsException}, a {@code ConflictException} mapped to 409. The client id is
-     * deterministic, so it is returned on either status.
+     * Adds the client {@code clientId} ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}, or {@code INSTANCE:CLASS:CODE} for
+     * a member) as a local client, tolerating a warm rerun where it already exists: {@code ClientService}
+     * rejects a duplicate with {@code ClientAlreadyExistsException}, a {@code ConflictException} mapped to 409.
+     * The client id is deterministic, so it is returned on either status.
      */
     static String addLocalClient(String baseUrl, AdminSession session, String clientId) {
         var parts = clientId.split(":", -1);
-        assertThat(parts).as("subsystem client id %s", clientId).hasSize(CLIENT_ID_PARTS);
+        assertThat(parts).as("member or subsystem client id %s", clientId).hasSizeBetween(MEMBER_ID_PARTS, CLIENT_ID_PARTS);
+        var subsystemField = parts.length == CLIENT_ID_PARTS
+                ? "\"subsystem_code\": \"%s\",".formatted(parts[CLIENT_ID_PARTS - 1]) : "";
         var body = """
                 {
                   "ignore_warnings": true,
                   "client": {
                     "member_class": "%s",
                     "member_code": "%s",
-                    "subsystem_code": "%s",
+                    %s
                     "connection_type": "HTTP"
                   }
                 }
-                """.formatted(parts[1], parts[2], parts[parts.length - 1]);
+                """.formatted(parts[1], parts[2], subsystemField);
         var response = sendJson(session, Method.POST, baseUrl + "/api/v1/clients", body);
         assertThat(response.getStatusCode())
                 .as("add local client %s (201 first run, 409 if it already exists on a warm rerun)", clientId)
@@ -363,35 +369,66 @@ class AdminApi {
      * {@code memberCtxId} ({@code INSTANCE:CLASS:CODE}) with an ISSUED membership credential.
      */
     static void awaitMemberCredentialIssued(String baseUrl, AdminSession session, String memberCtxId) {
+        awaitMemberContext(baseUrl, session, memberCtxId, "membership credential of %s is ISSUED".formatted(memberCtxId),
+                context -> ISSUED_CREDENTIAL_STATUS.equals(context.get("credential_status")));
+    }
+
+    /**
+     * Waits until the provisioning status entry of the MEMBER participant context {@code memberCtxId}
+     * satisfies {@code done}, and returns that entry. The entry is the context's fields as the admin API
+     * reports them, for example {@code credential_status}, {@code publication_state} and
+     * {@code publication_reason}.
+     */
+    static Map<String, Object> awaitMemberContext(String baseUrl, AdminSession session, String memberCtxId,
+                                                  String alias, Predicate<Map<String, Object>> done) {
+        var observed = new AtomicReference<Map<String, Object>>();
         Awaitility.await()
-                .alias("membership credential of %s is ISSUED".formatted(memberCtxId))
+                .alias(alias)
                 .pollInterval(CREDENTIAL_ISSUED_POLL_INTERVAL)
                 .timeout(CREDENTIAL_ISSUED_POLL_TIMEOUT)
                 .ignoreExceptions()
                 .until(() -> {
                     var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
-                    return response.getStatusCode() == HTTP_OK
-                            && ISSUED_CREDENTIAL_STATUS.equals(response.jsonPath().getString(
+                    if (response.getStatusCode() != HTTP_OK) {
+                        return false;
+                    }
+                    Map<String, Object> context = response.jsonPath().getMap(
                             "participant_contexts.find { it.kind == 'MEMBER' && it.participant_id == '"
-                                    + memberCtxId + "' }.credential_status"));
+                                    + memberCtxId + "' }");
+                    observed.set(context);
+                    return context != null && done.test(context);
                 });
+        return observed.get();
+    }
+
+    /** The DSP base URL the Security Server's provisioning status reports for the server itself. */
+    static String dspBaseUrl(String baseUrl, AdminSession session) {
+        var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
+        assertThat(response.getStatusCode()).as("GET /dataspace/provisioning-status of %s", baseUrl).isEqualTo(HTTP_OK);
+        var dspBaseUrl = response.jsonPath().getString("server.dsp_base_url");
+        assertThat(dspBaseUrl).as("server.dsp_base_url of %s", baseUrl).isNotBlank();
+        return dspBaseUrl;
     }
 
     /**
      * Whether the Security Server's global client search, which reads global configuration members, returns
-     * {@code clientId}. The search matches by substring, so the returned ids are compared exactly.
+     * {@code clientId} ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}, or {@code INSTANCE:CLASS:CODE} for a member). The
+     * search matches by substring, so the returned ids are compared exactly.
      */
     static boolean globalClientKnown(String baseUrl, AdminSession session, String clientId) {
         var parts = clientId.split(":", -1);
-        assertThat(parts).as("subsystem client id %s", clientId).hasSize(CLIENT_ID_PARTS);
-        var response = authed(session)
+        assertThat(parts).as("member or subsystem client id %s", clientId).hasSizeBetween(MEMBER_ID_PARTS, CLIENT_ID_PARTS);
+        var isSubsystem = parts.length == CLIENT_ID_PARTS;
+        var search = authed(session)
                 .queryParam("instance", parts[0])
                 .queryParam("member_class", parts[1])
                 .queryParam("member_code", parts[2])
-                .queryParam("subsystem_code", parts[parts.length - 1])
                 .queryParam("internal_search", false)
-                .queryParam("show_members", false)
-                .get(baseUrl + "/api/v1/clients");
+                .queryParam("show_members", !isSubsystem);
+        if (isSubsystem) {
+            search.queryParam("subsystem_code", parts[CLIENT_ID_PARTS - 1]);
+        }
+        var response = search.get(baseUrl + "/api/v1/clients");
         return response.getStatusCode() == HTTP_OK && response.jsonPath().getList("id", String.class).contains(clientId);
     }
 

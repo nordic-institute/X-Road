@@ -35,7 +35,6 @@ services:
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
       - DB_CONFIG_SOURCE_PASSWORD=secret
-      - XROAD_NODE_NAME=node_a
       - XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=4321
       - QUARKUS_LOG_LEVEL=INFO
       - QUARKUS_LOG_CATEGORY__ORG_NIIS_XROAD_SIGNER__LEVEL=DEBUG
@@ -59,6 +58,49 @@ services:
     volumes:
       - ./signer-container-files/etc/xroad/globalconf:/etc/xroad/globalconf
       - softhsm-tokens:/var/lib/softhsm/tokens/
+  signer-node-b:
+    build:
+      context: ./signer-container-files/
+      args:
+        - SIGNER_IMG=${SIGNER_IMG}
+      dockerfile: Dockerfile
+    pull_policy: always
+    environment:
+      - XROAD_HOST=signer-node-b
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
+      - XROAD_NODE_NAME=node_b
+      - XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=4321
+      - QUARKUS_LOG_LEVEL=INFO
+      - QUARKUS_LOG_CATEGORY__ORG_NIIS_XROAD_SIGNER__LEVEL=DEBUG
+    ports:
+      - "0:9999" # debug port
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
+    depends_on:
+      db-serverconf-signer-config-seed:
+        condition: service_completed_successfully
+      openbao:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 96M
+        limits:
+          memory: 512M
+    volumes:
+      - ./signer-container-files/etc/xroad/globalconf:/etc/xroad/globalconf
+      - softhsm-tokens-node-b:/var/lib/softhsm/tokens/
   signer-secondary:
     build:
       context: ./signer-container-files/
@@ -79,7 +121,6 @@ services:
       - DB_CONFIG_SOURCE_USERNAME=serverconf
       - DB_CONFIG_SOURCE_PASSWORD=secret
       - XROAD_NODE_TYPE=secondary
-      - XROAD_NODE_NAME=0
       - XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=4321
       - QUARKUS_LOG_LEVEL=INFO
       - QUARKUS_LOG_CATEGORY__ORG_NIIS_XROAD_SIGNER__LEVEL=DEBUG
@@ -179,3 +220,4 @@ services:
 
 volumes:
   softhsm-tokens:
+  softhsm-tokens-node-b:

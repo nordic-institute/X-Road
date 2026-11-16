@@ -33,7 +33,7 @@ import { TokenInitStatus } from '@/openapi-types';
 
 // Render the init page with a NOT_INITIALIZED system state so all fields are editable.
 async function renderInitPage() {
-  return renderRoute('/init', {
+  const view = await renderRoute('/init', {
     permissions: ['INIT_CONFIG'],
     systemStatus: {
       systemStatus: {
@@ -46,6 +46,9 @@ async function renderInitPage() {
       },
     },
   });
+
+  await expect.element(page.getByTestId('instance-identifier--input').getByRole('textbox')).toHaveFocus();
+  return view;
 }
 
 describe('0100 — CS Initialization — PIN match indicator (Browser Mode)', () => {

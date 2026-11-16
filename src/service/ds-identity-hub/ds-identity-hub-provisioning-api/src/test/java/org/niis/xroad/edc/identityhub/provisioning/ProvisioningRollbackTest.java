@@ -183,7 +183,7 @@ class ProvisioningRollbackTest {
                 .when(keyPairService).discardKeyMaterial(anyString(), any());
 
         var configService = new ParticipantContextConfigServiceImpl(new EncryptionAlgorithmRegistryImpl(), null,
-                new InMemoryParticipantContextConfigStore(), transactionContext, clock,
+                new InMemoryParticipantContextConfigStore(), participantContextStore, transactionContext, clock,
                 new ParticipantContextConfigValidatorRegistryImpl(false));
 
         context.registerService(ParticipantContextStore.class, participantContextStore);

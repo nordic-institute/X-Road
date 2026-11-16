@@ -52,8 +52,8 @@ import org.springframework.beans.factory.InitializingBean;
 import java.util.List;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.PARTICIPANT_CONTEXT_CONFLICT;
 
 /**
  * gRPC transport client for the issuer provisioning service.
@@ -128,7 +128,7 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
                     .setPrivateKeyAlias(privateKeyAlias)
                     .build()));
         } catch (XrdRuntimeException e) {
-            if (!e.isCausedBy(DSP_PARTICIPANT_CONTEXT_CONFLICT)) {
+            if (!e.isCausedBy(PARTICIPANT_CONTEXT_CONFLICT)) {
                 throw e;
             }
         }

@@ -1,6 +1,6 @@
 # X-Road 8: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 1.1
+Version: 1.2
 Doc. ID: IG-CS-8
 
 ---
@@ -9,7 +9,8 @@ Doc. ID: IG-CS-8
 | Date       | Version | Description                                                                                          | Author          |
 |------------|---------|------------------------------------------------------------------------------------------------------|-----------------|
 | 07.10.2025 | 1.0     | Initial version                                                                                      | Justas Samuolis |
-| 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check, the default node name and the shared rows of a standalone server | Ričardas Bučiūnas |
+| 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check, the default node name, the shared rows of a standalone server and the signer rows | Ričardas Bučiūnas |
+| 12.11.2026 | 1.2     | Describe the root token file that every node of a cluster keeps                                      | Ričardas Bučiūnas |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -316,7 +317,7 @@ Change the names when Security Servers or users reach the node by another name o
 
    To check the rows, run `db_property.sh get <key>` for the shared row and `db_property.sh get <key> --node <node>` for the row of a node. `db_property.sh list --node <node>` shows all rows of a node. To make a node use the shared row again, run `db_property.sh remove <key> --node <node>`; the row of the node is deleted and the shared row applies.
 
-2. Delete the key of the certificate. Do this and the next step on each node whose names changed: after a change of a shared row, that is every node without a row of its own for the key. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<node>` with the node name, `node_0` when the name is not set:
+2. Delete the key of the certificate. Do this and the next step on each node whose names changed: after a change of a shared row, that is every node without a row of its own for the key. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. In a cluster, every node keeps the root token file, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#42-root-token-file-and-unseal-keys-on-every-node). If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<node>` with the node name, `node_0` when the name is not set:
 
    ```bash
    export BAO_ADDR=https://127.0.0.1:8200
@@ -365,6 +366,7 @@ A standalone Central Server does not need a node name. Set one on every node of 
   - The name is read as plain text, so values such as `01`, `007` and `true` are valid.
 - What it selects:
   - The node's keys in the secret store.
+  - The node's signer rows: tokens, keys, certificates and certificate requests.
   - The node's configuration rows: a row set with `db_property.sh --node <node>` applies only to the node with that name, and only while the node has that name. See [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md#28-installing-the-support-for-hardware-tokens) section 2.8, "Per-node values".
 - If the name is not set:
   - The services use the name `node_0` in secret store paths.
@@ -372,7 +374,7 @@ A standalone Central Server does not need a node name. Set one on every node of 
   - `node_0` is the default name of an initialized Central Server that is not clustered. The server does not report itself as clustered.
 - To turn a standalone Central Server into node 1 of a cluster, set `name=node_0` in `node.ini`. The server keeps its keys in the secret store, because they are already stored under `node_0`. It keeps its configuration rows too: the installation and the migration from X-Road 7 write shared rows, and shared rows keep applying to the node. Nothing is moved. From then on the server reports itself as clustered. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md) for the other steps.
 - The installation checks the name that is entered at the prompt before it writes anything. A name that does not follow the rule stops the installation with an error, and neither `node.ini` nor any configuration row is written. Enter a valid name and run the installation again. The installation also stops when `node.ini` exists but cannot be read.
-- The installation does not check a name that is already in `node.ini`. The services check it when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
+- The package database setup checks a name that is already in `node.ini` on install, upgrade and reconfigure. A name that does not follow the rule stops it with an error. Restoring a backup with `restore_db.sh` stops the same way. The services also check the name when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
 - Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node and move its configuration rows.
 
 ### 2.7 Pre-configuration for Registration Web Service
@@ -422,7 +424,7 @@ Refer to X-Road 7. Central Server Installation Guide [IG-CS](#Ref_IG-CS), sectio
 ```properties
 spring.datasource.username=centerui
 spring.datasource.password=<randomly generated password stored is stored here>
-spring.datasource.hikari.data-source-properties.currentSchema=centerui
+spring.datasource.hikari.data-source-properties.currentSchema=centerui,public
 spring.datasource.url=jdbc:postgresql://127.0.0.1:5432/centerui_production
 skip_migrations=false
 ```
@@ -444,5 +446,5 @@ The installer creates the database roles itself. If they already exist, on Postg
 Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
 Files:<br/>
 `openbao.hcl` - OpenBao main configuration file. Contains DB credentials and other options.<br/>
-`root-token` - root OpenBao token.<br/>
+`root-token` - root OpenBao token. In a cluster, every node keeps the same file, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#42-root-token-file-and-unseal-keys-on-every-node).<br/>
 `unseal-keys` - OpenBao unseal keys.

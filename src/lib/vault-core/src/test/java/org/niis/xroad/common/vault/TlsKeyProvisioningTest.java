@@ -100,6 +100,7 @@ class TlsKeyProvisioningTest {
         stubProvisionedKey();
         var failures = List.of(
                 new IllegalStateException("store unreachable"),
+                XrdRuntimeException.systemException(ErrorCode.SECRET_STORE_UNAVAILABLE).details("store down").build(),
                 XrdRuntimeException.systemException(ErrorCode.INVALID_PROPERTY_VALUE).details("other").build(),
                 new IOException("corrupt"));
 
