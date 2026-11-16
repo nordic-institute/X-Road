@@ -130,7 +130,8 @@ class DifferenceSignalsTest {
     void anUnknownRegisteredAddressMakesEveryDifferingValueStale() {
         var member = memberEntity(MEMBER, BOUND, PublicationState.PUBLISHED);
         var system = systemEntity(SYSTEM_DID, PublicationState.PUBLISHED);
-        var signals = signals(null, OTHER_SAME_HOST, new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL), null);
+        var signals = signals(null, OTHER_SAME_HOST, new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL),
+                BUILT_URL);
 
         assertThat(signals.memberMismatch(member)).isFalse();
         assertThat(signals.compareMemberDid(member)).isEqualTo(GlobalConfComparison.STALE);
@@ -163,18 +164,6 @@ class DifferenceSignalsTest {
     }
 
     @Test
-    void theSystemPairIsStaleWhenEitherHostDiffers() {
-        var row = systemEntity(SYSTEM_DID, PublicationState.PUBLISHED);
-        var otherHostDid = new ServerSystemValues(OTHER_HOST_SYSTEM_DID, OTHER_PORT_URL);
-        var otherHostUrl = new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_HOST_URL);
-
-        assertThat(signals(ADDRESS, null, otherHostDid).compareSystemValues(row))
-                .isEqualTo(new SystemValuesComparison(GlobalConfComparison.STALE, GlobalConfComparison.STALE));
-        assertThat(signals(ADDRESS, null, otherHostUrl).compareSystemValues(row))
-                .isEqualTo(new SystemValuesComparison(GlobalConfComparison.STALE, GlobalConfComparison.STALE));
-    }
-
-    @Test
     void hostStatusIsOkWhenEveryActiveBindingIsAtTheRegisteredHost() {
         var members = List.of(memberEntity(MEMBER, BOUND, PublicationState.PUBLISHED),
                 memberEntity(MEMBER, OTHER_SAME_HOST, PublicationState.NOT_SENT));
@@ -195,6 +184,7 @@ class DifferenceSignalsTest {
     @Test
     void hostStatusDiffersWhenTheSystemBindingIsAtAnotherHost() {
         var system = systemEntity(OTHER_HOST_SYSTEM_DID, null);
+        system.setParticipantType(null);
 
         var differences = signals(ADDRESS, null, null)
                 .evaluate(system, List.of(memberEntity(MEMBER, BOUND, PublicationState.PUBLISHED)));

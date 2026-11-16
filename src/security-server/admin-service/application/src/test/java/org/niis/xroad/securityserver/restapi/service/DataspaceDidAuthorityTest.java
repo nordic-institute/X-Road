@@ -195,6 +195,30 @@ class DataspaceDidAuthorityTest {
     @Test
     void dspBaseUrlIfValidIsEmptyForAnInvalidAddressAndLogsOnlyAtDebug() {
         var authority = authority(new OwnAddress.Registered(SERVER_ID, "bad_host.example"), 443);
+
+        assertDspBaseUrlIfValidIsEmptyWithOneDebugLine(authority, "bad_host.example");
+    }
+
+    @Test
+    void dspBaseUrlIfValidIsEmptyWhenTheOwnAddressCannotBeReadAndLogsOnlyAtDebug() {
+        var resolver = mock(OwnSecurityServerResolver.class);
+        when(resolver.address()).thenThrow(
+                XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "serverconf unreadable"));
+        var authority = new DataspaceDidAuthority(resolver, mock(AdminServiceProperties.class));
+
+        assertDspBaseUrlIfValidIsEmptyWithOneDebugLine(authority, "serverconf unreadable");
+    }
+
+    @Test
+    void dspBaseUrlIfValidReturnsTheUrlOfAValidAddress() {
+        var authority = authority(new OwnAddress.Registered(SERVER_ID, "ss0.example.org"), 443, 8183);
+
+        assertThat(authority.dspBaseUrlIfValid()).isEqualTo(authority.dspBaseUrl()).get().asString()
+                .contains("ss0.example.org").contains("8183");
+    }
+
+    private static void assertDspBaseUrlIfValidIsEmptyWithOneDebugLine(DataspaceDidAuthority authority,
+                                                                       String expectedText) {
         var logger = (Logger) LoggerFactory.getLogger(DataspaceDidAuthority.class);
         var appender = new ListAppender<ILoggingEvent>();
         appender.start();
@@ -209,15 +233,7 @@ class DataspaceDidAuthorityTest {
 
         assertThat(appender.list).hasSize(1);
         assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.DEBUG);
-        assertThat(appender.list.getFirst().getFormattedMessage()).contains("bad_host.example");
-    }
-
-    @Test
-    void dspBaseUrlIfValidReturnsTheUrlOfAValidAddress() {
-        var authority = authority(new OwnAddress.Registered(SERVER_ID, "ss0.example.org"), 443, 8183);
-
-        assertThat(authority.dspBaseUrlIfValid()).isEqualTo(authority.dspBaseUrl()).get().asString()
-                .contains("ss0.example.org").contains("8183");
+        assertThat(appender.list.getFirst().getFormattedMessage()).contains(expectedText);
     }
 
     private static DataspaceDidAuthority authority(OwnAddress address, int didPort) {

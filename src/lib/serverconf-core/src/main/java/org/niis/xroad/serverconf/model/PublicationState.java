@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.serverconf.model;
 
+import jakarta.annotation.Nullable;
+
 import java.util.Set;
 
 /**
@@ -39,7 +41,7 @@ public enum PublicationState {
     REJECTED;
 
     /**
-     * The states in which a value has been sent to the Control Plane and Identity Hub.
+     * The states in which a value has been sent to the Central Server and not rejected by it.
      */
     public static final Set<PublicationState> SENT = Set.of(SUBMITTED, PUBLISHED);
 
@@ -47,7 +49,7 @@ public enum PublicationState {
      * @param state a publication state, {@code null} counts as {@link #NOT_SENT}
      * @return whether the state is one of {@link #SENT}
      */
-    public static boolean isSent(PublicationState state) {
+    public static boolean isSent(@Nullable PublicationState state) {
         return state != null && SENT.contains(state);
     }
 }

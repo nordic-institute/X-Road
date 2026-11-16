@@ -129,11 +129,17 @@ public class DataspaceDidAuthority {
     }
 
     /**
-     * @return the DSP base URL like {@link #dspBaseUrl()}, but empty also while the registered address is invalid,
-     *         for callers that treat an address that cannot be used the same as an unknown one
+     * @return the DSP base URL like {@link #dspBaseUrl()}, but empty also while the registered address is invalid
+     *         or its lookup fails with an {@link XrdRuntimeException}, for callers that treat an address that
+     *         cannot be used the same as an unknown one
      */
     public Optional<String> dspBaseUrlIfValid() {
-        return dspBaseUrlIfValid(ownSecurityServerResolver.address());
+        try {
+            return dspBaseUrlIfValid(ownSecurityServerResolver.address());
+        } catch (XrdRuntimeException e) {
+            log.debug("No DSP base URL can be built from the registered address: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     /**

@@ -8807,13 +8807,17 @@ components:
           readOnly: true
           description: >-
             true when globalconf announces a SYSTEM DID that differs from the bound one while the SYSTEM values are
-            submitted or published
+            submitted or published. The SYSTEM DID and the DSP base URL are stale together when either is announced
+            for another host than the registered address; a stale value never counts as a mismatch. False while
+            host_status is UNKNOWN
         dsp_base_url_mismatch:
           type: boolean
           readOnly: true
           description: >-
             true when globalconf announces a DSP base URL that differs from the one built from the registered address
-            and the stored DSP port while the SYSTEM values are submitted or published
+            and the stored DSP port while the SYSTEM values are submitted or published. The SYSTEM DID and the DSP
+            base URL are stale together when either is announced for another host than the registered address; a
+            stale value never counts as a mismatch. False while host_status is UNKNOWN
         host_status:
           type: string
           readOnly: true
@@ -8897,7 +8901,8 @@ components:
           readOnly: true
           description: >-
             true when globalconf announces a DID for the member that differs from the bound one while the DID is
-            submitted or published; absent for SYSTEM contexts
+            submitted or published; absent for SYSTEM contexts. A stale value, one announced for another host than the
+            registered address, never counts as a mismatch. False while host_status is UNKNOWN
     AgreementTokenKeyStatus:
       type: object
       description: status of the agreement token signing key of the connected proxy

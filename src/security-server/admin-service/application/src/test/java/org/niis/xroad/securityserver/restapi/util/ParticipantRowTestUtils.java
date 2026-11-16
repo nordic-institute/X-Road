@@ -46,7 +46,7 @@ import static org.springframework.transaction.TransactionDefinition.PROPAGATION_
 
 /**
  * Writes binding rows straight to the database for tests that run outside a test transaction, each write committing in
- * its own transaction, and builds unsaved binding entities for tests that persist them another way.
+ * its own transaction, and builds unsaved binding entities for tests that work without a database.
  */
 @RequiredArgsConstructor
 public class ParticipantRowTestUtils {

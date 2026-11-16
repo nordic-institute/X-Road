@@ -538,7 +538,7 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
 
     /**
      * {@code xroad.proxy-ui-api.dataspace.publication-submitted-timeout-minutes}. How long a value stays submitted
-     * while globalconf does not carry it before it is sent again.
+     * while globalconf does not carry it before it is sent again. Read once at startup.
      */
     public static final ConfigKey<Integer> DATASPACE_PUBLICATION_SUBMITTED_TIMEOUT_MINUTES = DATASPACE
             .integer("publication-submitted-timeout-minutes")
