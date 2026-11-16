@@ -28,12 +28,14 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
 import io.quarkus.scheduler.Scheduler;
-import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.interceptor.Interceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
@@ -46,7 +48,6 @@ import java.util.concurrent.TimeUnit;
  * Deletes outdated operational data records from the database.
  */
 @Slf4j
-@Startup
 @ApplicationScoped
 public final class OperationalDataRecordCleaner {
     private final OpMonitorProperties opMonitorProperties;
@@ -64,8 +65,7 @@ public final class OperationalDataRecordCleaner {
         this.applicationNotRunning = applicationNotRunning;
     }
 
-    @PostConstruct
-    public void init() {
+    public void init(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
         log.info("Scheduling OcspClientReloadJob");
         scheduler.newJob("OperationalDataRecordCleanerJob")
                 .setCron(opMonitorProperties.cleanInterval())

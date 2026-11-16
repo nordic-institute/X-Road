@@ -64,6 +64,7 @@ class CommonConfigKeysTest {
         assertThat(interval("30m")).isEqualTo(Duration.ofMinutes(30));
         assertThat(interval("PT30M")).isEqualTo(Duration.ofMinutes(30));
     }
+
     @Test
     void vaultTokenRenewalIntervalOutsideTheRangeOrUnparseableStopsStartup() {
         for (String value : new String[] {"PT0S", "9m", "-30m", "8d", "not-a-duration"}) {
@@ -73,6 +74,7 @@ class CommonConfigKeysTest {
                     .hasMessageContaining(VAULT_TOKEN_RENEWAL_INTERVAL_KEY);
         }
     }
+
     private static Duration interval(String stored) {
         XRoadConfig config = XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())

@@ -26,13 +26,15 @@
  */
 package org.niis.xroad.common.vault.quarkus;
 
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
 import io.quarkus.vault.client.VaultClient;
-import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
+import jakarta.interceptor.Interceptor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
@@ -43,7 +45,6 @@ import org.niis.xroad.common.vault.VaultTokenKeepalive;
  * bean is discovered through the library's Jandex index, and schedules the renewal only where the scheduler is
  * enabled ({@code quarkus.scheduler.enabled=false} switches it off).
  */
-@Startup
 @ApplicationScoped
 class QuarkusVaultTokenKeepalive {
 
@@ -54,6 +55,7 @@ class QuarkusVaultTokenKeepalive {
     private final boolean schedulerEnabled;
     private final Instance<VaultClient> vaultClient;
     private final Instance<XRoadConfig> config;
+
     QuarkusVaultTokenKeepalive(Scheduler scheduler,
                                Scheduled.ApplicationNotRunning applicationNotRunning,
                                @ConfigProperty(name = "quarkus.scheduler.enabled", defaultValue = "true")
@@ -66,8 +68,8 @@ class QuarkusVaultTokenKeepalive {
         this.vaultClient = vaultClient;
         this.config = config;
     }
-    @PostConstruct
-    void schedule() {
+
+    void schedule(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
         if (!schedulerEnabled) {
             return;
         }
@@ -83,6 +85,7 @@ class QuarkusVaultTokenKeepalive {
                 .setSkipPredicate(applicationNotRunning)
                 .schedule();
     }
+
     private static void renewSelf(VaultClient vaultClient) {
         vaultClient.auth().token().renewSelf(null).toCompletableFuture().join();
     }
