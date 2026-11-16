@@ -321,6 +321,28 @@
     },
     "softwareToken": "Программный токен"
   },
+  "issuerService": {
+    "canSignCause": {
+      "DID_MISMATCH": "The bound DID does not match this node's active signing key",
+      "DID_NOT_PUBLISHED": "The issuer DID has not yet been published",
+      "ISSUER_SERVICE_UNREACHABLE": "The Issuer Service could not be reached",
+      "KEY_SECRET_NOT_READABLE": "The issuer key's secret could not be read",
+      "NO_ACTIVE_KEY": "No active issuer key is configured",
+      "TIMEOUT": "The Issuer Service did not answer in time"
+    },
+    "certificate": "Connector TLS certificate",
+    "certificateNotReady": "Not ready",
+    "certificateReady": "Ready",
+    "host": "Issuer host",
+    "hostNotSet": "Not set",
+    "identity": "Issuer identity",
+    "identityNotSet": "Not yet bound",
+    "service": "Issuer Service",
+    "serviceCanSign": "Can sign",
+    "serviceCannotSign": "Cannot sign",
+    "viewCertificate": "View certificate",
+    "viewStatus": "View status"
+  },
   "keys": {
     "addKey": "Добавить ключ",
     "created": "Создано",
@@ -544,6 +566,10 @@
       "failing": "Создание глобальной конфигурации не удалось с {0}",
       "global_conf_expired": "Срок действия глобальной конфигурации истек",
       "status_not_found": "Статус генерации глобальной конфигурации неизвестен"
+    },
+    "issuer_service": {
+      "setup_required": "Issuer Service set-up required",
+      "status_check_failed": "Failed to check the Issuer Service set-up status"
     },
     "signer_error": "Ошибка вызова клиента подписчика",
     "signing_key": {
@@ -779,7 +805,8 @@
       "globalResources": "Глобальные ресурсы",
       "systemParameters": "Параметры системы",
       "systemSettings": "Настройки системы",
-      "tlsCertificates": "TLS сертификаты"
+      "tlsCertificates": "TLS сертификаты",
+      "issuerService": "Issuer Service"
     }
   },
   "tlsCertificates": {

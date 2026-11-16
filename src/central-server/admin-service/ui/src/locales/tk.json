@@ -321,6 +321,28 @@
     },
     "softwareToken": "Programma tokeni"
   },
+  "issuerService": {
+    "canSignCause": {
+      "DID_MISMATCH": "The bound DID does not match this node's active signing key",
+      "DID_NOT_PUBLISHED": "The issuer DID has not yet been published",
+      "ISSUER_SERVICE_UNREACHABLE": "The Issuer Service could not be reached",
+      "KEY_SECRET_NOT_READABLE": "The issuer key's secret could not be read",
+      "NO_ACTIVE_KEY": "No active issuer key is configured",
+      "TIMEOUT": "The Issuer Service did not answer in time"
+    },
+    "certificate": "Connector TLS certificate",
+    "certificateNotReady": "Not ready",
+    "certificateReady": "Ready",
+    "host": "Issuer host",
+    "hostNotSet": "Not set",
+    "identity": "Issuer identity",
+    "identityNotSet": "Not yet bound",
+    "service": "Issuer Service",
+    "serviceCanSign": "Can sign",
+    "serviceCannotSign": "Cannot sign",
+    "viewCertificate": "View certificate",
+    "viewStatus": "View status"
+  },
   "keys": {
     "addKey": "Açary goş",
     "created": "Döredildi",
@@ -544,6 +566,10 @@
       "failing": "Global konfigurasiýanyň emele gelmegi amala aşmady, sebäbi {0}",
       "global_conf_expired": "Global konfigurasiýanyň möhleti tamamlandy",
       "status_not_found": "Global configuration generations status is unknown"
+    },
+    "issuer_service": {
+      "setup_required": "Issuer Service set-up required",
+      "status_check_failed": "Failed to check the Issuer Service set-up status"
     },
     "signer_error": "Gol çekiji müşderini çagyrmak amala aşmady",
     "signing_key": {
@@ -779,7 +805,8 @@
       "globalResources": "Global resurslary",
       "systemParameters": "Ulgam parametrleri",
       "systemSettings": "Ulgam sazlamalary",
-      "tlsCertificates": "TLS şahadatnamalary"
+      "tlsCertificates": "TLS şahadatnamalary",
+      "issuerService": "Issuer Service"
     }
   },
   "tlsCertificates": {

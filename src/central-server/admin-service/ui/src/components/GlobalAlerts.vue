@@ -68,6 +68,13 @@
               @click="navigate(RouteName.ExternalConfiguration, 'open-login')"
             />
           </template>
+          <XrdBtn
+            v-if="isIssuerServiceSetupRequired(item) && canOpenIssuerService"
+            variant="text"
+            prepend-icon="arrow_forward"
+            text="issuerService.viewStatus"
+            @click="router.push({ name: RouteName.IssuerService })"
+          />
         </template>
       </XrdBanner>
     </v-slide-y-transition>
@@ -81,7 +88,7 @@ import { useRouter } from 'vue-router';
 
 import { XrdBtn, XrdBanner, formatDateTime } from '@niis/shared-ui';
 
-import { RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import { useAlerts } from '@/store/modules/alerts';
 import { useSystem } from '@/store/modules/system';
 import { useUser } from '@/store/modules/user';
@@ -98,6 +105,9 @@ const sortedAlerts = computed(() => alertsStore.alerts.toSorted((item1, item2) =
 
 const internalCfg = computed(() => router.currentRoute.value.name === RouteName.InternalConfiguration);
 const externalCfg = computed(() => router.currentRoute.value.name === RouteName.ExternalConfiguration);
+const canOpenIssuerService = computed(
+  () => userStore.hasPermission(Permissions.VIEW_SYSTEM_SETTINGS) && router.currentRoute.value.name !== RouteName.IssuerService,
+);
 
 function isMissingInternalKey(item: ErrorCoded) {
   return item.errorCode === 'status.signing_key.internal.missing';
@@ -113,6 +123,10 @@ function isMissingExternalKey(item: ErrorCoded) {
 
 function isInactiveExternalToken(item: ErrorCoded) {
   return item.errorCode === 'status.signing_key.external.token_not_active';
+}
+
+function isIssuerServiceSetupRequired(item: ErrorCoded) {
+  return item.errorCode === 'status.issuer_service.setup_required';
 }
 
 function navigate(name: RouteName, action: string) {

@@ -321,6 +321,28 @@
     },
     "softwareToken": "Token de software"
   },
+  "issuerService": {
+    "canSignCause": {
+      "DID_MISMATCH": "The bound DID does not match this node's active signing key",
+      "DID_NOT_PUBLISHED": "The issuer DID has not yet been published",
+      "ISSUER_SERVICE_UNREACHABLE": "The Issuer Service could not be reached",
+      "KEY_SECRET_NOT_READABLE": "The issuer key's secret could not be read",
+      "NO_ACTIVE_KEY": "No active issuer key is configured",
+      "TIMEOUT": "The Issuer Service did not answer in time"
+    },
+    "certificate": "Connector TLS certificate",
+    "certificateNotReady": "Not ready",
+    "certificateReady": "Ready",
+    "host": "Issuer host",
+    "hostNotSet": "Not set",
+    "identity": "Issuer identity",
+    "identityNotSet": "Not yet bound",
+    "service": "Issuer Service",
+    "serviceCanSign": "Can sign",
+    "serviceCannotSign": "Cannot sign",
+    "viewCertificate": "View certificate",
+    "viewStatus": "View status"
+  },
   "keys": {
     "addKey": "Agregar clave",
     "algorithm": "Algoritmo de clave",
@@ -549,6 +571,10 @@
       "failing": "Falla en la generación de la configuración global desde {0}",
       "global_conf_expired": "Expiró la configuración global",
       "status_not_found": "Se desconoce el estado de las generaciones de configuración global"
+    },
+    "issuer_service": {
+      "setup_required": "Issuer Service set-up required",
+      "status_check_failed": "Failed to check the Issuer Service set-up status"
     },
     "signer_error": "La invocación del cliente del firmador falló.",
     "signing_key": {
@@ -784,7 +810,8 @@
       "globalResources": "Recursos globales",
       "systemParameters": "Parámetros del sistema",
       "systemSettings": "Configuración del sistema",
-      "tlsCertificates": "Certificados TLS"
+      "tlsCertificates": "Certificados TLS",
+      "issuerService": "Issuer Service"
     }
   },
   "tlsCertificates": {

@@ -93,6 +93,15 @@ const tabs: Tab[] = [
     },
     permissions: [Permissions.VIEW_DS_TLS_CERT],
   },
+  {
+    key: 'issuer-service-tab-button',
+    name: 'tab.settings.issuerService',
+    icon: 'verified_user',
+    to: {
+      name: RouteName.IssuerService,
+    },
+    permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+  },
 ];
 
 export const useSettingsTabs = defineStore('settings-tabs', {

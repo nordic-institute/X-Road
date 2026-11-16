@@ -29,6 +29,7 @@ import { page } from 'vitest/browser';
 import { HttpResponse } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
+import { Permissions } from '@/global';
 
 describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
   it('a failing DS TLS ACME enrollment renders a distinct readable message, not the raw i18n key', async () => {
@@ -72,5 +73,57 @@ describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
 
     await expect.element(page.getByText('Dataspace TLS certificate ACME enrollment failing', { exact: false })).not.toBeInTheDocument();
     await expect.element(page.getByText('Dataspace TLS certificate ACME renewal failing', { exact: false })).not.toBeInTheDocument();
+  });
+});
+
+describe('CS Global Alerts — Issuer Service set-up required (Browser Mode)', () => {
+  const setupRequiredHandlers = [
+    specHttp.untyped.get('/api/v1/notifications/alerts', () =>
+      HttpResponse.json([{ errorCode: 'status.issuer_service.setup_required' }]),
+    ),
+    specHttp.get('/issuer-service', ({ response }) =>
+      response(200).json({
+        bound: false,
+        host_set: false,
+        certificate_ready: false,
+        run_in_progress: false,
+        can_sign: false,
+        status: 'NOT_CONFIGURED',
+      }),
+    ),
+  ];
+
+  it('the alert action routes to the Issuer Service tab', async () => {
+    await renderRoute('/members', {
+      permissions: [Permissions.VIEW_MEMBERS, Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: setupRequiredHandlers,
+    });
+
+    await expect.element(page.getByText('Issuer Service set-up required')).toBeVisible();
+
+    await page.getByText('View status').click();
+
+    await expect.element(page.getByTestId('issuer-service-view')).toBeVisible();
+  });
+
+  it('shows no action without permission to view the Issuer Service tab', async () => {
+    await renderRoute('/members', {
+      permissions: [Permissions.VIEW_MEMBERS],
+      msw: setupRequiredHandlers,
+    });
+
+    await expect.element(page.getByText('Issuer Service set-up required')).toBeVisible();
+    await expect.element(page.getByText('View status')).not.toBeInTheDocument();
+  });
+
+  it('shows no action while the Issuer Service tab is open', async () => {
+    await renderRoute('/settings/issuer-service', {
+      permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: setupRequiredHandlers,
+    });
+
+    await expect.element(page.getByTestId('issuer-service-view')).toBeVisible();
+    await expect.element(page.getByText('Issuer Service set-up required')).toBeVisible();
+    await expect.element(page.getByText('View status')).not.toBeInTheDocument();
   });
 });

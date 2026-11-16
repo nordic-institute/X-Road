@@ -43,6 +43,8 @@ import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
@@ -59,6 +61,7 @@ import java.util.Set;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.FAILURE;
@@ -84,6 +87,10 @@ class NotificationServiceImplTest {
     private AdminServiceProperties adminServiceProperties;
     @Mock
     private DsTlsCertificateService dsTlsCertificateService;
+    @Mock
+    private DataspaceIssuerDidService dataspaceIssuerDidService;
+    @Mock
+    private DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
@@ -91,6 +98,7 @@ class NotificationServiceImplTest {
     @BeforeEach
     void setUp() {
         lenient().when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, null));
+        lenient().when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
     }
 
     @Test
@@ -274,6 +282,50 @@ class NotificationServiceImplTest {
         assertThat(alerts).hasSize(2)
                 .contains(new AlertInfo("status.signer_error"))
                 .contains(new AlertInfo("status.dataspace_tls_acme.enrollment_failing", "CA unreachable"));
+    }
+
+    @Test
+    void getAlertsIssuerServiceSetupRequiredWhenNoDidBound() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).containsExactly(new AlertInfo("status.issuer_service.setup_required"));
+    }
+
+    @Test
+    void getAlertsNoIssuerServiceSetupRequiredAlertWhenDidBound() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).noneMatch(alert -> alert.getErrorCode().equals("status.issuer_service.setup_required"));
+    }
+
+    @Test
+    void getAlertsIssuerServiceSetupCheckThrowsProducesFallbackAlertNotException() {
+        when(dataspaceIssuerDidService.findAll()).thenThrow(new RuntimeException("db unreachable"));
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).containsExactly(new AlertInfo("status.issuer_service.status_check_failed"));
+    }
+
+    @Test
+    void getAlertsIssuerServiceSetupCheckMakesNoIssuerServiceCall() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        notificationService.getAlerts();
+
+        verifyNoInteractions(dataspaceIssuerProvisioningService);
     }
 
     private void mockInitialized(boolean tokenActive, boolean keyAvailable) {

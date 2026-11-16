@@ -62,6 +62,7 @@ export enum RouteName {
   TlsCertificates = 'tls-certificates',
   DsTlsCertificate = 'ds-tls-certificate',
   DsTlsCertificateDetails = 'ds-tls-certificate-details',
+  IssuerService = 'issuer-service',
   CreateApiKey = 'create-api-key',
   GlobalConfiguration = 'global-configuration',
   InternalConfiguration = 'internal-configuration',

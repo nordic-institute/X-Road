@@ -348,6 +348,28 @@
     },
     "softwareToken": "Software Token"
   },
+  "issuerService": {
+    "canSignCause": {
+      "DID_MISMATCH": "The bound DID does not match this node's active signing key",
+      "DID_NOT_PUBLISHED": "The issuer DID has not yet been published",
+      "ISSUER_SERVICE_UNREACHABLE": "The Issuer Service could not be reached",
+      "KEY_SECRET_NOT_READABLE": "The issuer key's secret could not be read",
+      "NO_ACTIVE_KEY": "No active issuer key is configured",
+      "TIMEOUT": "The Issuer Service did not answer in time"
+    },
+    "certificate": "Connector TLS certificate",
+    "certificateNotReady": "Not ready",
+    "certificateReady": "Ready",
+    "host": "Issuer host",
+    "hostNotSet": "Not set",
+    "identity": "Issuer identity",
+    "identityNotSet": "Not yet bound",
+    "service": "Issuer Service",
+    "serviceCanSign": "Can sign",
+    "serviceCannotSign": "Cannot sign",
+    "viewCertificate": "View certificate",
+    "viewStatus": "View status"
+  },
   "keys": {
     "addKey": "Add key",
     "algorithm": "Key algorithm",
@@ -588,6 +610,10 @@
       "global_conf_expired": "Global configuration expired",
       "status_not_found": "Global configuration generations status is unknown"
     },
+    "issuer_service": {
+      "setup_required": "Issuer Service set-up required",
+      "status_check_failed": "Failed to check the Issuer Service set-up status"
+    },
     "signer_error": "Invocation of signer client failed",
     "signing_key": {
       "external": {
@@ -824,7 +850,8 @@
       "systemParameters": "System Parameters",
       "systemSettings": "System Settings",
       "tlsCertificates": "TLS Certificates",
-      "dsTlsCertificate": "Dataspace TLS Certificate"
+      "dsTlsCertificate": "Dataspace TLS Certificate",
+      "issuerService": "Issuer Service"
     }
   },
   "tlsCertificates": {
