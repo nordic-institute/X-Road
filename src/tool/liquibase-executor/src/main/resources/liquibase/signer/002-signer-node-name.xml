@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="signer/002-signer-node-name.xml">
+
+    <property name="ha_node_name" value="node_0" global="true"/>
+
+    <changeSet id="signer-add-ha-node-name-columns" author="niis">
+        <comment>
+            Every signer row belongs to one node. The default node_0 is the name of a node without a configured
+            node name (single Central Server, Security Server, configuration proxy).
+        </comment>
+        <addColumn tableName="signer_tokens">
+            <column name="ha_node_name" type="VARCHAR(255)" defaultValue="node_0"
+                    remarks="Name of the node that owns the row.">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="signer_keys">
+            <column name="ha_node_name" type="VARCHAR(255)" defaultValue="node_0"
+                    remarks="Name of the node that owns the row.">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="signer_certificates">
+            <column name="ha_node_name" type="VARCHAR(255)" defaultValue="node_0"
+                    remarks="Name of the node that owns the row.">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="signer_certificate_requests">
+            <column name="ha_node_name" type="VARCHAR(255)" defaultValue="node_0"
+                    remarks="Name of the node that owns the row.">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="signer-node-aware-unique-external-id" author="niis">
+        <comment>
+            external_id is unique per node instead of across the table, so two nodes can hold the same identifier.
+            The dropped constraints are the unnamed ones from signer/001-signer.xml, named by PostgreSQL as
+            table_column_key.
+        </comment>
+        <dropUniqueConstraint tableName="signer_tokens" constraintName="signer_tokens_external_id_key"/>
+        <dropUniqueConstraint tableName="signer_keys" constraintName="signer_keys_external_id_key"/>
+        <dropUniqueConstraint tableName="signer_certificates" constraintName="signer_certificates_external_id_key"/>
+        <dropUniqueConstraint tableName="signer_certificate_requests"
+                              constraintName="signer_certificate_requests_external_id_key"/>
+        <addUniqueConstraint tableName="signer_tokens" columnNames="ha_node_name, external_id"
+                             constraintName="uq_signer_tokens_node_external_id"/>
+        <addUniqueConstraint tableName="signer_keys" columnNames="ha_node_name, external_id"
+                             constraintName="uq_signer_keys_node_external_id"/>
+        <addUniqueConstraint tableName="signer_certificates" columnNames="ha_node_name, external_id"
+                             constraintName="uq_signer_certificates_node_external_id"/>
+        <addUniqueConstraint tableName="signer_certificate_requests" columnNames="ha_node_name, external_id"
+                             constraintName="uq_signer_cert_requests_node_external_id"/>
+    </changeSet>
+
+    <changeSet id="signer-backfill-ha-node-name" author="niis">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="HALT" onError="HALT">
+            <not>
+                <changeLogPropertyDefined property="ha_node_name" value=""/>
+            </not>
+        </preConditions>
+        <comment>
+            Existing rows get the name of the node that runs the upgrade; later nodes and restores find the changeset
+            already applied. ANY keeps the stored checksum valid when a later run passes another name, a blank name or
+            none, because the value is part of the checksum.
+        </comment>
+        <update tableName="signer_tokens">
+            <column name="ha_node_name" value="${ha_node_name}"/>
+        </update>
+        <update tableName="signer_keys">
+            <column name="ha_node_name" value="${ha_node_name}"/>
+        </update>
+        <update tableName="signer_certificates">
+            <column name="ha_node_name" value="${ha_node_name}"/>
+        </update>
+        <update tableName="signer_certificate_requests">
+            <column name="ha_node_name" value="${ha_node_name}"/>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

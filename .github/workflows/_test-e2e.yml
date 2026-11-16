@@ -168,7 +168,7 @@ jobs:
       # templates/services/all.yaml (see _test-charts.yml).
       - name: Setup Helm
         if: inputs.variant == 'k8s'
-        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
         with:
           version: v3.21.3
 
@@ -191,7 +191,7 @@ jobs:
 
       - name: Login to GHCR (k8s)
         if: inputs.variant == 'k8s'
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -204,7 +204,7 @@ jobs:
 
       - name: Login to GHCR
         if: inputs.variant == 'compose' || inputs.variant == 'sidecar'
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -380,7 +380,7 @@ jobs:
           name: e2e-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: 'temurin'
           java-version: '25'

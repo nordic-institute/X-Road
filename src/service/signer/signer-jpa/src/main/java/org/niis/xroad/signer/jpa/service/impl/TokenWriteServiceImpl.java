@@ -29,6 +29,7 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.signer.core.service.TokenWriteService;
 import org.niis.xroad.signer.jpa.dao.impl.SignerKeyDaoImpl;
 import org.niis.xroad.signer.jpa.dao.impl.SignerTokenDaoImpl;
@@ -45,6 +46,7 @@ public class TokenWriteServiceImpl implements TokenWriteService {
     private final DatabaseCtx sessionProvider;
     private final SignerTokenDaoImpl tokenDao;
     private final SignerKeyDaoImpl keyDao;
+    private final NodeIdentity nodeIdentity;
 
     @Override
     public boolean delete(Long tokenId) {
@@ -56,6 +58,7 @@ public class TokenWriteServiceImpl implements TokenWriteService {
     public Long save(String externalId, String type, String friendlyName, String label, String serialNo) {
         var entity = new SignerTokenEntity();
         entity.setExternalId(externalId);
+        entity.setHaNodeName(nodeIdentity.name());
         entity.setType(type);
         entity.setFriendlyName(friendlyName);
         entity.setLabel(label);

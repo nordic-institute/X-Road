@@ -13,6 +13,7 @@ configurations.named("runtimeClasspath") {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
+  implementation(project(":common:common-core"))
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:properties-core"))
@@ -89,6 +90,7 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(libs.smallrye.config.yaml)
   testImplementation(libs.assertj.core)
+  testImplementation(libs.systemStubs)
   testImplementation(libs.edc.ih.common.lib)
   testImplementation(libs.mockito.core)
   testImplementation(libs.edc.boot)

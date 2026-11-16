@@ -33,6 +33,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.spring.SpringConditionConfig;
@@ -243,10 +245,13 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * without an active binding row. Only the binding of unbound contexts waits until dataspace
      * readiness holds, the registered address is known and this server has a registered authentication
      * certificate, which for SYSTEM is the approval of its registration; a context that already holds an
-     * active binding row is provisioned regardless, so it recovers from a lost hub or Control Plane context
-     * even while the registered address is unknown. A context whose
-     * identity is drifted, unreadable, rejected or of an unsupported scheme version is neither bound nor
-     * provisioned: such contexts are dropped before the ensure pass. Each tick logs one line per rejected, drifted
+     * active binding row is provisioned regardless of readiness, so it recovers from a lost hub or Control Plane
+     * context even while the registered address is unknown. The credential step is the exception: it is skipped
+     * for a batch while the globalconf is not usable (expired, not loaded or unreadable): no credential request
+     * is made and the identity hub's credential state is left alone. Dataspace readiness, globalconf usability and
+     * the registered address are read again before each batch; the authentication certificate check is read once per pass.
+     * A context whose identity is drifted, unreadable, rejected or of an unsupported scheme version is neither
+     * bound nor provisioned: such contexts are dropped before the ensure pass. Each tick logs one line per rejected, drifted
      * or unsupported-version status with the count and the first participant ids: at WARN when a context not
      * yet warned about enters that status, and again once an hour while any remain; at DEBUG otherwise, so a
      * context that drops out for one tick because its hub state was unreadable is not warned about again.
@@ -300,11 +305,6 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     private List<ParticipantContext> provisionNonConverged(List<ParticipantContext> nonConverged,
             Map<ParticipantContext, ParticipantContextStatus> statuses) {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        boolean dataspaceReady = readinessPredicates.isDataspaceReady();
-        boolean addressKnown = dataspaceProvisioningService.registeredAddressKnown();
-        log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={} registeredAddressKnown={}",
-                dataspaceReady, authCertRegistered, addressKnown);
-
         logSkippedContexts(nonConverged, statuses);
 
         int batchSize = adminServiceProperties.getDataspace().getProvisioningBatchSize();
@@ -312,23 +312,25 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         List<ParticipantContext> ensured = new ArrayList<>();
         for (int from = 0; from < ordered.size(); from += batchSize) {
             var batch = ordered.subList(from, Math.min(ordered.size(), from + batchSize));
-            ensured.addAll(provisionBatch(batch, statuses, dataspaceReady && authCertRegistered && addressKnown,
-                    authCertRegistered));
+            ensured.addAll(provisionBatch(batch, statuses, authCertRegistered));
         }
         return ensured;
     }
 
     private List<ParticipantContext> provisionBatch(List<ParticipantContext> batch,
-            Map<ParticipantContext, ParticipantContextStatus> statuses, boolean mayBind, boolean authCertRegistered) {
-        var provisionable = provisionableContexts(batch, statuses, mayBind);
+            Map<ParticipantContext, ParticipantContextStatus> statuses, boolean authCertRegistered) {
+        boolean dataspaceReady = readinessPredicates.isDataspaceReady();
+        boolean globalConfUsable = readinessPredicates.isGlobalConfUsable();
+        boolean addressKnown = dataspaceProvisioningService.registeredAddressKnown();
+        log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={} globalConfUsable={}"
+                + " registeredAddressKnown={}", dataspaceReady, authCertRegistered, globalConfUsable, addressKnown);
+
+        var provisionable = provisionableContexts(batch, statuses, dataspaceReady && authCertRegistered && addressKnown);
         var ensuredContexts = ensureContexts(provisionable);
 
-        if (!authCertRegistered) {
-            log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
-            return ensuredContexts;
+        if (authCertRegistered && globalConfUsable) {
+            ensureCredentials(ensuredContexts, statuses);
         }
-
-        ensureCredentials(ensuredContexts, statuses);
         return ensuredContexts;
     }
 
@@ -523,6 +525,11 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
                             context.participantId(), previousStatus, newStatus);
                 }
             } catch (Exception e) {
+                if (e instanceof XrdRuntimeException xrd && xrd.isCausedBy(ErrorCode.GLOBAL_CONF_OUTDATED)) {
+                    log.debug("Dataspace provisioning: global configuration expired during the pass,"
+                            + " skipping the rest of the credential step: {}", xrd.getMessage());
+                    return;
+                }
                 log.error("Dataspace provisioning: credential step failed for participant {}, continuing with the rest",
                         context.participantId(), e);
             }

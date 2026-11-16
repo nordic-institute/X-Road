@@ -50,6 +50,7 @@ public class AuxStackSetup extends BaseComposeSetup {
     public static final String CS = "cs";
     public static final String HURL = "hurl";
     public static final String ISREST = "isrest";
+    public static final String TESTCA = "testca";
 
     public AuxStackSetup(ApiTestCoreProperties coreProperties) {
         super(coreProperties);
@@ -72,7 +73,8 @@ public class AuxStackSetup extends BaseComposeSetup {
                 .withLogConsumer(CS, createLogConsumer(CS))
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
         if (AclParityProperties.configuredMode().isPresent()) {
-            compose.withExposedService(ISREST, Port.ISREST, forListeningPort());
+            compose.withExposedService(ISREST, Port.ISREST, forListeningPort())
+                    .withExposedService(TESTCA, Port.TESTCA, forListeningPort());
         }
         return compose;
     }
@@ -120,6 +122,7 @@ public class AuxStackSetup extends BaseComposeSetup {
     public static final class Port {
         public static final int UI = 4000;
         public static final int ISREST = 8080;
+        public static final int TESTCA = 8888;
 
         private Port() {
         }

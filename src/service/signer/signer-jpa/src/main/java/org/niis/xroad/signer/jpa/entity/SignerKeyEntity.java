@@ -61,8 +61,11 @@ public class SignerKeyEntity extends AuditableEntity {
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "external_id", nullable = false, unique = true)
+    @Column(name = "external_id", nullable = false)
     private String externalId;
+
+    @Column(name = "ha_node_name", nullable = false)
+    private String haNodeName;
 
     @Column(name = "token_id", nullable = false)
     private Long tokenId;
@@ -97,6 +100,7 @@ public class SignerKeyEntity extends AuditableEntity {
         SignerKeyEntity that = (SignerKeyEntity) o;
         return Objects.equals(id, that.id)
                 && Objects.equals(externalId, that.externalId)
+                && Objects.equals(haNodeName, that.haNodeName)
                 && Objects.equals(tokenId, that.tokenId)
                 && type == that.type
                 && Objects.equals(friendlyName, that.friendlyName)
@@ -109,7 +113,7 @@ public class SignerKeyEntity extends AuditableEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, externalId, tokenId, type, friendlyName, label, publicKey,
+        return Objects.hash(id, externalId, haNodeName, tokenId, type, friendlyName, label, publicKey,
                 Arrays.hashCode(keyStore), signMechanismName, usage);
     }
 }

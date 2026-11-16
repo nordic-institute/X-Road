@@ -172,7 +172,10 @@ public class LegacyConfigMigrationCLI {
                 case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(args);
                 case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(args);
                 case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(args);
-                case KEYCONF -> migrateKeyConf(args, installation);
+                case KEYCONF -> {
+                    NodeOption nodeOption = NodeOption.extract(args);
+                    migrateKeyConf(nodeOption.remainingArgs().toArray(new String[0]), nodeOption.nodeIdentity(), installation);
+                }
                 case SIGNER_TOKEN_PINS -> {
                     NodeOption nodeOption = NodeOption.extract(args);
                     migrateSignerTokenPins(nodeOption.remainingArgs().toArray(new String[0]), nodeOption.nodeIdentity());
@@ -212,7 +215,8 @@ public class LegacyConfigMigrationCLI {
                                                  cs reads the Central Server db.properties keys and allows only
                                                  these commands: %s.
                   --node <name>                  Cluster node the migrated data belongs to (default: node_0), used by
-                                                 signer-token-pins. Central Server: the [node] name in node.ini.
+                                                 keyconf and signer-token-pins. Central Server: the [node] name
+                                                 in node.ini.
 
                 Commands:
                   validate                       Check for probable migration issues
@@ -257,9 +261,11 @@ public class LegacyConfigMigrationCLI {
                       <db.properties path>     Path to database properties file
 
                 Signer keyconf migration:
-                  migration-cli keyconf <keyconf path> <db.properties path>
+                  migration-cli keyconf [--node <name>] <keyconf path> <db.properties path>
                   Migrate signer key configuration from keyconf.xml and keys files to database.
                   Arguments:
+                    --node <name>        Node the imported rows belong to (default: node_0); an invalid name
+                                         stops the tool before any write
                     <keyconf path>       Path to directory containing keyconf.xml and softtoken keys
                     <db.properties path> Path to database properties file
 
@@ -361,6 +367,7 @@ public class LegacyConfigMigrationCLI {
                   XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD=secret \\
                     migration-cli acme-account-keys /etc/xroad/ssl/acme.p12 /etc/xroad/db.properties
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
+                  migration-cli keyconf --node node_1 /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
                   migration-cli node-name /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/node.ini
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
@@ -512,10 +519,11 @@ public class LegacyConfigMigrationCLI {
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private static void migrateKeyConf(String[] args, InstallationType installation) throws SQLException {
+    private static void migrateKeyConf(String[] args, NodeIdentity nodeIdentity, InstallationType installation)
+            throws SQLException {
         if (args.length != 2) {
             log.error("Signer keyconf migration requires 2 arguments");
-            log.error("Usage: migration-cli keyconf <keyconf path> <db.properties path>");
+            log.error("Usage: migration-cli keyconf [--node <name>] <keyconf path> <db.properties path>");
             log.error("  <keyconf path>       Path to directory containing keyconf.xml and softtoken keys");
             log.error("  <db.properties path> Path to database properties file");
             System.exit(1);
@@ -531,7 +539,7 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        new KeyConfMigrator(installation).migrate(keyconfDir, dbPropertiesPath);
+        new KeyConfMigrator(installation).migrate(keyconfDir, dbPropertiesPath, nodeIdentity);
     }
 
     private static void migrateNodeName(String[] args) {

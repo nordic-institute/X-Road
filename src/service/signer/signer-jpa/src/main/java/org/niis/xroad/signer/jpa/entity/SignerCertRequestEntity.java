@@ -58,8 +58,11 @@ public class SignerCertRequestEntity extends AuditableEntity {
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "external_id", unique = true)
+    @Column(name = "external_id")
     private String externalId;
+
+    @Column(name = "ha_node_name", nullable = false)
+    private String haNodeName;
 
     @Column(name = "key_id", nullable = false)
     private Long keyId;
@@ -83,6 +86,7 @@ public class SignerCertRequestEntity extends AuditableEntity {
         SignerCertRequestEntity that = (SignerCertRequestEntity) o;
         return Objects.equals(id, that.id)
                 && Objects.equals(externalId, that.externalId)
+                && Objects.equals(haNodeName, that.haNodeName)
                 && Objects.equals(keyId, that.keyId)
                 && Objects.equals(member, that.member)
                 && Objects.equals(subjectName, that.subjectName)
@@ -92,6 +96,6 @@ public class SignerCertRequestEntity extends AuditableEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, externalId, keyId, member, subjectName, subjectAlternativeName, certificateProfile);
+        return Objects.hash(id, externalId, haNodeName, keyId, member, subjectName, subjectAlternativeName, certificateProfile);
     }
 }

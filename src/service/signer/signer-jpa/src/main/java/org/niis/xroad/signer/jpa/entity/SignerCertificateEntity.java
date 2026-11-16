@@ -60,8 +60,11 @@ public class SignerCertificateEntity extends AuditableEntity {
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "external_id", unique = true)
+    @Column(name = "external_id")
     private String externalId;
+
+    @Column(name = "ha_node_name", nullable = false)
+    private String haNodeName;
 
     @Column(name = "key_id", nullable = false)
     private Long keyId;
@@ -97,6 +100,7 @@ public class SignerCertificateEntity extends AuditableEntity {
         SignerCertificateEntity that = (SignerCertificateEntity) o;
         return Objects.equals(id, that.id)
                 && Objects.equals(externalId, that.externalId)
+                && Objects.equals(haNodeName, that.haNodeName)
                 && Objects.equals(keyId, that.keyId)
                 && Objects.equals(member, that.member)
                 && Objects.equals(active, that.active)
@@ -110,7 +114,7 @@ public class SignerCertificateEntity extends AuditableEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, externalId, keyId, member, active, status, Arrays.hashCode(data),
+        return Objects.hash(id, externalId, haNodeName, keyId, member, active, status, Arrays.hashCode(data),
                 nextRenewalTime, renewedCertHash, renewalError, ocspVerifyError);
     }
 }

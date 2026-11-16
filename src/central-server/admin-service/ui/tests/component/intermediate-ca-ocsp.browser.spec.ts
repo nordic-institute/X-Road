@@ -109,7 +109,7 @@ const basePermissions = [
 
 describe('0550 — CS Intermediate CA OCSP — add OCSP responder and list render (Browser Mode)', () => {
   it('add button opens dialog; after save the new OCSP responder appears in the list', async () => {
-    let ocspCallCount = 0;
+    let responders: (typeof ocspResponder)[] = [];
     await renderRoute(intCaOcspPath, {
       permissions: [...basePermissions, Permissions.ADD_APPROVED_CA],
       msw: [
@@ -119,13 +119,11 @@ describe('0550 — CS Intermediate CA OCSP — add OCSP responder and list rende
         specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
           response(200).json(caDetail),
         ),
-        specHttp.get('/intermediate-cas/{intermediate_ca_id}/ocsp-responders', ({ response }) => {
-          ocspCallCount += 1;
-          return ocspCallCount === 1 ? response(200).json([]) : response(200).json([ocspResponder]);
+        specHttp.get('/intermediate-cas/{intermediate_ca_id}/ocsp-responders', ({ response }) => response(200).json(responders)),
+        specHttp.post('/intermediate-cas/{intermediate_ca_id}/ocsp-responders', ({ response }) => {
+          responders = [ocspResponder];
+          return response(201).json(ocspResponder);
         }),
-        specHttp.post('/intermediate-cas/{intermediate_ca_id}/ocsp-responders', ({ response }) =>
-          response(201).json(ocspResponder),
-        ),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],
@@ -145,7 +143,7 @@ describe('0550 — CS Intermediate CA OCSP — add OCSP responder and list rende
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
-    await expect.element(page.getByText('http://ocsp.example.com').first()).toBeVisible();
+    await expect.element(page.getByTestId('ocsp-responders-table').getByText('http://ocsp.example.com')).toBeVisible();
   });
 });
 
@@ -185,7 +183,7 @@ describe('0550 — CS Intermediate CA OCSP — list table render, sort by URL, v
 describe('0550 — CS Intermediate CA OCSP — edit OCSP responder dialog render (Browser Mode)', () => {
   it('edit button opens dialog with URL, cost-type, and cert-change fields; save updates the list', async () => {
     const updatedOcsp = { ...ocspResponder, url: 'http://ocsp-updated.example.com', cost_type: 'PAID' as OcspResponder['cost_type'] };
-    let ocspCallCount = 0;
+    let responders = [ocspResponder];
     await renderRoute(intCaOcspPath, {
       permissions: [...basePermissions, Permissions.EDIT_APPROVED_CA],
       msw: [
@@ -195,13 +193,11 @@ describe('0550 — CS Intermediate CA OCSP — edit OCSP responder dialog render
         specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
           response(200).json(caDetail),
         ),
-        specHttp.get('/intermediate-cas/{intermediate_ca_id}/ocsp-responders', ({ response }) => {
-          ocspCallCount += 1;
-          return ocspCallCount === 1 ? response(200).json([ocspResponder]) : response(200).json([updatedOcsp]);
+        specHttp.get('/intermediate-cas/{intermediate_ca_id}/ocsp-responders', ({ response }) => response(200).json(responders)),
+        specHttp.patch('/ocsp-responders/{ocsp_responder_id}', ({ response }) => {
+          responders = [updatedOcsp];
+          return response(200).json(updatedOcsp);
         }),
-        specHttp.patch('/ocsp-responders/{ocsp_responder_id}', ({ response }) =>
-          response(200).json(updatedOcsp),
-        ),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],
@@ -225,13 +221,13 @@ describe('0550 — CS Intermediate CA OCSP — edit OCSP responder dialog render
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
-    await expect.element(page.getByText('http://ocsp-updated.example.com').first()).toBeVisible();
+    await expect.element(page.getByTestId('ocsp-responders-table').getByText('http://ocsp-updated.example.com')).toBeVisible();
   });
 });
 
 describe('0550 — CS Intermediate CA OCSP — delete OCSP responder from list (Browser Mode)', () => {
   it('delete button triggers confirm dialog; after confirm the responder is removed from the list', async () => {
-    let ocspCallCount = 0;
+    let responders = [ocspResponder];
     await renderRoute(intCaOcspPath, {
       permissions: [...basePermissions, Permissions.DELETE_APPROVED_CA],
       msw: [
@@ -241,13 +237,11 @@ describe('0550 — CS Intermediate CA OCSP — delete OCSP responder from list (
         specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
           response(200).json(caDetail),
         ),
-        specHttp.get('/intermediate-cas/{intermediate_ca_id}/ocsp-responders', ({ response }) => {
-          ocspCallCount += 1;
-          return ocspCallCount === 1 ? response(200).json([ocspResponder]) : response(200).json([]);
+        specHttp.get('/intermediate-cas/{intermediate_ca_id}/ocsp-responders', ({ response }) => response(200).json(responders)),
+        specHttp.delete('/ocsp-responders/{ocsp_responder_id}', ({ response }) => {
+          responders = [];
+          return response(204).empty();
         }),
-        specHttp.delete('/ocsp-responders/{ocsp_responder_id}', ({ response }) =>
-          response(204).empty(),
-        ),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],

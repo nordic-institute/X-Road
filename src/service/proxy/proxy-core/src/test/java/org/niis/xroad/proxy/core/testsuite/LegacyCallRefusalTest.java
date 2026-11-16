@@ -250,6 +250,42 @@ class LegacyCallRefusalTest {
     }
 
     @Test
+    void shouldServeTokenlessMemberAddressedListMethodsRequestWhenTheInstanceRefuses() throws Exception {
+        startContext();
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
+        stubMetaserviceBypass();
+        var request = new Probe("listMethods-member.query", null);
+        request.execute(ctx);
+        assertThat(request.faultCode).isNull();
+        assertTrue(request.served);
+        assertThat(request.aclChecks).hasValue(0);
+        verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
+    }
+
+    @Test
+    void shouldServeTokenlessMemberAddressedAllowedMethodsRequestWhenTheInstanceRefuses() throws Exception {
+        startContext();
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
+        stubMetaserviceBypass();
+        var request = new Probe("allowedMethods.query", null);
+        request.execute(ctx);
+        assertThat(request.faultCode).isNull();
+        assertTrue(request.served);
+        assertThat(request.aclChecks).hasValue(0);
+        verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
+    }
+
+    @Test
+    void shouldServeTokenlessMemberAddressedGetWsdlRequestWhenTheInstanceRefuses() throws Exception {
+        startContext();
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
+        stubMetaserviceBypass();
+        var request = new GetWSDLMessage();
+        request.execute(ctx);
+        verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
+    }
+
+    @Test
     void shouldServeTokenlessProxyMonitoringRequestWhenTheInstanceRefuses() throws Exception {
         startContext(monitorReturningMetrics());
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);

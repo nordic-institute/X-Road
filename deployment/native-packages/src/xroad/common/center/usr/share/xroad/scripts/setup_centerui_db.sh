@@ -30,6 +30,7 @@ setup_database() {
 
   # read parameters from db.properties
   prepare_db_props
+  prepare_ha_node_name_args || die "Running database migrations stopped: cannot determine the node name."
 
   local -r db_admin_user=$(get_required_root_prop 'centerui.database.admin_user' "$db_user")
   local -r db_admin_password=$(get_required_root_prop 'centerui.database.admin_password' "$db_password")
@@ -53,6 +54,7 @@ setup_database() {
     --username="${db_admin_user}" \
     --defaultSchemaName="${db_schema}" \
     --prop-db-user="${db_user%%@*}" \
+    "${ha_node_name_args[@]}" \
     $context \
     update ||
     die "Running database migrations failed, please check database availability and configuration in ${db_properties}"
