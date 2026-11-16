@@ -31,16 +31,16 @@ import jakarta.annotation.Nullable;
 import java.util.function.Predicate;
 
 /**
- * How the value globalconf carries compares with the value this Security Server holds. Pure: no clock, no storage.
+ * How the value globalconf announces compares with the value this Security Server holds. Pure: no clock, no storage.
  */
 public enum GlobalConfComparison {
-    /** Globalconf carries no value. */
+    /** Globalconf announces no value. */
     ABSENT,
-    /** Globalconf carries the held value. */
+    /** Globalconf announces the held value. */
     EQUAL,
-    /** Globalconf carries another value that is still valid. */
+    /** Globalconf announces another value that is still valid. */
     DIFFERENT,
-    /** Globalconf carries another value that no longer fits this Security Server. */
+    /** Globalconf announces another value that no longer fits this Security Server. */
     STALE;
 
     /**
@@ -48,7 +48,7 @@ public enum GlobalConfComparison {
      * a carried value equal to the held one is {@link #EQUAL} whatever the staleness test says.
      *
      * @param held           the value this Security Server holds
-     * @param carried        the value globalconf carries, {@code null} when it carries none
+     * @param carried        the value globalconf announces, {@code null} when it announces none
      * @param carriedIsStale tells whether a carried value no longer fits this Security Server
      * @return the comparison result
      */

@@ -120,18 +120,8 @@ public class DataspaceDidAuthority {
 
     /**
      * @return the DSP base URL of this server's control plane, built from the registered address and the
-     *         stored DSP port ({@code xroad.dsp.dsp-port}); empty while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII or not a
-     *         valid host name or IPv6 literal
-     */
-    public Optional<String> dspBaseUrl() {
-        return dspBaseUrl(registeredAddress());
-    }
-
-    /**
-     * @return the DSP base URL like {@link #dspBaseUrl()}, but empty also while the registered address is invalid
-     *         or its lookup fails with an {@link XrdRuntimeException}, for callers that treat an address that
-     *         cannot be used the same as an unknown one
+     *         stored DSP port ({@code xroad.dsp.dsp-port}); empty while the registered address is unknown,
+     *         invalid or its lookup fails with an {@link XrdRuntimeException}
      */
     public Optional<String> dspBaseUrlIfValid() {
         try {

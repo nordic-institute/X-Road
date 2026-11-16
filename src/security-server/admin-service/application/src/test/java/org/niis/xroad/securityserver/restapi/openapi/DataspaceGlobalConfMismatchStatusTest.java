@@ -80,6 +80,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.memberDid;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.systemDid;
 
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
@@ -91,9 +93,9 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
     private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create(MEMBER, "TEST-INMEM-SS");
     private static final String ADDRESS = "ss.example.test";
     private static final String OTHER_HOST_ADDRESS = "other.example.test";
-    private static final String BOUND_DID = memberDid("ss.example.test:7183");
-    private static final String OTHER_DID_SAME_HOST = memberDid("ss.example.test:8443");
-    private static final String OTHER_DID_OTHER_HOST = memberDid("other.example.test:7183");
+    private static final String BOUND_DID = memberDid(MEMBER, "ss.example.test:7183");
+    private static final String OTHER_DID_SAME_HOST = memberDid(MEMBER, "ss.example.test:8443");
+    private static final String OTHER_DID_OTHER_HOST = memberDid(MEMBER, "other.example.test:7183");
     private static final String BOUND_SYSTEM_DID = systemDid("ss.example.test:7183");
     private static final String OTHER_SYSTEM_DID_SAME_HOST = systemDid("ss.example.test:8443");
     private static final String OTHER_SYSTEM_DID_OTHER_HOST = systemDid("other.example.test:7183");
@@ -373,13 +375,5 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
     private void carrySystemValues(String did, String dspBaseUrl) {
         when(globalConfProvider.getServerSystemValues(SS_ID)).thenReturn(
                 did == null ? Optional.empty() : Optional.of(new ServerSystemValues(did, dspBaseUrl)));
-    }
-
-    private static String systemDid(String authority) {
-        return ParticipantIdentifierScheme.systemDid(authority).toString();
-    }
-
-    private static String memberDid(String authority) {
-        return ParticipantIdentifierScheme.memberDid(MEMBER, authority).toString();
     }
 }

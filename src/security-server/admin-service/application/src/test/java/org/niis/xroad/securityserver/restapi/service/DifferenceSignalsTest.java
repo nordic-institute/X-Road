@@ -35,7 +35,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.serverconf.model.PublicationState;
@@ -48,7 +47,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.memberDid;
 import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.memberEntity;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.systemDid;
 import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.systemEntity;
 
 class DifferenceSignalsTest {
@@ -57,9 +58,9 @@ class DifferenceSignalsTest {
     private static final ClientId OTHER_MEMBER = ClientId.Conf.create("DEV", "COM", "333");
     private static final SecurityServerId SERVER = SecurityServerId.Conf.create(MEMBER, "SS0");
     private static final String ADDRESS = "ss0.example.org";
-    private static final String BOUND = memberDid("ss0.example.org:7183");
-    private static final String OTHER_SAME_HOST = memberDid("ss0.example.org:8443");
-    private static final String OTHER_HOST = memberDid("ss1.example.org:7183");
+    private static final String BOUND = memberDid(MEMBER, "ss0.example.org:7183");
+    private static final String OTHER_SAME_HOST = memberDid(MEMBER, "ss0.example.org:8443");
+    private static final String OTHER_HOST = memberDid(MEMBER, "ss1.example.org:7183");
 
     private static final String SYSTEM_DID = systemDid("ss0.example.org:7183");
     private static final String OTHER_SYSTEM_DID = systemDid("ss0.example.org:8443");
@@ -245,13 +246,5 @@ class DifferenceSignalsTest {
         when(globalConfProvider.getMemberDid(MEMBER, SERVER)).thenReturn(Optional.ofNullable(carriedMemberDid));
         when(globalConfProvider.getServerSystemValues(SERVER)).thenReturn(Optional.ofNullable(carriedSystem));
         return DifferenceSignals.of(SERVER, globalConfProvider, registeredAddress, dspBaseUrl);
-    }
-
-    private static String systemDid(String authority) {
-        return ParticipantIdentifierScheme.systemDid(authority).toString();
-    }
-
-    private static String memberDid(String authority) {
-        return ParticipantIdentifierScheme.memberDid(MEMBER, authority).toString();
     }
 }

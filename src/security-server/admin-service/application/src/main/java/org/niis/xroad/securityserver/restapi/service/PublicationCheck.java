@@ -38,10 +38,10 @@ import java.util.function.Supplier;
  * Decides how one globalconf check moves the publication state of a binding row, for the SYSTEM values and for a
  * member DID alike. Pure: no clock, no storage.
  *
- * <p>A submitted row that globalconf carries unchanged becomes published. Values that globalconf carries but that
+ * <p>A submitted row that globalconf announces unchanged becomes published. Values that globalconf announces but that
  * differ from the stored ones, or that are stale, change nothing: only an absence counts as missing. A published row
- * that globalconf no longer carries, and a submitted row that stayed submitted past the cutoff while globalconf
- * carries nothing, go back to not sent so that the next reconciler pass sends them again. Both resends are behind
+ * that globalconf no longer announces, and a submitted row that stayed submitted past the cutoff while globalconf
+ * announces nothing, go back to not sent so that the next reconciler pass sends them again. Both resends are behind
  * the same guard: the SYSTEM values need a registered authentication certificate, a member DID needs the member to
  * be hosted on this server. A row with no known change time is never resent by the timeout.
  */
@@ -50,9 +50,9 @@ public class PublicationCheck {
 
     /**
      * @param storedState     the stored publication state of the row; {@code null} counts as not sent
-     * @param comparison      how what globalconf carries compares with the row; asked only for a submitted or
+     * @param comparison      how what globalconf announces compares with the row; asked only for a submitted or
      *                        published row
-     * @param resendAllowed   whether the row may be sent again; asked only when globalconf carries nothing and the
+     * @param resendAllowed   whether the row may be sent again; asked only when globalconf announces nothing and the
      *                        row is published or submitted since before the cutoff
      * @param changedAt       the time the publication state of the row last changed, {@code null} when unknown
      * @param submittedBefore the cutoff: a row submitted since before this instant has been submitted too long

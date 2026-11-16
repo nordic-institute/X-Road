@@ -65,7 +65,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.memberDid;
 import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.memberEntity;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.systemDid;
 import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.systemEntity;
 
 @ExtendWith(MockitoExtension.class)
@@ -183,11 +185,9 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusReportsHostStatusUnknownAndStillShowsThePublicationStatesWhenTheAddressIsNotRegistered() {
         when(globalConfProvider.getSecurityServerAddress(any())).thenReturn(null);
-        var systemRow = systemEntity(ParticipantIdentifierScheme.systemDid("ss.example.test:7183").toString(),
-                PublicationState.SUBMITTED);
+        var systemRow = systemEntity(systemDid("ss.example.test:7183"), PublicationState.SUBMITTED);
         when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
-        var memberRow = memberEntity(OWNER, ParticipantIdentifierScheme.memberDid(OWNER, "ss.example.test:7183").toString(),
-                PublicationState.PUBLISHED);
+        var memberRow = memberEntity(OWNER, memberDid(OWNER, "ss.example.test:7183"), PublicationState.PUBLISHED);
         when(dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class)))
                 .thenReturn(List.of(memberRow));
 

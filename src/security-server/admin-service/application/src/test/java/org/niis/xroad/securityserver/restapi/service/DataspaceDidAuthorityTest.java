@@ -159,13 +159,12 @@ class DataspaceDidAuthorityTest {
     }
 
     @Test
-    void dspBaseUrlAgreesWithTheMintOnAnAddressThatCannotCarryADid() {
+    void dspBaseUrlIfValidAgreesWithTheMintOnAnAddressThatCannotCarryADid() {
         for (var host : new String[] {"b\u00fccher.example", "bad_host.example"}) {
             var authority = authority(new OwnAddress.Registered(SERVER_ID, host), 443);
 
             assertThat(authority.mintMemberDid(MEMBER)).isInstanceOf(Rejected.class);
-            assertThatThrownBy(authority::dspBaseUrl).isInstanceOfSatisfying(XrdRuntimeException.class,
-                    e -> assertThat(e.getErrorCode()).isEqualTo(VALIDATION_ERROR.code()));
+            assertThat(authority.dspBaseUrlIfValid()).isEmpty();
         }
     }
 
@@ -213,7 +212,7 @@ class DataspaceDidAuthorityTest {
     void dspBaseUrlIfValidReturnsTheUrlOfAValidAddress() {
         var authority = authority(new OwnAddress.Registered(SERVER_ID, "ss0.example.org"), 443, 8183);
 
-        assertThat(authority.dspBaseUrlIfValid()).isEqualTo(authority.dspBaseUrl()).get().asString()
+        assertThat(authority.dspBaseUrlIfValid()).get().asString()
                 .contains("ss0.example.org").contains("8183");
     }
 

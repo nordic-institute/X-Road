@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Compares the DIDs and the DSP base URL on the binding rows with the values globalconf carries for one Security
+ * Compares the DIDs and the DSP base URL on the binding rows with the values globalconf announces for one Security
  * Server. The publication steps compare single rows; {@link #evaluate} evaluates the host status, the SYSTEM
  * mismatches and the member mismatches in one go and returns them as {@link Differences}.
  */
@@ -73,7 +73,7 @@ public final class DifferenceSignals {
 
     /**
      * @param row a member binding row
-     * @return how the DID globalconf carries for the member compares with the DID on the row; a differing DID that
+     * @return how the DID globalconf announces for the member compares with the DID on the row; a differing DID that
      * no longer fits the registered address is stale
      */
     public GlobalConfComparison compareMemberDid(DsParticipantEntity row) {
@@ -87,7 +87,7 @@ public final class DifferenceSignals {
 
     /**
      * @param row the SYSTEM binding row
-     * @return how the SYSTEM values globalconf carries compare with the SYSTEM DID on the row and the built DSP base
+     * @return how the SYSTEM values globalconf announces compare with the SYSTEM DID on the row and the built DSP base
      * URL; the pair is stale when the host of either carried value is not the registered address
      */
     public SystemValuesComparison compareSystemValues(DsParticipantEntity row) {
@@ -136,7 +136,7 @@ public final class DifferenceSignals {
     }
 
     /**
-     * Which SYSTEM values differ from the ones globalconf carries.
+     * Which SYSTEM values differ from the ones globalconf announces.
      *
      * @param systemDid  whether the SYSTEM DID differs
      * @param dspBaseUrl whether the DSP base URL differs
@@ -150,7 +150,7 @@ public final class DifferenceSignals {
      * All signals of one evaluation.
      *
      * @param hostStatus       whether the DIDs of all active bindings carry the registered address as their host
-     * @param systemMismatch   which SYSTEM values differ from the ones globalconf carries
+     * @param systemMismatch   which SYSTEM values differ from the ones globalconf announces
      * @param memberMismatches the members whose carried DID differs from the bound one
      * @param hostDiffering    the names of the active bindings whose DID host is not the registered address:
      *                         {@code SYSTEM} or the encoded member identifier

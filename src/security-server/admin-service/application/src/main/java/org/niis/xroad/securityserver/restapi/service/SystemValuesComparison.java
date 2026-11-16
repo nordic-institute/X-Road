@@ -32,7 +32,7 @@ import org.niis.xroad.globalconf.model.ServerSystemValues;
 import java.util.function.Predicate;
 
 /**
- * How the SYSTEM values globalconf carries compare with the SYSTEM DID this Security Server holds and the DSP base URL
+ * How the SYSTEM values globalconf announces compare with the SYSTEM DID this Security Server holds and the DSP base URL
  * built for it. Pure: no clock, no storage.
  *
  * @param systemDid  the comparison of the SYSTEM DID
@@ -43,11 +43,11 @@ public record SystemValuesComparison(GlobalConfComparison systemDid, GlobalConfC
     /**
      * Compares each carried value with the one held. Staleness is judged for the pair: when either carried value no
      * longer fits this Security Server, a value that differs is {@link GlobalConfComparison#STALE}. A DSP base URL
-     * that cannot be built is stale whenever globalconf carries values.
+     * that cannot be built is stale whenever globalconf announces values.
      *
      * @param heldSystemDid   the SYSTEM DID this Security Server holds
      * @param builtDspBaseUrl the DSP base URL built for this server, {@code null} while it cannot be built
-     * @param carried         the SYSTEM values globalconf carries, {@code null} when it carries none
+     * @param carried         the SYSTEM values globalconf announces, {@code null} when it announces none
      * @param pairIsStale     tells whether the carried values no longer fit this Security Server
      * @return the comparison of both values
      */
@@ -65,8 +65,8 @@ public record SystemValuesComparison(GlobalConfComparison systemDid, GlobalConfC
     }
 
     /**
-     * @return {@link GlobalConfComparison#ABSENT} when globalconf carries no values, {@link GlobalConfComparison#EQUAL}
-     * when it carries both as held, otherwise {@link GlobalConfComparison#STALE} if either value is stale, else
+     * @return {@link GlobalConfComparison#ABSENT} when globalconf announces no values, {@link GlobalConfComparison#EQUAL}
+     * when it announces both as held, otherwise {@link GlobalConfComparison#STALE} if either value is stale, else
      * {@link GlobalConfComparison#DIFFERENT}
      */
     public GlobalConfComparison overall() {

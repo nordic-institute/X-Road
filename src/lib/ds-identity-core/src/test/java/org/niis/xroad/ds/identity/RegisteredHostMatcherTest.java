@@ -167,6 +167,7 @@ class RegisteredHostMatcherTest {
 
         assertThat(unusable.didHostMatches(memberDid("ss0.example.org:7183"))).isFalse();
         assertThat(unusable.isRegisteredAddressUsable()).isFalse();
+        assertThat(unusable.authorityHostMatches(registeredAddress)).isFalse();
         assertThat(unusable.isSystemPairStale(SYSTEM_DID, DSP_BASE_URL)).isTrue();
     }
 

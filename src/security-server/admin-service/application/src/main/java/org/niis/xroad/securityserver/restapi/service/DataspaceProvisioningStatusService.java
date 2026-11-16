@@ -69,8 +69,8 @@ public class DataspaceProvisioningStatusService {
      * Returns a snapshot of the current provisioning status. Deliberately not transactional: the context
      * enumeration, the SYSTEM binding row read, the member binding rows read and each context's binding row read
      * inside its status read run in their own short transactions, so no pooled DB connection is held across the
-     * blocking gRPC calls of the per-context status reads. The own address is resolved once, and the SYSTEM row and the
-     * active member rows are read once for the publication states and the differences.
+     * blocking gRPC calls of the per-context status reads. The differences use one resolution of the own address, and
+     * the SYSTEM row and the active member rows are read once for the publication states and the differences.
      */
     public DataspaceStatus readStatus() {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();

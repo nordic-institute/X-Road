@@ -55,6 +55,20 @@ public class ParticipantRowTestUtils {
     private final PlatformTransactionManager transactionManager;
 
     /**
+     * Builds the SYSTEM DID string of a DID authority.
+     */
+    public static String systemDid(String authority) {
+        return ParticipantIdentifierScheme.systemDid(authority).toString();
+    }
+
+    /**
+     * Builds the member DID string of a member at a DID authority.
+     */
+    public static String memberDid(ClientId member, String authority) {
+        return ParticipantIdentifierScheme.memberDid(member, authority).toString();
+    }
+
+    /**
      * Builds an unsaved active SYSTEM binding entity.
      */
     public static DsParticipantEntity systemEntity(String did, PublicationState publicationState) {

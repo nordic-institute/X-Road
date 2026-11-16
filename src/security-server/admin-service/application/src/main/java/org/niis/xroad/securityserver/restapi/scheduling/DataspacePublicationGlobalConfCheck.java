@@ -154,9 +154,6 @@ public class DataspacePublicationGlobalConfCheck {
 
     private void checkMemberDids(DifferenceSignals signals) {
         var rows = dsParticipantRepository.findActiveMembers(PublicationState.SENT);
-        if (rows.isEmpty()) {
-            return;
-        }
         var hostedMembers = Suppliers.memoize(() -> HostedMembers.of(clientRepository.getAllLocalClients()));
         var submittedBefore = submittedBefore();
         for (var row : rows) {

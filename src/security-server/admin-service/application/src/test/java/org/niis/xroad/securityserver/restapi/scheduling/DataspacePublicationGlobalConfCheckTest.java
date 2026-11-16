@@ -47,7 +47,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
-import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -82,6 +81,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.memberDid;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils.systemDid;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -90,7 +91,7 @@ class DataspacePublicationGlobalConfCheckTest {
     private static final SecurityServerId SERVER_ID =
             SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
     private static final OwnAddress.Registered ADDRESS = new OwnAddress.Registered(SERVER_ID, "ss1.example.org");
-    private static final String SYSTEM_DID = ParticipantIdentifierScheme.systemDid("ss1.example.org:7183").toString();
+    private static final String SYSTEM_DID = systemDid("ss1.example.org:7183");
     private static final String DSP_BASE_URL = "https://ss1.example.org:7181/dsp";
 
     @Mock
@@ -130,7 +131,7 @@ class DataspacePublicationGlobalConfCheckTest {
         when(globalConfProvider.getServerSystemValues(SERVER_ID))
                 .thenReturn(Optional.of(new ServerSystemValues(SYSTEM_DID, DSP_BASE_URL)));
         when(globalConfProvider.getMemberDid(any(), any())).thenAnswer(
-                invocation -> Optional.of(memberDid((ClientId) invocation.getArgument(0))));
+                invocation -> Optional.of(memberDidOfTheOwnHost((ClientId) invocation.getArgument(0))));
         when(dsParticipantRepository.findActiveSystemParticipant())
                 .thenReturn(Optional.of(row(1, ParticipantType.SYSTEM)));
         when(dsParticipantRepository.findActiveMembers(any())).thenReturn(List.of(row(2, ParticipantType.MEMBER),
@@ -165,7 +166,8 @@ class DataspacePublicationGlobalConfCheckTest {
         var differingMember = ClientId.Conf.create("DEV", "COM", "M3");
         doAnswer(invocation -> Optional.of(
                 invocation.getArgument(0, ClientId.class).asEncodedId().equals(differingMember.asEncodedId())
-                        ? memberDid(differingMember, "ss1.example.org:8443") : memberDid(invocation.getArgument(0))))
+                        ? memberDid(differingMember, "ss1.example.org:8443")
+                        : memberDidOfTheOwnHost(invocation.getArgument(0))))
                 .when(globalConfProvider).getMemberDid(any(), any());
 
         check.check(SERVER_ID);
@@ -218,12 +220,8 @@ class DataspacePublicationGlobalConfCheckTest {
         SIGNAL_SETUP
     }
 
-    private static String memberDid(ClientId member) {
+    private static String memberDidOfTheOwnHost(ClientId member) {
         return memberDid(member, "ss1.example.org:7183");
-    }
-
-    private static String memberDid(ClientId member, String authority) {
-        return ParticipantIdentifierScheme.memberDid(member, authority).toString();
     }
 
     private static DsParticipantEntity row(long id, ParticipantType type) {
@@ -233,7 +231,7 @@ class DataspacePublicationGlobalConfCheckTest {
                 : ParticipantRowTestUtils.systemEntity(SYSTEM_DID, PublicationState.SUBMITTED);
         row.setId(id);
         if (type == ParticipantType.MEMBER) {
-            row.setDid(memberDid(row.getMemberIdentifier()));
+            row.setDid(memberDidOfTheOwnHost(row.getMemberIdentifier()));
         }
         return row;
     }
