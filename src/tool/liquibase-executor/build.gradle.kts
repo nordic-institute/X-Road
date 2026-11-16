@@ -16,7 +16,6 @@ dependencies {
   testImplementation(libs.assertj.core)
   testImplementation(libs.jackson.annotations)
   testImplementation(libs.junit.jupiter.params)
-  testImplementation(libs.testcontainers.junit)
   testImplementation(libs.testcontainers.postgresql)
 }
 

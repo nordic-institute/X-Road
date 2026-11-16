@@ -26,8 +26,9 @@
  */
 package org.niis.xroad.liquibase;
 
-import org.junit.jupiter.api.AfterAll;
+import lombok.With;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.AfterParameterizedClassInvocation;
 import org.junit.jupiter.params.BeforeParameterizedClassInvocation;
 import org.junit.jupiter.params.Parameter;
 import org.junit.jupiter.params.ParameterizedClass;
@@ -48,6 +49,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
@@ -63,6 +65,8 @@ class BootstrapSqlTest {
     private static final String FIRST_PASSWORD_SUFFIX = "-one";
     private static final String SECOND_PASSWORD_SUFFIX = "-two";
     private static final String MASTER_PASSWORD = "master-pw";
+    private static final String MAINTENANCE_DB = "postgres";
+    private static final int PSQL_ON_ERROR_STOP_EXIT_CODE = 3;
     private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
     private static PostgreSQLContainer postgres;
@@ -79,9 +83,9 @@ class BootstrapSqlTest {
         postgres.start();
     }
 
-    @AfterAll
+    @AfterParameterizedClassInvocation
     static void stopDatabase() {
-        if (postgres != null && postgres.isRunning()) {
+        if (postgres != null) {
             postgres.stop();
         }
     }
@@ -89,7 +93,7 @@ class BootstrapSqlTest {
     @Test
     void superuserMasterCreatesTwoRolesWithHyphenatedNamesAndAwkwardPasswords() throws Exception {
         var scenario = scenario("ds-control-plane", true, false)
-                .withMaster(postgres.getUsername(), postgres.getPassword())
+                .withMaster(postgres.getUsername()).withMasterPassword(postgres.getPassword())
                 .withPasswordTail("p'a\\ss");
 
         assertAppliedTwice(scenario);
@@ -99,7 +103,7 @@ class BootstrapSqlTest {
     void masterWithOnlyCreatedbAndCreateroleWorksUnderTheRemoteSearchPath() throws Exception {
         var master = "master_b" + SEQUENCE.incrementAndGet();
         execute("CREATE ROLE \"%s\" LOGIN PASSWORD '%s' CREATEDB CREATEROLE".formatted(master, MASTER_PASSWORD));
-        var scenario = scenario("limited", true, false).withMaster(master, MASTER_PASSWORD).withRemoteSearchPath();
+        var scenario = scenario("limited", true, false).withMaster(master).withMasterPassword(MASTER_PASSWORD).withRemoteSearchPath();
 
         assertAppliedTwice(scenario);
 
@@ -109,7 +113,8 @@ class BootstrapSqlTest {
 
     @Test
     void singleRoleModeCreatesNoAdminRoleAndTheRuntimeRoleOwnsTheSchema() throws Exception {
-        var scenario = scenario("single", false, true).withMaster(postgres.getUsername(), postgres.getPassword());
+        var scenario = scenario("single", false, true).withMaster(postgres.getUsername())
+                .withMasterPassword(postgres.getPassword());
 
         assertAppliedTwice(scenario);
 
@@ -118,8 +123,8 @@ class BootstrapSqlTest {
 
     @Test
     void publicSchemaIsTakenOverByTheAdminRoleSoItCanCreateTablesThere() throws Exception {
-        var scenario = scenario("pub", false, false).withMaster(postgres.getUsername(), postgres.getPassword())
-                .withPublicSchema();
+        var scenario = scenario("pub", false, false).withMaster(postgres.getUsername())
+                .withMasterPassword(postgres.getPassword()).withPublicSchema(true);
         assertSuccess(apply(scenario, FIRST_PASSWORD_SUFFIX));
         assertSuccess(apply(scenario, SECOND_PASSWORD_SUFFIX));
         assertThat(query(scenario.name(), "SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname = 'public'"))
@@ -134,15 +139,17 @@ class BootstrapSqlTest {
             statement.execute("CREATE TABLE public.probe (id int)");
         }
     }
+
     @Test
-    void masterWithoutCreateroleMakesPsqlExitNonZero() throws Exception {
+    void masterWithoutCreateroleStopsPsqlWithPermissionDenied() throws Exception {
         var master = "master_d" + SEQUENCE.incrementAndGet();
         execute("CREATE ROLE \"%s\" LOGIN PASSWORD '%s' CREATEDB".formatted(master, MASTER_PASSWORD));
-        var scenario = scenario("denied", true, false).withMaster(master, MASTER_PASSWORD);
+        var scenario = scenario("denied", true, false).withMaster(master).withMasterPassword(MASTER_PASSWORD);
 
         var result = apply(scenario, FIRST_PASSWORD_SUFFIX);
 
-        assertThat(result.getExitCode()).isNotZero();
+        assertThat(result.getExitCode()).isEqualTo(PSQL_ON_ERROR_STOP_EXIT_CODE);
+        assertThat(result.getStderr()).contains("permission denied to create role");
         assertThat(roleExists(scenario.adminRole())).isFalse();
     }
 
@@ -158,6 +165,7 @@ class BootstrapSqlTest {
         assertSuccess(apply(scenario, SECOND_PASSWORD_SUFFIX));
         assertState(scenario);
 
+        assertCannotLogIn(scenario.runtimeRole(), scenario.runtimePassword(SECOND_PASSWORD_SUFFIX), scenario.name());
         assertCanLogIn(scenario.runtimeRole(), scenario.runtimePassword(FIRST_PASSWORD_SUFFIX), scenario.name());
         if (!scenario.singleRole()) {
             assertCanLogIn(scenario.adminRole(), scenario.adminPassword(FIRST_PASSWORD_SUFFIX), scenario.name());
@@ -169,7 +177,7 @@ class BootstrapSqlTest {
     }
 
     private static void assertState(Scenario scenario) throws SQLException {
-        var owner = scenario.singleRole() ? scenario.runtimeRole() : scenario.adminRole();
+        var owner = scenario.ownerRole();
         var roles = scenario.singleRole() ? List.of(scenario.runtimeRole())
                 : List.of(scenario.adminRole(), scenario.runtimeRole());
 
@@ -178,9 +186,9 @@ class BootstrapSqlTest {
                     + "WHERE rolname = " + literal(role))).containsExactly("t|f|f|f");
         }
 
-        assertThat(query("postgres", "SELECT pg_get_userbyid(datdba) FROM pg_database WHERE datname = "
+        assertThat(query(MAINTENANCE_DB, "SELECT pg_get_userbyid(datdba) FROM pg_database WHERE datname = "
                 + literal(scenario.name()))).containsExactly(scenario.master());
-        assertNoPublicAccessToDatabase(scenario);
+        assertNoPublicAccess(scenario);
 
         assertThat(hasSchemaPrivilege(scenario, owner, scenario.name(), "CREATE")).isTrue();
         assertThat(hasSchemaPrivilege(scenario, scenario.runtimeRole(), scenario.name(), "CREATE")).isEqualTo(scenario.singleRole());
@@ -196,14 +204,17 @@ class BootstrapSqlTest {
                 + "WHERE e.extname = 'hstore'")).isEqualTo(scenario.hstore() ? List.of("public") : List.of());
     }
 
-    private static void assertNoPublicAccessToDatabase(Scenario scenario) throws SQLException {
+    private static void assertNoPublicAccess(Scenario scenario) throws SQLException {
         var probe = "probe_" + SEQUENCE.incrementAndGet();
         execute("CREATE ROLE \"" + probe + "\"");
         try {
             assertThat(hasDatabasePrivilege(probe, scenario.name(), "CONNECT")).isFalse();
             assertThat(hasDatabasePrivilege(probe, scenario.name(), "TEMP")).isFalse();
+            assertThat(hasSchemaPrivilege(scenario, probe, "public", "USAGE")).isFalse();
             assertThat(hasDatabasePrivilege(scenario.runtimeRole(), scenario.name(), "CONNECT")).isTrue();
             assertThat(hasDatabasePrivilege(scenario.runtimeRole(), scenario.name(), "TEMP")).isTrue();
+            assertThat(hasDatabasePrivilege(scenario.ownerRole(), scenario.name(), "CREATE")).isTrue();
+            assertThat(hasDatabasePrivilege(scenario.runtimeRole(), scenario.name(), "CREATE")).isEqualTo(scenario.singleRole());
         } finally {
             execute("DROP ROLE \"" + probe + "\"");
         }
@@ -215,16 +226,16 @@ class BootstrapSqlTest {
     }
 
     private static boolean hasDatabasePrivilege(String role, String database, String privilege) throws SQLException {
-        return queryBoolean("postgres", "SELECT has_database_privilege(%s, %s, %s)"
+        return queryBoolean(MAINTENANCE_DB, "SELECT has_database_privilege(%s, %s, %s)"
                 .formatted(literal(role), literal(database), literal(privilege)));
     }
 
     private static boolean isMember(String member, String role) throws SQLException {
-        return queryBoolean("postgres", "SELECT pg_has_role(%s, %s, 'MEMBER')".formatted(literal(member), literal(role)));
+        return queryBoolean(MAINTENANCE_DB, "SELECT pg_has_role(%s, %s, 'MEMBER')".formatted(literal(member), literal(role)));
     }
 
     private static boolean roleExists(String role) throws SQLException {
-        return !query("postgres", "SELECT 1 FROM pg_roles WHERE rolname = " + literal(role)).isEmpty();
+        return !query(MAINTENANCE_DB, "SELECT 1 FROM pg_roles WHERE rolname = " + literal(role)).isEmpty();
     }
 
     private static void assertCanLogIn(String role, String password, String database) throws SQLException {
@@ -233,13 +244,17 @@ class BootstrapSqlTest {
         }
     }
 
+    private static void assertCannotLogIn(String role, String password, String database) {
+        var url = url(database);
+        assertThatThrownBy(() -> DriverManager.getConnection(url, role, password)).isInstanceOf(SQLException.class);
+    }
     private static ExecResult apply(Scenario scenario, String passwordSuffix) throws IOException, InterruptedException {
         var script = preamble(scenario, passwordSuffix) + readSql("bootstrap-cluster.sql") + readSql("bootstrap-database.sql");
         var scriptPath = "/tmp/bootstrap-" + SEQUENCE.incrementAndGet() + ".sql";
         postgres.copyFileToContainer(Transferable.of(script), scriptPath);
 
-        var command = "PGPASSWORD='%s' %s psql -h 127.0.0.1 -U '%s' -d postgres -qtA < %s"
-                .formatted(scenario.masterPassword(), scenario.pgOptions(), scenario.master(), scriptPath);
+        var command = "PGPASSWORD='%s' %s psql -h 127.0.0.1 -U '%s' -d %s -qtA < %s"
+                .formatted(scenario.masterPassword(), scenario.pgOptions(), scenario.master(), MAINTENANCE_DB, scriptPath);
         return postgres.execInContainer("sh", "-c", command);
     }
 
@@ -281,7 +296,7 @@ class BootstrapSqlTest {
     }
 
     private static void execute(String sql) throws SQLException {
-        try (var connection = superuserConnection("postgres");
+        try (var connection = superuserConnection(MAINTENANCE_DB);
                 var statement = connection.createStatement()) {
             statement.execute(sql);
         }
@@ -308,27 +323,20 @@ class BootstrapSqlTest {
         return rows;
     }
 
+    @With
     private record Scenario(String name, boolean hstore, boolean singleRole, String master, String masterPassword,
                             String passwordTail, String pgOptions, boolean publicSchema) {
 
-        Scenario withMaster(String newMaster, String newMasterPassword) {
-            return new Scenario(name, hstore, singleRole, newMaster, newMasterPassword, passwordTail, pgOptions,
-                    publicSchema);
-        }
-
-        Scenario withPasswordTail(String newTail) {
-            return new Scenario(name, hstore, singleRole, master, masterPassword, newTail, pgOptions, publicSchema);
-        }
-
         Scenario withRemoteSearchPath() {
-            return new Scenario(name, hstore, singleRole, master, masterPassword, passwordTail,
-                    "PGOPTIONS='-c client-min-messages=warning -c search_path=%s,public'".formatted(name), publicSchema);
+            return withPgOptions("PGOPTIONS='-c client-min-messages=warning -c search_path=%s,public'".formatted(name));
         }
-        Scenario withPublicSchema() {
-            return new Scenario(name, hstore, singleRole, master, masterPassword, passwordTail, pgOptions, true);
-        }
+
         String schema() {
             return publicSchema ? "public" : name;
+        }
+
+        String ownerRole() {
+            return singleRole ? runtimeRole() : adminRole();
         }
 
         String adminRole() {
