@@ -126,18 +126,6 @@ EOF
   } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration"
 }
 
-configure_openbao_storage() {
-  if [ ! -f /etc/openbao/openbao.hcl ]; then
-    return 0
-  fi
-
-  if grep -Eq '^storage "(file|pebbledb)"' /etc/openbao/openbao.hcl; then
-    echo "Configuring OpenBao to use PostgreSQL storage backend"
-    sed -i.bak -E 's/^storage "(file|pebbledb)" \{/storage "postgresql" {/' /etc/openbao/openbao.hcl
-    sed -i '/^\s*path\s*=.*openbao.*data/d' /etc/openbao/openbao.hcl
-  fi
-}
-
 # Group xroad read is required, not incidental: the backup driver runs as the
 # xroad user (xroad-auxiliary-service, which execs
 # backup_xroad_proxy_configuration.sh -> _backup_xroad.sh ->
@@ -200,7 +188,6 @@ setup_database() {
   parse_database_host "$db_host"
   setup_psql_functions "$root_properties" "$db_master_conn_user"
   create_database_if_needed "$db_host"
-  configure_openbao_storage
   create_env_file_if_needed
 }
 

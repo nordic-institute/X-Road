@@ -60,6 +60,8 @@ else
   done < "$UNSEAL_KEYS_FILE"
 fi
 
+wait_until_active || true
+
 if [ -z "${BAO_TOKEN:-}" ] && [ -s "$ROOT_TOKEN_FILE" ]; then
   BAO_TOKEN=$(cat "$ROOT_TOKEN_FILE")
 fi

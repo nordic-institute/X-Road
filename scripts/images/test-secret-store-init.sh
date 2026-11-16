@@ -16,6 +16,10 @@ source "${ROOT_DIR}/scripts/lib/base-script.sh"
 IMAGE="${1:-${IMAGE_REGISTRY:-localhost:5555}/openbao-dev:${IMAGE_TAG:-latest}}"
 SCRIPTS_DIR="${ROOT_DIR}/deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts"
 CONTAINER="secret-store-init-test-$$"
+PG_CONTAINER="${CONTAINER}-pg"
+NETWORK="${CONTAINER}-net"
+PG_IMAGE="${PG_IMAGE:-postgres:16-alpine}"
+PG_PASSWORD="test-pg-$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
 WORK_DIR="$(mktemp -d)"
 
 ADDR="http://127.0.0.1:8200"
@@ -23,6 +27,11 @@ ROOT_TOKEN_FILE="/etc/openbao/root-token"
 UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 SETUP_SCRIPT="/usr/share/xroad/scripts/secret-store-init.sh"
+CONFIG_WRITER="/usr/share/xroad/scripts/secret-store-cluster-config.sh"
+TLS_SCRIPT="/usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh"
+XROAD_CONFIG_FILE="/etc/openbao/xroad-openbao.hcl"
+DROP_IN_FILE="/etc/systemd/system/openbao.service.d/xroad.conf"
+BAO_LOG="/var/log/bao.log"
 OPERATOR_STEP="Copy the root token file ${ROOT_TOKEN_FILE} from another node"
 SKIP_LOG="No root token on this node"
 
@@ -46,7 +55,8 @@ dump_last_run() {
 cleanup() {
   local rc=$?
   if [[ ${rc} -ne 0 && ${FAILURES} -eq 0 ]]; then dump_last_run; fi
-  docker rm -f "${CONTAINER}" >/dev/null 2>&1
+  docker rm -f "${CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
+  docker network rm "${NETWORK}" >/dev/null 2>&1
   rm -rf "${WORK_DIR}"
 }
 trap cleanup EXIT
@@ -93,7 +103,7 @@ SHIM
 
 wait_for_server() {
   for _ in $(seq 1 60); do
-    if in_container curl -s -o /dev/null "${ADDR}/v1/sys/health"; then return 0; fi
+    if in_container curl -sk -o /dev/null "${ADDR}/v1/sys/health"; then return 0; fi
     sleep 1
   done
   log_error "OpenBao did not start in the test container"
@@ -116,28 +126,38 @@ start_dev_server() {
   wait_for_server
 }
 
+start_postgres() {
+  docker rm -f "${PG_CONTAINER}" >/dev/null 2>&1
+  docker network rm "${NETWORK}" >/dev/null 2>&1
+  docker network create "${NETWORK}" >/dev/null || exit 1
+  docker run -d --name "${PG_CONTAINER}" --network "${NETWORK}" \
+    -e "POSTGRES_PASSWORD=${PG_PASSWORD}" "${PG_IMAGE}" >/dev/null || exit 1
+  for _ in $(seq 1 60); do
+    if docker exec "${PG_CONTAINER}" pg_isready -U postgres -h 127.0.0.1 >/dev/null 2>&1; then return 0; fi
+    sleep 1
+  done
+  log_error "PostgreSQL did not start in the test container"
+  exit 1
+}
 start_real_server() {
+  start_postgres
   docker rm -f "${CONTAINER}" >/dev/null 2>&1
-  docker run -d --name "${CONTAINER}" \
+  docker run -d --name "${CONTAINER}" --network "${NETWORK}" \
     -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
-    -e 'BAO_CONFIG=disable_mlock = true
-storage "pebbledb" {
-  path = "/openbao/pebbledb"
-}
-listener "tcp" {
-  address = "127.0.0.1:8200"
-  tls_disable = true
-}
-api_addr = "http://127.0.0.1:8200"' \
+    -e "BAO_PG_CONNECTION_URL=postgres://postgres:${PG_PASSWORD}@${PG_CONTAINER}:5432/postgres?sslmode=disable" \
     --entrypoint sh "${IMAGE}" -c '
-      mkdir -p /etc/openbao /etc/xroad
+      mkdir -p /etc/openbao /opt/openbao/tls /etc/xroad
       chown xroad:xroad /etc/xroad
-      printf "%s\n" "$BAO_CONFIG" > /tmp/bao.hcl
-      su -s /bin/sh -c "exec bao server -config=/tmp/bao.hcl" openbao &
+      printf "BAO_PG_CONNECTION_URL=%s\n" "$BAO_PG_CONNECTION_URL" > /etc/openbao/openbao.env
+      chown openbao:xroad /etc/openbao/openbao.env
+      chmod 640 /etc/openbao/openbao.env
+      [ -f /opt/openbao/tls/tls.crt ] || bash '"${TLS_SCRIPT}"' || exit 1
+      bash '"${CONFIG_WRITER}"' || exit 1
+      config=$(sed -n "s/^ExecStart=.* server -config=//p" '"${DROP_IN_FILE}"' | tail -n 1)
+      su -s /bin/sh -c "set -a; . /etc/openbao/openbao.env; exec bao server -config=${config}" openbao >'"${BAO_LOG}"' 2>&1 &
       wait' >/dev/null || exit 1
   wait_for_server
 }
-
 # run_setup [VAR=value ...]; sets RC, stdout in OUT_FILE and stderr in ERR_FILE.
 run_setup() {
   local env_args=(-e "BAO_ADDR=${ADDR}")
@@ -164,7 +184,7 @@ shim_lookup_count() { in_container cat /shim/lookups | wc -l | tr -d ' '; }
 shim_slept_seconds() { in_container awk '{ total += $1 } END { print total + 0 }' /shim/sleeps; }
 
 bao_get() {
-  in_container curl -s -H "X-Vault-Token: ${ROOT_TOKEN}" "${ADDR}/v1/$1"
+  in_container curl -sk -H "X-Vault-Token: ${ROOT_TOKEN}" "${ADDR}/v1/$1"
 }
 
 mounts_snapshot() {
@@ -176,7 +196,7 @@ policy_text() {
 }
 
 ca_fingerprint() {
-  in_container sh -c "curl -s ${ADDR}/v1/xrd-pki/ca/pem | sha256sum"
+  in_container sh -c "curl -sk ${ADDR}/v1/xrd-pki/ca/pem | sha256sum"
 }
 
 client_token_hash() {
@@ -184,12 +204,12 @@ client_token_hash() {
 }
 
 token_accessor_count() {
-  in_container curl -s -X LIST -H "X-Vault-Token: ${ROOT_TOKEN}" "${ADDR}/v1/auth/token/accessors" \
+  in_container curl -sk -X LIST -H "X-Vault-Token: ${ROOT_TOKEN}" "${ADDR}/v1/auth/token/accessors" \
     | jq '.data.keys | length'
 }
 
 client_token_status() {
-  in_container sh -c "curl -s -o /dev/null -w '%{http_code}' -H \"X-Vault-Token: \$(cat ${CLIENT_TOKEN_FILE})\" ${ADDR}/v1/auth/token/lookup-self"
+  in_container sh -c "curl -sk -o /dev/null -w '%{http_code}' -H \"X-Vault-Token: \$(cat ${CLIENT_TOKEN_FILE})\" ${ADDR}/v1/auth/token/lookup-self"
 }
 
 has_mount() {
@@ -284,7 +304,7 @@ scenario_root_token_file() {
   log_info "Scenario: stale policy is rewritten"
   local stale_payload
   stale_payload='{"policy":"path \"stale/*\" { capabilities = [\"read\"] }"}'
-  in_container curl -s -X PUT -H "X-Vault-Token: ${ROOT_TOKEN}" -d "${stale_payload}" \
+  in_container curl -sk -X PUT -H "X-Vault-Token: ${ROOT_TOKEN}" -d "${stale_payload}" \
     "${ADDR}/v1/sys/policies/acl/xroad-policy" >/dev/null
   check_ne "stale policy: policy replaced with stale text" "${first_policy}" "$(policy_text)"
   run_setup
@@ -398,15 +418,36 @@ scenario_pki_setup_writes_policy() {
   check_eq "root run after PKI set-up: policy unchanged" "${policy_after_pki}" "$(policy_text)"
 }
 
+config_state() {
+  in_container sh -c "stat -c '%i %Y' ${XROAD_CONFIG_FILE} ${DROP_IN_FILE} && sha256sum ${XROAD_CONFIG_FILE} ${DROP_IN_FILE}"
+}
 scenario_initializing_node() {
-  log_info "Scenario: node initialises and unseals a real OpenBao"
+  log_info "Scenario: node writes the X-Road configuration, initialises and unseals a real OpenBao"
+  ADDR="https://127.0.0.1:8200"
   start_real_server
+  local listeners
+  listeners="$(in_container grep -c '^listener ' "${XROAD_CONFIG_FILE}")"
+  check_eq "configuration: one listener" 1 "${listeners}"
+  check "configuration: listener binds 127.0.0.1:8200 only" in_container grep -q '^  address *= "127.0.0.1:8200"$' "${XROAD_CONFIG_FILE}"
+  check "configuration: PostgreSQL storage" in_container grep -q '^storage "postgresql" {' "${XROAD_CONFIG_FILE}"
+  check "configuration: api_addr is the local address" in_container grep -q '^api_addr = "https://127.0.0.1:8200"$' "${XROAD_CONFIG_FILE}"
+  check_eq "drop-in: one -config argument" 1 "$(in_container grep -o -- '-config=' "${DROP_IN_FILE}" | wc -l | tr -d ' ')"
+  check "drop-in: ExecStart is cleared first" in_container grep -qx 'ExecStart=' "${DROP_IN_FILE}"
+  check "drop-in: only the X-Road file is read" in_container grep -qE "^ExecStart=/usr/bin/bao server -config=${XROAD_CONFIG_FILE}\$" "${DROP_IN_FILE}"
+  check "OpenBao log: no unknown or unsupported field" test "$(in_container grep -c 'unknown or unsupported field' "${BAO_LOG}")" -eq 0
+  local config_before
+  config_before="$(config_state)"
+  in_container bash "${CONFIG_WRITER}" >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
+  check "writer second run: exit 0" test "${RC}" -eq 0
+  check_eq "writer second run: files unchanged" "${config_before}" "$(config_state)"
   run_setup
   ROOT_TOKEN="$(in_container cat "${ROOT_TOKEN_FILE}")"
   check_provisioned "initialising node"
   check "initialising node: unseal keys file written" file_exists "${UNSEAL_KEYS_FILE}"
   check_no_issued_secrets_in_output "initialising node"
-
+  check_eq "initialising node: high availability enabled" true "$(bao_get sys/leader | jq -r '.ha_enabled')"
+  check_eq "initialising node: PostgreSQL storage" postgresql "$(bao_get sys/seal-status | jq -r '.storage_type')"
   local before after
   before="$(state_snapshot)"
   run_setup
@@ -414,15 +455,14 @@ scenario_initializing_node() {
   check "initialised node rerun: exit 0" test "${RC}" -eq 0
   check_eq "initialised node rerun: state unchanged" "${before}" "${after}"
   check_modes "initialised node rerun"
-
   log_info "Scenario: sealed OpenBao after a restart"
   docker restart "${CONTAINER}" >/dev/null
   wait_for_server
+  check_eq "after restart: configuration unchanged" "${config_before}" "$(config_state)"
   run_setup
   check_provisioned "after restart"
   check_eq "after restart: state unchanged" "${before}" "$(state_snapshot)"
 }
-
 if ! command -v jq >/dev/null 2>&1; then
   log_error "jq is required on the host"
   exit 1

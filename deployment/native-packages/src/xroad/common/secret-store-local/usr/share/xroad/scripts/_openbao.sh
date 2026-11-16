@@ -68,6 +68,25 @@ wait_until_ready() {
   return 1
 }
 
+wait_until_active() {
+  local addr="${1:-$BAO_ADDR}"
+  local max_attempts=${2:-40}
+  local attempt=0
+  local status
+
+  while [ $attempt -lt $max_attempts ]; do
+    status=$(curl -s -k -o /dev/null -w '%{http_code}' --connect-timeout 5 "$addr/v1/sys/health")
+    if [ "$status" = "200" ]; then
+      return 0
+    fi
+    attempt=$((attempt + 1))
+    sleep 1
+  done
+
+  echo "[OPENBAO] OpenBao did not become active within $max_attempts seconds" >&2
+  return 1
+}
+
 is_initialized() {
   local addr="${1:-$BAO_ADDR}"
   local status
