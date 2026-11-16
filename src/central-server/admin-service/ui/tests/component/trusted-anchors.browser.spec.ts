@@ -48,18 +48,16 @@ const basePermissions = [
 
 describe('0850 — CS Trusted Anchors — upload anchor + confirm dialog -> appears in list (Browser Mode)', () => {
   it('uploading an anchor file shows confirm dialog; after confirm the anchor appears in the list', async () => {
-    let anchorsCallCount = 0;
+    let anchors: TrustedAnchor[] = [];
     await renderRoute(TRUSTED_ANCHORS_PATH, {
       permissions: basePermissions,
       msw: [
-        specHttp.get('/trusted-anchors', ({ response }) => {
-          anchorsCallCount += 1;
-          return anchorsCallCount === 1
-            ? response(200).json([])
-            : response(200).json([ANCHOR_CS2]);
-        }),
+        specHttp.get('/trusted-anchors', ({ response }) => response(200).json(anchors)),
         specHttp.post('/trusted-anchors/preview', ({ response }) => response(200).json(ANCHOR_CS2)),
-        specHttp.post('/trusted-anchors', ({ response }) => response(201).json(ANCHOR_CS2)),
+        specHttp.post('/trusted-anchors', ({ response }) => {
+          anchors = [ANCHOR_CS2];
+          return response(201).json(ANCHOR_CS2);
+        }),
       ],
     });
 
@@ -110,17 +108,15 @@ describe('0850 — CS Trusted Anchors — download anchor trigger (Browser Mode)
 
 describe('0850 — CS Trusted Anchors — delete anchor + confirm dialog -> gone from list (Browser Mode)', () => {
   it('clicking Delete opens confirm dialog; after confirm the anchor is removed from the list', async () => {
-    let anchorsCallCount = 0;
+    let anchors: TrustedAnchor[] = [ANCHOR_CS2];
     await renderRoute(TRUSTED_ANCHORS_PATH, {
       permissions: basePermissions,
       msw: [
-        specHttp.get('/trusted-anchors', ({ response }) => {
-          anchorsCallCount += 1;
-          return anchorsCallCount === 1
-            ? response(200).json([ANCHOR_CS2])
-            : response(200).json([]);
+        specHttp.get('/trusted-anchors', ({ response }) => response(200).json(anchors)),
+        specHttp.delete('/trusted-anchors/{hash}', ({ response }) => {
+          anchors = [];
+          return response(204).empty();
         }),
-        specHttp.delete('/trusted-anchors/{hash}', ({ response }) => response(204).empty()),
       ],
     });
 
