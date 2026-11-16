@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The subsystems every parity scenario shares. Registering a subsystem takes over a minute, so the run
- * adds and registers all of them once, in one batch, before the first scenario. Scenarios only use them
- * as callers or providers.
+ * The clients every parity scenario shares: subsystems and one extra member. Registering a client takes
+ * over a minute, so the run adds and registers all of them once, in one batch, before the first scenario.
+ * Scenarios only use them as callers or providers.
  */
 public final class SubsystemPool {
 
@@ -52,13 +52,21 @@ public final class SubsystemPool {
     /** Second provider-side client on ss0; it owns a local group only and is never called. */
     public static final String SECOND_OWNER = "DEV:COM:1234:PoolOwner";
 
+    /**
+     * The member hosted on ss0 next to its owner, registered with its own sign certificate. No Security Server
+     * of the environment is owned by it.
+     */
+    public static final String EXTRA_MEMBER = "DEV:COM:7001";
+
+    private static final int MEMBER_ID_PARTS = 3;
     private static final int CLIENT_ID_PARTS = 4;
 
     private static final List<Entry> ENTRIES = List.of(
             new Entry(SIBLING_OF_CONSUMER, SS1, true),
             new Entry(SECOND_CONSUMER, SS1, true),
             new Entry(UNREGISTERED_PROVIDER, SS0, false),
-            new Entry(SECOND_OWNER, SS0, false));
+            new Entry(SECOND_OWNER, SS0, false),
+            new Entry(EXTRA_MEMBER, SS0, true));
 
     private SubsystemPool() {
     }
@@ -83,18 +91,25 @@ public final class SubsystemPool {
     }
 
     /**
-     * One pool subsystem: its client id ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}), the environment name of
-     * the Security Server hosting it, and whether it is registered after being added.
+     * One pool client: its client id ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}, or {@code INSTANCE:CLASS:CODE}
+     * for a member), the environment name of the Security Server hosting it, and whether it is registered after
+     * being added.
      */
     public record Entry(String clientId, String host, boolean register) {
 
         public Entry {
-            if (clientId.split(":", -1).length != CLIENT_ID_PARTS || clientId.contains(" ")) {
-                throw new IllegalArgumentException("Not a subsystem client id: " + clientId);
+            var parts = clientId.split(":", -1).length;
+            if (parts != CLIENT_ID_PARTS && parts != MEMBER_ID_PARTS || clientId.contains(" ")) {
+                throw new IllegalArgumentException("Not a member or subsystem client id: " + clientId);
             }
             if (host.isBlank()) {
                 throw new IllegalArgumentException("Pool entry " + clientId + " has no host");
             }
+        }
+
+        /** Whether the client is a member, which needs a sign certificate of its own to be registered. */
+        public boolean isMember() {
+            return clientId.split(":", -1).length == MEMBER_ID_PARTS;
         }
     }
 }

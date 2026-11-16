@@ -11,6 +11,7 @@ dependencies {
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.edc.lib.core)
   testImplementation(libs.edc.core.participantcontext.config)
+  testImplementation(libs.edc.ih.participant.context.core)
   testImplementation(libs.edc.junit)
 
   constraints {

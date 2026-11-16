@@ -38,11 +38,12 @@ import java.util.Optional;
 public interface IssuerSetUpLeaseService {
 
     /**
-     * Takes the lease for {@code node}, unless another node already holds an unexpired one.
+     * Takes the lease for {@code node}, unless any unexpired lease already exists, the caller's own node
+     * included.
      *
      * @param node the node claiming the lease
      * @param ttl  how long the claim lasts before it expires on its own
-     * @return true if the lease was taken; false if another node already holds it
+     * @return true if the lease was taken; false if an unexpired lease already exists
      */
     boolean tryAcquire(String node, Duration ttl);
 

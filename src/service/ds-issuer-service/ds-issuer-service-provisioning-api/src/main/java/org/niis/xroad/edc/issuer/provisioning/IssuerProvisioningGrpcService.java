@@ -67,9 +67,9 @@ import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
 import java.util.List;
 import java.util.Map;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.PARTICIPANT_CONTEXT_CONFLICT;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.failure;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrConflict;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateManifestFields;
@@ -158,7 +158,7 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
             return CreateParticipantContextResp.getDefaultInstance();
         }
         if (result.reason() == ServiceFailure.Reason.CONFLICT) {
-            throw failure(DSP_PARTICIPANT_CONTEXT_CONFLICT, request.getParticipantContextId(), result.getFailureDetail());
+            throw failure(PARTICIPANT_CONTEXT_CONFLICT, request.getParticipantContextId(), result.getFailureDetail());
         }
         throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId(), result.getFailureDetail());
     }

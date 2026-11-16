@@ -301,7 +301,7 @@ class IssuerProvisioningRpcClientTest {
 
     @Test
     void createParticipantContextSwallowsAConflictFromTheIssuer() {
-        configuredCreateParticipantContextError = ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
+        configuredCreateParticipantContextError = ErrorCode.PARTICIPANT_CONTEXT_CONFLICT;
 
         client.createParticipantContext("ctx-id", "did:web:issuer.example.com", "https://issuer.example.com",
                 "key-id", "key-alias");
@@ -313,7 +313,7 @@ class IssuerProvisioningRpcClientTest {
 
     @Test
     void createParticipantContextSwallowsAConflictSentWithItsOriginPrefix() {
-        configuredCreateParticipantContextRawErrorCode = "dataspace." + ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT.code();
+        configuredCreateParticipantContextRawErrorCode = "dataspace." + ErrorCode.PARTICIPANT_CONTEXT_CONFLICT.code();
 
         client.createParticipantContext("ctx-id", "did:web:issuer.example.com", "https://issuer.example.com",
                 "key-id", "key-alias");

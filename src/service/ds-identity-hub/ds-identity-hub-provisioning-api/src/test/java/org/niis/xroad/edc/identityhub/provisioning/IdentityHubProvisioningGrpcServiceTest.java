@@ -404,8 +404,9 @@ class IdentityHubProvisioningGrpcServiceTest {
         verify(observer).onNext(DeleteParticipantContextResp.getDefaultInstance());
         verify(observer).onCompleted();
         verify(observer, never()).onError(any());
-        verify(recordsPurger).purge("ctx-1");
         verify(memberIdConfig).remove("ctx-1");
+        verify(participantContextService).deleteParticipantContext("ctx-1");
+        verify(recordsPurger).purge("ctx-1");
     }
 
     @Test
@@ -439,13 +440,12 @@ class IdentityHubProvisioningGrpcServiceTest {
         verify(observer).onError(any(StatusRuntimeException.class));
         verify(observer, never()).onCompleted();
         verify(recordsPurger, never()).purge(anyString());
-        verify(memberIdConfig, never()).remove(anyString());
+        verify(memberIdConfig).remove("ctx-1");
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void deleteParticipantContextSurfacesErrorWhenMemberIdCannotBeRemoved() {
-        when(participantContextService.deleteParticipantContext("ctx-1")).thenReturn(ServiceResult.success());
         when(memberIdConfig.remove("ctx-1")).thenReturn(ServiceResult.unexpected("db down"));
 
         StreamObserver<DeleteParticipantContextResp> observer = mock(StreamObserver.class);
@@ -455,6 +455,8 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         verify(observer).onError(any(StatusRuntimeException.class));
         verify(observer, never()).onCompleted();
+        verify(participantContextService, never()).deleteParticipantContext(anyString());
+        verify(recordsPurger, never()).purge(anyString());
     }
 
     @Test

@@ -42,7 +42,7 @@ public class DataspaceIssuerProperties {
     private final IssuerHostService issuerHostService;
 
     public String getHost() {
-        return issuerHostService.getState().host();
+        return issuerHostService.getHost();
     }
 
     public boolean isHostConfigured() {

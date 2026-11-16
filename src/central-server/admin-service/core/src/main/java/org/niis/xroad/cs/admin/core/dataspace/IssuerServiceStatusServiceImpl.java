@@ -37,6 +37,8 @@ import org.niis.xroad.cs.admin.api.service.IssuerServiceStatusService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Gathers the Issuer Service status's six source facts and hands them to {@link IssuerServiceStatus#derive}.
  */
@@ -54,19 +56,19 @@ public class IssuerServiceStatusServiceImpl implements IssuerServiceStatusServic
 
     @Override
     public IssuerServiceStatus getStatus() {
-        var state = issuerHostService.getState();
-        boolean hostSet = state.host() != null;
-        boolean certificateReady = hostSet && isCertificateReady(state.host());
+        var host = issuerHostService.getHost();
+        boolean hostSet = host != null;
+        boolean certificateReady = hostSet && isCertificateReady(host);
         boolean runInProgress = issuerSetUpLeaseService.currentHolder().isPresent();
-        String didToBind = hostSet ? IssuerDidFormat.didFor(state.host(), dataspaceIssuerProperties.getDidPort()) : null;
-        var canSign = canSign();
+        String didToBind = hostSet ? IssuerDidFormat.didFor(host, dataspaceIssuerProperties.getDidPort()) : null;
+        var boundDids = dataspaceIssuerDidService.findAll();
+        var canSign = hostSet ? canSign() : null;
 
-        return IssuerServiceStatus.derive(hostSet, certificateReady, runInProgress, didToBind, boundDid(canSign), canSign);
+        return IssuerServiceStatus.derive(host, certificateReady, runInProgress, didToBind, boundDid(boundDids, canSign), canSign);
     }
 
-    private String boundDid(CanSignResult canSign) {
-        var boundDids = dataspaceIssuerDidService.findAll();
-        if (canSign.did() != null && boundDids.contains(canSign.did())) {
+    private String boundDid(List<String> boundDids, CanSignResult canSign) {
+        if (canSign != null && canSign.did() != null && boundDids.contains(canSign.did())) {
             return canSign.did();
         }
         return boundDids.stream().findFirst().orElse(null);

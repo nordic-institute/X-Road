@@ -80,8 +80,8 @@ const basePermissions = [
   Permissions.DOWNLOAD_CONFIGURATION_PART,
 ];
 
-function tokensHandler(token: Token) {
-  return specHttp.get('/tokens', ({ response }) => response(200).json([token]));
+function tokensHandler(currentToken: () => Token) {
+  return specHttp.get('/tokens', ({ response }) => response(200).json([currentToken()]));
 }
 
 function partsHandler() {
@@ -99,20 +99,16 @@ function downloadUrlHandler() {
 CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
   describe(`0700/0710 — CS Config Anchor [${label}] — recreate anchor renders updated anchor info (Browser Mode)`, () => {
     it('clicking Re-create calls the API and the anchor card updates with a new hash and timestamp', async () => {
-      let anchorCallCount = 0;
+      let anchor = ANCHOR_V1;
       await renderRoute(path, {
         permissions: basePermissions,
         msw: [
-          tokensHandler(loggedInToken([])),
-          specHttp.get('/configuration-sources/{configuration_type}/anchor', ({ response }) => {
-            anchorCallCount += 1;
-            return anchorCallCount === 1
-              ? response(200).json({ anchor: ANCHOR_V1 })
-              : response(200).json({ anchor: ANCHOR_V2 });
+          tokensHandler(() => loggedInToken([])),
+          specHttp.get('/configuration-sources/{configuration_type}/anchor', ({ response }) => response(200).json({ anchor })),
+          specHttp.put('/configuration-sources/{configuration_type}/anchor/re-create', ({ response }) => {
+            anchor = ANCHOR_V2;
+            return response(200).json(anchor);
           }),
-          specHttp.put('/configuration-sources/{configuration_type}/anchor/re-create', ({ response }) =>
-            response(200).json(ANCHOR_V2),
-          ),
           downloadUrlHandler(),
           partsHandler(),
         ],
@@ -136,7 +132,7 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       await renderRoute(path, {
         permissions: basePermissions,
         msw: [
-          tokensHandler(loggedInToken([])),
+          tokensHandler(() => loggedInToken([])),
           specHttp.get('/configuration-sources/{configuration_type}/anchor', ({ response }) =>
             response(200).json({ anchor: ANCHOR_V1 }),
           ),
@@ -163,28 +159,21 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       const key1 = makeKey('key-1', sourceType);
       const newKey = makeKey('key-new', sourceType);
 
-      let anchorCallCount = 0;
-      let tokensCallCount = 0;
+      let keys: ConfigurationSigningKey[] = [key1];
+      let anchor = ANCHOR_V1;
       await renderRoute(path, {
         permissions: [
           ...basePermissions,
           Permissions.GENERATE_SIGNING_KEY,
         ],
         msw: [
-          specHttp.get('/tokens', ({ response }) => {
-            tokensCallCount += 1;
-            if (tokensCallCount === 1) return response(200).json([loggedInToken([key1])]);
-            return response(200).json([loggedInToken([key1, newKey])]);
+          tokensHandler(() => loggedInToken(keys)),
+          specHttp.get('/configuration-sources/{configuration_type}/anchor', ({ response }) => response(200).json({ anchor })),
+          specHttp.post('/configuration-sources/{configuration_type}/signing-keys', ({ response }) => {
+            keys = [key1, newKey];
+            anchor = ANCHOR_V2;
+            return response(201).json(newKey);
           }),
-          specHttp.get('/configuration-sources/{configuration_type}/anchor', ({ response }) => {
-            anchorCallCount += 1;
-            return anchorCallCount === 1
-              ? response(200).json({ anchor: ANCHOR_V1 })
-              : response(200).json({ anchor: ANCHOR_V2 });
-          }),
-          specHttp.post('/configuration-sources/{configuration_type}/signing-keys', ({ response }) =>
-            response(201).json(newKey),
-          ),
           downloadUrlHandler(),
           partsHandler(),
         ],
@@ -216,23 +205,18 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       const key1 = makeKey('key-1', sourceType);
       const key2 = { ...makeKey('key-2', sourceType), possible_actions: ['DELETE'] as ConfigurationSigningKey['possible_actions'] };
 
-      let anchorCallCount = 0;
-      let tokensCallCount = 0;
+      let keys: ConfigurationSigningKey[] = [key1, key2];
+      let anchor = ANCHOR_V2;
       await renderRoute(path, {
         permissions: basePermissions,
         msw: [
-          specHttp.get('/tokens', ({ response }) => {
-            tokensCallCount += 1;
-            if (tokensCallCount === 1) return response(200).json([loggedInToken([key1, key2])]);
-            return response(200).json([loggedInToken([key1])]);
+          tokensHandler(() => loggedInToken(keys)),
+          specHttp.get('/configuration-sources/{configuration_type}/anchor', ({ response }) => response(200).json({ anchor })),
+          specHttp.delete('/signing-keys/{sign_key_id}', ({ response }) => {
+            keys = [key1];
+            anchor = ANCHOR_V1;
+            return response(204).empty();
           }),
-          specHttp.get('/configuration-sources/{configuration_type}/anchor', ({ response }) => {
-            anchorCallCount += 1;
-            return anchorCallCount === 1
-              ? response(200).json({ anchor: ANCHOR_V2 })
-              : response(200).json({ anchor: ANCHOR_V1 });
-          }),
-          specHttp.delete('/signing-keys/{sign_key_id}', ({ response }) => response(204).empty()),
           downloadUrlHandler(),
           partsHandler(),
         ],

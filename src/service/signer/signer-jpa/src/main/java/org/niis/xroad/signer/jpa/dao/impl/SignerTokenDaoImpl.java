@@ -27,11 +27,11 @@ package org.niis.xroad.signer.jpa.dao.impl;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.hibernate.Session;
-import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
+import org.niis.xroad.signer.jpa.dao.AbstractSignerDaoImpl;
 import org.niis.xroad.signer.jpa.entity.SignerTokenEntity;
 
 @ApplicationScoped
-public class SignerTokenDaoImpl extends AbstractDAOImpl<SignerTokenEntity> {
+public class SignerTokenDaoImpl extends AbstractSignerDaoImpl<SignerTokenEntity> {
 
     public boolean updateFriendlyName(Session session, Long id, String friendlyName) {
         var query = session.createMutationQuery("UPDATE SignerTokenEntity SET friendlyName = :friendlyName WHERE id = :id");

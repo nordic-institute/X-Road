@@ -172,6 +172,7 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
 
     await expect.element(page.getByTestId('owner-member-save-button')).toBeDisabled();
 
+    await expect.element(page.getByTestId('member-code-input').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('member-class-input').click();
     await expect.element(page.getByRole('listbox')).toBeVisible();
     await page.getByRole('option', { name: 'COM' }).click();
@@ -275,6 +276,7 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
 
     await expect.element(page.getByTestId('member-class-input')).toBeVisible();
 
+    await expect.element(page.getByTestId('member-code-input').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('member-class-input').click();
     await expect.element(page.getByRole('listbox')).toBeVisible();
     await page.getByRole('option', { name: 'COM' }).click();
@@ -286,6 +288,7 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
     await page.getByTestId('owner-member-save-button').click();
 
     await expect.element(page.getByTestId('pin-input')).toBeVisible();
+    await expect.element(page.getByTestId('pin-input').getByRole('textbox')).toHaveFocus();
     await expect.element(page.getByTestId('alert-token-policy-enabled')).toBeVisible();
 
     await page.getByTestId('pin-input').getByRole('textbox').fill('T0ken1zer3');
@@ -306,6 +309,7 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
 
     await expect.element(page.getByTestId('member-class-input')).toBeVisible();
 
+    await expect.element(page.getByTestId('member-code-input').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('member-class-input').click();
     await expect.element(page.getByRole('listbox')).toBeVisible();
     await page.getByRole('option', { name: 'COM' }).click();
@@ -317,6 +321,7 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
     await page.getByTestId('owner-member-save-button').click();
 
     await expect.element(page.getByTestId('pin-input')).toBeVisible();
+    await expect.element(page.getByTestId('pin-input').getByRole('textbox')).toHaveFocus();
 
     await page.getByTestId('pin-input').getByRole('textbox').fill('T0ken1zer3');
     await page.getByTestId('confirm-pin-input').getByRole('textbox').fill('DifferentPIN!');
