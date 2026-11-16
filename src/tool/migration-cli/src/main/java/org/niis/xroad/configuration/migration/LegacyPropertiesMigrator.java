@@ -39,13 +39,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import static org.niis.xroad.configuration.migration.ConfigurationYamlMigrator.PREFIX;
 
 @Slf4j
 public class LegacyPropertiesMigrator {
-
 
     boolean migrateProperties(String inputFilePath) throws IOException {
         var props = loadProperties(inputFilePath);
@@ -58,7 +56,7 @@ public class LegacyPropertiesMigrator {
         // Create backup
         Files.move(props.path(), outputFilePath);
 
-        Set<String> keysInFile = props.parsedContent().stringPropertyNames();
+        var keysInFile = props.parsedContent().stringPropertyNames();
         Map<String, Object> properties = new HashMap<>();
         props.parsedContent().forEach((key, value) -> {
             var keyStr = key.toString();

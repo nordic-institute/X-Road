@@ -37,8 +37,8 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 /**
- * Converts legacy configuration values into the exact shape X-Road 8 reads, as described by
- * {@link LegacyConfigValueShapes}.
+ * Converts legacy configuration values into the exact type X-Road 8 reads, as described by
+ * {@link LegacyConfigValueTypes}.
  * <p>
  * Pure function: raw rows in, converted rows and warnings out. Performs no database access.
  */
@@ -57,17 +57,17 @@ public final class LegacyConfigValueConverter {
     }
 
     /**
-     * Replaces every {@link LegacyConfigValueShapes.MergedJsonShape}'s own rows (indexed entries or
+     * Replaces every {@link LegacyConfigValueTypes.MergedJsonType}'s own rows (indexed entries or
      * per-field rows, found via its key's prefix-aware lookup) with the single merged key holding the
-     * JSON value built from them, appending any warnings the shape's merger reports. Rows belonging to
-     * no such shape pass through unchanged.
+     * JSON value built from them, appending any warnings the type's merger reports. Rows belonging to
+     * no such type pass through unchanged.
      */
     private static Map<String, String> mergeStructuredRows(Map<String, String> rawProperties, List<String> warnings) {
         Map<String, Map<String, String>> rowsByMergedKey = new TreeMap<>();
         Map<String, String> passthrough = new TreeMap<>();
 
         rawProperties.forEach((key, value) -> {
-            Optional<String> mergedKey = LegacyConfigValueShapes.mergedKeyFor(key);
+            Optional<String> mergedKey = LegacyConfigValueTypes.mergedKeyFor(key);
             if (mergedKey.isPresent()) {
                 rowsByMergedKey.computeIfAbsent(mergedKey.get(), _ -> new TreeMap<>()).put(key, value);
             } else {
@@ -77,28 +77,28 @@ public final class LegacyConfigValueConverter {
 
         Map<String, String> result = new TreeMap<>(passthrough);
         rowsByMergedKey.forEach((mergedKey, rows) -> {
-            var shape = (LegacyConfigValueShapes.MergedJsonShape) LegacyConfigValueShapes.shapeOf(mergedKey);
-            result.put(mergedKey, shape.merger().apply(rows, warnings));
+            var type = (LegacyConfigValueTypes.MergedJsonType) LegacyConfigValueTypes.typeOf(mergedKey);
+            result.put(mergedKey, type.merger().apply(rows, warnings));
         });
 
         return result;
     }
 
     private static String convertValue(String key, String value, List<String> warnings) {
-        if (LegacyConfigValueShapes.shapeOf(key) instanceof LegacyConfigValueShapes.EnumShape enumShape) {
-            return convertEnum(key, value, enumShape, warnings);
+        if (LegacyConfigValueTypes.typeOf(key) instanceof LegacyConfigValueTypes.EnumType enumType) {
+            return convertEnum(key, value, enumType, warnings);
         }
         return value;
     }
 
-    private static String convertEnum(String key, String value, LegacyConfigValueShapes.EnumShape enumShape,
+    private static String convertEnum(String key, String value, LegacyConfigValueTypes.EnumType enumType,
                                        List<String> warnings) {
-        return enumShape.allowedConstants().stream()
+        return enumType.allowedConstants().stream()
                 .filter(constant -> constant.equalsIgnoreCase(value))
                 .findFirst()
                 .orElseGet(() -> {
                     warnings.add("Value '%s' for key '%s' matches none of the allowed values %s; keeping it unchanged"
-                            .formatted(value, key, enumShape.allowedConstants()));
+                            .formatted(value, key, enumType.allowedConstants()));
                     return value;
                 });
     }

@@ -47,16 +47,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Describes, per legacy configuration key, the shape X-Road 8 needs the migrated value stored in.
+ * Describes, per legacy configuration key, the type X-Road 8 needs the migrated value stored as.
  * <p>
  * Complements {@link LegacyConfigPathMapping} (key renames, without inspecting values) and
  * {@link LegacyConfigValueRules} (deriving additional keys from a value): this table says what
- * shape a single migrated key's own value must take.
+ * type a single migrated key's own value must take.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class LegacyConfigValueShapes {
+public final class LegacyConfigValueTypes {
 
-    private static final Map<String, ValueShape> SHAPES = new HashMap<>();
+    private static final Map<String, ValueType> TYPES = new HashMap<>();
 
     private static final String GROUPING_KEYS_KEY = "xroad.message-log-encryption.archive.grouping-keys";
     private static final Pattern GROUPING_KEYS_ROW_PATTERN =
@@ -103,24 +103,24 @@ public final class LegacyConfigValueShapes {
     private static final ObjectMapper JSON_MAPPER = JsonMapper.builder().build();
 
     static {
-        SHAPES.put("xroad.message-log-encryption.archive.grouping-strategy",
-                new EnumShape(List.of("NONE", "MEMBER", "SUBSYSTEM")));
-        SHAPES.put(GROUPING_KEYS_KEY,
-                new MergedJsonShape(LegacyConfigValueShapes::isGroupingKeysRow, (rows, _) -> mergeGroupingKeysRows(rows)));
-        SHAPES.put(SIGNER_MODULES_KEY,
-                new MergedJsonShape(LegacyConfigValueShapes::isSignerModuleRow, LegacyConfigValueShapes::mergeSignerModuleRows));
-        SHAPES.put("xroad.proxy-ui-api.signing-key-algorithm", new EnumShape(List.of("RSA", "EC")));
-        SHAPES.put("xroad.proxy-ui-api.authentication-key-algorithm", new EnumShape(List.of("RSA", "EC")));
-        SHAPES.put("xroad.admin-service.internal-key-algorithm", new EnumShape(List.of("RSA", "EC")));
-        SHAPES.put("xroad.admin-service.external-key-algorithm", new EnumShape(List.of("RSA", "EC")));
-        SHAPES.put("xroad.signer.ocsp-prioritization-strategy",
-                new EnumShape(List.of("ONLY_FREE", "ONLY_PAID", "FREE_FIRST", "PAID_FIRST", "NONE")));
-        SHAPES.put("xroad.proxy.message-log.timestamping-prioritization-strategy",
-                new EnumShape(List.of("ONLY_FREE", "ONLY_PAID", "FREE_FIRST", "PAID_FIRST", "NONE")));
+        TYPES.put("xroad.message-log-encryption.archive.grouping-strategy",
+                new EnumType("NONE", "MEMBER", "SUBSYSTEM"));
+        TYPES.put(GROUPING_KEYS_KEY,
+                new MergedJsonType(LegacyConfigValueTypes::isGroupingKeysRow, (rows, _) -> mergeGroupingKeysRows(rows)));
+        TYPES.put(SIGNER_MODULES_KEY,
+                new MergedJsonType(LegacyConfigValueTypes::isSignerModuleRow, LegacyConfigValueTypes::mergeSignerModuleRows));
+        TYPES.put("xroad.proxy-ui-api.signing-key-algorithm", new EnumType("RSA", "EC"));
+        TYPES.put("xroad.proxy-ui-api.authentication-key-algorithm", new EnumType("RSA", "EC"));
+        TYPES.put("xroad.admin-service.internal-key-algorithm", new EnumType("RSA", "EC"));
+        TYPES.put("xroad.admin-service.external-key-algorithm", new EnumType("RSA", "EC"));
+        TYPES.put("xroad.signer.ocsp-prioritization-strategy",
+                new EnumType("ONLY_FREE", "ONLY_PAID", "FREE_FIRST", "PAID_FIRST", "NONE"));
+        TYPES.put("xroad.proxy.message-log.timestamping-prioritization-strategy",
+                new EnumType("ONLY_FREE", "ONLY_PAID", "FREE_FIRST", "PAID_FIRST", "NONE"));
     }
 
-    static ValueShape shapeOf(String key) {
-        return SHAPES.get(key);
+    static ValueType typeOf(String key) {
+        return TYPES.get(key);
     }
 
     /**
@@ -131,13 +131,13 @@ public final class LegacyConfigValueShapes {
     }
 
     /**
-     * Finds the key a raw row is merged into, if {@code key} is one of a {@link MergedJsonShape}'s own
-     * indexed or per-field rows. Complements {@link #shapeOf(String)}'s exact lookup: a merged shape's
+     * Finds the key a raw row is merged into, if {@code key} is one of a {@link MergedJsonType}'s own
+     * indexed or per-field rows. Complements {@link #typeOf(String)}'s exact lookup: a merged type's
      * rows carry its merged key only as a prefix, never as the exact key itself.
      */
     static Optional<String> mergedKeyFor(String key) {
-        return SHAPES.entrySet().stream()
-                .filter(entry -> entry.getValue() instanceof MergedJsonShape mergedJsonShape && mergedJsonShape.rowMatcher().test(key))
+        return TYPES.entrySet().stream()
+                .filter(entry -> entry.getValue() instanceof MergedJsonType mergedJsonType && mergedJsonType.rowMatcher().test(key))
                 .map(Map.Entry::getKey)
                 .findFirst();
     }
@@ -220,29 +220,29 @@ public final class LegacyConfigValueShapes {
     }
 
     /**
-     * A shape a legacy configuration value is converted into.
+     * A type a legacy configuration value is converted into.
      */
-    sealed interface ValueShape permits EnumShape, MergedJsonShape {
+    sealed interface ValueType permits EnumType, MergedJsonType {
     }
 
     /**
      * An enum-valued key, stored as the exact name of one of a fixed set of constants.
      */
-    record EnumShape(List<String> allowedConstants) implements ValueShape {
-        EnumShape {
-            allowedConstants = List.copyOf(allowedConstants);
+    record EnumType(List<String> allowedConstants) implements ValueType {
+        EnumType(String... allowedConstants) {
+            this(List.of(allowedConstants));
         }
     }
 
     /**
      * A key whose value X-Road 8 reads as one JSON object, assembled by merging many legacy rows that
      * share this key as a prefix - one row per indexed entry (archive grouping keys) or per field
-     * (signer modules). {@code rowMatcher} recognizes a raw row as one of this shape's own; {@code merger}
+     * (signer modules). {@code rowMatcher} recognizes a raw row as one of this type's own; {@code merger}
      * turns the matching rows into the single JSON value stored under this key, adding a warning to its
      * second argument for each row it leaves out.
      */
-    record MergedJsonShape(Predicate<String> rowMatcher, BiFunction<Map<String, String>, List<String>, String> merger)
-            implements ValueShape {
+    record MergedJsonType(Predicate<String> rowMatcher, BiFunction<Map<String, String>, List<String>, String> merger)
+            implements ValueType {
     }
 
     /**

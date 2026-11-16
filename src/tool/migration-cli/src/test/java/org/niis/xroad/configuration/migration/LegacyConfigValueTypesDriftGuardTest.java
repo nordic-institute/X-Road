@@ -47,11 +47,11 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Guards {@link LegacyConfigValueShapes} against drifting from {@link GroupingStrategy},
+ * Guards {@link LegacyConfigValueTypes} against drifting from {@link GroupingStrategy},
  * {@link SignerModuleConfig}, {@link KeyAlgorithm} and {@link ServicePrioritizationStrategy}, whose constants
  * and fields its hardcoded table duplicates.
  */
-class LegacyConfigValueShapesDriftGuardTest {
+class LegacyConfigValueTypesDriftGuardTest {
 
     private static final String GROUPING_KEY = "xroad.message-log-encryption.archive.grouping-strategy";
 
@@ -65,64 +65,64 @@ class LegacyConfigValueShapesDriftGuardTest {
             "xroad.proxy.message-log.timestamping-prioritization-strategy";
 
     @Test
-    void groupingStrategyShapeMatchesMessageLogGroupingStrategyEnum() {
-        var shape = (LegacyConfigValueShapes.EnumShape) LegacyConfigValueShapes.shapeOf(GROUPING_KEY);
+    void groupingStrategyTypeMatchesMessageLogGroupingStrategyEnum() {
+        var type = (LegacyConfigValueTypes.EnumType) LegacyConfigValueTypes.typeOf(GROUPING_KEY);
 
         List<String> expectedConstants = Arrays.stream(GroupingStrategy.values())
                 .map(Enum::name)
                 .toList();
 
-        assertThat(shape.allowedConstants()).containsExactlyInAnyOrderElementsOf(expectedConstants);
+        assertThat(type.allowedConstants()).containsExactlyInAnyOrderElementsOf(expectedConstants);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {SIGNING_KEY_ALGORITHM_KEY, AUTHENTICATION_KEY_ALGORITHM_KEY,
             INTERNAL_KEY_ALGORITHM_KEY, EXTERNAL_KEY_ALGORITHM_KEY})
-    void keyAlgorithmShapeMatchesKeyAlgorithmEnum(String key) {
-        var shape = (LegacyConfigValueShapes.EnumShape) LegacyConfigValueShapes.shapeOf(key);
+    void keyAlgorithmTypeMatchesKeyAlgorithmEnum(String key) {
+        var type = (LegacyConfigValueTypes.EnumType) LegacyConfigValueTypes.typeOf(key);
 
         List<String> expectedConstants = Arrays.stream(KeyAlgorithm.values())
                 .map(Enum::name)
                 .toList();
 
-        assertThat(shape.allowedConstants()).containsExactlyInAnyOrderElementsOf(expectedConstants);
+        assertThat(type.allowedConstants()).containsExactlyInAnyOrderElementsOf(expectedConstants);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {OCSP_PRIORITIZATION_STRATEGY_KEY, TIMESTAMPING_PRIORITIZATION_STRATEGY_KEY})
-    void prioritizationStrategyShapeMatchesServicePrioritizationStrategyEnum(String key) {
-        var shape = (LegacyConfigValueShapes.EnumShape) LegacyConfigValueShapes.shapeOf(key);
+    void prioritizationStrategyTypeMatchesServicePrioritizationStrategyEnum(String key) {
+        var type = (LegacyConfigValueTypes.EnumType) LegacyConfigValueTypes.typeOf(key);
 
         List<String> expectedConstants = Arrays.stream(ServicePrioritizationStrategy.values())
                 .map(Enum::name)
                 .toList();
 
-        assertThat(shape.allowedConstants()).containsExactlyInAnyOrderElementsOf(expectedConstants);
+        assertThat(type.allowedConstants()).containsExactlyInAnyOrderElementsOf(expectedConstants);
     }
 
     @Test
-    void signerModulesShapeFieldsMatchSignerModuleConfigFields() {
-        Map<String, LegacyConfigValueShapes.FieldType> expectedFields = new HashMap<>();
+    void signerModulesTypeFieldsMatchSignerModuleConfigFields() {
+        Map<String, LegacyConfigValueTypes.FieldType> expectedFields = new HashMap<>();
         for (Field field : SignerModuleConfig.class.getDeclaredFields()) {
             expectedFields.put(NamingStrategyImpls.KEBAB_CASE.translate(field.getName()), fieldTypeOf(field));
         }
 
-        assertThat(LegacyConfigValueShapes.signerModuleFields()).containsExactlyInAnyOrderEntriesOf(expectedFields);
+        assertThat(LegacyConfigValueTypes.signerModuleFields()).containsExactlyInAnyOrderEntriesOf(expectedFields);
     }
 
-    private static LegacyConfigValueShapes.FieldType fieldTypeOf(Field field) {
+    private static LegacyConfigValueTypes.FieldType fieldTypeOf(Field field) {
         Class<?> type = field.getType();
         if (type == boolean.class || type == Boolean.class) {
-            return LegacyConfigValueShapes.FieldType.BOOLEAN;
+            return LegacyConfigValueTypes.FieldType.BOOLEAN;
         }
         if (type == String.class) {
-            return LegacyConfigValueShapes.FieldType.STRING;
+            return LegacyConfigValueTypes.FieldType.STRING;
         }
         if (type == List.class) {
-            return LegacyConfigValueShapes.FieldType.STRING_LIST;
+            return LegacyConfigValueTypes.FieldType.STRING_LIST;
         }
         if (type == Set.class) {
-            return LegacyConfigValueShapes.FieldType.SLOT_IDS;
+            return LegacyConfigValueTypes.FieldType.SLOT_IDS;
         }
         throw new IllegalStateException("Unexpected field type %s for field %s".formatted(type, field.getName()));
     }
