@@ -41,5 +41,8 @@ export const useIssuerService = defineStore('issuerService', {
       const body: SetIssuerServiceHostData['body'] = { host };
       return api.put<IssuerServiceState>('/issuer-service/host', body).then((res) => res.data);
     },
+    initialize() {
+      return api.post<void>('/issuer-service/initialize', undefined).then(() => undefined);
+    },
   },
 });

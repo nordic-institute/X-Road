@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { HttpResponse } from 'msw';
 import { renderRoute } from '../setup/render-route';
@@ -121,9 +121,7 @@ describe('CS Issuer Service tab — Issuer Service cannot sign (Browser Mode)', 
       ],
     });
 
-    await expect
-      .element(page.getByTestId('issuer-service-can-sign-row').getByText('No active issuer key is configured'))
-      .toBeVisible();
+    await expect.element(page.getByTestId('issuer-service-can-sign-row').getByText('No active issuer key is configured')).toBeVisible();
   });
 });
 
@@ -272,5 +270,241 @@ describe('CS Issuer Service tab — host edit dialog (Browser Mode)', () => {
     await expect.element(dialog).toBeVisible();
     expect(putSpy).toHaveBeenCalled();
     await expect.element(page.getByTestId('issuer-service-host-row').getByText('issuer.example.org')).toBeVisible();
+  });
+});
+
+const INITIALIZE_PERMISSIONS = [Permissions.VIEW_SYSTEM_SETTINGS, Permissions.INITIALIZE_ISSUER_SERVICE];
+
+const READY_TO_INITIALIZE = {
+  host: 'issuer.example.org',
+  host_set: true,
+  certificate_ready: true,
+  bound: false,
+  run_in_progress: false,
+  can_sign: false,
+  did_to_bind: 'did:web:issuer.example.org',
+  status: 'READY_TO_INITIALIZE',
+};
+
+describe('CS Issuer Service tab — Initialize button visibility (Browser Mode)', () => {
+  it('shows the Initialize button with INITIALIZE_ISSUER_SERVICE', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [statusHandler(READY_TO_INITIALIZE)],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeVisible();
+  });
+
+  it('hides the Initialize button without INITIALIZE_ISSUER_SERVICE', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: [statusHandler(READY_TO_INITIALIZE)],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-host-row')).toBeVisible();
+    await expect.poll(() => page.getByTestId('issuer-service-initialize-button').query()).toBeNull();
+  });
+});
+
+describe('CS Issuer Service tab — Initialize button enabled state (Browser Mode)', () => {
+  it('is disabled while the host is not set', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [statusHandler({ ...READY_TO_INITIALIZE, host: null, host_set: false, did_to_bind: undefined })],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeDisabled();
+  });
+
+  it('is disabled while the certificate is not ready', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [statusHandler({ ...READY_TO_INITIALIZE, certificate_ready: false })],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeDisabled();
+  });
+
+  it('is disabled while a run is in progress', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [statusHandler({ ...READY_TO_INITIALIZE, run_in_progress: true, status: 'INITIALIZING' })],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-run-in-progress')).toBeVisible();
+    await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeDisabled();
+  });
+
+  it('is enabled when nothing is bound, host and certificate are ready and no run is in progress', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [statusHandler(READY_TO_INITIALIZE)],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-initialize-button')).not.toBeDisabled();
+  });
+
+  it('is greyed out once the DID is bound, with a healthy Issuer Service', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [statusHandler({ ...READY_TO_INITIALIZE, bound: true, can_sign: true, status: 'READY' })],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-identity-row').getByText('did:web:issuer.example.org')).toBeVisible();
+    await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeDisabled();
+  });
+
+  it('is greyed out once the DID is bound, with an unhealthy Issuer Service', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [statusHandler({ ...READY_TO_INITIALIZE, bound: true, can_sign: false, can_sign_cause: 'NO_ACTIVE_KEY', status: 'FAILED' })],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-identity-row').getByText('did:web:issuer.example.org')).toBeVisible();
+    await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeDisabled();
+  });
+});
+
+describe('CS Issuer Service tab — Initialize confirmation (Browser Mode)', () => {
+  it('shows the DID to bind and the cannot-change warning, and cancelling makes no call', async () => {
+    const initializeSpy = vi.fn();
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [
+        statusHandler(READY_TO_INITIALIZE),
+        specHttp.untyped.post('/api/v1/issuer-service/initialize', () => {
+          initializeSpy();
+          return new HttpResponse(null, { status: 202 });
+        }),
+      ],
+    });
+
+    await page.getByTestId('issuer-service-initialize-button').click();
+
+    await expect.element(page.getByTestId('dialog-title')).toHaveTextContent('Initialize the Issuer Service');
+    await expect.poll(() => page.getByTestId('dialog-simple').element().textContent).toMatch(/did:web:issuer\.example\.org/);
+    await expect.poll(() => page.getByTestId('dialog-simple').element().textContent).toMatch(/cannot change afterwards/);
+
+    await page.getByTestId('dialog-cancel-button').click();
+
+    await expect.poll(() => page.getByTestId('dialog-title').query()).toBeNull();
+    expect(initializeSpy).not.toHaveBeenCalled();
+  });
+
+  it('calls initialize when confirmed', async () => {
+    const initializeSpy = vi.fn();
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [
+        statusHandler(READY_TO_INITIALIZE),
+        specHttp.post('/issuer-service/initialize', ({ response }) => {
+          initializeSpy();
+          return response(202).empty();
+        }),
+      ],
+    });
+
+    await page.getByTestId('issuer-service-initialize-button').click();
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.poll(() => initializeSpy.mock.calls.length).toBe(1);
+  });
+
+  it('shows the API error on an initialize refusal', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [
+        statusHandler(READY_TO_INITIALIZE),
+        specHttp.untyped.post('/api/v1/issuer-service/initialize', () =>
+          HttpResponse.json({ status: 409, error: { code: 'issuer_service_already_running' } }, { status: 409 }),
+        ),
+      ],
+    });
+
+    await page.getByTestId('issuer-service-initialize-button').click();
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.element(page.getByTestId('contextual-alert')).toMatchTextContent('Initialization is already running');
+  });
+});
+
+describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  type RunPhase = 'ready' | 'running' | 'done';
+
+  function bodyForPhase(phase: RunPhase) {
+    if (phase === 'ready') {
+      return READY_TO_INITIALIZE;
+    }
+    if (phase === 'running') {
+      return { ...READY_TO_INITIALIZE, run_in_progress: true, status: 'INITIALIZING' };
+    }
+    return { ...READY_TO_INITIALIZE, bound: true, can_sign: true, run_in_progress: false, status: 'READY' };
+  }
+
+  async function renderAndStartRun() {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    let reads = 0;
+    let phase: RunPhase = 'ready';
+
+    const rendered = await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [
+        specHttp.untyped.get('/api/v1/issuer-service', () => {
+          reads++;
+          return HttpResponse.json(bodyForPhase(phase));
+        }),
+        specHttp.untyped.post('/api/v1/issuer-service/initialize', () => {
+          phase = 'running';
+          return new HttpResponse(null, { status: 202 });
+        }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-initialize-button')).not.toBeDisabled();
+    await page.getByTestId('issuer-service-initialize-button').click();
+    await page.getByTestId('dialog-save-button').click();
+    await expect.element(page.getByTestId('issuer-service-run-in-progress')).toBeVisible();
+
+    return {
+      ...rendered,
+      reads: () => reads,
+      end() {
+        phase = 'done';
+      },
+    };
+  }
+
+  it('polls while a run is in progress and stops once the run ends', async () => {
+    const { reads, end } = await renderAndStartRun();
+    const readsOnceRunning = reads();
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    await expect.poll(() => reads()).toBeGreaterThan(readsOnceRunning);
+
+    end();
+    await vi.advanceTimersByTimeAsync(5_000);
+    await expect.poll(() => page.getByTestId('issuer-service-run-in-progress').query()).toBeNull();
+    const readsAfterEnd = reads();
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(reads()).toBe(readsAfterEnd);
+  });
+
+  it('stops polling when the user leaves the tab', async () => {
+    const { router, reads } = await renderAndStartRun();
+    await vi.advanceTimersByTimeAsync(5_000);
+    await expect.poll(() => reads()).toBeGreaterThan(0);
+
+    await router.push('/forbidden');
+    await expect.poll(() => page.getByTestId('issuer-service-view').query()).toBeNull();
+    const readsAtUnmount = reads();
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(reads()).toBe(readsAtUnmount);
   });
 });

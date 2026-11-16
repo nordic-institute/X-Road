@@ -31,6 +31,19 @@
     </template>
     <XrdSubView>
       <XrdCard data-test="issuer-service-card" title="tab.settings.issuerService">
+        <template v-if="canInitialize" #title-actions>
+          <XrdBtn
+            data-test="issuer-service-initialize-button"
+            variant="outlined"
+            text="issuerService.initialize"
+            :loading="initializing"
+            :disabled="!initializeEnabled || initializing"
+            @click="showInitializeConfirm = true"
+          />
+        </template>
+        <v-alert v-if="state?.run_in_progress" data-test="issuer-service-run-in-progress" type="info" variant="tonal" class="mb-4 mx-4">
+          {{ $t('issuerService.runInProgress') }}
+        </v-alert>
         <XrdCardTable>
           <XrdCardTableRow data-test="issuer-service-host-row" label="issuerService.host">
             <template #value>
@@ -88,13 +101,33 @@
       @cancel="showEditHostDialog = false"
       @save="onHostSaved"
     />
+    <XrdConfirmDialog
+      v-if="showInitializeConfirm"
+      data-test="issuer-service-initialize-confirm-dialog"
+      title="issuerService.initializeConfirmTitle"
+      text="issuerService.initializeConfirmText"
+      :data="{ did: state?.did_to_bind ?? '' }"
+      accept-button-text="issuerService.initialize"
+      @cancel="showInitializeConfirm = false"
+      @accept="confirmInitialize"
+    />
   </XrdView>
 </template>
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useNotifications, XrdBtn, XrdCard, XrdCardTable, XrdCardTableRow, XrdStatusChip, XrdSubView, XrdView } from '@niis/shared-ui';
+import {
+  useNotifications,
+  XrdBtn,
+  XrdCard,
+  XrdCardTable,
+  XrdCardTableRow,
+  XrdConfirmDialog,
+  XrdStatusChip,
+  XrdSubView,
+  XrdView,
+} from '@niis/shared-ui';
 import SettingsViewTabs from '@/views/Settings/SettingsViewTabs.vue';
 import EditIssuerServiceHostDialog from '@/views/Settings/IssuerService/EditIssuerServiceHostDialog.vue';
 import { Permissions, RouteName } from '@/global';
@@ -102,18 +135,35 @@ import { useUser } from '@/store/modules/user';
 import { useIssuerService } from '@/store/modules/issuer-service';
 import { IssuerServiceState } from '@/openapi-types';
 import { CAN_SIGN_CAUSE_TEXT } from '@/util/can-sign-cause-text';
+import { usePolling } from '@/composables/use-polling';
+
+const POLL_INTERVAL_MS = 5_000;
 
 const router = useRouter();
 const { hasPermission } = useUser();
-const { getStatus } = useIssuerService();
-const { addError } = useNotifications();
+const { getStatus, initialize } = useIssuerService();
+const { addError, addSuccessMessage } = useNotifications();
 
 const state = ref<IssuerServiceState>();
 const loading = ref(true);
 const showEditHostDialog = ref(false);
+const showInitializeConfirm = ref(false);
+const initializing = ref(false);
+
+const polling = usePolling<IssuerServiceState>({
+  intervalMs: POLL_INTERVAL_MS,
+  request: getStatus,
+  shouldContinue: (result) => result.run_in_progress,
+  onResult: (result) => (state.value = result),
+  onError: (error) => addError(error),
+});
 
 const hasPermissionToViewDsTlsCertificate = computed(() => hasPermission(Permissions.VIEW_DS_TLS_CERT));
 const canEditHost = computed(() => hasPermission(Permissions.EDIT_ISSUER_SERVICE_HOST) && !state.value?.bound);
+const canInitialize = computed(() => hasPermission(Permissions.INITIALIZE_ISSUER_SERVICE));
+const initializeEnabled = computed(
+  () => !state.value?.bound && !!state.value?.host_set && !!state.value?.certificate_ready && !state.value?.run_in_progress,
+);
 
 const canSignText = computed(() => {
   if (state.value?.can_sign) {
@@ -123,19 +173,26 @@ const canSignText = computed(() => {
   return (cause && CAN_SIGN_CAUSE_TEXT[cause]) || 'issuerService.serviceCannotSign';
 });
 
-async function loadStatus() {
-  try {
-    state.value = await getStatus();
-  } catch (error) {
-    addError(error);
-  } finally {
-    loading.value = false;
-  }
+function loadStatus() {
+  loading.value = true;
+  return polling.refresh().finally(() => (loading.value = false));
 }
 
 function onHostSaved() {
   showEditHostDialog.value = false;
   loadStatus();
+}
+
+function confirmInitialize() {
+  showInitializeConfirm.value = false;
+  initializing.value = true;
+  initialize()
+    .then(() => {
+      addSuccessMessage('issuerService.initializeStarted');
+      return polling.refresh();
+    })
+    .catch((error) => addError(error))
+    .finally(() => (initializing.value = false));
 }
 
 onMounted(loadStatus);
