@@ -27,19 +27,32 @@
 
 package org.niis.xroad.configuration.migration;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.configuration.migration.OpMonitorHostRuleTest.LOOPBACK_AND_REMOTE_NAME;
+import static org.niis.xroad.configuration.migration.OpMonitorHostRuleTest.MIXED_NAME;
+import static org.niis.xroad.configuration.migration.OpMonitorHostRuleTest.REMOTE_NAME;
+import static org.niis.xroad.configuration.migration.OpMonitorHostRuleTest.UNRESOLVABLE_NAME;
 
 class OpMonitorIniMigrationTest {
 
@@ -49,6 +62,8 @@ class OpMonitorIniMigrationTest {
     private static final String REMOTE_IPV4 = "198.51.100.7";
     private static final String DNS_SAN_KEY = "xroad.common-rpc.certificate-provisioning.alt-names";
     private static final String IP_SAN_KEY = "xroad.common-rpc.certificate-provisioning.ip-subject-alt-names";
+    private static final String CHANNEL_HOST_KEY = "xroad.common-rpc.channel.op-monitor.host";
+    private static final String LISTEN_ADDRESS_KEY = "xroad.op-monitor.rpc.listen-address";
 
     private static final String FULL_OP_MONITOR_INI = """
             [proxy]
@@ -86,6 +101,21 @@ class OpMonitorIniMigrationTest {
     Path dir;
 
     private final IniUtil iniUtil = new IniUtil(new OpMonitorHostRuleTest.FakeResolver());
+
+    private final ListAppender<ILoggingEvent> output = new ListAppender<>();
+    private Logger rootLogger;
+
+    @BeforeEach
+    void captureOutput() {
+        rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        output.start();
+        rootLogger.addAppender(output);
+    }
+
+    @AfterEach
+    void releaseOutput() {
+        rootLogger.detachAppender(output);
+    }
 
     @Test
     void everyOpMonitorRowIsMappedKeptOrDropped() throws IOException {
@@ -257,6 +287,113 @@ class OpMonitorIniMigrationTest {
                 "xroad.common-rpc.channel.op-monitor.host", LOCAL_NAME,
                 "xroad.op-monitor.rpc.listen-address", LOCAL_NAME,
                 DNS_SAN_KEY, LOCAL_NAME));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {MIXED_NAME, LOOPBACK_AND_REMOTE_NAME, UNRESOLVABLE_NAME})
+    void ambiguousHostWritesChannelRowOnlyAndWarnsOnceInUnattendedMode(String host) throws IOException {
+        var file = write("local.ini", "[op-monitor]\nhost=" + host + "\n");
+
+        var rows = migrateToDb(file);
+
+        assertThat(rows).isEqualTo(Map.of(CHANNEL_HOST_KEY, host));
+        assertThat(rows.keySet()).doesNotContain(LISTEN_ADDRESS_KEY, DNS_SAN_KEY, IP_SAN_KEY);
+        assertThat(rows.values()).noneMatch(value -> value.contains(REMOTE_IPV4));
+        assertThat(warnings()).singleElement().satisfies(warning -> assertThat(warning)
+                .startsWith("WARNING:")
+                .contains("'" + host + "'")
+                .contains("xroad.common-rpc.channel.op-monitor.host")
+                .contains("/usr/share/xroad/scripts/db_property.sh set xroad.common-rpc.channel.op-monitor.host "
+                        + "127.0.0.1 --yes")
+                .contains("restart xroad-proxy and xroad-proxy-ui-api"));
+    }
+
+    @Test
+    void ambiguousHostWarnsOnceWhenOverrideAndLocalIniBothSetHost() throws IOException {
+        write("override-a.ini", "[op-monitor]\nhost=" + MIXED_NAME + "\n");
+        write("override-b.ini", "[op-monitor]\nhost=" + MIXED_NAME + "\n");
+        var local = write("local.ini", "[op-monitor]\nhost=" + MIXED_NAME + "\n");
+
+        assertThat(migrateToDb(local)).isEqualTo(Map.of(CHANNEL_HOST_KEY, MIXED_NAME));
+        assertThat(warnings()).hasSize(1);
+    }
+
+    @Test
+    void rerunWritesTheSameRowsAndRepeatsTheWarning() throws IOException {
+        var file = write("local.ini", "[op-monitor]\nhost=" + MIXED_NAME + "\n");
+
+        var first = migrateToDb(file);
+        var second = migrateToDb(file);
+
+        assertThat(second).isEqualTo(first);
+        assertThat(warnings()).hasSize(2).containsOnly(warnings().getFirst());
+    }
+
+    @Test
+    void localHostMigratesWithoutWarningAndKeepsTimeoutSettingsDropped() throws IOException {
+        var file = write("local.ini", FULL_OP_MONITOR_INI);
+
+        var rows = migrateToDb(file);
+
+        assertThat(rows).containsEntry(CHANNEL_HOST_KEY, LOCAL_NAME).containsEntry(LISTEN_ADDRESS_KEY, LOCAL_NAME);
+        assertThat(rows.keySet()).noneMatch(key -> key.contains("timeout-seconds"));
+        assertThat(warnings()).isEmpty();
+    }
+
+    @Test
+    void ambiguousHostInAnotherSectionDoesNotTriggerTheOpMonitorRule() throws IOException {
+        var file = write("local.ini", """
+                [proxy]
+                host=%1$s
+
+                [op-monitor-buffer]
+                host=%1$s
+                """.formatted(MIXED_NAME));
+
+        assertThat(migrateToDb(file).keySet()).doesNotContain(CHANNEL_HOST_KEY);
+        assertThat(warnings()).isEmpty();
+    }
+
+    @Test
+    void remoteHostSkipsDaemonSettingsAndListsThemAsSetOnTheExternalHost() throws IOException {
+        var file = write("local.ini", FULL_OP_MONITOR_INI.replace("host=ss1.example", "host=" + REMOTE_NAME));
+
+        var rows = migrateToDb(file);
+
+        assertThat(rows).isEqualTo(Map.ofEntries(
+                Map.entry("xroad.proxy.xroad-tls-ciphers", "TLS_AES_128_GCM_SHA256"),
+                Map.entry("xroad.proxy.client-proxy.client-timeout", "30000"),
+                Map.entry(CHANNEL_HOST_KEY, REMOTE_NAME),
+                Map.entry("xroad.common-rpc.channel.op-monitor.port", "2181"),
+                Map.entry("xroad.common-rpc.channel.op-monitor.deadline-after", "45000"),
+                Map.entry("xroad.proxy.addon.op-monitor.buffer.size", "100"),
+                Map.entry("xroad.proxy.addon.op-monitor.buffer.max-records-in-message", "10"),
+                Map.entry("xroad.proxy.addon.op-monitor.buffer.sending-interval-seconds", "2")));
+        assertThat(warnings()).isEmpty();
+        assertThat(outputLines()).singleElement().satisfies(line -> assertThat(line)
+                .contains("set on the external host")
+                .contains("xroad.op-monitor.rpc.port", "xroad.op-monitor.keep-records-for-days",
+                        "xroad.op-monitor.clean-interval", "xroad.op-monitor.max-records-in-payload",
+                        "xroad.op-monitor.records-available-timestamp-offset-seconds",
+                        "xroad.op-monitor.health-statistics-period-seconds"));
+    }
+
+    @Test
+    void remoteHostWithoutDaemonSettingsListsNothing() throws IOException {
+        var file = write("local.ini", "[op-monitor]\nhost=" + REMOTE_NAME + "\n");
+
+        assertThat(migrateToDb(file)).isEqualTo(Map.of(CHANNEL_HOST_KEY, REMOTE_NAME));
+        assertThat(outputLines()).isEmpty();
+    }
+
+    private List<String> outputLines() {
+        return output.list.stream().map(ILoggingEvent::getFormattedMessage)
+                .filter(message -> message.contains("set on the external host")).toList();
+    }
+
+    private List<String> warnings() {
+        return output.list.stream().map(ILoggingEvent::getFormattedMessage)
+                .filter(message -> message.startsWith("WARNING:")).toList();
     }
 
     private static Map<String, String> migrateToDb(Path file) {

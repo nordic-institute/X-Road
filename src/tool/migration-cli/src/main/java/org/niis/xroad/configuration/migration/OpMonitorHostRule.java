@@ -27,8 +27,6 @@
 
 package org.niis.xroad.configuration.migration;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -44,7 +42,6 @@ import java.util.regex.Pattern;
  * <p>
  * Result keys use the legacy shape, WITHOUT the downstream {@code "xroad."} prefix.
  */
-@Slf4j
 final class OpMonitorHostRule {
 
     static final String CHANNEL_HOST = "common-rpc.channel.op-monitor.host";
@@ -53,6 +50,8 @@ final class OpMonitorHostRule {
     static final String IP_SUBJECT_ALT_NAMES = "common-rpc.certificate-provisioning.ip-subject-alt-names";
 
     private static final String LOOPBACK_IPV4 = "127.0.0.1";
+    private static final String LOCAL_FIX_COMMAND =
+            "/usr/share/xroad/scripts/db_property.sh set xroad.common-rpc.channel.op-monitor.host 127.0.0.1 --yes";
     private static final Pattern IPV4_LITERAL = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3}");
 
     private final LocalAddressResolver resolver;
@@ -67,54 +66,73 @@ final class OpMonitorHostRule {
      */
     Result derive(String host) {
         if (host == null || host.isBlank()) {
-            return new Result(Map.of(), null);
+            return new Result(Map.of(), null, false);
         }
         var value = withoutIpv6Brackets(host.trim());
-        var rows = new LinkedHashMap<String, String>();
-        String warning = null;
         try {
             if (isIpLiteral(value)) {
-                deriveFromAddress(value, InetAddress.getByName(value), rows);
-            } else {
-                deriveFromName(value, rows);
+                return deriveFromAddress(value, InetAddress.getByName(value));
             }
+            return deriveFromName(value);
         } catch (UnknownHostException _) {
-            rows.clear();
-            rows.put(CHANNEL_HOST, value);
-            warning = "op-monitor host '%s' cannot be resolved; keeping it as the channel host only".formatted(value);
-            log.warn(warning);
+            return ambiguous(value, "cannot be resolved");
         }
-        return new Result(rows, warning);
     }
 
-    private void deriveFromAddress(String value, InetAddress address, Map<String, String> rows) {
+    private Result deriveFromAddress(String value, InetAddress address) {
+        var rows = new LinkedHashMap<String, String>();
         if (address.isAnyLocalAddress()) {
             rows.put(LISTEN_ADDRESS, value);
-            return;
+            return new Result(rows, null, false);
         }
         rows.put(CHANNEL_HOST, value);
         if (LOOPBACK_IPV4.equals(address.getHostAddress())) {
-            return;
+            return new Result(rows, null, false);
         }
         if (address.isLoopbackAddress() || resolver.isLocalAddress(address)) {
             rows.put(LISTEN_ADDRESS, value);
             rows.put(IP_SUBJECT_ALT_NAMES, String.join(",", LOOPBACK_IPV4, value));
+            return new Result(rows, null, false);
         }
+        return new Result(rows, null, true);
     }
 
-    private void deriveFromName(String value, Map<String, String> rows) throws UnknownHostException {
+    private Result deriveFromName(String value) throws UnknownHostException {
         var addresses = resolver.resolve(value);
+        var hasOwn = addresses.stream().anyMatch(a -> !a.isLoopbackAddress() && resolver.isLocalAddress(a));
+        var hasLoopback = addresses.stream().anyMatch(InetAddress::isLoopbackAddress);
+        var hasRemote = addresses.stream().anyMatch(this::isRemote);
+        if (hasRemote && hasOwn) {
+            return ambiguous(value, "resolves to this server and to another host");
+        }
+        if (hasRemote && hasLoopback) {
+            return ambiguous(value, "resolves to a loopback address and to another host");
+        }
+        var rows = new LinkedHashMap<String, String>();
         rows.put(CHANNEL_HOST, value);
-        if (addresses.stream().anyMatch(a -> !a.isLoopbackAddress() && resolver.isLocalAddress(a))) {
+        if (hasOwn) {
             rows.put(LISTEN_ADDRESS, value);
             rows.put(ALT_NAMES, value);
-        } else if (addresses.stream().anyMatch(InetAddress::isLoopbackAddress)) {
+        } else if (hasLoopback) {
             if (addresses.stream().allMatch(InetAddress::isLoopbackAddress)
                     && addresses.stream().noneMatch(a -> LOOPBACK_IPV4.equals(a.getHostAddress()))) {
                 rows.put(LISTEN_ADDRESS, value);
             }
             rows.put(ALT_NAMES, value);
         }
+        return new Result(rows, null, hasRemote);
+    }
+
+    private boolean isRemote(InetAddress address) {
+        return !address.isLoopbackAddress() && !address.isAnyLocalAddress() && !resolver.isLocalAddress(address);
+    }
+
+    private static Result ambiguous(String value, String reason) {
+        var warning = ("WARNING: op-monitor host '%1$s' %2$s. %3$s was kept as '%1$s'; no listener or certificate "
+                + "name rows were written. For a local op-monitor run: %4$s, then restart xroad-proxy and "
+                + "xroad-proxy-ui-api. For an external op-monitor no change is needed here.")
+                .formatted(value, reason, "xroad." + CHANNEL_HOST, LOCAL_FIX_COMMAND);
+        return new Result(Map.of(CHANNEL_HOST, value), warning, false);
     }
 
     private static String withoutIpv6Brackets(String value) {
@@ -128,7 +146,11 @@ final class OpMonitorHostRule {
         return value.indexOf(':') >= 0 || IPV4_LITERAL.matcher(value).matches();
     }
 
-    record Result(Map<String, String> rows, String warning) {
+    /**
+     * @param warning non-null for an ambiguous host: the full operator-facing text, starting with {@code WARNING:}
+     * @param remote  the host resolves only to addresses of other hosts
+     */
+    record Result(Map<String, String> rows, String warning, boolean remote) {
     }
 
     interface LocalAddressResolver {
