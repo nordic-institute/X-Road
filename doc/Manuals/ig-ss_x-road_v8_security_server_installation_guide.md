@@ -334,7 +334,9 @@ messagelog.hibernate.jdbc.use_streams_for_binary = true
 | openbao          | openbao    | CREATE,TEMPORARY,CONNECT | The database user for local OpenBao (package `xroad-secret-store`)                       |
 | postgres         | ALL        | ALL                      | PostgreSQL database default superuser.                                                   |
 
-If a database role already exists and its password differs from the one stored in `db.properties`, the installation stops with the message "Logging in as database role '<role>' failed". Set the stored password to match the role, or drop the role and rerun the installation.
+If a database role already exists and its password differs from the one stored in `db.properties`, the installation stops with the message "Logging in as database role '<role>' failed". Set the stored password in `db.properties` to match the role and rerun the installation.
+
+The installer creates the database roles itself. If they already exist, on PostgreSQL 16 and later the master user needs ADMIN OPTION on them.
 
 ## Annex C `xroad-secret-store-local` default configuration
 

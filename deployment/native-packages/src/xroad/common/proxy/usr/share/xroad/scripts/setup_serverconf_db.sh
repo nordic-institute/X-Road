@@ -97,6 +97,9 @@ setup_database() {
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
     log "Database and user exists, skipping database creation."
   else
+    refuse_existing_database "$db_user" "$db_database" "$db_properties" \
+      "$(get_prop ${db_properties} "xroad.db.${db_name}.hibernate.connection.password" "")" || exit 1
+
     if [[ $(get_prop ${root_properties} "$db_name.database.admin_user" "") == "" ]]; then
       db_admin_user="${db_user}_admin"
       db_admin_conn_user="${db_admin_user}${suffix}"

@@ -62,7 +62,24 @@ run_db_bootstrap() {
 # Arguments: $1 - runtime role, $2 - properties file holding its stored password
 check_runtime_login() {
   PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null && return 0
-  log "Logging in as database role '$1' failed after database setup. If the role already existed, its password differs from the one in $2: set the stored password to match, or drop the role and rerun."
+  log "Logging in as database role '$1' failed after database setup. If the role already existed, its password differs from the one in $2: set the stored password to match the role and rerun."
+  return 1
+}
+
+# Succeeds when the database exists. The caller defines psql_master.
+# Arguments: $1 - database name
+database_exists() {
+  local -r name="${1//\'/\'\'}"
+  [[ "$(printf "SELECT 1 FROM pg_database WHERE datname = '%s';\n" "$name" | psql_master 2>/dev/null)" == 1 ]]
+}
+
+# Logs a message and returns 1 when the runtime login failed although the database exists and a password is stored for it.
+# The caller then stops before changing anything. The caller defines psql_master.
+# Arguments: $1 - runtime role, $2 - database name, $3 - properties file, $4 - stored runtime password
+refuse_existing_database() {
+  [[ -n "$4" ]] || return 0
+  database_exists "$2" || return 0
+  log "Logging in as database role '$1' failed. Database '$2' already exists and $3 stores a password for it, so nothing was changed. Set the stored password to match the role and rerun."
   return 1
 }
 
@@ -172,6 +189,8 @@ setup_database() {
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
     log "Database and user exists, skipping database creation."
   else
+    refuse_existing_database "$db_user" "$db_database" "$db_properties" "$(get_db_prop 'password' '')" || exit 1
+
     if [[ $(get_prop ${root_properties} "$db_name.database.admin_user" "") == "" ]]; then
       db_admin_user="${db_user}_admin"
       db_admin_conn_user="${db_admin_user}${suffix}"
