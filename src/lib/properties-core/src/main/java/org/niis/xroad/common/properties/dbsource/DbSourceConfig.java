@@ -34,8 +34,11 @@ import static java.util.Optional.ofNullable;
 
 /**
  * Connection details for reading {@code configuration_properties}, taken from the process environment.
- * A {@code DB_CONFIG_SOURCE_URL} is what enables the source: a process that has no config database
- * configured resolves from packaged defaults alone.
+ * A {@code DB_CONFIG_SOURCE_URL} is what enables the source. A process without it has no configuration
+ * database and resolves from the layers below the database: the settings file where that layer is enabled
+ * (op-monitor on a native host), then the packaged defaults. A {@code DB_CONFIG_SOURCE_URL} that is set but
+ * has no base URL (empty, whitespace-only, or only a query part) is a configuration error, never "no
+ * database".
  */
 @Getter
 public class DbSourceConfig {
@@ -60,11 +63,21 @@ public class DbSourceConfig {
         return loadValues(appName, NodeNameProvider.shared());
     }
 
+    /**
+     * @param appName          application name
+     * @param nodeNameProvider supplies the node whose rows are read
+     * @return the connection details; {@link #getUrl()} is {@code null} when no configuration database is configured
+     * @throws IllegalStateException when {@code DB_CONFIG_SOURCE_URL} is set but has no base URL
+     */
     public static DbSourceConfig loadValues(String appName, NodeNameProvider nodeNameProvider) {
         DbSourceConfig config = new DbSourceConfig();
         config.appName = appName;
         config.nodeName = nodeNameProvider.nodeName().orElse(null);
         config.url = getenv(ENV_VAR_DB_URL);
+        if (config.url != null && !hasBaseUrl(config.url)) {
+            throw new IllegalStateException(("Configuration database source: %s is set but has no base URL; "
+                    + "unset it or set a JDBC URL").formatted(ENV_VAR_DB_URL));
+        }
         config.username = getenv(ENV_VAR_DB_USERNAME);
         config.password = ofNullable(getenv(ENV_VAR_DB_PASS))
                 .map(String::toCharArray)
@@ -75,6 +88,11 @@ public class DbSourceConfig {
         ofNullable(getenv(ENV_VAR_DB_SCHEMA)).ifPresent(s -> config.schema = s);
 
         return config;
+    }
+
+    private static boolean hasBaseUrl(String url) {
+        var queryStart = url.indexOf('?');
+        return !(queryStart < 0 ? url : url.substring(0, queryStart)).isBlank();
     }
 
 }

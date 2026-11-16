@@ -30,9 +30,12 @@ package org.niis.xroad.common.properties.dbsource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -63,7 +66,27 @@ public class CachedDbConfigSource {
         ofNullable(config.getAppName()).ifPresent(app ->
                 hikariConfig.addDataSourceProperty("ApplicationName", "%s-db-props".formatted(app)));
 
-        return new HikariDataSource(hikariConfig);
+        try {
+            return new HikariDataSource(hikariConfig);
+        } catch (RuntimeException e) {
+            // Exception messages echo the URL and may name the user, so only class names and SQLState are reported
+            // and the failure is not chained.
+            throw new IllegalStateException(("Configuration database source: could not open the connection pool "
+                    + "for DB_CONFIG_SOURCE_URL (%s); check the URL, the credentials and that the database "
+                    + "is reachable").formatted(diagnostic(e)));
+        }
+    }
+
+    static String diagnostic(Throwable failure) {
+        var causes = ExceptionUtils.getThrowableList(failure);
+        var rootCauseName = "root cause: " + causes.getLast().getClass().getSimpleName();
+        return causes.reversed().stream()
+                .filter(SQLException.class::isInstance)
+                .map(cause -> ((SQLException) cause).getSQLState())
+                .filter(Objects::nonNull)
+                .findFirst()
+                .map(sqlState -> rootCauseName + ", SQLState " + sqlState)
+                .orElse(rootCauseName);
     }
 
     public Set<String> getPropertyNames() {

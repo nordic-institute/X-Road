@@ -38,6 +38,7 @@ dependencies {
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.junit.platform.launcher)
   testImplementation(libs.logback.classic)
+  testImplementation(libs.systemStubs)
   testImplementation(testFixtures(project(":lib:rpc-core")))
   testImplementation(testFixtures(project(":lib:properties-core")))
 

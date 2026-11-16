@@ -32,6 +32,7 @@ import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -46,6 +47,9 @@ import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.slf4j.LoggerFactory;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -58,9 +62,13 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ExtendWith(SystemStubsExtension.class)
 class OpMonitorConfigTest {
 
     private static final String APP_NAME = "op-monitor-daemon";
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     @TempDir
     private Path tempDir;
@@ -133,6 +141,23 @@ class OpMonitorConfigTest {
         new OpMonitorConfig(tempDir.resolve("absent.yaml")).buildConfig(APP_NAME, DeploymentMode.CONTAINERIZED);
 
         assertThat(warnings()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   ", "?currentSchema=serverconf"})
+    void blankConfigurationDatabaseUrlFailsStartupInsteadOfUsingTheSettingsFileOrDefaults(String url)
+            throws IOException {
+        var file = Files.writeString(tempDir.resolve("op-monitor-settings.yaml"),
+                "xroad.op-monitor.rpc.listen-address: 10.1.2.3\n");
+        variables.set("DB_CONFIG_SOURCE_URL", url);
+        var opMonitorConfig = new OpMonitorConfig(file);
+
+        assertThatThrownBy(() -> opMonitorConfig.buildConfig(APP_NAME, DeploymentMode.NATIVE))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Configuration database source")
+                .hasMessageContaining("DB_CONFIG_SOURCE_URL")
+                .hasMessageContaining("is set but has no base URL")
+                .hasMessageNotContaining("connection pool");
     }
 
     @ParameterizedTest

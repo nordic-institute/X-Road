@@ -27,15 +27,22 @@
 package org.niis.xroad.common.properties.spring;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.FrameworkPublishedConfig;
 import org.niis.xroad.common.properties.config.Prefix;
 import org.springframework.mock.env.MockEnvironment;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Spring-side DSL wiring, in place of the deleted {@code DbPropertySourceEnvironmentPostProcessor}:
@@ -46,7 +53,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>No config database is configured here ({@code DB_CONFIG_SOURCE_URL} unset), so resolution falls
  * through to the declared defaults.
  */
+@ExtendWith(SystemStubsExtension.class)
 class SpringConditionConfigTest {
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     @Test
     void resolvesDeclaredNativeDefault() {
@@ -99,5 +110,22 @@ class SpringConditionConfigTest {
         assertThat(config.value(key))
                 .as("a yaml/env value must not flip a condition the application itself resolves from the DSL")
                 .isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   ", "?currentSchema=serverconf"})
+    void blankConfigurationDatabaseUrlFailsInsteadOfEvaluatingConditionsOnDefaults(String url) {
+        var prefix = Prefix.of(Category.PROXY_UI_API, "xroad.condition-test-blank-url");
+        prefix.bool("rate-limit-enabled").withDefaultValue(false).build();
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
+        variables.set("DB_CONFIG_SOURCE_URL", url);
+        var environment = new MockEnvironment();
+
+        assertThatThrownBy(() -> SpringConditionConfig.resolve(environment, provider))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Configuration database source")
+                .hasMessageContaining("DB_CONFIG_SOURCE_URL")
+                .hasMessageContaining("is set but has no base URL")
+                .hasMessageNotContaining("connection pool");
     }
 }

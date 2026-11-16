@@ -268,14 +268,28 @@ class XRoadConfigBuilderTest {
     }
 
     @Test
-    void disabledDbSourceLogDoesNotClaimPackagedDefaultsOnlyWhenFileLayerIsEnabled() {
+    void missingConfigurationDatabaseLogDoesNotClaimPackagedDefaultsOnlyWhenFileLayerIsEnabled() {
         var file = Map.of("xroad.test.native-only", "from-file");
 
         XRoadConfigBuilder.create().register(provider).fileOverrides(SETTINGS_PATH, file).dbOverrides("test-app");
 
         assertThat(logMessages())
-                .anyMatch(message -> message.startsWith("DB config source disabled for 'test-app'"))
+                .anyMatch(message -> message.startsWith("No configuration database configured for 'test-app'"))
                 .noneMatch(message -> message.contains("packaged defaults only"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   ", "?currentSchema=serverconf"})
+    void blankConfigurationDatabaseUrlFailsInsteadOfResolvingFromDefaults(String url) {
+        variables.set("DB_CONFIG_SOURCE_URL", url);
+        var builder = XRoadConfigBuilder.create().register(provider);
+
+        assertThatThrownBy(() -> builder.dbOverrides("test-app"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Configuration database source")
+                .hasMessageContaining("DB_CONFIG_SOURCE_URL")
+                .hasMessageContaining("is set but has no base URL")
+                .hasMessageNotContaining("connection pool");
     }
 
     @Test

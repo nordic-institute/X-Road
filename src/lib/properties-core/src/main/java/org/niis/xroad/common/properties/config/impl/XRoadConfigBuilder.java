@@ -121,8 +121,9 @@ public final class XRoadConfigBuilder {
 
     /**
      * Loads the DB-override layer from the {@code configuration_properties} table via the
-     * {@code DB_CONFIG_SOURCE_*} environment. No-op when the DB config source is disabled or
-     * its URL is unset, so keys resolve from the other layers. Reuses the framework-neutral
+     * {@code DB_CONFIG_SOURCE_*} environment. No-op when no configuration database is configured
+     * (the URL is unset), so keys resolve from the other layers. Fails when the URL is set but blank.
+     * Reuses the framework-neutral
      * {@link CachedDbConfigSource}.
      * @param appName application name (drives the read-pool name)
      * @return this builder
@@ -149,7 +150,7 @@ public final class XRoadConfigBuilder {
             log.info("Loaded {} config override(s) from DB for '{}' ({})", dbProps.size(), appName,
                     nodeName == null ? "shared rows only" : "shared rows and rows of node '" + nodeName + "'");
         } else {
-            log.info("DB config source disabled for '{}'; no configuration database overrides loaded", appName);
+            log.info("No configuration database configured for '{}'", appName);
         }
         return this;
     }

@@ -446,3 +446,15 @@ jobs:
 
       - name: Run secret-store-init-test
         run: ./scripts/images/test-secret-store-init.sh "${{ inputs.image_registry }}/openbao-dev:${{ inputs.service_image_tag }}"
+
+  test-opmonitor-env:
+    name: opmonitor-env-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Run opmonitor-env-test
+        run: ./scripts/images/test-opmonitor-env.sh
