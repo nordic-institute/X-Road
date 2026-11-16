@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogEnabledProperties;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 @Startup
@@ -58,7 +59,7 @@ public class MessageLogArchiveJob {
 
     @PostConstruct
     public void init() {
-        if (isEnabled()) {
+        if (isEnabled() && !NodeProperties.isSecondaryNode()) {
             log.info("Scheduling message log archival with cron expression: '{}'", properties.archiveCron());
             scheduler.newJob(getClass().getSimpleName())
                     .setCron(properties.archiveCron())
@@ -67,15 +68,15 @@ public class MessageLogArchiveJob {
                     .setSkipPredicate(applicationNotRunning)
                     .schedule();
         } else {
-            log.info("Message log archival job is disabled.");
+            log.info("Message log archival job is disabled or not scheduled on a secondary cluster node.");
         }
     }
 
     void executeOnShutdown() {
-        if (isEnabled()) {
+        if (isEnabled() && !NodeProperties.isSecondaryNode()) {
             execute();
         } else {
-            log.info("Message log archival job is disabled, skipping cleanup on shutdown.");
+            log.info("Message log archival job is disabled or running on secondary node, skipping cleanup on shutdown.");
         }
     }
 
