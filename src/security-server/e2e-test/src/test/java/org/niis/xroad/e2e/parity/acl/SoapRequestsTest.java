@@ -139,6 +139,23 @@ class SoapRequestsTest {
         assertThat(xml).doesNotContain("iden:serviceVersion");
     }
 
+    @Test
+    void metaserviceEnvelopeAddressedToAMemberNamesNoSubsystemInTheService() throws Exception {
+        var doc = parse(SoapRequests.metaserviceEnvelope(CONSUMER, "DEV:COM:7001", "listMethods", null, null, "ID-9"));
+
+        var service = header(doc, "service");
+        assertThat(identifier(service, "memberCode")).isEqualTo("7001");
+        assertThat(identifier(service, "subsystemCode")).isNull();
+        assertThat(identifier(service, "serviceCode")).isEqualTo("listMethods");
+        assertThat(header(doc, "client").getElementsByTagNameNS(IDEN, "subsystemCode").getLength()).isEqualTo(1);
+    }
+
+    @Test
+    void metaserviceEnvelopeRejectsAProviderThatIsNeitherMemberNorSubsystem() {
+        assertThatThrownBy(() -> SoapRequests.metaserviceEnvelope(CONSUMER, "DEV:COM", "listMethods", null, null, "ID-9"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
     private static final String XRO = "http://x-road.eu/xsd/xroad.xsd";
     private static final String IDEN = "http://x-road.eu/xsd/identifiers";
     private static final String OM = "http://x-road.eu/xsd/op-monitoring.xsd";
