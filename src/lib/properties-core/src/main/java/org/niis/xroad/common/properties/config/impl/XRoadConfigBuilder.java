@@ -30,7 +30,6 @@ package org.niis.xroad.common.properties.config.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Country;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Value;
@@ -130,14 +129,15 @@ public final class XRoadConfigBuilder {
             log.info("Loaded {} config override(s) from DB for '{}' ({})", dbProps.size(), appName,
                     nodeName == null ? "shared rows only" : "shared rows and rows of node '" + nodeName + "'");
         } else {
-            log.info("DB config source disabled; '{}' uses packaged defaults only", appName);
+            log.info("DB config source disabled; '{}' uses the country profile and packaged defaults only", appName);
         }
         return this;
     }
 
     /**
      * Builds the configuration. The country profile layer is selected by the
-     * {@value CountryProfileLoader#PROFILE_ENV_VARIABLE} environment variable.
+     * {@value CountryProfileLoader#PROFILE_ENV_VARIABLE} environment variable; keys listed in
+     * {@value CountryProfileLoader#EXCLUDE_ENV_VARIABLE} are removed from it.
      * @return resolved configuration with values cached at build time
      */
     public XRoadConfig build() {
@@ -146,7 +146,9 @@ public final class XRoadConfigBuilder {
 
     XRoadConfig build(Map<String, String> env) {
         warnIgnoredEnvVars(env);
-        var countryProfile = CountryProfileLoader.load(env.get(CountryProfileLoader.PROFILE_ENV_VARIABLE));
+        var countryProfile = CountryProfileLoader.load(
+                env.get(CountryProfileLoader.PROFILE_ENV_VARIABLE),
+                env.get(CountryProfileLoader.EXCLUDE_ENV_VARIABLE));
         return new DefaultXRoadConfig(providers, overrides, countryProfile, deploymentMode);
     }
 
@@ -154,7 +156,7 @@ public final class XRoadConfigBuilder {
         var ignored = ignoredEnvVars(env);
         if (!ignored.isEmpty()) {
             log.warn("Environment variable(s) [{}] match registered xroad.* config keys but are IGNORED: "
-                            + "XRoadConfig resolves DB overrides and packaged defaults only. "
+                            + "XRoadConfig resolves DB overrides, the country profile and packaged defaults only. "
                             + "Set the value(s) in the configuration_properties table instead.",
                     String.join(", ", ignored));
         }
@@ -212,10 +214,6 @@ public final class XRoadConfigBuilder {
             return Optional.ofNullable((Value<T>) resolved.get(key));
         }
 
-        @Override
-        public Optional<Country> country() {
-            return Optional.empty();
-        }
 
         private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides,
                                             Map<String, String> countryProfile, DeploymentMode mode) {

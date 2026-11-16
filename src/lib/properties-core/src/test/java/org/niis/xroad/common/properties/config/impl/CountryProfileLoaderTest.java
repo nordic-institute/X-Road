@@ -30,12 +30,13 @@ package org.niis.xroad.common.properties.config.impl;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CountryProfileLoaderTest {
 
     @Test
     void listsRenderAsCommaSeparatedStrings() {
-        var values = CountryProfileLoader.load("FI");
+        var values = CountryProfileLoader.load("FI", null);
 
         assertThat(values).containsEntry("xroad.proxy.client-proxy.client-tls-protocols", "TLSv1.2");
         assertThat(values.get("xroad.proxy.client-proxy.client-tls-ciphers"))
@@ -46,7 +47,7 @@ class CountryProfileLoaderTest {
 
     @Test
     void nestedKeysFlattenToDottedDslKeys() {
-        var values = CountryProfileLoader.load("FI");
+        var values = CountryProfileLoader.load("FI", null);
 
         assertThat(values)
                 .containsEntry("xroad.signer.key-length", "3072")
@@ -59,6 +60,21 @@ class CountryProfileLoaderTest {
 
     @Test
     void metadataBlockIsNotLoaded() {
-        assertThat(CountryProfileLoader.load("FI").keySet()).noneMatch(key -> key.startsWith("metadata"));
+        assertThat(CountryProfileLoader.load("FI", null).keySet()).noneMatch(key -> key.startsWith("metadata"));
+    }
+    @Test
+    void excludeListRemovesNamedKeysAndTrimsEntries() {
+        var all = CountryProfileLoader.load("FI", null);
+        var values = CountryProfileLoader.load("FI",
+                " xroad.signer.key-length , xroad.proxy-ui-api.acme-challenge-port-enabled,, not.a.key ");
+        assertThat(values).hasSize(all.size() - 2)
+                .doesNotContainKeys("xroad.signer.key-length", "xroad.proxy-ui-api.acme-challenge-port-enabled");
+    }
+    @Test
+    void unknownProfileNamesValueAndAvailableProfiles() {
+        assertThatThrownBy(() -> CountryProfileLoader.load("XX", null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("'XX'")
+                .hasMessageContaining("available profiles: FI");
     }
 }

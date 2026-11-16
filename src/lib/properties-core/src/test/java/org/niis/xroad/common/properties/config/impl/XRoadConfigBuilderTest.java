@@ -40,6 +40,7 @@ import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class XRoadConfigBuilderTest {
     private static final Map<String, String> FI_ENV = Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI");
@@ -178,6 +179,46 @@ class XRoadConfigBuilderTest {
     }
 
     @Test
+    void unknownProfileNameFailsBuild() {
+        var builder = proxyBuilder();
+        assertThatThrownBy(() -> builder.build(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "XX")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("'XX'")
+                .hasMessageContaining("available profiles");
+    }
+    @Test
+    void blankProfileNameLeavesCountryLayerOut() {
+        var config = proxyBuilder().build(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "  "));
+        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(value.value()).isFalse();
+        assertThat(value.source()).isEqualTo(Source.DEFAULT);
+    }
+    @Test
+    void lowerCaseProfileNameSelectsProfile() {
+        var config = proxyBuilder().build(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "fi"));
+        assertThat(config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS).source())
+                .isEqualTo(Source.COUNTRY);
+    }
+    @Test
+    void excludedKeyResolvesDefaultAndOtherProfileKeysStayCountry() {
+        var config = proxyBuilder().build(fiEnvExcluding(
+                " xroad.proxy.server.support-clients-pooled-connections ,xroad.unknown.key"));
+        var excluded = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(excluded.value()).isFalse();
+        assertThat(excluded.source()).isEqualTo(Source.DEFAULT);
+        assertThat(config.get(ProxyConfigKeys.SERVER_MIN_SUPPORTED_CLIENT_VERSION).source())
+                .isEqualTo(Source.COUNTRY);
+    }
+    @Test
+    void dbRowWinsForExcludedKey() {
+        var config = proxyBuilder()
+                .overrides(Map.of("xroad.proxy.server.support-clients-pooled-connections", "true"))
+                .build(fiEnvExcluding("xroad.proxy.server.support-clients-pooled-connections"));
+        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(value.value()).isTrue();
+        assertThat(value.source()).isEqualTo(Source.DB);
+    }
+    @Test
     void overridesOfUnregisteredKeysAreIgnoredAndRegisteredKeysKeepTheirValues() {
         var config = XRoadConfigBuilder.create().register(provider)
                 .overrides(Map.of(
@@ -190,6 +231,11 @@ class XRoadConfigBuilderTest {
         assertThat(config.get(withContainerDefault).value()).isEqualTo("native");
     }
 
+    private static Map<String, String> fiEnvExcluding(String excludeList) {
+        return Map.of(
+                CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI",
+                CountryProfileLoader.EXCLUDE_ENV_VARIABLE, excludeList);
+    }
     private static XRoadConfigBuilder proxyBuilder() {
         return XRoadConfigBuilder.create().register(ProxyConfigKeys.instance());
     }

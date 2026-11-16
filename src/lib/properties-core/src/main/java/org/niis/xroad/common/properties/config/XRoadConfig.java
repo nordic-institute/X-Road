@@ -69,7 +69,4 @@ public interface XRoadConfig {
     default <T> Optional<T> valueOpt(ConfigKey<T> key) {
         return getOpt(key).map(Value::value);
     }
-
-    /** @return active country overlay, empty when none selected */
-    Optional<Country> country();
 }
