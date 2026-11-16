@@ -26,8 +26,8 @@ configure_api_key() {
   fi
   local skip_migrations
   skip_migrations=$(crudini --get /etc/xroad/db.properties '' skip_migrations 2>/dev/null)
-  if [ "$skip_migrations" = true ]; then
-    log "WARNING: API key setup for ${service} failed. Database migrations were skipped, so the schema may not exist yet. Once the schema is migrated, run:"
+  if [ "$skip_migrations" = true ] || [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
+    log "WARNING: API key setup for ${service} failed. Database setup or migrations were skipped, so the schema may not exist yet. Once the schema exists, run:"
     log "  /usr/share/xroad/scripts/configure_management_api_key.sh ${service}"
     log "then restart xroad-center-management-service and xroad-center-registration-service, which read the key only at startup."
     return 0
