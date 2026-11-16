@@ -58,6 +58,7 @@ public class TaskPollExecutor {
     private final AtomicBoolean active = new AtomicBoolean();
     private final List<Worker> workers;
 
+    @SuppressWarnings("java:S107")
     public TaskPollExecutor(TaskPollConfig taskPollConfig, int workerCount, ExecutorInstrumentation instrumentation,
                             ContractNegotiationTaskExecutor contractNegotiationTaskExecutor,
                             TransferProcessTaskExecutor transferProcessTaskExecutor, TaskStore taskStore,

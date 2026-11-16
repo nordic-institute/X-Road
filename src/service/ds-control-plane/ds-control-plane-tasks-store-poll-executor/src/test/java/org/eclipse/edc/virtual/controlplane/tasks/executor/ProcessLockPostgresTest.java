@@ -309,7 +309,7 @@ class ProcessLockPostgresTest {
     }
 
     @Test
-    void twoWorkersOnTheSameNegotiationExactlyOneRunsTheHandlerWhileTheOtherRequeues() throws Exception {
+    void twoWorkersOnTheSameNegotiationExactlyOneRunsTheHandlerWhileTheOtherRequeues() {
         var negotiationId = "neg-" + UUID.randomUUID();
         var participantContextId = "participant-" + UUID.randomUUID();
         negotiationStore.save(negotiation(negotiationId, participantContextId, ContractNegotiationStates.REQUESTED));
@@ -333,7 +333,7 @@ class ProcessLockPostgresTest {
     }
 
     @Test
-    void twoWorkersOnTheSameTransferProcessExactlyOneRunsTheHandlerWhileTheOtherRequeues() throws Exception {
+    void twoWorkersOnTheSameTransferProcessExactlyOneRunsTheHandlerWhileTheOtherRequeues() {
         var transferProcessId = "tp-" + UUID.randomUUID();
         var participantContextId = "participant-" + UUID.randomUUID();
         transferStore.save(transferProcess(transferProcessId, participantContextId, TransferProcessStates.REQUESTED));
