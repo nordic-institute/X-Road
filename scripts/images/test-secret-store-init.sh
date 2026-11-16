@@ -15,9 +15,11 @@ source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
 IMAGE="${1:-${IMAGE_REGISTRY:-localhost:5555}/openbao-dev:${IMAGE_TAG:-latest}}"
 SCRIPTS_DIR="${ROOT_DIR}/deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts"
-CONTAINER="secret-store-init-test-$$"
-PG_CONTAINER="${CONTAINER}-pg"
-NETWORK="${CONTAINER}-net"
+NODE1_CONTAINER="secret-store-init-test-$$"
+NODE2_CONTAINER="${NODE1_CONTAINER}-2"
+CONTAINER="${NODE1_CONTAINER}"
+PG_CONTAINER="${NODE1_CONTAINER}-pg"
+NETWORK="${NODE1_CONTAINER}-net"
 PG_IMAGE="${PG_IMAGE:-postgres:16-alpine}"
 PG_PASSWORD="test-pg-$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
 WORK_DIR="$(mktemp -d)"
@@ -27,6 +29,8 @@ ROOT_TOKEN_FILE="/etc/openbao/root-token"
 UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 SETUP_SCRIPT="/usr/share/xroad/scripts/secret-store-init.sh"
+BUNDLE_SCRIPT="/usr/share/xroad/scripts/secret-store-join-bundle.sh"
+ENV_FILE="/etc/openbao/openbao.env"
 CONFIG_WRITER="/usr/share/xroad/scripts/secret-store-cluster-config.sh"
 TLS_SCRIPT="/usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh"
 UNSEAL_SCRIPT=""
@@ -58,7 +62,7 @@ dump_last_run() {
 cleanup() {
   local rc=$?
   if [[ ${rc} -ne 0 && ${FAILURES} -eq 0 ]]; then dump_last_run; fi
-  docker rm -f "${CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
+  docker rm -f "${NODE1_CONTAINER}" "${NODE2_CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
   docker network rm "${NETWORK}" >/dev/null 2>&1
   rm -rf "${WORK_DIR}"
 }
@@ -130,7 +134,8 @@ start_dev_server() {
 }
 
 start_postgres() {
-  docker rm -f "${CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
+  docker rm -f "${NODE1_CONTAINER}" "${NODE2_CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
+  CONTAINER="${NODE1_CONTAINER}"
   docker network rm "${NETWORK}" >/dev/null 2>&1
   docker network create "${NETWORK}" >/dev/null || exit 1
   docker run -d --name "${PG_CONTAINER}" --network "${NETWORK}" \
@@ -142,19 +147,23 @@ start_postgres() {
   log_error "PostgreSQL did not start in the test container"
   exit 1
 }
-start_real_server() {
-  start_postgres
+# run_node_container yes|no: starts the current container with the shims and the X-Road configuration.
+# "no" leaves the OpenBao environment file to the join bundle import.
+run_node_container() {
   docker rm -f "${CONTAINER}" >/dev/null 2>&1
   docker run -d --init --name "${CONTAINER}" --network "${NETWORK}" \
     -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
+    -e "WRITE_ENV=$1" \
     -e "BAO_PG_CONNECTION_URL=postgres://postgres:${PG_PASSWORD}@${PG_CONTAINER}:5432/postgres?sslmode=disable" \
     --entrypoint sh "${IMAGE}" -c '
       rm -f '"${READY_FILE}"'
       mkdir -p /etc/openbao /opt/openbao/tls /etc/xroad /run/systemd/system /usr/local/share/ca-certificates /usr/local/bin
       chown xroad:xroad /etc/xroad
-      printf "BAO_PG_CONNECTION_URL=%s\n" "$BAO_PG_CONNECTION_URL" > /etc/openbao/openbao.env
-      chown openbao:xroad /etc/openbao/openbao.env
-      chmod 640 /etc/openbao/openbao.env
+      if [ "$WRITE_ENV" = yes ]; then
+        printf "BAO_PG_CONNECTION_URL=%s\n" "$BAO_PG_CONNECTION_URL" > /etc/openbao/openbao.env
+        chown openbao:xroad /etc/openbao/openbao.env
+        chmod 640 /etc/openbao/openbao.env
+      fi
       for tool in systemctl update-ca-certificates; do
         printf "#!/bin/sh\necho \"\${0##*/} \$*\" >>'"${SHIM_CALLS_FILE}"'\nexit 0\n" > /usr/local/bin/$tool
         chmod +x /usr/local/bin/$tool
@@ -162,6 +171,10 @@ start_real_server() {
       [ -f '"${XROAD_CONFIG_FILE}"' ] || bash '"${CONFIG_WRITER}"' || exit 1
       touch '"${READY_FILE}"'
       exec tail -f /dev/null' >/dev/null || exit 1
+}
+start_real_server() {
+  start_postgres
+  run_node_container yes
   start_bao
   wait_for_server
 }
@@ -288,7 +301,7 @@ file_absent() { in_container test ! -e "$1"; }
 
 # text_absent FILE TEXT: succeeds when FILE exists on the host and does not contain TEXT.
 text_absent() {
-  [[ -s "$1" && -n "$2" ]] || return 1
+  [[ -e "$1" && -n "$2" ]] || return 1
   ! grep -qF -- "$2" "$1"
 }
 
@@ -722,6 +735,166 @@ scenario_cluster_member() {
   check "single again: serves 127.0.0.1" serves_name 127.0.0.1 127.0.0.1
   check "single again: node address no longer served" not_listening "${node_ip}"
 }
+run_join() {
+  docker exec -e "BAO_ADDR=${ADDR}" "${CONTAINER}" bash "${SETUP_SCRIPT}" --join >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
+}
+run_unseal_join() {
+  docker exec -e "BAO_ADDR=${ADDR}" "${CONTAINER}" timeout 150 bash "${UNSEAL_SCRIPT}" --join >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
+}
+run_bundle() {
+  docker exec "${CONTAINER}" bash "${BUNDLE_SCRIPT}" "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
+}
+store_initialised() { in_container curl -sk "${ADDR}/v1/sys/init" | jq -r '.initialized'; }
+file_owner() { in_container stat -c %U:%G "$1" 2>/dev/null; }
+bundle_hashes() { in_container sha256sum "${ENV_FILE}" "${UNSEAL_KEYS_FILE}" "${ROOT_TOKEN_FILE}" 2>/dev/null | cut -d' ' -f1; }
+wait_for_ready_file() {
+  for _ in $(seq 1 60); do
+    if in_container test -e "${READY_FILE}" 2>/dev/null; then return 0; fi
+    sleep 1
+  done
+  log_error "The test container did not become ready"
+  exit 1
+}
+copy_between_nodes() {
+  docker cp "${NODE1_CONTAINER}:$1" "${WORK_DIR}/transfer" >/dev/null && docker cp "${WORK_DIR}/transfer" "${NODE2_CONTAINER}:$1" >/dev/null
+}
+scenario_join_guards() {
+  log_info "Scenario: join mode never initialises OpenBao"
+  ADDR="https://127.0.0.1:8200"
+  UNSEAL_SCRIPT="/usr/share/xroad/scripts/secret-store-unseal.sh"
+  start_real_server
+  local file other
+  check_eq "join guards: the store starts uninitialised" false "$(store_initialised)"
+  run_join
+  check "no bundle files: exit non-zero" test "${RC}" -ne 0
+  check "no bundle files: stderr names the unseal keys file" grep -qF -- "${UNSEAL_KEYS_FILE}" "${ERR_FILE}"
+  check "no bundle files: stderr names the root token file" grep -qF -- "${ROOT_TOKEN_FILE}" "${ERR_FILE}"
+  check_eq "no bundle files: still uninitialised" false "$(store_initialised)"
+  in_container sh -c "printf 'placeholder' > ${UNSEAL_KEYS_FILE}; printf 'placeholder' > ${ROOT_TOKEN_FILE}; chmod 600 ${UNSEAL_KEYS_FILE} ${ROOT_TOKEN_FILE}"
+  for file in "${ENV_FILE}" "${UNSEAL_KEYS_FILE}" "${ROOT_TOKEN_FILE}"; do
+    in_container mv "${file}" "${file}.saved"
+    run_join
+    check "missing ${file}: exit non-zero" test "${RC}" -ne 0
+    check "missing ${file}: stderr names it" grep -qF -- "${file}" "${ERR_FILE}"
+    for other in "${ENV_FILE}" "${UNSEAL_KEYS_FILE}" "${ROOT_TOKEN_FILE}"; do
+      if [[ "${other}" != "${file}" ]]; then check "missing ${file}: stderr does not name ${other}" text_absent "${ERR_FILE}" "${other}"; fi
+    done
+    check_eq "missing ${file}: still uninitialised" false "$(store_initialised)"
+    run_unseal_join
+    check "missing ${file}: unseal script exit non-zero" test "${RC}" -ne 0
+    check "missing ${file}: unseal script names it" grep -qF -- "${file}" "${ERR_FILE}"
+    in_container mv "${file}.saved" "${file}"
+  done
+  run_join
+  check "uninitialised store: exit non-zero" test "${RC}" -ne 0
+  check "uninitialised store: stderr says it is not initialised" grep -qF "is not initialised" "${ERR_FILE}"
+  check_eq "uninitialised store: still uninitialised" false "$(store_initialised)"
+  check_eq "uninitialised store: root token file untouched" placeholder "$(in_container cat "${ROOT_TOKEN_FILE}")"
+  check_eq "uninitialised store: unseal keys file untouched" placeholder "$(in_container cat "${UNSEAL_KEYS_FILE}")"
+  run_unseal_join
+  check "uninitialised store: unseal script exit non-zero" test "${RC}" -ne 0
+  check_eq "uninitialised store: unseal script leaves it uninitialised" false "$(store_initialised)"
+}
+scenario_join_node() {
+  log_info "Scenario: single server, convert, export, import on a second node, join"
+  ADDR="https://127.0.0.1:8200"
+  UNSEAL_SCRIPT="/usr/share/xroad/scripts/secret-store-unseal.sh"
+  start_real_server
+  local ip1 ip2 first_hashes first_client_hash first_mounts before after file
+  ip1="$(in_container hostname -i | awk '{print $1}')"
+  run_setup
+  ROOT_TOKEN="$(in_container cat "${ROOT_TOKEN_FILE}")"
+  check_provisioned "first node, single server"
+  run_writer --node-address "${ip1}"
+  check "first node: convert exit 0" test "${RC}" -eq 0
+  restart_bao
+  run_setup
+  check_provisioned "first node, converted"
+  first_hashes="$(bundle_hashes)"
+  first_client_hash="$(client_token_hash)"
+  first_mounts="$(mounts_snapshot)"
+
+  log_info "Scenario: export on the first node"
+  run_bundle export /tmp/join-bundle.tar
+  check "export: exit 0" test "${RC}" -eq 0
+  check_eq "export: archive mode" 600 "$(file_mode /tmp/join-bundle.tar)"
+  check_eq "export: archive owner" root:root "$(file_owner /tmp/join-bundle.tar)"
+  check_eq "export: archive holds the three files and no client token" openbao.env,root-token,unseal-keys \
+    "$(in_container tar -tf /tmp/join-bundle.tar | sort | paste -sd, -)"
+  check_no_issued_secrets_in_output "export"
+  run_bundle export /tmp/join-bundle.tar
+  check "export over an existing archive: exit non-zero" test "${RC}" -ne 0
+  check "export over an existing archive: stderr says it refuses" grep -qF "Refusing to overwrite" "${ERR_FILE}"
+  in_container mv "${UNSEAL_KEYS_FILE}" "${UNSEAL_KEYS_FILE}.saved"
+  run_bundle export /tmp/missing-file.tar
+  check "export without the unseal keys file: exit non-zero" test "${RC}" -ne 0
+  check "export without the unseal keys file: stderr names it" grep -qF -- "${UNSEAL_KEYS_FILE}" "${ERR_FILE}"
+  check "export without the unseal keys file: no archive written" file_absent /tmp/missing-file.tar
+  in_container mv "${UNSEAL_KEYS_FILE}.saved" "${UNSEAL_KEYS_FILE}"
+  in_container sh -c 'mkdir /tmp/bad && cp /etc/openbao/openbao.env /etc/openbao/unseal-keys /etc/openbao/root-token /tmp/bad/ && printf x > /tmp/bad/extra && cd /tmp/bad && tar -cf /tmp/bad-bundle.tar openbao.env unseal-keys root-token extra'
+
+  log_info "Scenario: import on the second node"
+  CONTAINER="${NODE2_CONTAINER}"
+  run_node_container no
+  wait_for_ready_file
+  ip2="$(in_container hostname -i | awk '{print $1}')"
+  run_writer --node-address "${ip2}"
+  check "second node: convert exit 0" test "${RC}" -eq 0
+  CONTAINER="${NODE1_CONTAINER}"
+  copy_between_nodes /tmp/join-bundle.tar
+  copy_between_nodes /tmp/bad-bundle.tar
+  CONTAINER="${NODE2_CONTAINER}"
+  run_bundle import /tmp/bad-bundle.tar
+  check "import with an unknown entry: exit non-zero" test "${RC}" -ne 0
+  check "import with an unknown entry: nothing imported" file_absent "${ENV_FILE}"
+  in_container sh -c "printf 'keepme' > ${ROOT_TOKEN_FILE}"
+  run_bundle import /tmp/join-bundle.tar
+  check "import over an existing file: exit non-zero" test "${RC}" -ne 0
+  check "import over an existing file: stderr names it" grep -qF -- "${ROOT_TOKEN_FILE}" "${ERR_FILE}"
+  check_eq "import over an existing file: the file is unchanged" keepme "$(in_container cat "${ROOT_TOKEN_FILE}")"
+  check "import over an existing file: the environment file is not written" file_absent "${ENV_FILE}"
+  check "import over an existing file: the unseal keys file is not written" file_absent "${UNSEAL_KEYS_FILE}"
+  in_container rm -f "${ROOT_TOKEN_FILE}"
+  run_bundle import /tmp/join-bundle.tar
+  check "import: exit 0" test "${RC}" -eq 0
+  check_eq "import: the three files equal the first node's" "${first_hashes}" "$(bundle_hashes)"
+  for file in "${ENV_FILE}" "${UNSEAL_KEYS_FILE}" "${ROOT_TOKEN_FILE}"; do
+    check_eq "import: ${file} mode" 600 "$(file_mode "${file}")"
+    check_eq "import: ${file} owner" root:root "$(file_owner "${file}")"
+  done
+  check_no_secret_in_output "import" "root token" "${ROOT_TOKEN}"
+  run_bundle import /tmp/join-bundle.tar
+  check "second import: exit non-zero" test "${RC}" -ne 0
+  check_eq "second import: files unchanged" "${first_hashes}" "$(bundle_hashes)"
+
+  log_info "Scenario: join on the second node"
+  in_container sh -c "chown openbao:xroad ${ENV_FILE} && chmod 640 ${ENV_FILE}"
+  start_bao
+  wait_for_server
+  check_eq "second node: starts sealed" true "$(seal_status_field sealed)"
+  run_join
+  check "join: exit 0" test "${RC}" -eq 0
+  check "join: never initialises" text_absent "${OUT_FILE}" "Initializing OpenBao"
+  check_eq "join: OpenBao is unsealed" false "$(seal_status_field sealed)"
+  check_eq "join: client token valid" 200 "$(client_token_status)"
+  check_ne "join: the node's own client token differs from the first node's" "${first_client_hash}" "$(client_token_hash)"
+  check_modes "join"
+  check_no_issued_secrets_in_output "join"
+  check_eq "join: the three files are unchanged" "${first_hashes}" "$(bundle_hashes)"
+  check_eq "join: mounts equal the first node's" "${first_mounts}" "$(mounts_snapshot)"
+  before="$(state_snapshot)"
+  run_join
+  after="$(state_snapshot)"
+  check "join rerun: exit 0" test "${RC}" -eq 0
+  check_eq "join rerun: state unchanged" "${before}" "${after}"
+  check_eq "join rerun: files unchanged" "${first_hashes}" "$(bundle_hashes)"
+  CONTAINER="${NODE1_CONTAINER}"
+  check_eq "first node: client token still valid" 200 "$(client_token_status)"
+  check_eq "first node: client token unchanged" "${first_client_hash}" "$(client_token_hash)"
+}
 if ! command -v jq >/dev/null 2>&1; then
   log_error "jq is required on the host"
   exit 1
@@ -739,6 +912,8 @@ scenario_no_root_token
 scenario_pki_setup_writes_policy
 scenario_initializing_node
 scenario_cluster_member
+scenario_join_guards
+scenario_join_node
 
 if [[ "${FAILURES}" -ne 0 ]]; then
   log_error "${FAILURES} check(s) failed"

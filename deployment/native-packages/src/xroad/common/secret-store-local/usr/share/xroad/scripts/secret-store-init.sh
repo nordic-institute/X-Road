@@ -8,6 +8,22 @@ BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
 ROOT_TOKEN_FILE="/etc/openbao/root-token"
 UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
 
+# --join: this node joins an existing cluster. The join bundle files must be present, the store
+# must already be initialised, and initialisation is never attempted.
+JOIN=false
+case "${1:-}" in
+  --join) JOIN=true ;;
+  "") ;;
+  *)
+    echo "Usage: $0 [--join]" >&2
+    exit 1
+    ;;
+esac
+
+if [ "$JOIN" = true ]; then
+  require_join_files
+fi
+
 if wait_until_ready; then
   echo "OpenBao is ready"
 else
@@ -18,6 +34,8 @@ fi
 # Check if already initialized
 if is_initialized; then
   echo "OpenBao is already initialized"
+elif [ "$JOIN" = true ]; then
+  fail_join_not_initialised
 else
   echo "Initializing OpenBao..."
   INIT_RESPONSE=$(initialize) || {
@@ -36,7 +54,9 @@ fi
 
 # Unsealing is the job of secret-store-unseal.sh, which also runs after every OpenBao start.
 # A freshly initialized store is still sealed, so unseal it here and require the result.
-/usr/share/xroad/scripts/secret-store-unseal.sh
+unseal_args=()
+if [ "$JOIN" = true ]; then unseal_args+=(--join); fi
+/usr/share/xroad/scripts/secret-store-unseal.sh "${unseal_args[@]}"
 if is_sealed; then sealed_rc=0; else sealed_rc=$?; fi
 if [ "$sealed_rc" -eq 2 ]; then
   echo "Cannot determine OpenBao seal status; aborting" >&2

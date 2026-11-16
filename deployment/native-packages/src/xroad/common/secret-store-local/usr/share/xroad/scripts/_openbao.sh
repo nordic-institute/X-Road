@@ -69,6 +69,13 @@ wait_until_ready() {
   return 1
 }
 
+# The active node answers an unauthenticated request with 403. A standby that forwards to the active
+# node answers the same; a standby without a working leader answers with a redirect.
+forwards_requests() {
+  local addr="${1:-$BAO_ADDR}"
+  [ "$(curl -s -k -o /dev/null -w '%{http_code}' --connect-timeout 5 "$addr/v1/sys/mounts")" = "403" ]
+}
+
 wait_until_active() {
   local addr="${1:-$BAO_ADDR}"
   local max_attempts=${2:-40}
@@ -77,15 +84,33 @@ wait_until_active() {
 
   while [ $attempt -lt $max_attempts ]; do
     status=$(curl -s -k -o /dev/null -w '%{http_code}' --connect-timeout 5 "$addr/v1/sys/health")
+    # 200 is the active node. A 429 standby counts only once it forwards requests to the active node;
+    # an unsealed node that has not yet taken or found the leader answers 429 too and redirects.
     if [ "$status" = "200" ]; then
+      return 0
+    fi
+    if [ "$status" = "429" ] && forwards_requests "$addr"; then
       return 0
     fi
     attempt=$((attempt + 1))
     sleep 1
   done
 
-  echo "[OPENBAO] OpenBao did not become active within $max_attempts seconds" >&2
+  echo "[OPENBAO] OpenBao did not become active or standby within $max_attempts seconds" >&2
   return 1
+}
+
+fail_join_not_initialised() {
+  echo "Join mode: OpenBao is not initialised. Initialise it on the first node of the cluster; a joining node never initialises it" >&2
+  exit 1
+}
+
+# Join mode stops unless the join bundle files are present; the file list is owned by the bundle script.
+require_join_files() {
+  /usr/share/xroad/scripts/secret-store-join-bundle.sh check || {
+    echo "Join mode: import the join bundle first (secret-store-join-bundle.sh import <file>)" >&2
+    exit 1
+  }
 }
 
 is_initialized() {
