@@ -217,12 +217,12 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
 
     private DeleteParticipantContextResp deleteParticipantContextInternal(DeleteParticipantContextReq request) {
         var participantContextId = request.getParticipantContextId();
-        var result = participantContextService.deleteParticipantContext(participantContextId);
-        requireSuccessOrNotFound(result, DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId);
         var removed = memberIdConfig.remove(participantContextId);
         if (removed.failed()) {
             throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, removed.getFailureDetail());
         }
+        var result = participantContextService.deleteParticipantContext(participantContextId);
+        requireSuccessOrNotFound(result, DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId);
 
         var purged = recordsPurger.purge(participantContextId);
         if (!result.succeeded() && purged.credentialCount() == 0 && purged.holderRequestCount() == 0) {

@@ -160,20 +160,16 @@ describe('1020 — CS Security Server Auth Certs — cert list sortable by colum
 
 describe('1020 — CS Security Server Auth Certs — delete dialog confirm-code gating and row count drop (Browser Mode)', () => {
   it('save disabled with no/wrong code, enabled with exact server code, row count drops after delete', async () => {
-    let certsCallCount = 0;
+    let certs = [certFixture1, certFixture2];
     await renderRoute(`/security-servers/${encodeURIComponent(SERVER_ID)}/authentication-certificates`, {
       permissions: deletePermissions,
       msw: [
         specHttp.get('/security-servers/{server_id}', ({ response }) => response(200).json(serverFixture as never)),
-        specHttp.get('/security-servers/{server_id}/authentication-certificates', ({ response }) => {
-          certsCallCount += 1;
-          return certsCallCount === 1
-            ? response(200).json([certFixture1, certFixture2] as never)
-            : response(200).json([certFixture2] as never);
+        specHttp.get('/security-servers/{server_id}/authentication-certificates', ({ response }) => response(200).json(certs as never)),
+        specHttp.delete('/security-servers/{server_id}/authentication-certificates/{certificate_id}', ({ response }) => {
+          certs = [certFixture2];
+          return response(204).empty();
         }),
-        specHttp.delete('/security-servers/{server_id}/authentication-certificates/{certificate_id}', ({ response }) =>
-          response(204).empty(),
-        ),
       ],
     });
 

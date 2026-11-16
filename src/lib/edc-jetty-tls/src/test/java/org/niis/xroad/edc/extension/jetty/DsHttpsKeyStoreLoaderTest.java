@@ -30,24 +30,38 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.singleAttemptVaultClient;
 
-@ExtendWith(MockitoExtension.class)
 class DsHttpsKeyStoreLoaderTest {
 
-    @Mock
-    private VaultClient vaultClient;
+    private final VaultClient vaultClient = singleAttemptVaultClient();
+
+    @Test
+    void readsCredentialsOnlyThroughTheZeroBudgetView() throws Exception {
+        var parent = mock(VaultClient.class);
+        var singleAttemptView = mock(VaultClient.class);
+        when(parent.withRetryBudget(Duration.ZERO)).thenReturn(singleAttemptView);
+        when(singleAttemptView.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("connection refused"));
+        var loader = new DsHttpsKeyStoreLoader(parent);
+
+        assertThatThrownBy(loader::load).isInstanceOf(ConnectorTlsKeyStoreLoadException.class);
+
+        verify(parent, never()).getDsHttpsTlsCredentials();
+        verify(singleAttemptView).getDsHttpsTlsCredentials();
+    }
 
     @Test
     void loadsAKeyStoreServingTheStoredCertificate() throws Exception {

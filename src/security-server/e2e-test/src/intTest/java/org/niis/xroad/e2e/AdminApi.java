@@ -61,6 +61,7 @@ class AdminApi {
 
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
+    private static final int MEMBER_ID_PARTS = 3;
     private static final int CLIENT_ID_PARTS = 4;
     private static final String REGISTERED_STATUS = "REGISTERED";
     private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
@@ -265,25 +266,27 @@ class AdminApi {
     }
 
     /**
-     * Adds the subsystem {@code clientId} ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}) as a local client,
-     * tolerating a warm rerun where it already exists: {@code ClientService} rejects a duplicate with
-     * {@code ClientAlreadyExistsException}, a {@code ConflictException} mapped to 409. The client id is
-     * deterministic, so it is returned on either status.
+     * Adds the client {@code clientId} ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}, or {@code INSTANCE:CLASS:CODE} for
+     * a member) as a local client, tolerating a warm rerun where it already exists: {@code ClientService}
+     * rejects a duplicate with {@code ClientAlreadyExistsException}, a {@code ConflictException} mapped to 409.
+     * The client id is deterministic, so it is returned on either status.
      */
     static String addLocalClient(String baseUrl, AdminSession session, String clientId) {
         var parts = clientId.split(":", -1);
-        assertThat(parts).as("subsystem client id %s", clientId).hasSize(CLIENT_ID_PARTS);
+        assertThat(parts).as("member or subsystem client id %s", clientId).hasSizeBetween(MEMBER_ID_PARTS, CLIENT_ID_PARTS);
+        var subsystemField = parts.length == CLIENT_ID_PARTS
+                ? "\"subsystem_code\": \"%s\",".formatted(parts[CLIENT_ID_PARTS - 1]) : "";
         var body = """
                 {
                   "ignore_warnings": true,
                   "client": {
                     "member_class": "%s",
                     "member_code": "%s",
-                    "subsystem_code": "%s",
+                    %s
                     "connection_type": "HTTP"
                   }
                 }
-                """.formatted(parts[1], parts[2], parts[parts.length - 1]);
+                """.formatted(parts[1], parts[2], subsystemField);
         var response = sendJson(session, Method.POST, baseUrl + "/api/v1/clients", body);
         assertThat(response.getStatusCode())
                 .as("add local client %s (201 first run, 409 if it already exists on a warm rerun)", clientId)
@@ -409,19 +412,23 @@ class AdminApi {
 
     /**
      * Whether the Security Server's global client search, which reads global configuration members, returns
-     * {@code clientId}. The search matches by substring, so the returned ids are compared exactly.
+     * {@code clientId} ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}, or {@code INSTANCE:CLASS:CODE} for a member). The
+     * search matches by substring, so the returned ids are compared exactly.
      */
     static boolean globalClientKnown(String baseUrl, AdminSession session, String clientId) {
         var parts = clientId.split(":", -1);
-        assertThat(parts).as("subsystem client id %s", clientId).hasSize(CLIENT_ID_PARTS);
-        var response = authed(session)
+        assertThat(parts).as("member or subsystem client id %s", clientId).hasSizeBetween(MEMBER_ID_PARTS, CLIENT_ID_PARTS);
+        var isSubsystem = parts.length == CLIENT_ID_PARTS;
+        var search = authed(session)
                 .queryParam("instance", parts[0])
                 .queryParam("member_class", parts[1])
                 .queryParam("member_code", parts[2])
-                .queryParam("subsystem_code", parts[parts.length - 1])
                 .queryParam("internal_search", false)
-                .queryParam("show_members", false)
-                .get(baseUrl + "/api/v1/clients");
+                .queryParam("show_members", !isSubsystem);
+        if (isSubsystem) {
+            search.queryParam("subsystem_code", parts[CLIENT_ID_PARTS - 1]);
+        }
+        var response = search.get(baseUrl + "/api/v1/clients");
         return response.getStatusCode() == HTTP_OK && response.jsonPath().getList("id", String.class).contains(clientId);
     }
 

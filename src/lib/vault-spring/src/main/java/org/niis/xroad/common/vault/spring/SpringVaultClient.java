@@ -30,6 +30,8 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.annotation.Nullable;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -39,8 +41,10 @@ import org.niis.xroad.common.vault.AgreementTokenVaultDataUtils;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.NodeScopedSecretPaths;
+import org.niis.xroad.common.vault.ResilientVaultCall;
 import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.vault.core.VaultKeyValueOperations;
+import org.springframework.vault.support.VaultResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,6 +54,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -59,17 +64,22 @@ import java.util.Optional;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 @Slf4j
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SpringVaultClient implements VaultClient {
+
     private final VaultKeyValueOperations vaultClient;
     private final String adminServiceTlsPath;
     private final String managementServiceTlsPath;
+    private final ResilientVaultCall resilientCall;
 
     /**
      * @param vaultClient  the key-value operations of the secret store
      * @param nodeIdentity the identity of the node whose name scopes the admin and management service TLS keys,
      *                     or {@code null} to keep them at the plain, node-independent paths
+     * @param retryBudget  the total time a failing secret store call is retried
      */
-    public SpringVaultClient(VaultKeyValueOperations vaultClient, @Nullable NodeIdentity nodeIdentity) {
+    public SpringVaultClient(VaultKeyValueOperations vaultClient, @Nullable NodeIdentity nodeIdentity,
+                             Duration retryBudget) {
         this.vaultClient = vaultClient;
         if (nodeIdentity == null) {
             this.adminServiceTlsPath = ADMIN_SERVICE_TLS_CREDENTIALS_PATH;
@@ -79,6 +89,13 @@ public class SpringVaultClient implements VaultClient {
             this.adminServiceTlsPath = nodePaths.adminServiceTls();
             this.managementServiceTlsPath = nodePaths.managementServiceTls();
         }
+        this.resilientCall = new ResilientVaultCall(SpringVaultFailures::isRetryable, retryBudget);
+    }
+
+    @Override
+    public VaultClient withRetryBudget(Duration budget) {
+        return new SpringVaultClient(vaultClient, adminServiceTlsPath, managementServiceTlsPath,
+                resilientCall.withBudget(budget));
     }
 
     @Override
@@ -138,7 +155,7 @@ public class SpringVaultClient implements VaultClient {
 
     @Override
     public void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
-        vaultClient.put(DS_HTTPS_ENROLLMENT_STATUS_PATH, toDsTlsEnrollmentStatusSecret(status));
+        writeSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH, toDsTlsEnrollmentStatusSecret(status));
     }
 
     @Override
@@ -148,12 +165,12 @@ public class SpringVaultClient implements VaultClient {
 
     @Override
     public void createOpMonitorCa(X509Certificate certificate) {
-        vaultClient.put(OPMONITOR_CA_PATH, toOpMonitorCaSecret(certificate));
+        writeSecret(OPMONITOR_CA_PATH, toOpMonitorCaSecret(certificate));
     }
 
     @Override
     public void clearOpMonitorCa() {
-        vaultClient.put(OPMONITOR_CA_PATH, toClearedOpMonitorCaSecret());
+        writeSecret(OPMONITOR_CA_PATH, toClearedOpMonitorCaSecret());
     }
 
     @Override
@@ -161,7 +178,7 @@ public class SpringVaultClient implements VaultClient {
         var secret = new HashMap<String, String>();
 
         secret.put(PAYLOAD_KEY, armoredPrivateKey);
-        vaultClient.put(MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH, secret);
+        writeSecret(MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH, secret);
     }
 
     @Override
@@ -175,7 +192,7 @@ public class SpringVaultClient implements VaultClient {
         var secret = new HashMap<String, String>();
 
         secret.put(PAYLOAD_KEY, armoredRecipientPublicKeys);
-        vaultClient.put(MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH, secret);
+        writeSecret(MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH, secret);
     }
 
     @Override
@@ -188,14 +205,14 @@ public class SpringVaultClient implements VaultClient {
     public void setMLogDBEncryptionSecretKey(String keyId, String base64SecretKey) {
         var secret = MessageLogVaultDataUtils.createEncryptionKeySecret(base64SecretKey);
         String path = MessageLogVaultDataUtils.buildEncryptionKeyPath(keyId);
-        vaultClient.put(path, secret);
+        writeSecret(path, secret);
         log.info("Stored encryption key in Vault at path: {}", path);
     }
 
     @Override
     public Map<String, String> getMLogDBEncryptionSecretKeys() {
         return MessageLogVaultDataUtils.getMLogDBEncryptionSecretKeys(
-                vaultClient::list,
+                this::listSecrets,
                 this::readSecret
         );
     }
@@ -225,7 +242,7 @@ public class SpringVaultClient implements VaultClient {
         }
         secret.put(PUBLICKEY_KEY, toPem(acmeAccountKey.publicKey()));
         secret.put(EXPIRES_AT_KEY, acmeAccountKey.expiresAt().toString());
-        vaultClient.put(getAcmeAccountKeyPath(alias), secret);
+        writeSecret(getAcmeAccountKeyPath(alias), secret);
     }
 
     @Override
@@ -253,7 +270,7 @@ public class SpringVaultClient implements VaultClient {
     public void createAgreementTokenSigningKey(String keyId, String keyPairJwk) {
         var secret = AgreementTokenVaultDataUtils.createSigningKeySecret(keyPairJwk);
         String path = AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId);
-        vaultClient.put(path, secret);
+        writeSecret(path, secret);
         log.info("Stored agreement-token signing key in Vault at path: {}", path);
     }
 
@@ -267,7 +284,7 @@ public class SpringVaultClient implements VaultClient {
 
     @Override
     public void deleteAgreementTokenSigningKey(String keyId) {
-        vaultClient.delete(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
+        deleteSecret(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
     }
 
     /**
@@ -277,7 +294,7 @@ public class SpringVaultClient implements VaultClient {
      * raise is a genuine infrastructure failure and is left to propagate, never swallowed into "no keys yet".
      */
     private List<String> listAgreementTokenSigningKeyIds(String path) {
-        var keys = vaultClient.list(path);
+        var keys = listSecrets(path);
         return keys == null ? List.of() : keys;
     }
 
@@ -286,11 +303,27 @@ public class SpringVaultClient implements VaultClient {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");
         }
 
-        var vaultResponse = vaultClient.get(path);
+        var vaultResponse = readRawSecret(path);
         if (vaultResponse == null || vaultResponse.getData() == null) {
             return Optional.empty();
         }
         return Optional.of(vaultResponse.getData());
+    }
+
+    private void writeSecret(String path, Map<String, String> secret) {
+        resilientCall.run("write", path, () -> vaultClient.put(path, secret));
+    }
+
+    private VaultResponse readRawSecret(String path) {
+        return resilientCall.execute("read", path, () -> vaultClient.get(path));
+    }
+
+    private void deleteSecret(String path) {
+        resilientCall.run("delete", path, () -> vaultClient.delete(path));
+    }
+
+    private List<String> listSecrets(String path) {
+        return resilientCall.execute("list", path, () -> vaultClient.list(path));
     }
 
     private InternalSSLKey getTlsCredentials(String path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -320,8 +353,6 @@ public class SpringVaultClient implements VaultClient {
 
         secret.put(CERTIFICATE_KEY, sb.toString());
         secret.put(PRIVATEKEY_KEY, toPem(internalSSLKey.getKey()));
-        vaultClient.put(path, secret);
+        writeSecret(path, secret);
     }
-
-
 }

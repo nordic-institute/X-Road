@@ -46,7 +46,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.ScriptedLoader;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.Loaded;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.MaterialLoader;
@@ -66,6 +65,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.keyStoreOf;
+import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.singleAttemptVaultClient;
 import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.wrongKeyPassword;
 
 class ConnectorTlsFailedReloadTest {
@@ -143,7 +143,7 @@ class ConnectorTlsFailedReloadTest {
     @Test
     void aKeyThatDoesNotMatchItsCertificateIsRejectedNamingBothCertificatesAndTheServedCertificateStays()
             throws Exception {
-        var vaultClient = mock(VaultClient.class);
+        var vaultClient = singleAttemptVaultClient();
         var loader = new DsHttpsKeyStoreLoader(vaultClient);
         var good = TestCertUtil.getInternalKey();
         when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(good.key, good.certChain));
@@ -229,7 +229,7 @@ class ConnectorTlsFailedReloadTest {
 
     @Test
     void anEmptyOpenBaoSlotKeepsTheServiceNotReadyAndSaysSo() throws Exception {
-        var vaultClient = mock(VaultClient.class);
+        var vaultClient = singleAttemptVaultClient();
         when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET)
                 .details("Secret not found at path: tls/ds-https")
                 .build());

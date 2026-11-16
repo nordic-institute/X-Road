@@ -44,7 +44,8 @@ import java.util.Map;
 
 /**
  * Loads every {@link ServiceExtension} from the current classpath, drops the ones the given
- * {@code application.yaml} excludes, and runs EDC's injection point scan on the rest, as the runtime does at boot.
+ * {@code application.yaml} excludes together with any extension a loaded {@link ReplacesExtensions} instance
+ * declares replaced, and runs EDC's injection point scan on the rest, as the runtime does at boot.
  * The scan reflects over the declared fields of each extension, so a field whose type is missing from the
  * classpath fails here with the same error the runtime would hit.
  */
@@ -52,13 +53,28 @@ import java.util.Map;
 public class ExtensionScanGuard {
 
     /**
-     * Scans the extensions that remain after applying the exclusions of the given {@code application.yaml}.
+     * Scans the extensions that remain after applying the exclusions of the given {@code application.yaml} and
+     * any replacement a loaded {@link ReplacesExtensions} instance declares.
      *
      * @param applicationYaml the application's {@code application.yaml}
      * @return the extensions that were scanned
      */
     public static List<ServiceExtension> scanNonExcluded(URL applicationYaml) {
-        var context = new DefaultServiceExtensionContext(new ConsoleMonitor(), ConfigFactory.fromMap(excludedSettingFrom(applicationYaml)));
+        return scanNonExcluded(excludedSettingFrom(applicationYaml));
+    }
+
+    /**
+     * Scans the extensions that remain after applying the given exclusion setting value, in place of whatever
+     * {@code application.yaml} would otherwise supply.
+     *
+     * @param excludedServiceExtensions the value of {@value EdcRuntime#SETTING_EXCLUDED_SERVICE_EXTENSIONS}, or blank
+     * @return the extensions that were scanned
+     */
+    public static List<ServiceExtension> scanNonExcluded(String excludedServiceExtensions) {
+        var settings = excludedServiceExtensions == null || excludedServiceExtensions.isBlank()
+                ? Map.<String, String>of()
+                : Map.of(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS, excludedServiceExtensions);
+        var context = new DefaultServiceExtensionContext(new ConsoleMonitor(), ConfigFactory.fromMap(settings));
         context.initialize();
 
         var loaded = new ExtensionLoader(new ServiceLocatorImpl()).loadExtensions(ServiceExtension.class, true);
@@ -67,10 +83,9 @@ public class ExtensionScanGuard {
         return scanned;
     }
 
-    private static Map<String, String> excludedSettingFrom(URL applicationYaml) {
+    private static String excludedSettingFrom(URL applicationYaml) {
         try {
-            var excluded = new YamlConfigSource(applicationYaml).getValue(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS);
-            return excluded == null ? Map.of() : Map.of(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS, excluded);
+            return new YamlConfigSource(applicationYaml).getValue(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

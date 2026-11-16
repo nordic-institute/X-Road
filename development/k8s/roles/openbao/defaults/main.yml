@@ -12,8 +12,8 @@ openbao_db:
   storage_size: 1Gi
 
 openbao_chart_repo: "https://openbao.github.io/openbao-helm"
-openbao_chart: "openbao/openbao"
-openbao_chart_version: "0.25.6"
+openbao_chart: "openbao"
+openbao_chart_version: "0.30.7"
 
 openbao_init_chart_repo: ""
 openbao_init_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts/openbao-init"

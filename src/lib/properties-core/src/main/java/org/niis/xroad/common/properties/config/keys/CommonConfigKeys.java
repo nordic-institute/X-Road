@@ -32,14 +32,19 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.time.Duration;
 import java.util.Set;
 
+import static org.niis.xroad.common.properties.config.Validator.durationBetween;
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 
 /** Common keys, registered by every process. */
 public final class CommonConfigKeys implements ConfigKeyProvider {
 
     private static final Prefix COMMON = Prefix.of(Category.COMMON, "xroad.common");
+    private static final Prefix VAULT_RETRY = COMMON.subPrefix("vault-retry");
+    private static final Duration DEFAULT_VAULT_RETRY_BUDGET = Duration.ofSeconds(30);
+    private static final Duration MAX_VAULT_RETRY_BUDGET = Duration.ofMinutes(5);
 
     private static final CommonConfigKeys INSTANCE = new CommonConfigKeys();
 
@@ -54,6 +59,16 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
             .withValidator(nonEmpty())
             .withDefaultValue("/var/tmp/xroad/")
             .exposedInUi()
+            .build();
+
+    /**
+     * {@code xroad.common.vault-retry.budget} — total time a secret store call is retried before it fails;
+     * 0 disables retrying. Read once at process start.
+     */
+    public static final ConfigKey<Duration> VAULT_RETRY_BUDGET = VAULT_RETRY
+            .keyDuration("budget")
+            .withValidator(durationBetween(Duration.ZERO, MAX_VAULT_RETRY_BUDGET))
+            .withDefaultValue(DEFAULT_VAULT_RETRY_BUDGET)
             .build();
 
     private CommonConfigKeys() {

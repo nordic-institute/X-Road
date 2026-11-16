@@ -74,20 +74,16 @@ const securityServersPage: PagedSecurityServers = {
 
 describe('0970 — CS Mgmt Services — select-SS dialog updates security server field + edit button hidden (Browser Mode)', () => {
   it('opening select-security-server dialog, picking a server sets the security_server_id field and hides the edit button', async () => {
-    let configCallCount = 0;
+    let config = configWithProvider;
     await renderRoute(SYSTEM_SETTINGS_PATH, {
       permissions: [Permissions.VIEW_SYSTEM_SETTINGS, Permissions.REGISTER_SERVICE_PROVIDER],
       msw: [
         memberClassesHandler,
-        specHttp.get('/management-services-configuration', ({ response }) => {
-          configCallCount += 1;
-          return configCallCount === 1
-            ? response(200).json(configWithProvider)
-            : response(200).json(configAfterRegister);
+        specHttp.get('/management-services-configuration', ({ response }) => response(200).json(config)),
+        specHttp.post('/management-services-configuration/register-provider', ({ response }) => {
+          config = configAfterRegister;
+          return response(200).json(configAfterRegister);
         }),
-        specHttp.post('/management-services-configuration/register-provider', ({ response }) =>
-          response(200).json(configAfterRegister),
-        ),
         specHttp.get('/security-servers', ({ response }) =>
           response(200).json(securityServersPage as never),
         ),

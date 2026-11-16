@@ -41,14 +41,10 @@ const SERVICES_PATH = `/clients/subsystem/${encodeURIComponent(CLIENT_ID)}/servi
 describe('Latency patterns — loading state (Browser Mode)', () => {
   it('Spec A: data table shows loading indicator while GET /clients is in-flight, then renders rows', async () => {
     worker.use(
-      specHttp.get(
-        '/clients',
-        async ({ response }) => {
-          await delay(200);
-          return response(200).json(clientsFixture);
-        },
-        { once: true },
-      ),
+      specHttp.get('/clients', async ({ response }) => {
+        await delay(200);
+        return response(200).json(clientsFixture);
+      }),
     );
 
     await renderRoute('/clients');
@@ -77,6 +73,7 @@ describe('Latency patterns — loading state (Browser Mode)', () => {
     await expect.element(page.getByTestId('add-rest-button')).toBeVisible();
     await page.getByTestId('add-rest-button').click();
 
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
     await page.getByTestId('service-url-text-field').getByRole('textbox').fill('https://example.com/api');
     const codeInput = page.getByTestId('service-code-text-field').getByRole('textbox');

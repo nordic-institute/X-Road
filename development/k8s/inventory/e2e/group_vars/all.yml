@@ -45,10 +45,6 @@ e2e_fixtures_chart_version: ""
 
 postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
 
-openbao_chart_repo: "https://openbao.github.io/openbao-helm"
-openbao_chart: "openbao/openbao"
-openbao_chart_version: "0.25.6"
-
 containerd_config_patches:
   - |
     [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5555"]

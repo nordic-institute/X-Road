@@ -33,7 +33,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
@@ -70,7 +69,6 @@ public class ConfClientRootConfig {
     public static XRoadConfigBuilder configBuilder() {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
-                .register(CommonConfigKeys.instance())
                 .register(ConfClientConfigKeys.instance())
                 .register(HealthCheckConfigKeys.instance())
                 .register(GlobalConfConfigKeys.instance())

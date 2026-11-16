@@ -1,7 +1,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.22
+Version: 1.23
 Doc. ID: IG-CSHA
 
 ---
@@ -35,6 +35,7 @@ Doc. ID: IG-CSHA
 | 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
 | 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows and signer rows of a standalone server, the node name check of an existing name, the signer rows after a rename and the per-node TLS certificate names | Ričardas Bučiūnas  |
 | 12.11.2026 | 1.22    | Document the root token file and the unseal keys that every node keeps, and upgrading all nodes in one window | Ričardas Bučiūnas  |
+| 15.11.2026 | 1.23    | Document that the secret store retry covers key-value calls only                                              | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -202,14 +203,16 @@ In addition, it is necessary to configure a unique node name for each node parti
     
     When the installation asks for a database host, provide the details of the external database.
 
-4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the Central Server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
+4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node.
 
-    The Issuer Service package (`xroad-ds-issuer-service`) creates its own database role once for the shared database. Before installing it on a subsequent node, copy the role credentials from the first node. Add these two lines from `/etc/xroad.properties` on the first node to the same file on the subsequent node, creating the file with owner `root` and mode `600` if it does not exist:
+    The Central Server package installs the Issuer Service package (`xroad-ds-issuer-service`) in the same run. It keeps its schema `ds-issuer-service` in the shared Central Server database. The Central Server database admin role creates the schema and runs its migrations. The package creates its own runtime role `ds-issuer-service` once for the shared database. The runtime role credentials are in the `/etc/xroad/db.properties` file that you copied. Before installing the Central Server, make sure `/etc/xroad.properties` on the subsequent node holds the Central Server database admin credentials of the first node (creating the file with owner `root` and mode `600` if it does not exist):
     ```properties
-    ds-issuer-service.database.admin_user=ds-issuer-service
-    ds-issuer-service.database.admin_password=<role_password>
+    centerui.database.admin_user=<admin_user>
+    centerui.database.admin_password=<admin_password>
     ```
-    Without them, the package configuration on the subsequent node fails with `Failed to create role ds-issuer-service`, because the role already exists.
+    Without them, the package configuration on the subsequent node cannot create the Issuer Service schema.
+
+    Then install the Central Server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
 
 **TLS certificate names.** The installation asks for the common name and the alternative names of the admin and management service TLS certificates ([IG-CS section 2.6](ig-cs_x-road_8_central_server_installation_guide.md#26-package-installation); preseed keys `xroad-common/admin-subject`, `xroad-common/admin-altsubject`, `xroad-common/service-subject` and `xroad-common/service-altsubject`). The installation detects the host name and the addresses of the node and suggests them. The suggested value is the value that the node uses now: its own row, else the shared row, else the preseeded answer, else the detected names. The answers are stored in the shared configuration database. An unchanged answer writes nothing. A changed answer is stored as a row of the node when the node has a node name, and as a shared row otherwise. Each node's certificates therefore get the names entered on that node.
 
@@ -318,6 +321,8 @@ sudo cat /etc/openbao/unseal-keys | ssh <admin>@<target-node> \
     ```
 
 **Upgrade.** An upgrade restarts the secret store setup, which writes the access policy of the new release. Upgrade all nodes of the cluster in one maintenance window. A node that is not upgraded yet and restarts writes the old access policy back.
+
+**Secret store failover.** The services retry their key-value calls to the secret store, such as secrets, token PINs and TLS credentials, for a limited time. The reload of the dataspace HTTPS keystore is not covered by this time limit: after the first load, each periodic reload makes up to 3 attempts, 2 s apart, and then waits for the next periodic reload. The certificate issuing (PKI) calls make one attempt and are not retried. The Issuer Service has its own vault client, which is not covered by this time limit either; it retries its connection failures itself. A call that fails after the time limit returns the error code `secret_store_unavailable`. See [System Parameters User Guide](ug-syspar_x-road_v6_system_parameters.md#4112-secret-store-retry-xroadcommonvault-retry).
 
 ## 5 Monitoring HA State on a Node
 

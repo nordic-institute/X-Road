@@ -45,7 +45,6 @@ import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -218,7 +217,6 @@ public abstract class AbstractProxyIntegrationTest {
                 .overrides(properties)
                 .build());
         CommonProperties commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", "build/"))
                 .build());
         startServices(proxyProperties, commonProperties);

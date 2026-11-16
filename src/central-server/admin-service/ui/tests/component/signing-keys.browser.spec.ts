@@ -141,19 +141,16 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       const key1 = makeKey('key-1', sourceType, ['DELETE']);
       const key2 = makeKey('key-2', sourceType, ['DELETE']);
 
-      let tokensCallCount = 0;
+      const keys: ConfigurationSigningKey[] = [];
       await renderRoute(path, {
         permissions: basePermissions,
         msw: [
-          specHttp.get('/tokens', ({ response }) => {
-            tokensCallCount += 1;
-            if (tokensCallCount === 1) return response(200).json([loggedInToken([])]);
-            if (tokensCallCount === 2) return response(200).json([loggedInToken([key1])]);
-            return response(200).json([loggedInToken([key1, key2], false, false)]);
+          specHttp.get('/tokens', ({ response }) => response(200).json([loggedInToken(keys, keys.length < 2, keys.length < 2)])),
+          specHttp.post('/configuration-sources/{configuration_type}/signing-keys', ({ response }) => {
+            const added = keys.length === 0 ? key1 : key2;
+            keys.push(added);
+            return response(201).json(added);
           }),
-          specHttp.post('/configuration-sources/{configuration_type}/signing-keys', ({ response }) =>
-            response(201).json(key1),
-          ),
           ...anchorHandlers(),
         ],
       });
@@ -171,7 +168,7 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
       await page.getByTestId('dialog-save-button').click();
 
-      // Add second key: on re-fetch token now has 1 key; next fetch (after 2nd add) returns 2 keys + no generate actions
+      await expect.element(page.getByTestId('key-key-1-delete-button')).toBeVisible();
       await expect.element(page.getByTestId('token-add-key-button')).toBeVisible();
       await page.getByTestId('token-add-key-button').click();
       await expect.element(page.getByTestId('signing-key-label-input')).toBeVisible();
@@ -191,16 +188,15 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       const key1AfterSwitch = makeKey('key-1', sourceType, ['ACTIVATE', 'DELETE']);
       const key2AfterSwitch = makeKey('key-2', sourceType, []);
 
-      let tokensCallCount = 0;
+      let keys = [key1Active, key2Inactive];
       await renderRoute(path, {
         permissions: basePermissions,
         msw: [
-          specHttp.get('/tokens', ({ response }) => {
-            tokensCallCount += 1;
-            if (tokensCallCount === 1) return response(200).json([loggedInToken([key1Active, key2Inactive])]);
-            return response(200).json([loggedInToken([key1AfterSwitch, key2AfterSwitch])]);
+          specHttp.get('/tokens', ({ response }) => response(200).json([loggedInToken(keys)])),
+          specHttp.put('/signing-keys/{sign_key_id}/activate', ({ response }) => {
+            keys = [key1AfterSwitch, key2AfterSwitch];
+            return response(204).empty();
           }),
-          specHttp.put('/signing-keys/{sign_key_id}/activate', ({ response }) => response(204).empty()),
           ...anchorHandlers(),
         ],
       });
@@ -227,16 +223,17 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       const keyWithActions = makeKey('key-1', sourceType, ['ACTIVATE', 'DELETE']);
       const keyNoActions = makeKey('key-1', sourceType, []);
 
-      let tokensCallCount = 0;
+      let loggedIn = true;
       await renderRoute(path, {
         permissions: basePermissions,
         msw: [
-          specHttp.get('/tokens', ({ response }) => {
-            tokensCallCount += 1;
-            if (tokensCallCount === 1) return response(200).json([loggedInToken([keyWithActions])]);
-            return response(200).json([loggedOutToken([keyNoActions])]);
+          specHttp.get('/tokens', ({ response }) =>
+            response(200).json([loggedIn ? loggedInToken([keyWithActions]) : loggedOutToken([keyNoActions])]),
+          ),
+          specHttp.put('/tokens/{token_id}/logout', ({ response }) => {
+            loggedIn = false;
+            return response(200).json(loggedOutToken());
           }),
-          specHttp.put('/tokens/{token_id}/logout', ({ response }) => response(200).json(loggedOutToken())),
           ...anchorHandlers(),
         ],
       });
@@ -260,18 +257,18 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
 
   describe(`0600/0610 — CS Signing Keys [${label}] — delete signing key (Browser Mode)`, () => {
     it('clicking Delete on key_1 removes it from the list and re-enables Add Key', async () => {
-      const keyWithDelete = makeKey('key-1', sourceType, ['DELETE']);
+      const keyToDelete = makeKey('key-1', sourceType, ['DELETE']);
+      const keyToKeep = makeKey('key-2', sourceType, ['DELETE']);
 
-      let tokensCallCount = 0;
+      let keys: ConfigurationSigningKey[] = [keyToDelete, keyToKeep];
       await renderRoute(path, {
         permissions: basePermissions,
         msw: [
-          specHttp.get('/tokens', ({ response }) => {
-            tokensCallCount += 1;
-            if (tokensCallCount === 1) return response(200).json([loggedInToken([keyWithDelete])]);
-            return response(200).json([loggedInToken([])]);
+          specHttp.get('/tokens', ({ response }) => response(200).json([loggedInToken(keys, keys.length < 2, keys.length < 2)])),
+          specHttp.delete('/signing-keys/{sign_key_id}', ({ response }) => {
+            keys = keys.filter((key) => key.id !== keyToDelete.id);
+            return response(204).empty();
           }),
-          specHttp.delete('/signing-keys/{sign_key_id}', ({ response }) => response(204).empty()),
           ...anchorHandlers(),
         ],
       });
@@ -279,29 +276,30 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       await expandToken();
 
       await expect.element(page.getByTestId('key-key-1-delete-button')).toBeVisible();
+      await expect.element(page.getByTestId('token-add-key-button')).toBeDisabled();
 
       await page.getByTestId('key-key-1-delete-button').click();
       await expect.element(page.getByTestId('dialog-save-button')).toBeVisible();
       await page.getByTestId('dialog-save-button').click();
 
-      // key-1 gone from list; Add Key re-enabled
+      // key-1 gone from list, key-2 kept; Add Key re-enabled
       await expect.element(page.getByTestId('key-key-1-delete-button')).not.toBeInTheDocument();
+      await expect.element(page.getByTestId('key-key-2-delete-button')).toBeVisible();
       await expect.element(page.getByTestId('token-add-key-button')).not.toBeDisabled();
     });
   });
 
   describe(`0600/0610 — CS Signing Keys [${label}] — logout disables Add Key (Browser Mode)`, () => {
     it('Add Key button becomes disabled after token logout', async () => {
-      let tokensCallCount = 0;
+      let loggedIn = true;
       await renderRoute(path, {
         permissions: basePermissions,
         msw: [
-          specHttp.get('/tokens', ({ response }) => {
-            tokensCallCount += 1;
-            if (tokensCallCount === 1) return response(200).json([loggedInToken([])]);
-            return response(200).json([loggedOutToken([])]);
+          specHttp.get('/tokens', ({ response }) => response(200).json([loggedIn ? loggedInToken([]) : loggedOutToken([])])),
+          specHttp.put('/tokens/{token_id}/logout', ({ response }) => {
+            loggedIn = false;
+            return response(200).json(loggedOutToken());
           }),
-          specHttp.put('/tokens/{token_id}/logout', ({ response }) => response(200).json(loggedOutToken())),
           ...anchorHandlers(),
         ],
       });

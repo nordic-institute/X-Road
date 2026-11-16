@@ -83,16 +83,16 @@ async function renderTrustServices(
 
 describe('0500 — CS Trust Services — add certification service dialog render and list row (Browser Mode)', () => {
   it('add button opens dialog; after save the new CA appears in the list', async () => {
-    let caCallCount = 0;
+    let cas: ApprovedCertificationServiceListItem[] = [];
     await renderRoute(TRUST_SERVICES_PATH, {
       permissions: [...basePermissions, Permissions.ADD_APPROVED_CA],
       msw: [
-        specHttp.get('/certification-services', ({ response }) => {
-          caCallCount += 1;
-          return caCallCount === 1 ? response(200).json([]) : response(200).json([caItem]);
-        }),
+        specHttp.get('/certification-services', ({ response }) => response(200).json(cas)),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
-        specHttp.post('/certification-services', ({ response }) => response(201).json(caDetail)),
+        specHttp.post('/certification-services', ({ response }) => {
+          cas = [caItem];
+          return response(201).json(caDetail);
+        }),
       ],
     });
 
@@ -188,17 +188,17 @@ describe('0500 — CS Trust Services — view and change CA settings (Browser Mo
   it('settings fields (TLS-auth, cert-profile, CSR-format) render; edit dialog opens and fields are editable', async () => {
     const updatedCa: ApprovedCertificationService = { ...caDetail, tls_auth: true };
 
-    let caDetailCallCount = 0;
+    let currentCa = caDetail;
     await renderRoute(`/certification-services/1/settings`, {
       permissions: [...basePermissions, Permissions.VIEW_APPROVED_CA_DETAILS, Permissions.EDIT_APPROVED_CA],
       msw: [
-        specHttp.get('/certification-services/{certification_service_id}', ({ response }) => {
-          caDetailCallCount += 1;
-          return caDetailCallCount === 1 ? response(200).json(caDetail) : response(200).json(updatedCa);
-        }),
-        specHttp.patch('/certification-services/{certification_service_id}', ({ response }) =>
-          response(200).json(updatedCa),
+        specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
+          response(200).json(currentCa),
         ),
+        specHttp.patch('/certification-services/{certification_service_id}', ({ response }) => {
+          currentCa = updatedCa;
+          return response(200).json(updatedCa);
+        }),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],
@@ -219,23 +219,23 @@ describe('0500 — CS Trust Services — view and change CA settings (Browser Mo
 
     submitDialogForm();
 
-    await expect.element(page.getByTestId('tls-auth-card')).toBeVisible();
+    await expect.element(page.getByTestId('tls-auth-card')).toHaveTextContent('True');
   });
 });
 
 describe('0500 — CS Trust Services — add ACME certification service (Browser Mode)', () => {
   it('checking ACME toggle reveals ACME fields; ACME CA appears in list after save', async () => {
     const acmeItem: ApprovedCertificationServiceListItem = { ...caItem, id: 2, name: 'ACME Test CA' };
-    let caCallCount = 0;
+    let cas: ApprovedCertificationServiceListItem[] = [];
     await renderRoute(TRUST_SERVICES_PATH, {
       permissions: [...basePermissions, Permissions.ADD_APPROVED_CA],
       msw: [
-        specHttp.get('/certification-services', ({ response }) => {
-          caCallCount += 1;
-          return caCallCount === 1 ? response(200).json([]) : response(200).json([acmeItem]);
-        }),
+        specHttp.get('/certification-services', ({ response }) => response(200).json(cas)),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
-        specHttp.post('/certification-services', ({ response }) => response(201).json(caDetailWithAcme)),
+        specHttp.post('/certification-services', ({ response }) => {
+          cas = [acmeItem];
+          return response(201).json(caDetailWithAcme);
+        }),
       ],
     });
 
@@ -285,19 +285,17 @@ describe('0500 — CS Trust Services — view and change ACME CA settings (Brows
       acme_server_ip_address: undefined,
     };
 
-    let caDetailCallCount = 0;
+    let currentCa = caDetailWithAcme;
     await renderRoute(`/certification-services/1/settings`, {
       permissions: [...basePermissions, Permissions.VIEW_APPROVED_CA_DETAILS, Permissions.EDIT_APPROVED_CA],
       msw: [
-        specHttp.get('/certification-services/{certification_service_id}', ({ response }) => {
-          caDetailCallCount += 1;
-          return caDetailCallCount === 1
-            ? response(200).json(caDetailWithAcme)
-            : response(200).json(updatedNonAcme);
-        }),
-        specHttp.patch('/certification-services/{certification_service_id}', ({ response }) =>
-          response(200).json(updatedNonAcme),
+        specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
+          response(200).json(currentCa),
         ),
+        specHttp.patch('/certification-services/{certification_service_id}', ({ response }) => {
+          currentCa = updatedNonAcme;
+          return response(200).json(updatedNonAcme);
+        }),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],
@@ -319,7 +317,7 @@ describe('0500 — CS Trust Services — view and change ACME CA settings (Brows
 
     submitDialogForm();
 
-    await expect.element(page.getByTestId('cert-acme-card')).toBeVisible();
+    await expect.element(page.getByTestId('is-acme-capable')).toHaveTextContent('False');
   });
 });
 
@@ -386,7 +384,7 @@ describe('0500 — CS Trust Services — edit ACME: invalid directory URL and in
     await expect.element(page.getByTestId('edit-ca-acme-btn')).toBeVisible();
     await page.getByTestId('edit-ca-acme-btn').click();
 
-    await expect.element(page.getByTestId('acme-server-directory-url-input')).toBeVisible();
+    await expect.element(page.getByTestId('acme-server-directory-url-input').getByRole('textbox')).toHaveFocus();
 
     await page.getByTestId('acme-server-directory-url-input').getByRole('textbox')
       .fill('httpss://new-test-ca/acme');
