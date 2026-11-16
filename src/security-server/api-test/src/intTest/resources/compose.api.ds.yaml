@@ -227,7 +227,6 @@ services:
     image: ${DS_ISSUER_SERVICE_IMG}
     pull_policy: always
     environment:
-      - HOSTNAME=ds-issuer-service
       - XROAD_HOST=ds-issuer-service
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}

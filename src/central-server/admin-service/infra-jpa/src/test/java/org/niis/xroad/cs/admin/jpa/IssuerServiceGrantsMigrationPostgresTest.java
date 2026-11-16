@@ -57,7 +57,7 @@ class IssuerServiceGrantsMigrationPostgresTest {
     private static final String CHANGELOG = "liquibase/centerui-changelog.xml";
     private static final String FEATURE_CHANGESET = "202611131200-ds-issuer-service-grants";
     private static final String DATABASE = "issuer_service_grants_migration";
-    private static final String SCHEMA = "public";
+    private static final String SCHEMA = "centerui";
     private static final String ROLE = "ds-issuer-service";
 
     private static SingleConnectionDataSource dataSource;
@@ -72,13 +72,18 @@ class IssuerServiceGrantsMigrationPostgresTest {
         dataSource = new SingleConnectionDataSource(url, container.getUsername(), container.getPassword(), true);
         jdbc = new JdbcTemplate(dataSource);
         jdbc.execute("CREATE EXTENSION IF NOT EXISTS hstore");
+        jdbc.execute("CREATE SCHEMA IF NOT EXISTS \"" + SCHEMA + "\"");
 
         update(changeSetCountThrough(FEATURE_CHANGESET));
     }
 
     @AfterAll
-    static void closeConnection() {
+    static void dropRoleAndCloseConnection() {
         if (dataSource != null) {
+            if (roleExists()) {
+                jdbc.execute("DROP OWNED BY \"" + ROLE + "\"");
+                jdbc.execute("DROP ROLE \"" + ROLE + "\"");
+            }
             dataSource.destroy();
         }
     }
@@ -117,7 +122,8 @@ class IssuerServiceGrantsMigrationPostgresTest {
             statement.execute("DROP DATABASE IF EXISTS " + DATABASE);
             statement.execute("CREATE DATABASE " + DATABASE);
         }
-        return "jdbc:postgresql://" + container.getHost() + ":" + container.getMappedPort(5432) + "/" + DATABASE;
+        return "jdbc:postgresql://" + container.getHost() + ":" + container.getMappedPort(5432) + "/" + DATABASE
+                + "?currentSchema=" + SCHEMA + ",public";
     }
 
     private static int changeSetCountThrough(String changeSetId) throws Exception {
@@ -138,6 +144,7 @@ class IssuerServiceGrantsMigrationPostgresTest {
             update.addArgumentValue("url", url);
             update.addArgumentValue("username", SharedPostgres.CONTAINER.getUsername());
             update.addArgumentValue("password", SharedPostgres.CONTAINER.getPassword());
+            update.addArgumentValue("defaultSchemaName", SCHEMA);
             update.addArgumentValue("contexts", "!admin");
             update.addArgumentValue("changelogParameters", changeLogParameters);
             if (count != null) {

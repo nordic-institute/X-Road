@@ -27,6 +27,7 @@
 package org.niis.xroad.ds.issuance.identity;
 
 import liquibase.Scope;
+import liquibase.changelog.ChangeLogParameters;
 import liquibase.command.CommandScope;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.AfterAll;
@@ -75,8 +76,8 @@ class JdbcBoundIssuerIdentityReaderPostgresTest {
         POSTGRES.start();
         createHstoreExtension();
         createCenteruiSchema();
+        createRole();
         applyCenteruiChangelog();
-        createRoleWithReadGrants();
     }
 
     @AfterAll
@@ -216,15 +217,13 @@ class JdbcBoundIssuerIdentityReaderPostgresTest {
     }
 
     /**
-     * Creates the {@code ds-issuer-service} role with exactly the read-access grants
-     * {@code setup_ds_issuerservice_db.sh} issues for the Central Server schema.
+     * Creates the {@code ds-issuer-service} role before the changelog runs, so the real
+     * {@code ds-issuer-service-grants} changeset's role-exists precondition passes and it issues the
+     * schema usage and read grants itself.
      */
-    private static void createRoleWithReadGrants() throws SQLException {
+    private static void createRole() throws SQLException {
         try (var connection = superuserConnection(); var statement = connection.createStatement()) {
             statement.execute("CREATE ROLE \"%s\" LOGIN PASSWORD '%s'".formatted(ROLE, ROLE_PASSWORD));
-            statement.execute("GRANT USAGE ON SCHEMA \"%s\" TO \"%s\"".formatted(SCHEMA, ROLE));
-            statement.execute(("GRANT SELECT ON \"%s\".issuer_dids, \"%s\".system_parameters, \"%s\".configuration_properties "
-                    + "TO \"%s\"").formatted(SCHEMA, SCHEMA, SCHEMA, ROLE));
         }
     }
 
@@ -255,18 +254,21 @@ class JdbcBoundIssuerIdentityReaderPostgresTest {
      * {@code centerui} schema (not {@code public}), excluding only the last changeset
      * ({@code separate-admin-user}): it {@code GRANT}/{@code REVOKE}s permissions between two
      * Postgres roles, a split this single-role testcontainer has no use for. The
-     * {@code ds-issuer-service-grants} changeset is a no-op here since that role does not exist yet
-     * when the changelog runs.
+     * {@code ds-issuer-service-grants} changeset runs for real here, since {@link #createRole()}
+     * creates the {@code ds-issuer-service} role before this call.
      */
     private static void applyCenteruiChangelog() throws Exception {
         Scope.child(Scope.Attr.resourceAccessor, new ClassLoaderResourceAccessor(), () -> {
             var update = new CommandScope("update");
+            var changeLogParameters = new ChangeLogParameters();
+            changeLogParameters.set("db_schema", SCHEMA);
             update.addArgumentValue("changelogFile", "liquibase/centerui-changelog.xml");
             update.addArgumentValue("url", jdbcUrlWithSchema());
             update.addArgumentValue("username", POSTGRES.getUsername());
             update.addArgumentValue("password", POSTGRES.getPassword());
             update.addArgumentValue("defaultSchemaName", SCHEMA);
             update.addArgumentValue("contexts", "!admin");
+            update.addArgumentValue("changelogParameters", changeLogParameters);
             update.execute();
         });
     }

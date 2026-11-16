@@ -6,9 +6,6 @@ abort() {
   exit $rc
 }
 
-# Ensures the issuer's own runtime config file exists with the expected ownership and
-# permissions. The bound issuer identity comes from the Central Server database; this
-# file carries no per-node issuer identity setting.
 configure_ds_issuer_runtime() {
   local -r config_file="/etc/xroad/conf.d/local-ds-issuer-service.yaml"
 

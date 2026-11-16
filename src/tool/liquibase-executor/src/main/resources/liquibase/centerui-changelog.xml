@@ -54,7 +54,7 @@
     <include file="configuration-properties/001-configuration-properties.xml" relativeToChangelogFile="true"/>
     <include file="configuration-properties/002-drop-scope.xml" relativeToChangelogFile="true"/>
     <include file="configuration-properties/003-ha-node-name.xml" relativeToChangelogFile="true"/>
-    <!-- reads system_parameters and configuration_properties, so it must come after both are created -->
+    <!-- grants read access to issuer_dids, system_parameters and configuration_properties, so it must come after all three are created -->
     <include file="centerui/202611131200-ds-issuer-service-grants.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
