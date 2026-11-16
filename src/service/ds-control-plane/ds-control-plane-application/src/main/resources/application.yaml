@@ -4,6 +4,8 @@ quarkus:
       enabled: false
   application:
     name: ds-control-plane
+  scheduler:
+    start-mode: forced
   config:
     locations:
       - xroad-common.yaml

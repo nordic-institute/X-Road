@@ -4,6 +4,8 @@ quarkus:
       enabled: false
   application:
     name: ds-identity-hub
+  scheduler:
+    start-mode: forced
   arc:
     unremovable-types:
       - org.niis.xroad.signer.client.SignerRpcClient

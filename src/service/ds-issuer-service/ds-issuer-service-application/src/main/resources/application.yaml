@@ -4,6 +4,8 @@ quarkus:
       enabled: false
   application:
     name: ds-issuer-service
+  scheduler:
+    start-mode: forced
   config:
     locations:
       - xroad-common.yaml

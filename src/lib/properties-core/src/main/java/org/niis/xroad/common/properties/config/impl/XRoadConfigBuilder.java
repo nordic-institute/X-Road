@@ -218,7 +218,13 @@ public final class XRoadConfigBuilder {
         }
 
         private static <T> T converAndValidate(String raw, ConfigKey<T> key) {
-            var converted = key.convert(raw);
+            T converted;
+            try {
+                converted = key.convert(raw);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(
+                        "Unparseable config value \"%s\" for %s".formatted(raw, key.key()), e);
+            }
             var result = key.validate(converted);
             if (!result.valid()) {
                 throw new IllegalArgumentException(

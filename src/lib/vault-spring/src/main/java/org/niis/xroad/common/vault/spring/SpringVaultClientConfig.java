@@ -62,12 +62,19 @@ public class SpringVaultClientConfig {
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
     SpringVaultTokenKeepalive springVaultTokenKeepalive(VaultTemplate vaultTemplate,
                                                         ObjectProvider<XRoadConfig> xRoadConfig) {
-        return new SpringVaultTokenKeepalive(vaultTemplate, retryBudget(xRoadConfig));
+        return new SpringVaultTokenKeepalive(vaultTemplate, retryBudget(xRoadConfig), renewalInterval(xRoadConfig));
     }
 
     private static Duration retryBudget(ObjectProvider<XRoadConfig> xRoadConfig) {
         var config = xRoadConfig.getIfAvailable();
         return config == null ? ResilientVaultCall.DEFAULT_BUDGET : config.value(CommonConfigKeys.VAULT_RETRY_BUDGET);
+    }
+
+    private static Duration renewalInterval(ObjectProvider<XRoadConfig> xRoadConfig) {
+        var config = xRoadConfig.getIfAvailable();
+        return config == null
+                ? CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL.convertedDefaultValue()
+                : config.value(CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL);
     }
 
     private VaultKeyValueOperationsSupport.KeyValueBackend getKeyValueBackendVersion(String version) {

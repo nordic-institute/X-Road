@@ -27,30 +27,32 @@
 package org.niis.xroad.common.vault.spring;
 
 import org.niis.xroad.common.vault.VaultTokenKeepalive;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.vault.core.VaultTemplate;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 import static org.niis.xroad.common.vault.VaultTokenKeepalive.RENEW_SELF_PATH;
 
 /**
- * Renews the secret store token shared by all services of a node at startup and every 24 hours. Spring Cloud
- * Vault's own session lifecycle is switched off, so this is the only renewer. It runs only where
+ * Renews the secret store token shared by all services of a node at startup and every configured interval.
+ * Spring Cloud Vault's own session lifecycle is switched off, so this is the only renewer. It runs only where
  * {@code spring.cloud.vault.enabled=true}.
  */
-class SpringVaultTokenKeepalive {
+class SpringVaultTokenKeepalive implements SchedulingConfigurer {
 
     private final VaultTokenKeepalive keepalive;
+    private final Duration interval;
 
-    SpringVaultTokenKeepalive(VaultTemplate vaultTemplate, Duration retryBudget) {
+    SpringVaultTokenKeepalive(VaultTemplate vaultTemplate, Duration retryBudget, Duration interval) {
+        this.interval = interval;
         this.keepalive = new VaultTokenKeepalive(SpringVaultFailures::isRetryable, retryBudget,
                 () -> vaultTemplate.write(RENEW_SELF_PATH, null));
     }
 
-    @Scheduled(initialDelay = 0, fixedRate = 24, timeUnit = TimeUnit.HOURS)
-    void renew() {
-        keepalive.renewOnce();
+    @Override
+    public void configureTasks(ScheduledTaskRegistrar registrar) {
+        registrar.addFixedRateTask(keepalive::renewOnce, interval);
     }
 }

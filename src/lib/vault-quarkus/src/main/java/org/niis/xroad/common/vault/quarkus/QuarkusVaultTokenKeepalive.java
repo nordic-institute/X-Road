@@ -26,34 +26,63 @@
  */
 package org.niis.xroad.common.vault.quarkus;
 
+import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
 import io.quarkus.vault.client.VaultClient;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.vault.VaultTokenKeepalive;
 
 /**
- * Renews the secret store token shared by all services of a node at startup and every 24 hours. The bean is
- * discovered through the library's Jandex index, and runs only where the scheduler is enabled
- * ({@code quarkus.scheduler.enabled=false} switches it off).
+ * Renews the secret store token shared by all services of a node at startup and every configured interval. The
+ * bean is discovered through the library's Jandex index, and schedules the renewal only where the scheduler is
+ * enabled ({@code quarkus.scheduler.enabled=false} switches it off).
  */
+@Startup
 @ApplicationScoped
 class QuarkusVaultTokenKeepalive {
 
-    private final VaultTokenKeepalive keepalive;
+    private static final String JOB_ID = "vault-token-keepalive";
 
-    QuarkusVaultTokenKeepalive(VaultClient vaultClient, XRoadConfig config) {
-        this.keepalive = new VaultTokenKeepalive(QuarkusVaultFailures::isRetryable,
-                config.value(CommonConfigKeys.VAULT_RETRY_BUDGET),
-                () -> renewSelf(vaultClient));
+    private final Scheduler scheduler;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
+    private final boolean schedulerEnabled;
+    private final Instance<VaultClient> vaultClient;
+    private final Instance<XRoadConfig> config;
+    QuarkusVaultTokenKeepalive(Scheduler scheduler,
+                               Scheduled.ApplicationNotRunning applicationNotRunning,
+                               @ConfigProperty(name = "quarkus.scheduler.enabled", defaultValue = "true")
+                               boolean schedulerEnabled,
+                               Instance<VaultClient> vaultClient,
+                               Instance<XRoadConfig> config) {
+        this.scheduler = scheduler;
+        this.applicationNotRunning = applicationNotRunning;
+        this.schedulerEnabled = schedulerEnabled;
+        this.vaultClient = vaultClient;
+        this.config = config;
     }
-
-    @Scheduled(every = "24h", identity = "vault-token-keepalive")
-    void renew() {
-        keepalive.renewOnce();
+    @PostConstruct
+    void schedule() {
+        if (!schedulerEnabled) {
+            return;
+        }
+        var xRoadConfig = config.get();
+        var client = vaultClient.get();
+        var keepalive = new VaultTokenKeepalive(QuarkusVaultFailures::isRetryable,
+                xRoadConfig.value(CommonConfigKeys.VAULT_RETRY_BUDGET),
+                () -> renewSelf(client));
+        scheduler.newJob(JOB_ID)
+                .setInterval(xRoadConfig.value(CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL).toString())
+                .setTask(_ -> keepalive.renewOnce())
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .schedule();
     }
-
     private static void renewSelf(VaultClient vaultClient) {
         vaultClient.auth().token().renewSelf(null).toCompletableFuture().join();
     }
