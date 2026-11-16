@@ -32,7 +32,9 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Prefix;
+import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 
 import java.time.Duration;
 import java.util.Map;
@@ -40,6 +42,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class XRoadConfigBuilderTest {
+    private static final Map<String, String> FI_ENV = Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI");
 
     private final Prefix scope = Prefix.of("xroad.test");
     private final ConfigKey<String> withContainerDefault = scope.string("with-container")
@@ -137,6 +140,44 @@ class XRoadConfigBuilderTest {
     }
 
     @Test
+    void countryProfileValueResolvesWithCountrySource() {
+        var config = proxyBuilder().build(FI_ENV);
+
+        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(value.value()).isTrue();
+        assertThat(value.source()).isEqualTo(Source.COUNTRY);
+    }
+
+    @Test
+    void keyAbsentFromCountryProfileResolvesDefault() {
+        var config = proxyBuilder().build(FI_ENV);
+
+        var value = config.get(ProxyConfigKeys.CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD);
+        assertThat(value.value()).isEqualTo(3600);
+        assertThat(value.source()).isEqualTo(Source.DEFAULT);
+    }
+
+    @Test
+    void dbRowWinsOverCountryProfile() {
+        var config = proxyBuilder()
+                .overrides(Map.of("xroad.proxy.server.support-clients-pooled-connections", "false"))
+                .build(FI_ENV);
+
+        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(value.value()).isFalse();
+        assertThat(value.source()).isEqualTo(Source.DB);
+    }
+
+    @Test
+    void unsetSelectorLeavesCountryLayerOut() {
+        var config = proxyBuilder().build(Map.of());
+
+        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(value.value()).isFalse();
+        assertThat(value.source()).isEqualTo(Source.DEFAULT);
+    }
+
+    @Test
     void overridesOfUnregisteredKeysAreIgnoredAndRegisteredKeysKeepTheirValues() {
         var config = XRoadConfigBuilder.create().register(provider)
                 .overrides(Map.of(
@@ -147,5 +188,9 @@ class XRoadConfigBuilderTest {
 
         assertThat(config.get(nativeOnly).value()).isEqualTo("set");
         assertThat(config.get(withContainerDefault).value()).isEqualTo("native");
+    }
+
+    private static XRoadConfigBuilder proxyBuilder() {
+        return XRoadConfigBuilder.create().register(ProxyConfigKeys.instance());
     }
 }

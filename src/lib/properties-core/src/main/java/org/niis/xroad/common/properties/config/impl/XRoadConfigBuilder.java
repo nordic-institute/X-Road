@@ -135,10 +135,19 @@ public final class XRoadConfigBuilder {
         return this;
     }
 
-    /** @return resolved configuration with values cached at build time */
+    /**
+     * Builds the configuration. The country profile layer is selected by the
+     * {@value CountryProfileLoader#PROFILE_ENV_VARIABLE} environment variable.
+     * @return resolved configuration with values cached at build time
+     */
     public XRoadConfig build() {
-        warnIgnoredEnvVars(System.getenv());
-        return new DefaultXRoadConfig(providers, overrides, deploymentMode);
+        return build(System.getenv());
+    }
+
+    XRoadConfig build(Map<String, String> env) {
+        warnIgnoredEnvVars(env);
+        var countryProfile = CountryProfileLoader.load(env.get(CountryProfileLoader.PROFILE_ENV_VARIABLE));
+        return new DefaultXRoadConfig(providers, overrides, countryProfile, deploymentMode);
     }
 
     void warnIgnoredEnvVars(Map<String, String> env) {
@@ -165,7 +174,7 @@ public final class XRoadConfigBuilder {
 
     /**
      * Eager resolver. Resolves every registered key at construction (DB override &rarr;
-     * packaged default) and caches the resulting {@link Value}s; v1 does not reread until
+     * country profile &rarr; packaged default) and caches the resulting {@link Value}s; v1 does not reread until
      * a new instance is built.
      */
     @Slf4j
@@ -173,11 +182,12 @@ public final class XRoadConfigBuilder {
 
         private final Map<ConfigKey<?>, Value<?>> resolved;
 
-        DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides, DeploymentMode deploymentMode) {
+        DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides,
+                           Map<String, String> countryProfile, DeploymentMode deploymentMode) {
             var map = new LinkedHashMap<ConfigKey<?>, Value<?>>();
             for (var provider : providers) {
                 for (var key : provider.keys()) {
-                    map.put(key, resolve(key, overrides, deploymentMode));
+                    map.put(key, resolve(key, overrides, countryProfile, deploymentMode));
                 }
             }
             log.debug("Loaded {} key(s):\n\t{}",
@@ -207,10 +217,15 @@ public final class XRoadConfigBuilder {
             return Optional.empty();
         }
 
-        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides, DeploymentMode mode) {
+        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides,
+                                            Map<String, String> countryProfile, DeploymentMode mode) {
             var raw = overrides.get(key.key());
             if (raw != null) {
                 return new Value<>(key, converAndValidate(raw, key), Source.DB);
+            }
+            var countryRaw = countryProfile.get(key.key());
+            if (countryRaw != null) {
+                return new Value<>(key, converAndValidate(countryRaw, key), Source.COUNTRY);
             }
             var useContainerDefault = mode == DeploymentMode.CONTAINERIZED && key.containerDefaultValue() != null;
             var converted = useContainerDefault ? key.convertedContainerDefaultValue() : key.convertedDefaultValue();
