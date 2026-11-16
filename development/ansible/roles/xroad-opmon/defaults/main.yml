@@ -1,0 +1,24 @@
+---
+# Channel host the Security Servers use for this op-monitor. It is the exact value in the identity
+# certificate's subject alternative names and must resolve to xroad_opmon_listen_address from the
+# Security Server. An inventory override must equal the e2e run's TEST_FRAMEWORK_LXD_OPMON_HOST.
+xroad_opmon_channel_host: "{{ inventory_hostname }}.lxd"
+
+# Address op-monitor listens on: an address of this host that Security Servers can reach.
+xroad_opmon_listen_address: "{{ ansible_facts['default_ipv4']['address'] }}"
+
+# Default of xroad.op-monitor.rpc.port; the settings file leaves it unset.
+xroad_opmon_rpc_port: 2081
+
+# Security Server whose RPC CA op-monitor trusts, and from which the channel host is resolved.
+xroad_opmon_ss_host: "{{ groups['ubuntu_ss'] | first }}"
+
+# Admin API of that Security Server as seen from the Security Server itself.
+xroad_opmon_ss_admin_url: "https://localhost:4000"
+
+xroad_opmon_identity_dir: /etc/xroad-opmonitor/ssl
+xroad_opmon_settings_file: /etc/xroad/conf.d/op-monitor-settings.yaml
+xroad_opmon_records_available_offset_seconds: 1
+
+# The login and download tasks carry the admin credentials and the session cookie.
+xroad_opmon_admin_api_no_log: true

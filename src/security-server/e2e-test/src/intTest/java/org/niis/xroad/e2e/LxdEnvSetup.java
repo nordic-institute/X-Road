@@ -52,7 +52,8 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 public class LxdEnvSetup extends BaseComposeSetup
-        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, CsIssuerDbOps, DidResolutionOps {
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, CsIssuerDbOps, DidResolutionOps,
+        OpMonHostOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
     private static final String MESSAGELOG_SEARCH_PATH = "--search_path=messagelog,public";
@@ -114,6 +115,31 @@ public class LxdEnvSetup extends BaseComposeSetup
     public DidDocumentResponse resolveDidDocument(String env, String url) {
         var result = lxcExecChecked("xrd-" + env, "curl", "-sS", "-k", "-o", "-", "-w", "\n%{http_code}", url);
         return DidDocumentResponse.fromCurlOutput(result.stdout());
+    }
+
+    @Override
+    public HostCommandResult exec(String env, String... command) {
+        var result = lxcExec(resolveContainer(env), command);
+        return new HostCommandResult(result.stdout(), result.stderr(), result.exitCode());
+    }
+
+    @Override
+    public HostCommandResult systemctl(String env, String... arguments) {
+        var command = new ArrayList<String>(List.of("systemctl"));
+        command.addAll(List.of(arguments));
+        return exec(env, command.toArray(String[]::new));
+    }
+
+    @Override
+    public void pullFile(String env, String remotePath, Path localPath) {
+        run(lxdProperties.lxcCommand(), "file", "pull",
+                "%s%s".formatted(resolveContainer(env), remotePath), localPath.toString());
+    }
+
+    @Override
+    public void pushFile(String env, Path localPath, String remotePath) {
+        run(lxdProperties.lxcCommand(), "file", "push", localPath.toString(),
+                "%s%s".formatted(resolveContainer(env), remotePath));
     }
 
     @Override
@@ -377,6 +403,7 @@ public class LxdEnvSetup extends BaseComposeSetup
             case "ss1" -> lxdProperties.ss1Host();
             case "aux" -> lxdProperties.csHost();
             case "ca" -> lxdProperties.caHost();
+            case "opmon" -> lxdProperties.opmonHost();
             default -> throw new IllegalArgumentException("Unknown LXD environment: " + env);
         };
     }
@@ -391,6 +418,7 @@ public class LxdEnvSetup extends BaseComposeSetup
             case "ss0" -> "xrd-ss0";
             case "ss1" -> "xrd-ss1";
             case "aux" -> "xrd-cs";
+            case "opmon" -> "xrd-opmon";
             default -> throw new IllegalArgumentException("Unknown LXD environment: " + env);
         };
     }

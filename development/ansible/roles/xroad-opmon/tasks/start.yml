@@ -1,0 +1,22 @@
+---
+- name: Clear a failed state left by the install-time start
+  ansible.builtin.command: systemctl reset-failed xroad-opmonitor
+  changed_when: false
+  failed_when: false
+
+- name: Read the op-monitor unit state
+  ansible.builtin.command: systemctl is-active xroad-opmonitor
+  register: opmon_unit_state
+  changed_when: false
+  failed_when: false
+
+- name: Restart op-monitor with the identity, CA file and settings file in place
+  ansible.builtin.systemd:
+    name: xroad-opmonitor
+    state: restarted
+    enabled: true
+  when: >-
+    opmon_identity_generated is changed
+    or opmon_trusted_ca is changed
+    or opmon_settings is changed
+    or opmon_unit_state.stdout != 'active'

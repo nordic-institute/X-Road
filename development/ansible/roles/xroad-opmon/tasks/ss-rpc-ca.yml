@@ -1,0 +1,65 @@
+---
+- name: Load the Security Server installer's admin credentials
+  ansible.builtin.include_vars:
+    file: "{{ role_path }}/../xroad-ss-installer/defaults/main.yml"
+    name: opmon_ss_installer
+  no_log: true
+
+- name: Wait for the Security Server admin API to accept connections
+  ansible.builtin.wait_for:
+    host: localhost
+    port: 4000
+    delay: 5
+    timeout: 600
+  delegate_to: "{{ xroad_opmon_ss_host }}"
+
+- name: Log in to the Security Server admin API
+  ansible.builtin.uri:
+    url: "{{ xroad_opmon_ss_admin_url }}/login"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      username: "{{ opmon_ss_installer.xroad_admin_username }}"
+      password: "{{ opmon_ss_installer.xroad_admin_password }}"
+    validate_certs: false
+    status_code: 200
+  delegate_to: "{{ xroad_opmon_ss_host }}"
+  register: opmon_ss_login
+  until: opmon_ss_login.status == 200
+  retries: 30
+  delay: 10
+  no_log: "{{ xroad_opmon_admin_api_no_log }}"
+
+- name: Download the Security Server RPC CA
+  ansible.builtin.uri:
+    url: "{{ xroad_opmon_ss_admin_url }}/api/v1/system/external-rpc-ca/download"
+    method: GET
+    headers:
+      X-XSRF-TOKEN: "{{ opmon_ss_login.cookies['XSRF-TOKEN'] }}"
+      Cookie: "{{ opmon_ss_login.cookies_string }}"
+    validate_certs: false
+    status_code: 200
+    return_content: true
+  delegate_to: "{{ xroad_opmon_ss_host }}"
+  register: opmon_ss_rpc_ca
+  until: opmon_ss_rpc_ca.status == 200
+  retries: 12
+  delay: 10
+  no_log: "{{ xroad_opmon_admin_api_no_log }}"
+
+- name: Require exactly one certificate and no private key in the download
+  ansible.builtin.assert:
+    that:
+      - opmon_ss_rpc_ca.content | regex_findall('-----BEGIN CERTIFICATE-----') | length == 1
+      - "'PRIVATE KEY' not in opmon_ss_rpc_ca.content"
+    fail_msg: "The Security Server RPC CA download is not exactly one certificate without a private key."
+    quiet: true
+
+- name: Place the Security Server RPC CA
+  ansible.builtin.copy:
+    content: "{{ opmon_ss_rpc_ca.content }}"
+    dest: "{{ xroad_opmon_identity_dir }}/trusted-ca.crt"
+    owner: root
+    group: root
+    mode: "0644"
+  register: opmon_trusted_ca

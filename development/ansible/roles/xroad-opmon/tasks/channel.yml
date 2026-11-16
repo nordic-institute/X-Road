@@ -1,0 +1,36 @@
+---
+- name: Require a listen address other than loopback
+  ansible.builtin.assert:
+    that:
+      - xroad_opmon_listen_address not in ['127.0.0.1', '::1', 'localhost']
+    fail_msg: "The op-monitor listen address {{ xroad_opmon_listen_address }} is loopback; the Security Server cannot reach it."
+    quiet: true
+
+- name: Resolve the channel host from the Security Server
+  ansible.builtin.command:
+    argv: [getent, ahostsv4, "{{ xroad_opmon_channel_host }}"]
+  delegate_to: "{{ xroad_opmon_ss_host }}"
+  register: opmon_channel_lookup
+  changed_when: false
+  failed_when: false
+  until: xroad_opmon_listen_address in (opmon_channel_lookup.stdout_lines | map('regex_search', '^\S+') | list)
+  retries: 6
+  delay: 5
+
+- name: Require the channel host to resolve to the listen address
+  ansible.builtin.assert:
+    that:
+      - xroad_opmon_listen_address in (opmon_channel_lookup.stdout_lines | map('regex_search', '^\S+') | list)
+    fail_msg: >-
+      The channel host {{ xroad_opmon_channel_host }} does not resolve to the listen address
+      {{ xroad_opmon_listen_address }} from {{ xroad_opmon_ss_host }}.
+    quiet: true
+
+- name: Expose the channel host
+  ansible.builtin.set_fact:
+    xroad_opmon_channel_host: "{{ xroad_opmon_channel_host }}"
+    xroad_opmon_listen_address: "{{ xroad_opmon_listen_address }}"
+
+- name: Report the channel host
+  ansible.builtin.debug:
+    msg: "op-monitor channel host {{ xroad_opmon_channel_host }}, listen address {{ xroad_opmon_listen_address }}, port {{ xroad_opmon_rpc_port }}"

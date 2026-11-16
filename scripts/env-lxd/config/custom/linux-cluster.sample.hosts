@@ -32,6 +32,9 @@ xrd-ss0 ansible_connection=lxd
 [is_servers]
 xrd-is ansible_connection=lxd
 
+[opmon_servers]
+xrd-opmon ansible_connection=lxd
+
 [lxd_servers]
 localhost ansible_connection=local
 

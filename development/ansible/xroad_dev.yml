@@ -227,6 +227,20 @@
     - ss
     - install
 
+# Bare op-monitor host: only xroad-opmonitor with a file-based identity. Runs after the SS play because
+# it downloads the Security Server's RPC CA from the admin API, and before hurl initializes the servers.
+- name: Install op-monitor servers
+  hosts: opmon_servers
+  become: true
+  strategy: free
+  vars_files:
+    - vars_files/local_repo.yml
+  roles:
+    - xroad-opmon
+  tags:
+    - opmon
+    - install
+
 - name: Configure HW tokens (SoftHSM2) for SS
   hosts: ubuntu_hsm_ss
   become: true
