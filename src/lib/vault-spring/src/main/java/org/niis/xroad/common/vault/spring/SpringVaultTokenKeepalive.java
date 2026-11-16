@@ -33,13 +33,14 @@ import org.springframework.vault.core.VaultTemplate;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import static org.niis.xroad.common.vault.VaultTokenKeepalive.RENEW_SELF_PATH;
+
 /**
  * Renews the secret store token shared by all services of a node at startup and every 24 hours. Spring Cloud
- * Vault's own session lifecycle is switched off, so this is the only renewer.
+ * Vault's own session lifecycle is switched off, so this is the only renewer. It runs only where
+ * {@code spring.cloud.vault.enabled=true}.
  */
-public class SpringVaultTokenKeepalive {
-
-    private static final String RENEW_SELF_PATH = "auth/token/renew-self";
+class SpringVaultTokenKeepalive {
 
     private final VaultTokenKeepalive keepalive;
 

@@ -28,22 +28,18 @@ package org.niis.xroad.common.vault.quarkus;
 
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.vault.client.VaultClient;
-import io.quarkus.vault.client.VaultClientException;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.vault.VaultTokenKeepalive;
 
-import java.util.concurrent.CompletionException;
-
-import static io.quarkus.scheduler.Scheduled.ConcurrentExecution.SKIP;
-
 /**
- * Renews the secret store token shared by all services of a node at startup and every 24 hours. Every Quarkus
- * service that includes this library runs it, since the bean is discovered through the library's Jandex index.
+ * Renews the secret store token shared by all services of a node at startup and every 24 hours. The bean is
+ * discovered through the library's Jandex index, and runs only where the scheduler is enabled
+ * ({@code quarkus.scheduler.enabled=false} switches it off).
  */
 @ApplicationScoped
-public class QuarkusVaultTokenKeepalive {
+class QuarkusVaultTokenKeepalive {
 
     private final VaultTokenKeepalive keepalive;
 
@@ -53,19 +49,12 @@ public class QuarkusVaultTokenKeepalive {
                 () -> renewSelf(vaultClient));
     }
 
-    @Scheduled(every = "24h", identity = "vault-token-keepalive", concurrentExecution = SKIP)
+    @Scheduled(every = "24h", identity = "vault-token-keepalive")
     void renew() {
         keepalive.renewOnce();
     }
 
     private static void renewSelf(VaultClient vaultClient) {
-        try {
-            vaultClient.auth().token().renewSelf(null).toCompletableFuture().join();
-        } catch (CompletionException e) {
-            if (e.getCause() instanceof VaultClientException vaultFailure) {
-                throw vaultFailure;
-            }
-            throw e;
-        }
+        vaultClient.auth().token().renewSelf(null).toCompletableFuture().join();
     }
 }

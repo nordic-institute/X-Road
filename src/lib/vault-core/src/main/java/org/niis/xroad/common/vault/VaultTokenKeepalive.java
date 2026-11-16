@@ -39,8 +39,9 @@ import java.util.function.Predicate;
 @Slf4j
 public final class VaultTokenKeepalive {
 
+    public static final String RENEW_SELF_PATH = "auth/token/renew-self";
+
     private static final String OPERATION = "renew-self";
-    private static final String PATH = "auth/token/renew-self";
 
     private final ResilientVaultCall resilientCall;
     private final Duration budget;
@@ -54,10 +55,10 @@ public final class VaultTokenKeepalive {
 
     public void renewOnce() {
         try {
-            resilientCall.run(OPERATION, PATH, renewSelf);
+            resilientCall.run(OPERATION, RENEW_SELF_PATH, renewSelf);
             log.info("Secret store token renewed");
         } catch (RuntimeException e) {
-            log.warn("Secret store token renewal failed (retry budget {}), the next renewal is still scheduled: {}",
+            log.warn("Secret store token renewal failed (retry budget {}): {}",
                     ResilientVaultCall.formatBudget(budget), e.toString());
         }
     }
