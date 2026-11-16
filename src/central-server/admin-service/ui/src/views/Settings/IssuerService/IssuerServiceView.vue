@@ -40,6 +40,14 @@
                 :translated-text="state?.host ?? ''"
               />
             </template>
+            <XrdBtn
+              v-if="canEditHost"
+              data-test="issuer-service-host-edit-button"
+              variant="text"
+              color="tertiary"
+              text="action.edit"
+              @click="showEditHostDialog = true"
+            />
           </XrdCardTableRow>
           <XrdCardTableRow data-test="issuer-service-certificate-row" label="issuerService.certificate">
             <template #value>
@@ -74,6 +82,12 @@
         </XrdCardTable>
       </XrdCard>
     </XrdSubView>
+    <EditIssuerServiceHostDialog
+      v-if="showEditHostDialog"
+      :host="state?.host ?? ''"
+      @cancel="showEditHostDialog = false"
+      @save="onHostSaved"
+    />
   </XrdView>
 </template>
 
@@ -82,6 +96,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useNotifications, XrdBtn, XrdCard, XrdCardTable, XrdCardTableRow, XrdStatusChip, XrdSubView, XrdView } from '@niis/shared-ui';
 import SettingsViewTabs from '@/views/Settings/SettingsViewTabs.vue';
+import EditIssuerServiceHostDialog from '@/views/Settings/IssuerService/EditIssuerServiceHostDialog.vue';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useIssuerService } from '@/store/modules/issuer-service';
@@ -95,8 +110,10 @@ const { addError } = useNotifications();
 
 const state = ref<IssuerServiceState>();
 const loading = ref(true);
+const showEditHostDialog = ref(false);
 
 const hasPermissionToViewDsTlsCertificate = computed(() => hasPermission(Permissions.VIEW_DS_TLS_CERT));
+const canEditHost = computed(() => hasPermission(Permissions.EDIT_ISSUER_SERVICE_HOST) && !state.value?.bound);
 
 const canSignText = computed(() => {
   if (state.value?.can_sign) {
@@ -106,7 +123,7 @@ const canSignText = computed(() => {
   return (cause && CAN_SIGN_CAUSE_TEXT[cause]) || 'issuerService.serviceCannotSign';
 });
 
-onMounted(async () => {
+async function loadStatus() {
   try {
     state.value = await getStatus();
   } catch (error) {
@@ -114,5 +131,12 @@ onMounted(async () => {
   } finally {
     loading.value = false;
   }
-});
+}
+
+function onHostSaved() {
+  showEditHostDialog.value = false;
+  loadStatus();
+}
+
+onMounted(loadStatus);
 </script>

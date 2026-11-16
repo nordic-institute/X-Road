@@ -27,7 +27,7 @@
 
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
-import { IssuerServiceState } from '@/openapi-types';
+import { IssuerServiceState, SetIssuerServiceHostData } from '@/openapi-types';
 
 export const useIssuerService = defineStore('issuerService', {
   state: () => ({}),
@@ -36,6 +36,10 @@ export const useIssuerService = defineStore('issuerService', {
   actions: {
     getStatus() {
       return api.get<IssuerServiceState>('/issuer-service').then((res) => res.data);
+    },
+    setHost(host: string) {
+      const body: SetIssuerServiceHostData['body'] = { host };
+      return api.put<IssuerServiceState>('/issuer-service/host', body).then((res) => res.data);
     },
   },
 });

@@ -24,11 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { HttpResponse } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
+import { submitDialogForm } from '../setup/dialog-helpers';
 import { Permissions } from '@/global';
 
 const ISSUER_SERVICE_PATH = '/settings/issuer-service';
@@ -143,5 +144,133 @@ describe('CS Settings navigation — Issuer Service tab (Browser Mode)', () => {
     });
 
     await expect.poll(() => page.getByText('Issuer Service').query()).toBeNull();
+  });
+});
+
+const EDIT_HOST_PERMISSIONS = [Permissions.VIEW_SYSTEM_SETTINGS, Permissions.EDIT_ISSUER_SERVICE_HOST];
+
+describe('CS Issuer Service tab — host edit control (Browser Mode)', () => {
+  it('shows the edit control with EDIT_ISSUER_SERVICE_HOST while the issuer DID is not bound', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: EDIT_HOST_PERMISSIONS,
+      msw: [statusHandler({})],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-host-edit-button')).toBeVisible();
+  });
+
+  it('hides the edit control without EDIT_ISSUER_SERVICE_HOST', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: [statusHandler({})],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-host-row').getByText('Not set')).toBeVisible();
+    await expect.poll(() => page.getByTestId('issuer-service-host-edit-button').query()).toBeNull();
+  });
+
+  it('hides the edit control once the issuer DID is bound', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: EDIT_HOST_PERMISSIONS,
+      msw: [
+        statusHandler({
+          host: 'issuer.example.org',
+          host_set: true,
+          bound: true,
+          did_to_bind: 'did:web:issuer.example.org',
+        }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-identity-row').getByText('did:web:issuer.example.org')).toBeVisible();
+    await expect.poll(() => page.getByTestId('issuer-service-host-edit-button').query()).toBeNull();
+  });
+});
+
+describe('CS Issuer Service tab — host edit dialog (Browser Mode)', () => {
+  it('shows the cluster and single-server help text', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: EDIT_HOST_PERMISSIONS,
+      msw: [statusHandler({})],
+    });
+
+    await page.getByTestId('issuer-service-host-edit-button').click();
+    const help = page.getByTestId('issuer-service-host-help');
+
+    await expect.element(help).toMatchTextContent('A cluster needs the cluster DNS name.');
+    await expect.element(help).toMatchTextContent("On a single server, use a dedicated DNS name instead of the node's own host name.");
+
+    await page.getByTestId('dialog-cancel-button').click();
+    await expect.element(page.getByTestId('issuer-service-host-edit-dialog')).not.toBeInTheDocument();
+  });
+
+  it('saves a valid host through the host update and shows the new host once the tab re-reads the status', async () => {
+    let host: string | null = null;
+    const putSpy = vi.fn();
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: EDIT_HOST_PERMISSIONS,
+      msw: [
+        specHttp.get('/issuer-service', ({ response }) =>
+          response(200).json({
+            host,
+            bound: false,
+            host_set: host !== null,
+            certificate_ready: false,
+            run_in_progress: false,
+            can_sign: false,
+            status: 'NOT_CONFIGURED',
+          }),
+        ),
+        specHttp.put('/issuer-service/host', async ({ request, response }) => {
+          const body = await request.json();
+          putSpy(body);
+          host = body.host;
+          return response(200).json({
+            host,
+            bound: false,
+            host_set: true,
+            certificate_ready: false,
+            run_in_progress: false,
+            can_sign: false,
+            status: 'WAITING_FOR_CERTIFICATE',
+          });
+        }),
+      ],
+    });
+
+    await page.getByTestId('issuer-service-host-edit-button').click();
+    await page.getByTestId('issuer-service-host-edit-field').getByRole('textbox').fill('issuer.example.org');
+    await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
+    submitDialogForm();
+
+    await expect.element(page.getByTestId('issuer-service-host-edit-dialog')).not.toBeInTheDocument();
+    expect(putSpy).toHaveBeenCalledWith({ host: 'issuer.example.org' });
+    await expect.element(page.getByTestId('issuer-service-host-row').getByText('issuer.example.org')).toBeVisible();
+  });
+
+  it('shows the API validation error inline and keeps the previous host when the host is rejected', async () => {
+    const putSpy = vi.fn();
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: EDIT_HOST_PERMISSIONS,
+      msw: [
+        statusHandler({ host: 'issuer.example.org', host_set: true }),
+        specHttp.untyped.put('/api/v1/issuer-service/host', () => {
+          putSpy();
+          return HttpResponse.json({ status: 400, error: { code: 'invalid_dns_name' } }, { status: 400 });
+        }),
+      ],
+    });
+
+    await page.getByTestId('issuer-service-host-edit-button').click();
+    await page.getByTestId('issuer-service-host-edit-field').getByRole('textbox').fill('localhost');
+    submitDialogForm();
+
+    const dialog = page.getByTestId('issuer-service-host-edit-dialog');
+    await expect
+      .element(dialog.getByTestId('contextual-alert'))
+      .toMatchTextContent('The Issuer Service host must be a DNS name, not an IP address or localhost');
+    await expect.element(dialog).toBeVisible();
+    expect(putSpy).toHaveBeenCalled();
+    await expect.element(page.getByTestId('issuer-service-host-row').getByText('issuer.example.org')).toBeVisible();
   });
 });
