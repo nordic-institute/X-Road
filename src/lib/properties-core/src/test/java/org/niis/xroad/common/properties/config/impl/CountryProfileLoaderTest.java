@@ -75,6 +75,6 @@ class CountryProfileLoaderTest {
         assertThatThrownBy(() -> CountryProfileLoader.load("XX", null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("'XX'")
-                .hasMessageContaining("available profiles: FI");
+                .hasMessageContaining("available profiles: EE, FI, FO, IS");
     }
 }
