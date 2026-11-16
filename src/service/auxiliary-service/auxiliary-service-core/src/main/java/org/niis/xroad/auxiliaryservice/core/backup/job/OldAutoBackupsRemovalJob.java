@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.auxiliaryservice.core.backup.FileSystemBackupHandler;
 import org.niis.xroad.auxiliaryservice.core.config.BackupProperties;
+import org.niis.xroad.common.properties.NodeProperties;
 
 @Startup
 @ApplicationScoped
@@ -53,8 +54,7 @@ public class OldAutoBackupsRemovalJob {
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isNotBlank(backupProperties.autoBackupDeleteOldBackupsCron())
-                && !SchedulerUtils.isOff(backupProperties.autoBackupDeleteOldBackupsCron())) {
+        if (isEnabled() && !NodeProperties.isSecondaryNode()) {
             log.info("Scheduling old automatic backups removal job");
             scheduler.newJob(getClass().getSimpleName())
                     .setCron(backupProperties.autoBackupDeleteOldBackupsCron())
@@ -63,8 +63,13 @@ public class OldAutoBackupsRemovalJob {
                     .setSkipPredicate(applicationNotRunning)
                     .schedule();
         } else {
-            log.info("Old automatic backups removal job disabled.");
+            log.info("Old automatic backups removal job is disabled or not scheduled on a secondary cluster node.");
         }
+    }
+
+    private boolean isEnabled() {
+        return StringUtils.isNotBlank(backupProperties.autoBackupDeleteOldBackupsCron())
+                && !SchedulerUtils.isOff(backupProperties.autoBackupDeleteOldBackupsCron());
     }
 
     private void execute(ScheduledExecution execution) {
