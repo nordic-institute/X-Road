@@ -1,6 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
+# Bootstrap mode (DB_BOOTSTRAP=on) creates the roles and the schema as the database master, then runs Liquibase
+# as the admin role. Settings:
+#   DB_BOOTSTRAP         on or off (default off). Off runs Liquibase as JDBC_USER with JDBC_PASSWORD.
+#   DB_MASTER_USER       master role that runs the bootstrap SQL (CREATEDB and CREATEROLE are enough).
+#   DB_MASTER_PASSWORD   password of the master role.
+#   DB_ADMIN_PASSWORD    password of the admin role (owns the schema and runs Liquibase).
+#   DB_RUNTIME_PASSWORD  password of the runtime role (the application's login, no DDL rights).
+#   DB_HSTORE            on or off (default off). On creates the hstore extension in the public schema.
+#   PROP_DB_USER         name of the runtime role. The admin role is "<PROP_DB_USER>_admin".
+# JDBC_URL names the database to create; DEFAULT_SCHEMA_NAME (default public) names the component schema in it.
+
 DB_SQL_DIR=/usr/share/xroad/db
 
 fail() {
@@ -29,7 +40,6 @@ parse_jdbc_url() {
 # Runs the shared bootstrap SQL pair as the master, then checks that the runtime role can log in.
 bootstrap_database() {
   local runtime_role="$PROP_DB_USER"
-  local admin_role="${PROP_DB_USER}_admin"
   local pair
   parse_jdbc_url
 
@@ -56,23 +66,22 @@ bootstrap_database() {
   fi
 }
 
-# Validate required environment variables
-if [[ "${DB_BOOTSTRAP:-off}" == "on" ]]; then
+DB_BOOTSTRAP="${DB_BOOTSTRAP:-off}"
+[[ "$DB_BOOTSTRAP" == "on" || "$DB_BOOTSTRAP" == "off" ]] || fail "DB_BOOTSTRAP must be 'on' or 'off', got '$DB_BOOTSTRAP'"
+if [[ "$DB_BOOTSTRAP" == "on" ]]; then
   REQUIRED_VARS=(JDBC_URL CHANGELOG PROP_DB_USER DB_MASTER_USER DB_MASTER_PASSWORD DB_ADMIN_PASSWORD DB_RUNTIME_PASSWORD)
 else
   REQUIRED_VARS=(JDBC_URL JDBC_USER JDBC_PASSWORD CHANGELOG)
 fi
 for var in "${REQUIRED_VARS[@]}"; do
-  if [[ -z "${!var:-}" ]]; then
-    echo "ERROR: Required environment variable $var is not set" >&2
-    exit 1
-  fi
+  [[ -n "${!var:-}" ]] || fail "Required environment variable $var is not set"
 done
 
 # Bootstrap mode creates the roles, then runs Liquibase as the admin role
-if [[ "${DB_BOOTSTRAP:-off}" == "on" ]]; then
+if [[ "$DB_BOOTSTRAP" == "on" ]]; then
+  admin_role="${PROP_DB_USER}_admin"
   bootstrap_database
-  JDBC_USER="${PROP_DB_USER}_admin"
+  JDBC_USER="$admin_role"
   JDBC_PASSWORD="$DB_ADMIN_PASSWORD"
   LIQUIBASE_CONTEXTS="admin${LIQUIBASE_CONTEXTS:+,$LIQUIBASE_CONTEXTS}"
 fi
