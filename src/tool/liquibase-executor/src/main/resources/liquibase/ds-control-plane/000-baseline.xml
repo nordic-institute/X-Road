@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="ds-control-plane/000-baseline.xml">
+
+    <changeSet author="niis" id="000-baseline-contract-negotiation" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 contract-negotiation-store-sql: contract-negotiation-schema.sql</comment>
+        <createTable tableName="edc_contract_agreement">
+            <column name="agr_id" type="VARCHAR">
+                <constraints primaryKey="true" primaryKeyName="contract_agreement_pk" nullable="false"/>
+            </column>
+            <column name="provider_agent_id" type="VARCHAR"/>
+            <column name="consumer_agent_id" type="VARCHAR"/>
+            <column name="signing_date" type="BIGINT"/>
+            <column name="start_date" type="BIGINT"/>
+            <column name="end_date" type="INTEGER"/>
+            <column name="asset_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="policy" type="JSON"/>
+            <column name="agr_participant_context_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="agr_agreement_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="claims" type="JSON"/>
+            <column name="retired" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="retirement_reason" type="VARCHAR"/>
+            <column name="retirement_date" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="edc_contract_agreement" columnNames="agr_agreement_id, agr_participant_context_id"/>
+        <createTable tableName="edc_contract_negotiation">
+            <column name="id" type="VARCHAR">
+                <constraints primaryKey="true" primaryKeyName="contract_negotiation_pk" nullable="false"/>
+            </column>
+            <column name="created_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="correlation_id" type="VARCHAR"/>
+            <column name="counterparty_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="counterparty_address" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="protocol" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_count" type="INTEGER" defaultValueNumeric="0"/>
+            <column name="state_timestamp" type="BIGINT"/>
+            <column name="error_detail" type="VARCHAR"/>
+            <column name="agreement_id" type="VARCHAR" remarks="ContractAgreement serialized as JSON">
+                <constraints foreignKeyName="contract_negotiation_contract_agreement_id_fk"
+                             referencedTableName="edc_contract_agreement" referencedColumnNames="agr_id"/>
+            </column>
+            <column name="contract_offers" type="JSON" remarks="List&lt;ContractOffer&gt; serialized as JSON"/>
+            <column name="callback_addresses" type="JSON"/>
+            <column name="trace_context" type="JSON" remarks="Map&lt;String,String&gt; serialized as JSON"/>
+            <column name="pending" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="protocol_messages" type="JSON"/>
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="negotiation_claims" type="JSON"
+                    remarks="Claims of the counter-party (Map&lt;String,Object&gt;) serialized as JSON"/>
+            <column name="leased_by" type="VARCHAR"/>
+            <column name="leased_at" type="BIGINT" remarks="posix timestamp of lease"/>
+            <column name="lease_duration" type="INTEGER" remarks="duration of lease in milliseconds"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"
+                    remarks="version of the entity, incremented on every save, used for optimistic locking">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="contract_negotiation_correlationid_index" tableName="edc_contract_negotiation">
+            <column name="correlation_id"/>
+        </createIndex>
+        <createIndex indexName="contract_negotiation_agreement_id_index" tableName="edc_contract_negotiation">
+            <column name="agreement_id"/>
+        </createIndex>
+        <createIndex indexName="contract_negotiation_state" tableName="edc_contract_negotiation">
+            <column name="state"/>
+            <column name="state_timestamp"/>
+        </createIndex>
+        <createIndex indexName="contract_negotiation_participant_context_id_created_at_index"
+                     tableName="edc_contract_negotiation">
+            <column name="participant_context_id"/>
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex indexName="contract_agreement_participant_context_id_index" tableName="edc_contract_agreement">
+            <column name="agr_participant_context_id"/>
+            <column name="signing_date"/>
+        </createIndex>
+        <createIndex indexName="contract_agreement_asset_id_index" tableName="edc_contract_agreement">
+            <column name="asset_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-transfer-process" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 transfer-process-store-sql: transfer-process-schema.sql</comment>
+        <createTable tableName="edc_transfer_process">
+            <column name="transferprocess_id" type="VARCHAR">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="type" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_count" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_time_stamp" type="BIGINT"/>
+            <column name="created_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trace_context" type="JSON" remarks="Java Map serialized as JSON"/>
+            <column name="error_detail" type="VARCHAR"/>
+            <column name="private_properties" type="JSON"/>
+            <column name="callback_addresses" type="JSON"/>
+            <column name="pending" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="transfer_type" type="VARCHAR"/>
+            <column name="protocol_messages" type="JSON"/>
+            <column name="data_plane_id" type="VARCHAR"/>
+            <column name="correlation_id" type="VARCHAR"/>
+            <column name="counter_party_address" type="VARCHAR"/>
+            <column name="protocol" type="VARCHAR"/>
+            <column name="asset_id" type="VARCHAR"/>
+            <column name="contract_id" type="VARCHAR"/>
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dataplane_metadata" type="JSON" remarks="Dataplane Metadata serialized as JSON"/>
+            <column name="data_address_alias" type="TEXT"/>
+            <column name="claims" type="JSON"/>
+            <column name="data_address_owner" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="leased_by" type="VARCHAR"/>
+            <column name="leased_at" type="BIGINT" remarks="posix timestamp of lease"/>
+            <column name="lease_duration" type="INTEGER" remarks="duration of lease in milliseconds"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0"
+                    remarks="version of the entity, incremented on every save, used for optimistic locking">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="transfer_process_state" tableName="edc_transfer_process">
+            <column name="state"/>
+            <column name="state_time_stamp"/>
+        </createIndex>
+        <createIndex indexName="transfer_process_participant_context_id_created_at_index"
+                     tableName="edc_transfer_process">
+            <column name="participant_context_id"/>
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex indexName="transfer_process_correlation_id_index" tableName="edc_transfer_process">
+            <column name="correlation_id"/>
+            <column name="participant_context_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-policy-monitor" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 policy-monitor-store-sql: policy-monitor-schema.sql</comment>
+        <createTable tableName="edc_policy_monitor">
+            <column name="entry_id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="state" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_count" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state_time_stamp" type="BIGINT"/>
+            <column name="trace_context" type="JSON"/>
+            <column name="error_detail" type="VARCHAR"/>
+            <column name="properties" type="JSON"/>
+            <column name="contract_id" type="VARCHAR"/>
+            <column name="leased_by" type="VARCHAR"/>
+            <column name="leased_at" type="BIGINT" remarks="posix timestamp of lease"/>
+            <column name="lease_duration" type="INTEGER" remarks="duration of lease in milliseconds"/>
+        </createTable>
+        <createIndex indexName="policy_monitor_state" tableName="edc_policy_monitor">
+            <column name="state"/>
+            <column name="state_time_stamp"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-cel-expression" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 cel-store-sql: cel-expression-schema.sql</comment>
+        <createTable tableName="edc_cel_expression">
+            <column name="id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="scopes" type="JSON" defaultValue="[]"/>
+            <column name="left_operand" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expression" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="actions" type="JSON" defaultValue="[]"/>
+            <column name="supported_operators" type="JSON" defaultValue="[]"/>
+            <column name="created_date" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="cel_expression_left_operand_index" tableName="edc_cel_expression">
+            <column name="left_operand"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-task" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 task-store-sql: task-schema.sql</comment>
+        <createTable tableName="edc_tasks">
+            <column name="id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_group" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload" type="JSON" defaultValue="{}"/>
+            <column name="retry_count" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-jti-validation" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 jti-validation-store-sql: jti-validation-schema.sql</comment>
+        <createTable tableName="edc_jti_validation">
+            <column name="token_id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="expires_at" type="BIGINT"/>
+        </createTable>
+        <createIndex indexName="jti_validation_expires_at_index" tableName="edc_jti_validation">
+            <column name="expires_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-participant-context" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 participantcontext-store-sql: participant-context-schema.sql</comment>
+        <createTable tableName="participant_context">
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="identity" type="VARCHAR">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="created_date" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="BIGINT"/>
+            <column name="state" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="properties" type="JSON" defaultValue="{}"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="niis" id="000-baseline-participant-context-config" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <comment>EDC 1.0.0-RC6 participantcontext-config-store-sql: participant-context-config-schema.sql</comment>
+        <createTable tableName="edc_participant_context_config">
+            <column name="participant_context_id" type="VARCHAR">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_date" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="BIGINT"/>
+            <column name="entries" type="JSON" defaultValue="{}"/>
+            <column name="private_entries" type="JSON" defaultValue="{}"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

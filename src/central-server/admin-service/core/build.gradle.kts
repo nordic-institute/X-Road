@@ -31,11 +31,13 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.springBoot.starterTest)
+  testImplementation(testFixtures(project(":lib:properties-core")))
+  testImplementation(libs.systemStubs)
+  testImplementation(libs.h2database)
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.liquibase:liquibase-core")
   testImplementation(libs.xmlunit.core)
   testImplementation(libs.xmlunit.assertj3)
-  testImplementation(libs.systemStubs)
 }
 
 sourceSets {

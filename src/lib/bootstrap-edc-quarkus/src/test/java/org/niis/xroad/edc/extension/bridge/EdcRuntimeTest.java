@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -72,9 +73,46 @@ class EdcRuntimeTest {
         assertThat(result).hasSize(2);
     }
 
+    @Test
+    void filterExcludedRemovesDeclaredReplacementEvenWhenNotConfigured() {
+        when(context.getSetting(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS, "")).thenReturn(FirstExtension.class.getName());
+
+        var result = EdcRuntime.filterExcluded(List.of(new ReplacingExtension(), new UpstreamExtension()), context);
+
+        assertThat(result).singleElement().isInstanceOf(ReplacingExtension.class);
+    }
+
+    @Test
+    void filterExcludedRemovesDeclaredReplacementWhenSettingIsBlank() {
+        when(context.getSetting(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS, "")).thenReturn("");
+
+        var result = EdcRuntime.filterExcluded(List.of(new ReplacingExtension(), new UpstreamExtension()), context);
+
+        assertThat(result).singleElement().isInstanceOf(ReplacingExtension.class);
+    }
+
+    @Test
+    void filterExcludedKeepsUpstreamExtensionWhenReplacingExtensionIsConfigExcluded() {
+        when(context.getSetting(EdcRuntime.SETTING_EXCLUDED_SERVICE_EXTENSIONS, "")).thenReturn(ReplacingExtension.class.getName());
+
+        var result = EdcRuntime.filterExcluded(List.of(new ReplacingExtension(), new UpstreamExtension()), context);
+
+        assertThat(result).singleElement().isInstanceOf(UpstreamExtension.class);
+    }
+
     private static final class FirstExtension implements ServiceExtension {
     }
 
     private static final class SecondExtension implements ServiceExtension {
+    }
+
+    private static final class UpstreamExtension implements ServiceExtension {
+    }
+
+    private static final class ReplacingExtension implements ServiceExtension, ReplacesExtensions {
+        @Override
+        public Set<String> replacedExtensions() {
+            return Set.of(UpstreamExtension.class.getName());
+        }
     }
 }

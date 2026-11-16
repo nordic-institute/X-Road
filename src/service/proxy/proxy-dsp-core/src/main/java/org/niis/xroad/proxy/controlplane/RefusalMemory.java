@@ -48,7 +48,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUN
  * <p>Only the refusals that end a negotiation are remembered: {@code DSP_ACCESS_REFUSED},
  * {@code DSP_DATASET_NOT_FOUND} and {@code DSP_OFFERS_NOT_FOUND}. Transfer failures, even refused ones, and
  * transport faults are never remembered. An entry is keyed like {@link AssetAccessCache}, so it is per caller,
- * asset and provider server, and it replays the code of the refusal it remembers.
+ * asset and candidate set, and it replays the code of the refusal it remembers.
  */
 class RefusalMemory {
 

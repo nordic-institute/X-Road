@@ -28,6 +28,7 @@
 package org.niis.xroad.configuration.migration;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.migration.utils.InstallationType;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,7 +38,7 @@ import java.nio.file.Paths;
 public class ConfigurationAnchorMigrator {
 
     void migrate(String anchorFilePath, String dbPropertiesPath) {
-        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
+        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath, InstallationType.SECURITY_SERVER)) {
             log.info("Reading configuration anchor file from [{}]", anchorFilePath);
             String configurationAnchor = Files.readString(Paths.get(anchorFilePath));
             dbRepo.saveConfigurationAnchor(configurationAnchor);

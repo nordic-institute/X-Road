@@ -17,6 +17,7 @@ dependencies {
 
   implementation(project(":service:ds-control-plane:ds-ext-sample"))
   implementation(project(":service:ds-control-plane:ds-xroad-control-plane-policy"))
+  implementation(project(":service:ds-control-plane:ds-xroad-callback-webhook"))
   implementation(project(":service:ds-control-plane:ds-xroad-catalog"))
   implementation(project(":service:ds-control-plane:ds-xroad-dataplane-store"))
   implementation(project(":service:ds-control-plane:ds-xroad-dataplane-signaling-api"))

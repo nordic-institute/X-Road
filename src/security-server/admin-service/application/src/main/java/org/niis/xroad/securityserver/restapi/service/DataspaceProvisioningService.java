@@ -85,7 +85,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *   <li>{@link #ensureMembershipCredential(ParticipantContext)} — leaves an active
  *       (PENDING or ISSUED) request alone or submits a new one into the next available slot, in a single
  *       slot scan; advances past slots in terminal ERROR. While the hosting Security Server identity is not
- *       known (for SYSTEM, no owner yet), returns {@code UNKNOWN} without scanning or submitting — see {@link #holderPidBase}.</li>
+ *       known (for SYSTEM, no owner yet), returns {@code UNKNOWN} without scanning or submitting — see {@link #holderPidBase}.
+ *       Fails with {@code GLOBAL_CONF_OUTDATED} while the globalconf is expired, submitting nothing.</li>
  *   <li>{@link #readCredentialStatus(ParticipantContext)} — returns the current credential
  *       status ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active)
  *       without polling. Same unknown-identity short-circuit as {@link #ensureMembershipCredential}.</li>
@@ -323,6 +324,8 @@ public class DataspaceProvisioningService {
      *         active or was just submitted, {@code UNKNOWN} for an unrecognized hub state,
      *         {@code ERROR} when all slots are exhausted, {@code ABSENT} when the instance has no
      *         distributed issuer trust anchor — no request is submitted
+     * @throws XrdRuntimeException {@code GLOBAL_CONF_OUTDATED} when the globalconf is not usable, at the start of the
+     *         call or again right before a request would be submitted — no request is submitted
      */
     public CredentialStatus ensureMembershipCredential(ParticipantContext context) {
         var trustedIssuerDids = trustedIssuerDids();
@@ -340,6 +343,7 @@ public class DataspaceProvisioningService {
             var holderPid = holderPid(base, slot);
             var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
             if (state == null) {
+                globalConfProvider.verifyValidity();
                 log.info("Data space provisioning: submitting credential request for participant {}", participantId);
                 identityHubClient.requestMembershipCredential(participantId, trustedIssuerDids, holderPid,
                         ds.getCredentialDefinitionId(), CREDENTIAL_TYPE, CREDENTIAL_FORMAT);
@@ -434,9 +438,11 @@ public class DataspaceProvisioningService {
     /**
      * The dataspace issuer trust anchor: every Issuer DID published by any Central Server node of this
      * X-Road instance's globalconf. Empty when the distributed shared parameters
-     * carry no {@code credentialIssuer}.
+     * carry no {@code credentialIssuer}. Fails with {@code GLOBAL_CONF_OUTDATED} while the globalconf is not usable
+     * (expired, not loaded or unreadable).
      */
     private Set<String> trustedIssuerDids() {
+        globalConfProvider.verifyValidity();
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         var dids = Set.copyOf(globalConfProvider.getCredentialIssuerDids(instanceIdentifier));
         if (dids.isEmpty()) {

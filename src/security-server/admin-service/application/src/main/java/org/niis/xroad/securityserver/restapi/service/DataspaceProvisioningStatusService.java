@@ -119,7 +119,7 @@ public class DataspaceProvisioningStatusService {
     /**
      * Server-level status.
      *
-     * @param dataspaceReady    whether globalconf lists a credential issuer for this instance
+     * @param dataspaceReady    whether a valid (unexpired) globalconf lists a credential issuer for this instance
      * @param dspBaseUrl        the DSP base URL, {@code null} while the registered address is unknown or invalid
      * @param publicationState  publication state of the SYSTEM values
      * @param publicationReason reason for the publication state, {@code null} when there is none

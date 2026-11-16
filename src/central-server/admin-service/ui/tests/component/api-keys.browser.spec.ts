@@ -82,15 +82,15 @@ describe('0360 — CS API Keys — key is revoked from list (Browser Mode)', () 
   it('key appears in list and disappears after revoke confirmation', async () => {
     const createdKey = { id: 1, key: 'test-api-key-value', roles: ['XROAD_SECURITY_OFFICER'] };
 
-    let keysCallCount = 0;
+    let keys = [createdKey];
     await renderRoute(API_KEYS_LIST_PATH, {
       permissions: apiKeyPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/api-keys', () => {
-          keysCallCount += 1;
-          return keysCallCount === 1 ? HttpResponse.json([createdKey]) : HttpResponse.json([]);
+        specHttp.untyped.get('/api/v1/api-keys', () => HttpResponse.json(keys)),
+        specHttp.untyped.delete('/api/v1/api-keys/1', () => {
+          keys = [];
+          return new HttpResponse(null, { status: 200 });
         }),
-        specHttp.untyped.delete('/api/v1/api-keys/1', () => new HttpResponse(null, { status: 200 })),
       ],
     });
 
@@ -113,15 +113,15 @@ describe('0360 — CS API Keys — key roles are edited via edit dialog (Browser
     const originalKey = { id: 1, key: 'test-api-key-value', roles: ['XROAD_REGISTRATION_OFFICER'] };
     const updatedKey = { id: 1, key: 'test-api-key-value', roles: ['XROAD_REGISTRATION_OFFICER', 'XROAD_SYSTEM_ADMINISTRATOR'] };
 
-    let keysCallCount = 0;
+    let currentKey = originalKey;
     await renderRoute(API_KEYS_LIST_PATH, {
       permissions: apiKeyPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/api-keys', () => {
-          keysCallCount += 1;
-          return keysCallCount === 1 ? HttpResponse.json([originalKey]) : HttpResponse.json([updatedKey]);
+        specHttp.untyped.get('/api/v1/api-keys', () => HttpResponse.json([currentKey])),
+        specHttp.untyped.put('/api/v1/api-keys/1', () => {
+          currentKey = updatedKey;
+          return HttpResponse.json(updatedKey);
         }),
-        specHttp.untyped.put('/api/v1/api-keys/1', () => HttpResponse.json(updatedKey)),
       ],
     });
 

@@ -73,7 +73,7 @@ public class MigrationVaultClient extends SpringVaultClient {
     private final NodeScopedSecretPaths nodePaths;
 
     MigrationVaultClient(VaultKeyValueOperations kvOps, NodeIdentity nodeIdentity) {
-        super(kvOps);
+        super(kvOps, null);
         this.kvOps = kvOps;
         this.nodePaths = new NodeScopedSecretPaths(nodeIdentity);
     }

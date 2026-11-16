@@ -77,4 +77,9 @@ class DataspaceConfigKeysTest {
                     assertThat(key.exposedInUi()).as("%s must stay out of the system-parameters UI", key.key()).isFalse();
                 });
     }
+
+    @Test
+    void statuslistPortDefaultsTo6187() {
+        assertThat(DataspaceConfigKeys.ISSUER_STATUSLIST_PORT.convertedDefaultValue()).isEqualTo(6187);
+    }
 }

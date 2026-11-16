@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.signer.core.service.TokenKeyCertRequestWriteService;
 import org.niis.xroad.signer.jpa.dao.impl.SignerKeyCertRequestDaoImpl;
@@ -41,6 +42,7 @@ public class TokenKeyCertRequestWriteServiceImpl implements TokenKeyCertRequestW
     private final DatabaseCtx sessionProvider;
     private final SignerKeyCertRequestDaoImpl keyCertRequestDao;
     private final IdentifierDAOImpl identifierDAO;
+    private final NodeIdentity nodeIdentity;
 
     @Override
     public Long save(Long keyId,
@@ -53,6 +55,7 @@ public class TokenKeyCertRequestWriteServiceImpl implements TokenKeyCertRequestW
             var certReq = new SignerCertRequestEntity();
             certReq.setKeyId(keyId);
             certReq.setExternalId(externalId);
+            certReq.setHaNodeName(nodeIdentity.name());
             if (memberId != null) {
                 certReq.setMember(identifierDAO.findOrCreateClientId(session, memberId));
             }

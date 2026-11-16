@@ -55,6 +55,12 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(6183)
             .build();
 
+    /** {@code xroad.dataspace.issuer.statuslist-port}. */
+    public static final ConfigKey<Integer> ISSUER_STATUSLIST_PORT = ISSUER
+            .integer("statuslist-port")
+            .withDefaultValue(6187)
+            .build();
+
     /** {@code xroad.dataspace.issuer.issuance-port}. */
     public static final ConfigKey<Integer> ISSUER_ISSUANCE_PORT = ISSUER
             .integer("issuance-port")

@@ -46,6 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -55,9 +56,13 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.time.CallBudget;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
+import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
+import org.niis.xroad.edc.assetaccess.proto.ReportCounterPartyFailureReq;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
+import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.nio.charset.StandardCharsets;
@@ -72,6 +77,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -124,13 +131,12 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .setProtocol("http-dsp-profile-2025-1")
                 .build();
         var response = stub.acquire(request);
@@ -150,8 +156,7 @@ class AssetAccessGrpcServiceTest {
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .build();
         assertThatThrownBy(() -> stub.acquire(request))
                 .isInstanceOf(StatusRuntimeException.class)
@@ -169,13 +174,12 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .build();
         var response = stub.acquire(request);
 
@@ -195,13 +199,12 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .build();
         var response = stub.acquire(request);
 
@@ -221,13 +224,12 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .build();
         var response = stub.acquire(request);
 
@@ -361,12 +363,47 @@ class AssetAccessGrpcServiceTest {
         }
     }
 
+    @Test
+    void emptyCandidateListIsRejectedWithoutCallingOrchestrator() {
+        var request = baseRequest().clearCandidates().build();
+
+        assertThatThrownBy(() -> stub.acquire(request))
+                .isInstanceOf(StatusRuntimeException.class)
+                .satisfies(ex -> {
+                    var proto = unpackProto((StatusRuntimeException) ex);
+                    assertThat(proto.getErrorCode())
+                            .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                    assertThat(proto.getDetails()).isEqualTo("Empty candidate list");
+                });
+        verifyNoInteractions(assetAccessOrchestrator, participantContextService);
+    }
+
+    @ParameterizedTest
+    @MethodSource("candidatesWithBlankIdOrAddress")
+    void acquireWithABlankCandidateIdOrAddressIsInvalidArgumentAndReachesNoOrchestration(
+            String counterPartyId, String counterPartyAddress) {
+        var request = baseRequest().addCandidates(candidate(counterPartyId, counterPartyAddress)).build();
+
+        assertThatThrownBy(() -> stub.acquire(request))
+                .isInstanceOf(StatusRuntimeException.class)
+                .satisfies(ex -> assertThat(((StatusRuntimeException) ex).getStatus().getCode())
+                        .isEqualTo(Status.Code.INVALID_ARGUMENT));
+        verifyNoInteractions(assetAccessOrchestrator, participantContextService);
+    }
+
+    private static Stream<Arguments> candidatesWithBlankIdOrAddress() {
+        return Stream.of(
+                Arguments.of("", "http://provider/dsp"),
+                Arguments.of("  ", "http://provider/dsp"),
+                Arguments.of("provider-2", ""),
+                Arguments.of("provider-2", "  "));
+    }
+
     private AcquireAssetAccessReq.Builder baseRequest() {
         return AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp");
+                .addCandidates(candidate("provider-1", "http://provider/dsp"));
     }
 
     private String extractErrorCode(StatusRuntimeException ex) {
@@ -418,6 +455,67 @@ class AssetAccessGrpcServiceTest {
     }
 
     @Test
+    void acquireForwardsCandidatesInOrder() {
+        var captor = stubOrchestratorCapturingRequest();
+
+        stub.acquire(minimalRequest()
+                .clearCandidates()
+                .addCandidates(candidate("provider-b", "http://b/dsp"))
+                .addCandidates(candidate("provider-a", "http://a/dsp"))
+                .build());
+
+        var forwarded = captor.getValue();
+        assertThat(forwarded.candidates()).containsExactly(
+                new AssetAccessRequest.Candidate("provider-b", "http://b/dsp"),
+                new AssetAccessRequest.Candidate("provider-a", "http://a/dsp"));
+    }
+
+    @Test
+    void acquireResponseNamesWinner() {
+        stubParticipantContext();
+        var dataAddress = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property(EDC_NS + "endpoint", "http://provider/api/data")
+                .build();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), any(AssetAccessRequest.class),
+                any()))
+                .thenReturn(CompletableFuture.completedFuture(new AssetAccessResult(
+                        dataAddress, new AssetAccessResult.Winner("provider-b", "http://b.example.org/dsp"))));
+
+        var response = stub.acquire(minimalRequest().build());
+
+        assertThat(response.getWinner().getCounterPartyId()).isEqualTo("provider-b");
+        assertThat(response.getWinner().getCounterPartyAddress()).isEqualTo("http://b.example.org/dsp");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http://a.example.org/dsp", "not a url", "ftp://a.example.org/dsp"})
+    void reportCounterPartyFailureReachesTheOrchestratorWithTheIdAndAddress(String address) {
+        var response = stub.reportCounterPartyFailure(ReportCounterPartyFailureReq.newBuilder()
+                .setCounterPartyId("provider-a")
+                .setCounterPartyAddress(address)
+                .build());
+
+        assertThat(response).isEqualTo(Empty.getDefaultInstance());
+        verify(assetAccessOrchestrator).reportCounterPartyFailure("provider-a", address);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "  "})
+    void reportCounterPartyFailureWithBlankAddressIsInvalidArgumentAndMarksNothing(String address) {
+        var request = ReportCounterPartyFailureReq.newBuilder()
+                .setCounterPartyId("provider-a")
+                .setCounterPartyAddress(address)
+                .build();
+
+        assertThatThrownBy(() -> stub.reportCounterPartyFailure(request))
+                .isInstanceOf(StatusRuntimeException.class)
+                .satisfies(ex -> assertThat(((StatusRuntimeException) ex).getStatus().getCode())
+                        .isEqualTo(Status.Code.INVALID_ARGUMENT));
+        verifyNoInteractions(assetAccessOrchestrator);
+    }
+
+    @Test
     void acquireWithoutClientIdForwardsNull() {
         var captor = stubOrchestratorCapturingRequest();
 
@@ -456,7 +554,7 @@ class AssetAccessGrpcServiceTest {
     @Test
     void anAcquisitionThatOutlastsTheBudgetFailsWithATimeoutAndCancelsItsWaiter() {
         stubParticipantContext();
-        var waiter = new CompletableFuture<ServiceResult<DataAddress>>();
+        var waiter = new CompletableFuture<AssetAccessResult>();
         when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any())).thenReturn(waiter);
 
         assertThatThrownBy(() -> stub.acquire(minimalRequest().setTimeoutMillis(200).build()))
@@ -469,7 +567,7 @@ class AssetAccessGrpcServiceTest {
     @Test
     void aCallerThatGivesUpCancelsItsWaiter() {
         stubParticipantContext();
-        var waiter = new CompletableFuture<ServiceResult<DataAddress>>();
+        var waiter = new CompletableFuture<AssetAccessResult>();
         when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any())).thenReturn(waiter);
 
         assertThatThrownBy(() -> stub.withDeadlineAfter(300, TimeUnit.MILLISECONDS)
@@ -489,7 +587,7 @@ class AssetAccessGrpcServiceTest {
         var captor = ArgumentCaptor.forClass(CallBudget.class);
         when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), any(AssetAccessRequest.class),
                 captor.capture()))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
         return captor;
     }
 
@@ -501,15 +599,25 @@ class AssetAccessGrpcServiceTest {
                 .build();
         var captor = ArgumentCaptor.forClass(AssetAccessRequest.class);
         when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), captor.capture(), any()))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
         return captor;
+    }
+
+    private static AssetAccessResult resultOf(DataAddress dataAddress) {
+        return new AssetAccessResult(dataAddress, new AssetAccessResult.Winner("provider-1", "http://provider/dsp"));
+    }
+
+    private static AssetAccessCandidate candidate(String counterPartyId, String counterPartyAddress) {
+        return AssetAccessCandidate.newBuilder()
+                .setCounterPartyId(counterPartyId)
+                .setCounterPartyAddress(counterPartyAddress)
+                .build();
     }
 
     private static AcquireAssetAccessReq.Builder minimalRequest() {
         return AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp");
+                .addCandidates(candidate("provider-1", "http://provider/dsp"));
     }
 }

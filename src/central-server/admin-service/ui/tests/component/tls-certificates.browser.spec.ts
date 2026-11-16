@@ -142,19 +142,15 @@ describe('0860 — CS TLS Certificates — download certificate trigger (Browser
 
 describe('0860 — CS TLS Certificates — regenerate key shows confirm dialog; hash updates (Browser Mode)', () => {
   it('clicking regenerate opens a confirm dialog; after confirm the hash in the table updates', async () => {
-    let certCallCount = 0;
+    let cert = certDetails;
     await renderRoute(TLS_CERTIFICATES_PATH, {
       permissions: allPermissions,
       msw: [
-        specHttp.get('/management-services-configuration/certificate', ({ response }) => {
-          certCallCount += 1;
-          return certCallCount === 1
-            ? response(200).json(certDetails)
-            : response(200).json(certDetailsAfterRegenerate);
+        specHttp.get('/management-services-configuration/certificate', ({ response }) => response(200).json(cert)),
+        specHttp.post('/management-services-configuration/certificate', ({ response }) => {
+          cert = certDetailsAfterRegenerate;
+          return response(201).empty();
         }),
-        specHttp.post('/management-services-configuration/certificate', ({ response }) =>
-          response(201).empty(),
-        ),
       ],
     });
 

@@ -101,20 +101,20 @@ const basePermissions = [
 
 describe('0560 — CS OCSP Responders — add OCSP responder and list render (Browser Mode)', () => {
   it('add button opens dialog; after save the new responder appears in the list', async () => {
-    let ocspCallCount = 0;
+    let responders: (typeof ocspWithCert)[] = [];
     await renderRoute(csOcspPath, {
       permissions: [...basePermissions, Permissions.ADD_APPROVED_CA],
       msw: [
         specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
           response(200).json(caDetail),
         ),
-        specHttp.get('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) => {
-          ocspCallCount += 1;
-          return ocspCallCount === 1 ? response(200).json([]) : response(200).json([ocspWithCert]);
-        }),
-        specHttp.post('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) =>
-          response(201).json(ocspWithCert),
+        specHttp.get('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) =>
+          response(200).json(responders),
         ),
+        specHttp.post('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) => {
+          responders = [ocspWithCert];
+          return response(201).json(ocspWithCert);
+        }),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],
@@ -136,7 +136,7 @@ describe('0560 — CS OCSP Responders — add OCSP responder and list render (Br
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
-    await expect.element(page.getByText('http://ocsp.example.com').first()).toBeVisible();
+    await expect.element(page.getByTestId('ocsp-responders-table').getByText('http://ocsp.example.com')).toBeVisible();
   });
 });
 
@@ -191,20 +191,20 @@ describe('0560 — CS OCSP Responders — list table render, sort, view cert, an
 describe('0560 — CS OCSP Responders — edit dialog render with cert view and URL/cost fields (Browser Mode)', () => {
   it('edit button opens dialog showing current URL, cost-type radios, cert-view, and cert-change controls', async () => {
     const updatedOcsp = { ...ocspWithCert, url: 'http://ocsp-updated.example.com', cost_type: 'PAID' as OcspResponder['cost_type'] };
-    let ocspCallCount = 0;
+    let responders = [ocspWithCert];
     await renderRoute(csOcspPath, {
       permissions: [...basePermissions, Permissions.EDIT_APPROVED_CA],
       msw: [
         specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
           response(200).json(caDetail),
         ),
-        specHttp.get('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) => {
-          ocspCallCount += 1;
-          return ocspCallCount === 1 ? response(200).json([ocspWithCert]) : response(200).json([updatedOcsp]);
-        }),
-        specHttp.patch('/ocsp-responders/{ocsp_responder_id}', ({ response }) =>
-          response(200).json(updatedOcsp),
+        specHttp.get('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) =>
+          response(200).json(responders),
         ),
+        specHttp.patch('/ocsp-responders/{ocsp_responder_id}', ({ response }) => {
+          responders = [updatedOcsp];
+          return response(200).json(updatedOcsp);
+        }),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],
@@ -228,26 +228,26 @@ describe('0560 — CS OCSP Responders — edit dialog render with cert view and 
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
-    await expect.element(page.getByText('http://ocsp-updated.example.com').first()).toBeVisible();
+    await expect.element(page.getByTestId('ocsp-responders-table').getByText('http://ocsp-updated.example.com')).toBeVisible();
   });
 });
 
 describe('0560 — CS OCSP Responders — delete OCSP responder from list (Browser Mode)', () => {
   it('delete button triggers confirm dialog; after confirm the responder is removed', async () => {
-    let ocspCallCount = 0;
+    let responders = [ocspWithCert];
     await renderRoute(csOcspPath, {
       permissions: [...basePermissions, Permissions.DELETE_APPROVED_CA],
       msw: [
         specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
           response(200).json(caDetail),
         ),
-        specHttp.get('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) => {
-          ocspCallCount += 1;
-          return ocspCallCount === 1 ? response(200).json([ocspWithCert]) : response(200).json([]);
-        }),
-        specHttp.delete('/ocsp-responders/{ocsp_responder_id}', ({ response }) =>
-          response(204).empty(),
+        specHttp.get('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) =>
+          response(200).json(responders),
         ),
+        specHttp.delete('/ocsp-responders/{ocsp_responder_id}', ({ response }) => {
+          responders = [];
+          return response(204).empty();
+        }),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],

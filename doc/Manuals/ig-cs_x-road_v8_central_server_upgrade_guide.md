@@ -2,16 +2,18 @@
 
 **X-ROAD 8**
 
-Version: 1.0
+Version: 1.2
 Doc. ID: IG-CS-8-UPGRADE
 
 ---
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description     | Author             |
-|------------|---------|-----------------|--------------------|
-| 19.05.2026 | 1.0     | Initial version | Egidijus Milierius |
+| Date       | Version | Description                                    | Author             |
+|------------|---------|------------------------------------------------|--------------------|
+| 19.05.2026 | 1.0     | Initial version                                | Egidijus Milierius |
+| 11.11.2026 | 1.1     | Carry the node name before the package upgrade | Ričardas Bučiūnas  |
+| 12.11.2026 | 1.2     | Keep db.properties; add `--installation=cs`    | Ričardas Bučiūnas  |
 
 ## License
 
@@ -60,7 +62,7 @@ This document applies to X-Road 8 Beta 2. Pre-release software may behave differ
 | Operating system | Ubuntu Server 22.04 / 24.04 LTS |
 | Current X-Road version | 7.8.x (any patch level). Earlier versions must first be upgraded to 7.8.x. |
 | PostgreSQL major version | 15 or newer for the `centerui` database |
-| Java | Java 25 must be installable from the OS package repositories (the X-Road 8 packages depend on it) |
+| Java | Java 25 must be installable from the OS package repositories (the X-Road 8 packages depend on it). Step 8 installs it before the package upgrade, because `migration-cli.jar` needs it. |
 | Network reachability | Outbound HTTPS to `https://artifactory.niis.org` (X-Road 8 packages, GPG key, migration CLI) and `https://pkgs.openbao.org` (OpenBao packages) |
 | Root / sudo access | Required for all steps |
 | Backup | A current backup of the Central Server (configuration, `centerui` database, signer keys) is **mandatory** |
@@ -107,15 +109,13 @@ chmod 600 "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz"
 mv "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz" /etc/xroad/
 ```
 
-**3. Migrate db.properties to V8 format.** Prefix every `key = value` line with `xroad.db.` (comments, blank lines, and already-prefixed lines pass through). Keep a `.bak` of the original.
+**3. Back up db.properties.** Keep a `.bak` of the original. Do not edit `/etc/xroad/db.properties`: X-Road 8 reads it in the same format as X-Road 7.8.
 
 ```bash
 cp -p /etc/xroad/db.properties /etc/xroad/db.properties.bak
-sed -E -i '/^[[:space:]]*([#!]|xroad\.db\.|$)/b; s/^([[:space:]]*)([^=[:space:]]+)([[:space:]]*=)/\1xroad.db.\2\3/' \
-  /etc/xroad/db.properties
 ```
 
-**4. Verify PostgreSQL version.** Read the `centerui` JDBC URL from `/etc/xroad/db.properties` (the V7 key was `centerui.hibernate.connection.url`; after step 3 it is `xroad.db.centerui.hibernate.connection.url`) and connect:
+**4. Verify PostgreSQL version.** Read the `centerui` JDBC URL from the `spring.datasource.url` key in `/etc/xroad/db.properties`. Read the `psql` user and password from the `spring.datasource.username` and `spring.datasource.password` keys in the same file. Then connect:
 
 ```bash
 PGPASSWORD='<centerui-password>' \
@@ -161,7 +161,25 @@ echo "deb [signed-by=/usr/share/keyrings/xroad-keyring.asc] https://artifactory.
 apt-get update
 ```
 
-**8. Upgrade the Central Server packages.** The package scripts may start the X-Road services. A service that starts now runs as `node_0`, because `/etc/xroad/conf.d/node.ini` does not exist yet. Step 9 stops these services again.
+**8. Carry the node name.** Install Java 25 on the X-Road 7.8 host. `migration-cli.jar`, staged in [Before you start](#before-you-start), is compiled for Java 25, and the X-Road 7.8 packages install only Java 21.
+
+```bash
+apt-get install -y openjdk-25-jre-headless
+java -version 2>&1 | head -n 1
+```
+
+The first line of the output must report version 25. If it reports another version, run `update-alternatives --config java`, choose the Java 25 entry and check again.
+
+Then carry the node name from X-Road 7 into `node.ini`. The option `--installation=cs` tells the tool that the host is a Central Server. The tool then reads the `spring.datasource.*` keys of `db.properties`, and it refuses sub-commands that apply only to a Security Server.
+
+```bash
+java -jar /var/tmp/migration-cli.jar node-name --installation=cs /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/node.ini
+[ -f /etc/xroad/conf.d/node.ini ] && chown xroad:xroad /etc/xroad/conf.d/node.ini
+```
+
+Run the `node-name` sub-command before the package upgrade in step 9, so that the package scripts, the TLS step and the first start of the Central Server services see the node name. X-Road 7.8 keeps the node name in `[center] ha-node-name` of `/etc/xroad/conf.d/local.ini`. X-Road 8 reads it from the `name` key of the `[node]` section in `/etc/xroad/conf.d/node.ini`. The sub-command creates `node.ini` if it does not exist and keeps its other keys, such as `[node] type`. It changes nothing when `ha-node-name` is empty or missing, and when `node.ini` already holds the same name. It stops without writing anything when the name is not valid (it must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long, so a host name with dots is not valid) or when `node.ini` holds a different name. If the name is not valid, choose a valid name and set it in `[node] name` of `node.ini` yourself. The database rows keyed by the old name stay behind under that name. The X-Road 7.8 package scripts give the `xroad` user ownership of the files in `/etc/xroad/conf.d`. The `chown` line gives a newly created `node.ini` the same owner.
+
+**9. Upgrade the Central Server packages.** The package scripts may start the X-Road services. A service that starts now uses the node name from step 8. Stop these services again after the installation.
 
 ```bash
 DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-centralserver
@@ -175,7 +193,7 @@ dpkg-query -W -f='${Version}\n' xroad-center
 
 The output must now begin with `8.`.
 
-**9. Stop the Central Server services that started.** Stop every active X-Road service except `xroad-secret-store-local`, which step 10 needs:
+Stop every active X-Road service except `xroad-secret-store-local`, which step 10 needs:
 
 ```bash
 mapfile -t SERVICES < <(systemctl list-units --type=service --state=active 'xroad-*' \
@@ -186,47 +204,46 @@ for s in "${SERVICES[@]}"; do
 done
 ```
 
-**10. Migrate TLS material to the local secret store.** Source `/etc/xroad/services/secret-store-local.conf` to get `XROAD_SECRET_STORE_{SCHEME,HOST,PORT,TOKEN}`, then for each existing pair `/etc/xroad/ssl/{internal,center-admin-service,management-service}.{crt,key}` write a JSON `{"certificate": "...", "privateKey": "..."}` payload to `POST <secret-store>/v1/xrd-secret/tls/<path>`, where `<path>` is `internal`, `admin-service` (for `center-admin-service`), or `management-service`.
+**10. Migrate TLS material to the local secret store.** Source `/etc/xroad/services/secret-store-local.conf` to get `XROAD_SECRET_STORE_{SCHEME,HOST,PORT,TOKEN}`, then for each existing pair `/etc/xroad/ssl/{internal,center-admin-service,management-service}.{crt,key}` write a JSON `{"certificate": "...", "privateKey": "..."}` payload to `POST <secret-store>/v1/xrd-secret/tls/<path>`, where `<path>` is `internal`, `admin-service/<node>` (for `center-admin-service`), or `management-service/<node>`.
 
-The pattern matches what the Security Server wizard does in `migrate_tls_to_secret_store.sh`; if you want a working reference, read that script.
+`<node>` is the name of this Central Server node. Read it from the `name` key of the `[node]` section in `/etc/xroad/conf.d/node.ini`, which step 8 filled in from X-Road 7. If the key is not set, use `node_0`. The name must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long. For example, the node name `node_1` gives the admin service key path `tls/admin-service/node_1`.
 
-**11. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server — each sub-command skips cleanly when its source file is absent, so the operator's job is simply to run the full sequence in order. For a Central Server, the following sub-commands are the relevant ones:
+The Security Server wizard script `migrate_tls_to_secret_store.sh` shows the same request format, but it writes to the Security Server paths `tls/admin-service` and `tls/management-service`. Do not copy its paths: the Central Server reads `tls/admin-service/<node>` and `tls/management-service/<node>`.
+
+The migrated user interface and management services certificates keep their X-Road 7 names. To get certificates with the names stored in the configuration database, delete the key and restart the services as described in [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2. After the management services certificate is replaced, the management Security Server must trust the new certificate.
+
+**11. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server. A sub-command exits with an error when its source file is missing. The `[ -f ]` checks below skip the optional ones. `keyconf` always needs `/etc/xroad/signer/keyconf.xml`. Pass `--installation=cs` to every sub-command. For a Central Server, the following sub-commands are the relevant ones:
 
 ```bash
-# node-name — carry the node name from local.ini to node.ini
-java -jar /var/tmp/migration-cli.jar node-name /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/node.ini
-[ -f /etc/xroad/conf.d/node.ini ] && chown xroad:xroad /etc/xroad/conf.d/node.ini
-
-java -jar /var/tmp/migration-cli.jar validate
+java -jar /var/tmp/migration-cli.jar validate --installation=cs
 
 # devices.ini — HSM/signer module declarations
 [ -f /etc/xroad/devices.ini ] && \
-  java -jar /var/tmp/migration-cli.jar signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
+  java -jar /var/tmp/migration-cli.jar signer-devices --installation=cs /etc/xroad/devices.ini /etc/xroad/db.properties
 
 # ini-to-db — every override-*.ini, then local.ini
 for ini in /etc/xroad/conf.d/override-*.ini /etc/xroad/conf.d/local.ini; do
-  [ -f "$ini" ] && java -jar /var/tmp/migration-cli.jar ini-to-db "$ini" /etc/xroad/db.properties
+  [ -f "$ini" ] && java -jar /var/tmp/migration-cli.jar ini-to-db --installation=cs "$ini" /etc/xroad/db.properties
 done
+
+# <node> is the node name from step 10; --node may be left out only for node_0
 
 # keyconf — signer state (soft token PIN required)
 XROAD_MIGRATION_SOFTTOKEN_PIN='<pin>' \
-  java -jar /var/tmp/migration-cli.jar keyconf /etc/xroad/signer /etc/xroad/db.properties
+  java -jar /var/tmp/migration-cli.jar keyconf --installation=cs --node <node> /etc/xroad/signer /etc/xroad/db.properties
 
 # signer-token-pins — only if xroad-autologin is installed
-# <node> is the node name described below; --node may be left out only for node_0
 if [ -f /usr/share/xroad/autologin/custom-fetch-pin.sh ] \
    || [ -f /usr/share/xroad/autologin/default-fetch-pin.sh ]; then
-  java -jar /var/tmp/migration-cli.jar signer-token-pins --node <node>
+  java -jar /var/tmp/migration-cli.jar signer-token-pins --installation=cs --node <node>
 fi
 ```
 
-The `node-name` sub-command must run first: it runs after step 9 has stopped the services and before any service starts again. X-Road 7.8 keeps the node name in `[center] ha-node-name` of `/etc/xroad/conf.d/local.ini`. X-Road 8 reads it from the `name` key of the `[node]` section in `/etc/xroad/conf.d/node.ini`. The sub-command creates `node.ini` if it does not exist and keeps its other keys, such as `[node] type`. It changes nothing when `ha-node-name` is empty or missing, and when `node.ini` already holds the same name. It stops without writing anything when the name is not valid (it must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long, so a host name with dots is not valid) or when `node.ini` holds a different name. If the name is not valid, choose a valid name and set it in `[node] name` of `node.ini` yourself. The database rows keyed by the old name stay behind under that name. The package upgrade has already set the ownership of `/etc/xroad/conf.d`, so the `chown` line gives a newly created `node.ini` the same owner.
+With `--node <node>`, `keyconf` writes the signer keys and certificates under the node name, so the signer on this node sees only its own rows, and `signer-token-pins` stores the PINs in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
 
-`<node>` is the name of this Central Server node. Read it from the `name` key of the `[node]` section in `/etc/xroad/conf.d/node.ini`, which the `node-name` sub-command filled in from X-Road 7. If the key is not set, use `node_0`. The name must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long.
+Review the `keyconf` output. A ⚠ line that says `already exists` is expected when you run the step again. Act only on lines marked ❌ and on lines that say a key was skipped. Such a line means that a soft token key file was not migrated; `keyconf` still exits with status 0. To restore the key, put `<keyId>.p12` back under `/etc/xroad/signer/softtoken/` and run `keyconf` again. Running `keyconf` again is safe: it saves only the items that are not yet in the database.
 
-With `--node <node>`, the PINs are stored in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
-
-**Treat any Java stack trace as a failure even if the process exits 0** — do not proceed if a step printed an exception. The migration-CLI scans for `Error `, `Caused by:`, `Exception in `, and `<Class>Exception:` patterns when run from the Security Server wizard, so the same patterns are reliable signals here.
+Stop and investigate when any command exits with a non-zero status. A failed sub-command often prints a Java stack trace too. Do not proceed if a command printed an exception. The Security Server wizard looks for the patterns `Error `, `Caused by:`, `Exception in ` and `<Class>Exception:` in the output, and the same patterns are reliable signals here.
 
 **12. Start Central Server services.**
 
@@ -274,13 +291,15 @@ Every X-Road package should be on `8.x`.
 
 ## Rollback
 
-The upgrade is destructive once steps 7 (repo switch) and 8 (package install) have run. Once the migration-CLI has executed against the `centerui` database, the schema and configuration data are V8.
+The upgrade is destructive once steps 7 (repo switch) and 9 (package install) have run. Once the migration-CLI has executed against the `centerui` database, the schema and configuration data are V8.
 
 **Snapshot restore (recommended).** Restore the host snapshot taken in [Before you start](#before-you-start).
 
-**Restore /etc/xroad and the centerui database from backup.** If no snapshot is available, restore the pre-upgrade backup on top of a freshly-reinstalled 7.8 Central Server. The `/etc/xroad/xroad-pre-v8-backup-*.tar.gz` written in step 2 covers `/etc/xroad/` only; the database must come from your standard CS backup. The `node-name` sub-command in step 11 may have written `/etc/xroad/conf.d/node.ini`; the backup does not contain it, so delete that file when you restore over a tree that already has it.
+**Restore /etc/xroad and the centerui database from backup.** If no snapshot is available, restore the pre-upgrade backup on top of a freshly-reinstalled 7.8 Central Server. The `/etc/xroad/xroad-pre-v8-backup-*.tar.gz` written in step 2 covers `/etc/xroad/` only; the database must come from your standard CS backup. The `node-name` sub-command in step 8 may have written `/etc/xroad/conf.d/node.ini`; the backup does not contain it, so delete that file when you restore over a tree that already has it.
 
-**The procedure halts before destructive change when preflight fails.** Steps 1–6 can be undone without a rollback procedure: restore `/etc/xroad/db.properties.bak`, remove the OpenBao sources file, and `systemctl start` the services. Beta 2 does not support a package-level downgrade as a primary rollback strategy.
+**The procedure halts before destructive change when preflight fails.** Steps 1–6 can be undone without a rollback procedure: remove the OpenBao sources file, and `systemctl start` the services. Beta 2 does not support a package-level downgrade as a primary rollback strategy.
+
+**The package installation in step 9 changes `/etc/xroad/db.properties`.** Steps 1–6 do not change it. To get the original file back, copy `/etc/xroad/db.properties.bak` from step 3 over it.
 
 ## Troubleshooting
 
@@ -302,7 +321,7 @@ The upgrade is destructive once steps 7 (repo switch) and 8 (package install) ha
 
 **Getting help:**
 
-X-Road is an open source project. Open a GitHub issue at <https://github.com/nordic-institute/X-Road/issues> with the migration-CLI output and your `/etc/xroad/db.properties.bak` attached. <!-- TBD beta 2 discussion URL -->
+X-Road is an open source project. Open a GitHub issue at <https://github.com/nordic-institute/X-Road/issues> with the migration-CLI output attached. If a `db.properties` file is needed, remove the database password from it first. <!-- TBD beta 2 discussion URL -->
 
 ## References
 

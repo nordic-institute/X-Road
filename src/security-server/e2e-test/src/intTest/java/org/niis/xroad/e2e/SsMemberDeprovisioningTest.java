@@ -27,7 +27,6 @@ package org.niis.xroad.e2e;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.Assumptions;
@@ -38,23 +37,21 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
-import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
-import static org.niis.xroad.e2e.AdminApi.authed;
 import static org.niis.xroad.e2e.AdminApi.awaitClientRegistered;
+import static org.niis.xroad.e2e.AdminApi.awaitMemberCredentialIssued;
 import static org.niis.xroad.e2e.AdminApi.deleteClient;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.AdminApi.registerClient;
 import static org.niis.xroad.e2e.AdminApi.unregisterClient;
+import static org.niis.xroad.e2e.SignCertificateOps.provisionSignCertificate;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -68,9 +65,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * issuer, without touching anyone else's, once it does so.
  *
  * <p>Registers a dedicated member ({@code DEV:COM:5678:DeprovisioningService}), new to this run,
- * entirely through ss0's own admin API — local client add, sign-key CSR generation, signing by the test
- * CA, import, registration — the same bootstrap {@link SsProxyDspRuntimeMemberTest} performs for its own
- * runtime member, so this scenario never touches a member any earlier class in the suite depends on.
+ * through ss0's own admin API, so this scenario never touches a member any earlier class in the suite
+ * depends on.
  * Once the member's participant context and membership credential are confirmed provisioned (so the
  * later "gone" assertions prove an actual removal, not a state that was never reached), its only client
  * is unregistered and deleted. Deleting a member's last client is, once binding rows are written at
@@ -97,12 +93,9 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @DisplayName("SS dataspace - deleting a member's last client tears down its dataspace presence")
 @Order(375)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Slf4j
-@SuppressWarnings({"checkstyle:magicnumber", "unchecked"})
 class SsMemberDeprovisioningTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
-    private static final String CA_ENV = "ca";
 
     private static final String X_ROAD_INSTANCE = "DEV";
     private static final String MEMBER_CLASS = "COM";
@@ -113,8 +106,11 @@ class SsMemberDeprovisioningTest extends E2eTest {
     private static final String CLIENT_ID =
             X_ROAD_INSTANCE + ":" + MEMBER_CLASS + ":" + MEMBER_CODE + ":" + SUBSYSTEM_CODE;
 
+    /** The member's {@code INSTANCE:CLASS:CODE} id, as the admin API reports it. */
+    private static final String MEMBER_ID = X_ROAD_INSTANCE + ":" + MEMBER_CLASS + ":" + MEMBER_CODE;
+
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for this member. */
-    private static final String MEMBER_CTX_ID = X_ROAD_INSTANCE + ":" + MEMBER_CLASS + ":" + MEMBER_CODE;
+    private static final String MEMBER_CTX_ID = MEMBER_ID;
 
     /**
      * ss0's own owner member, provisioned once at environment bring-up and left untouched by this
@@ -129,20 +125,6 @@ class SsMemberDeprovisioningTest extends E2eTest {
     private static final int VC_STATE_ISSUED = 500;
     /** {@code VcStatus.REVOKED.code()} (EDC 0.18) — the {@code credential_resource.vc_state} after issuer-side revocation. */
     private static final int VC_STATE_REVOKED = 600;
-
-    /**
-     * ss0's own token, addressed the same way {@code setup.hurl}'s ss0 sign-key block does
-     * ({@code /tokens/0/...}), not ss1's captured hardware-token id.
-     */
-    private static final String SIGN_KEY_TOKEN_ID = "0";
-    private static final String SIGN_KEY_LABEL = "Sign key 5678";
-    /** Same DN convention {@code setup.hurl} uses for every key generated on ss0's token, regardless of member. */
-    private static final String SIGN_KEY_SERIAL_NUMBER = "DEV/SS0/COM";
-
-    private static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
-
-    private static final Duration PROVISIONING_POLL_TIMEOUT = Duration.ofMinutes(5);
-    private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
 
     /**
      * The reconciler that drives teardown convergence (the provisioning worker's scheduled tick) runs
@@ -171,23 +153,6 @@ class SsMemberDeprovisioningTest extends E2eTest {
      */
     private static final int DID_NOT_FOUND_STATUS = 404;
 
-    private record GeneratedCsr(String keyId, String csrId) {
-    }
-
-    private record ImportedCertificate(String hash, boolean active) {
-    }
-
-    /**
-     * The outcome of scanning ss0's token for sign material already belonging to this member: either a
-     * certificate ({@code certHash} set), a CSR generated but never signed/imported on a previous,
-     * interrupted run ({@code pendingCsrKeyId}/{@code pendingCsrId} set), or neither.
-     */
-    private record TokenScanResult(String certHash, boolean active, String pendingCsrKeyId, String pendingCsrId) {
-        static TokenScanResult none() {
-            return new TokenScanResult(null, false, null, null);
-        }
-    }
-
     @Test
     @Order(1)
     @DisplayName("Deleting a member's last client removes its DID document and control-plane context")
@@ -201,7 +166,6 @@ class SsMemberDeprovisioningTest extends E2eTest {
 
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
         var csBaseUrl = CentralServerApi.baseUrl(env);
-        var caBaseUrl = caBaseUrl(env);
 
         var ss0Session = given("an admin session is established on ss0", () -> login(ss0BaseUrl));
 
@@ -209,7 +173,7 @@ class SsMemberDeprovisioningTest extends E2eTest {
                 addLocalClient(ss0BaseUrl, ss0Session, CLIENT_ID));
 
         and("a CA-signed sign certificate for the member is provisioned on ss0's token", () ->
-                provisionSignCertificate(env, ss0BaseUrl, ss0Session, caBaseUrl));
+                provisionSignCertificate(env, ss0Session, MEMBER_ID));
 
         and("its registration is submitted from ss0 to the Central Server", () ->
                 registerClient(ss0BaseUrl, ss0Session, clientId));
@@ -221,7 +185,7 @@ class SsMemberDeprovisioningTest extends E2eTest {
 
         then("the member's participant context and membership credential are provisioned, so the later "
                 + "absence assertions prove a real removal", () ->
-                awaitMemberContextIssued(ss0BaseUrl, ss0Session));
+                awaitMemberCredentialIssued(ss0BaseUrl, ss0Session, MEMBER_CTX_ID));
 
         when("the member's only client on ss0 is unregistered", () ->
                 unregisterClient(ss0BaseUrl, ss0Session, clientId));
@@ -252,200 +216,6 @@ class SsMemberDeprovisioningTest extends E2eTest {
 
         and("ss0's owner member keeps its own credential issued, unaffected by the removal", () ->
                 assertCredentialRemainsIssued(issuerDbOps, expectedHolderDid(env, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE)));
-    }
-
-    /**
-     * The test CA's cert-issuance endpoint is plain HTTP, unlike the admin APIs above, mirroring
-     * {@code setup.hurl}'s own {@code http://{{ca_host}}:8888/testca/sign} calls.
-     */
-    private String caBaseUrl(E2eEnvironment env) {
-        var mapping = env.getContainerMapping(CA_ENV, SsStackSetup.CA, SsStackSetup.Port.CA_API);
-        return "http://%s:%s".formatted(mapping.host(), mapping.port());
-    }
-
-    /**
-     * Provisions a CA-signed sign certificate for the member on ss0's token, mirroring
-     * {@code setup.hurl}'s own ss0 sign-key block for {@link #MEMBER_CTX_ID} instead of ss0's own owner
-     * member. The admin API rejects a SIGNING CSR for a member id that is not yet a local client (see
-     * {@code TokenCertificateService.generateCertRequest}), which is why this runs after
-     * {@link AdminApi#addLocalClient}, not at environment bring-up.
-     *
-     * <p>Tolerant of a warm rerun at every stage: an existing certificate for the member is reused
-     * outright; an existing CSR with no certificate yet (a previous run that crashed mid-flow) is signed
-     * and imported without generating a new key. A certificate the signer could not activate inline is
-     * activated explicitly through the same endpoint an administrator would use.
-     */
-    private void provisionSignCertificate(E2eEnvironment env, String ss0BaseUrl, AdminSession ss0, String caBaseUrl) {
-        var existing = scanTokenForMemberSignMaterial(ss0BaseUrl, ss0);
-        String certHash = existing.certHash();
-        boolean active = existing.active();
-
-        if (certHash == null) {
-            var pending = existing.pendingCsrKeyId() != null
-                    ? new GeneratedCsr(existing.pendingCsrKeyId(), existing.pendingCsrId())
-                    : generateSignCsr(ss0BaseUrl, ss0, env.securityServerAddress(SS0_ENV));
-            var csrBytes = fetchCsrBytes(ss0BaseUrl, ss0, pending.keyId(), pending.csrId());
-            var certBytes = signWithTestCa(caBaseUrl, csrBytes);
-            var imported = importSignCertificate(ss0BaseUrl, ss0, certBytes);
-            certHash = imported.hash();
-            active = imported.active();
-        }
-
-        if (!active) {
-            activateSignCertificate(ss0BaseUrl, ss0, certHash);
-        }
-    }
-
-    /**
-     * Looks for sign material already belonging to {@link #MEMBER_CTX_ID} on ss0's token: a {@code Key}'s
-     * {@code certificates}/{@code certificate_signing_requests} both carry an {@code owner_id} field
-     * identifying the client they were issued for, so a warm rerun is detected without needing a
-     * deterministic key label.
-     */
-    private TokenScanResult scanTokenForMemberSignMaterial(String ss0BaseUrl, AdminSession ss0) {
-        var response = authed(ss0).get(ss0BaseUrl + "/api/v1/tokens/" + SIGN_KEY_TOKEN_ID);
-        assertThat(response.getStatusCode()).as("look up ss0's token %s", SIGN_KEY_TOKEN_ID).isEqualTo(200);
-
-        for (Map<String, Object> key : response.jsonPath().getList("keys", Map.class)) {
-            for (Map<String, Object> cert : (List<Map<String, Object>>) key.get("certificates")) {
-                if (MEMBER_CTX_ID.equals(cert.get("owner_id"))) {
-                    var certificateDetails = (Map<String, Object>) cert.get("certificate_details");
-                    return new TokenScanResult(
-                            (String) certificateDetails.get("hash"), Boolean.TRUE.equals(cert.get("active")), null, null);
-                }
-            }
-            for (Map<String, Object> csr : (List<Map<String, Object>>) key.get("certificate_signing_requests")) {
-                if (MEMBER_CTX_ID.equals(csr.get("owner_id"))) {
-                    return new TokenScanResult(null, false, (String) key.get("id"), (String) csr.get("id"));
-                }
-            }
-        }
-        return TokenScanResult.none();
-    }
-
-    private String fetchCaName(String ss0BaseUrl, AdminSession ss0) {
-        var response = authed(ss0).get(ss0BaseUrl + "/api/v1/certificate-authorities");
-        assertThat(response.getStatusCode()).as("look up ss0's approved certificate authorities").isEqualTo(200);
-        return response.jsonPath().getString("[0].name");
-    }
-
-    /**
-     * Generates the member's SIGNING key/CSR on ss0's token, same DN field conventions as
-     * {@code setup.hurl}'s ss0 sign-key block for {@code DEV:COM:1234}, just for {@link #MEMBER_CTX_ID}'s
-     * identity instead.
-     */
-    private GeneratedCsr generateSignCsr(String ss0BaseUrl, AdminSession ss0, String ss0SecurityServerAddress) {
-        var caName = fetchCaName(ss0BaseUrl, ss0);
-        var body = """
-                {
-                  "key_label": "%s",
-                  "csr_generate_request": {
-                    "key_usage_type": "SIGNING",
-                    "ca_name": "%s",
-                    "csr_format": "DER",
-                    "member_id": "%s",
-                    "subject_field_values": {
-                      "CN": "%s",
-                      "C": "FI",
-                      "O": "Test client",
-                      "subjectAltName": "%s",
-                      "serialNumber": "%s"
-                    }
-                  }
-                }
-                """.formatted(SIGN_KEY_LABEL, caName, MEMBER_CTX_ID, MEMBER_CODE,
-                ss0SecurityServerAddress, SIGN_KEY_SERIAL_NUMBER);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/tokens/" + SIGN_KEY_TOKEN_ID + "/keys-with-csrs");
-        // Same quirk as setup.hurl's ss0 sign-key block: the API returns 200, not the 201 its
-        // own definition promises.
-        assertThat(response.getStatusCode())
-                .as("generate a SIGNING CSR for %s on ss0's token", MEMBER_CTX_ID)
-                .isEqualTo(200);
-        return new GeneratedCsr(response.jsonPath().getString("key.id"), response.jsonPath().getString("csr_id"));
-    }
-
-    private byte[] fetchCsrBytes(String ss0BaseUrl, AdminSession ss0, String keyId, String csrId) {
-        var response = authed(ss0).get(ss0BaseUrl + "/api/v1/keys/" + keyId + "/csrs/" + csrId + "?csr_format=PEM");
-        assertThat(response.getStatusCode()).as("fetch CSR %s PEM for key %s", csrId, keyId).isEqualTo(200);
-        return response.getBody().asByteArray();
-    }
-
-    private byte[] signWithTestCa(String caBaseUrl, byte[] csrBytes) {
-        var response = RestAssuredFactory.given()
-                .multiPart("certreq", "sign.csr.pem", csrBytes, "application/octet-stream")
-                .multiPart("type", "sign")
-                .post(caBaseUrl + "/testca/sign");
-        assertThat(response.getStatusCode()).as("sign the member's sign CSR with the test CA").isEqualTo(200);
-        return response.getBody().asByteArray();
-    }
-
-    /**
-     * Imports the CA-signed certificate, tolerating a warm rerun where it was already imported by an
-     * earlier attempt at this same run's key/CSR: {@code TokenCertificateService.importCertificate}
-     * rejects re-importing an identical, already-saved certificate with a {@code ConflictException}
-     * mapped to 409. The 409 body carries no identifiers, so the existing certificate is recovered the
-     * same way {@link #provisionSignCertificate} detects one from a previous run entirely.
-     */
-    private ImportedCertificate importSignCertificate(String ss0BaseUrl, AdminSession ss0, byte[] certBytes) {
-        var response = authed(ss0)
-                .multiPart("certificate", "sign_key_cert.pem", certBytes, "application/octet-stream")
-                .post(ss0BaseUrl + "/api/v1/token-certificates");
-        if (response.getStatusCode() == 409) {
-            log.info("Sign certificate for {} already imported on a warm rerun; looking it up instead of importing again",
-                    MEMBER_CTX_ID);
-            var existing = scanTokenForMemberSignMaterial(ss0BaseUrl, ss0);
-            assertThat(existing.certHash())
-                    .as("an existing sign certificate for %s after a 409 on import", MEMBER_CTX_ID)
-                    .isNotBlank();
-            return new ImportedCertificate(existing.certHash(), existing.active());
-        }
-        assertThat(response.getStatusCode()).as("import the member's sign certificate").isEqualTo(201);
-        return new ImportedCertificate(response.jsonPath().getString("certificate_details.hash"), response.jsonPath().getBoolean("active"));
-    }
-
-    /**
-     * Explicit activation trigger, tolerant of 409: {@code PossibleActionEnum.ACTIVATE} is only offered
-     * for a currently-inactive certificate, so a certificate the import call already activated makes this
-     * a no-op conflict rather than an error.
-     */
-    private void activateSignCertificate(String ss0BaseUrl, AdminSession ss0, String certHash) {
-        var response = authed(ss0).put(ss0BaseUrl + "/api/v1/token-certificates/" + certHash + "/activate");
-        assertThat(response.getStatusCode())
-                .as("activate the member's sign certificate %s (204 first attempt, 409 if already active)", certHash)
-                .isIn(204, 409);
-    }
-
-    /**
-     * Polls the same read-only status endpoint used to confirm provisioning in
-     * {@link SsProxyDspRuntimeMemberTest#awaitMemberContextIssued}, here only to establish that the
-     * member's presence is real before it is torn down — this scenario asserts the teardown outcome
-     * directly against the identity hub and the control plane, not through this endpoint.
-     */
-    private void awaitMemberContextIssued(String ss0BaseUrl, AdminSession ss0) {
-        try {
-            Awaitility.await()
-                    .pollInterval(PROVISIONING_POLL_INTERVAL)
-                    .timeout(PROVISIONING_POLL_TIMEOUT)
-                    .ignoreExceptions()
-                    .until(() -> {
-                        var response = authed(ss0).get(ss0BaseUrl + "/api/v1/dataspace/provisioning-status");
-                        if (response.getStatusCode() != 200) {
-                            return false;
-                        }
-                        var credentialStatus = response.jsonPath().getString(
-                                "participant_contexts.find { it.kind == 'MEMBER' && it.participant_id == '"
-                                        + MEMBER_CTX_ID + "' }.credential_status");
-                        return ISSUED_CREDENTIAL_STATUS.equals(credentialStatus);
-                    });
-        } catch (ConditionTimeoutException e) {
-            throw new ConditionTimeoutException(
-                    ("Timed out waiting for participant context '%s' to reach an ISSUED membership credential; "
-                            + "without this, the later teardown assertions would not prove a real removal")
-                            .formatted(MEMBER_CTX_ID), e);
-        }
     }
 
     /**

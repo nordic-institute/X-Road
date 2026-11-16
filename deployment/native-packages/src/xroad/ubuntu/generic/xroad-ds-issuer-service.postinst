@@ -51,7 +51,7 @@ configure_ds_issuer_runtime() {
 }
 
 if [[ "$1" == "configure" || "$1" == "reconfigure" ]]; then
-  /usr/share/xroad/scripts/setup_ds_issuerservice_db.sh
+  /usr/share/xroad/scripts/setup_ds_issuerservice_db.sh || abort "Database setup failed. ABORTING."
   configure_ds_issuer_runtime "$1"
 fi
 

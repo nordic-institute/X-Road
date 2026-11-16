@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+                   logicalFilePath="centerui/202611041200-issuer-set-up-lease.xml">
+
+    <changeSet author="niis" id="202611041200-issuer-set-up-lease">
+        <comment>Single-flight lease for Issuer Service set-up: one row naming the node currently running set-up and when that claim expires on its own.</comment>
+
+        <createTable tableName="issuer_set_up_lease">
+            <column name="id" type="SMALLINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="owner_node" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="started_at" type="TIMESTAMP(6) WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP(6) WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <sql splitStatements="false">
+            <![CDATA[
+            DROP TRIGGER IF EXISTS update_history ON issuer_set_up_lease;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON issuer_set_up_lease
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

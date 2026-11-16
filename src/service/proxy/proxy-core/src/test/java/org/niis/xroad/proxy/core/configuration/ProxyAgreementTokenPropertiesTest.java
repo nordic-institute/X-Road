@@ -54,6 +54,15 @@ class ProxyAgreementTokenPropertiesTest {
     }
 
     @Test
+    void defaultTokenWindowIsSixtySecondsLifetimePlusFiveSecondsLeeway() {
+        var config = XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).build();
+        var properties = new ProxyAgreementTokenProperties(config);
+
+        assertThat(properties.tokenTtl()).isEqualTo(Duration.ofSeconds(60));
+        assertThat(properties.expiryLeeway()).isEqualTo(Duration.ofSeconds(5));
+    }
+
+    @Test
     void valuesAreReadFromConfiguration() {
         var config = XRoadConfigBuilder.create().register(ProxyConfigKeys.instance())
                 .overrides(Map.of(

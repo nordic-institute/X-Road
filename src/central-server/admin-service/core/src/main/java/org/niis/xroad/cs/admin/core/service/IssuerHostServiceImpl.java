@@ -32,6 +32,7 @@ import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
+import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.validation.DnsNameValidator;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Service;
 import java.util.Locale;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ISSUER_SERVICE_ALREADY_BOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ISSUER_SERVICE_ALREADY_RUNNING;
 
 @Service
 @Transactional
@@ -48,10 +50,16 @@ public class IssuerHostServiceImpl implements IssuerHostService {
     private final SystemParameterService systemParameterService;
     private final DataspaceIssuerDidService dataspaceIssuerDidService;
     private final DnsNameValidator dnsNameValidator;
+    private final IssuerSetUpLeaseService issuerSetUpLeaseService;
 
     @Override
     public IssuerHostState getState() {
-        return new IssuerHostState(systemParameterService.getIssuerServiceHost(), isBound());
+        return new IssuerHostState(getHost(), isBound());
+    }
+
+    @Override
+    public String getHost() {
+        return systemParameterService.getIssuerServiceHost();
     }
 
     @Override
@@ -61,6 +69,9 @@ public class IssuerHostServiceImpl implements IssuerHostService {
 
         if (isBound()) {
             throw new ConflictException(ISSUER_SERVICE_ALREADY_BOUND.build(systemParameterService.getIssuerServiceHost()));
+        }
+        if (issuerSetUpLeaseService.currentHolder().isPresent()) {
+            throw new ConflictException(ISSUER_SERVICE_ALREADY_RUNNING.build());
         }
 
         systemParameterService.updateOrCreateParameter(SystemParameterService.ISSUER_SERVICE_HOST, lowerCaseHost);

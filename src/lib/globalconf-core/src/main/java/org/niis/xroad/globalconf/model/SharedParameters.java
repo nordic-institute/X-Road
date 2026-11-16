@@ -48,6 +48,7 @@ public class SharedParameters {
     private final List<ApprovedTSA> approvedTSAs;
     private final List<ApprovedConnectorTlsCA> approvedConnectorTlsCAs;
     private final List<String> credentialIssuerDids;
+    private final Integer issuerDataFreshnessSeconds;
     private final List<Member> members;
     private final List<SecurityServer> securityServers;
     private final List<GlobalGroup> globalGroups;
@@ -56,22 +57,23 @@ public class SharedParameters {
     public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
                             List<ApprovedTSA> approvedTSAs, List<Member> members, List<SecurityServer> securityServers,
                             List<GlobalGroup> globalGroups, GlobalSettings globalSettings) {
-        this(instanceIdentifier, sources, approvedCAs, approvedTSAs, null, null, members, securityServers, globalGroups,
-                globalSettings);
+        this(instanceIdentifier, sources, approvedCAs, approvedTSAs, null, null, null, members, securityServers,
+                globalGroups, globalSettings);
     }
 
     @Builder(toBuilder = true)
     public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
                             List<ApprovedTSA> approvedTSAs, List<ApprovedConnectorTlsCA> approvedConnectorTlsCAs,
-                            List<String> credentialIssuerDids, List<Member> members,
-                            List<SecurityServer> securityServers, List<GlobalGroup> globalGroups,
-                            GlobalSettings globalSettings) {
+                            List<String> credentialIssuerDids, Integer issuerDataFreshnessSeconds,
+                            List<Member> members, List<SecurityServer> securityServers,
+                            List<GlobalGroup> globalGroups, GlobalSettings globalSettings) {
         this.instanceIdentifier = instanceIdentifier;
         this.sources = sources;
         this.approvedCAs = approvedCAs;
         this.approvedTSAs = approvedTSAs;
         this.approvedConnectorTlsCAs = approvedConnectorTlsCAs != null ? approvedConnectorTlsCAs : List.of();
         this.credentialIssuerDids = credentialIssuerDids != null ? credentialIssuerDids : List.of();
+        this.issuerDataFreshnessSeconds = issuerDataFreshnessSeconds;
         this.members = members;
         this.securityServers = securityServers;
         this.globalGroups = globalGroups;
