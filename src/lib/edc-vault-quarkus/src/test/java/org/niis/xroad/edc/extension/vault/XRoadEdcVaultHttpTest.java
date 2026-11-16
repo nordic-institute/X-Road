@@ -27,11 +27,6 @@
 package org.niis.xroad.edc.extension.vault;
 
 import io.quarkus.vault.client.VaultClientException;
-import io.quarkus.vault.runtime.VaultConfigHolder;
-import io.quarkus.vault.runtime.client.VaultClientProducer;
-import io.quarkus.vault.runtime.config.VaultRuntimeConfig;
-import io.smallrye.config.PropertiesConfigSource;
-import io.smallrye.config.SmallRyeConfigBuilder;
 import io.vertx.core.Vertx;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,10 +43,10 @@ import org.niis.xroad.common.vault.quarkus.QuarkusVaultFailures;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,15 +62,16 @@ class XRoadEdcVaultHttpTest {
     private static final String MOUNT = "xrd-ds-secret";
     private static final Duration RETRY_BUDGET = Duration.ofSeconds(10);
     private static final Duration EXHAUSTED_BUDGET = Duration.ofSeconds(1);
-    private static final int CLIENT_TIMEOUT_SECONDS = 1;
     private static final long SERVER_SLEEP_MILLIS = 2500;
     private static final long DELAYED_START_MILLIS = 1500;
     private static final String SECRET_KEY = "signing-key";
+
     enum Operation {
         RESOLVE,
         STORE,
         DELETE
     }
+
     enum Shape {
         SERVER_ERROR(server -> server.failNext(1, STATUS, 500, 0)),
         DEAD_LEADER_REDIRECT(server -> server.failNext(1, REDIRECT_TO_UNREACHABLE_LEADER, 307, 0)),
@@ -187,6 +183,7 @@ class XRoadEdcVaultHttpTest {
         return Stream.of(Shape.values()).flatMap(shape ->
                 Stream.of(Operation.values()).map(operation -> Arguments.of(shape, operation)));
     }
+
     @ParameterizedTest(name = "{0} on {1}")
     @MethodSource("recoveringShapes")
     void shouldSucceedWithinBudgetWhenFailureShapePasses(Shape shape, Operation operation) throws IOException {
@@ -209,6 +206,7 @@ class XRoadEdcVaultHttpTest {
             assertThat(server.leaderHits()).isEmpty();
         }
     }
+
     @ParameterizedTest(name = "refused connection on {0}")
     @EnumSource(Operation.class)
     void shouldSucceedWithinBudgetWhenConnectionsAreRefusedUntilServerServes(Operation operation) throws IOException {
@@ -226,6 +224,7 @@ class XRoadEdcVaultHttpTest {
             assertThat(server.connectionAttempts()).isGreaterThanOrEqualTo(2);
         }
     }
+
     @ParameterizedTest(name = "403 on {0}")
     @EnumSource(Operation.class)
     void shouldNotRetryForbiddenRequest(Operation operation) throws IOException {
@@ -249,15 +248,24 @@ class XRoadEdcVaultHttpTest {
             assertThat(server.secretHits()).hasSize(1);
         }
     }
-    @Test
-    void shouldResolveToNullAfterOneAttemptWhenSecretIsNotFound() throws IOException {
+
+    @ParameterizedTest(name = "non-retryable non-refusal failure on {0}")
+    @EnumSource(value = Operation.class, names = {"STORE", "DELETE"})
+    void shouldReturnFailureWhenFailureIsNeitherRefusalNorRetryable(Operation operation) throws IOException {
         try (var server = FakeOpenBao.started(V2, MOUNT)) {
-            var vault = vault(server.port());
-            server.failNext(1, STATUS, 404, 0);
-            assertThat(vault.resolveSecret(SECRET_KEY)).isNull();
-            assertThat(server.secretHits()).hasSize(1);
+            var vault = vault(server.port(), RETRY_BUDGET, failure -> false);
+            server.failNext(1, CLOSE, 0, 0);
+
+            var result = operation == Operation.STORE
+                    ? vault.storeSecret(SECRET_KEY, "secret-1")
+                    : vault.deleteSecret(SECRET_KEY);
+
+            assertThat(result.failed()).isTrue();
+            assertThat(result.isRetryable()).isFalse();
+            assertThat(result.getFailureDetail()).contains(SECRET_KEY);
         }
     }
+
     @Test
     void shouldFailResolveAsUnavailableWithLastFailureWhenBudgetIsExhausted() throws IOException {
         try (var server = FakeOpenBao.started(V2, MOUNT)) {
@@ -269,6 +277,7 @@ class XRoadEdcVaultHttpTest {
                     .hasCauseInstanceOf(VaultClientException.class);
         }
     }
+
     @ParameterizedTest(name = "exhausted budget on {0}")
     @EnumSource(value = Operation.class, names = {"STORE", "DELETE"})
     void shouldReturnRetryableFailureWhenBudgetIsExhausted(Operation operation) throws IOException {
@@ -282,6 +291,7 @@ class XRoadEdcVaultHttpTest {
             assertThat(result.isRetryable()).isTrue();
         }
     }
+
     @Test
     void shouldSendKeyOnTheWireAsStockEdcDoes() throws IOException {
         try (var server = FakeOpenBao.started(V2, MOUNT)) {
@@ -295,6 +305,7 @@ class XRoadEdcVaultHttpTest {
                     "DELETE /v1/xrd-ds-secret/metadata/ds/DEV%3ACOM%3A222-key");
         }
     }
+
     @Test
     void shouldKeepFragmentSuffixOfKeyOnTheWire() throws IOException {
         try (var server = FakeOpenBao.started(V2, MOUNT)) {
@@ -305,23 +316,17 @@ class XRoadEdcVaultHttpTest {
             assertThat(server.secretHits()).contains("POST /v1/xrd-ds-secret/data/ds/did:web:example#key-1");
         }
     }
+
     private static XRoadEdcVault vault(int port) {
         return vault(port, RETRY_BUDGET);
     }
+
     private static XRoadEdcVault vault(int port, Duration retryBudget) {
-        var properties = Map.of(
-                "quarkus.vault.url", "http://127.0.0.1:" + port,
-                "quarkus.vault.authentication.client-token", "test-token",
-                "quarkus.vault.connect-timeout", CLIENT_TIMEOUT_SECONDS + "S",
-                "quarkus.vault.read-timeout", CLIENT_TIMEOUT_SECONDS + "S");
-        var config = new SmallRyeConfigBuilder()
-                .withMapping(VaultRuntimeConfig.class)
-                .withSources(new PropertiesConfigSource(properties, "test", 500))
-                .build()
-                .getConfigMapping(VaultRuntimeConfig.class);
-        var holder = new VaultConfigHolder().setVaultRuntimeConfig(config);
-        var vaultClient = new VaultClientProducer().sharedVaultClient(vertx, holder, false);
-        return new XRoadEdcVault(vaultClient,
-                new ResilientVaultCall(QuarkusVaultFailures::isRetryable, retryBudget));
+        return vault(port, retryBudget, QuarkusVaultFailures::isRetryable);
+    }
+
+    private static XRoadEdcVault vault(int port, Duration retryBudget, Predicate<Throwable> retryable) {
+        return new XRoadEdcVault(TestVaultClients.connectedTo(vertx, port),
+                new ResilientVaultCall(retryable, retryBudget));
     }
 }

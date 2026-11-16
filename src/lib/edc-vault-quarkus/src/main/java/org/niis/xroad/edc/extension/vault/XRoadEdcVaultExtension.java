@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.extension.vault;
 
 import io.quarkus.vault.client.VaultClient;
+import lombok.NoArgsConstructor;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -47,6 +48,7 @@ import static org.niis.xroad.edc.extension.vault.XRoadEdcVaultExtension.NAME;
  */
 @Extension(NAME)
 @Provides(Vault.class)
+@NoArgsConstructor
 public class XRoadEdcVaultExtension implements ServiceExtension {
 
     static final String NAME = "X-Road EDC Vault";
@@ -56,6 +58,11 @@ public class XRoadEdcVaultExtension implements ServiceExtension {
 
     @Inject
     private XRoadConfig config;
+
+    XRoadEdcVaultExtension(VaultClient vaultClient, XRoadConfig config) {
+        this.vaultClient = vaultClient;
+        this.config = config;
+    }
 
     @Override
     public String name() {

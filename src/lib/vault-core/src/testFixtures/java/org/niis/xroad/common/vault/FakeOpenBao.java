@@ -190,6 +190,7 @@ public final class FakeOpenBao implements AutoCloseable {
     public List<String> rawSecretHits() {
         return rawHits.stream().filter(h -> h.contains(" " + secretPath + "/")).toList();
     }
+
     public List<String> leaderHits() {
         return hits.stream().filter(h -> h.contains(" " + LEADER_PATH + "/")).toList();
     }
@@ -326,7 +327,7 @@ public final class FakeOpenBao implements AutoCloseable {
         } else if (kvVersion == KvVersion.V2) {
             succeedV2(ex, method, uri, body);
         } else if ("GET".equals(method)) {
-            send(ex, HTTP_OK, readBody());
+            send(ex, HTTP_OK, "{\"data\":{\"payload\":\"v\"}}");
         } else if ("DELETE".equals(method)) {
             ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
         } else {
@@ -356,10 +357,6 @@ public final class FakeOpenBao implements AutoCloseable {
         } else {
             ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
         }
-    }
-
-    private static String readBody() {
-        return "{\"data\":{\"payload\":\"v\"}}";
     }
 
     private static void send(HttpExchange ex, int code, String body) throws IOException {

@@ -247,7 +247,6 @@ class XRoadTlsOkHttpClientExtensionTest {
     private void stubContextServices() {
         lenient().when(context.getMonitor()).thenReturn(monitor);
         lenient().when(context.getService(GlobalConfProvider.class)).thenReturn(globalConfProvider);
-        lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.isNull())).thenReturn(null);
         // No setting configured in these tests: mirrors real behaviour (SettingResolver returns the
         // caller's own default) rather than Mockito's zero-value default, which would otherwise hand
         // PeriodicMaterialReloader.schedule a zero-second interval and blow up scheduleWithFixedDelay.

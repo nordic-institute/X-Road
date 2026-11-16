@@ -47,11 +47,11 @@ import java.util.concurrent.CompletionStage;
  * EDC {@link Vault} over the OpenBao KV v2 mount {@value #MOUNT}: the secret of key {@code k} lives at
  * {@code ds/<k>} in field {@value #CONTENT_FIELD}, the layout stock EDC 1.0.0-RC7 uses. Every call goes
  * through {@link ResilientVaultCall} and nothing is cached, so each read sees the current OpenBao value.
- * Delete removes the secret metadata, the only delete the {@code ds} policy allows.
+ * Delete removes the secret metadata, because only the {@code metadata/} path removes all versions of a secret.
  * <p>
  * When the retry budget runs out, a read fails with {@code SECRET_STORE_UNAVAILABLE} and a write or delete returns
  * a retryable failure. A refused request that is not retryable, such as a 403, reads as null and fails a write or
- * delete without retry.
+ * delete without retry. Any other failure of a write or delete, such as a TLS failure, also returns a failed result.
  */
 @Slf4j
 final class XRoadEdcVault implements Vault {
@@ -80,17 +80,20 @@ final class XRoadEdcVault implements Vault {
             return null;
         }
     }
+
     @Override
     public Result<Void> storeSecret(String key, String value) {
         var path = path(key);
         return write("write", path,
                 () -> await(kv2.updateSecret(path, null, Map.of(CONTENT_FIELD, value))));
     }
+
     @Override
     public Result<Void> deleteSecret(String key) {
         var path = path(key);
         return write("delete", path, () -> deleteMetadata(path));
     }
+
     private Result<Void> write(String operation, String path, Runnable call) {
         try {
             resilientCall.run(operation, path, call);
@@ -99,12 +102,19 @@ final class XRoadEdcVault implements Vault {
             if (e.isCausedBy(ErrorCode.SECRET_STORE_UNAVAILABLE)) {
                 return Result.retryableFailure(e.getMessage());
             }
-            throw e;
+            return failed(operation, path, e);
         } catch (VaultClientException e) {
             return Result.failure("Secret store %s at path %s was refused: %s"
                     .formatted(operation, path, e.getMessage()));
+        } catch (RuntimeException e) {
+            return failed(operation, path, e);
         }
     }
+
+    private static Result<Void> failed(String operation, String path, RuntimeException cause) {
+        return Result.failure("Secret store %s at path %s failed: %s".formatted(operation, path, cause));
+    }
+
     private @Nullable String read(String path) {
         try {
             var data = await(kv2.readSecret(path)).getData();
