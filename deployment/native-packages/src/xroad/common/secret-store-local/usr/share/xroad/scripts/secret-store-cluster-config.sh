@@ -1,23 +1,21 @@
 #!/bin/bash
-#
-# Writes the X-Road OpenBao server configuration and the systemd drop-in that makes
-# openbao.service read only that file, unseal OpenBao after every start and restart it on
-# failure. The OpenBao package's own configuration file is
-# not read. The database connection comes from /etc/openbao/openbao.env.
-#
-# Usage: secret-store-cluster-config.sh
 set -euo pipefail
-
 CONFIG_FILE=/etc/openbao/xroad-openbao.hcl
 DROP_IN_DIR=/etc/systemd/system/openbao.service.d
 DROP_IN_FILE="${DROP_IN_DIR}/xroad.conf"
+SCRIPTS_DIR=/usr/share/xroad/scripts
 BAO_BINARY=/usr/bin/bao
-UNSEAL_SCRIPT=/usr/share/xroad/scripts/secret-store-unseal.sh
+UNSEAL_SCRIPT="${SCRIPTS_DIR}/secret-store-unseal.sh"
+TLS_SCRIPT="${SCRIPTS_DIR}/secret-store-generate-tls-certificate.sh"
+TRUST_SCRIPT="${SCRIPTS_DIR}/secret-store-install-tls-trust.sh"
 TLS_CERT_FILE=/opt/openbao/tls/tls.crt
 TLS_KEY_FILE=/opt/openbao/tls/tls.key
 LOCAL_ADDRESS=127.0.0.1
 API_PORT=8200
-
+CLUSTER_PORT=8201
+NODE_ADDRESS=""
+NODE_HOST=""
+DISABLE_STANDBY_READS=false
 die() {
   echo >&2 "$@"
   exit 1
@@ -37,24 +35,37 @@ write_if_changed() {
   mv -f "$tmp" "$file"
 }
 
-server_config() {
+listener_block() {
   cat <<EOF
-ui = true
-
 listener "tcp" {
-  address       = "${LOCAL_ADDRESS}:${API_PORT}"
+  address       = "$1:${API_PORT}"
   tls_cert_file = "${TLS_CERT_FILE}"
   tls_key_file  = "${TLS_KEY_FILE}"
 }
-
+EOF
+}
+server_config() {
+  local announce="${NODE_HOST:-$NODE_ADDRESS}"
+  echo 'ui = true'
+  listener_block "$LOCAL_ADDRESS"
+  if [ -n "$NODE_ADDRESS" ]; then
+    listener_block "$NODE_ADDRESS"
+  fi
+  cat <<EOF
 storage "postgresql" {
   ha_enabled = "true"
 }
-
-api_addr = "https://${LOCAL_ADDRESS}:${API_PORT}"
 EOF
+  if [ "$DISABLE_STANDBY_READS" = true ]; then
+    echo 'disable_standby_reads = true'
+  fi
+  if [ -n "$NODE_ADDRESS" ]; then
+    echo "api_addr = \"https://${announce}:${API_PORT}\""
+    echo "cluster_addr = \"https://${announce}:${CLUSTER_PORT}\""
+  else
+    echo "api_addr = \"https://${LOCAL_ADDRESS}:${API_PORT}\""
+  fi
 }
-
 drop_in() {
   cat <<EOF
 [Service]
@@ -65,13 +76,77 @@ Restart=on-failure
 RestartSec=5
 EOF
 }
-
-[ $# -eq 0 ] || die "Usage: $0"
-
-write_if_changed "$CONFIG_FILE" 0640 openbao:xroad "$(server_config)" || true
-
+wanted_cert_names() {
+  {
+    echo "IP:${LOCAL_ADDRESS}"
+    [ -z "$NODE_ADDRESS" ] || echo "IP:${NODE_ADDRESS}"
+    [ -z "$NODE_HOST" ] || echo "DNS:${NODE_HOST}"
+  } | sort -u
+}
+current_cert_names() {
+  [ -f "$TLS_CERT_FILE" ] || return 0
+  openssl x509 -in "$TLS_CERT_FILE" -noout -ext subjectAltName 2>/dev/null |
+    tr ',' '\n' | sed -n -e 's/^[[:space:]]*IP Address:/IP:/p' -e 's/^[[:space:]]*DNS:/DNS:/p' | sort -u
+}
+valid_ipv4() {
+  local octet
+  [[ "$1" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]] || return 1
+  for octet in ${1//./ }; do
+    [ "$((10#$octet))" -le 255 ] || return 1
+  done
+}
+valid_host() {
+  [ "${#1}" -le 253 ] && [[ "$1" =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]]
+}
+usage() {
+  die "Usage: $0 [--node-address <ipv4>] [--node-host <dns>] [--disable-standby-reads]"
+}
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --node-address)
+      [ $# -ge 2 ] || usage
+      NODE_ADDRESS="$2"
+      shift 2
+      ;;
+    --node-host)
+      [ $# -ge 2 ] || usage
+      NODE_HOST="$(echo "$2" | tr '[:upper:]' '[:lower:]')"
+      shift 2
+      ;;
+    --disable-standby-reads)
+      DISABLE_STANDBY_READS=true
+      shift
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+if [ -n "$NODE_ADDRESS" ]; then
+  valid_ipv4 "$NODE_ADDRESS" || die "--node-address must be an IPv4 address: ${NODE_ADDRESS}"
+elif [ -n "$NODE_HOST" ]; then
+  die "--node-host requires --node-address"
+fi
+if [ -n "$NODE_HOST" ]; then
+  valid_host "$NODE_HOST" || die "--node-host must be a DNS name: ${NODE_HOST}"
+fi
+needs_restart=false
+if write_if_changed "$CONFIG_FILE" 0640 openbao:xroad "$(server_config)"; then
+  needs_restart=true
+fi
 if write_if_changed "$DROP_IN_FILE" 0644 root:root "$(drop_in)"; then
   if [ -d /run/systemd/system ]; then
     systemctl daemon-reload
   fi
+fi
+if [ "$(wanted_cert_names)" != "$(current_cert_names)" ]; then
+  cert_args=()
+  [ -z "$NODE_ADDRESS" ] || cert_args+=(--node-address "$NODE_ADDRESS")
+  [ -z "$NODE_HOST" ] || cert_args+=(--node-host "$NODE_HOST")
+  "$TLS_SCRIPT" "${cert_args[@]}"
+  "$TRUST_SCRIPT"
+  needs_restart=true
+fi
+if [ "$needs_restart" = true ] && [ -d /run/systemd/system ] && systemctl is-active --quiet openbao.service; then
+  systemctl restart openbao.service
 fi

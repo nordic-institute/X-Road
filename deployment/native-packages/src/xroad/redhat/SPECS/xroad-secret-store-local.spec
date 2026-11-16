@@ -44,6 +44,7 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 %attr(644,root,root) %{_unitdir}/xroad-secret-store-local.service
 %config /etc/xroad/services/secret-store-local.conf
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-install-tls-trust.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/_openbao.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-unseal.sh
@@ -61,12 +62,6 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 
 %post
 if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
-    /usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh
-
-    # Install generated certificate to system
-    install -m 644 /opt/openbao/tls/tls.crt /etc/pki/ca-trust/source/anchors/openbao.crt
-    update-ca-trust
-
     /usr/share/xroad/scripts/secret-store-init-db.sh
 
     /usr/share/xroad/scripts/secret-store-cluster-config.sh

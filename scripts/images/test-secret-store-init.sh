@@ -33,6 +33,8 @@ UNSEAL_SCRIPT=""
 XROAD_CONFIG_FILE="/etc/openbao/xroad-openbao.hcl"
 DROP_IN_FILE="/etc/systemd/system/openbao.service.d/xroad.conf"
 BAO_LOG="/var/log/bao.log"
+SHIM_CALLS_FILE="/var/log/shim-calls"
+READY_FILE="/run/test-entrypoint-ready"
 OPERATOR_STEP="Copy the root token file ${ROOT_TOKEN_FILE} from another node"
 SKIP_LOG="No root token on this node"
 
@@ -128,7 +130,7 @@ start_dev_server() {
 }
 
 start_postgres() {
-  docker rm -f "${PG_CONTAINER}" >/dev/null 2>&1
+  docker rm -f "${CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
   docker network rm "${NETWORK}" >/dev/null 2>&1
   docker network create "${NETWORK}" >/dev/null || exit 1
   docker run -d --name "${PG_CONTAINER}" --network "${NETWORK}" \
@@ -143,20 +145,53 @@ start_postgres() {
 start_real_server() {
   start_postgres
   docker rm -f "${CONTAINER}" >/dev/null 2>&1
-  docker run -d --name "${CONTAINER}" --network "${NETWORK}" \
+  docker run -d --init --name "${CONTAINER}" --network "${NETWORK}" \
     -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
     -e "BAO_PG_CONNECTION_URL=postgres://postgres:${PG_PASSWORD}@${PG_CONTAINER}:5432/postgres?sslmode=disable" \
     --entrypoint sh "${IMAGE}" -c '
-      mkdir -p /etc/openbao /opt/openbao/tls /etc/xroad
+      rm -f '"${READY_FILE}"'
+      mkdir -p /etc/openbao /opt/openbao/tls /etc/xroad /run/systemd/system /usr/local/share/ca-certificates /usr/local/bin
       chown xroad:xroad /etc/xroad
       printf "BAO_PG_CONNECTION_URL=%s\n" "$BAO_PG_CONNECTION_URL" > /etc/openbao/openbao.env
       chown openbao:xroad /etc/openbao/openbao.env
       chmod 640 /etc/openbao/openbao.env
-      [ -f /opt/openbao/tls/tls.crt ] || bash '"${TLS_SCRIPT}"' || exit 1
-      bash '"${CONFIG_WRITER}"' || exit 1
-      config=$(sed -n "s/^ExecStart=.* server -config=//p" '"${DROP_IN_FILE}"' | tail -n 1)
-      su -s /bin/sh -c "set -a; . /etc/openbao/openbao.env; exec bao server -config=${config}" openbao >'"${BAO_LOG}"' 2>&1 &
-      wait' >/dev/null || exit 1
+      for tool in systemctl update-ca-certificates; do
+        printf "#!/bin/sh\necho \"\${0##*/} \$*\" >>'"${SHIM_CALLS_FILE}"'\nexit 0\n" > /usr/local/bin/$tool
+        chmod +x /usr/local/bin/$tool
+      done
+      [ -f '"${XROAD_CONFIG_FILE}"' ] || bash '"${CONFIG_WRITER}"' || exit 1
+      touch '"${READY_FILE}"'
+      exec tail -f /dev/null' >/dev/null || exit 1
+  start_bao
+  wait_for_server
+}
+start_bao() {
+  for _ in $(seq 1 60); do
+    if in_container test -e "${READY_FILE}" 2>/dev/null; then break; fi
+    sleep 1
+  done
+  docker exec -d "${CONTAINER}" sh -c '
+    config=$(sed -n "s/^ExecStart=.* server -config=//p" '"${DROP_IN_FILE}"' | tail -n 1)
+    exec su -s /bin/sh -c "set -a; . /etc/openbao/openbao.env; exec bao server -config=${config}" openbao >'"${BAO_LOG}"' 2>&1'
+}
+stop_bao() {
+  in_container pkill -x bao
+  for _ in $(seq 1 30); do
+    if ! in_container pgrep -x bao >/dev/null; then return 0; fi
+    sleep 1
+  done
+  log_error "OpenBao did not stop in the test container"
+  exit 1
+}
+restart_bao() {
+  stop_bao
+  start_bao
+  wait_for_server
+}
+restart_container() {
+  in_container rm -f "${READY_FILE}"
+  docker restart "${CONTAINER}" >/dev/null
+  start_bao
   wait_for_server
 }
 # run_setup [VAR=value ...]; sets RC, stdout in OUT_FILE and stderr in ERR_FILE.
@@ -486,8 +521,7 @@ scenario_initializing_node() {
   check_modes "initialised node rerun"
 
   log_info "Scenario: unseal-only script on a sealed OpenBao after a restart"
-  docker restart "${CONTAINER}" >/dev/null
-  wait_for_server
+  restart_container
   check_eq "after restart: OpenBao is sealed" true "$(seal_status_field sealed)"
   run_unseal
   check "unseal-only: exit 0" test "${RC}" -eq 0
@@ -516,8 +550,7 @@ scenario_initializing_node() {
   check "unseal-only hung: logs that the run was cut off" grep -q "did not complete within" "${ERR_FILE}"
 
   log_info "Scenario: unseal-only script on a sealed OpenBao without usable unseal keys"
-  docker restart "${CONTAINER}" >/dev/null
-  wait_for_server
+  restart_container
   check_eq "no keys: OpenBao is sealed" true "$(seal_status_field sealed)"
   in_container mv "${UNSEAL_KEYS_FILE}" "${UNSEAL_KEYS_FILE}.saved"
   run_unseal
@@ -532,14 +565,163 @@ scenario_initializing_node() {
   in_container mv "${UNSEAL_KEYS_FILE}.saved" "${UNSEAL_KEYS_FILE}"
 
   log_info "Scenario: setup script on a sealed OpenBao after a restart"
-  docker restart "${CONTAINER}" >/dev/null
-  wait_for_server
+  restart_container
   check_eq "after restart: configuration unchanged" "${config_before}" "$(config_state)"
   run_setup
   check_provisioned "after restart"
   check_eq "after restart: state unchanged" "${before}" "$(state_snapshot)"
 }
 
+TLS_CERT_FILE="/opt/openbao/tls/tls.crt"
+run_writer() {
+  docker exec "${CONTAINER}" bash "${CONFIG_WRITER}" "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
+}
+cert_names() {
+  in_container openssl x509 -in "${TLS_CERT_FILE}" -noout -ext subjectAltName | tail -n +2 | tr -d ' ' | tr ',' '\n' | sort | paste -sd, -
+}
+expected_names() { printf '%s\n' "$@" | sort | paste -sd, -; }
+cert_hash() { in_container sha256sum "${TLS_CERT_FILE}" | cut -d' ' -f1; }
+config_hash() { in_container sha256sum "${XROAD_CONFIG_FILE}" | cut -d' ' -f1; }
+clear_shim_calls() { in_container sh -c ": > ${SHIM_CALLS_FILE}"; }
+shim_calls() { in_container cat "${SHIM_CALLS_FILE}" 2>/dev/null; }
+shim_call_count() { shim_calls | grep -c -- "$1" || true; }
+listener_addresses() {
+  in_container sed -n 's/^  address *= "\(.*\)"$/\1/p' "${XROAD_CONFIG_FILE}" | paste -sd, -
+}
+config_line() { in_container grep -x -- "$1" "${XROAD_CONFIG_FILE}" >/dev/null; }
+config_lacks() { ! in_container grep -q -- "$1" "${XROAD_CONFIG_FILE}"; }
+serves_name() {
+  [[ "$(in_container curl -s -o /dev/null -w '%{http_code}' --cacert "${TLS_CERT_FILE}" \
+    --resolve "$1:8200:$2" "https://$1:8200/v1/sys/seal-status")" == 200 ]]
+}
+not_listening() { ! in_container curl -sk -o /dev/null -m 3 "https://$1:8200/v1/sys/seal-status"; }
+check_unchanged_run() {
+  local label="$1" config_before cert_before
+  shift
+  config_before="$(config_state)"
+  cert_before="$(cert_hash)"
+  clear_shim_calls
+  run_writer "$@"
+  check "${label}: exit 0" test "${RC}" -eq 0
+  check_eq "${label}: configuration and drop-in unchanged" "${config_before}" "$(config_state)"
+  check_eq "${label}: certificate unchanged" "${cert_before}" "$(cert_hash)"
+  check_eq "${label}: no trust install, daemon-reload or restart" "" "$(shim_calls)"
+}
+scenario_cluster_member() {
+  log_info "Scenario: single server, then convert to a cluster member"
+  ADDR="https://127.0.0.1:8200"
+  start_real_server
+  local node_ip
+  node_ip="$(in_container hostname -i | awk '{print $1}')"
+  check_eq "single server: certificate names only 127.0.0.1" "IPAddress:127.0.0.1" "$(cert_names)"
+  check_eq "single server: one listener on 127.0.0.1" "127.0.0.1:8200" "$(listener_addresses)"
+  check "single server: no cluster_addr" config_lacks "^cluster_addr"
+  check "single server: standby reads left at the default" config_lacks "disable_standby_reads"
+  check_eq "single server: trust installed once" 1 "$(shim_call_count update-ca-certificates)"
+  check_eq "single server: drop-in loaded once" 1 "$(shim_call_count daemon-reload)"
+  check_unchanged_run "single server rerun"
+  local single_cert
+  single_cert="$(cert_hash)"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}"
+  check "convert: exit 0" test "${RC}" -eq 0
+  check_eq "convert: listeners on 127.0.0.1 and the node address, same port" "127.0.0.1:8200,${node_ip}:8200" "$(listener_addresses)"
+  check "convert: api_addr is the node address" config_line "api_addr = \"https://${node_ip}:8200\""
+  check "convert: cluster_addr is the node address on the cluster port" config_line "cluster_addr = \"https://${node_ip}:8201\""
+  check "convert: no standby reads key" config_lacks "disable_standby_reads"
+  check_eq "convert: certificate names 127.0.0.1 and the node address" "$(expected_names "IPAddress:${node_ip}" IPAddress:127.0.0.1)" "$(cert_names)"
+  check_ne "convert: certificate regenerated" "${single_cert}" "$(cert_hash)"
+  check_eq "convert: trust installed again" 1 "$(shim_call_count update-ca-certificates)"
+  check_eq "convert: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  check_eq "convert: drop-in not reloaded" 0 "$(shim_call_count daemon-reload)"
+  restart_bao
+  check "convert: serves on 127.0.0.1 with the certificate" serves_name 127.0.0.1 127.0.0.1
+  check "convert: serves on the node address with the certificate" serves_name "${node_ip}" "${node_ip}"
+  check "convert: OpenBao log has no unknown or unsupported field" test "$(in_container grep -c 'unknown or unsupported field' "${BAO_LOG}")" -eq 0
+  run_setup
+  ROOT_TOKEN="$(in_container cat "${ROOT_TOKEN_FILE}")"
+  check_provisioned "convert: initialised on the converted node"
+  check_eq "convert: high availability enabled" true "$(bao_get sys/leader | jq -r '.ha_enabled')"
+  check_eq "convert: advertised address is the node address" "https://${node_ip}:8200" "$(bao_get sys/leader | jq -r '.leader_address')"
+  check_unchanged_run "convert rerun" --node-address "${node_ip}"
+  log_info "Scenario: node host"
+  local before_cert
+  before_cert="$(cert_hash)"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host Node-1.Example.Test
+  check "node host: exit 0" test "${RC}" -eq 0
+  check "node host: api_addr uses the host" config_line 'api_addr = "https://node-1.example.test:8200"'
+  check "node host: cluster_addr uses the host" config_line 'cluster_addr = "https://node-1.example.test:8201"'
+  check_eq "node host: listeners unchanged" "127.0.0.1:8200,${node_ip}:8200" "$(listener_addresses)"
+  check_eq "node host: certificate names 127.0.0.1, the address and the host" "$(expected_names DNS:node-1.example.test "IPAddress:${node_ip}" IPAddress:127.0.0.1)" "$(cert_names)"
+  check_ne "node host: certificate regenerated" "${before_cert}" "$(cert_hash)"
+  check_eq "node host: trust installed again" 1 "$(shim_call_count update-ca-certificates)"
+  check_eq "node host: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  restart_bao
+  check "node host: serves the host name" serves_name node-1.example.test "${node_ip}"
+  check "node host: still serves 127.0.0.1" serves_name 127.0.0.1 127.0.0.1
+  check_unchanged_run "node host rerun" --node-address "${node_ip}" --node-host node-1.example.test
+  log_info "Scenario: certificate replaced while the configuration stays the same"
+  in_container bash "${TLS_SCRIPT}" >/dev/null 2>&1
+  check_eq "stale certificate: names only 127.0.0.1" "IPAddress:127.0.0.1" "$(cert_names)"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host node-1.example.test
+  check "stale certificate: exit 0" test "${RC}" -eq 0
+  check_eq "stale certificate: names restored" "$(expected_names DNS:node-1.example.test "IPAddress:${node_ip}" IPAddress:127.0.0.1)" "$(cert_names)"
+  check_eq "stale certificate: trust installed again" 1 "$(shim_call_count update-ca-certificates)"
+  check_eq "stale certificate: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  restart_bao
+  log_info "Scenario: convert again with a new node host"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host other.example.test
+  check "new host: exit 0" test "${RC}" -eq 0
+  check "new host: api_addr uses the new host" config_line 'api_addr = "https://other.example.test:8200"'
+  check_eq "new host: certificate regenerated, 127.0.0.1 kept, old host gone" "$(expected_names DNS:other.example.test "IPAddress:${node_ip}" IPAddress:127.0.0.1)" "$(cert_names)"
+  check_eq "new host: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  restart_bao
+  check "new host: serves the new host name" serves_name other.example.test "${node_ip}"
+  log_info "Scenario: standby reads"
+  local cert_before_standby
+  cert_before_standby="$(cert_hash)"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host other.example.test --disable-standby-reads
+  check "standby reads off: exit 0" test "${RC}" -eq 0
+  check "standby reads off: top-level disable_standby_reads = true" config_line 'disable_standby_reads = true'
+  check_eq "standby reads off: certificate unchanged" "${cert_before_standby}" "$(cert_hash)"
+  check_eq "standby reads off: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  restart_bao
+  check "standby reads off: OpenBao log has no unknown or unsupported field" test "$(in_container grep -c 'unknown or unsupported field' "${BAO_LOG}")" -eq 0
+  check "standby reads off: serves the host name" serves_name other.example.test "${node_ip}"
+  check_unchanged_run "standby reads off rerun" --node-address "${node_ip}" --node-host other.example.test --disable-standby-reads
+  run_writer --node-address "${node_ip}" --node-host other.example.test
+  check "standby reads back on: key removed" config_lacks "disable_standby_reads"
+  log_info "Scenario: invalid arguments change nothing"
+  local config_before_invalid
+  config_before_invalid="$(config_hash)"
+  clear_shim_calls
+  run_writer --node-address "not-an-address"
+  check "invalid address: exit non-zero" test "${RC}" -ne 0
+  run_writer --node-address "10.0.0.256"
+  check "address out of range: exit non-zero" test "${RC}" -ne 0
+  run_writer --node-address "${node_ip}" --node-host 'a"; evil = "b'
+  check "injected host: exit non-zero" test "${RC}" -ne 0
+  run_writer --node-host other.example.test
+  check "host without address: exit non-zero" test "${RC}" -ne 0
+  run_writer --bogus
+  check "unknown option: exit non-zero" test "${RC}" -ne 0
+  check_eq "invalid arguments: configuration unchanged" "${config_before_invalid}" "$(config_hash)"
+  check_eq "invalid arguments: no restart or trust install" "" "$(shim_calls)"
+  log_info "Scenario: back to a single server"
+  run_writer
+  check "single again: exit 0" test "${RC}" -eq 0
+  check_eq "single again: one listener on 127.0.0.1" "127.0.0.1:8200" "$(listener_addresses)"
+  check_eq "single again: certificate names only 127.0.0.1" "IPAddress:127.0.0.1" "$(cert_names)"
+  check "single again: no cluster_addr" config_lacks "^cluster_addr"
+  restart_bao
+  check "single again: serves 127.0.0.1" serves_name 127.0.0.1 127.0.0.1
+  check "single again: node address no longer served" not_listening "${node_ip}"
+}
 if ! command -v jq >/dev/null 2>&1; then
   log_error "jq is required on the host"
   exit 1
@@ -556,6 +738,7 @@ scenario_bao_token_env
 scenario_no_root_token
 scenario_pki_setup_writes_policy
 scenario_initializing_node
+scenario_cluster_member
 
 if [[ "${FAILURES}" -ne 0 ]]; then
   log_error "${FAILURES} check(s) failed"
