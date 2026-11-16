@@ -46,6 +46,7 @@ import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
+import org.niis.xroad.cs.admin.api.service.IssuerKeyGuard;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
@@ -91,6 +92,8 @@ class NotificationServiceImplTest {
     private DataspaceIssuerDidService dataspaceIssuerDidService;
     @Mock
     private DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
+    @Mock
+    private IssuerKeyGuard issuerKeyGuard;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
@@ -99,6 +102,7 @@ class NotificationServiceImplTest {
     void setUp() {
         lenient().when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, null));
         lenient().when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
+        lenient().when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(true);
     }
 
     @Test
@@ -320,6 +324,66 @@ class NotificationServiceImplTest {
     @Test
     void getAlertsIssuerServiceSetupCheckMakesNoIssuerServiceCall() {
         when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        notificationService.getAlerts();
+
+        verifyNoInteractions(dataspaceIssuerProvisioningService);
+    }
+
+    @Test
+    void getAlertsIssuerServiceKeyMissingWhenDidBoundAndSecretMissing() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
+        when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(false);
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).containsExactly(new AlertInfo("status.issuer_service.key_missing"));
+    }
+
+    @Test
+    void getAlertsNoIssuerServiceKeyMissingAlertWhenSecretPresent() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
+        when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(true);
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).noneMatch(alert -> alert.getErrorCode().equals("status.issuer_service.key_missing"));
+    }
+
+    @Test
+    void getAlertsNoIssuerServiceKeyMissingAlertAndGuardNotCalledWhenNoDidBound() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).noneMatch(alert -> alert.getErrorCode().equals("status.issuer_service.key_missing"));
+        verifyNoInteractions(issuerKeyGuard);
+    }
+
+    @Test
+    void getAlertsIssuerServiceKeyMissingCheckThrowsProducesFallbackAlertNotException() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
+        when(issuerKeyGuard.signingKeySecretPresent()).thenThrow(new RuntimeException("vault unreachable"));
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).containsExactly(new AlertInfo("status.issuer_service.key_missing_check_failed"));
+    }
+
+    @Test
+    void getAlertsIssuerServiceKeyMissingCheckMakesNoIssuerServiceCall() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
+        when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(false);
         when(signerProxyFacade.getTokens()).thenReturn(List.of());
         when(systemParameterService.getInstanceIdentifier()).thenReturn("");
 

@@ -55,6 +55,9 @@
     <include file="configuration-properties/002-drop-scope.xml" relativeToChangelogFile="true"/>
     <include file="configuration-properties/003-ha-node-name.xml" relativeToChangelogFile="true"/>
 
+    <!-- grants read access to the key-pair table, so it is a no-op until the ds-issuer-service schema exists -->
+    <include file="centerui/202611161430-ds-issuer-service-keypair-grant.xml" relativeToChangelogFile="true"/>
+
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
         <sql splitStatements="false"><![CDATA[

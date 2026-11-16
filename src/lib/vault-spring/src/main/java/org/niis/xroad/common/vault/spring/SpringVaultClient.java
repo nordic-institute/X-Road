@@ -68,19 +68,24 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 public class SpringVaultClient implements VaultClient {
 
     private final VaultKeyValueOperations vaultClient;
+    private final VaultKeyValueOperations dsIssuerServiceVaultClient;
     private final String adminServiceTlsPath;
     private final String managementServiceTlsPath;
     private final ResilientVaultCall resilientCall;
 
     /**
-     * @param vaultClient  the key-value operations of the secret store
+     * @param vaultClient  the key-value operations of this client's own secret store mount
+     * @param dsIssuerServiceVaultClient the key-value operations of the Data Space secret store mount that
+     *                     holds the Issuer Service's key-pair secrets, or {@code null} if this client has no
+     *                     need to read it
      * @param nodeIdentity the identity of the node whose name scopes the admin and management service TLS keys,
      *                     or {@code null} to keep them at the plain, node-independent paths
      * @param retryBudget  the total time a failing secret store call is retried
      */
-    public SpringVaultClient(VaultKeyValueOperations vaultClient, @Nullable NodeIdentity nodeIdentity,
-                             Duration retryBudget) {
+    public SpringVaultClient(VaultKeyValueOperations vaultClient, @Nullable VaultKeyValueOperations dsIssuerServiceVaultClient,
+                              @Nullable NodeIdentity nodeIdentity, Duration retryBudget) {
         this.vaultClient = vaultClient;
+        this.dsIssuerServiceVaultClient = dsIssuerServiceVaultClient;
         if (nodeIdentity == null) {
             this.adminServiceTlsPath = ADMIN_SERVICE_TLS_CREDENTIALS_PATH;
             this.managementServiceTlsPath = MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH;
@@ -94,7 +99,7 @@ public class SpringVaultClient implements VaultClient {
 
     @Override
     public VaultClient withRetryBudget(Duration budget) {
-        return new SpringVaultClient(vaultClient, adminServiceTlsPath, managementServiceTlsPath,
+        return new SpringVaultClient(vaultClient, dsIssuerServiceVaultClient, adminServiceTlsPath, managementServiceTlsPath,
                 resilientCall.withBudget(budget));
     }
 
@@ -285,6 +290,15 @@ public class SpringVaultClient implements VaultClient {
     @Override
     public void deleteAgreementTokenSigningKey(String keyId) {
         deleteSecret(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
+    }
+
+    @Override
+    public boolean dsIssuerServiceKeypairSecretExists(String alias) {
+        if (dsIssuerServiceVaultClient == null) {
+            throw new IllegalStateException("Data Space secret store mount is not configured for this client");
+        }
+        var path = DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER + "/" + alias;
+        return resilientCall.execute("read", path, () -> dsIssuerServiceVaultClient.get(path)) != null;
     }
 
     /**
