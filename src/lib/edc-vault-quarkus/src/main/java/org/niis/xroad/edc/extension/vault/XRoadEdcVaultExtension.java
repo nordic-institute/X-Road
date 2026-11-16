@@ -41,9 +41,8 @@ import org.niis.xroad.common.vault.quarkus.QuarkusVaultFailures;
 import static org.niis.xroad.edc.extension.vault.XRoadEdcVaultExtension.NAME;
 
 /**
- * Provides the EDC {@link Vault} backed by OpenBao through the Quarkus vault client, in place of stock EDC's
- * HashiCorp vault extension: its client gives up on server errors, while this one retries them within
- * {@code xroad.common.vault-retry.budget}. The Quarkus {@link VaultClient} and {@link XRoadConfig} are
+ * Provides the EDC {@link Vault} backed by OpenBao through the Quarkus vault client, retrying server errors
+ * within {@code xroad.common.vault-retry.budget}. The Quarkus {@link VaultClient} and {@link XRoadConfig} are
  * Quarkus beans, so OpenBao TLS trust stays with the Quarkus vault settings.
  */
 @Extension(NAME)

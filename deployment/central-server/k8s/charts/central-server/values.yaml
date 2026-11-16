@@ -58,9 +58,8 @@ services:
       annotations: {}
     env:
       XROAD_HOST: "central-server"
-      # The Issuer Service's EDC vault client rides the fail-closed DS TLS OkHttp
-      # client, which replaces JVM default trust — the in-pod OpenBao's self-signed
-      # cert must be trusted through VaultEndpointTrust's escape hatch instead.
+      # The Issuer Service's Quarkus vault client must trust the in-pod OpenBao's
+      # self-signed cert, so it is handed to the client explicitly.
       # The path is already baked into the central-server-dev image by
       # xroad-secret-store-local's postinst (install /opt/openbao/tls/tls.crt →
       # /usr/local/share/ca-certificates/openbao.crt), so no extra mount is needed.

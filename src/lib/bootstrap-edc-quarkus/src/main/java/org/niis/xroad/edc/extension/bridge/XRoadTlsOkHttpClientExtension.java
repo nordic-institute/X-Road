@@ -37,10 +37,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 import org.niis.xroad.edc.trust.ConnectorTlsCaTrustManagerLoader;
-import org.niis.xroad.edc.trust.ConnectorTlsCompositeTrustManager;
 import org.niis.xroad.edc.trust.DelegatingTrustManager;
 import org.niis.xroad.edc.trust.RejectAllTrustManager;
-import org.niis.xroad.edc.trust.VaultEndpointTrust;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 
@@ -55,9 +53,9 @@ import java.time.Duration;
  * Replaces the default EDC {@link OkHttpClient} with one whose outbound TLS trust is entirely X-Road's own:
  * exactly the certificate authorities globalconf's {@code approvedConnectorTlsCA} list designates, fail-closed. This is
  * the one place in the X-Road EDC distribution that builds the singleton OkHttp client every DataSpace outbound
- * connection — DID resolution, STS/OAuth2, DSP dispatch, credential and status-list fetches, and EDC's own
- * OpenBao vault client — shares, so it is also the only place trust needs replacing. The JVM default trust store
- * is never merged in, and the member {@code approvedCA} list is never consulted.
+ * connection — DID resolution, STS/OAuth2, DSP dispatch, credential and status-list fetches — shares, so it
+ * is also the only place trust needs replacing. The JVM default trust store is never merged in, and the member
+ * {@code approvedCA} list is never consulted.
  *
  * <p>The {@code @Inject RetryPolicy} field forces EDC's dependency resolver to run this extension after
  * {@code RuntimeDefaultCoreServicesExtension}, whose {@code @Provider OkHttpClient} would otherwise be the last
@@ -69,9 +67,6 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
     static final String NAME = "X-Road TLS OkHttpClient";
 
     private static final String TRUST_MATERIAL_NAME = "ds-tls-ca-trust";
-
-    private static final String VAULT_URL_SETTING = "edc.vault.hashicorp.url";
-    private static final String VAULT_CA_CERT_ENV = "QUARKUS_VAULT_TLS_CA_CERT";
 
     /** Mirrors {@code xroad.edc.web.https.keystore.reload-interval-seconds} (XRoadJettyExtension) in naming. */
     private static final String RELOAD_INTERVAL_SETTING = "xroad.edc.web.https.trust.reload-interval-seconds";
@@ -115,11 +110,6 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
 
         var listTrustManager = new DelegatingTrustManager(
                 initial.loaded() != null ? initial.loaded().material() : RejectAllTrustManager.INSTANCE);
-        var vaultTrust = VaultEndpointTrust.from(
-                context.getSetting(VAULT_URL_SETTING, null),
-                System.getenv(VAULT_CA_CERT_ENV),
-                monitor);
-        var trustManager = new ConnectorTlsCompositeTrustManager(vaultTrust.orElse(null), listTrustManager);
 
         var reloadInterval = Duration.ofSeconds(context.getSetting(RELOAD_INTERVAL_SETTING, DEFAULT_RELOAD_INTERVAL_SECONDS));
         reloader = initial.loaded() != null
@@ -129,7 +119,7 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
                         RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, listTrustManager::setDelegate, monitor,
                         initial.failure());
 
-        return buildClient(trustManager,
+        return buildClient(listTrustManager,
                 Duration.ofSeconds(context.getSetting(CONNECT_TIMEOUT_SETTING, DEFAULT_CONNECT_TIMEOUT_SECONDS)),
                 Duration.ofSeconds(context.getSetting(READ_TIMEOUT_SETTING, DEFAULT_READ_TIMEOUT_SECONDS)));
     }
