@@ -2,6 +2,7 @@
 . /usr/share/debconf/confmodule
 
 . /usr/share/xroad/scripts/write_tls_config.sh
+. /usr/share/xroad/scripts/dsp_ports.sh
 
 abort() {
   local rc=$?
@@ -23,6 +24,32 @@ store_tls_identity() {
   altn="$RET"
   write_tls_identity_rows proxy "$subject" "$altn" "$mode" \
     || abort "Failed to store proxy TLS identity. ABORTING."
+}
+
+# First install only: stores the DID and DSP ports chosen at installation before any service reads them.
+store_dsp_ports() {
+  [[ "${1:-}" == "configure" && -z "${2:-}" ]] || return 0
+
+  local skip_reason
+  if skip_reason=$(tls_identity_rows_skip_reason); then
+    log "${skip_reason}, not storing the DID and DSP ports"
+    return 0
+  fi
+
+  local did_answer dsp_answer did dsp
+  db_get xroad-common/did-port
+  did_answer="$RET"
+  db_get xroad-common/dsp-port
+  dsp_answer="$RET"
+  did=$(normalize_port "$did_answer") \
+    || abort "Invalid DID port '${did_answer}': expected a number from 1024 to 65535. ABORTING."
+  dsp=$(normalize_port "$dsp_answer") \
+    || abort "Invalid DSP port '${dsp_answer}': expected a number from 1024 to 65535. ABORTING."
+  ports_differ "$did" "$dsp" \
+    || abort "The DID port and the DSP port must be different, both are '${did}'. ABORTING."
+
+  store_dsp_port_rows "$did" "$dsp" \
+    || abort "Failed to store the DID port '${did}' and the DSP port '${dsp}'. ABORTING."
 }
 
 function handle_error() {
@@ -94,6 +121,7 @@ case "$1" in
   done
 
   store_tls_identity "$1"
+  store_dsp_ports "$1" "${2:-}"
 
   db_stop
 
