@@ -119,7 +119,7 @@ public final class ResilientVaultCall {
         } catch (RuntimeException e) {
             if (retryable.test(e)) {
                 log.warn("Secret store {} at path {} failed on attempt {} (retry budget {}): {}",
-                        operation, path, attemptNumber, formatBudget(), e.toString());
+                        operation, path, attemptNumber, formatBudget(budget), e.toString());
             }
             throw e;
         }
@@ -128,16 +128,16 @@ public final class ResilientVaultCall {
     private XrdRuntimeException unavailable(String operation, String path, int attempts, RuntimeException cause) {
         return XrdRuntimeException.systemException(SECRET_STORE_UNAVAILABLE, cause,
                 "Secret store %s at path %s failed after %d attempt(s), retry budget %s: %s",
-                operation, path, attempts, formatBudget(), describe(cause));
+                operation, path, attempts, formatBudget(budget), describe(cause));
     }
 
     private static String describe(Throwable failure) {
         return Objects.requireNonNullElse(failure.getMessage(), failure.getClass().getSimpleName());
     }
 
-    private String formatBudget() {
-        return budget.toMillis() % MILLIS_PER_SECOND == 0
-                ? budget.toSeconds() + "s"
-                : budget.toMillis() + "ms";
+    static String formatBudget(Duration value) {
+        return value.toMillis() % MILLIS_PER_SECOND == 0
+                ? value.toSeconds() + "s"
+                : value.toMillis() + "ms";
     }
 }
