@@ -27,19 +27,51 @@
 
 package org.niis.xroad.configuration.migration;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BasePropertiesToDbMigratorTest {
+
+    private static final String LOWER_VALUE = "lower-case-secret-value";
+    private static final String MIXED_VALUE = "mixed-case-secret-value";
+    private static final String UPPER_VALUE = "upper-case-secret-value";
+    private static final String PLAIN_VALUE = "plain-visible-value";
+
+    private final ListAppender<ILoggingEvent> output = new ListAppender<>();
+    private Logger rootLogger;
+    private Level originalLevel;
+
+    @BeforeEach
+    void captureOutput() {
+        rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        originalLevel = rootLogger.getLevel();
+        rootLogger.setLevel(Level.ALL);
+        output.start();
+        rootLogger.addAppender(output);
+    }
+
+    @AfterEach
+    void releaseOutput() {
+        rootLogger.detachAppender(output);
+        rootLogger.setLevel(originalLevel);
+    }
 
     @Test
     void autoConfirmEnvVarSkipsStdinPrompt() {
@@ -97,6 +129,49 @@ class BasePropertiesToDbMigratorTest {
             migrator.migrate("input", "db.props");
             assertEquals(1, mocked.constructed().size());
         }
+    }
+
+    @Test
+    void passwordValuesAreRedactedInEveryLogLineWhateverTheKeyLetterCase() {
+        var props = new TreeMap<String, String>();
+        props.put("xroad.test.db-password", LOWER_VALUE);
+        props.put("xroad.test.keystorePassword", MIXED_VALUE);
+        props.put("xroad.test.KEYSTORE-PASSWORD-FILE", UPPER_VALUE);
+        props.put("xroad.test.plain", PLAIN_VALUE);
+        var migrator = new TestMigrator(props).withEnv(BasePropertiesToDbMigrator.AUTO_CONFIRM_ENV, "true");
+
+        try (MockedConstruction<DbRepository> mocked = Mockito.mockConstruction(DbRepository.class)) {
+            migrator.migrate("input", "db.props");
+
+            var repo = mocked.constructed().getFirst();
+            Mockito.verify(repo).saveProperty("xroad.test.db-password", LOWER_VALUE);
+            Mockito.verify(repo).saveProperty("xroad.test.keystorePassword", MIXED_VALUE);
+            Mockito.verify(repo).saveProperty("xroad.test.KEYSTORE-PASSWORD-FILE", UPPER_VALUE);
+        }
+
+        var lines = output.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+        assertThat(lines).noneMatch(line -> line.contains(LOWER_VALUE) || line.contains(MIXED_VALUE)
+                || line.contains(UPPER_VALUE));
+        assertThat(lines)
+                .contains("xroad.test.db-password=" + BasePropertiesToDbMigrator.REDACTED,
+                        "xroad.test.keystorePassword=" + BasePropertiesToDbMigrator.REDACTED,
+                        "xroad.test.KEYSTORE-PASSWORD-FILE=" + BasePropertiesToDbMigrator.REDACTED,
+                        "Saving property xroad.test.db-password=" + BasePropertiesToDbMigrator.REDACTED,
+                        "Saving property xroad.test.keystorePassword=" + BasePropertiesToDbMigrator.REDACTED,
+                        "Saving property xroad.test.KEYSTORE-PASSWORD-FILE=" + BasePropertiesToDbMigrator.REDACTED);
+    }
+
+    @Test
+    void nonPasswordValuesStillAppearInTheDebugLog() {
+        var migrator = new TestMigrator(Map.of("xroad.test.plain", PLAIN_VALUE))
+                .withEnv(BasePropertiesToDbMigrator.AUTO_CONFIRM_ENV, "true");
+
+        try (MockedConstruction<DbRepository> ignored = Mockito.mockConstruction(DbRepository.class)) {
+            migrator.migrate("input", "db.props");
+        }
+
+        assertThat(output.list.stream().map(ILoggingEvent::getFormattedMessage))
+                .contains("xroad.test.plain=" + PLAIN_VALUE, "Saving property xroad.test.plain=" + PLAIN_VALUE);
     }
 
     static final class TestMigrator extends BasePropertiesToDbMigrator {

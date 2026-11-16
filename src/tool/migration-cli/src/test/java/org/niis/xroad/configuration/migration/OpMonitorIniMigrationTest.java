@@ -97,6 +97,18 @@ class OpMonitorIniMigrationTest {
             connection-timeout-seconds=30
             """;
 
+    private static final String COMMON_INI_WITH_GRPC_INTERNAL = """
+            [common]
+            configuration-path=/var/lib/xroad
+            other-setting=kept-value
+            grpc-internal-host=127.0.0.1
+            grpc-internal-tls-enabled=true
+            grpc-internal-keystore=/etc/xroad/ssl/internal.p12
+            grpc-internal-keystore-password=synthetic-keystore-secret
+            grpc-internal-truststore=/etc/xroad/ssl/trust.p12
+            grpc-internal-truststore-password=synthetic-truststore-secret
+            """;
+
     @TempDir
     Path dir;
 
@@ -338,6 +350,26 @@ class OpMonitorIniMigrationTest {
         assertThat(rows).containsEntry(CHANNEL_HOST_KEY, LOCAL_NAME).containsEntry(LISTEN_ADDRESS_KEY, LOCAL_NAME);
         assertThat(rows.keySet()).noneMatch(key -> key.contains("timeout-seconds"));
         assertThat(warnings()).isEmpty();
+    }
+
+    @Test
+    void grpcInternalSettingsAreNotMigratedAndOtherCommonKeysAre() throws IOException {
+        var file = write("local.ini", COMMON_INI_WITH_GRPC_INTERNAL);
+
+        assertThat(migrateToDb(file)).isEqualTo(Map.of(
+                "xroad.common-global-conf.configuration-path", "/var/lib/xroad",
+                "xroad.common.other-setting", "kept-value"));
+    }
+
+    @Test
+    void rerunWritesNoGrpcInternalRow() throws IOException {
+        var file = write("local.ini", COMMON_INI_WITH_GRPC_INTERNAL);
+
+        var first = migrateToDb(file);
+        var second = migrateToDb(file);
+
+        assertThat(second).isEqualTo(first);
+        assertThat(second.keySet()).noneMatch(key -> key.contains("grpc-internal"));
     }
 
     @Test

@@ -183,6 +183,13 @@ public class LegacyConfigPathMapping {
 
         REMOVED_KEYS.add("configuration-proxy.download-script");
 
+        REMOVED_KEYS.add("common.grpc-internal-host");
+        REMOVED_KEYS.add("common.grpc-internal-tls-enabled");
+        REMOVED_KEYS.add("common.grpc-internal-keystore");
+        REMOVED_KEYS.add("common.grpc-internal-keystore-password");
+        REMOVED_KEYS.add("common.grpc-internal-truststore");
+        REMOVED_KEYS.add("common.grpc-internal-truststore-password");
+
         REMOVED_KEYS.add(OP_MONITOR_HOST_KEY);
         REMOVED_KEYS.add("op-monitor.port");
         REMOVED_KEYS.add("op-monitor.scheme");
