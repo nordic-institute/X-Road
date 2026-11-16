@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.ds.issuance.identity;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 
@@ -50,6 +52,7 @@ import java.util.function.Supplier;
  * #stopPolling()} both check and close that reference, so whichever of the two runs last performs the actual
  * close, however the two race.
  */
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class BoundIssuerIdentityHolder implements AutoCloseable {
 
     static final String NAME = "bound-issuer-identity";
@@ -58,19 +61,16 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
     private final Monitor monitor;
     private final Duration pendingInterval;
 
+    private final Object readerLock = new Object();
+
     private volatile BoundIssuerIdentity identity;
     private volatile PeriodicMaterialReloader<BoundIssuerIdentity> reloader;
     private volatile boolean stopRequested;
-    private BoundIssuerIdentityReader reader;
+    private volatile BoundIssuerIdentityReader reader;
+    private boolean readerClosed;
 
     public BoundIssuerIdentityHolder(Supplier<BoundIssuerIdentityReader> readerFactory, Monitor monitor) {
         this(readerFactory, monitor, PeriodicMaterialReloader.DEFAULT_PENDING_INTERVAL);
-    }
-
-    BoundIssuerIdentityHolder(Supplier<BoundIssuerIdentityReader> readerFactory, Monitor monitor, Duration pendingInterval) {
-        this.readerFactory = readerFactory;
-        this.monitor = monitor;
-        this.pendingInterval = pendingInterval;
     }
 
     /**
@@ -107,11 +107,34 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
     }
 
     private PeriodicMaterialReloader.Loaded<BoundIssuerIdentity> load() {
-        if (reader == null) {
-            reader = readerFactory.get();
-        }
-        var bound = reader.read().orElseThrow(() -> new IllegalStateException(NAME + ": the issuer identity is not bound yet"));
+        var currentReader = acquireReader();
+        var bound = currentReader.read().orElseThrow(BoundIssuerIdentityHolder::unboundException);
         return new PeriodicMaterialReloader.Loaded<>(bound, bound.did());
+    }
+
+    /**
+     * Builds the reader (outside {@link #readerLock}, since construction may be slow), keeping it only if the
+     * holder has not closed in the meantime; a reader built after {@link #close()} ran is closed right away
+     * instead of being kept, so every poll after that builds and discards one.
+     */
+    private BoundIssuerIdentityReader acquireReader() {
+        var existing = reader;
+        if (existing != null) {
+            return existing;
+        }
+        var created = readerFactory.get();
+        synchronized (readerLock) {
+            if (!readerClosed) {
+                reader = created;
+                return created;
+            }
+        }
+        closeQuietly(created);
+        throw unboundException();
+    }
+
+    private static IllegalStateException unboundException() {
+        return new IllegalStateException(NAME + ": the issuer identity is not bound yet");
     }
 
     private void applyAndStop(BoundIssuerIdentity bound) {
@@ -129,13 +152,20 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
     }
 
     private void closeReader() {
-        if (reader instanceof AutoCloseable closeable) {
+        synchronized (readerLock) {
+            readerClosed = true;
+            closeQuietly(reader);
+            reader = null;
+        }
+    }
+
+    private void closeQuietly(BoundIssuerIdentityReader candidate) {
+        if (candidate instanceof AutoCloseable closeable) {
             try {
                 closeable.close();
             } catch (Exception e) {
                 monitor.warning(NAME + ": failed to close the bound-identity reader connection", e);
             }
         }
-        reader = null;
     }
 }

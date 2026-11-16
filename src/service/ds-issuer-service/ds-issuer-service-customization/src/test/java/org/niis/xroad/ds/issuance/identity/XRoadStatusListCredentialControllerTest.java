@@ -68,14 +68,12 @@ class XRoadStatusListCredentialControllerTest {
         when(store.query(any())).thenReturn(StoreResult.success(List.of(statusListCredential(credentialId))));
         var controller = new XRoadStatusListCredentialController(store, monitor, () -> JsonMapper.builder().build(), holder);
 
-        var response = controller.resolveStatusListCredential(MediaType.WILDCARD, requestContext(credentialId));
+        var response = controller.resolveStatusListCredential(MediaType.WILDCARD, requestContext(CALLBACK_ADDRESS + "/credential-1"));
 
         assertThat(response.getStatus()).isEqualTo(200);
         var query = capturedQuery();
         assertThat(query.getFilterExpression())
                 .anySatisfy(criterion -> assertThat(criterion.getOperandRight()).isEqualTo(credentialId));
-        // the lookup is built from the bound base, never from the EDC callback setting
-        assertThat(CALLBACK_ADDRESS).isNotEqualTo(BOUND_BASE_URL);
     }
 
     @Test

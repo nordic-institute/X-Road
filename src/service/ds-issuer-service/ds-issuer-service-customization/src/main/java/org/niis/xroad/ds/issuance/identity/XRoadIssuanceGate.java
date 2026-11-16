@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.ds.issuance.identity;
 
+import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.identityhub.protocols.dcp.issuer.spi.DcpIssuerService;
 import org.eclipse.edc.identityhub.protocols.dcp.spi.model.CredentialRequestMessage;
 import org.eclipse.edc.identityhub.protocols.dcp.spi.model.DcpRequestContext;
@@ -39,15 +40,11 @@ import static org.niis.xroad.ds.issuance.identity.XRoadIssuanceGateExtension.NAM
  * Refusing to issue is a direct rule here, not a side effect of {@link XRoadStatusListCredentialPublisher}'s
  * own refusal: a credential request that needs no statuslist entry would otherwise still succeed while unbound.
  */
+@RequiredArgsConstructor
 public class XRoadIssuanceGate implements DcpIssuerService {
 
     private final DcpIssuerService delegate;
     private final BoundIssuerIdentityHolder holder;
-
-    public XRoadIssuanceGate(DcpIssuerService delegate, BoundIssuerIdentityHolder holder) {
-        this.delegate = delegate;
-        this.holder = holder;
-    }
 
     @Override
     public ServiceResult<CredentialRequestMessage.Response> initiateCredentialsIssuance(

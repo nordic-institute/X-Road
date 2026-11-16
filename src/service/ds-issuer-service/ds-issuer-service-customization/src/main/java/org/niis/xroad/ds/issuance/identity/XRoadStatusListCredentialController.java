@@ -34,6 +34,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.CredentialUsage;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.store.CredentialStore;
 import org.eclipse.edc.spi.EdcException;
@@ -63,6 +64,7 @@ import static org.niis.xroad.ds.issuance.identity.XRoadStatusListCredentialPubli
  * wrong or missing base.
  */
 @Path("{any:.*}")
+@RequiredArgsConstructor
 public class XRoadStatusListCredentialController {
 
     private static final List<String> SUPPORTED_TYPES = List.of(APPLICATION_JSON, "application/vc+jwt", MediaType.WILDCARD);
@@ -71,14 +73,6 @@ public class XRoadStatusListCredentialController {
     private final Monitor monitor;
     private final Supplier<ObjectMapper> mapper;
     private final BoundIssuerIdentityHolder holder;
-
-    public XRoadStatusListCredentialController(CredentialStore store, Monitor monitor, Supplier<ObjectMapper> mapper,
-            BoundIssuerIdentityHolder holder) {
-        this.store = store;
-        this.monitor = monitor;
-        this.mapper = mapper;
-        this.holder = holder;
-    }
 
     @GET
     public Response resolveStatusListCredential(@HeaderParam("Accept") @DefaultValue(MediaType.WILDCARD) String acceptHeader,

@@ -51,10 +51,6 @@ import static org.niis.xroad.ds.issuance.identity.XRoadStatusListCredentialPubli
  * LocalStatusListCredentialPublisherExtension} would have used. That upstream extension must stay excluded
  * ({@code xroad.edc.boot.excluded-service-extensions}): its {@code initialize()} reads the EDC {@code
  * Hostname} eagerly to build its fixed callback base URL, which throws until the issuer identity is bound.
- *
- * <p>EDC's own {@code LocalStatusListCredentialPublisherExtension} provides its default publisher through a
- * {@code @Provider(isDefault = true)} method, which EDC only invokes when no other provider has registered
- * the type; this extension's plain {@code @Provider} always wins over it, with no ordering trick needed.
  */
 @Extension(NAME)
 public class XRoadStatusListCredentialPublisherExtension implements ServiceExtension {

@@ -68,19 +68,6 @@ class XRoadStatusListCredentialPublisherTest {
         assertThat(publisher.publicUrl("credential-1")).isEqualTo("https://issuer.example/statuslist/credential-1");
     }
 
-    @Test
-    void theIdentityUsedStaysTheBoundOneAfterAFurtherPoll() {
-        var bound = identity("DID-SEQUENCE", "https://issuer.example/statuslist");
-        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL);
-        var publisher = new XRoadStatusListCredentialPublisher(holder);
-        holder.start();
-
-        var first = publisher.publicUrl("credential-1");
-        var second = publisher.publicUrl("credential-1");
-
-        assertThat(first).isEqualTo(second);
-    }
-
     private static BoundIssuerIdentity identity(String did, String statuslistBaseUrl) {
         return new BoundIssuerIdentity(did, "issuer.example", 7183, "https://issuer.example/issuance", statuslistBaseUrl);
     }

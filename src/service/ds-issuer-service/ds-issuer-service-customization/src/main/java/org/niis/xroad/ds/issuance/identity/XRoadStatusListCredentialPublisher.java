@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.ds.issuance.identity;
 
+import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.issuerservice.spi.credentials.statuslist.StatusListCredentialPublisher;
 import org.eclipse.edc.spi.EdcException;
@@ -48,13 +49,10 @@ import static org.niis.xroad.ds.issuance.identity.XRoadStatusListCredentialPubli
  * renewed bitstring is computed in memory but before anything is stored; refusing there leaves the stored list
  * untouched.
  */
+@RequiredArgsConstructor
 public class XRoadStatusListCredentialPublisher implements StatusListCredentialPublisher {
 
     private final BoundIssuerIdentityHolder holder;
-
-    public XRoadStatusListCredentialPublisher(BoundIssuerIdentityHolder holder) {
-        this.holder = holder;
-    }
 
     @Override
     public Result<String> publish(VerifiableCredentialResource verifiableCredentialResource) {

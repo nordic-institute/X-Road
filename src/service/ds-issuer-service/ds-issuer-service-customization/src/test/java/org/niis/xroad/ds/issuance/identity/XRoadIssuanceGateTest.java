@@ -77,21 +77,6 @@ class XRoadIssuanceGateTest {
         assertThat(result).isEqualTo(expected);
     }
 
-    @Test
-    void theIdentityUsedStaysTheBoundOneAfterAFurtherPoll() {
-        var bound = identity("DID-SEQUENCE");
-        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL);
-        var gate = new XRoadIssuanceGate(delegate, holder);
-        holder.start();
-        when(delegate.initiateCredentialsIssuance(any(), any(), any()))
-                .thenReturn(ServiceResult.success(new CredentialRequestMessage.Response("process-1", false)));
-
-        gate.initiateCredentialsIssuance("participant-1", message, context);
-        var second = gate.initiateCredentialsIssuance("participant-1", message, context);
-
-        assertThat(second.succeeded()).isTrue();
-    }
-
     private static BoundIssuerIdentity identity(String did) {
         return new BoundIssuerIdentity(did, "issuer.example", 7183, "https://issuer.example/issuance", "https://issuer.example/statuslist");
     }

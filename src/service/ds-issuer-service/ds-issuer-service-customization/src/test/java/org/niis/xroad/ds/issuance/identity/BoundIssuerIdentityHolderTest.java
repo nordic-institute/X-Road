@@ -30,8 +30,13 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -139,6 +144,43 @@ class BoundIssuerIdentityHolderTest {
     }
 
     /**
+     * {@link org.niis.xroad.edc.reload.PeriodicMaterialReloader#scheduleUntilFirstLoad} logs a pending-cycle
+     * failure only when its message differs from the previous one; a reader that is still unbound on every
+     * poll reports the same message each time, so only the first of several polls should log a warning.
+     */
+    @Test
+    void repeatedUnboundPollsLogOnePendingFailureWarningNotOnePerPoll() throws InterruptedException {
+        var polls = new CountDownLatch(5);
+        var recordingMonitor = new RecordingMonitor();
+        BoundIssuerIdentityReader reader = () -> {
+            polls.countDown();
+            return Optional.empty();
+        };
+        var holder = new BoundIssuerIdentityHolder(() -> reader, recordingMonitor, Duration.ofMillis(5));
+
+        holder.start();
+        try {
+            assertThat(polls.await(2, TimeUnit.SECONDS)).isTrue();
+
+            var pendingFailureWarnings = recordingMonitor.warnings.stream()
+                    .filter(message -> message.contains("material not available yet"))
+                    .toList();
+            assertThat(pendingFailureWarnings).hasSize(1);
+        } finally {
+            holder.close();
+        }
+    }
+
+    private static final class RecordingMonitor implements Monitor {
+        private final List<String> warnings = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void warning(Supplier<String> supplier, Throwable... errors) {
+            warnings.add(supplier.get());
+        }
+    }
+
+    /**
      * {@link BoundIssuerIdentityHolder#start()} closes the reloader it just scheduled only after the
      * assignment that stores it; the reloader's own completion callback also closes it, through that same
      * late-bound reference, from the scheduler's own thread. The first read fails, so {@link
@@ -166,6 +208,53 @@ class BoundIssuerIdentityHolderTest {
             Thread.currentThread().interrupt();
         } finally {
             holder.close();
+        }
+    }
+
+    /**
+     * A reader built while the holder is already closing must not be kept: it is closed immediately once its
+     * construction finishes, instead of leaking a connection pool that nothing closes afterwards.
+     */
+    @Test
+    void aReaderBuiltWhileClosingIsClosedRightAwayAndNotKept() throws InterruptedException {
+        var factoryEntered = new CountDownLatch(1);
+        var releaseFactory = new CountDownLatch(1);
+        var readerClosed = new CountDownLatch(1);
+        var holder = new BoundIssuerIdentityHolder(() -> {
+            factoryEntered.countDown();
+            try {
+                releaseFactory.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return new ClosingReader(readerClosed);
+        }, monitor, CHECK_INTERVAL);
+
+        var starter = new Thread(holder::start, "holder-start-under-test");
+        starter.start();
+        try {
+            assertThat(factoryEntered.await(2, TimeUnit.SECONDS)).isTrue();
+
+            holder.close();
+            releaseFactory.countDown();
+
+            assertThat(readerClosed.await(2, TimeUnit.SECONDS)).isTrue();
+            assertThat(holder.identity()).isEmpty();
+        } finally {
+            starter.join(2000);
+            holder.close();
+        }
+    }
+
+    private record ClosingReader(CountDownLatch closed) implements BoundIssuerIdentityReader, AutoCloseable {
+        @Override
+        public Optional<BoundIssuerIdentity> read() {
+            return Optional.empty();
+        }
+
+        @Override
+        public void close() {
+            closed.countDown();
         }
     }
 
