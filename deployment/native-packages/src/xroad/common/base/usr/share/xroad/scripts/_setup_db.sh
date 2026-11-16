@@ -41,10 +41,10 @@ psql_quote() {
 }
 
 # Runs the shared bootstrap SQL through psql_master, which the caller defines.
-# Arguments are name=value pairs, the psql variables documented in bootstrap-cluster.sql.
+# Arguments are name=value pairs, the psql variables documented in bootstrap-roles.sql.
 run_db_bootstrap() {
   local pair file
-  for file in bootstrap-cluster.sql bootstrap-database.sql; do
+  for file in bootstrap-roles.sql bootstrap-schema.sql; do
     [[ -r "$DB_SQL_DIR/$file" ]] || {
       log "Bootstrap SQL file $DB_SQL_DIR/$file is missing or unreadable."
       return 1
@@ -54,7 +54,7 @@ run_db_bootstrap() {
     for pair in "$@"; do
       printf '\\set %s %s\n' "${pair%%=*}" "$(psql_quote "${pair#*=}")"
     done
-    cat "$DB_SQL_DIR/bootstrap-cluster.sql" "$DB_SQL_DIR/bootstrap-database.sql"
+    cat "$DB_SQL_DIR/bootstrap-roles.sql" "$DB_SQL_DIR/bootstrap-schema.sql"
   } | psql_master
 }
 

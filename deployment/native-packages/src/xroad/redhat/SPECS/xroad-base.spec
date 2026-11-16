@@ -55,8 +55,8 @@ cp -p %{srcdir}/../../../../src/tool/otel-javaagent-dist/build/libs/opentelemetr
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/common/base/usr/share/xroad/db/liquibase.sh %{buildroot}/usr/share/xroad/db/liquibase.sh
-cp -p %{srcdir}/common/base/usr/share/xroad/db/bootstrap-cluster.sql %{buildroot}/usr/share/xroad/db/bootstrap-cluster.sql
-cp -p %{srcdir}/common/base/usr/share/xroad/db/bootstrap-database.sql %{buildroot}/usr/share/xroad/db/bootstrap-database.sql
+cp -p %{srcdir}/common/base/usr/share/xroad/db/bootstrap-roles.sql %{buildroot}/usr/share/xroad/db/bootstrap-roles.sql
+cp -p %{srcdir}/common/base/usr/share/xroad/db/bootstrap-schema.sql %{buildroot}/usr/share/xroad/db/bootstrap-schema.sql
 cp -p %{srcdir}/common/helper-scripts/yaml_helper.py %{buildroot}/usr/share/xroad/scripts/yaml_helper.py
 cp -p %{srcdir}/common/helper-scripts/yaml_helper.sh %{buildroot}/usr/share/xroad/scripts/yaml_helper.sh
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
@@ -99,8 +99,8 @@ rm -rf %{buildroot}
 /usr/share/xroad/migrations/*
 /usr/share/xroad/db/liquibase-executor.jar
 /usr/share/xroad/db/liquibase.sh
-/usr/share/xroad/db/bootstrap-cluster.sql
-/usr/share/xroad/db/bootstrap-database.sql
+/usr/share/xroad/db/bootstrap-roles.sql
+/usr/share/xroad/db/bootstrap-schema.sql
 /usr/share/xroad/lib/opentelemetry-javaagent.jar
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt

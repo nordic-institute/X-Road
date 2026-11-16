@@ -1,7 +1,7 @@
--- Cluster-level database bootstrap: creates the database, the owner role and the runtime role.
+-- Server-level bootstrap: creates the database, the owner role and the runtime role.
 -- Run as the database master. CREATEDB and CREATEROLE are enough, no superuser is needed.
 -- Safe to rerun: existing objects are kept, and an existing role keeps its password.
--- Run bootstrap-database.sql after this file.
+-- Run bootstrap-schema.sql after this file.
 --
 -- Input is psql variables, set before this file as `\set name 'value'` (double every ' and \ in the value):
 --   db_name          database to create
@@ -10,8 +10,8 @@
 --   runtime_role     role the application connects as
 --   runtime_password its password
 --   master_role      role running this file
---   schema_name      component schema, used by bootstrap-database.sql
---   hstore           on or off, used by bootstrap-database.sql
+--   schema_name      component schema, used by bootstrap-schema.sql
+--   hstore           on or off, used by bootstrap-schema.sql
 --   single_role      on when the runtime role is also the owner, so no admin role is created
 \set ON_ERROR_STOP on
 

@@ -56,7 +56,7 @@ bootstrap_database() {
       "single_role=off"; do
       printf '\\set %s %s\n' "${pair%%=*}" "$(psql_quote "${pair#*=}")"
     done
-    cat "$DB_SQL_DIR/bootstrap-cluster.sql" "$DB_SQL_DIR/bootstrap-database.sql"
+    cat "$DB_SQL_DIR/bootstrap-roles.sql" "$DB_SQL_DIR/bootstrap-schema.sql"
   } | PGPASSWORD="$DB_MASTER_PASSWORD" PGCONNECT_TIMEOUT=10 psql -X -qtA -h "$db_host" -p "$db_port" -U "$DB_MASTER_USER" -d postgres; then
     fail "Database bootstrap as master user '$DB_MASTER_USER' on $db_host:$db_port failed"
   fi

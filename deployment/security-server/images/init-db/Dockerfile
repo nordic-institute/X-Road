@@ -11,7 +11,7 @@ COPY --from=build-artifacts /liquibase-executor.jar /app/liquibase-executor.jar
 COPY --from=license /LICENSE.txt /app/LICENSE.txt
 COPY --from=license /3RD-PARTY-NOTICES.txt /app/3RD-PARTY-NOTICES.txt
 
-COPY --from=bootstrap-sql bootstrap-cluster.sql bootstrap-database.sql /usr/share/xroad/db/
+COPY --from=bootstrap-sql bootstrap-roles.sql bootstrap-schema.sql /usr/share/xroad/db/
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh

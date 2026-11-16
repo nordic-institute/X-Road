@@ -1,8 +1,8 @@
 -- Database-level bootstrap: revokes public access, creates the component schema, sets the `public` schema
 -- permissions and grants connect rights. Run as the database master or the database owner, after
--- bootstrap-cluster.sql. Safe to rerun.
+-- bootstrap-roles.sql. Safe to rerun.
 --
--- Input is the same psql variables as bootstrap-cluster.sql. Only db_name, admin_role, runtime_role,
+-- Input is the same psql variables as bootstrap-roles.sql. Only db_name, admin_role, runtime_role,
 -- schema_name, hstore and single_role are read here.
 -- When schema_name is public, no schema is created: the owner role takes over public, so it can create tables there.
 \set ON_ERROR_STOP on

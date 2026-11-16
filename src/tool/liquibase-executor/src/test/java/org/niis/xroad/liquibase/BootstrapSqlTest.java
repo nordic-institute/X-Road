@@ -249,7 +249,7 @@ class BootstrapSqlTest {
         assertThatThrownBy(() -> DriverManager.getConnection(url, role, password)).isInstanceOf(SQLException.class);
     }
     private static ExecResult apply(Scenario scenario, String passwordSuffix) throws IOException, InterruptedException {
-        var script = preamble(scenario, passwordSuffix) + readSql("bootstrap-cluster.sql") + readSql("bootstrap-database.sql");
+        var script = preamble(scenario, passwordSuffix) + readSql("bootstrap-roles.sql") + readSql("bootstrap-schema.sql");
         var scriptPath = "/tmp/bootstrap-" + SEQUENCE.incrementAndGet() + ".sql";
         postgres.copyFileToContainer(Transferable.of(script), scriptPath);
 
