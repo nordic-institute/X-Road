@@ -26,17 +26,53 @@
 package org.niis.xroad.opmonitor.core.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OpMonitorConfigTest {
+
+    @TempDir
+    private Path tempDir;
+
+    @Test
+    void settingsFileIsReadFromTheOpMonitorSettingsPath() {
+        assertThat(OpMonitorConfig.SETTINGS_FILE).isEqualTo(Path.of("/etc/xroad/conf.d/op-monitor-settings.yaml"));
+    }
+
+    @Test
+    void productionConfigurationResolvesAnOpMonitorKeyFromTheSettingsFile() throws IOException {
+        var file = Files.writeString(tempDir.resolve("op-monitor-settings.yaml"),
+                "xroad.op-monitor.rpc.listen-address: 10.1.2.3\n");
+
+        var config = new OpMonitorConfig(file).xRoadConfig("op-monitor-daemon");
+
+        var value = config.get(OpMonitorConfigKeys.RPC_LISTEN_ADDRESS);
+        assertThat(value.value()).isEqualTo("10.1.2.3");
+        assertThat(value.source()).isEqualTo(Source.FILE);
+    }
+
+    @Test
+    void containerizedModeIgnoresTheSettingsFile() throws IOException {
+        var file = Files.writeString(tempDir.resolve("op-monitor-settings.yaml"),
+                "xroad.op-monitor.rpc.listen-address: 10.1.2.3\n");
+
+        var config = new OpMonitorConfig(file).buildConfig("op-monitor-daemon", DeploymentMode.CONTAINERIZED);
+
+        assertThat(config.get(OpMonitorConfigKeys.RPC_LISTEN_ADDRESS).source()).isEqualTo(Source.DEFAULT);
+    }
 
     @Test
     void rpcPropertiesPickUpTheFileIdentitySourceFromTheConfiguration() {

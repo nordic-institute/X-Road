@@ -33,6 +33,8 @@ public enum Source {
     DEFAULT,
     /** Active country overlay. */
     COUNTRY,
+    /** Entry of the local settings file. */
+    FILE,
     /** Override row in {@code configuration_properties}. */
     DB
 }

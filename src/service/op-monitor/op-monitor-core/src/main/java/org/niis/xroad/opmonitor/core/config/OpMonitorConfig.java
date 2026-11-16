@@ -27,6 +27,9 @@ package org.niis.xroad.opmonitor.core.config;
 
 import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -38,18 +41,32 @@ import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 
+import java.nio.file.Path;
+
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class OpMonitorConfig {
+
+    static final Path SETTINGS_FILE = Path.of("/etc/xroad/conf.d/op-monitor-settings.yaml");
+
+    private Path settingsFile = SETTINGS_FILE;
 
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
-        return XRoadConfigBuilder.create()
+        return buildConfig(appName, deploymentMode());
+    }
+
+    XRoadConfig buildConfig(String appName, DeploymentMode deploymentMode) {
+        var builder = XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(CommonConfigKeys.instance())
                 .register(OpMonitorConfigKeys.instance())
                 .register(HealthCheckConfigKeys.instance())
-                .deploymentMode(deploymentMode())
-                .dbOverrides(appName)
-                .build();
+                .deploymentMode(deploymentMode);
+        if (deploymentMode == DeploymentMode.NATIVE) {
+            builder.fileOverrides(settingsFile, SettingsFileReader.read(settingsFile));
+        }
+        return builder.dbOverrides(appName).build();
     }
 
     private static DeploymentMode deploymentMode() {
