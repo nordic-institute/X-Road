@@ -33,17 +33,21 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
+import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
 import org.niis.xroad.common.rpc.RpcProperties;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 @Slf4j
 @NoArgsConstructor
@@ -52,11 +56,25 @@ public class OpMonitorConfig {
 
     static final Path SETTINGS_FILE = Path.of("/etc/xroad/conf.d/op-monitor-settings.yaml");
 
+    private static final String OPENBAO = "openbao";
+    private static final String FILE = "file";
+    private static final String OPENBAO_TOKEN_ENV_VAR = "XROAD_SECRET_STORE_TOKEN";
+    private static final String NOT_CONFIGURED_MESSAGE = "op-monitor is not configured: %s is %s (from %s) "
+            + "but no OpenBao token is set (%s is missing or blank). "
+            + "To run without OpenBao, set %s to %s and set %s, %s and %s in %s, then restart xroad-opmonitor. "
+            + "Otherwise provide an OpenBao token.";
+
     private Path settingsFile = SETTINGS_FILE;
 
     @ApplicationScoped
-    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
-        return buildConfig(appName, deploymentMode());
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName,
+                            @ConfigProperty(name = "quarkus.vault.authentication.client-token")
+                            Optional<String> openBaoToken) {
+        var deploymentMode = deploymentMode();
+        var config = buildConfig(appName, deploymentMode);
+        requireIdentityConfigured(config, deploymentMode, DbSourceConfig.loadValues(appName).getUrl() != null,
+                openBaoToken);
+        return config;
     }
 
     XRoadConfig buildConfig(String appName, DeploymentMode deploymentMode) {
@@ -73,6 +91,33 @@ public class OpMonitorConfig {
                     + "configuration database and the container defaults only", settingsFile);
         }
         return builder.dbOverrides(appName).build();
+    }
+
+    static void requireIdentityConfigured(XRoadConfig config, DeploymentMode deploymentMode,
+                                          boolean configurationDatabaseConfigured, Optional<String> openBaoToken) {
+        if (deploymentMode != DeploymentMode.NATIVE || configurationDatabaseConfigured
+                || !config.value(CommonRpcConfigKeys.USE_TLS)
+                || !OPENBAO.equalsIgnoreCase(config.value(OpMonitorConfigKeys.RPC_IDENTITY_SOURCE))
+                || openBaoToken.filter(token -> !token.isBlank()).isPresent()) {
+            return;
+        }
+        var identitySource = config.get(OpMonitorConfigKeys.RPC_IDENTITY_SOURCE);
+        throw XrdRuntimeException.systemInternalError(NOT_CONFIGURED_MESSAGE.formatted(
+                OpMonitorConfigKeys.RPC_IDENTITY_SOURCE.key(), identitySource.value(),
+                sourceDescription(identitySource.source()), OPENBAO_TOKEN_ENV_VAR,
+                OpMonitorConfigKeys.RPC_IDENTITY_SOURCE.key(), FILE,
+                OpMonitorConfigKeys.RPC_FILE_IDENTITY_PRIVATE_KEY_PATH.key(),
+                OpMonitorConfigKeys.RPC_FILE_IDENTITY_CERTIFICATE_PATH.key(),
+                OpMonitorConfigKeys.RPC_FILE_IDENTITY_TRUSTED_CA_PATH.key(),
+                SETTINGS_FILE));
+    }
+
+    private static String sourceDescription(Source source) {
+        return switch (source) {
+            case FILE -> "the settings file";
+            case DB -> "the database";
+            default -> "the default";
+        };
     }
 
     private static DeploymentMode deploymentMode() {

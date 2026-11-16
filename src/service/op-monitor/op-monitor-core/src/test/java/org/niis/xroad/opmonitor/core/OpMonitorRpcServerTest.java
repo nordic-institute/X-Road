@@ -40,10 +40,19 @@ import org.niis.xroad.opmonitor.core.config.OpMonitorServerProperties;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -51,6 +60,7 @@ import static org.mockito.Mockito.when;
 
 class OpMonitorRpcServerTest {
     private static final String ALLOWED_CLIENT_NAMES = "xroad.op-monitor.rpc.allowed-client-names";
+    private static final int CONNECT_TIMEOUT_MILLIS = 2000;
 
     private final RpcCredentialsConfigurer credentialsConfigurer = mock(RpcCredentialsConfigurer.class);
     private final RpcProperties rpcProperties = mock(RpcProperties.class);
@@ -125,6 +135,22 @@ class OpMonitorRpcServerTest {
         assertThat(warnings()).isEmpty();
     }
 
+    @Test
+    void serverListensOnTheConfiguredNonLoopbackAddressOnly() throws IOException {
+        var address = nonLoopbackAddress();
+        assumeThat(address).as("a non-loopback IPv4 address of this host").isPresent();
+        var port = freePort();
+        when(rpcProperties.useTls()).thenReturn(true);
+        server = newServer(Map.of(
+                "xroad.op-monitor.rpc.listen-address", address.orElseThrow().getHostAddress(),
+                "xroad.op-monitor.rpc.port", String.valueOf(port)));
+
+        server.init();
+
+        assertThat(canConnect(address.orElseThrow(), port)).isTrue();
+        assertThat(canConnect(InetAddress.getByName("127.0.0.1"), port)).isFalse();
+    }
+
     private List<String> warnings() {
         return logEvents.list.stream()
                 .filter(event -> event.getLevel() == Level.WARN)
@@ -133,13 +159,47 @@ class OpMonitorRpcServerTest {
     }
 
     private OpMonitorRpcServer newServer(String allowedClientNames) {
+        return newServer(Map.of(ALLOWED_CLIENT_NAMES, allowedClientNames, "xroad.op-monitor.rpc.port", "0"));
+    }
+
+    private OpMonitorRpcServer newServer(Map<String, String> overrides) {
         var config = XRoadConfigBuilder.create()
                 .register(OpMonitorConfigKeys.instance())
-                .overrides(Map.of(
-                        ALLOWED_CLIENT_NAMES, allowedClientNames,
-                        "xroad.op-monitor.rpc.port", "0"))
+                .overrides(overrides)
                 .build();
         return new OpMonitorRpcServer(List.of(), new OpMonitorServerProperties(config), credentialsConfigurer,
                 rpcProperties);
+    }
+
+    private static Optional<InetAddress> nonLoopbackAddress() throws SocketException {
+        return NetworkInterface.networkInterfaces()
+                .filter(OpMonitorRpcServerTest::isUp)
+                .flatMap(NetworkInterface::inetAddresses)
+                .filter(Inet4Address.class::isInstance)
+                .filter(address -> !address.isLoopbackAddress() && !address.isLinkLocalAddress())
+                .findFirst();
+    }
+
+    private static boolean isUp(NetworkInterface networkInterface) {
+        try {
+            return networkInterface.isUp();
+        } catch (SocketException _) {
+            return false;
+        }
+    }
+
+    private static int freePort() throws IOException {
+        try (var socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        }
+    }
+
+    private static boolean canConnect(InetAddress address, int port) {
+        try (var socket = new Socket()) {
+            socket.connect(new InetSocketAddress(address, port), CONNECT_TIMEOUT_MILLIS);
+            return true;
+        } catch (IOException _) {
+            return false;
+        }
     }
 }
