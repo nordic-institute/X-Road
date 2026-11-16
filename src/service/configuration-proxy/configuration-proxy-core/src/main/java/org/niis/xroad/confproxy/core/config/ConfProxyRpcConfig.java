@@ -33,7 +33,6 @@ import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys;
@@ -50,7 +49,6 @@ class ConfProxyRpcConfig {
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .register(CommonRpcConfigKeys.instance())
                 .register(ConfClientConfigKeys.instance())
                 .register(ConfProxyConfigKeys.instance())

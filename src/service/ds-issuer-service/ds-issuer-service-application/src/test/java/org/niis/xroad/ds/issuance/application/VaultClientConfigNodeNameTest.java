@@ -29,6 +29,7 @@ package org.niis.xroad.ds.issuance.application;
 import io.quarkus.vault.VaultKVSecretEngine;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 
 import java.util.Map;
@@ -63,6 +64,7 @@ class VaultClientConfigNodeNameTest {
 
     private void storePinWith(EnvironmentVariables environment) throws Exception {
         environment.execute(() ->
-                new VaultClientConfig().vaultClient(kvSecretEngine).setTokenPin("tok", "1234".toCharArray()));
+                new VaultClientConfig().vaultClient(kvSecretEngine, XRoadConfigBuilder.create().build())
+                        .setTokenPin("tok", "1234".toCharArray()));
     }
 }

@@ -28,12 +28,15 @@ package org.niis.xroad.common.vault;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.SECRET_STORE_UNAVAILABLE;
 
 /**
  * Utility class for common vault data operations related to MLogDBEncryption.
@@ -71,6 +74,7 @@ public class MessageLogVaultDataUtils {
      * @param listKeysFunction   Function that lists all key IDs under the base path
      * @param readSecretFunction Function that reads a secret from a given path and returns Optional of Map
      * @return Map of keyId to base64-encoded secret keys
+     * @throws XrdRuntimeException when the secret store is unavailable, so an outage is never mistaken for missing keys
      */
     public static Map<String, String> getMLogDBEncryptionSecretKeys(
             Function<String, List<String>> listKeysFunction,
@@ -98,6 +102,9 @@ public class MessageLogVaultDataUtils {
 
             log.info("Loaded {} encryption key(s) from Vault", keys.size());
         } catch (Exception e) {
+            if (e instanceof XrdRuntimeException xrdFailure && xrdFailure.isCausedBy(SECRET_STORE_UNAVAILABLE)) {
+                throw xrdFailure;
+            }
             log.warn("Failed to list encryption keys from Vault: {}", e.getMessage());
         }
 

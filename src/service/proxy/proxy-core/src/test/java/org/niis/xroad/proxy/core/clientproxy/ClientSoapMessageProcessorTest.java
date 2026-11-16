@@ -49,7 +49,6 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -1229,7 +1228,7 @@ class ClientSoapMessageProcessorTest {
                 mock(OpMonitoringDataHelper.class),
                 globalConfProvider,
                 proxyProperties,
-                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().register(CommonConfigKeys.instance()).build()),
+                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().build()),
                 mock(OcspVerifierFactory.class),
                 clientRequestPreparationService,
                 consumerSideDspProcessor,
@@ -1262,7 +1261,7 @@ class ClientSoapMessageProcessorTest {
                 mock(OpMonitoringDataHelper.class),
                 mock(GlobalConfProvider.class),
                 proxyProperties,
-                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().register(CommonConfigKeys.instance()).build()),
+                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().build()),
                 mock(OcspVerifierFactory.class),
                 mock(ClientRequestPreparationService.class),
                 consumerSideDspProcessor,
@@ -1280,7 +1279,7 @@ class ClientSoapMessageProcessorTest {
                 mock(OpMonitoringDataHelper.class),
                 globalConfProvider,
                 mock(ProxyProperties.class),
-                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().register(CommonConfigKeys.instance()).build()),
+                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().build()),
                 mock(OcspVerifierFactory.class),
                 clientRequestPreparationService,
                 mock(DspRequestProcessor.class),

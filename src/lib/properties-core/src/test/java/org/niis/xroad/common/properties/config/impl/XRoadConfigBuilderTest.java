@@ -32,7 +32,9 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Prefix;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 
+import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -93,6 +95,13 @@ class XRoadConfigBuilderTest {
                 "PATH", "/usr/bin"));
 
         assertThat(ignored).containsExactly("XROAD_TEST_WITH_CONTAINER");
+    }
+
+    @Test
+    void createRegistersCommonConfigKeysWithoutExplicitRegistration() {
+        var config = XRoadConfigBuilder.create().build();
+
+        assertThat(config.value(CommonConfigKeys.VAULT_RETRY_BUDGET)).isEqualTo(Duration.ofSeconds(30));
     }
 
     @Test

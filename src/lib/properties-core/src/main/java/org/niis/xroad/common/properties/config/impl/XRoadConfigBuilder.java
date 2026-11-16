@@ -35,6 +35,7 @@ import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Value;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
 import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
 import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
@@ -62,12 +63,13 @@ public final class XRoadConfigBuilder {
     private XRoadConfigBuilder() {
     }
 
-    /** @return new builder */
+    /** @return new builder with {@link CommonConfigKeys} already registered */
     public static XRoadConfigBuilder create() {
-        return new XRoadConfigBuilder();
+        return new XRoadConfigBuilder().register(CommonConfigKeys.instance());
     }
 
     /**
+     * Registers a provider.
      * @param provider provider to register
      * @return this builder
      */

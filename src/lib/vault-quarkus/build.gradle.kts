@@ -8,6 +8,7 @@ dependencies {
   api(libs.quarkus.arc)
   api(libs.quarkus.extension.vault)
 
+  testImplementation(testFixtures(project(":lib:vault-core")))
   testImplementation(libs.assertj.core)
   testImplementation(libs.junit.jupiter.params)
 }
