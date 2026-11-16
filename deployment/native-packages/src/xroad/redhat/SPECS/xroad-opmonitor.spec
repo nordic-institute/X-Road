@@ -20,7 +20,7 @@ Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           xroad-base = %version-%release
-Requires:           (xroad-secret-store-local = %version-%release or xroad-secret-store-remote = %version-%release)
+Suggests:           (xroad-secret-store-local = %version-%release or xroad-secret-store-remote = %version-%release)
 Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 
 %define src %{_topdir}/..
@@ -101,9 +101,6 @@ fi
 
 %posttrans -p /bin/bash
 %init_xroad_opmonitor_db
-/usr/share/xroad/scripts/write_tls_config.sh setup_default op-monitor
-rc=$?
-exit $rc
 
 %changelog
 
