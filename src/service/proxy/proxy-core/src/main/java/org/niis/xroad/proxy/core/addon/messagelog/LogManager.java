@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.LogMessage;
 import org.niis.xroad.messagelog.MessageRecord;
@@ -84,7 +85,8 @@ public class LogManager extends AbstractLogManager {
     protected final ProxyMessageLogProperties messageLogProperties;
 
     private final Timestamper timestamper;
-    private final TimestamperJob timestamperJob;
+    // package private for testing
+    final TimestamperJob timestamperJob;
 
     // package private for testing
     final TaskQueue taskQueue;
@@ -101,11 +103,19 @@ public class LogManager extends AbstractLogManager {
         this.messageLogProperties = messageLogProperties;
         this.timestamper = getTimestamperImpl();
         this.taskQueue = getTaskQueueImpl(timestamper);
-        this.timestamperJob = createTimestamperJob(taskQueue);
+
+        if (NodeProperties.isSecondaryNode()) {
+            log.info("Periodic batch time-stamping is not started on a secondary cluster node.");
+            this.timestamperJob = null;
+        } else {
+            this.timestamperJob = createTimestamperJob(taskQueue);
+        }
     }
 
     public void destroy() {
-        timestamperJob.shutdown();
+        if (timestamperJob != null) {
+            timestamperJob.shutdown();
+        }
     }
 
     private TimestamperJob createTimestamperJob(TaskQueue taskQueueParam) {
@@ -357,14 +367,18 @@ public class LogManager extends AbstractLogManager {
     void setTimestampSucceeded() {
         if (timestampFailed != null) {
             timestampFailed = null;
-            this.timestamperJob.onSuccess();
+            if (timestamperJob != null) {
+                this.timestamperJob.onSuccess();
+            }
         }
     }
 
     void setTimestampFailed(Instant atTime) {
         if (timestampFailed == null) {
             timestampFailed = atTime;
-            this.timestamperJob.onFailure();
+            if (timestamperJob != null) {
+                this.timestamperJob.onFailure();
+            }
         }
     }
 

@@ -49,8 +49,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.messagelog.LogRecord;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.RestLogMessage;
@@ -91,6 +93,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.assertTaskQueueSize;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.cleanUpDatabase;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createMessage;
@@ -311,6 +314,27 @@ class MessageLogTest extends AbstractMessageLogTest {
     }
 
     /**
+     * Timestamps message immediately on a secondary cluster node, where the periodic batch timestamper never starts.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void timestampImmediatelyOnSecondaryNode(boolean encrypted) throws Exception {
+        log.trace("timestampImmediatelyOnSecondaryNode(encrypted={})", encrypted);
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+            setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.timestamp-immediately", "true"), encrypted);
+        }
+
+        assertNull(logManager.timestamperJob);
+
+        log(createMessage(), createSignature());
+        assertTaskQueueSize(databaseCtx, 0);
+    }
+
+    /**
      * Logs messages, time-stamps them. Then archives the messages and cleans the database.
      *
      * @throws Exception in case of any unexpected errors
@@ -324,6 +348,48 @@ class MessageLogTest extends AbstractMessageLogTest {
     void logTimestampArchiveAndClean(boolean encrypted) throws Exception {
         setupTest(encrypted);
         log.trace("logTimestampArchiveAndClean(encrypted={})", encrypted);
+
+        assertTaskQueueSize(databaseCtx, 0);
+        log("01-09-2021 12:34:55.100", createMessage(), createSignature());
+        log("01-09-2021 12:34:57.200", createMessage(), createSignature());
+        log("01-09-2021 12:34:59.300", createMessage(), createSignature());
+        assertTaskQueueSize(databaseCtx, 3);
+
+        startTimestamping();
+        waitForTimestampSuccessful();
+        assertTrue(TestTaskQueue.waitForTimestampSaved());
+
+        assertTaskQueueSize(databaseCtx, 0);
+
+        startArchiving();
+        TestLogArchiver.waitForArchiveSuccessful();
+
+        assertEquals(4, getNumberOfRecords(true));
+
+        startCleaning();
+        TestLogCleaner.waitForCleanSuccessful();
+        assertEquals(0, getNumberOfRecords(true));
+
+        assertArchiveHashChain();
+    }
+
+    /**
+     * Logs messages the way a secondary cluster node would, with no record of which node wrote them, then
+     * time-stamps, archives and cleans them on a primary node.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void logTimestampArchiveAndCleanRecordsWithoutNodeAffinity(boolean encrypted) throws Exception {
+        log.trace("logTimestampArchiveAndCleanRecordsWithoutNodeAffinity(encrypted={})", encrypted);
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
+            setupTest(encrypted);
+        }
+
+        assertNotNull(logManager.timestamperJob);
 
         assertTaskQueueSize(databaseCtx, 0);
         log("01-09-2021 12:34:55.100", createMessage(), createSignature());
