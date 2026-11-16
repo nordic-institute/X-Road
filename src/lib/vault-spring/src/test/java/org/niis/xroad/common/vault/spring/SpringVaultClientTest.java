@@ -52,6 +52,7 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -81,7 +82,7 @@ class SpringVaultClientTest {
 
     @BeforeEach
     void setUp() {
-        vaultClient = new SpringVaultClient(vaultKeyValueOperations, null);
+        vaultClient = new SpringVaultClient(vaultKeyValueOperations, null, Duration.ZERO);
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);
@@ -371,8 +372,8 @@ class SpringVaultClientTest {
 
     @Test
     void shouldKeepAdminAndManagementTlsKeysOfTwoNodesOnSeparatePaths() throws Exception {
-        var nodeA = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_a"));
-        var nodeB = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_b"));
+        var nodeA = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_a"), Duration.ZERO);
+        var nodeB = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_b"), Duration.ZERO);
         var keyA = tlsKey("CN=node-a");
         var keyB = tlsKey("CN=node-b");
         nodeA.createAdminServiceTlsCredentials(keyA);

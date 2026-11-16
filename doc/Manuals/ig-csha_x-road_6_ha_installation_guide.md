@@ -1,7 +1,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.22
+Version: 1.23
 Doc. ID: IG-CSHA
 
 ---
@@ -35,6 +35,7 @@ Doc. ID: IG-CSHA
 | 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
 | 11.11.2026 | 1.21    | Document the node name check, the default node name, the shared rows and signer rows of a standalone server, the node name check of an existing name, the signer rows after a rename and the per-node TLS certificate names | Ričardas Bučiūnas  |
 | 12.11.2026 | 1.22    | Document the root token file and the unseal keys that every node keeps, and upgrading all nodes in one window | Ričardas Bučiūnas  |
+| 15.11.2026 | 1.23    | Document that the secret store retry covers key-value calls only                                              | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -320,6 +321,8 @@ sudo cat /etc/openbao/unseal-keys | ssh <admin>@<target-node> \
     ```
 
 **Upgrade.** An upgrade restarts the secret store setup, which writes the access policy of the new release. Upgrade all nodes of the cluster in one maintenance window. A node that is not upgraded yet and restarts writes the old access policy back.
+
+**Secret store failover.** The services retry their key-value calls to the secret store, such as secrets, token PINs and TLS credentials, for a limited time. The reload of the dataspace HTTPS keystore is not covered by this time limit: after the first load, each periodic reload makes up to 3 attempts, 2 s apart, and then waits for the next periodic reload. The certificate issuing (PKI) calls make one attempt and are not retried. The Issuer Service has its own vault client, which is not covered by this time limit either; it retries its connection failures itself. A call that fails after the time limit returns the error code `secret_store_unavailable`. See [System Parameters User Guide](ug-syspar_x-road_v6_system_parameters.md#4112-secret-store-retry-xroadcommonvault-retry).
 
 ## 5 Monitoring HA State on a Node
 

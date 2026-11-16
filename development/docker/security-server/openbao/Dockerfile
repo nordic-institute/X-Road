@@ -1,4 +1,4 @@
-FROM openbao/openbao:2.6.1
+FROM openbao/openbao:2.7.2
 
 USER root
 RUN apk add --no-progress jq bash curl openssl > /dev/null 2>&1

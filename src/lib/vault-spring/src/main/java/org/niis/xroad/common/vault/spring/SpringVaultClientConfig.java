@@ -28,7 +28,10 @@
 package org.niis.xroad.common.vault.spring;
 
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.vault.NoopVaultClient;
+import org.niis.xroad.common.vault.ResilientVaultCall;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -45,9 +48,12 @@ public class SpringVaultClientConfig {
     SpringVaultClient springVaultClient(VaultTemplate vaultTemplate,
                                         @Value("${spring.cloud.vault.kv.backend}") String rootPath,
                                         @Value("${spring.cloud.vault.kv.backend-version}") String version,
-                                        ObjectProvider<NodeIdentity> nodeIdentity) {
+                                        ObjectProvider<NodeIdentity> nodeIdentity,
+                                        ObjectProvider<XRoadConfig> xRoadConfig) {
         var vaultKvClient = vaultTemplate.opsForKeyValue(rootPath, getKeyValueBackendVersion(version));
-        return new SpringVaultClient(vaultKvClient, nodeIdentity.getIfAvailable());
+        var config = xRoadConfig.getIfAvailable();
+        var retryBudget = config == null ? ResilientVaultCall.DEFAULT_BUDGET : config.value(CommonConfigKeys.VAULT_RETRY_BUDGET);
+        return new SpringVaultClient(vaultKvClient, nodeIdentity.getIfAvailable(), retryBudget);
     }
 
     private VaultKeyValueOperationsSupport.KeyValueBackend getKeyValueBackendVersion(String version) {
