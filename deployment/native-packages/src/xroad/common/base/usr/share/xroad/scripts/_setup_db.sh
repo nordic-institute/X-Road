@@ -43,7 +43,13 @@ psql_quote() {
 # Runs the shared bootstrap SQL through psql_master, which the caller defines.
 # Arguments are name=value pairs, the psql variables documented in bootstrap-cluster.sql.
 run_db_bootstrap() {
-  local pair
+  local pair file
+  for file in bootstrap-cluster.sql bootstrap-database.sql; do
+    [[ -r "$DB_SQL_DIR/$file" ]] || {
+      log "Bootstrap SQL file $DB_SQL_DIR/$file is missing or unreadable."
+      return 1
+    }
+  done
   {
     for pair in "$@"; do
       printf '\\set %s %s\n' "${pair%%=*}" "$(psql_quote "${pair#*=}")"

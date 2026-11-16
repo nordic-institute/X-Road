@@ -435,6 +435,8 @@ skip_migrations=false
 | openbao        | openbao             | CREATE,TEMPORARY,CONNECT  | The database user for local OpenBao (package `xroad-secret-store-local`) | 
 | postgres       | ALL                 | ALL                       | PostgreSQL database default superuser.                                   |
 
+If a database role already exists and its password differs from the one stored in `db.properties`, the installation stops with the message "Logging in as database role '<role>' failed". Set the stored password to match the role, or drop the role and rerun the installation.
+
 ## Annex C `xroad-secret-store-local` default configuration
 
 Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>

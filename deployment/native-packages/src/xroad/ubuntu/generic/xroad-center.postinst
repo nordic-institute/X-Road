@@ -47,6 +47,7 @@ setup_database() {
     local db_password=$(get_prop ${db_properties} 'spring.datasource.password' 'centerui')
     local db_database="centerui_production"
     local db_master_user=postgres
+    local db_master_conn_user=postgres
 
     local db_url=$(get_prop ${db_properties} 'spring.datasource.url')
     if [[ -z "$db_url" ]]; then
@@ -96,9 +97,10 @@ setup_database() {
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
-        db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+        db_master_conn_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
+        db_master_user="${db_master_conn_user%%@*}"
         function psql_master() {
-            PGDATABASE="postgres" PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_user}" remote_psql "$@"
+            PGDATABASE="postgres" PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_conn_user}" remote_psql "$@"
         }
     else
         function psql_master() { local_psql "$@"; }
@@ -124,7 +126,8 @@ setup_database() {
           chmod 600 ${root_properties}
         fi
 
-        db_password=$(gen_pw)
+        db_password=$(get_prop ${db_properties} 'spring.datasource.password' '')
+        [[ -n "$db_password" ]] || db_password=$(gen_pw)
         echo "Creating database"
         run_db_bootstrap \
             db_name="${db_database}" \
