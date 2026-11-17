@@ -18,6 +18,10 @@
   tags:
     - install-xroad-cs-packages
 
+- name: copy the database credentials of the first node
+  include_tasks: shared-db-credentials.yml
+  when: xroad_cs_openbao_cluster_nodes | length > 1 and inventory_hostname != xroad_cs_openbao_cluster_nodes | first
+
 - name: create xroad properties file
   lineinfile:
     path: /etc/xroad.properties
