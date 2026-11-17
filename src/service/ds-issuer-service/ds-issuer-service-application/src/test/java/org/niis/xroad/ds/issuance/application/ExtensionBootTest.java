@@ -32,6 +32,8 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.edc.extension.bridge.ExtensionScanGuard;
@@ -43,6 +45,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -67,9 +70,6 @@ class ExtensionBootTest {
 
     private static final String HOSTNAME_SETTING = "edc.hostname";
     private static final String LEFTOVER_HOSTNAME = "leftover-node.example";
-
-    private static final String VAULT_TOKEN_SETTING = "edc.vault.hashicorp.token";
-    private static final String VAULT_TOKEN = "test-token";
 
     private static final String IDENTITY_DB_URL_SETTING = "xroad.db.ds-issuer-service-identity.url";
     private static final String IDENTITY_DB_USERNAME_SETTING = "xroad.db.ds-issuer-service-identity.username";
@@ -113,27 +113,27 @@ class ExtensionBootTest {
         return settings;
     }
 
-    private static List<ServiceExtension> boot(Map<String, String> overrides) {
-        var settings = new HashMap<>(Map.of(VAULT_TOKEN_SETTING, VAULT_TOKEN));
-        settings.putAll(overrides);
-        return ExtensionScanGuard.initializeNonExcluded(ExtensionBootTest.class.getResource("/application.yaml"), settings, context -> {
-            context.registerService(RpcCredentialsConfigurer.class, mock(RpcCredentialsConfigurer.class));
-            context.registerService(GlobalConfProvider.class, mock(GlobalConfProvider.class));
-            context.registerService(VaultClient.class, mock(VaultClient.class));
-        });
+    private static List<ServiceExtension> boot(Map<String, String> settings) {
+        return ExtensionScanGuard.initializeNonExcluded(ExtensionBootTest.class.getResource("/application.yaml"), settings,
+                ExtensionBootTest::registerHostServices);
     }
 
-    private static ServiceExtensionContext bootCapturingContext(Map<String, String> overrides) {
-        var settings = new HashMap<>(Map.of(VAULT_TOKEN_SETTING, VAULT_TOKEN));
-        settings.putAll(overrides);
+    private static ServiceExtensionContext bootCapturingContext(Map<String, String> settings) {
         var contextHolder = new ServiceExtensionContext[1];
         ExtensionScanGuard.initializeNonExcluded(ExtensionBootTest.class.getResource("/application.yaml"), settings, context -> {
             contextHolder[0] = context;
-            context.registerService(RpcCredentialsConfigurer.class, mock(RpcCredentialsConfigurer.class));
-            context.registerService(GlobalConfProvider.class, mock(GlobalConfProvider.class));
-            context.registerService(VaultClient.class, mock(VaultClient.class));
+            registerHostServices(context);
         });
         return contextHolder[0];
+    }
+
+    private static void registerHostServices(ServiceExtensionContext context) {
+        context.registerService(RpcCredentialsConfigurer.class, mock(RpcCredentialsConfigurer.class));
+        context.registerService(GlobalConfProvider.class, mock(GlobalConfProvider.class));
+        context.registerService(VaultClient.class, mock(VaultClient.class));
+        var openBaoClient = mock(io.quarkus.vault.client.VaultClient.class, RETURNS_DEEP_STUBS);
+        context.registerService(io.quarkus.vault.client.VaultClient.class, openBaoClient);
+        context.registerService(XRoadConfig.class, XRoadConfigBuilder.create().build());
     }
 
     private static void assertLocalPublisherExtensionNotLoaded(List<ServiceExtension> extensions) {
