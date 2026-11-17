@@ -39,7 +39,7 @@ Doc. ID: UG-SS-SIDECAR
 | 14.09.2026 | 1.29    | Added health-check and external secret store network ports       | Eneli Reimets             |
 | 06.11.2026 | 1.30    | Link the operational monitoring connection trust settings        | Eneli Reimets             |
 | 12.11.2026 | 1.31    | Document the 7.8.3 to 8.0.0 migration                            | Marc David                |
-| 17.11.2026 | 1.32    | Document country profiles and the EE batch signing default       | Ričardas Bučiūnas         |
+| 17.11.2026 | 1.32    | Document country profiles, the EE batch signing default and the EE client ports | Ričardas Bučiūnas         |
 
 ## License
 
@@ -69,6 +69,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [2.11 Health Checks](#211-health-checks)
   * [2.12 First-Boot Hook Scripts](#212-first-boot-hook-scripts)
   * [2.13 Country Profile](#213-country-profile)
+    * [Client ports of the EE images](#client-ports-of-the-ee-images)
 * [3 Initial configuration](#3-initial-configuration)
   * [3.1 Enabling ACME Support](#31-enabling-acme-support)
   * [3.2 Configuring the memory allocation for the Proxy Service](#32-configuring-the-memory-allocation-for-the-proxy-service)
@@ -137,7 +138,7 @@ The following parameters are used in example commands:
 | \<container name>                   | Name of the Security Server Sidecar container                                                                                     |
 | \<admin port>                       | Port for admin user interface (default 4000)                                                                                      |
 | \<healthcheck port>                 | Port for service health check (default 5588)                                                                                      |
-| \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https))                                                              |
+| \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https); the `ee` images use 80 (http), 443 (https), see [Client ports of the EE images](#client-ports-of-the-ee-images)) |
 | \<admin user>                       | Admin username                                                                                                                    |
 | \<admin password>                   | Admin password                                                                                                                    |
 | \<database host>                    | (Optional) host for external database                                                                                             |
@@ -156,7 +157,7 @@ The table below lists the required connections between different components.
 | Connection | Source                      | Target                      | Target Ports     | Protocol | Note                    |
 |------------|-----------------------------|-----------------------------|------------------|----------|-------------------------|
 | Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                         |
-| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network |
+| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443 (`ee` images: 80, 443) | tcp      | From "internal" network, see [Client ports of the EE images](#client-ports-of-the-ee-images) |
 | Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network |
 | Inbound    | Monitoring / orchestrator   | Sidecar                     | 5588             | http     | Health check, see [2.11 Health Checks](#211-health-checks) |
 | Inbound    | ACME Server                 | Sidecar                     | 80               | http     |                         |
@@ -175,6 +176,7 @@ Notes:
 * The inbound ports 5500/tcp and 5577/tcp for communicating with other Security Servers must be published to the same ports on the host (or the public interface if NAT/firewall is in use)
   * If the Security Server is only consuming services, it is not necessary to publish ports 5500 and 5577.
 * 4000, 8080, 8443 should be only accessible to internal clients (can be mapped to other ports)
+  * For the `ee` images, the consumer information system ports are 80 and 443 instead of 8080 and 8443. See [Client ports of the EE images](#client-ports-of-the-ee-images).
 
 See also [Docker Networking](https://docs.docker.com/network/)
 
@@ -225,6 +227,8 @@ docker run --detach \
   # Optional parameters - END
   niis/xroad-security-server-sidecar:<version[-type[-variant]]>
 ```
+
+The `-p <consumer information system port>:8443` option publishes the https port of the consumer information system. For the `ee` images, use `-p <consumer information system port>:443` instead. See [Client ports of the EE images](#client-ports-of-the-ee-images).
 
 Hash for admin user can be generated with multiple tools. Note that yescrypt ( `$y$xxxx` ) hash is not supported in older xroad images.
 A SHA512 hash can be generated with `mkpasswd -m SHA-512` or with docker command `docker run --rm -it docker.io/serversideup/mkpasswd -m SHA-512`
@@ -311,6 +315,8 @@ docker run -d \
 niis/xroad-security-server-sidecar:<version[-type[-variant]>
 ```
 
+For the `ee` images, use `-p <consumer information system port>:443` instead of `-p <consumer information system port>:8443`. See [Client ports of the EE images](#client-ports-of-the-ee-images).
+
 X-Road Security Server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. 
 See [IG-SS](#Ref_IG-SS) for more information about using remote database.
 
@@ -390,6 +396,8 @@ docker run --detach \
   -v sidecar_db_volume:/var/lib/postgresql/18/main \
   niis/xroad-security-server-sidecar:8.0.0
 ```
+
+For the `ee` images, use `-p 443:443` instead of `-p 8443:8443`. See [Client ports of the EE images](#client-ports-of-the-ee-images).
 
 ### 2.8 Automatic backups
 
@@ -523,6 +531,16 @@ A value that is not a country code stops the start of the X-Road services. The l
 The Sidecar writes a warning to the log for each entry that is not a system parameter of the selected country profile, for example because of a spelling error. It also writes a warning, and ignores the list, when `XROAD_COUNTRY_PROFILE` is not set.
 
 The `ee` image sets `XROAD_COUNTRY_PROFILE_EXCLUDE` to `xroad.proxy.client-proxy.connector-host`. The Estonian profile sets this parameter to `127.0.0.1`, and then the Client Proxy would not accept connections from outside the container. A value that you set for `XROAD_COUNTRY_PROFILE_EXCLUDE` replaces the value of the image, so a custom list on the `ee` image must keep `xroad.proxy.client-proxy.connector-host`. When you set `XROAD_COUNTRY_PROFILE=EE` on the image without a variant, add it to `XROAD_COUNTRY_PROFILE_EXCLUDE` yourself. The `fi`, `fo` and `is` images exclude nothing.
+
+#### Client ports of the EE images
+
+As in X-Road 7, the Estonian profile sets the Client Proxy to listen on port 80 (http) and port 443 (https) for consumer information systems. The `ee`, `primary-ee` and `secondary-ee` images, and any Sidecar with `XROAD_COUNTRY_PROFILE=EE`, use these ports. The other images use port 8080 (http) and port 8443 (https).
+
+Publish the container ports of the Estonian profile, not 8080 and 8443. For example, to map the https port of the consumer information system to host port 443:
+
+```bash
+  -p 443:443 \
+```
 
 ## 3 Initial configuration
 
