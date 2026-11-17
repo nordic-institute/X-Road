@@ -102,7 +102,7 @@ public final class XRoadConfigBuilder {
     /**
      * Loads the DB-override layer from the {@code configuration_properties} table via the
      * {@code DB_CONFIG_SOURCE_*} environment. No-op when the DB config source is disabled or
-     * its URL is unset, so callers fall back to packaged defaults. Reuses the framework-neutral
+     * its URL is unset, so callers fall back to the country profile and packaged defaults. Reuses the framework-neutral
      * {@link CachedDbConfigSource}.
      * @param appName application name (drives the read-pool name)
      * @return this builder
@@ -122,14 +122,15 @@ public final class XRoadConfigBuilder {
         var dbSourceConfig = DbSourceConfig.loadValues(appName, nodeNameProvider);
         if (dbSourceConfig.getUrl() != null) {
             var dbProps = new CachedDbConfigSource(dbSourceConfig).getProperties();
-            var merged = new java.util.LinkedHashMap<>(overrides);
+            var merged = new LinkedHashMap<>(overrides);
             merged.putAll(dbProps);
             this.overrides = Map.copyOf(merged);
             var nodeName = dbSourceConfig.getNodeName();
             log.info("Loaded {} config override(s) from DB for '{}' ({})", dbProps.size(), appName,
                     nodeName == null ? "shared rows only" : "shared rows and rows of node '" + nodeName + "'");
         } else {
-            log.info("DB config source disabled; '{}' uses the country profile and packaged defaults only", appName);
+            log.info("DB config source disabled; '{}' resolves from the country profile, when one is active, "
+                    + "and packaged defaults", appName);
         }
         return this;
     }
@@ -146,9 +147,9 @@ public final class XRoadConfigBuilder {
 
     XRoadConfig build(Map<String, String> env) {
         warnIgnoredEnvVars(env);
-        var countryProfile = CountryProfileLoader.load(
-                env.get(CountryProfileLoader.PROFILE_ENV_VARIABLE),
-                env.get(CountryProfileLoader.EXCLUDE_ENV_VARIABLE));
+        var countryProfile = CountryProfileLoader.resolve(env)
+                .map(ActiveCountryProfile::values)
+                .orElse(Map.of());
         return new DefaultXRoadConfig(providers, overrides, countryProfile, deploymentMode);
     }
 
@@ -213,7 +214,6 @@ public final class XRoadConfigBuilder {
         public <T> Optional<Value<T>> getOpt(ConfigKey<T> key) {
             return Optional.ofNullable((Value<T>) resolved.get(key));
         }
-
 
         private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides,
                                             Map<String, String> countryProfile, DeploymentMode mode) {

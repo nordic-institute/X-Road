@@ -36,8 +36,7 @@ import java.util.Map;
 @Slf4j
 public class IniToDbMigrator extends BasePropertiesToDbMigrator {
 
-    private static final String COUNTRY_OVERRIDE_PREFIX = "override-securityserver-";
-    private static final String INI_SUFFIX = ".ini";
+    private static final String COUNTRY_OVERRIDE_PREFIX = IniUtil.OVERRIDE_INI_PREFIX + "securityserver-";
 
     private final IniUtil iniUtil;
 
@@ -52,7 +51,8 @@ public class IniToDbMigrator extends BasePropertiesToDbMigrator {
     @Override
     public void migrate(String filePath, String dbPropertiesPath, InstallationType installationType) {
         if (isCountryOverride(filePath)) {
-            log.info("Skipping country package settings file [{}]: country values come from the country profile", filePath);
+            log.warn("Skipping country package settings file [{}]: country values come from the country profile. "
+                    + "Edits made in this file are not migrated; re-enter them as system parameters", filePath);
             return;
         }
         super.migrate(filePath, dbPropertiesPath, installationType);
@@ -60,7 +60,7 @@ public class IniToDbMigrator extends BasePropertiesToDbMigrator {
 
     private static boolean isCountryOverride(String filePath) {
         var name = Paths.get(filePath).getFileName().toString();
-        return name.startsWith(COUNTRY_OVERRIDE_PREFIX) && name.endsWith(INI_SUFFIX);
+        return name.startsWith(COUNTRY_OVERRIDE_PREFIX) && name.endsWith(IniUtil.INI_SUFFIX);
     }
 
     @Override

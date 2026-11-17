@@ -29,9 +29,10 @@ package org.niis.xroad.securityserver.restapi.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
@@ -39,6 +40,7 @@ import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,10 +72,37 @@ class CountryProfileKeysTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"EE", "FI", "IS", "FO"})
+    @MethodSource("supportedProfiles")
     void everyProfileKeyIsACatalogueKey(String profile) {
-        var keys = CountryProfileLoader.load(profile, null).keySet();
+        var keys = CountryProfileLoader.resolve(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profile))
+                .orElseThrow().values().keySet();
 
         assertThat(keys).isNotEmpty().isSubsetOf(catalogueKeys);
+    }
+
+    @ParameterizedTest
+    @MethodSource("supportedProfiles")
+    void everyProfileValueIsAcceptedByItsKeyConverterAndValidator(String profile) {
+        var values = CountryProfileLoader.resolve(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profile))
+                .orElseThrow().values();
+        var keys = new SsConfigurablePropertySource().getConfigKeyProviders().stream()
+                .flatMap(provider -> provider.keys().stream())
+                .collect(Collectors.toMap(ConfigKey::key, key -> key, (first, _) -> first));
+
+        values.forEach((name, raw) -> {
+            var key = keys.get(name);
+            if (key != null) {
+                assertThat(validationMessage(key, raw)).as("%s=%s in profile %s", name, raw, profile).isNull();
+            }
+        });
+    }
+
+    private static <T> String validationMessage(ConfigKey<T> key, String raw) {
+        var result = key.validate(key.convert(raw));
+        return result.valid() ? null : result.message();
+    }
+
+    private static List<String> supportedProfiles() {
+        return CountryProfileLoader.SUPPORTED_COUNTRIES;
     }
 }

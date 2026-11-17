@@ -50,7 +50,7 @@ import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 /**
  * Security Server's {@link ConfigurablePropertySource}: the providers whose exposed keys make up the
@@ -80,15 +80,13 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
     private final CountryProfile countryProfile;
 
     public SsConfigurablePropertySource() {
-        this(System.getenv(CountryProfileLoader.PROFILE_ENV_VARIABLE),
-                System.getenv(CountryProfileLoader.EXCLUDE_ENV_VARIABLE));
+        this(System.getenv());
     }
 
-    SsConfigurablePropertySource(String profileName, String excludeList) {
-        countryProfile = profileName == null || profileName.isBlank()
-                ? CountryProfile.NONE
-                : new CountryProfile(profileName.strip().toUpperCase(Locale.ROOT),
-                CountryProfileLoader.load(profileName, excludeList));
+    SsConfigurablePropertySource(Map<String, String> env) {
+        countryProfile = CountryProfileLoader.resolve(env)
+                .map(profile -> new CountryProfile(profile.code(), profile.values()))
+                .orElse(CountryProfile.NONE);
     }
 
     @Override

@@ -29,31 +29,28 @@ package org.niis.xroad.common.properties.config.impl;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.IOException;
-import java.net.JarURLConnection;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
- * Loads a bundled country profile ({@code xroad-config/country-profile/<CC>.yaml}) and flattens
- * its {@code xroad} subtree to dotted DSL keys with string values. Lists render as
- * comma-separated strings. The {@code metadata} block is informational and not loaded.
- * Profile names are case-insensitive and validated against the bundled profile files.
+ * Resolves the active country profile from the environment and loads its bundled file
+ * ({@code xroad-config/country-profile/<CC>.yaml}). The {@code xroad} subtree is flattened to dotted DSL keys
+ * with string values; lists render as comma-separated strings. The {@code metadata} block is informational
+ * and not loaded. The selector is case-insensitive and validated against {@link #SUPPORTED_COUNTRIES}.
  */
 @Slf4j
 @UtilityClass
@@ -63,97 +60,104 @@ public class CountryProfileLoader {
     public static final String PROFILE_ENV_VARIABLE = "XROAD_COUNTRY_PROFILE";
     /** Environment variable listing comma-separated DSL keys to remove from the selected profile. */
     public static final String EXCLUDE_ENV_VARIABLE = "XROAD_COUNTRY_PROFILE_EXCLUDE";
+    /** Country codes that have a bundled profile. */
+    public static final List<String> SUPPORTED_COUNTRIES = List.of("EE", "FI", "FO", "IS");
+
     private static final String RESOURCE_DIRECTORY = "xroad-config/country-profile";
     private static final String RESOURCE_SUFFIX = ".yaml";
     private static final String ROOT_KEY = "xroad";
     private static final YAMLMapper MAPPER = YAMLMapper.builder().build();
     private static final Set<String> LOGGED = ConcurrentHashMap.newKeySet();
+
     /**
-     * @param profileName country profile name, case-insensitive; {@code null} or blank means no profile
-     * @param excludeList comma-separated DSL keys to remove from the profile; {@code null} or blank excludes nothing
-     * @return DSL key to string value, empty when no profile is selected
-     * @throws IllegalArgumentException when the profile name matches no bundled profile
+     * @param env environment variables; {@link #PROFILE_ENV_VARIABLE} selects the profile and
+     *            {@link #EXCLUDE_ENV_VARIABLE} lists keys to remove from it
+     * @return the selected profile, empty when the selector is unset or blank
+     * @throws IllegalArgumentException when the selector is not one of {@link #SUPPORTED_COUNTRIES}
      */
-    public static Map<String, String> load(String profileName, String excludeList) {
-        if (profileName == null || profileName.isBlank()) {
-            return Map.of();
+    public static Optional<ActiveCountryProfile> resolve(Map<String, String> env) {
+        var selector = env.get(PROFILE_ENV_VARIABLE);
+        var excludes = parseExcludeList(env.get(EXCLUDE_ENV_VARIABLE));
+        if (selector == null || selector.isBlank()) {
+            if (!excludes.isEmpty()) {
+                log.warn("{} is set but {} selects no country profile; the exclude list is ignored",
+                        EXCLUDE_ENV_VARIABLE, PROFILE_ENV_VARIABLE);
+            }
+            return Optional.empty();
         }
-        var name = profileName.strip().toUpperCase(Locale.ROOT);
-        var values = new LinkedHashMap<>(readProfile(name));
-        values.keySet().removeAll(parseExcludeList(excludeList));
-        if (LOGGED.add(name + ":" + values.size())) {
-            log.info("Country profile {} active, {} key(s) applied", name, values.size());
+        var code = selector.strip().toUpperCase(Locale.ROOT);
+        if (!SUPPORTED_COUNTRIES.contains(code)) {
+            throw new IllegalArgumentException("Unknown country profile '%s' in %s; supported profiles: %s"
+                    .formatted(code, PROFILE_ENV_VARIABLE, String.join(", ", SUPPORTED_COUNTRIES)));
         }
-        return Map.copyOf(values);
+        var values = readProfile(code);
+        applyExcludes(code, values, excludes);
+        if (LOGGED.add(code + ":" + values.size())) {
+            log.info("Country profile {} active, {} key(s) applied", code, values.size());
+        }
+        return Optional.of(new ActiveCountryProfile(code, Map.copyOf(values)));
     }
-    private static List<String> parseExcludeList(String excludeList) {
+
+    private static void applyExcludes(String code, Map<String, String> values, Set<String> excludes) {
+        for (var entry : excludes) {
+            if (values.remove(entry) == null) {
+                log.warn("Exclude entry '{}' in {} matches no key of country profile {}",
+                        entry, EXCLUDE_ENV_VARIABLE, code);
+            }
+        }
+    }
+
+    private static Set<String> parseExcludeList(String excludeList) {
         if (excludeList == null) {
-            return List.of();
+            return Set.of();
         }
         return Arrays.stream(excludeList.split(","))
                 .map(String::strip)
                 .filter(entry -> !entry.isEmpty())
-                .toList();
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
-    private static Map<String, String> readProfile(String name) {
-        var resource = resourceName(name);
+
+    private static Map<String, String> readProfile(String code) {
+        var resource = RESOURCE_DIRECTORY + "/" + code + RESOURCE_SUFFIX;
         try (var in = CountryProfileLoader.class.getClassLoader().getResourceAsStream(resource)) {
             if (in == null) {
-                throw new IllegalArgumentException("Unknown country profile '%s' in %s; available profiles: %s"
-                        .formatted(name, PROFILE_ENV_VARIABLE, String.join(", ", bundledProfiles())));
+                throw new IllegalStateException("Bundled country profile %s is missing: %s".formatted(code, resource));
             }
-            var values = new LinkedHashMap<String, String>();
-            flatten(ROOT_KEY, MAPPER.readTree(in).path(ROOT_KEY), values);
-            return values;
+            return parse(code, in);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to read country profile " + name, e);
+            throw new IllegalStateException("Failed to read country profile " + code, e);
         }
     }
-    private static String resourceName(String profile) {
-        return RESOURCE_DIRECTORY + "/" + profile + RESOURCE_SUFFIX;
-    }
-    private static Set<String> bundledProfiles() {
-        var names = new TreeSet<String>();
+
+    static Map<String, String> parse(String profile, InputStream in) {
         try {
-            var directories = CountryProfileLoader.class.getClassLoader().getResources(RESOURCE_DIRECTORY);
-            while (directories.hasMoreElements()) {
-                collectProfileNames(directories.nextElement(), names);
-            }
-        } catch (IOException | URISyntaxException e) {
-            log.debug("Could not list bundled country profiles", e);
-        }
-        return names;
-    }
-    private static void collectProfileNames(URL directory, Set<String> names) throws IOException, URISyntaxException {
-        if ("file".equals(directory.getProtocol())) {
-            try (var files = Files.list(Path.of(directory.toURI()))) {
-                files.map(path -> path.getFileName().toString()).forEach(file -> addProfileName(file, names));
-            }
-        } else if (directory.openConnection() instanceof JarURLConnection connection) {
-            var prefix = RESOURCE_DIRECTORY + "/";
-            var entries = connection.getJarFile().entries();
-            while (entries.hasMoreElements()) {
-                var entry = entries.nextElement().getName();
-                if (entry.startsWith(prefix)) {
-                    addProfileName(entry.substring(prefix.length()), names);
-                }
-            }
+            var values = new LinkedHashMap<String, String>();
+            flatten(profile, ROOT_KEY, MAPPER.readTree(in).path(ROOT_KEY), values);
+            return values;
+        } catch (JacksonException e) {
+            throw new IllegalStateException("Failed to read country profile " + profile, e);
         }
     }
-    private static void addProfileName(String fileName, Set<String> names) {
-        if (fileName.endsWith(RESOURCE_SUFFIX)) {
-            names.add(fileName.substring(0, fileName.length() - RESOURCE_SUFFIX.length()));
-        }
-    }
-    private static void flatten(String prefix, JsonNode node, Map<String, String> out) {
+
+    private static void flatten(String profile, String prefix, JsonNode node, Map<String, String> out) {
         if (node.isObject()) {
-            node.properties().forEach(entry -> flatten(prefix + "." + entry.getKey(), entry.getValue(), out));
+            node.properties().forEach(entry ->
+                    flatten(profile, prefix + "." + entry.getKey(), entry.getValue(), out));
         } else if (node.isArray()) {
-            out.put(prefix, StreamSupport.stream(node.spliterator(), false)
-                    .map(JsonNode::asString)
+            out.put(prefix, node.valueStream()
+                    .map(item -> plainValue(profile, prefix, item))
                     .collect(Collectors.joining(",")));
-        } else if (!node.isMissingNode() && !node.isNull()) {
-            out.put(prefix, node.asString());
+        } else if (!node.isMissingNode()) {
+            out.put(prefix, plainValue(profile, prefix, node));
         }
+    }
+
+    private static String plainValue(String profile, String key, JsonNode node) {
+        if (node.isNull() || node.isContainer()) {
+            throw new IllegalStateException(
+                    "Invalid country profile %s: key %s must hold a plain value or a list of plain values"
+                            .formatted(profile, key));
+        }
+        return node.asString();
     }
 }

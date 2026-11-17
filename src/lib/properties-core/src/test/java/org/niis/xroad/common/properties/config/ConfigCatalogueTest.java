@@ -80,12 +80,12 @@ class ConfigCatalogueTest {
     @Test
     void singleArgPrefixEnumeratesAsCommonCategory() {
         var prefix = Prefix.of("xroad");
-        prefix.string("instance-country").build();
+        prefix.string("instance-label").build();
         ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
 
         var entry = ConfigCatalogue.from(List.of(provider)).getFirst();
 
-        assertThat(entry.key()).isEqualTo("xroad.instance-country");
+        assertThat(entry.key()).isEqualTo("xroad.instance-label");
         assertThat(entry.category()).isEqualTo(Category.COMMON);
     }
 

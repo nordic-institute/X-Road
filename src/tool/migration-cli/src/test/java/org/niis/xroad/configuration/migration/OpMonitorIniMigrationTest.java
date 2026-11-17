@@ -27,10 +27,15 @@
 
 package org.niis.xroad.configuration.migration;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -260,11 +265,25 @@ class OpMonitorIniMigrationTest {
     }
 
     @Test
-    void iniToDbWritesNothingForCountryOverrideFileAndMigratesLocalIni() throws IOException {
+    void iniToDbSkipsCountryOverrideFileWithWarningAndMigratesLocalIni() throws IOException {
         var override = write("override-securityserver-fi.ini", "[signer]\nkey-length=3072\n");
         var local = write("local.ini", "[proxy]\nclient-timeout=1\n");
+        var logger = (Logger) LoggerFactory.getLogger(IniToDbMigrator.class);
+        var logAppender = new ListAppender<ILoggingEvent>();
+        logAppender.start();
+        logger.addAppender(logAppender);
 
-        assertThat(migrateToDb(override)).isEmpty();
+        try (MockedConstruction<DbRepository> mocked = Mockito.mockConstruction(DbRepository.class)) {
+            migrator().migrate(override.toString(), "db.properties");
+
+            assertThat(mocked.constructed()).isEmpty();
+        } finally {
+            logger.detachAppender(logAppender);
+        }
+        assertThat(logAppender.list).filteredOn(event -> event.getLevel() == Level.WARN)
+                .singleElement()
+                .satisfies(event -> assertThat(event.getFormattedMessage())
+                        .contains("override-securityserver-fi.ini", "system parameters"));
         assertThat(migrateToDb(local)).isEqualTo(Map.of("xroad.proxy.client-proxy.client-timeout", "1"));
     }
 
@@ -275,22 +294,24 @@ class OpMonitorIniMigrationTest {
         assertThat(migrateToDb(override)).isEqualTo(Map.of("xroad.proxy.client-proxy.client-timeout", "2"));
     }
 
-    private static Map<String, String> migrateToDb(Path file) {
-        var migrator = new IniToDbMigrator(new IniUtil(new OpMonitorHostRuleTest.FakeResolver())) {
+    private static IniToDbMigrator migrator() {
+        return new IniToDbMigrator(new IniUtil(new OpMonitorHostRuleTest.FakeResolver())) {
             @Override
             String readEnv(String name) {
                 return "true";
             }
         };
+    }
 
+    private static Map<String, String> migrateToDb(Path file) {
         try (MockedConstruction<DbRepository> mocked = Mockito.mockConstruction(DbRepository.class)) {
-            migrator.migrate(file.toString(), "db.properties");
+            migrator().migrate(file.toString(), "db.properties");
 
             var invocations = mocked.constructed().stream()
                     .flatMap(repo -> Mockito.mockingDetails(repo).getInvocations().stream())
                     .toList();
             assertThat(invocations.stream().map(invocation -> invocation.getMethod().getName()).toList())
-                    .isSubsetOf("saveProperty", "close");
+                    .containsOnly("saveProperty", "close");
             return invocations.stream()
                     .filter(invocation -> invocation.getMethod().getName().equals("saveProperty"))
                     .collect(Collectors.toMap(

@@ -17,6 +17,7 @@ dependencies {
   testImplementation(libs.assertj.core)
   testImplementation(libs.h2database)
   testImplementation(libs.mockito.jupiter)
+  testImplementation(libs.logback.classic)
   testImplementation(libs.systemStubs)
   testImplementation(libs.junit.jupiter.params)
 

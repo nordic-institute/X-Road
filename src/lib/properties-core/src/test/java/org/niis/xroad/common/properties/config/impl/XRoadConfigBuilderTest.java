@@ -33,6 +33,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Prefix;
 import org.niis.xroad.common.properties.config.Source;
+import org.niis.xroad.common.properties.config.Validator;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 
@@ -43,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class XRoadConfigBuilderTest {
+
     private static final Map<String, String> FI_ENV = Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI");
 
     private final Prefix scope = Prefix.of("xroad.test");
@@ -184,8 +186,21 @@ class XRoadConfigBuilderTest {
         assertThatThrownBy(() -> builder.build(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "XX")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("'XX'")
-                .hasMessageContaining("available profiles");
+                .hasMessageContaining("supported profiles");
     }
+
+    @Test
+    void profileValueRejectedByKeyValidatorFailsBuild() {
+        var signer = Prefix.of("xroad.signer");
+        signer.integer("key-length").withValidator(Validator.range(1, 2048)).withDefaultValue(2048).build();
+        var builder = XRoadConfigBuilder.create().register(ConfigKeyProvider.forPrefix(signer));
+
+        assertThatThrownBy(() -> builder.build(FI_ENV))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("xroad.signer.key-length")
+                .hasMessageContaining("3072");
+    }
+
     @Test
     void blankProfileNameLeavesCountryLayerOut() {
         var config = proxyBuilder().build(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "  "));
@@ -193,22 +208,25 @@ class XRoadConfigBuilderTest {
         assertThat(value.value()).isFalse();
         assertThat(value.source()).isEqualTo(Source.DEFAULT);
     }
+
     @Test
     void lowerCaseProfileNameSelectsProfile() {
         var config = proxyBuilder().build(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "fi"));
         assertThat(config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS).source())
                 .isEqualTo(Source.COUNTRY);
     }
+
     @Test
     void excludedKeyResolvesDefaultAndOtherProfileKeysStayCountry() {
         var config = proxyBuilder().build(fiEnvExcluding(
-                " xroad.proxy.server.support-clients-pooled-connections ,xroad.unknown.key"));
+                " xroad.proxy.server.support-clients-pooled-connections"));
         var excluded = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
         assertThat(excluded.value()).isFalse();
         assertThat(excluded.source()).isEqualTo(Source.DEFAULT);
         assertThat(config.get(ProxyConfigKeys.SERVER_MIN_SUPPORTED_CLIENT_VERSION).source())
                 .isEqualTo(Source.COUNTRY);
     }
+
     @Test
     void dbRowWinsForExcludedKey() {
         var config = proxyBuilder()
@@ -218,6 +236,7 @@ class XRoadConfigBuilderTest {
         assertThat(value.value()).isTrue();
         assertThat(value.source()).isEqualTo(Source.DB);
     }
+
     @Test
     void overridesOfUnregisteredKeysAreIgnoredAndRegisteredKeysKeepTheirValues() {
         var config = XRoadConfigBuilder.create().register(provider)
@@ -236,6 +255,7 @@ class XRoadConfigBuilderTest {
                 CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI",
                 CountryProfileLoader.EXCLUDE_ENV_VARIABLE, excludeList);
     }
+
     private static XRoadConfigBuilder proxyBuilder() {
         return XRoadConfigBuilder.create().register(ProxyConfigKeys.instance());
     }

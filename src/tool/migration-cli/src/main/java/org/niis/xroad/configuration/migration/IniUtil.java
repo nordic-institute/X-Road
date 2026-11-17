@@ -50,8 +50,8 @@ public class IniUtil {
     private static final String OP_MONITOR_SECTION = "op-monitor";
     private static final String HOST_KEY = "host";
     private static final String LOCAL_INI = "local.ini";
-    private static final String OVERRIDE_INI_PREFIX = "override-";
-    private static final String INI_SUFFIX = ".ini";
+    static final String OVERRIDE_INI_PREFIX = "override-";
+    static final String INI_SUFFIX = ".ini";
 
     private final OpMonitorHostRule opMonitorHostRule;
 

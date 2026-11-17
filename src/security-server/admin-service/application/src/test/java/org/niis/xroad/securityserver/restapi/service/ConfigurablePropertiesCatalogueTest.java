@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
@@ -272,10 +273,11 @@ class ConfigurablePropertiesCatalogueTest {
 
     private Map<String, ConfigurablePropertyDto> propertiesWithProfile(String profileName) {
         var profileService = new ConfigurablePropertiesService(
-                auditDataHelper, repository, new SsConfigurablePropertySource(profileName, null));
+                auditDataHelper, repository, new SsConfigurablePropertySource(
+                Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profileName)));
         return profileService.getConfigurationProperties().stream()
                 .collect(Collectors.toMap(ConfigurablePropertyDto::getPropertyName, dto -> dto,
-                        (first, second) -> first));
+                        (first, _) -> first));
     }
 
     private static ConfigurationPropertyEntity row() {

@@ -48,7 +48,6 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
 
     private static final CommonConfigKeys INSTANCE = new CommonConfigKeys();
 
-
     /** {@code xroad.common.temp-files-path} — base directory for temporary files. */
     public static final ConfigKey<String> TEMP_FILES_PATH = COMMON
             .string("temp-files-path")
