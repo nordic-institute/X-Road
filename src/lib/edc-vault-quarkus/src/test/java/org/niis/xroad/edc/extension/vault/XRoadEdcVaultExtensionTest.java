@@ -66,6 +66,7 @@ class XRoadEdcVaultExtensionTest {
                 .build();
         try (var server = FakeOpenBao.started(V2, MOUNT)) {
             var vault = new XRoadEdcVaultExtension(TestVaultClients.connectedTo(vertx, server.port()), config).vault();
+            assertThat(vault.storeSecret("warm-up", "secret-0").succeeded()).isTrue();
             server.failNext(Integer.MAX_VALUE, STATUS, 500, 0);
             var start = System.nanoTime();
 
@@ -74,7 +75,7 @@ class XRoadEdcVaultExtensionTest {
             assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(MAX_CALL_DURATION);
             assertThat(result.failed()).isTrue();
             assertThat(result.isRetryable()).isTrue();
-            assertThat(server.secretHits().size()).isGreaterThan(1);
+            assertThat(server.secretHits()).filteredOn(hit -> hit.endsWith("/ds/signing-key")).hasSizeGreaterThan(1);
         }
     }
 }
