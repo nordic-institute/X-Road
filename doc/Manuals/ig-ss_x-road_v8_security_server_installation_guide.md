@@ -2,18 +2,19 @@
 
 **X-ROAD 8**
 
-Version: 1.2
+Version: 1.3
 Doc. ID: IG-SS-8
 
 ---
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                                          | Author          |
-|------------|---------|----------------------------------------------------------------------|-----------------|
-| 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis |
-| 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets   |
-| 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets   |
+| Date       | Version | Description                                                          | Author            |
+|------------|---------|----------------------------------------------------------------------|-------------------|
+| 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis   |
+| 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets     |
+| 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets     |
+| 17.11.2026 | 1.3     | Documented country profile selection and precedence                  | Ričardas Bučiūnas |
 
 ## License
 
@@ -38,6 +39,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.5 Setup Package Repositories](#25-setup-package-repositories)
   - [2.6 Security Server Installation](#26-security-server-installation)
     - [2.6.1 Provisioning TLS certificates](#261-provisioning-tls-certificates) 
+    - [2.6.2 Country profile](#262-country-profile)
   - [2.7 Post-Installation Checks](#27-post-installation-checks)
   - [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
@@ -265,6 +267,34 @@ Upon the first installation of the packages, the system asks for the following i
 #### 2.6.1 Provisioning TLS certificates
 
 TLS certificates for the user interface, the information system access point and gRPC services are automatically provisioned at the application startup, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).  
+
+#### 2.6.2 Country profile
+
+A country profile is a set of default values for system parameters that fit the rules of one country. X-Road 8 has profiles for Estonia (`EE`), Finland (`FI`), the Faroe Islands (`FO`) and Iceland (`IS`). The profiles are part of the product. A server without a country package uses only the default values of X-Road.
+
+To use a country profile, install the country package in place of the base package `xroad-securityserver`:
+
+```bash
+sudo apt install xroad-securityserver-ee
+```
+
+The country packages are `xroad-securityserver-ee`, `xroad-securityserver-fi`, `xroad-securityserver-fo` and `xroad-securityserver-is`. Each of them installs `xroad-securityserver` and `xroad-opmonitor`, so no other package is needed. The same command adds a country profile to a server that has only the base package. Only one country package can be installed on a server. On the first installation of a country package, the X-Road services are restarted so that they load the profile.
+
+The value of a system parameter comes from the first of these sources that has a value:
+
+1. The value that you saved for the system parameter in the admin user interface or in the configuration database. It always wins over the country profile.
+2. The value of the country profile.
+3. The default value of X-Road.
+
+To see where a value comes from, open **Settings > System Parameters** in the admin user interface. The **Current Value** column shows the value that the server uses. The **Source** column shows its origin:
+
+| Source               | Meaning                                                           |
+|----------------------|-------------------------------------------------------------------|
+| `Database`           | A value that an operator saved for the system parameter.          |
+| `Country profile EE` | The value of the profile of the installed country package.        |
+| `Default`            | The default value of X-Road.                                      |
+
+A profile can also set a system parameter that the admin user interface does not list. The server uses that value, but the Source column does not show it.
 
 ### 2.7 Post-Installation Checks
 
