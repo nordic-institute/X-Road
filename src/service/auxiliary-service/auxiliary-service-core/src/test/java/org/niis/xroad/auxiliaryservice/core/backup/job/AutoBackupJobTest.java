@@ -100,7 +100,7 @@ class AutoBackupJobTest {
     }
 
     @Test
-    void doesNotRegisterJobOnSecondaryNodeAndLogsOnce() {
+    void doesNotRegisterJobOnSecondaryNode() {
         var scheduler = mock(Scheduler.class);
         when(backupProperties.autoBackupCronExpression()).thenReturn(CRON);
         when(backupProperties.autoBackupScriptPath()).thenReturn(SCRIPT_PATH);
@@ -114,7 +114,7 @@ class AutoBackupJobTest {
     }
 
     @Test
-    void disabledJobLogsDisabledMessageOnPrimaryNodeAndNeverReadsNodeRole() {
+    void disabledJobDoesNotRegisterOnPrimaryNodeAndNeverReadsNodeRole() {
         var scheduler = mock(Scheduler.class);
 
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class,
@@ -128,11 +128,12 @@ class AutoBackupJobTest {
     }
 
     @Test
-    void disabledJobLogsDisabledMessageOnSecondaryNodeAndNeverReadsNodeRole() {
+    void disabledJobDoesNotRegisterOnSecondaryNodeAndNeverReadsNodeRole() {
         var scheduler = mock(Scheduler.class);
 
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class,
                 withSettings().strictness(Strictness.LENIENT))) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
             new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
             nodeProperties.verifyNoInteractions();
         }

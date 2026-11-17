@@ -97,7 +97,7 @@ class OldAutoBackupsRemovalJobTest {
     }
 
     @Test
-    void doesNotRegisterJobOnSecondaryNodeAndLogsOnce() {
+    void doesNotRegisterJobOnSecondaryNode() {
         var scheduler = mock(Scheduler.class);
         when(backupProperties.autoBackupDeleteOldBackupsCron()).thenReturn(CRON);
 
@@ -110,7 +110,7 @@ class OldAutoBackupsRemovalJobTest {
     }
 
     @Test
-    void disabledJobLogsDisabledMessageOnPrimaryNodeAndNeverReadsNodeRole() {
+    void disabledJobDoesNotRegisterOnPrimaryNodeAndNeverReadsNodeRole() {
         var scheduler = mock(Scheduler.class);
 
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class,
@@ -125,7 +125,7 @@ class OldAutoBackupsRemovalJobTest {
     }
 
     @Test
-    void disabledJobLogsDisabledMessageOnSecondaryNodeAndNeverReadsNodeRole() {
+    void disabledJobDoesNotRegisterOnSecondaryNodeAndNeverReadsNodeRole() {
         var scheduler = mock(Scheduler.class);
 
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class,
