@@ -5,7 +5,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
                    logicalFilePath="centerui/202611131200-ds-issuer-service-grants.xml">
 
-    <changeSet author="niis" id="202611131200-ds-issuer-service-grants" runAlways="true" runOnChange="true">
+    <changeSet author="niis" id="202611131200-ds-issuer-service-grants" runAlways="true" runOnChange="true" context="admin or user">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="1">SELECT count(*) FROM pg_roles WHERE rolname = 'ds-issuer-service'</sqlCheck>
         </preConditions>
