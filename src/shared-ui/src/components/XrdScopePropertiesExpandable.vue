@@ -42,6 +42,7 @@
             <tr>
               <th>{{ $t('configurableProperties.table.header.propertyName') }}</th>
               <th>{{ $t('configurableProperties.table.header.currentValue') }}</th>
+              <th>{{ $t('configurableProperties.table.header.source') }}</th>
               <th>{{ $t('configurableProperties.table.header.defaultValue') }}</th>
               <th>{{ $t('configurableProperties.table.header.description') }}</th>
               <th></th>
@@ -50,7 +51,8 @@
           <tbody :data-test="`configurable-properties-table-body-${scope}`">
             <tr v-for="prop in properties" :key="prop.property_name" data-test="configurable-property-row">
               <td class="property-name-cell">{{ prop.property_name }}</td>
-              <td class="property-value-cell">{{ prop.current_value ?? '-' }}</td>
+              <td class="property-value-cell">{{ prop.effective_value ?? prop.current_value ?? '-' }}</td>
+              <td class="property-source-cell" data-test="configurable-property-source">{{ sourceLabel(prop) }}</td>
               <td class="property-value-cell">{{ prop.default_value || '-' }}</td>
               <td class="property-description-cell">{{ getPropertyDescription(prop.property_name) }}</td>
               <td>
@@ -81,7 +83,21 @@
 <script lang="ts" setup>
 import XrdExpandable from './XrdExpandable.vue';
 import XrdBtn from './XrdBtn.vue';
+import { useI18n } from 'vue-i18n';
 import type { ConfigurablePropertyDto } from '../openapi-types';
+
+const { t } = useI18n();
+
+function sourceLabel(prop: ConfigurablePropertyDto): string {
+  switch (prop.value_source) {
+    case 'COUNTRY_PROFILE':
+      return t('configurableProperties.source.countryProfile', { country: prop.country_profile ?? '' });
+    case 'DB':
+      return t('configurableProperties.source.db');
+    default:
+      return t('configurableProperties.source.default');
+  }
+}
 
 defineProps<{
   scope: string;

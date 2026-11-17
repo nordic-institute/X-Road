@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
@@ -49,6 +50,7 @@ import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Security Server's {@link ConfigurablePropertySource}: the providers whose exposed keys make up the
@@ -74,6 +76,25 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
             MonitorConfigKeys.instance(),
             MessageLogArchiverConfigKeys.instance(),
             MessageLogEncryptionConfigKeys.instance());
+
+    private final CountryProfile countryProfile;
+
+    public SsConfigurablePropertySource() {
+        this(System.getenv(CountryProfileLoader.PROFILE_ENV_VARIABLE),
+                System.getenv(CountryProfileLoader.EXCLUDE_ENV_VARIABLE));
+    }
+
+    SsConfigurablePropertySource(String profileName, String excludeList) {
+        countryProfile = profileName == null || profileName.isBlank()
+                ? CountryProfile.NONE
+                : new CountryProfile(profileName.strip().toUpperCase(Locale.ROOT),
+                CountryProfileLoader.load(profileName, excludeList));
+    }
+
+    @Override
+    public CountryProfile countryProfile() {
+        return countryProfile;
+    }
 
     @Override
     public List<ConfigKeyProvider> getConfigKeyProviders() {

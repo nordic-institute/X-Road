@@ -36,7 +36,9 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
+import org.niis.xroad.restapi.service.ConfigurablePropertySource.CountryProfile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,22 +75,23 @@ public class ConfigurablePropertiesService {
 
     /**
      * Returns every configurable system parameter the registry declares as exposed, combined with the
-     * currently stored configuration values. If a value is stored in the repository it is used as the
-     * current value; otherwise the declared default and target scope are returned.
+     * currently stored configuration values. Each parameter carries its effective value and the layer that
+     * supplies it: a stored value, otherwise the country profile value, otherwise the declared default.
      *
      * @return set of configurable properties with their metadata and current values
      */
     public Set<ConfigurablePropertyDto> getConfigurationProperties() {
         var currentPropertiesValues = repository.findAll();
+        var countryProfile = configurablePropertySource.countryProfile();
         return getAllPropertyDefinitions()
                 .stream()
-                .map(param -> toConfigurablePropertyDto(param, currentPropertiesValues))
+                .map(param -> toConfigurablePropertyDto(param, currentPropertiesValues, countryProfile))
                 .collect(Collectors.toSet());
     }
 
     /**
      * Returns the effective value of a single configurable property: the stored override if one
-     * exists, otherwise the registry's declared default.
+     * exists, otherwise the country profile value, otherwise the registry's declared default.
      *
      * @param propertyKey unique key of the configurable property
      * @return the effective value, or empty if the property is not defined/exposed in this catalogue
@@ -97,7 +100,9 @@ public class ConfigurablePropertiesService {
         return findExposedKey(propertyKey)
                 .map(key -> repository.findByPropertyKey(propertyKey)
                         .map(ConfigurationPropertyEntity::getPropertyValue)
-                        .orElseGet(key::defaultValue));
+                        .orElseGet(() -> getIfNull(
+                                configurablePropertySource.countryProfile().values().get(propertyKey),
+                                key.defaultValue())));
     }
 
     /**
@@ -139,16 +144,29 @@ public class ConfigurablePropertiesService {
     }
 
     private ConfigurablePropertyDto toConfigurablePropertyDto(PropertyDefinition parameter,
-                                                              List<ConfigurationPropertyEntity> storedValues) {
+                                                              List<ConfigurationPropertyEntity> storedValues,
+                                                              CountryProfile countryProfile) {
         var systemPropertyDto = new ConfigurablePropertyDto();
         systemPropertyDto.setPropertyName(parameter.propertyName());
         systemPropertyDto.setDefaultValue(parameter.defaultValue());
         systemPropertyDto.setScope(parameter.scope());
-        storedValues.stream()
+        var storedValue = storedValues.stream()
                 .filter(v -> v.getHaNodeName() == null && v.getPropertyKey().equals(parameter.propertyName()))
                 .map(ConfigurationPropertyEntity::getPropertyValue)
-                .findFirst()
-                .ifPresent(systemPropertyDto::setCurrentValue);
+                .findFirst();
+        var profileValue = countryProfile.values().get(parameter.propertyName());
+        if (storedValue.isPresent()) {
+            systemPropertyDto.setCurrentValue(storedValue.get());
+            systemPropertyDto.setEffectiveValue(storedValue.get());
+            systemPropertyDto.setValueSource(ConfigurablePropertyValueSource.DB);
+        } else if (profileValue != null) {
+            systemPropertyDto.setEffectiveValue(profileValue);
+            systemPropertyDto.setValueSource(ConfigurablePropertyValueSource.COUNTRY_PROFILE);
+            systemPropertyDto.setCountryProfile(countryProfile.code());
+        } else {
+            systemPropertyDto.setEffectiveValue(parameter.defaultValue());
+            systemPropertyDto.setValueSource(ConfigurablePropertyValueSource.DEFAULT);
+        }
         return systemPropertyDto;
     }
 

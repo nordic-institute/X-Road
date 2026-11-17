@@ -774,10 +774,31 @@ components:
           type: string
           format: text
           description: textual representation of property's default value
+        effective_value:
+          type: string
+          format: text
+          description: textual representation of the value in effect, resolved from the database, the country profile and the default, in that order
+          maxLength: 4096
+        value_source:
+          $ref: '#/components/schemas/ConfigurablePropertyValueSource'
+        country_profile:
+          type: string
+          format: text
+          description: code of the country profile that supplies the effective value, present only when value_source is COUNTRY_PROFILE
+          maxLength: 16
+          example: FI
         scope:
           type: string
           description: scope of the property
           example: proxy-ui-api
+    ConfigurablePropertyValueSource:
+      type: string
+      description: layer that supplies the effective value of a configurable property
+      example: DEFAULT
+      enum:
+        - DEFAULT
+        - COUNTRY_PROFILE
+        - DB
     ConfigurablePropertyUpdateDto:
       type: object
       description: request object for updating a configurable property
