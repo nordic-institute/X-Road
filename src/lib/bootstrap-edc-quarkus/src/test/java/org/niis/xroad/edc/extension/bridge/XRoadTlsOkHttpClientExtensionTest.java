@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.edc.extension.bridge;
 
-import ee.ria.xroad.common.TestPortUtils;
-
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsServer;
 import okhttp3.OkHttpClient;
@@ -45,6 +43,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -53,12 +53,18 @@ import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -70,6 +76,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -93,6 +101,9 @@ import static org.mockito.Mockito.when;
 class XRoadTlsOkHttpClientExtensionTest {
 
     private static final String INSTANCE_IDENTIFIER = "TEST";
+    private static final String CLUSTER_HOST = "cluster.cs.test";
+    private static final InetAddress DEAD_ADDRESS = InetAddress.ofLiteral("192.0.2.1");
+    private static final InetAddress LIVE_ADDRESS = InetAddress.ofLiteral("127.0.0.1");
 
     @Mock
     private ServiceExtensionContext context;
@@ -227,6 +238,29 @@ class XRoadTlsOkHttpClientExtensionTest {
         assertThat(client.readTimeoutMillis()).isEqualTo(45_000);
     }
 
+    @ParameterizedTest(name = "dead address first: {0}")
+    @ValueSource(booleans = {true, false})
+    void aDeadAddressOfAMultiAddressHostIsSkippedWellBeforeTheConnectTimeout(boolean deadAddressFirst) throws Exception {
+        var ca = selfSignedCa("Any CA");
+        var liveServer = startHttpsServer(issueLeaf(ca, "any", new GeneralName(GeneralName.dNSName, CLUSTER_HOST)));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+        lenient().when(context.getSetting(ArgumentMatchers.eq("edc.http.client.timeout.connect"), ArgumentMatchers.anyLong()))
+                .thenReturn(3L);
+        var addresses = deadAddressFirst
+                ? List.of(DEAD_ADDRESS, LIVE_ADDRESS)
+                : List.of(LIVE_ADDRESS, DEAD_ADDRESS);
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context).newBuilder()
+                .dns(_ -> addresses)
+                .socketFactory(new HangingConnectSocketFactory())
+                .build();
+        var request = new Request.Builder().url("https://" + CLUSTER_HOST + ":" + liveServer.getAddress().getPort() + "/").build();
+        var started = System.nanoTime();
+        try (var response = client.newCall(request).execute()) {
+            assertThat(response.code()).isEqualTo(200);
+        }
+        assertThat(Duration.ofNanos(System.nanoTime() - started)).isLessThan(Duration.ofSeconds(2));
+    }
+
     @Test
     void shutdownClosesTheReloaderWithoutThrowing() throws Exception {
         var ca = selfSignedCa("Any CA");
@@ -274,8 +308,7 @@ class XRoadTlsOkHttpClientExtensionTest {
         var sslContext = SSLContext.getInstance("TLS");
         sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
 
-        var port = TestPortUtils.findRandomPort();
-        var httpsServer = HttpsServer.create(new InetSocketAddress("127.0.0.1", port), 0);
+        var httpsServer = HttpsServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext));
         httpsServer.createContext("/", exchange -> {
             exchange.sendResponseHeaders(200, 0);
@@ -298,6 +331,10 @@ class XRoadTlsOkHttpClientExtensionTest {
     }
 
     private static TestLeaf issueLeaf(TestCa ca, String commonName) throws Exception {
+        return issueLeaf(ca, commonName, new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
+    }
+
+    private static TestLeaf issueLeaf(TestCa ca, String commonName, GeneralName subjectAlternativeName) throws Exception {
         var leafKeyPair = generateKeyPair();
         var issuer = new X500Name(ca.certificate().getSubjectX500Principal().getName());
         var subject = new X500Name("CN=" + commonName);
@@ -307,7 +344,7 @@ class XRoadTlsOkHttpClientExtensionTest {
         var builder = new JcaX509v3CertificateBuilder(issuer, BigInteger.valueOf(System.nanoTime()), notBefore(), notAfter(), subject,
                 leafKeyPair.getPublic())
                 .addExtension(Extension.subjectAlternativeName, false,
-                        new GeneralNames(new GeneralName(GeneralName.iPAddress, "127.0.0.1")));
+                        new GeneralNames(subjectAlternativeName));
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(ca.keyPair().getPrivate());
         var leafCertificate = new JcaX509CertificateConverter().getCertificate(builder.build(signer));
         return new TestLeaf(leafKeyPair.getPrivate(), new X509Certificate[] {leafCertificate, ca.certificate()});
@@ -325,6 +362,61 @@ class XRoadTlsOkHttpClientExtensionTest {
 
     private static Date notAfter() {
         return Date.from(Instant.now().plus(365, ChronoUnit.DAYS));
+    }
+
+    /** Connects to {@link #DEAD_ADDRESS} hang until the connect timeout or until the socket is closed; others connect normally. */
+    private static final class HangingConnectSocketFactory extends SocketFactory {
+        private final SocketFactory delegate = SocketFactory.getDefault();
+
+        @Override
+        public Socket createSocket() {
+            return new Socket() {
+                private final CountDownLatch closed = new CountDownLatch(1);
+
+                @Override
+                public void connect(SocketAddress endpoint, int timeoutMillis) throws IOException {
+                    if (!(endpoint instanceof InetSocketAddress address) || !DEAD_ADDRESS.equals(address.getAddress())) {
+                        super.connect(endpoint, timeoutMillis);
+                        return;
+                    }
+                    try {
+                        if (closed.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
+                            throw new SocketException("Socket closed");
+                        }
+                    } catch (InterruptedException _) {
+                        Thread.currentThread().interrupt();
+                        throw new SocketException("Interrupted");
+                    }
+                    throw new SocketTimeoutException("connect timed out");
+                }
+
+                @Override
+                public void close() throws IOException {
+                    closed.countDown();
+                    super.close();
+                }
+            };
+        }
+
+        @Override
+        public Socket createSocket(String host, int port) throws IOException {
+            return delegate.createSocket(host, port);
+        }
+
+        @Override
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException {
+            return delegate.createSocket(host, port, localHost, localPort);
+        }
+
+        @Override
+        public Socket createSocket(InetAddress host, int port) throws IOException {
+            return delegate.createSocket(host, port);
+        }
+
+        @Override
+        public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) throws IOException {
+            return delegate.createSocket(address, port, localAddress, localPort);
+        }
     }
 
     private record TestCa(KeyPair keyPair, X509Certificate certificate) {
