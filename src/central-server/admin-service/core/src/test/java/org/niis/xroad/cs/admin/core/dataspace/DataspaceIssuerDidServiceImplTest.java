@@ -31,7 +31,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
+import org.niis.xroad.cs.admin.api.dto.TrustedIssuerRemoval;
 import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
 
@@ -39,13 +41,18 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DataspaceIssuerDidServiceImplTest {
 
+    private static final int ID = 5;
     private static final String DID_1 = "did:web:cs1.example%3A443:issuer";
     private static final String DID_2 = "did:web:cs2.example%3A443:issuer";
     private static final String HOST = "cs1.example";
@@ -106,6 +113,53 @@ class DataspaceIssuerDidServiceImplTest {
         assertThat(service.findAllBound()).containsExactly(
                 new BoundIssuer(DID_1, false),
                 new BoundIssuer(DID_2, true));
+    }
+
+    @Test
+    void findAllTrustedMapsEveryRowTheRepositoryReturns() {
+        var entity = mock(IssuerDidEntity.class);
+        when(entity.getId()).thenReturn(ID);
+        when(entity.getDid()).thenReturn(DID_1);
+
+        when(issuerDidRepository.findAllTrusted()).thenReturn(List.of(entity));
+
+        assertThat(service.findAllTrusted()).extracting("id", "did").containsExactly(tuple(ID, DID_1));
+    }
+
+    @Test
+    void removeReturnsTheDidAndLastTrustedIssuerTrueForTheOnlyEntry() {
+        var entity = mock(IssuerDidEntity.class);
+        when(entity.getId()).thenReturn(ID);
+        when(entity.getDid()).thenReturn(DID_1);
+        when(issuerDidRepository.findAllTrusted()).thenReturn(List.of(entity));
+        when(issuerDidRepository.markRemoved(ID)).thenReturn(true);
+
+        assertThat(service.remove(ID)).isEqualTo(new TrustedIssuerRemoval(DID_1, true));
+    }
+
+    @Test
+    void removeReturnsLastTrustedIssuerFalseWithTwoSeededEntries() {
+        var target = mock(IssuerDidEntity.class);
+        when(target.getId()).thenReturn(ID);
+        when(target.getDid()).thenReturn(DID_1);
+
+        var other = mock(IssuerDidEntity.class);
+        when(other.getId()).thenReturn(ID + 1);
+        when(other.getDid()).thenReturn(DID_2);
+
+        when(issuerDidRepository.findAllTrusted()).thenReturn(List.of(target, other));
+        when(issuerDidRepository.markRemoved(ID)).thenReturn(true);
+
+        assertThat(service.remove(ID)).isEqualTo(new TrustedIssuerRemoval(DID_1, false));
+    }
+
+    @Test
+    void removeOfAnUnknownOrRemovedIdThrowsNotFoundAndDoesNotUpdate() {
+        when(issuerDidRepository.findAllTrusted()).thenReturn(List.of());
+
+        assertThatThrownBy(() -> service.remove(ID)).isInstanceOf(NotFoundException.class);
+
+        verify(issuerDidRepository, never()).markRemoved(anyInt());
     }
 
 }

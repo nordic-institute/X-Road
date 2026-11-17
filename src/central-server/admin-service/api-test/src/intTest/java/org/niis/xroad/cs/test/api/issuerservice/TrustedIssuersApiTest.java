@@ -36,6 +36,7 @@ import org.niis.xroad.test.apitest.core.junit.Step;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -53,10 +54,13 @@ class TrustedIssuersApiTest extends CsApiTest {
         var id = Step.given("a trusted issuer is seeded", () ->
                 seeder.seedTrustedIssuer("trustedissuer01"));
 
-        Step.then("the trusted issuer is listed", () ->
+        Step.then("the trusted issuer is listed with its DID and creation time", () ->
                 client.list()
                         .statusCode(200)
-                        .body("id", hasItem(id)));
+                        .body("id", hasItem(id))
+                        .body("find { it.id == %d }.did".formatted(id),
+                                equalTo("did:web:trusted-issuer-api-test-trustedissuer01"))
+                        .body("find { it.id == %d }.created_at".formatted(id), notNullValue()));
 
         Step.when("the trusted issuer is removed", () ->
                 client.delete(id).statusCode(204));
@@ -79,5 +83,52 @@ class TrustedIssuersApiTest extends CsApiTest {
 
         Step.then("the removed_at value is unchanged", () ->
                 assertEquals(removedAt, seeder.queryIssuerDidRemovedAt(id)));
+    }
+
+    @Test
+    void listingTrustedIssuersIsForbiddenForARoleWithoutThePermission(CsBaselineSeeder seeder) {
+        var client = new TrustedIssuersAdminClient(seeder.newManagementServiceOnlySession());
+
+        Step.then("listing trusted issuers is forbidden", () ->
+                client.list().statusCode(403));
+    }
+
+    @Test
+    void deletingATrustedIssuerIsForbiddenForARoleWithoutThePermission(CsBaselineSeeder seeder) {
+        var client = new TrustedIssuersAdminClient(seeder.newManagementServiceOnlySession());
+
+        Step.then("deleting a trusted issuer is forbidden", () ->
+                client.delete(1).statusCode(403));
+    }
+
+    @Test
+    @Tag("destructive")
+    void deletingAnUnknownTrustedIssuerReturns404AndChangesNothing(CsBaselineSeeder seeder) {
+        var client = new TrustedIssuersAdminClient(seeder.newSecurityOfficerSession());
+
+        var id = Step.given("a trusted issuer is seeded to confirm the stack is live", () ->
+                seeder.seedTrustedIssuer("trustedissuer02"));
+
+        Step.when("an unknown trusted issuer id is deleted", () ->
+                client.delete(Integer.MAX_VALUE)
+                        .statusCode(404)
+                        .body("error.code", equalTo("trusted_issuer_not_found")));
+
+        Step.then("the seeded trusted issuer is still listed", () ->
+                client.list()
+                        .statusCode(200)
+                        .body("find { it.id == %d }.did".formatted(id),
+                                equalTo("did:web:trusted-issuer-api-test-trustedissuer02")));
+
+        Step.and("the seeded trusted issuer is cleaned up", () ->
+                client.delete(id).statusCode(204));
+    }
+
+    @Test
+    void deletingATrustedIssuerWithAnIdBelowTheMinimumReturns400(CsBaselineSeeder seeder) {
+        var client = new TrustedIssuersAdminClient(seeder.newSecurityOfficerSession());
+
+        Step.then("deleting trusted issuer id 0 returns 400", () ->
+                client.delete(0).statusCode(400));
     }
 }

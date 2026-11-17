@@ -171,6 +171,49 @@ class IssuerDidPostgresTest {
         assertThrows(Exception.class, () -> insertRawWithNullColumn("did"));
     }
 
+    @Test
+    void findAllTrustedSkipsARemovedRow() throws Exception {
+        var entityManager = sessionFactory.createEntityManager();
+        try {
+            var repository = didRepository(entityManager);
+            withTransaction(entityManager, () -> {
+                repository.insert(DID, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL);
+                return null;
+            });
+            var id = readStoredRow().id();
+
+            withTransaction(entityManager, () -> repository.markRemoved(id));
+
+            assertThat(withTransaction(entityManager, repository::findAllTrusted)).isEmpty();
+        } finally {
+            entityManager.close();
+        }
+    }
+
+    @Test
+    void insertingTheSameDidAfterItIsRemovedStillFailsOnTheUniqueConstraint() throws Exception {
+        var entityManager = sessionFactory.createEntityManager();
+        try {
+            var repository = didRepository(entityManager);
+            withTransaction(entityManager, () -> {
+                repository.insert(DID, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL);
+                return null;
+            });
+            var id = readStoredRow().id();
+            withTransaction(entityManager, () -> repository.markRemoved(id));
+
+            entityManager.getTransaction().begin();
+            try {
+                assertThrows(RuntimeException.class,
+                        () -> repository.insert(DID, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL));
+            } finally {
+                entityManager.getTransaction().rollback();
+            }
+        } finally {
+            entityManager.close();
+        }
+    }
+
     private record StoredIssuerDidRow(
             int id,
             String did,
