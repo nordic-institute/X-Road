@@ -72,6 +72,7 @@ CONFIGURATION FILE KEYS (also read from the environment) for the dataspace ports
     XROAD_DID_PORT              Port for the dataspace identity (DID) documents, 1024-65535 (default: $DSP_DEFAULT_DID_PORT)
     XROAD_DSP_PORT              Port for the Dataspace Protocol (DSP), 1024-65535 (default: $DSP_DEFAULT_DSP_PORT)
                                 The two ports must differ. A key that is not set is asked for interactively.
+                                A standby node (node.ini type secondary) is not asked.
 
 EXAMPLES:
     sudo ./xroad-installer.sh
@@ -578,19 +579,21 @@ main() {
   fi
   log_message ""
 
-  # Step: Collect DID and DSP ports
-  select_dsp_ports
-  log_message ""
-
-  # Step: Preseed DID and DSP ports (Debian family; the packages store the rows)
-  if [[ -f "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" ]]; then
-    if ! XROAD_DID_PORT="$XROAD_DID_PORT" \
-       XROAD_DSP_PORT="$XROAD_DSP_PORT" \
-       bash "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" preseed; then
-      log_die "DID and DSP port configuration failed"
-    fi
+  # Step: Collect and preseed DID and DSP ports (Debian family; the packages store the rows)
+  local dsp_ports_skip_reason
+  if dsp_ports_skip_reason=$(dsp_port_rows_skip_reason); then
+    log_info "${dsp_ports_skip_reason}, not asking for the DID and DSP ports"
   else
-    log_die "configure_dsp_ports.sh not found"
+    select_dsp_ports
+    if [[ -f "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" ]]; then
+      if ! XROAD_DID_PORT="$XROAD_DID_PORT" \
+         XROAD_DSP_PORT="$XROAD_DSP_PORT" \
+         bash "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" preseed; then
+        log_die "DID and DSP port configuration failed"
+      fi
+    else
+      log_die "configure_dsp_ports.sh not found"
+    fi
   fi
   log_message ""
 

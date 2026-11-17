@@ -30,26 +30,13 @@ store_tls_identity() {
 store_dsp_ports() {
   [[ "${1:-}" == "configure" && -z "${2:-}" ]] || return 0
 
-  local skip_reason
-  if skip_reason=$(tls_identity_rows_skip_reason); then
-    log "${skip_reason}, not storing the DID and DSP ports"
-    return 0
-  fi
-
-  local did_answer dsp_answer did dsp
+  local did_answer dsp_answer
   db_get xroad-common/did-port
   did_answer="$RET"
   db_get xroad-common/dsp-port
   dsp_answer="$RET"
-  did=$(normalize_port "$did_answer") \
-    || abort "Invalid DID port '${did_answer}': expected a number from 1024 to 65535. ABORTING."
-  dsp=$(normalize_port "$dsp_answer") \
-    || abort "Invalid DSP port '${dsp_answer}': expected a number from 1024 to 65535. ABORTING."
-  ports_differ "$did" "$dsp" \
-    || abort "The DID port and the DSP port must be different, both are '${did}'. ABORTING."
-
-  store_dsp_port_rows "$did" "$dsp" \
-    || abort "Failed to store the DID port '${did}' and the DSP port '${dsp}'. ABORTING."
+  write_dsp_port_rows "$did_answer" "$dsp_answer" \
+    || abort "Failed to store the DID and DSP ports. ABORTING."
 }
 
 function handle_error() {
