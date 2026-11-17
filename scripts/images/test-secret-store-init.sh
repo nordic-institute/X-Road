@@ -330,10 +330,20 @@ check_no_issued_secrets_in_output() {
   check_no_secret_in_output "${label}" "client token" "$(in_container cat "${CLIENT_TOKEN_FILE}" 2>/dev/null)"
 }
 
+secret_files_state() {
+  in_container sh -c "stat -c '%n %U:%G %a' ${ROOT_TOKEN_FILE} ${UNSEAL_KEYS_FILE} && sha256sum ${ROOT_TOKEN_FILE} ${UNSEAL_KEYS_FILE}" 2>/dev/null
+}
+
 check_modes() {
   local label="$1"
-  if file_exists "${ROOT_TOKEN_FILE}"; then check_eq "${label}: root token file mode" 600 "$(file_mode "${ROOT_TOKEN_FILE}")"; fi
-  if file_exists "${UNSEAL_KEYS_FILE}"; then check_eq "${label}: unseal keys file mode" 600 "$(file_mode "${UNSEAL_KEYS_FILE}")"; fi
+  if file_exists "${ROOT_TOKEN_FILE}"; then
+    check_eq "${label}: root token file mode" 600 "$(file_mode "${ROOT_TOKEN_FILE}")"
+    check_eq "${label}: root token file owner" root:root "$(file_owner "${ROOT_TOKEN_FILE}")"
+  fi
+  if file_exists "${UNSEAL_KEYS_FILE}"; then
+    check_eq "${label}: unseal keys file mode" 600 "$(file_mode "${UNSEAL_KEYS_FILE}")"
+    check_eq "${label}: unseal keys file owner" root:root "$(file_owner "${UNSEAL_KEYS_FILE}")"
+  fi
   if file_exists "${CLIENT_TOKEN_FILE}"; then check_eq "${label}: client token file mode" 640 "$(file_mode "${CLIENT_TOKEN_FILE}")"; fi
 }
 
@@ -533,13 +543,45 @@ scenario_initializing_node() {
   check_no_issued_secrets_in_output "initialising node"
   check_eq "initialising node: high availability enabled" true "$(bao_get sys/leader | jq -r '.ha_enabled')"
   check_eq "initialising node: PostgreSQL storage" postgresql "$(bao_get sys/seal-status | jq -r '.storage_type')"
-  local before after
+  local before after files_before
+  files_before="$(secret_files_state)"
   before="$(state_snapshot)"
   run_setup
   after="$(state_snapshot)"
   check "initialised node rerun: exit 0" test "${RC}" -eq 0
   check_eq "initialised node rerun: state unchanged" "${before}" "${after}"
   check_modes "initialised node rerun"
+  check_eq "initialised node rerun: files unchanged" "${files_before}" "$(secret_files_state)"
+
+  log_info "Scenario: setup run after the group of /etc/openbao was changed"
+  in_container chgrp -R xroad /etc/openbao
+  check_eq "group changed: root token file group" root:xroad "$(file_owner "${ROOT_TOKEN_FILE}")"
+  check_eq "group changed: unseal keys file group" root:xroad "$(file_owner "${UNSEAL_KEYS_FILE}")"
+  run_setup
+  check "group changed rerun: exit 0" test "${RC}" -eq 0
+  check_modes "group changed rerun"
+  check_eq "group changed rerun: files unchanged" "${files_before}" "$(secret_files_state)"
+
+  log_info "Scenario: symbolic link in place of the root token file"
+  local link_target=/tmp/root-token.target
+  in_container sh -c "mv ${ROOT_TOKEN_FILE} ${link_target} && ln -s ${link_target} ${ROOT_TOKEN_FILE} && chown openbao:xroad ${link_target} && chmod 640 ${link_target}"
+  run_setup
+  check "symlink: exit 0" test "${RC}" -eq 0
+  check "symlink: stderr names the link" grep -qF "Not changing ${ROOT_TOKEN_FILE}" "${ERR_FILE}"
+  check "symlink: still a link" in_container test -L "${ROOT_TOKEN_FILE}"
+  check_eq "symlink: target owner unchanged" openbao:xroad "$(file_owner "${link_target}")"
+  check_eq "symlink: target mode unchanged" 640 "$(file_mode "${link_target}")"
+  check_eq "symlink: unseal keys file still root:root" root:root "$(file_owner "${UNSEAL_KEYS_FILE}")"
+  in_container sh -c "rm ${ROOT_TOKEN_FILE} && chown root:root ${link_target} && chmod 600 ${link_target} && mv ${link_target} ${ROOT_TOKEN_FILE}"
+
+  log_info "Scenario: missing root token file"
+  in_container mv "${ROOT_TOKEN_FILE}" "${ROOT_TOKEN_FILE}.saved"
+  run_setup
+  check "missing root token file: exit 0" test "${RC}" -eq 0
+  check "missing root token file: no file created" file_absent "${ROOT_TOKEN_FILE}"
+  check_eq "missing root token file: unseal keys file still root:root" root:root "$(file_owner "${UNSEAL_KEYS_FILE}")"
+  in_container mv "${ROOT_TOKEN_FILE}.saved" "${ROOT_TOKEN_FILE}"
+  check_eq "restored: files unchanged" "${files_before}" "$(secret_files_state)"
 
   log_info "Scenario: unseal-only script on a sealed OpenBao after a restart"
   restart_container
@@ -879,7 +921,9 @@ scenario_join_node() {
   check_eq "second import: files unchanged" "${first_hashes}" "$(bundle_hashes)"
 
   log_info "Scenario: join on the second node"
-  in_container sh -c "chown openbao:xroad ${ENV_FILE} && chmod 640 ${ENV_FILE}"
+  in_container sh -c "chown -R openbao:openbao /etc/openbao && chgrp -R xroad /etc/openbao && chmod 640 ${ENV_FILE}"
+  check_eq "package steps: root token file owner is the OpenBao user" openbao:xroad "$(file_owner "${ROOT_TOKEN_FILE}")"
+  check_eq "package steps: unseal keys file owner is the OpenBao user" openbao:xroad "$(file_owner "${UNSEAL_KEYS_FILE}")"
   start_bao
   wait_for_server
   check_eq "second node: starts sealed" true "$(seal_status_field sealed)"
@@ -899,6 +943,7 @@ scenario_join_node() {
   check "join rerun: exit 0" test "${RC}" -eq 0
   check_eq "join rerun: state unchanged" "${before}" "${after}"
   check_eq "join rerun: files unchanged" "${first_hashes}" "$(bundle_hashes)"
+  check_modes "join rerun"
   CONTAINER="${NODE1_CONTAINER}"
   check_eq "first node: client token still valid" 200 "$(client_token_status)"
   check_eq "first node: client token unchanged" "${first_client_hash}" "$(client_token_hash)"

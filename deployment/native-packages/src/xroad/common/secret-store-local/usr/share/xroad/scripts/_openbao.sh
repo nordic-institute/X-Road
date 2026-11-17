@@ -113,6 +113,20 @@ require_join_files() {
   }
 }
 
+# Restricts each existing file to root:root, mode 600. Missing files are skipped, symbolic links are
+# left alone, and a failure is reported without stopping the caller.
+enforce_root_only_files() {
+  local file
+  for file in "$@"; do
+    if [ -L "$file" ]; then
+      echo "Not changing $file: it is a symbolic link" >&2
+    elif [ -e "$file" ]; then
+      chown root:root "$file" && chmod 600 "$file" || echo "Could not restrict $file to root:root, mode 600" >&2
+    fi
+  done
+  return 0
+}
+
 is_initialized() {
   local addr="${1:-$BAO_ADDR}"
   local status

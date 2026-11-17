@@ -24,6 +24,8 @@ if [ "$JOIN" = true ]; then
   require_join_files
 fi
 
+enforce_root_only_files "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"
+
 if wait_until_ready; then
   echo "OpenBao is ready"
 else
@@ -48,8 +50,7 @@ else
   UNSEAL_KEYS=$(echo "$INIT_RESPONSE" | jq -r '.keys_base64[]')
   echo "$UNSEAL_KEYS" > "$UNSEAL_KEYS_FILE"
   echo "$ROOT_TOKEN" > "$ROOT_TOKEN_FILE"
-  chmod 600 "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"
-  chown root:root "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"
+  enforce_root_only_files "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"
 fi
 
 # Unsealing is the job of secret-store-unseal.sh, which also runs after every OpenBao start.
