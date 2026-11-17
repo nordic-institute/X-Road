@@ -35,7 +35,10 @@ export type PollingOptions<T> = {
 };
 
 /**
- * Re-reads a status while it keeps asking for it, stopping on error or when the view unmounts.
+ * Re-reads a status while it keeps asking for it, stopping when a read says to or when the view unmounts.
+ *
+ * A failed read reports the error through `onError` and leaves the polling schedule as it was, so the
+ * next interval retries.
  *
  * Call `refresh()` for the first read and after any action that may change whether polling should continue.
  */
@@ -71,7 +74,6 @@ export function usePolling<T>(options: PollingOptions<T>) {
         updateSchedule(options.shouldContinue(result));
       })
       .catch((error) => {
-        stop();
         options.onError(error);
       });
   }
