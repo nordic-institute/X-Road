@@ -582,6 +582,8 @@
       "status_not_found": "Global configuration generations status is unknown"
     },
     "issuer_service": {
+      "key_missing": "Issuer Service signing key missing",
+      "key_missing_check_failed": "Failed to check the Issuer Service signing key",
       "setup_required": "Issuer Service set-up required",
       "status_check_failed": "Failed to check the Issuer Service set-up status"
     },

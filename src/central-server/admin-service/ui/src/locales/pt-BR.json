@@ -598,6 +598,8 @@
       "status_not_found": "Status da geração da configuração global desconhecido"
     },
     "issuer_service": {
+      "key_missing": "Issuer Service signing key missing",
+      "key_missing_check_failed": "Failed to check the Issuer Service signing key",
       "setup_required": "Issuer Service set-up required",
       "status_check_failed": "Failed to check the Issuer Service set-up status"
     },

@@ -69,7 +69,7 @@
             />
           </template>
           <XrdBtn
-            v-if="isIssuerServiceSetupRequired(item) && canOpenIssuerService"
+            v-if="isIssuerServiceStatusAlert(item) && canOpenIssuerService"
             variant="text"
             prepend-icon="arrow_forward"
             text="issuerService.viewStatus"
@@ -125,8 +125,12 @@ function isInactiveExternalToken(item: ErrorCoded) {
   return item.errorCode === 'status.signing_key.external.token_not_active';
 }
 
-function isIssuerServiceSetupRequired(item: ErrorCoded) {
-  return item.errorCode === 'status.issuer_service.setup_required';
+function isIssuerServiceStatusAlert(item: ErrorCoded) {
+  return (
+    item.errorCode === 'status.issuer_service.setup_required' ||
+    item.errorCode === 'status.issuer_service.key_missing' ||
+    item.errorCode === 'status.issuer_service.key_missing_check_failed'
+  );
 }
 
 function navigate(name: RouteName, action: string) {
