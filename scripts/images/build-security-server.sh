@@ -240,6 +240,9 @@ cp "$OTEL_AGENT_JAR" "$BUILD_DIR/opentelemetry-javaagent.jar"
 # PKCS#11 wrapper (for signer)
 PKCS11_DIR="${SRC_DIR}/libs/pkcs11wrapper"
 
+# Shared database bootstrap SQL (for the init-db image)
+BOOTSTRAP_SQL_DIR="${ROOT_DIR}/deployment/native-packages/src/xroad/common/base/usr/share/xroad/db"
+
 log_info "Build contexts prepared"
 
 # Build each service
@@ -292,6 +295,7 @@ for service in "${SERVICES[@]}"; do
     --build-context "build=${BUILD_DIR}"
     --build-context "license=${BUILD_DIR}"
     --build-context "pkcs11driver=${PKCS11_DIR}"
+    --build-context "bootstrap-sql=${BOOTSTRAP_SQL_DIR}"
     --build-context "entrypoint=${context_dir}"
     "${MIRROR_BUILD_ARGS[@]}"
   )

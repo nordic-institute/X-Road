@@ -52,11 +52,13 @@ import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
+import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.Client;
@@ -78,8 +80,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,7 +106,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
-import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW;
 
 /**
  * Test GlobalConfChecker
@@ -145,6 +144,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private DsParticipantRepository dsParticipantRepository;
 
     private final Map<Long, String> clientStatusSnapshot = new HashMap<>();
+    private ParticipantRowTestUtils participantRows;
 
     private static final ClientId.Conf OWNER_MEMBER =
             TestUtils.getClientId("FI", "GOV", "M1", null);
@@ -171,6 +171,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Before
     public void setup() throws Exception {
+        participantRows = new ParticipantRowTestUtils(jdbcTemplate, transactionManager);
         clientStatusSnapshot.clear();
         jdbcTemplate.query("SELECT id, clientstatus FROM client",
                 (RowCallbackHandler) rs -> clientStatusSnapshot.put(rs.getLong("id"), rs.getString("clientstatus")));
@@ -553,7 +554,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void submittedSystemValuesBecomePublishedWhenGlobalConfCarriesThem() {
-        insertSystemRow(PublicationState.SUBMITTED);
+        participantRows.systemRow(SYSTEM_ROW_ID, SYSTEM_DID, PublicationState.SUBMITTED);
         carrySystemValues(SYSTEM_DID, DSP_BASE_URL);
 
         globalConfChecker.checkGlobalConf();
@@ -564,7 +565,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void submittedSystemValuesStaySubmittedWhenGlobalConfCarriesDifferentValues() {
-        insertSystemRow(PublicationState.SUBMITTED);
+        participantRows.systemRow(SYSTEM_ROW_ID, SYSTEM_DID, PublicationState.SUBMITTED);
         carrySystemValues(SYSTEM_DID, "https://old.example.test:7181/dsp");
 
         globalConfChecker.checkGlobalConf();
@@ -575,7 +576,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void submittedSystemValuesStaySubmittedOnSecondary() {
-        insertSystemRow(PublicationState.SUBMITTED);
+        participantRows.systemRow(SYSTEM_ROW_ID, SYSTEM_DID, PublicationState.SUBMITTED);
         carrySystemValues(SYSTEM_DID, DSP_BASE_URL);
 
         try (MockedStatic<NodeProperties> nodePropertiesMock = mockStatic(NodeProperties.class)) {
@@ -589,7 +590,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void submittedSystemValuesStaySubmittedDuringBackupRestore() {
-        insertSystemRow(PublicationState.SUBMITTED);
+        participantRows.systemRow(SYSTEM_ROW_ID, SYSTEM_DID, PublicationState.SUBMITTED);
         carrySystemValues(SYSTEM_DID, DSP_BASE_URL);
 
         eventPublisher.publishEvent(BackupRestoreEvent.START);
@@ -619,7 +620,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void submittedMemberDidBecomesPublishedWhenGlobalConfCarriesIt() {
-        insertMemberRow(PublicationState.SUBMITTED);
+        participantRows.memberRow(MEMBER_ROW_ID, OWNER_MEMBER, MEMBER_DID, PublicationState.SUBMITTED);
         when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
         when(globalConfProvider.getMemberDid(OWNER_MEMBER, SS_ID)).thenReturn(Optional.of(MEMBER_DID));
 
@@ -631,7 +632,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void submittedMemberDidStaysSubmittedWhenGlobalConfCarriesADifferentDid() {
-        insertMemberRow(PublicationState.SUBMITTED);
+        participantRows.memberRow(MEMBER_ROW_ID, OWNER_MEMBER, MEMBER_DID, PublicationState.SUBMITTED);
         when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
         when(globalConfProvider.getMemberDid(OWNER_MEMBER, SS_ID)).thenReturn(Optional.of(MEMBER_DID + "-old"));
 
@@ -643,7 +644,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void publishedMemberDidGoesBackToNotSentWhenGlobalConfLosesItWhileTheMemberIsHostedHere() {
-        insertMemberRow(PublicationState.PUBLISHED);
+        participantRows.memberRow(MEMBER_ROW_ID, OWNER_MEMBER, MEMBER_DID, PublicationState.PUBLISHED);
         when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
         when(globalConfProvider.getMemberDid(OWNER_MEMBER, SS_ID)).thenReturn(Optional.empty());
 
@@ -655,7 +656,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void publishedMemberDidStaysPublishedWhenTheSameCheckDropsTheClientRegistrationAndTheDid() {
-        insertMemberRow(PublicationState.PUBLISHED);
+        participantRows.memberRow(MEMBER_ROW_ID, OWNER_MEMBER, MEMBER_DID, PublicationState.PUBLISHED);
         when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(false);
         when(globalConfProvider.getMemberDid(OWNER_MEMBER, SS_ID)).thenReturn(Optional.empty());
 
@@ -668,7 +669,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void publishedMemberDidGoesBackToNotSentWhenTheMemberIsHostedOnlyThroughARegisteredSubsystem() {
-        insertMemberRow(PublicationState.PUBLISHED);
+        participantRows.memberRow(MEMBER_ROW_ID, OWNER_MEMBER, MEMBER_DID, PublicationState.PUBLISHED);
         when(globalConfProvider.isSecurityServerClient(SUBSYSTEM, SS_ID)).thenReturn(true);
         when(globalConfProvider.getMemberDid(OWNER_MEMBER, SS_ID)).thenReturn(Optional.empty());
 
@@ -682,7 +683,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void aGlobalConfCheckThatRollsBackCommitsNoPublicationTransition() {
-        insertMemberRow(PublicationState.PUBLISHED);
+        participantRows.memberRow(MEMBER_ROW_ID, OWNER_MEMBER, MEMBER_DID, PublicationState.PUBLISHED);
         when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
         when(globalConfProvider.getMemberDid(OWNER_MEMBER, SS_ID)).thenReturn(Optional.empty());
         when(globalConfProvider.getApprovedTsps(any())).thenAnswer(_ -> {
@@ -702,38 +703,15 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
             TestTransaction.flagForRollback();
             TestTransaction.end();
         }
-        inNewTransaction(() -> {
+        participantRows.inNewTransaction(() -> {
             jdbcTemplate.update("DELETE FROM ds_participant WHERE id IN (?, ?)", SYSTEM_ROW_ID, MEMBER_ROW_ID);
             clientStatusSnapshot.forEach((id, status) ->
                     jdbcTemplate.update("UPDATE client SET clientstatus = ? WHERE id = ?", status, id));
         });
     }
 
-    private void insertMemberRow(PublicationState state) {
-        inNewTransaction(() -> jdbcTemplate.update("INSERT INTO ds_participant"
-                + " (id, participant_type, member_identifier, ctx_id, did, scheme_version, state, publication_state,"
-                + " created_at, updated_at)"
-                + " VALUES (?, 'MEMBER', (SELECT id FROM identifier WHERE object_type = 'MEMBER'"
-                + " AND xroad_instance = ? AND member_class = ? AND member_code = ?),"
-                + " 'm1', ?, 'v1', 'ACTIVE', ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                MEMBER_ROW_ID, OWNER_MEMBER.getXRoadInstance(), OWNER_MEMBER.getMemberClass(),
-                OWNER_MEMBER.getMemberCode(), MEMBER_DID, state.name()));
-    }
-
-    private void insertSystemRow(PublicationState state) {
-        inNewTransaction(() -> jdbcTemplate.update("INSERT INTO ds_participant"
-                + " (id, participant_type, ctx_id, did, scheme_version, state, publication_state, created_at, updated_at)"
-                + " VALUES (?, 'SYSTEM', 'system', ?, 'v1', 'ACTIVE', ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                SYSTEM_ROW_ID, SYSTEM_DID, state.name()));
-    }
-
-    private void inNewTransaction(Runnable work) {
-        new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(PROPAGATION_REQUIRES_NEW))
-                .executeWithoutResult(_ -> work.run());
-    }
-
     private void carrySystemValues(String did, String dspBaseUrl) {
-        when(dataspaceDidAuthority.dspBaseUrlIfValid()).thenReturn(Optional.of(DSP_BASE_URL));
+        when(dataspaceDidAuthority.dspBaseUrlIfValid(any(OwnAddress.class))).thenReturn(Optional.of(DSP_BASE_URL));
         when(globalConfProvider.getServerSystemValues(SS_ID)).thenReturn(Optional.of(new ServerSystemValues(did, dspBaseUrl)));
     }
 

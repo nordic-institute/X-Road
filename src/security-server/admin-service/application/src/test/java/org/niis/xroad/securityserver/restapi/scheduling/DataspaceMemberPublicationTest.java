@@ -40,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -53,13 +54,13 @@ import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome.Entry;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
+import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.niis.xroad.test.MutableClock;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -80,7 +81,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -137,8 +137,10 @@ class DataspaceMemberPublicationTest {
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         when(readinessPredicates.registeredAuthCertBytes()).thenReturn(Optional.of(new byte[] {1}));
         when(didAuthority.dspBaseUrlIfValid()).thenReturn(Optional.of(DSP_BASE_URL));
+        when(didAuthority.dspBaseUrlIfValid(any(OwnAddress.class))).thenReturn(Optional.of(DSP_BASE_URL));
         when(adminServiceProperties.getDataspace()).thenReturn(dataspaceProperties);
         when(dataspaceProperties.getProvisioningBatchSize()).thenAnswer(_ -> batchSize);
+        when(dataspaceProperties.getPublicationSubmittedTimeoutMinutes()).thenReturn(60);
         when(dsParticipantRepository.findActiveSystemParticipant()).thenAnswer(_ -> Optional.of(systemRow));
         when(dsParticipantRepository.findActiveMembers(any())).thenAnswer(call -> {
             Set<PublicationState> states = call.getArgument(0);
@@ -152,18 +154,10 @@ class DataspaceMemberPublicationTest {
                 .map(context -> registeredClient(context.memberId()))
                 .toList());
         when(globalConfProvider.getMemberDid(any(), any())).thenReturn(Optional.empty());
-        when(dsParticipantRepository.transitionPublication(anyLong(), any(), any(), any())).thenAnswer(call -> {
-            var row = systemRow.getId().equals(call.getArgument(0)) ? systemRow
-                    : memberRows.stream().filter(r -> r.getId().equals(call.getArgument(0))).findFirst().orElseThrow();
-            PublicationState expected = call.getArgument(1);
-            var current = row.getPublicationState() == null ? PublicationState.NOT_SENT : row.getPublicationState();
-            if (current != expected) {
-                return false;
-            }
-            row.setPublicationState(call.getArgument(2));
-            row.setPublicationReason(call.getArgument(3));
-            return true;
-        });
+        when(dsParticipantRepository.transitionPublication(anyLong(), any(), any(), any()))
+                .thenAnswer(new ConditionalTransitionStub(id -> systemRow.getId().equals(id) ? systemRow
+                        : memberRows.stream().filter(r -> r.getId().equals(id)).findFirst().orElseThrow(),
+                        clock::instant));
         when(didRegistrationSender.sendMemberDidRegisterRequest(any())).thenAnswer(call -> {
             Map<ClientId.Conf, String> request = call.getArgument(0);
             requests.add(request.keySet().stream().map(ClientId::getMemberCode).toList());
@@ -177,8 +171,8 @@ class DataspaceMemberPublicationTest {
                 didRegistrationSender, adminServiceProperties);
         backoff = new PublicationBackoff(clock, () -> 1.0);
         stage.setBackoff(backoff);
-        check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository, globalConfProvider,
-                readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
+        check = PublicationCheckTestFactory.create(dsParticipantRepository, clientRepository, globalConfProvider,
+                readinessPredicates, didAuthority, adminServiceProperties, clock);
         provisioned.add(SYSTEM_CONTEXT);
         issued.add(SYSTEM_CONTEXT);
         host(OWNER.getMemberCode());
@@ -240,6 +234,69 @@ class DataspaceMemberPublicationTest {
 
         assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
         assertThat(requests).containsExactly(List.of("A01"));
+    }
+
+    @Test
+    void aSubmittedMemberDidMissingFromGlobalconfIsSentAgainAfterTheTimeoutAndPublishedOnceGlobalconfCarriesIt() {
+        var member = addMember("A01");
+        pass();
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+
+        clock.advance(Duration.ofMinutes(61));
+        globalconfCheck();
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
+        var changedAt = member.getPublicationChangedAt();
+
+        clock.advance(Duration.ofMinutes(10));
+        globalconfCheck();
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
+        assertThat(member.getPublicationChangedAt()).isEqualTo(changedAt);
+
+        pass();
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+        assertThat(requests).containsExactly(List.of("A01"), List.of("A01"));
+
+        clock.advance(Duration.ofMinutes(59));
+        globalconfCheck();
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+
+        carryDid(member);
+        globalconfCheck();
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.PUBLISHED);
+        var publishedAt = member.getPublicationChangedAt();
+
+        globalconfCheck();
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.PUBLISHED);
+        assertThat(member.getPublicationChangedAt()).isEqualTo(publishedAt);
+        assertThat(requests).hasSize(2);
+    }
+
+    @Test
+    void aSubmittedMemberDidWithADifferentDidInGlobalconfIsNeverSentAgainAfterTheTimeout() {
+        var member = addMember("A01");
+        pass();
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("ss.example.test");
+        var otherPortDid = ParticipantIdentifierScheme.memberDid(member.getMemberIdentifier(), "ss.example.test:8443");
+        when(globalConfProvider.getMemberDid(any(), any())).thenReturn(Optional.of(otherPortDid.toString()));
+
+        clock.advance(Duration.ofDays(2));
+        globalconfCheck();
+        pass();
+
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+        assertThat(requests).hasSize(1);
+    }
+
+    @Test
+    void aSubmittedMemberDidIsNotSentAgainAfterTheTimeoutWhenTheMemberIsNoLongerHostedHere() {
+        var member = addUnhostedMember("A01");
+        member.setPublicationState(PublicationState.SUBMITTED);
+        member.setPublicationChangedAt(clock.instant());
+
+        clock.advance(Duration.ofDays(2));
+        globalconfCheck();
+
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
     }
 
     @Test
@@ -887,14 +944,11 @@ class DataspaceMemberPublicationTest {
     }
 
     private static DsParticipantEntity row(long id, String memberCode, PublicationState state) {
-        var row = new DsParticipantEntity();
+        var did = "did:web:ss.example.test%3A7183:xrd-" + (memberCode == null ? "ss0" : memberCode.toLowerCase());
+        var row = memberCode == null
+                ? ParticipantRowTestUtils.systemEntity(did, state)
+                : ParticipantRowTestUtils.memberEntity(ClientId.Conf.create("DEV", "COM", memberCode), did, state);
         row.setId(id);
-        row.setDid("did:web:ss.example.test%3A7183:xrd-" + (memberCode == null ? "ss0" : memberCode.toLowerCase()));
-        row.setState(ParticipantState.ACTIVE);
-        row.setPublicationState(state);
-        if (memberCode != null) {
-            row.setMemberIdentifier(MemberIdEntity.create("DEV", "COM", memberCode));
-        }
         return row;
     }
 

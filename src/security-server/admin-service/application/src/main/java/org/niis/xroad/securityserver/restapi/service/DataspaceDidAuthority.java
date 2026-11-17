@@ -39,6 +39,7 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DidMintResult.Minted;
 import org.niis.xroad.securityserver.restapi.service.DidMintResult.Reason;
 import org.niis.xroad.securityserver.restapi.service.DidMintResult.Rejected;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.stereotype.Component;
 
@@ -119,29 +120,37 @@ public class DataspaceDidAuthority {
 
     /**
      * @return the DSP base URL of this server's control plane, built from the registered address and the
-     *         stored DSP port ({@code xroad.dsp.dsp-port}); empty while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII or not a
-     *         valid host name or IPv6 literal
-     */
-    public Optional<String> dspBaseUrl() {
-        var dspPort = adminServiceProperties.getDataspace().getDspPort();
-        return resolve().map(address -> switch (address) {
-            case RegisteredAddress.Valid(var host, var _) -> DspConventions.dspBaseUrl(host, dspPort);
-            case RegisteredAddress.Invalid(var rejection) -> throw rejection.toException();
-        });
-    }
-
-    /**
-     * @return the DSP base URL like {@link #dspBaseUrl()}, but empty also while the registered address is invalid,
-     *         for callers that treat an address that cannot be used the same as an unknown one
+     *         stored DSP port ({@code xroad.dsp.dsp-port}); empty while the registered address is unknown,
+     *         invalid or its lookup fails with an {@link XrdRuntimeException}
      */
     public Optional<String> dspBaseUrlIfValid() {
         try {
-            return dspBaseUrl();
+            return dspBaseUrlIfValid(ownSecurityServerResolver.address());
         } catch (XrdRuntimeException e) {
             log.debug("No DSP base URL can be built from the registered address: {}", e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /**
+     * @param address the registered address of this server, already resolved
+     * @return the DSP base URL like {@link #dspBaseUrlIfValid()}, built from that address
+     */
+    public Optional<String> dspBaseUrlIfValid(OwnAddress address) {
+        try {
+            return dspBaseUrl(address.registeredAddress());
+        } catch (XrdRuntimeException e) {
+            log.debug("No DSP base URL can be built from the registered address: {}", e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private Optional<String> dspBaseUrl(Optional<String> registeredAddress) {
+        var dspPort = adminServiceProperties.getDataspace().getDspPort();
+        return registeredAddress.map(this::validate).map(address -> switch (address) {
+            case RegisteredAddress.Valid(var host, var _) -> DspConventions.dspBaseUrl(host, dspPort);
+            case RegisteredAddress.Invalid(var rejection) -> throw rejection.toException();
+        });
     }
 
     private DidMintResult mint(Function<String, Did> derive) {

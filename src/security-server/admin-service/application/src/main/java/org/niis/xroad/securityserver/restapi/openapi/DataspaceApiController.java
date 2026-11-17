@@ -110,7 +110,10 @@ public class DataspaceApiController implements DataspaceApi {
                 .dataspaceReady(server.dataspaceReady())
                 .dspBaseUrl(server.dspBaseUrl())
                 .publicationState(DataspacePublicationStateDto.valueOf(server.publicationState().name()))
-                .publicationReason(server.publicationReason());
+                .publicationReason(server.publicationReason())
+                .systemDidMismatch(server.systemDidMismatch())
+                .dspBaseUrlMismatch(server.dspBaseUrlMismatch())
+                .hostStatus(DataspaceServerStatusDto.HostStatusEnum.valueOf(server.hostStatus().name()));
     }
 
     private List<DataspaceParticipantContextStatusDto> toContextDtos(List<ParticipantContextStatus> contexts,
@@ -129,6 +132,7 @@ public class DataspaceApiController implements DataspaceApi {
         if (publication != null) {
             dto.setPublicationState(DataspacePublicationStateDto.valueOf(publication.publicationState().name()));
             dto.setPublicationReason(publication.publicationReason());
+            dto.setGlobalconfMismatch(publication.globalconfMismatch());
         }
         return dto;
     }

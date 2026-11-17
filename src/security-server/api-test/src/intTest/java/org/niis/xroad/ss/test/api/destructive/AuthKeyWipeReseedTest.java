@@ -203,6 +203,7 @@ class AuthKeyWipeReseedTest extends SsSharedStackDestructiveTest {
         try {
             var result = stack.execInContainer(
                     SsApiTestContainerSetup.DB_SERVERCONF,
+                    "env", "PGOPTIONS=-c search_path=" + DB + ",public",
                     "psql", "-U", DB_USER, DB, "-c", sql);
             log.debug("psql output: {}", result.getStdout());
             if (result.getExitCode() != 0) {

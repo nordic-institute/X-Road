@@ -45,6 +45,10 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
     private static final Prefix VAULT_RETRY = COMMON.subPrefix("vault-retry");
     private static final Duration DEFAULT_VAULT_RETRY_BUDGET = Duration.ofSeconds(30);
     private static final Duration MAX_VAULT_RETRY_BUDGET = Duration.ofMinutes(5);
+    private static final Prefix VAULT_TOKEN_RENEWAL = COMMON.subPrefix("vault-token-renewal");
+    private static final Duration DEFAULT_VAULT_TOKEN_RENEWAL_INTERVAL = Duration.ofHours(24);
+    private static final Duration MIN_VAULT_TOKEN_RENEWAL_INTERVAL = Duration.ofMinutes(10);
+    private static final Duration MAX_VAULT_TOKEN_RENEWAL_INTERVAL = Duration.ofDays(7);
 
     private static final CommonConfigKeys INSTANCE = new CommonConfigKeys();
 
@@ -69,6 +73,16 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
             .keyDuration("budget")
             .withValidator(durationBetween(Duration.ZERO, MAX_VAULT_RETRY_BUDGET))
             .withDefaultValue(DEFAULT_VAULT_RETRY_BUDGET)
+            .build();
+
+    /**
+     * {@code xroad.common.vault-token-renewal.interval} — time between renewals of the shared secret store
+     * token, the first renewal running at startup. Read once at process start.
+     */
+    public static final ConfigKey<Duration> VAULT_TOKEN_RENEWAL_INTERVAL = VAULT_TOKEN_RENEWAL
+            .keyDuration("interval")
+            .withValidator(durationBetween(MIN_VAULT_TOKEN_RENEWAL_INTERVAL, MAX_VAULT_TOKEN_RENEWAL_INTERVAL))
+            .withDefaultValue(DEFAULT_VAULT_TOKEN_RENEWAL_INTERVAL)
             .build();
 
     private CommonConfigKeys() {
