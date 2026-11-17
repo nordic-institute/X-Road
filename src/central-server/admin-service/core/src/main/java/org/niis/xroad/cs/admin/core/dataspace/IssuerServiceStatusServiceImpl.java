@@ -78,7 +78,8 @@ public class IssuerServiceStatusServiceImpl implements IssuerServiceStatusServic
                 return matching;
             }
         }
-        return boundIssuers.stream().findFirst();
+        return boundIssuers.stream().filter(issuer -> !issuer.removed()).findFirst()
+                .or(() -> boundIssuers.stream().findFirst());
     }
 
     /**

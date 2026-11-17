@@ -105,6 +105,9 @@ public class CsBaselineSeeder {
     /** Instance identifier of the initialized CS. */
     public static final String INSTANCE_IDENTIFIER = "CS";
 
+    /** The constant DID {@link #bindIssuerIdentity()} seeds, for tests that remove the bound issuer. */
+    public static final String BOUND_ISSUER_DID = "did:web:issuer-service-api-test-binding";
+
     /**
      * Issuer Service host set through the admin API during baseline seeding, the compose service
      * name the DS TLS ACME worker's HTTP-01 challenge must reach through the real public nginx.
@@ -254,8 +257,10 @@ public class CsBaselineSeeder {
 
     /**
      * Inserts a row into {@code issuer_dids} directly, binding the issuer identity. Idempotent: does
-     * nothing if a row is already present. This stack has no reachable Issuer Service to run set-up
-     * against, so destructive tests that need a bound issuer seed the row directly.
+     * nothing if a live row is already present, and never inserts {@link #BOUND_ISSUER_DID} a second
+     * time once it has been removed, so it never trips the {@code did} unique constraint. This stack
+     * has no reachable Issuer Service to run set-up against, so destructive tests that need a bound
+     * issuer seed the row directly.
      */
     public void bindIssuerIdentity() {
         var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
@@ -268,13 +273,15 @@ public class CsBaselineSeeder {
                 var stmt = conn.prepareStatement("""
                         INSERT INTO centerui.issuer_dids (did, host, did_port, issuance_url, statuslist_base_url, created_at, updated_at)
                         SELECT ?, ?, ?, ?, ?, now(), now()
-                        WHERE NOT EXISTS (SELECT 1 FROM centerui.issuer_dids)
+                        WHERE NOT EXISTS (SELECT 1 FROM centerui.issuer_dids WHERE removed_at IS NULL)
+                          AND NOT EXISTS (SELECT 1 FROM centerui.issuer_dids WHERE did = ?)
                         """)) {
-            stmt.setString(1, "did:web:issuer-service-api-test-binding");
+            stmt.setString(1, BOUND_ISSUER_DID);
             stmt.setString(2, "issuer-service-api-test-binding");
             stmt.setInt(3, 6183);
             stmt.setString(4, "https://issuer-service-api-test-binding:6185/api/issuance/v1/participants/issuer");
             stmt.setString(5, "https://issuer-service-api-test-binding:6187/statuslist");
+            stmt.setString(6, BOUND_ISSUER_DID);
             stmt.execute();
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to seed issuer_dids binding into CS DB", e);
