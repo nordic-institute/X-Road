@@ -10,6 +10,10 @@
 #   store_dsp_port_rows "<did port>" "<dsp port>"   # Stores the ports that differ from the default, keeps existing rows
 #   $DSP_DEFAULT_DID_PORT, $DSP_DEFAULT_DSP_PORT   # Ports used when the database has no row
 #
+# The Security Server installer stages this file into its lib/ directory and uses it for the port checks.
+# xroad-proxy.config runs before this package is unpacked and carries a copy of normalize_port and
+# ports_differ; the copy must stay identical to the two functions below.
+#
 
 DSP_DEFAULT_DID_PORT=7183
 DSP_DEFAULT_DSP_PORT=8183

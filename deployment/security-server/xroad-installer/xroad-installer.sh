@@ -7,7 +7,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source common functions and logging
 source "$SCRIPT_DIR/lib/common.sh"
-source "$SCRIPT_DIR/lib/port_check.sh"
+[[ -f "$SCRIPT_DIR/lib/dsp_ports.sh" ]] \
+  || log_die "Missing $SCRIPT_DIR/lib/dsp_ports.sh. Use the published installer, or stage the helper scripts with copy_helper_scripts from scripts/release/_installer-common.sh."
+source "$SCRIPT_DIR/lib/dsp_ports.sh"
 # make sure the same log file is used for all logs
 export XROAD_INSTALLER_LOG_FILE
 
@@ -29,8 +31,6 @@ XROAD_DID_PORT="${XROAD_DID_PORT:-}"
 XROAD_DSP_PORT="${XROAD_DSP_PORT:-}"
 XROAD_MESSAGELOG_ENABLED="${XROAD_MESSAGELOG_ENABLED:-}"
 XROAD_INSTALLER_CONFIG_FILE="${XROAD_INSTALLER_CONFIG_FILE:-}"
-DEFAULT_DID_PORT=7183
-DEFAULT_DSP_PORT=8183
 
 parse_args() {
   while [[ $# -gt 0 ]]; do
@@ -69,8 +69,8 @@ OPTIONS:
     -h, --help                  Show this help message
 
 CONFIGURATION FILE KEYS (also read from the environment) for the dataspace ports:
-    XROAD_DID_PORT              Port for the dataspace identity (DID) documents, 1024-65535 (default: $DEFAULT_DID_PORT)
-    XROAD_DSP_PORT              Port for the Dataspace Protocol (DSP), 1024-65535 (default: $DEFAULT_DSP_PORT)
+    XROAD_DID_PORT              Port for the dataspace identity (DID) documents, 1024-65535 (default: $DSP_DEFAULT_DID_PORT)
+    XROAD_DSP_PORT              Port for the Dataspace Protocol (DSP), 1024-65535 (default: $DSP_DEFAULT_DSP_PORT)
                                 The two ports must differ. A key that is not set is asked for interactively.
 
 EXAMPLES:
@@ -327,10 +327,10 @@ ask_port() {
 # Function to collect the DID port and the DSP port
 select_dsp_ports() {
   if [[ -z "$XROAD_DID_PORT" ]]; then
-    XROAD_DID_PORT=$(ask_port "DID port" "$DEFAULT_DID_PORT" "$XROAD_DSP_PORT")
+    XROAD_DID_PORT=$(ask_port "DID port" "$DSP_DEFAULT_DID_PORT" "$XROAD_DSP_PORT")
   fi
   if [[ -z "$XROAD_DSP_PORT" ]]; then
-    XROAD_DSP_PORT=$(ask_port "DSP port" "$DEFAULT_DSP_PORT" "$XROAD_DID_PORT")
+    XROAD_DSP_PORT=$(ask_port "DSP port" "$DSP_DEFAULT_DSP_PORT" "$XROAD_DID_PORT")
   fi
   ports_differ "$XROAD_DID_PORT" "$XROAD_DSP_PORT" \
     || log_die "The DID port and the DSP port must be different, both are '$XROAD_DID_PORT'."
