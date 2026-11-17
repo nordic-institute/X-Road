@@ -223,7 +223,7 @@ public final class XRoadConfigBuilder {
                 converted = key.convert(raw);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException(
-                        "Unparseable config value \"%s\" for %s".formatted(raw, key.key()), e);
+                        "Unparseable config value \"%s\" for %s: %s".formatted(raw, key.key(), e.getMessage()), e);
             }
             var result = key.validate(converted);
             if (!result.valid()) {
