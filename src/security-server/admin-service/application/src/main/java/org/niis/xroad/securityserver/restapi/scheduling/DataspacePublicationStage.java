@@ -79,8 +79,9 @@ import java.util.stream.Collectors;
  * <p>A value is sent only when the data space is ready, a registered authentication certificate is usable (its
  * key is available and the certificate is currently valid), the registered address is known and the SYSTEM
  * binding is bound, provisioned and not sent.
- * Values already submitted or rejected are not sent again. A published value that globalconf loses is moved
- * back to not sent by the globalconf check and sent again.
+ * Rejected values are not sent again. A submitted value is sent again only when globalconf does not carry it
+ * after the submitted timeout. A published value that globalconf loses is moved back to not sent by the
+ * globalconf check and sent again.
  *
  * <p>After a failed send the stage waits, with growing pauses, before it sends again: a send failure pauses
  * every send of its request kind, a conflict or not resolved result pauses only its value. The pauses are kept
@@ -424,7 +425,7 @@ public class DataspacePublicationStage {
         boolean systemValuesSent() {
             var state = systemStateAfterSend != null ? systemStateAfterSend
                     : systemRow.get().map(DsParticipantEntity::getPublicationState).orElse(null);
-            return state == PublicationState.SUBMITTED || state == PublicationState.PUBLISHED;
+            return PublicationState.isSent(state);
         }
     }
 }

@@ -28,6 +28,7 @@ package org.niis.xroad.ds.identity;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.apicatalog.did.Did;
+import jakarta.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -39,6 +40,7 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CLIENT_IDENTIFIER;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ENCODED_ID;
@@ -230,6 +232,20 @@ public class ParticipantIdentifierScheme {
         }
         throw malformed("DID '%s' payload after '%s' must have exactly 1 (SYSTEM) or %d (member) segments, got %d",
                 did, SCHEME_VERSION, MEMBER_SEGMENT_COUNT, payload.length);
+    }
+
+    /**
+     * {@link #decodeDid(String)} that reports a DID it cannot decode as empty instead of throwing.
+     *
+     * @param did a DID string, or {@code null}
+     * @return the decoded participant, or empty when the string is {@code null}, not a DID or malformed
+     */
+    public static Optional<DecodedParticipant> tryDecodeDid(@Nullable String did) {
+        try {
+            return Optional.of(decodeDid(did));
+        } catch (XrdRuntimeException _) {
+            return Optional.empty();
+        }
     }
 
     /**
