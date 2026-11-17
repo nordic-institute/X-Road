@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+                   logicalFilePath="centerui/202611171200-issuer-dids-removed-at.xml">
+
+    <changeSet author="niis" id="202611171200-issuer-dids-removed-at">
+        <comment>Marks a trusted issuer as removed without deleting its row.</comment>
+
+        <addColumn tableName="issuer_dids">
+            <column name="removed_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

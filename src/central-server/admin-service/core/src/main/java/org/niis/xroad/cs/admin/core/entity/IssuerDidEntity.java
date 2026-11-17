@@ -36,6 +36,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 /**
  * The Central Server's data space credential Issuer identity binding (globalconf
  * {@code credentialIssuer/did} entry): the Issuer's DID and the full URLs a verifier needs to reach
@@ -74,6 +76,10 @@ public class IssuerDidEntity extends AuditableEntity {
     @Column(name = "statuslist_base_url", nullable = false, updatable = false)
     @Getter
     private String statuslistBaseUrl;
+
+    @Column(name = "removed_at")
+    @Getter
+    private Instant removedAt;
 
     public IssuerDidEntity(String did, String host, int didPort, String issuanceUrl, String statuslistBaseUrl) {
         this.did = did;

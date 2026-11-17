@@ -55,6 +55,7 @@ import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.DsTlsCertificationAuthority;
 import org.niis.xroad.cs.admin.api.dto.DsTlsIntermediateCertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.TrustedIssuer;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
@@ -72,6 +73,7 @@ import org.niis.xroad.globalconf.model.CsrFormat;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.globalconf.model.SharedParameters;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -170,7 +172,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadSharedParameters() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(ISSUER_DID_1, ISSUER_DID_2));
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of(trustedIssuer(ISSUER_DID_1), trustedIssuer(ISSUER_DID_2)));
 
         var parameters = sharedParametersLoader.load();
 
@@ -190,7 +192,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadSharedParametersWithSingleIssuerDid() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(ISSUER_DID_1));
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of(trustedIssuer(ISSUER_DID_1)));
 
         var parameters = sharedParametersLoader.load();
 
@@ -200,11 +202,23 @@ class SharedParametersLoaderTest {
     @Test
     void loadSharedParametersOmitsIssuerDidsWhenRegistryIsEmpty() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
 
         var parameters = sharedParametersLoader.load();
 
         assertThat(parameters.getCredentialIssuerDids()).isEmpty();
+    }
+
+    @Test
+    void loadSharedParametersOmitsRemovedIssuerDid() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of(trustedIssuer(ISSUER_DID_1)));
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters.getCredentialIssuerDids())
+                .containsExactly(ISSUER_DID_1)
+                .doesNotContain(ISSUER_DID_2);
     }
 
     @Test
@@ -220,7 +234,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadMapsSystemValuesOfServerThatPublishedThem() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         when(securityServerService.findAll()).thenReturn(List.of(withSystemValues(getSecurityServers().getFirst(),
                 SYSTEM_DID, DSP_BASE_URL)));
 
@@ -233,7 +247,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadLeavesSystemValuesAbsentForServerWithoutThem() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
 
         var parameters = sharedParametersLoader.load();
 
@@ -244,7 +258,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadReadsTheNewSystemValuesAfterTheStoredPairIsReplaced() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         var replacedSystemDid = "did:web:replaced-address%3A7183:v1:system";
         var replacedDspBaseUrl = "https://replaced-address:8183/api/dsp";
         var serverAtNewAddress = getSecurityServers().getFirst();
@@ -271,7 +285,7 @@ class SharedParametersLoaderTest {
             "'', https://security-server-address:8183/api/dsp"})
     void loadLeavesSystemValuesAbsentForServerWithHalfPair(String systemDid, String dspBaseUrl) {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         when(securityServerService.findAll()).thenReturn(List.of(withSystemValues(getSecurityServers().getFirst(),
                 systemDid, dspBaseUrl)));
 
@@ -284,7 +298,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadSkipsMemberDidRowOfServerAbsentFromTheServerList() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
                 new StoredMemberDid(ABSENT_SERVER_ROW_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), OWNER_DID),
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
@@ -297,7 +311,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadMapsMemberDidsToTheServerIdentifierOfTheirServer() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), OWNER_DID),
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
@@ -312,7 +326,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadKeepsMemberDidWhenTheMembersOnlyClientOnTheServerIsDisabled() {
         stubDependencies(List.of());
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
 
@@ -325,7 +339,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadReadsMemberDidsOncePerCall() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), OWNER_DID),
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
@@ -338,7 +352,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadNoLongerCarriesMemberDidAfterItsRowIsDeleted() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         var row = new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID);
         when(dataspaceMemberDidService.findAll()).thenReturn(List.of(row)).thenReturn(List.of());
 
@@ -352,7 +366,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadReadsTheNewMemberDidAfterTheStoredDidIsReplaced() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         var replacedDid = "did:web:security-server-address%3A7184:v1:XRD:CLASS:M2";
         var member = ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2");
         when(dataspaceMemberDidService.findAll())
@@ -369,7 +383,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadLeavesMemberDidsOutAndNeverReadsThem() {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
 
         var parameters = sharedParametersLoader.load();
 
@@ -383,7 +397,7 @@ class SharedParametersLoaderTest {
     void loadTwiceOverUnchangedRowsGivesTheSameModelInStableOrder() {
         stubDependencies();
         stubSecondServer();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of());
         var m2 = ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2");
         when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
                 new StoredMemberDid(SECOND_SERVER_ROW_ID, m2, OTHER_SERVER_CLIENT_DID),
@@ -405,7 +419,7 @@ class SharedParametersLoaderTest {
     void generatedSharedParametersCarryPublishedValuesOnlyInVersion7(
             String version, Function<SharedParametersLoader, String> generate) {
         stubDependencies();
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(ISSUER_DID_1));
+        when(dataspaceIssuerDidService.findAllTrusted()).thenReturn(List.of(trustedIssuer(ISSUER_DID_1)));
         when(securityServerService.findAll()).thenReturn(List.of(withSystemValues(getSecurityServers().getFirst(),
                 SYSTEM_DID, DSP_BASE_URL)));
         boolean version7 = "7".equals(version);
@@ -452,6 +466,10 @@ class SharedParametersLoaderTest {
         server.setSystemDid(systemDid);
         server.setDspBaseUrl(dspBaseUrl);
         return server;
+    }
+
+    private static TrustedIssuer trustedIssuer(String did) {
+        return new TrustedIssuer(1, did, Instant.now());
     }
 
     private void stubSecondServer() {

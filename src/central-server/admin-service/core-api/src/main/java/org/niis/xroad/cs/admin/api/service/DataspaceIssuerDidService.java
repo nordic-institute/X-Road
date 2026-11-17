@@ -25,6 +25,9 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import org.niis.xroad.cs.admin.api.dto.TrustedIssuer;
+import org.niis.xroad.cs.admin.api.dto.TrustedIssuerRemoval;
+
 import java.util.List;
 
 /**
@@ -49,4 +52,17 @@ public interface DataspaceIssuerDidService {
      * @return every bound Issuer DID of this instance, or an empty list if none is bound
      */
     List<String> findAll();
+
+    /**
+     * @return every trusted Issuer, i.e. not removed
+     */
+    List<TrustedIssuer> findAllTrusted();
+
+    /**
+     * Removes the trusted Issuer with the given id. Fails if the id is unknown or already removed.
+     *
+     * @param id the trusted Issuer's id
+     * @return the removed DID and whether it was the last trusted entry
+     */
+    TrustedIssuerRemoval remove(int id);
 }

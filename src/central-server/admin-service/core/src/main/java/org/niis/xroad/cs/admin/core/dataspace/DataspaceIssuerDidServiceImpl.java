@@ -28,6 +28,9 @@ package org.niis.xroad.cs.admin.core.dataspace;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.dto.TrustedIssuer;
+import org.niis.xroad.cs.admin.api.dto.TrustedIssuerRemoval;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
@@ -35,6 +38,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ISSUER_NOT_FOUND;
 
 @Service
 @Transactional
@@ -54,5 +59,27 @@ public class DataspaceIssuerDidServiceImpl implements DataspaceIssuerDidService 
                 .map(IssuerDidEntity::getDid)
                 .sorted(Comparator.naturalOrder())
                 .toList();
+    }
+
+    @Override
+    public List<TrustedIssuer> findAllTrusted() {
+        return issuerDidRepository.findAllTrusted().stream()
+                .map(entity -> new TrustedIssuer(entity.getId(), entity.getDid(), entity.getCreatedAt()))
+                .toList();
+    }
+
+    @Override
+    public TrustedIssuerRemoval remove(int id) {
+        List<TrustedIssuer> trusted = findAllTrusted();
+        boolean isTrusted = trusted.stream().anyMatch(issuer -> issuer.id() == id);
+        if (!isTrusted || !issuerDidRepository.markRemoved(id)) {
+            throw new NotFoundException(TRUSTED_ISSUER_NOT_FOUND.build());
+        }
+        String did = trusted.stream()
+                .filter(issuer -> issuer.id() == id)
+                .findFirst()
+                .orElseThrow()
+                .did();
+        return new TrustedIssuerRemoval(did, trusted.size() == 1);
     }
 }
