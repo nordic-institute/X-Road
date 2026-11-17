@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig.AuthenticationProviderType;
 import org.niis.xroad.restapi.domain.AdminUser;
@@ -73,7 +74,8 @@ public class InitialAdminUserService {
      * @return true when the unauthenticated initial admin user creation flow should be offered
      */
     public boolean isInitialAdminUserRequired() {
-        return isDatabaseAuthentication() && !hasAnyAdminUser() && !isServerFullyInitialized();
+        return isDatabaseAuthentication() && !hasAnyAdminUser() && !isServerFullyInitialized()
+                && !NodeProperties.isSecondaryNode();
     }
 
     /**

@@ -31,7 +31,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig.AuthenticationProviderType;
 import org.niis.xroad.restapi.domain.AdminUser;
@@ -44,6 +46,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -111,6 +114,22 @@ public class InitialAdminUserServiceTest {
     }
 
     @Test
+    public void requiredOnPrimaryNode() {
+        bootstrapState();
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
+            assertThat(service.isInitialAdminUserRequired()).isTrue();
+        }
+    }
+    @Test
+    public void notRequiredOnSecondaryNode() {
+        bootstrapState();
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+            assertThat(service.isInitialAdminUserRequired()).isFalse();
+        }
+    }
+    @Test
     public void createDelegatesToAdminUserServiceWithFullPamRoleSet() {
         bootstrapState();
 
@@ -154,6 +173,16 @@ public class InitialAdminUserServiceTest {
         verify(adminUserService, never()).create(org.mockito.ArgumentMatchers.any());
     }
 
+    @Test
+    public void createRejectedOnSecondaryNode() {
+        bootstrapState();
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+            assertThatThrownBy(() -> service.createInitialAdminUser(USERNAME, PASSWORD))
+                    .isInstanceOf(InitialAdminUserNotAllowedException.class);
+        }
+        verify(adminUserService, never()).create(org.mockito.ArgumentMatchers.any());
+    }
     private void bootstrapState() {
         when(userAuthenticationConfig.getAuthenticationProvider()).thenReturn(AuthenticationProviderType.DATABASE);
         when(adminUserService.count()).thenReturn(0L);
