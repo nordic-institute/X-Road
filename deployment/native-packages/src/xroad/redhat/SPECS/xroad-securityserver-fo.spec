@@ -12,6 +12,8 @@ Group:              Applications/Internet
 License:            MIT
 Requires:           xroad-securityserver = %version-%release, xroad-opmonitor = %version-%release
 Conflicts:          xroad-centralserver
+Conflicts:          xroad-securityserver-fi
+Conflicts:          xroad-securityserver-is
 
 %define src %{_topdir}/..
 
@@ -25,17 +27,18 @@ This is meta package of X-Road security server with the Faroe Islands' settings
 %build
 
 %install
-mkdir -p %{buildroot}/etc/xroad/conf.d
-cp -p %{srcdir}/default-configuration/override-securityserver-fo.ini %{buildroot}/etc/xroad/conf.d/
+mkdir -p %{buildroot}/usr/share/xroad
+cp -p %{srcdir}/common/securityserver-fo/usr/share/xroad/country-profile %{buildroot}/usr/share/xroad/
 
 %files
-%defattr(-,xroad,xroad,-)
-%config /etc/xroad/conf.d/override-securityserver-fo.ini
+%defattr(-,root,root,-)
+%attr(0644,root,root) /usr/share/xroad/country-profile
 
 %pre -p /bin/bash
 %upgrade_check
 
 %post
+systemctl try-restart xroad-signer.service xroad-confclient.service xroad-proxy.service xroad-proxy-ui-api.service xroad-monitor.service xroad-opmonitor.service xroad-auxiliary-service.service xroad-ds-control-plane.service xroad-ds-identity-hub.service > /dev/null 2>&1 || :
 
 %postun
 %systemd_postun_with_restart xroad-signer.service

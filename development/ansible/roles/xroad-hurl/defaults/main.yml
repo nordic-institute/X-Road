@@ -7,8 +7,8 @@ hurl_scenario_dir: "{{ playbook_dir }}/../hurl/scenarios"
 # proxied traffic, so every extra proxied call here shifts those counts. The test-proxy-*.hurl
 # smoke files remain in development/hurl/scenarios for manual runs (override hurl_files or run
 # them via run-hurl.sh on the hurl host).
-hurl_files:
-  - setup.hurl
+# verify-country-profile-fi.hurl runs only when ss0 has variant=fi.
+hurl_files: "{{ ['setup.hurl'] + (['verify-country-profile-fi.hurl'] if 'xrd-ss0' in hostvars and (hostvars['xrd-ss0'].variant | default('vanilla')) == 'fi' else []) }}"
 # Path of a vars.env file to copy into the scenario directory under its basename. Empty: vars.env is
 # rendered from templates/vars.env.j2 with the variables below.
 hurl_env_file: ""
