@@ -398,13 +398,17 @@ main() {
   fi
 
   # batch-signing: optional opt-in to preserve the X-Road 7 behavior of having
-  # batch signing enabled. X-Road 8 disables it by default. When the operator
-  # opts in we set xroad.proxy.batch-signing-enabled=true via set-property;
-  # otherwise the default (disabled) stands. The sentinel is written either
-  # way so reruns don't re-prompt.
+  # batch signing enabled. X-Road 8 disables it by default, except in the EE
+  # country profile, which keeps it enabled, so an EE server is not asked.
+  # When the operator opts in we set xroad.proxy.batch-signing-enabled=true via
+  # set-property; otherwise the default (disabled) stands. The sentinel is
+  # written either way so reruns don't re-prompt.
   local batch_sentinel="batch-signing-prompt"
   if is_step_done "$batch_sentinel"; then
     log_info "Step '$batch_sentinel' already completed (sentinel found) — skipping"
+  elif [[ "$(captured_country_package)" == "xroad-securityserver-ee" ]]; then
+    log_info "The EE profile keeps batch signing enabled — skipping the batch signing prompt"
+    mark_step_done "$batch_sentinel"
   elif [[ "${XROAD_MIGRATION_UNATTENDED:-}" == "true" ]]; then
     log_info "Unattended mode: leaving batch signing at X-Road 8 default (disabled)"
     mark_step_done "$batch_sentinel"

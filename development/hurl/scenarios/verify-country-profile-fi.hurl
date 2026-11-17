@@ -1,19 +1,20 @@
 # Verify that the Security Server installed with variant=fi runs the FI country profile.
-# LXD only: runs after setup.hurl (file name order) and is listed in hurl_files only when ss0's variant is fi.
+# LXD only: run-hurl.sh concatenates the scenario files in file name order, so this runs after setup.hurl.
+# The xroad-hurl role copies this file, and sets fi_host in vars.env, only when a host has variant=fi.
 
 # Log in to the Security Server
-POST https://{{ss0_host}}:4000/login
+POST https://{{fi_host}}:4000/login
 [FormParams]
 username: {{ui_username}}
 password: {{ui_password}}
 
 HTTP 200
 [Captures]
-ss0_xsrf_token: cookie "XSRF-TOKEN"
+fi_xsrf_token: cookie "XSRF-TOKEN"
 
 # A key set by the FI profile reports the country profile as its source
-GET https://{{ss0_host}}:4000/api/v1/system/property
-X-XSRF-TOKEN: {{ss0_xsrf_token}}
+GET https://{{fi_host}}:4000/api/v1/system/property
+X-XSRF-TOKEN: {{fi_xsrf_token}}
 
 HTTP 200
 [Asserts]

@@ -31,14 +31,12 @@ mkdir -p %{buildroot}/usr/share/xroad
 cp -p %{srcdir}/common/securityserver-fo/usr/share/xroad/country-profile %{buildroot}/usr/share/xroad/
 
 %files
-%defattr(-,root,root,-)
-%attr(0644,root,root) /usr/share/xroad/country-profile
+/usr/share/xroad/country-profile
 
 %pre -p /bin/bash
 %upgrade_check
 
 %post
-systemctl try-restart xroad-signer.service xroad-confclient.service xroad-proxy.service xroad-proxy-ui-api.service xroad-monitor.service xroad-opmonitor.service xroad-auxiliary-service.service xroad-ds-control-plane.service xroad-ds-identity-hub.service > /dev/null 2>&1 || :
-
-%postun
-%systemd_postun_with_restart xroad-signer.service
+if [ "$1" -eq 1 ]; then
+  systemctl try-restart xroad-signer.service xroad-confclient.service xroad-proxy.service xroad-proxy-ui-api.service xroad-monitor.service xroad-opmonitor.service xroad-auxiliary-service.service xroad-ds-control-plane.service xroad-ds-identity-hub.service > /dev/null 2>&1 || :
+fi

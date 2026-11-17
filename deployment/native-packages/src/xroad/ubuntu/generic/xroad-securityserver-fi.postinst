@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$1" = configure ]; then
+if [ "$1" = configure ] && [ -z "$2" ]; then
   for service in xroad-signer xroad-confclient xroad-proxy xroad-proxy-ui-api xroad-monitor xroad-opmonitor \
     xroad-auxiliary-service xroad-ds-control-plane xroad-ds-identity-hub; do
     invoke-rc.d --quiet "$service" try-restart || true

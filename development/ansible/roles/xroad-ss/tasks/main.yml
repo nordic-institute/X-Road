@@ -11,3 +11,6 @@
 - include_tasks: postinstall.yml
 
 - include_tasks: seed-config-properties.yml
+
+- include_tasks: verify-country-profile.yml
+  when: (variant | default('vanilla')) == 'fi'

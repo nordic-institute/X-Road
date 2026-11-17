@@ -273,6 +273,61 @@ execute_by_os() {
   "$fn"
 }
 
+# Country packages of the X-Road 7 Security Server. Mirrors the country profile files shipped in the product.
+COUNTRY_PACKAGES=(xroad-securityserver-ee xroad-securityserver-fi xroad-securityserver-is xroad-securityserver-fo)
+
+UPGRADE_STATE_DIR="/var/lib/xroad-upgrade"
+COUNTRY_PACKAGE_STATE_FILE="$UPGRADE_STATE_DIR/country-package.state"
+
+QUERY_PACKAGE=""
+
+package_installed_ubuntu() {
+  dpkg-query -W -f='${Status}' "$QUERY_PACKAGE" 2>/dev/null | grep -q '^install ok installed$'
+}
+
+package_installed_rhel() {
+  rpm -q --quiet "$QUERY_PACKAGE"
+}
+
+package_installed() {
+  QUERY_PACKAGE="$1"
+  execute_by_os package_installed_ubuntu package_installed_rhel
+}
+
+# Writes the key=value arguments atomically to the state file, creating its directory if needed.
+record_state() {
+  local state_file="$1"
+  shift
+  local state_dir
+  state_dir=$(dirname "$state_file")
+
+  if [[ ! -d "$state_dir" ]]; then
+    mkdir -p "$state_dir"
+    chmod 750 "$state_dir"
+    log_info "Created state directory: $state_dir"
+  fi
+
+  local tmp
+  tmp=$(mktemp "$state_file.XXXXXX")
+  printf '%s\n' "$@" > "$tmp"
+  mv "$tmp" "$state_file"
+}
+
+# Prints the value of a key in a state file, or nothing when the file or key is missing.
+read_state_value() {
+  local state_file="$1"
+  local key="$2"
+  [[ -f "$state_file" ]] || return 0
+  sed -n "s/^${key}=//p" "$state_file"
+}
+
+# Prints the country package recorded before the upgrade, or "none".
+captured_country_package() {
+  local country_pkg
+  country_pkg=$(read_state_value "$COUNTRY_PACKAGE_STATE_FILE" country_pkg)
+  echo "${country_pkg:-none}"
+}
+
 # X-Road units that must NOT auto-start during package upgrade.
 # xroad-secret-store-local is intentionally absent — its postinst fresh-install
 # branch starts OpenBao + the secret-store init service, which step 9 (TLS
