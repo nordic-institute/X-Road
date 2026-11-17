@@ -27,19 +27,20 @@
 package org.niis.xroad.signer.core.job;
 
 
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
 import io.quarkus.scheduler.Scheduler;
-import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.interceptor.Interceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleManager;
 
 @Slf4j
-@Startup
 @ApplicationScoped
 @RequiredArgsConstructor
 public class ModuleManagerReloadJob {
@@ -48,8 +49,7 @@ public class ModuleManagerReloadJob {
     private final SignerProperties signerProperties;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-    @PostConstruct
-    public void init() {
+    public void init(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
         log.info("Scheduling ModuleManagerReloadJob every {}s", signerProperties.moduleManagerUpdateInterval());
         scheduler.newJob(getClass().getSimpleName())
                 .setDelayed("%s".formatted(signerProperties.moduleManagerUpdateInterval()))

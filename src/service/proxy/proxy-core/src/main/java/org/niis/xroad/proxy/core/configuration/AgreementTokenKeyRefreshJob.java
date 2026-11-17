@@ -26,11 +26,13 @@
 
 package org.niis.xroad.proxy.core.configuration;
 
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
-import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.interceptor.Interceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
  * Drives {@link AgreementTokenKeyMaterial#retryOrRefresh()} off the request path, on a programmatic
  * {@link Scheduler} job whose interval comes from {@link ProxyAgreementTokenProperties#keyRefreshInterval()}.
  */
-@Startup
 @ApplicationScoped
 @Slf4j
 @RequiredArgsConstructor
@@ -49,8 +50,7 @@ public class AgreementTokenKeyRefreshJob {
     private final ProxyAgreementTokenProperties properties;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-    @PostConstruct
-    public void init() {
+    public void init(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
         properties.validateKeyLifecycle();
         var interval = properties.keyRefreshInterval();
         log.info("Scheduling agreement-token signing key refresh every {}", interval);

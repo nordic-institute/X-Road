@@ -595,21 +595,21 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void dspBaseUrlUsesRegisteredAddressAndDefaultDspPort() {
-        assertThat(didAuthority().dspBaseUrl()).contains("https://ss.example.test:8183/api/dsp");
+        assertThat(didAuthority().dspBaseUrlIfValid()).contains("https://ss.example.test:8183/api/dsp");
     }
 
     @Test
     void dspBaseUrlUsesConfiguredDspPort() {
         when(dataspace.getDspPort()).thenReturn(18183);
 
-        assertThat(didAuthority().dspBaseUrl()).contains("https://ss.example.test:18183/api/dsp");
+        assertThat(didAuthority().dspBaseUrlIfValid()).contains("https://ss.example.test:18183/api/dsp");
     }
 
     @Test
     void dspBaseUrlIsEmptyWithoutRegisteredAddress() {
         when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
 
-        assertThat(didAuthority().dspBaseUrl()).isEmpty();
+        assertThat(didAuthority().dspBaseUrlIfValid()).isEmpty();
     }
 
     @Test

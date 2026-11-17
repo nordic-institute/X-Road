@@ -27,33 +27,39 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
-import lombok.experimental.UtilityClass;
-import org.niis.xroad.serverconf.model.PublicationState;
+
+import java.util.function.Predicate;
 
 /**
- * Decides how one globalconf check moves the publication state of a member DID. Pure: no clock, no storage.
- *
- * <p>A DID that globalconf carries for the member but that differs from the stored one changes nothing: only an
- * absence counts as missing, and only while the member is hosted on this server.
+ * How the value globalconf announces compares with the value this Security Server holds. Pure: no clock, no storage.
  */
-@UtilityClass
-public class MemberPublicationCheck {
+public enum GlobalConfComparison {
+    /** Globalconf announces no value. */
+    ABSENT,
+    /** Globalconf announces the held value. */
+    EQUAL,
+    /** Globalconf announces another value that is still valid. */
+    DIFFERENT,
+    /** Globalconf announces another value that no longer fits this Security Server. */
+    STALE;
 
     /**
-     * @param storedState the stored publication state of the member row; {@code null} counts as not sent
-     * @param ownDid      the DID of the member row
-     * @param carriedDid  the DID globalconf carries for the member on this server, {@code null} when it carries none
-     * @param hostedHere  whether the member is still hosted on this server
-     * @return the transition to apply to the row
+     * Compares the held value with the carried one. A stale carried value is {@link #STALE} even though it differs;
+     * a carried value equal to the held one is {@link #EQUAL} whatever the staleness test says.
+     *
+     * @param held           the value this Security Server holds
+     * @param carried        the value globalconf announces, {@code null} when it announces none
+     * @param carriedIsStale tells whether a carried value no longer fits this Security Server
+     * @return the comparison result
      */
-    public static PublicationCheckAction decide(@Nullable PublicationState storedState, String ownDid,
-            @Nullable String carriedDid, boolean hostedHere) {
-        var state = storedState == null ? PublicationState.NOT_SENT : storedState;
-        if (carriedDid != null) {
-            return state == PublicationState.SUBMITTED && ownDid.equals(carriedDid)
-                    ? PublicationCheckAction.PUBLISH : PublicationCheckAction.NONE;
+    public static GlobalConfComparison classify(String held, @Nullable String carried,
+            Predicate<String> carriedIsStale) {
+        if (carried == null) {
+            return ABSENT;
         }
-        return state == PublicationState.PUBLISHED && hostedHere
-                ? PublicationCheckAction.RESEND : PublicationCheckAction.NONE;
+        if (held.equals(carried)) {
+            return EQUAL;
+        }
+        return carriedIsStale.test(carried) ? STALE : DIFFERENT;
     }
 }
