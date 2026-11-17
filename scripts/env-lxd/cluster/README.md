@@ -11,7 +11,8 @@ A two-node Central Server cluster on LXD, built from the packages of this checko
 
 Limits:
 
-- Node 2 stops at OpenBao database creation until the OpenBao join and the Issuer Service database role handover land. It serves no admin API.
+- Both nodes share one OpenBao cluster: node 1 creates it and node 2 joins it with the product scripts (`secret-store-cluster-config.sh`, `secret-store-join-bundle.sh`).
+- `start-cluster.sh` does not initialise the Central Server, so `check-cluster.sh` skips the signer PIN and software token login checks there. In the dev env profile the hurl setup initialises node 1 and logs its token in without autologin, so the PIN check fails on node 1.
 - The Linux variant has not been run on a Linux host.
 
 ## Start, re-run, tear down
@@ -64,7 +65,7 @@ Copy a sample before you change it: `config/custom/` ignores every file that is 
 | `xrd-cs-lb.lxd` | cluster name: the LXD name of `xrd-cs-lb`; haproxy passes ports 80, 6183, 6185 and 6187 to both nodes |
 | `xrd-cs-lb.lxd:5432` | PostgreSQL write address: always the Patroni leader |
 | `xrd-cs-lb.lxd:5433` | PostgreSQL read-only address: a streaming replica; refuses connections while only the leader runs |
-| `https://xrd-cs1.lxd:4000` | Central Server admin UI of node 1; node 2 has none yet |
+| `https://xrd-cs1.lxd:4000` | Central Server admin UI of node 1; node 2 serves its own at `https://xrd-cs2.lxd:4000` |
 
 `start-cluster.sh` prints these at the end.
 
@@ -74,12 +75,12 @@ A node serves the Issuer Service ports only with an Issuer Service TLS certifica
 
 ```
 scripts/env-lxd/cluster/check-cluster.sh
-scripts/env-lxd/cluster/fault-step.sh [--dry-run] <action> <host> [<service>]
+scripts/env-lxd/cluster/fault-step.sh [--dry-run] [--start-again] <action> <host> [<service>]
 ```
 
 `check-cluster.sh` verifies the running cluster against the inventory and exits non-zero on any failure. Each run leaves a row in the table `cluster_probe` of the `postgres` database and the member class `CLUSTERPROBE` in the Central Server.
 
-`fault-step.sh` is the only supported way to change a running cluster. `<host>` is a cluster host name. Each action waits for its state (at most `FAULT_STEP_TIMEOUT` seconds) and fails with a message otherwise. Repeating a node or service action that already reached its state changes nothing and exits 0. `db-switchover` and `db-promote` exit 1 and change nothing when the host already leads. `--dry-run` prints the commands and changes nothing.
+`fault-step.sh` is the only supported way to change a running cluster. `<host>` is a cluster host name. Each action waits for its state (at most `FAULT_STEP_TIMEOUT` seconds) and fails with a message otherwise. Repeating a node or service action that already reached its state changes nothing and exits 0. `db-switchover`, `db-promote` and `openbao-failover` exit 1 and change nothing when the host already leads. `--dry-run` prints the commands and changes nothing.
 
 | Action | Effect |
 |---|---|
@@ -91,6 +92,7 @@ scripts/env-lxd/cluster/fault-step.sh [--dry-run] <action> <host> [<service>]
 | `service-start <host> <service>` | start one systemd unit |
 | `db-switchover <replica-host>` | planned handover of the database leadership to the replica |
 | `db-promote <replica-host>` | forced failover to the replica |
+| `openbao-failover <node>` | stop the `openbao` unit of the node that holds the active OpenBao and wait until the OpenBao of the standby `<node>` is active; `--start-again` starts the stopped one again and waits until it is a standby |
 
 Exit codes: 0 state reached, 1 failed or timed out, 2 unknown action, host or service, or wrong arguments (nothing changed).
 

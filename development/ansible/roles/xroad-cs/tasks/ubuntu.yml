@@ -35,31 +35,14 @@
     name: xroad-database-remote
   when: (database_admin_password is defined) and (database_admin_password != "")
 
-- name: install xroad central server
-  block:
-    - name: install xroad central server package
-      apt:
-        name: xroad-centralserver
-        state: latest
-        force: true
-  rescue:
-    - name: fail unless the install stopped at OpenBao database creation as expected
-      fail:
-        msg: "{{ ansible_failed_result.msg | default('xroad-centralserver install failed') }}"
-      when: >-
-        not xroad_cs_openbao_db_stop_expected
-        or "Creating database 'openbao'" not in
-        ((ansible_failed_result.stdout | default('')) ~ (ansible_failed_result.stderr | default('')) ~ (ansible_failed_result.msg | default('')))
+- name: join the OpenBao cluster of the first node
+  include_tasks: openbao-join.yml
+  when: xroad_cs_openbao_cluster_nodes | length > 1 and inventory_hostname != xroad_cs_openbao_cluster_nodes | first
 
-    - name: record the expected stop at OpenBao database creation
-      set_fact:
-        xroad_cs_install_stopped: true
-
-    - name: report the expected stop at OpenBao database creation
-      debug:
-        msg: >-
-          EXPECTED STOP on {{ inventory_hostname }}: the install stopped at OpenBao database creation
-          because the database already exists on the shared database host. The node is left
-          partly installed and the remaining Central Server set-up is skipped.
+- name: install xroad central server package
+  apt:
+    name: xroad-centralserver
+    state: latest
+    force: true
   tags:
     - install-xroad-cs-packages

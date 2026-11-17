@@ -1,0 +1,40 @@
+---
+- name: read the OpenBao invocation before the cluster configuration
+  command: systemctl show --property=InvocationID --value openbao.service
+  register: cs_openbao_invocation_before
+  changed_when: false
+- name: make OpenBao reachable for the other nodes
+  command:
+    argv:
+      - /usr/share/xroad/scripts/secret-store-cluster-config.sh
+      - --node-address
+      - "{{ ansible_facts['default_ipv4']['address'] }}"
+      - --node-host
+      - "{{ xroad_host_fqdn }}"
+  changed_when: false
+- name: read the OpenBao invocation after the cluster configuration
+  command: systemctl show --property=InvocationID --value openbao.service
+  register: cs_openbao_invocation_after
+  changed_when: cs_openbao_invocation_after.stdout != cs_openbao_invocation_before.stdout
+- name: restart the X-Road services to trust the new OpenBao certificate
+  systemd:
+    name: xroad-base
+    state: restarted
+  when: cs_openbao_invocation_after is changed
+- name: read the OpenBao join bundle
+  command:
+    argv:
+      - bash
+      - -c
+      - |
+        set -e
+        archive="$1"
+        trap 'rm -f "$archive"' EXIT
+        rm -f "$archive"
+        /usr/share/xroad/scripts/secret-store-join-bundle.sh export "$archive" >/dev/null
+        base64 -w0 "$archive"
+      - join-bundle-export
+      - "{{ xroad_cs_openbao_bundle_archive }}"
+  register: cs_openbao_join_bundle
+  changed_when: false
+  no_log: true

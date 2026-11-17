@@ -209,11 +209,14 @@
         tasks_from: cs.yml
       when: xroad_cs_dev_configuration | default(false) | bool
 
-# One node at a time in inventory order: the first node creates the OpenBao database, the second stops there.
+# One node at a time in inventory order. The first node creates OpenBao and becomes a cluster member;
+# every other node imports its join bundle before the Central Server install.
 - name: Install Central Server nodes
   hosts: cs_nodes
   become: true
   serial: 1
+  vars:
+    xroad_cs_openbao_cluster_nodes: "{{ groups['cs_nodes'] if groups['cs_nodes'] | length > 1 else [] }}"
   pre_tasks:
     - name: Derive the admin user password hash from the inventory admin password
       command: openssl passwd -6 -salt xrdclusteradmin1 -stdin

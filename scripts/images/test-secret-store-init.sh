@@ -14,7 +14,9 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
 IMAGE="${1:-${IMAGE_REGISTRY:-localhost:5555}/openbao-dev:${IMAGE_TAG:-latest}}"
-SCRIPTS_DIR="${ROOT_DIR}/deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts"
+PACKAGE_SOURCES="${ROOT_DIR}/deployment/native-packages/src/xroad/common"
+SECRET_STORE_SCRIPTS_DIR="${PACKAGE_SOURCES}/secret-store-local/usr/share/xroad/scripts"
+BASE_SCRIPTS_DIR="${PACKAGE_SOURCES}/base/usr/share/xroad/scripts"
 NODE1_CONTAINER="secret-store-init-test-$$"
 NODE2_CONTAINER="${NODE1_CONTAINER}-2"
 CONTAINER="${NODE1_CONTAINER}"
@@ -23,6 +25,8 @@ NETWORK="${NODE1_CONTAINER}-net"
 PG_IMAGE="${PG_IMAGE:-postgres:16-alpine}"
 PG_PASSWORD="test-pg-$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
 WORK_DIR="$(mktemp -d)"
+SCRIPTS_DIR="${WORK_DIR}/scripts"
+BASE_ONLY_CONTAINER="${NODE1_CONTAINER}-base-only"
 
 ADDR="http://127.0.0.1:8200"
 ROOT_TOKEN_FILE="/etc/openbao/root-token"
@@ -62,7 +66,7 @@ dump_last_run() {
 cleanup() {
   local rc=$?
   if [[ ${rc} -ne 0 && ${FAILURES} -eq 0 ]]; then dump_last_run; fi
-  docker rm -f "${NODE1_CONTAINER}" "${NODE2_CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
+  docker rm -f "${NODE1_CONTAINER}" "${NODE2_CONTAINER}" "${BASE_ONLY_CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
   docker network rm "${NETWORK}" >/dev/null 2>&1
   rm -rf "${WORK_DIR}"
 }
@@ -89,6 +93,10 @@ check_ne() {
 
 in_container() { docker exec "${CONTAINER}" "$@"; }
 
+stage_scripts() {
+  mkdir -p "${SCRIPTS_DIR}"
+  cp -p "${SECRET_STORE_SCRIPTS_DIR}"/* "${BASE_SCRIPTS_DIR}/secret-store-join-bundle.sh" "${SCRIPTS_DIR}/"
+}
 write_shim() {
   cat >"${WORK_DIR}/curl-shim" <<'SHIM'
 #!/bin/sh
@@ -895,6 +903,34 @@ scenario_join_node() {
   check_eq "first node: client token still valid" 200 "$(client_token_status)"
   check_eq "first node: client token unchanged" "${first_client_hash}" "$(client_token_hash)"
 }
+scenario_import_base_only() {
+  log_info "Scenario: import on a host that has only the xroad-base scripts"
+  local file first_hashes
+  CONTAINER="${NODE1_CONTAINER}"
+  first_hashes="$(bundle_hashes)"
+  docker cp "${NODE1_CONTAINER}:/tmp/join-bundle.tar" "${WORK_DIR}/transfer" >/dev/null || exit 1
+  docker rm -f "${BASE_ONLY_CONTAINER}" >/dev/null 2>&1
+  docker run -d --init --name "${BASE_ONLY_CONTAINER}" \
+    -v "${BASE_SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
+    --entrypoint sh "${IMAGE}" -c 'exec tail -f /dev/null' >/dev/null || exit 1
+  docker cp "${WORK_DIR}/transfer" "${BASE_ONLY_CONTAINER}:/tmp/join-bundle.tar" >/dev/null || exit 1
+  CONTAINER="${BASE_ONLY_CONTAINER}"
+  check_eq "base only: no other secret-store script is present" secret-store-join-bundle.sh \
+    "$(in_container ls /usr/share/xroad/scripts | grep -E 'secret-store|openbao' | paste -sd, -)"
+  check "base only: no OpenBao directory yet" file_absent /etc/openbao
+  run_bundle import /tmp/join-bundle.tar
+  check "base only: import exit 0" test "${RC}" -eq 0
+  check_eq "base only: the three files equal the first node's" "${first_hashes}" "$(bundle_hashes)"
+  for file in "${ENV_FILE}" "${UNSEAL_KEYS_FILE}" "${ROOT_TOKEN_FILE}"; do
+    check_eq "base only: ${file} mode" 600 "$(file_mode "${file}")"
+    check_eq "base only: ${file} owner" root:root "$(file_owner "${file}")"
+  done
+  run_bundle check
+  check "base only: check exit 0" test "${RC}" -eq 0
+  run_bundle import /tmp/join-bundle.tar
+  check "base only: a second import refuses" test "${RC}" -ne 0
+  CONTAINER="${NODE1_CONTAINER}"
+}
 if ! command -v jq >/dev/null 2>&1; then
   log_error "jq is required on the host"
   exit 1
@@ -905,6 +941,7 @@ if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
 fi
 log_info "Image: ${IMAGE}"
 write_shim
+stage_scripts
 
 scenario_root_token_file
 scenario_bao_token_env
@@ -914,6 +951,7 @@ scenario_initializing_node
 scenario_cluster_member
 scenario_join_guards
 scenario_join_node
+scenario_import_base_only
 
 if [[ "${FAILURES}" -ne 0 ]]; then
   log_error "${FAILURES} check(s) failed"

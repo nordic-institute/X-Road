@@ -8,8 +8,14 @@
 #  - an admin API change on the first node is read back and found in the Central Server database on the leader
 #    (retried until a deadline, because the first call after a failover may use stale pooled connections);
 #  - each node uses the database write address and carries its own HA node name, distinct from the others;
-#  - a node that is not expected to stop reports its HA node name through the admin API,
-#    a node that is expected to stop at OpenBao database creation did stop there;
+#  - each node reports its HA node name through the admin API;
+#  - on every node whose OpenBao runs, the OpenBao certificate on the node address names the node address and the
+#    host name, the root token and unseal keys files are identical on all such nodes, the client token files
+#    differ, the node's own client token reads the first node's admin service TLS key and the issuer-key of the
+#    ds mount, and (while the node's signer runs and its software token is initialised) the node holds
+#    signer/token-pins/<node>/ (file contents are never printed: only hashes and HTTP status codes);
+#  - on every node whose signer and admin service run and whose software token is initialised, the admin API
+#    reports the software token logged in;
 #  - on every node whose admin service runs, OpenBao (read with the services' client token) holds
 #    tls/admin-service/<node> and tls/management-service/<node> and no shared tls/admin-service or
 #    tls/management-service secret;
@@ -59,7 +65,7 @@ jar=$(mktemp)
 trap 'rm -f "$jar"' EXIT
 printf '%s' "$password" | curl -sk -m 20 -c "$jar" -o /dev/null --data-urlencode "username=$XROAD_ADMIN_USER" --data-urlencode "password@-" https://localhost:4000/login
 token=$(awk '$6 == "XSRF-TOKEN" {print $7}' "$jar")
-curl -sk -m 20 -b "$jar" -H "X-XSRF-TOKEN: $token" https://localhost:4000/api/v1/system/status
+curl -sk -m 20 -b "$jar" -H "X-XSRF-TOKEN: $token" "https://localhost:4000/api/v1/${1:-system/status}"
 EOF
 
 IFS= read -r -d '' ADMIN_API_CHANGE_SCRIPT <<'EOF' || true
@@ -97,8 +103,34 @@ for service in admin-service management-service; do
 done
 EOF
 
+# Prints "<name> <value>" lines for the OpenBao of the node: SHA-256 hashes of the root token, unseal keys and client
+# token files, and HTTP status codes of reads made with the node's own client token. Arguments: the node's HA node
+# name and the HA node name of the first node. The token is sent from standard input to curl, so it appears in no
+# argument list, and no response body is printed.
+IFS= read -r -d '' OPENBAO_NODE_STATUS_SCRIPT <<'EOF' || true
+. /etc/xroad/services/secret-store-local.conf
+api=https://127.0.0.1:8200/v1
+call() {
+  printf 'X-Vault-Token: %s\n' "$XROAD_SECRET_STORE_TOKEN" | curl -sk -m 20 -H @- "$@"
+}
+status_of() {
+  call -o /dev/null -w '%{http_code}' "$api/$1"
+}
+hash_of() {
+  sha256sum "$1" | cut -d ' ' -f1
+}
+echo "root-token $(hash_of /etc/openbao/root-token)"
+echo "unseal-keys $(hash_of /etc/openbao/unseal-keys)"
+echo "client-token $(hash_of /etc/xroad/secret-store-client-token)"
+echo "pins $(status_of "xrd-secret/signer/token-pins/$1/?list=true")"
+echo "first-node-tls-key $(status_of "xrd-secret/tls/admin-service/$2")"
+echo "ds-list $(status_of "xrd-ds-secret/metadata/ds?list=true")"
+echo "issuer-key $(status_of "xrd-ds-secret/data/ds/issuer-key")"
+EOF
+
+# Prints the response of GET /api/v1/<path> of the node's admin API; the path ($2) defaults to system/status.
 admin_api_status() {
-  printf '%s\n' "$ADMIN_PASSWORD" | host_exec_env "$1" "XROAD_ADMIN_USER=$ADMIN_USER" -- bash -c "$ADMIN_API_STATUS_SCRIPT"
+  printf '%s\n' "$ADMIN_PASSWORD" | host_exec_env "$1" "XROAD_ADMIN_USER=$ADMIN_USER" -- bash -c "$ADMIN_API_STATUS_SCRIPT" bash ${2:+"$2"}
 }
 
 admin_api_change_member_class() {
@@ -196,6 +228,114 @@ check_tls_certificate_names() {
       fi
     done
   done
+}
+
+# Prints the value of the line NAME ($2) in the "<name> <value>" output $1.
+status_field() {
+  awk -v key="$2" '$1 == key {print $2}' <<<"$1"
+}
+
+ROOT_TOKEN_HASHES=""
+UNSEAL_KEYS_HASHES=""
+CLIENT_TOKEN_HASHES=""
+OPENBAO_API_PORT=8200
+
+# Checks the OpenBao cluster state of NODE ($1, HA node name $2; $3 is the HA node name of the first node) and
+# collects the file hashes for the comparison between nodes.
+check_openbao_node() {
+  local node=$1 node_name=$2 first_name=$3 status expected_cn expected_dns expected_ip names name value hash
+  status=$(host_exec "$node" bash -c "$OPENBAO_NODE_STATUS_SCRIPT" bash "$node_name" "$first_name" 2>/dev/null)
+  for name in root-token unseal-keys client-token; do
+    hash=$(status_field "$status" "$name")
+    if [[ -z "$hash" ]]; then
+      fail "cannot read the $name file hash on $node"
+      continue
+    fi
+    case "$name" in
+      root-token) ROOT_TOKEN_HASHES+="$hash"$'\n' ;;
+      unseal-keys) UNSEAL_KEYS_HASHES+="$hash"$'\n' ;;
+      *) CLIENT_TOKEN_HASHES+="$hash"$'\n' ;;
+    esac
+  done
+  value=$(status_field "$status" first-node-tls-key)
+  if [[ "$value" == "200" ]]; then
+    pass "$node reads tls/admin-service/$first_name with its own client token"
+  else
+    fail "$node cannot read tls/admin-service/$first_name with its own client token (HTTP '$value')"
+  fi
+  value=$(status_field "$status" ds-list)
+  case "$value" in
+    200 | 404) pass "$node lists the ds mount with its own client token (HTTP $value)" ;;
+    *) fail "$node cannot list the ds mount with its own client token (HTTP '$value')" ;;
+  esac
+  value=$(status_field "$status" issuer-key)
+  if [[ "$value" == "200" ]]; then
+    pass "$node reads the issuer-key of the ds mount with its own client token"
+  else
+    fail "$node cannot read the issuer-key of the ds mount with its own client token (HTTP '$value')"
+  fi
+  value=$(status_field "$status" pins)
+  case "$value" in
+    200) pass "$node holds PINs under signer/token-pins/$node_name/" ;;
+    404)
+      if ! host_exec "$node" systemctl is-active --quiet xroad-signer; then
+        echo "INFO: $node signer is not running; no PINs under signer/token-pins/$node_name/ expected"
+      elif ! software_token_initialized "$node"; then
+        echo "INFO: $node software token is not initialised; no PINs under signer/token-pins/$node_name/ expected"
+      else
+        fail "$node signer runs but holds no PINs under signer/token-pins/$node_name/"
+      fi
+      ;;
+    *) fail "cannot tell whether $node holds PINs under signer/token-pins/$node_name/ (HTTP '$value')" ;;
+  esac
+  expected_tls_names "$node"
+  names=$(certificate_names "$node" "$expected_ip:$OPENBAO_API_PORT" "$expected_cn")
+  for name in "DNS:$expected_cn" "IP Address:$expected_ip"; do
+    if tr ',' '\n' <<<"$names" | sed 's/^ *//' | grep -qxF "$name"; then
+      pass "$node OpenBao certificate carries $name"
+    else
+      fail "$node OpenBao certificate does not carry $name: $names"
+    fi
+  done
+}
+
+# Checks the hash list $1 (one per line) of the file $2 read from $3 nodes: every node reported one, and the hashes
+# are all equal ($4 is "equal") or all different ($4 is "different").
+check_hashes() {
+  local list=$1 label=$2 expected_count=$3 relation=$4 total distinct
+  total=$(grep -c . <<<"$list")
+  distinct=$(grep . <<<"$list" | sort -u | wc -l | tr -d ' ')
+  if [[ "$total" -ne "$expected_count" ]]; then
+    fail "the $label hashes of $total of $expected_count nodes were read"
+  elif [[ "$relation" == equal && "$distinct" -eq 1 ]]; then
+    pass "the $label files of the $total nodes are identical"
+  elif [[ "$relation" == different && "$distinct" -eq "$total" ]]; then
+    pass "the $label files of the $total nodes all differ"
+  else
+    fail "the $label files of the $total nodes are not $relation ($distinct distinct hashes)"
+  fi
+}
+
+software_token_initialized() {
+  [[ "$(jq -r '.software_token_init_status // empty' <<<"$(admin_api_status "$1" initialization/status)" 2>/dev/null)" == "INITIALIZED" ]]
+}
+
+# Checks that the software token of NODE ($1) is logged in, read through the admin API of the node (retried until a
+# deadline, because autologin runs a few seconds after the signer starts).
+check_token_login() {
+  local node=$1 deadline logged_in
+  deadline=$((SECONDS + CS_WRITE_WAIT))
+  while :; do
+    logged_in=$(jq -r '[.[]? | select(.id == "0") | .logged_in] | first | tostring' <<<"$(admin_api_status "$node" tokens)" 2>/dev/null)
+    [[ "$logged_in" == "true" ]] && break
+    ((SECONDS >= deadline)) && break
+    sleep 5
+  done
+  if [[ "$logged_in" == "true" ]]; then
+    pass "$node software token is logged in"
+  else
+    fail "$node software token is not logged in (logged_in='$logged_in')"
+  fi
 }
 
 running_of() {
@@ -376,9 +516,10 @@ else
 fi
 
 node_names=()
+first_name=$(inventory_value "$first_node" xroad_cs_ha_node_name)
+openbao_nodes=0
 for node in $nodes; do
   expected_name=$(inventory_value "$node" xroad_cs_ha_node_name)
-  stop_expected=$(inventory_value "$node" xroad_cs_openbao_db_stop_expected)
 
   if host_state_is "$node" RUNNING; then
     local_postgres=$(host_exec "$node" bash -c 'if pgrep -x postgres >/dev/null || ss -ltn "sport = :5432" | grep -q LISTEN; then echo present; else echo absent; fi' 2>/dev/null)
@@ -391,12 +532,8 @@ for node in $nodes; do
     *) fail "cannot tell whether $node runs a local PostgreSQL: the node is stopped or unreachable" ;;
   esac
 
-  if [[ "$stop_expected" == "True" || "$stop_expected" == "true" ]]; then
-    configured_host=$(host_exec "$node" bash -c "debconf-show xroad-center | sed -n 's/^\* xroad-common\/database-host: //p'" 2>&1)
-  else
-    url=$(host_exec "$node" crudini --get /etc/xroad/db.properties '' spring.datasource.url 2>&1)
-    configured_host=$(sed -n 's#^jdbc:postgresql://\([^/]*\)/centerui_production.*#\1#p' <<<"$url")
-  fi
+  url=$(host_exec "$node" crudini --get /etc/xroad/db.properties '' spring.datasource.url 2>&1)
+  configured_host=$(sed -n 's#^jdbc:postgresql://\([^/]*\)/centerui_production.*#\1#p' <<<"$url")
   if [[ "$configured_host" == "$db_host" ]]; then
     pass "$node database host is the write address $db_host"
   else
@@ -411,27 +548,26 @@ for node in $nodes; do
     fail "$node node.ini carries HA node name '$configured_name', expected '$expected_name'"
   fi
 
-  if [[ "$stop_expected" == "True" || "$stop_expected" == "true" ]]; then
-    if host_exec "$node" bash -c '! systemctl is-active --quiet xroad-center && ! dpkg-query -W -f="\${db:Status-Abbrev}" xroad-secret-store-local | grep -q "^ii"'; then
-      pass "$node stopped at OpenBao database creation as expected"
-    else
-      fail "$node is expected to stop at OpenBao database creation but its Central Server is installed or running"
-    fi
+  deadline=$((SECONDS + CS_WRITE_WAIT))
+  while :; do
+    status=$(admin_api_status "$node")
+    ha_configured=$(jq -r '.high_availability_status.is_ha_configured' <<<"$status" 2>/dev/null)
+    node_name=$(jq -r '.high_availability_status.node_name' <<<"$status" 2>/dev/null)
+    [[ "$ha_configured" == "true" && "$node_name" == "$expected_name" ]] && break
+    ((SECONDS >= deadline)) && break
+    sleep 5
+  done
+  if [[ "$ha_configured" == "true" && "$node_name" == "$expected_name" ]]; then
+    pass "$node admin API reports HA node name $node_name"
   else
-    deadline=$((SECONDS + CS_WRITE_WAIT))
-    while :; do
-      status=$(admin_api_status "$node")
-      ha_configured=$(jq -r '.high_availability_status.is_ha_configured' <<<"$status" 2>/dev/null)
-      node_name=$(jq -r '.high_availability_status.node_name' <<<"$status" 2>/dev/null)
-      [[ "$ha_configured" == "true" && "$node_name" == "$expected_name" ]] && break
-      ((SECONDS >= deadline)) && break
-      sleep 5
-    done
-    if [[ "$ha_configured" == "true" && "$node_name" == "$expected_name" ]]; then
-      pass "$node admin API reports HA node name $node_name"
-    else
-      fail "$node admin API reports is_ha_configured=$ha_configured node_name=$node_name, expected node_name=$expected_name"
-    fi
+    fail "$node admin API reports is_ha_configured=$ha_configured node_name=$node_name, expected node_name=$expected_name"
+  fi
+
+  if host_state_is "$node" RUNNING && host_exec "$node" systemctl is-active --quiet openbao; then
+    check_openbao_node "$node" "$expected_name" "$first_name"
+    openbao_nodes=$((openbao_nodes + 1))
+  else
+    echo "INFO: skipping the OpenBao cluster checks on $node: its OpenBao is not running"
   fi
 
   if host_state_is "$node" RUNNING && host_exec "$node" systemctl is-active --quiet xroad-center; then
@@ -453,10 +589,23 @@ for node in $nodes; do
     done
     check_tls_name_rows "$node" "$expected_name"
     check_tls_certificate_names "$node"
+    if ! host_exec "$node" systemctl is-active --quiet xroad-signer; then
+      echo "INFO: skipping the software token check on $node: its signer is not running"
+    elif ! software_token_initialized "$node"; then
+      echo "INFO: skipping the software token check on $node: its software token is not initialised"
+    else
+      check_token_login "$node"
+    fi
   else
     echo "INFO: skipping the OpenBao and TLS name checks on $node: its admin service is not running"
   fi
 done
+
+if [[ $openbao_nodes -gt 0 ]]; then
+  check_hashes "$ROOT_TOKEN_HASHES" "root token" "$openbao_nodes" equal
+  check_hashes "$UNSEAL_KEYS_HASHES" "unseal keys" "$openbao_nodes" equal
+  check_hashes "$CLIENT_TOKEN_HASHES" "client token" "$openbao_nodes" different
+fi
 
 proof_description=""
 proof_output=""

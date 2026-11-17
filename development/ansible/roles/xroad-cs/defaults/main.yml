@@ -28,9 +28,11 @@ xroad_cs_cluster_dns_san: "{{ ',DNS:' + xroad_cs_cluster_name if xroad_cs_cluste
 # Central Server install play in xroad_cs_cluster.yml).
 xroad_cs_admin_password: secret123!
 
-# True on a node whose package install is expected to stop at OpenBao database creation
-# (a second node on a shared database). The stop is reported and the rest of the set-up is skipped.
-xroad_cs_openbao_db_stop_expected: false
+# Inventory host names of the Central Server nodes that share one OpenBao cluster; the first one
+# creates it. Fewer than two names leave OpenBao standalone.
+xroad_cs_openbao_cluster_nodes: []
+# Temporary join bundle archive; kept on tmpfs and removed after each use.
+xroad_cs_openbao_bundle_archive: /run/xroad-openbao-join.tar
 
 # DNS name for the Issuer Service TLS certificate. When set, a key is generated through
 # the admin API and a certificate signed by a throwaway CA is uploaded, unless one exists.

@@ -9,5 +9,7 @@
     tasks_from: postgres_remote_dev.yml
   when: enable_postgres_remote_access | default(false) | bool
 
+- include_tasks: openbao-cluster-member.yml
+  when: xroad_cs_openbao_cluster_nodes | length > 1 and inventory_hostname == xroad_cs_openbao_cluster_nodes | first
+
 - include_tasks: post-cs-install.yml
-  when: not (xroad_cs_install_stopped | default(false))
