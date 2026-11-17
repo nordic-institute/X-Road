@@ -259,6 +259,22 @@ class OpMonitorIniMigrationTest {
                 DNS_SAN_KEY, LOCAL_NAME));
     }
 
+    @Test
+    void iniToDbWritesNothingForCountryOverrideFileAndMigratesLocalIni() throws IOException {
+        var override = write("override-securityserver-fi.ini", "[signer]\nkey-length=3072\n");
+        var local = write("local.ini", "[proxy]\nclient-timeout=1\n");
+
+        assertThat(migrateToDb(override)).isEmpty();
+        assertThat(migrateToDb(local)).isEqualTo(Map.of("xroad.proxy.client-proxy.client-timeout", "1"));
+    }
+
+    @Test
+    void iniToDbMigratesOverrideFileThatOnlyResemblesTheCountryPattern() throws IOException {
+        var override = write("override-docker.ini", "[proxy]\nclient-timeout=2\n");
+
+        assertThat(migrateToDb(override)).isEqualTo(Map.of("xroad.proxy.client-proxy.client-timeout", "2"));
+    }
+
     private static Map<String, String> migrateToDb(Path file) {
         var migrator = new IniToDbMigrator(new IniUtil(new OpMonitorHostRuleTest.FakeResolver())) {
             @Override
@@ -274,7 +290,7 @@ class OpMonitorIniMigrationTest {
                     .flatMap(repo -> Mockito.mockingDetails(repo).getInvocations().stream())
                     .toList();
             assertThat(invocations.stream().map(invocation -> invocation.getMethod().getName()).toList())
-                    .containsOnly("saveProperty", "close");
+                    .isSubsetOf("saveProperty", "close");
             return invocations.stream()
                     .filter(invocation -> invocation.getMethod().getName().equals("saveProperty"))
                     .collect(Collectors.toMap(

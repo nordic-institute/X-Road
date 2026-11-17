@@ -28,11 +28,16 @@
 package org.niis.xroad.configuration.migration;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.migration.utils.InstallationType;
 
+import java.nio.file.Paths;
 import java.util.Map;
 
 @Slf4j
 public class IniToDbMigrator extends BasePropertiesToDbMigrator {
+
+    private static final String COUNTRY_OVERRIDE_PREFIX = "override-securityserver-";
+    private static final String INI_SUFFIX = ".ini";
 
     private final IniUtil iniUtil;
 
@@ -42,6 +47,20 @@ public class IniToDbMigrator extends BasePropertiesToDbMigrator {
 
     IniToDbMigrator(IniUtil iniUtil) {
         this.iniUtil = iniUtil;
+    }
+
+    @Override
+    public void migrate(String filePath, String dbPropertiesPath, InstallationType installationType) {
+        if (isCountryOverride(filePath)) {
+            log.info("Skipping country package settings file [{}]: country values come from the country profile", filePath);
+            return;
+        }
+        super.migrate(filePath, dbPropertiesPath, installationType);
+    }
+
+    private static boolean isCountryOverride(String filePath) {
+        var name = Paths.get(filePath).getFileName().toString();
+        return name.startsWith(COUNTRY_OVERRIDE_PREFIX) && name.endsWith(INI_SUFFIX);
     }
 
     @Override

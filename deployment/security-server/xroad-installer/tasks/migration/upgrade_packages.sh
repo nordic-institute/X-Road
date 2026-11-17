@@ -12,11 +12,13 @@ XROAD_SS_PACKAGE="${XROAD_SS_PACKAGE:-xroad-securityserver}"
 XROAD_MIGRATION_UNATTENDED="${XROAD_MIGRATION_UNATTENDED:-}"
 
 STATE_FILE="/var/lib/xroad-upgrade/op-monitor.state"
+COUNTRY_STATE_FILE="/var/lib/xroad-upgrade/country-package.state"
 
 OPMONITOR_PACKAGE="xroad-opmonitor"
 
 PACKAGES=("$XROAD_SS_PACKAGE")
 UPGRADE_OPMONITOR=false
+COUNTRY_PACKAGE=""
 
 # Names $OPMONITOR_PACKAGE in the install command only when the 7.8 package was installed.
 select_packages() {
@@ -33,6 +35,24 @@ select_packages() {
       ;;
     absent) ;;
     *) log_die "Invalid daemon_pkg value '$daemon_pkg' in $STATE_FILE (expected installed or absent)" ;;
+  esac
+}
+
+# Names the country package in the install command only when it was installed in 7.8.
+select_country_package() {
+  if [[ ! -f "$COUNTRY_STATE_FILE" ]]; then
+    log_die "Country package state not found at $COUNTRY_STATE_FILE. Run capture_country_package.sh first."
+  fi
+
+  local country_pkg
+  country_pkg=$(sed -n 's/^country_pkg=//p' "$COUNTRY_STATE_FILE")
+  case "$country_pkg" in
+    none) ;;
+    xroad-securityserver-ee|xroad-securityserver-fi|xroad-securityserver-is|xroad-securityserver-fo)
+      COUNTRY_PACKAGE="$country_pkg"
+      PACKAGES+=("$COUNTRY_PACKAGE")
+      ;;
+    *) log_die "Invalid country_pkg value '$country_pkg' in $COUNTRY_STATE_FILE (expected none or a xroad-securityserver-<cc> package)" ;;
   esac
 }
 
@@ -66,6 +86,10 @@ upgrade_packages_ubuntu() {
   if [[ "$UPGRADE_OPMONITOR" == "true" ]]; then
     opmonitor_pre_version=$(dpkg-query -W -f='${Version}' "$OPMONITOR_PACKAGE" 2>/dev/null || echo "")
   fi
+  local country_pre_version=""
+  if [[ -n "$COUNTRY_PACKAGE" ]]; then
+    country_pre_version=$(dpkg-query -W -f='${Version}' "$COUNTRY_PACKAGE" 2>/dev/null || echo "")
+  fi
 
   log_message "Upgrading ${PACKAGES[*]}..."
   log_message "  Running: DEBIAN_FRONTEND=noninteractive apt-get install -y ${PACKAGES[*]}"
@@ -80,6 +104,11 @@ upgrade_packages_ubuntu() {
     local opmonitor_post_version
     opmonitor_post_version=$(dpkg-query -W -f='${Version}' "$OPMONITOR_PACKAGE" 2>/dev/null || echo "")
     verify_upgraded_to_v8 "$opmonitor_pre_version" "$opmonitor_post_version" "$OPMONITOR_PACKAGE"
+  fi
+  if [[ -n "$COUNTRY_PACKAGE" ]]; then
+    local country_post_version
+    country_post_version=$(dpkg-query -W -f='${Version}' "$COUNTRY_PACKAGE" 2>/dev/null || echo "")
+    verify_upgraded_to_v8 "$country_pre_version" "$country_post_version" "$COUNTRY_PACKAGE"
   fi
   log_message ""
 }
@@ -96,6 +125,10 @@ upgrade_packages_rhel() {
   if [[ "$UPGRADE_OPMONITOR" == "true" ]]; then
     opmonitor_pre_version=$(rpm -q --queryformat '%{VERSION}' "$OPMONITOR_PACKAGE" 2>/dev/null || echo "")
   fi
+  local country_pre_version=""
+  if [[ -n "$COUNTRY_PACKAGE" ]]; then
+    country_pre_version=$(rpm -q --queryformat '%{VERSION}' "$COUNTRY_PACKAGE" 2>/dev/null || echo "")
+  fi
 
   log_message "Upgrading ${PACKAGES[*]}..."
   log_message "  Running: yum update -y ${PACKAGES[*]}"
@@ -111,6 +144,11 @@ upgrade_packages_rhel() {
     opmonitor_post_version=$(rpm -q --queryformat '%{VERSION}' "$OPMONITOR_PACKAGE" 2>/dev/null || echo "")
     verify_upgraded_to_v8 "$opmonitor_pre_version" "$opmonitor_post_version" "$OPMONITOR_PACKAGE"
   fi
+  if [[ -n "$COUNTRY_PACKAGE" ]]; then
+    local country_post_version
+    country_post_version=$(rpm -q --queryformat '%{VERSION}' "$COUNTRY_PACKAGE" 2>/dev/null || echo "")
+    verify_upgraded_to_v8 "$country_pre_version" "$country_post_version" "$COUNTRY_PACKAGE"
+  fi
   log_message ""
 }
 
@@ -123,6 +161,7 @@ main() {
   require_root
 
   select_packages
+  select_country_package
 
   mask_xroad_units
 
