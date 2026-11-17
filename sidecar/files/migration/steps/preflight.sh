@@ -42,20 +42,25 @@ migration_preflight_check_target_config_empty() {
   return 1
 }
 
-# The target variant comes from the image's packaged configuration: only a
-# Docker named volume is seeded with it, a bind mount or PVC starts empty.
-migration_preflight_detect_variant() {
+# The 7.8 source country is the suffix of its override-securityserver-<country>.ini.
+migration_preflight_detect_source_variant() {
   local f
-  f="$(compgen -G "$1/conf.d/override-securityserver-*.ini" | head -1)"
+  f="$(compgen -G "$SOURCE_CONFIG_DIR/conf.d/override-securityserver-*.ini" | head -1)"
   [[ -n "$f" ]] || return 1
   f="${f##*/override-securityserver-}"
   echo "${f%.ini}"
 }
 
+# The target country is the one the image bakes into XROAD_COUNTRY_PROFILE.
+migration_preflight_detect_target_variant() {
+  [[ -n "${XROAD_COUNTRY_PROFILE:-}" ]] || return 1
+  echo "$XROAD_COUNTRY_PROFILE" | tr '[:upper:]' '[:lower:]'
+}
+
 migration_preflight_check_country_variant() {
   local source_variant target_variant
-  source_variant="$(migration_preflight_detect_variant "$SOURCE_CONFIG_DIR")" || source_variant=""
-  target_variant="$(migration_preflight_detect_variant "$PACKAGED_CONFIG_DIR")" || target_variant=""
+  source_variant="$(migration_preflight_detect_source_variant)" || source_variant=""
+  target_variant="$(migration_preflight_detect_target_variant)" || target_variant=""
 
   if [[ "$source_variant" != "$target_variant" ]]; then
     STEP_REASON="country variant mismatch: the source is ${source_variant:-the regular (non-variant) image} and the target is ${target_variant:-the regular (non-variant) image}"
