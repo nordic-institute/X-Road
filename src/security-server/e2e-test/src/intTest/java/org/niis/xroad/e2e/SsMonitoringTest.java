@@ -41,6 +41,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.opmonitor.core.OperationalDataRecord;
@@ -74,6 +75,7 @@ import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.jupiter.api.parallel.ResourceAccessMode.READ;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -94,6 +96,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  */
 @DisplayName("SS monitoring - proxy metrics, operational data and health data")
 @Order(400)
+@ResourceLock(value = "op-monitor-ca", mode = READ)
+@ResourceLock(value = "configurable-property", mode = READ)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
 @SuppressWarnings("checkstyle:magicnumber")

@@ -35,6 +35,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
@@ -51,6 +52,8 @@ import java.util.HexFormat;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.parallel.ResourceAccessMode.READ;
+import static org.junit.jupiter.api.parallel.ResourceAccessMode.READ_WRITE;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.deleteOpMonitorCa;
 import static org.niis.xroad.e2e.AdminApi.downloadExternalRpcCa;
@@ -73,6 +76,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  */
 @DisplayName("SS CA exchange - external RPC CA and op-monitor CA")
 @Order(65)
+@ResourceLock(value = "op-monitor-ca", mode = READ_WRITE)
+@ResourceLock(value = "configurable-property", mode = READ)
 @SuppressWarnings("checkstyle:magicnumber")
 class SsOpMonitorCaTest extends E2eTest {
 
@@ -158,7 +163,7 @@ class SsOpMonitorCaTest extends E2eTest {
     }
 
     @SneakyThrows
-    private static X509Certificate selfSignedCa(String name) {
+    static X509Certificate selfSignedCa(String name) {
         var generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         var keyPair = generator.generateKeyPair();
@@ -173,19 +178,19 @@ class SsOpMonitorCaTest extends E2eTest {
     }
 
     @SneakyThrows
-    private static byte[] pem(X509Certificate certificate) {
+    static byte[] pem(X509Certificate certificate) {
         var body = Base64.getMimeEncoder(64, "\n".getBytes(StandardCharsets.US_ASCII)).encodeToString(certificate.getEncoded());
         return ("-----BEGIN CERTIFICATE-----\n" + body + "\n-----END CERTIFICATE-----\n").getBytes(StandardCharsets.US_ASCII);
     }
 
     @SneakyThrows
-    private static X509Certificate parseCertificate(String pem) {
+    static X509Certificate parseCertificate(String pem) {
         return (X509Certificate) CertificateFactory.getInstance("X.509")
                 .generateCertificate(new ByteArrayInputStream(pem.getBytes(StandardCharsets.US_ASCII)));
     }
 
     @SneakyThrows
-    private static String sha256Hex(X509Certificate certificate) {
+    static String sha256Hex(X509Certificate certificate) {
         return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(certificate.getEncoded()));
     }
 }
