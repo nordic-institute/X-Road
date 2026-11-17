@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.test-fixtures-conventions")
 }
 
 dependencies {
@@ -44,6 +45,8 @@ dependencies {
   testImplementation(libs.hibernate.hikaricp)
   testImplementation(libs.testcontainers.core)
   testImplementation(libs.testcontainers.postgresql)
+
+  testFixturesImplementation(libs.liquibase.core)
 }
 
 sourceSets {

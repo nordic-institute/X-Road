@@ -36,6 +36,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.cs.admin.core.dataspace.IssuerSchemaTestSupport;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
@@ -59,7 +60,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class IssuerServiceKeypairGrantMigrationPostgresTest {
 
     private static final String CENTERUI_CHANGELOG = "liquibase/centerui-changelog.xml";
-    private static final String ISSUER_CHANGELOG = "liquibase/ds-issuer-service-changelog.xml";
     private static final String FEATURE_CHANGESET = "202611161430-ds-issuer-service-keypair-grant";
     private static final String DATABASE = "issuer_keypair_grant_migration";
     private static final String CENTERUI_SCHEMA = "centerui";
@@ -104,7 +104,8 @@ class IssuerServiceKeypairGrantMigrationPostgresTest {
         assertThat(appliedCenteruiChangeSets()).contains(FEATURE_CHANGESET);
         assertThat(hasReaderGrant()).isFalse();
 
-        applyIssuerServiceChangelog();
+        IssuerSchemaTestSupport.applyIssuerServiceChangelog(issuerSchemaUrl(), SharedPostgres.CONTAINER.getUsername(),
+                SharedPostgres.CONTAINER.getPassword(), ISSUER_SCHEMA);
         grantReaderAccessTheWayTheInstallScriptDoes();
         assertThat(hasReaderGrant()).isTrue();
         assertOnlyKeypairResourceIsReadable();
@@ -161,37 +162,18 @@ class IssuerServiceKeypairGrantMigrationPostgresTest {
     }
 
     /**
-     * Creates the Issuer Service schema's tables, {@code keypair_resource} included, the way
+     * Builds the URL the Issuer Service changelog is applied through: its own {@code currentSchema},
+     * matching {@code setup_ds_issuerservice_db.sh}'s own JDBC URL, rather than the shared {@link #url}
+     * whose {@code currentSchema} list starts with {@value #CENTERUI_SCHEMA}. That changelog creates the
+     * Issuer Service schema's tables, {@code keypair_resource} included, the way
      * {@code setup_ds_issuerservice_db.sh} does on a fresh install, or the way an X-Road 7 upgrade creates
      * them the first time the Issuer Service is set up on it: independently of, and in no fixed order
      * relative to, the centerui migration run above.
-     *
-     * <p>Connects with its own {@code currentSchema} URL, matching {@code setup_ds_issuerservice_db.sh}'s
-     * own JDBC URL, rather than the shared {@link #url} whose {@code currentSchema} list starts with
-     * {@value #CENTERUI_SCHEMA}: Liquibase only quotes the {@code defaultSchemaName} it passes to
-     * {@code SET SEARCH_PATH} when the session's current search path does not already match it, and an
-     * unquoted hyphenated schema name is invalid SQL.
      */
-    private static void applyIssuerServiceChangelog() throws Exception {
-        Scope.child(Scope.Attr.resourceAccessor, new ClassLoaderResourceAccessor(), () -> {
-            var update = new CommandScope("update");
-            var changeLogParameters = new ChangeLogParameters();
-            changeLogParameters.set("db_schema", ISSUER_SCHEMA);
-            update.addArgumentValue("changelogFile", ISSUER_CHANGELOG);
-            update.addArgumentValue("url", issuerSchemaUrl());
-            update.addArgumentValue("username", SharedPostgres.CONTAINER.getUsername());
-            update.addArgumentValue("password", SharedPostgres.CONTAINER.getPassword());
-            update.addArgumentValue("defaultSchemaName", ISSUER_SCHEMA);
-            update.addArgumentValue("contexts", "!admin");
-            update.addArgumentValue("changelogParameters", changeLogParameters);
-            update.execute();
-        });
-    }
-
     private static String issuerSchemaUrl() {
         var container = SharedPostgres.CONTAINER;
-        return "jdbc:postgresql://" + container.getHost() + ":" + container.getMappedPort(5432) + "/" + DATABASE
-                + "?currentSchema=" + ISSUER_SCHEMA + ",public";
+        var baseUrl = "jdbc:postgresql://" + container.getHost() + ":" + container.getMappedPort(5432) + "/" + DATABASE;
+        return IssuerSchemaTestSupport.issuerSchemaUrl(baseUrl, ISSUER_SCHEMA);
     }
 
     private static List<String> appliedCenteruiChangeSets() {

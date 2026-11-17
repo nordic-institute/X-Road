@@ -26,10 +26,6 @@
 package org.niis.xroad.cs.admin.core.dataspace;
 
 import jakarta.persistence.EntityManager;
-import liquibase.Scope;
-import liquibase.changelog.ChangeLogParameters;
-import liquibase.command.CommandScope;
-import liquibase.resource.ClassLoaderResourceAccessor;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.junit.jupiter.api.AfterAll;
@@ -83,7 +79,6 @@ import static org.mockito.Mockito.when;
  */
 class IssuerKeyGuardPostgresOpenBaoTest {
 
-    private static final String ISSUER_CHANGELOG = "liquibase/ds-issuer-service-changelog.xml";
     private static final String ISSUER_SCHEMA = "ds-issuer-service";
     private static final String PARTICIPANT = "issuer";
     private static final int SIGNING_STATE = 200;
@@ -111,7 +106,9 @@ class IssuerKeyGuardPostgresOpenBaoTest {
                 "Docker is not available, skipping the Postgres- and OpenBao-backed integration test");
         POSTGRES.start();
         createIssuerSchema();
-        applyIssuerServiceChangelog();
+        IssuerSchemaTestSupport.applyIssuerServiceChangelog(
+                IssuerSchemaTestSupport.issuerSchemaUrl(POSTGRES.getJdbcUrl(), ISSUER_SCHEMA),
+                POSTGRES.getUsername(), POSTGRES.getPassword(), ISSUER_SCHEMA);
         sessionFactory = buildSessionFactory();
 
         OPENBAO.start();
@@ -298,32 +295,5 @@ class IssuerKeyGuardPostgresOpenBaoTest {
              var statement = connection.createStatement()) {
             statement.execute("CREATE SCHEMA IF NOT EXISTS \"" + ISSUER_SCHEMA + "\"");
         }
-    }
-
-    private static void applyIssuerServiceChangelog() throws Exception {
-        Scope.child(Scope.Attr.resourceAccessor, new ClassLoaderResourceAccessor(), () -> {
-            var update = new CommandScope("update");
-            var changeLogParameters = new ChangeLogParameters();
-            changeLogParameters.set("db_schema", ISSUER_SCHEMA);
-            update.addArgumentValue("changelogFile", ISSUER_CHANGELOG);
-            update.addArgumentValue("url", issuerSchemaUrl());
-            update.addArgumentValue("username", POSTGRES.getUsername());
-            update.addArgumentValue("password", POSTGRES.getPassword());
-            update.addArgumentValue("defaultSchemaName", ISSUER_SCHEMA);
-            update.addArgumentValue("contexts", "!admin");
-            update.addArgumentValue("changelogParameters", changeLogParameters);
-            update.execute();
-        });
-    }
-
-    /**
-     * Connects with a {@code currentSchema} matching {@code defaultSchemaName}, the way
-     * {@code setup_ds_issuerservice_db.sh} builds its own JDBC URL: Liquibase only quotes the
-     * {@code defaultSchemaName} it passes to {@code SET SEARCH_PATH} when the session's current search path
-     * does not already match it, and an unquoted hyphenated schema name is invalid SQL.
-     */
-    private static String issuerSchemaUrl() {
-        var baseUrl = POSTGRES.getJdbcUrl();
-        return baseUrl + (baseUrl.contains("?") ? "&" : "?") + "currentSchema=" + ISSUER_SCHEMA + ",public";
     }
 }
