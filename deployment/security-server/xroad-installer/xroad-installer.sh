@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source common functions and logging
 source "$SCRIPT_DIR/lib/common.sh"
+source "$SCRIPT_DIR/lib/port_check.sh"
 # make sure the same log file is used for all logs
 export XROAD_INSTALLER_LOG_FILE
 
@@ -24,8 +25,12 @@ XROAD_SECRET_STORE_TYPE="${XROAD_SECRET_STORE_TYPE:-}"
 XROAD_TLS_HOSTNAME="${XROAD_TLS_HOSTNAME:-}"
 XROAD_TLS_ALT_NAMES="${XROAD_TLS_ALT_NAMES:-}"
 XROAD_PROXY_MEM_SETTING="${XROAD_PROXY_MEM_SETTING:-}"
+XROAD_DID_PORT="${XROAD_DID_PORT:-}"
+XROAD_DSP_PORT="${XROAD_DSP_PORT:-}"
 XROAD_MESSAGELOG_ENABLED="${XROAD_MESSAGELOG_ENABLED:-}"
 XROAD_INSTALLER_CONFIG_FILE="${XROAD_INSTALLER_CONFIG_FILE:-}"
+DEFAULT_DID_PORT=7183
+DEFAULT_DSP_PORT=8183
 
 parse_args() {
   while [[ $# -gt 0 ]]; do
@@ -62,6 +67,11 @@ OPTIONS:
     --skip-requirements-check   Skip system requirements check
     --config-file FILE          Path to a configuration file containing installation settings
     -h, --help                  Show this help message
+
+CONFIGURATION FILE KEYS (also read from the environment) for the dataspace ports:
+    XROAD_DID_PORT              Port for the dataspace identity (DID) documents, 1024-65535 (default: $DEFAULT_DID_PORT)
+    XROAD_DSP_PORT              Port for the Dataspace Protocol (DSP), 1024-65535 (default: $DEFAULT_DSP_PORT)
+                                The two ports must differ. A key that is not set is asked for interactively.
 
 EXAMPLES:
     sudo ./xroad-installer.sh
@@ -275,6 +285,60 @@ select_tls_settings() {
   log_info "TLS Alternative Names: $XROAD_TLS_ALT_NAMES"
 }
 
+# Stops the installer when a DID or DSP port that came from the config file or the environment is invalid.
+# A valid port is stored without leading zeros.
+validate_dsp_port_config() {
+  local normalized
+  if [[ -n "$XROAD_DID_PORT" ]]; then
+    normalized=$(normalize_port "$XROAD_DID_PORT") \
+      || log_die "Invalid DID port '$XROAD_DID_PORT' in XROAD_DID_PORT: expected a number from 1024 to 65535."
+    XROAD_DID_PORT="$normalized"
+  fi
+  if [[ -n "$XROAD_DSP_PORT" ]]; then
+    normalized=$(normalize_port "$XROAD_DSP_PORT") \
+      || log_die "Invalid DSP port '$XROAD_DSP_PORT' in XROAD_DSP_PORT: expected a number from 1024 to 65535."
+    XROAD_DSP_PORT="$normalized"
+  fi
+  if [[ -n "$XROAD_DID_PORT" && -n "$XROAD_DSP_PORT" ]] && ! ports_differ "$XROAD_DID_PORT" "$XROAD_DSP_PORT"; then
+    log_die "The DID port and the DSP port must be different, both are '$XROAD_DID_PORT'."
+  fi
+}
+
+# Asks for one port until the answer is valid and prints it. Cancel or no terminal keeps the default.
+# Arguments: $1 - port name, $2 - default port, $3 - the other port (empty when not known yet)
+ask_port() {
+  local name="$1" default="$2" other="$3"
+  local answer port
+
+  while true; do
+    if ! answer=$(whiptail --inputbox "Enter the $name (1024-65535):" 8 78 "$default" --title "$name" 3>&1 1>&2 2>&3); then
+      log_info "No answer for the $name, using the default $default"
+      printf '%s\n' "$default"
+      return
+    fi
+    if port=$(normalize_port "$answer") && { [[ -z "$other" ]] || ports_differ "$port" "$other"; }; then
+      printf '%s\n' "$port"
+      return
+    fi
+    whiptail --msgbox "'$answer' is not valid. Enter a number from 1024 to 65535 that differs from the other port." 8 78 --title "Invalid $name" >&2
+  done
+}
+
+# Function to collect the DID port and the DSP port
+select_dsp_ports() {
+  if [[ -z "$XROAD_DID_PORT" ]]; then
+    XROAD_DID_PORT=$(ask_port "DID port" "$DEFAULT_DID_PORT" "$XROAD_DSP_PORT")
+  fi
+  if [[ -z "$XROAD_DSP_PORT" ]]; then
+    XROAD_DSP_PORT=$(ask_port "DSP port" "$DEFAULT_DSP_PORT" "$XROAD_DID_PORT")
+  fi
+  ports_differ "$XROAD_DID_PORT" "$XROAD_DSP_PORT" \
+    || log_die "The DID port and the DSP port must be different, both are '$XROAD_DID_PORT'."
+
+  log_info "DID port: $XROAD_DID_PORT"
+  log_info "DSP port: $XROAD_DSP_PORT"
+}
+
 # Function to select X-Road package interactively
 select_ss_package() {
   if [[ -n "$XROAD_SS_PACKAGE" ]]; then
@@ -402,6 +466,8 @@ main() {
     fi
   fi
 
+  validate_dsp_port_config
+
   log_message "========================================"
   log_message "  X-Road Security Server Installer"
   log_message "========================================"
@@ -509,6 +575,22 @@ main() {
     fi
   else
     log_die "configure_tls.sh not found"
+  fi
+  log_message ""
+
+  # Step: Collect DID and DSP ports
+  select_dsp_ports
+  log_message ""
+
+  # Step: Preseed DID and DSP ports (Debian family; the packages store the rows)
+  if [[ -f "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" ]]; then
+    if ! XROAD_DID_PORT="$XROAD_DID_PORT" \
+       XROAD_DSP_PORT="$XROAD_DSP_PORT" \
+       bash "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" preseed; then
+      log_die "DID and DSP port configuration failed"
+    fi
+  else
+    log_die "configure_dsp_ports.sh not found"
   fi
   log_message ""
 

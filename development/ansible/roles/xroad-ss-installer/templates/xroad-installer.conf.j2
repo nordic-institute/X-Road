@@ -7,6 +7,8 @@ XROAD_TLS_HOSTNAME={{ xroad_tls_hostname | quote }}
 XROAD_TLS_ALT_NAMES={{ xroad_tls_alt_names | quote }}
 XROAD_SS_PACKAGE={{ xroad_ss_package | quote }}
 XROAD_PROXY_MEM_SETTING={{ xroad_proxy_mem_setting | quote }}
+XROAD_DID_PORT={{ xroad_did_port | default(7183) | quote }}
+XROAD_DSP_PORT={{ xroad_dsp_port | default(8183) | quote }}
 XROAD_MESSAGELOG_ENABLED={{ xroad_messagelog_enabled | default(true) | string | lower }}
 {% if xroad_repo_url_override %}
 XROAD_REPO_URL_OVERRIDE={{ xroad_repo_url_override | quote }}

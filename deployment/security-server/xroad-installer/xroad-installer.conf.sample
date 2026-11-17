@@ -39,6 +39,17 @@ XROAD_SECRET_STORE_TYPE=local
 # Format: IP:1.2.3.4,DNS:ss.example.com
 #XROAD_TLS_ALT_NAMES=IP:127.0.0.1,DNS:localhost
 
+# 4a. DID and DSP Ports
+# DID port: the port that serves the dataspace identity (DID) documents.
+# A number from 1024 to 65535, different from the DSP port. Defaults to 7183.
+# Asked interactively when not set. Applied at first install only.
+#XROAD_DID_PORT=7183
+
+# DSP port: the port that serves the Dataspace Protocol (DSP).
+# A number from 1024 to 65535, different from the DID port. Defaults to 8183.
+# Asked interactively when not set. Applied at first install only.
+#XROAD_DSP_PORT=8183
+
 # 5. Package Configuration
 # X-Road package to install. Options include:
 # xroad-securityserver-ee (Estonia)
