@@ -15,8 +15,9 @@ Components) SQL stores. Each has a `<name>/000-baseline.xml` with one changeset 
 - The baselines need an empty schema. A dev or test database that EDC filled earlier fails with
   `relation already exists`: recreate it.
 - Schema: on a native install it has the name of the changelog by default. For the Issuer Service it is in the
-  Central Server database (URL parameter `currentSchema=ds-issuer-service,public`). On Helm and Compose it is
-  `public`.
+  Central Server database (URL parameter `currentSchema=ds-issuer-service,public`). On Helm it is `public`. On
+  Compose it is the runtime role name (for example `ds_control_plane`), except for the Issuer Service, which stays
+  on `public`.
 
 ## Upgrading EDC
 

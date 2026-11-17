@@ -65,7 +65,7 @@ fi
 
 { cat <<EOF
 CREATE SCHEMA IF NOT EXISTS "$db_schema";
-CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS hstore SCHEMA public;
 EOF
 } | psql_adminuser || abort "Restoring database failed. Could not create schema."
 
