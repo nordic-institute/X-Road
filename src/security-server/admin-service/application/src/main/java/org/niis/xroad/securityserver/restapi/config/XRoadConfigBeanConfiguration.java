@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.config;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
+import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
@@ -37,6 +38,7 @@ import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
+import org.niis.xroad.restapi.service.ConfigurablePropertySource.CountryProfile;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,10 +64,21 @@ public class XRoadConfigBeanConfiguration {
     }
 
     @Bean
-    XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName, Environment environment,
-                            XRoadConfigOverrides overrides) {
-        var deploymentMode = environment.matchesProfiles("containerized")
+    DeploymentMode deploymentMode(Environment environment) {
+        return environment.matchesProfiles("containerized")
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    @Bean
+    CountryProfile countryProfile() {
+        return CountryProfileLoader.resolve(System.getenv())
+                .map(profile -> new CountryProfile(profile.code(), profile.values()))
+                .orElse(CountryProfile.NONE);
+    }
+
+    @Bean
+    XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName, DeploymentMode deploymentMode,
+                            XRoadConfigOverrides overrides) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(AdminServiceConfigKeys.instance())

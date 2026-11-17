@@ -33,11 +33,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
+import org.niis.xroad.restapi.service.ConfigurablePropertySource.CountryProfile;
 
 import java.util.List;
 import java.util.Map;
@@ -65,7 +67,8 @@ class CountryProfileKeysTest {
     @BeforeEach
     void setup() {
         when(repository.findAll()).thenReturn(List.of());
-        var service = new ConfigurablePropertiesService(auditDataHelper, repository, new SsConfigurablePropertySource());
+        var service = new ConfigurablePropertiesService(auditDataHelper, repository,
+                new SsConfigurablePropertySource(DeploymentMode.NATIVE, CountryProfile.NONE));
         catalogueKeys = service.getConfigurationProperties().stream()
                 .map(ConfigurablePropertyDto::getPropertyName)
                 .collect(Collectors.toSet());
@@ -85,7 +88,8 @@ class CountryProfileKeysTest {
     void everyProfileValueIsAcceptedByItsKeyConverterAndValidator(String profile) {
         var values = CountryProfileLoader.resolve(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profile))
                 .orElseThrow().values();
-        var keys = new SsConfigurablePropertySource().getConfigKeyProviders().stream()
+        var keys = new SsConfigurablePropertySource(DeploymentMode.NATIVE, CountryProfile.NONE)
+                .getConfigKeyProviders().stream()
                 .flatMap(provider -> provider.keys().stream())
                 .collect(Collectors.toMap(ConfigKey::key, key -> key, (first, _) -> first));
 

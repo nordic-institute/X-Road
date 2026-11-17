@@ -80,7 +80,7 @@ const { values, meta, resetForm, defineField } = useForm({
     propertyValue: 'required|max:4096',
   },
   initialValues: {
-    propertyValue: props.property.effective_value ?? props.property.current_value ?? props.property.default_value ?? '',
+    propertyValue: props.property.effective_value ?? '',
   },
 });
 

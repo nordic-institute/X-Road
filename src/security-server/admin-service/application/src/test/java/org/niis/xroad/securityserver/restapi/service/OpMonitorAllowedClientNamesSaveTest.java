@@ -33,9 +33,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
+import org.niis.xroad.restapi.service.ConfigurablePropertySource.CountryProfile;
 
 import java.util.Optional;
 
@@ -61,7 +63,8 @@ class OpMonitorAllowedClientNamesSaveTest {
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(auditDataHelper, repository, new SsConfigurablePropertySource());
+        service = new ConfigurablePropertiesService(auditDataHelper, repository,
+                new SsConfigurablePropertySource(DeploymentMode.NATIVE, CountryProfile.NONE));
     }
 
     @ParameterizedTest

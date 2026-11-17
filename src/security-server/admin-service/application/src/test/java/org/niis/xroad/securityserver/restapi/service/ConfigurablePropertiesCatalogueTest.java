@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
@@ -38,6 +39,7 @@ import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
+import org.niis.xroad.restapi.service.ConfigurablePropertySource.CountryProfile;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,7 +55,8 @@ import static org.mockito.Mockito.when;
  * Guards the cross-module part of the system-parameters catalogue: the signer, environmental
  * monitoring, message log archiver and message log encryption keys reach the Security Server
  * catalogue from their own modules, with the scope names the {@code configuration_properties}
- * table and the UI expect.
+ * table and the UI expect. Also covers the effective value and source reported for the active country
+ * profile, its exclusions and the deployment mode.
  */
 @ExtendWith(MockitoExtension.class)
 class ConfigurablePropertiesCatalogueTest {
@@ -133,7 +136,8 @@ class ConfigurablePropertiesCatalogueTest {
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(auditDataHelper, repository, new SsConfigurablePropertySource());
+        service = new ConfigurablePropertiesService(auditDataHelper, repository,
+                new SsConfigurablePropertySource(DeploymentMode.NATIVE, CountryProfile.NONE));
         when(repository.findAll()).thenReturn(List.of());
     }
 
@@ -141,7 +145,7 @@ class ConfigurablePropertiesCatalogueTest {
     void catalogueIncludesCrossModuleKeysWithExpectedScopeAndDefault() {
         var actual = service.getConfigurationProperties().stream()
                 .collect(Collectors.toMap(ConfigurablePropertyDto::getPropertyName, dto -> dto,
-                        (first, second) -> first));
+                        (first, _) -> first));
 
         assertThat(expectedCrossModuleProperties())
                 .allSatisfy((key, expected) -> {
@@ -271,10 +275,48 @@ class ConfigurablePropertiesCatalogueTest {
         assertThat(dto.getCountryProfile()).isNull();
     }
 
+    @Test
+    void excludedProfileKeyReportsDefaultSource() {
+        var dto = propertiesWith(DeploymentMode.NATIVE, Map.of(
+                CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI",
+                CountryProfileLoader.EXCLUDE_ENV_VARIABLE, "xroad.signer.key-length"))
+                .get("xroad.signer.key-length");
+
+        assertThat(dto.getEffectiveValue()).isEqualTo("2048");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
+        assertThat(dto.getCountryProfile()).isNull();
+    }
+
+    @Test
+    void containerizedModeReportsContainerDefaultForKeyThatDeclaresOne() {
+        var dto = propertiesWith(DeploymentMode.CONTAINERIZED, Map.of())
+                .get("xroad.proxy-ui-api.authentication-provider");
+
+        assertThat(dto.getEffectiveValue()).isEqualTo("DATABASE");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
+        assertThat(dto.getDefaultValue()).isEqualTo("PAM");
+    }
+
+    @Test
+    void nativeModeReportsNativeDefaultForKeyThatDeclaresContainerDefault() {
+        var dto = propertiesWith(DeploymentMode.NATIVE, Map.of())
+                .get("xroad.proxy-ui-api.authentication-provider");
+
+        assertThat(dto.getEffectiveValue()).isEqualTo("PAM");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
+    }
+
     private Map<String, ConfigurablePropertyDto> propertiesWithProfile(String profileName) {
-        var profileService = new ConfigurablePropertiesService(
-                auditDataHelper, repository, new SsConfigurablePropertySource(
-                Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profileName)));
+        return propertiesWith(DeploymentMode.NATIVE,
+                Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profileName));
+    }
+
+    private Map<String, ConfigurablePropertyDto> propertiesWith(DeploymentMode mode, Map<String, String> env) {
+        var countryProfile = CountryProfileLoader.resolve(env)
+                .map(profile -> new CountryProfile(profile.code(), profile.values()))
+                .orElse(CountryProfile.NONE);
+        var profileService = new ConfigurablePropertiesService(auditDataHelper, repository,
+                new SsConfigurablePropertySource(mode, countryProfile));
         return profileService.getConfigurationProperties().stream()
                 .collect(Collectors.toMap(ConfigurablePropertyDto::getPropertyName, dto -> dto,
                         (first, _) -> first));

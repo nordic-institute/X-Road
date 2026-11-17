@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,14 @@ public interface ConfigurablePropertySource {
      */
     default CountryProfile countryProfile() {
         return CountryProfile.NONE;
+    }
+
+    /**
+     * @return the deployment mode the product runs under, which selects the default shown for a key that
+     *         declares a container default; {@link DeploymentMode#NATIVE} unless the product says otherwise
+     */
+    default DeploymentMode deploymentMode() {
+        return DeploymentMode.NATIVE;
     }
 
     /**

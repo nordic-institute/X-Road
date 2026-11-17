@@ -755,7 +755,7 @@ components:
         - DECIPHER_ONLY
     ConfigurablePropertyDto:
       type: object
-      description: A single configurable property, including metadata for UI rendering and current value.
+      description: A single configurable property, including metadata for UI rendering, the value stored in the database and the value in effect.
       properties:
         property_name:
           type: string
@@ -767,7 +767,7 @@ components:
         current_value:
           type: string
           format: text
-          description: textual representation of property's current value
+          description: textual representation of the value stored in the database for this property, absent when none is stored
           minLength: 1
           maxLength: 4096
         default_value:

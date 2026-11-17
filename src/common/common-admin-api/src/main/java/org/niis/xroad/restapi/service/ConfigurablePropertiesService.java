@@ -30,15 +30,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.properties.config.Category;
-import org.niis.xroad.common.properties.config.ConfigCatalogue;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
-import org.niis.xroad.restapi.service.ConfigurablePropertySource.CountryProfile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +46,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_PROPERTY_VALUE;
@@ -76,33 +76,29 @@ public class ConfigurablePropertiesService {
     /**
      * Returns every configurable system parameter the registry declares as exposed, combined with the
      * currently stored configuration values. Each parameter carries its effective value and the layer that
-     * supplies it: a stored value, otherwise the country profile value, otherwise the declared default.
+     * supplies it: a stored value, otherwise the country profile value, otherwise the default of the
+     * deployment mode.
      *
      * @return set of configurable properties with their metadata and current values
      */
     public Set<ConfigurablePropertyDto> getConfigurationProperties() {
-        var currentPropertiesValues = repository.findAll();
-        var countryProfile = configurablePropertySource.countryProfile();
-        return getAllPropertyDefinitions()
-                .stream()
-                .map(param -> toConfigurablePropertyDto(param, currentPropertiesValues, countryProfile))
+        var storedValues = repository.findAll();
+        return exposedKeys()
+                .map(key -> toConfigurablePropertyDto(key, storedValues))
                 .collect(Collectors.toSet());
     }
 
     /**
      * Returns the effective value of a single configurable property: the stored override if one
-     * exists, otherwise the country profile value, otherwise the registry's declared default.
+     * exists, otherwise the country profile value, otherwise the default of the deployment mode.
      *
      * @param propertyKey unique key of the configurable property
      * @return the effective value, or empty if the property is not defined/exposed in this catalogue
      */
     public Optional<String> getEffectiveValue(String propertyKey) {
         return findExposedKey(propertyKey)
-                .map(key -> repository.findByPropertyKey(propertyKey)
-                        .map(ConfigurationPropertyEntity::getPropertyValue)
-                        .orElseGet(() -> getIfNull(
-                                configurablePropertySource.countryProfile().values().get(propertyKey),
-                                key.defaultValue())));
+                .map(key -> resolve(key, repository.findByPropertyKey(propertyKey)
+                        .map(ConfigurationPropertyEntity::getPropertyValue)).value());
     }
 
     /**
@@ -135,49 +131,58 @@ public class ConfigurablePropertiesService {
         repository.save(entity);
     }
 
-    /** @return the exposed keys of {@link #configurablePropertySource}, flattened to name/default/target scope */
-    private List<PropertyDefinition> getAllPropertyDefinitions() {
-        return ConfigCatalogue.exposed(getConfigKeyProviders()).stream()
-                .map(entry -> new PropertyDefinition(
-                        entry.key(), entry.defaultValue(), categoryToScope(entry.category())))
-                .toList();
-    }
-
-    private ConfigurablePropertyDto toConfigurablePropertyDto(PropertyDefinition parameter,
-                                                              List<ConfigurationPropertyEntity> storedValues,
-                                                              CountryProfile countryProfile) {
-        var systemPropertyDto = new ConfigurablePropertyDto();
-        systemPropertyDto.setPropertyName(parameter.propertyName());
-        systemPropertyDto.setDefaultValue(parameter.defaultValue());
-        systemPropertyDto.setScope(parameter.scope());
+    private ConfigurablePropertyDto toConfigurablePropertyDto(ConfigKey<?> key,
+                                                              List<ConfigurationPropertyEntity> storedValues) {
         var storedValue = storedValues.stream()
-                .filter(v -> v.getHaNodeName() == null && v.getPropertyKey().equals(parameter.propertyName()))
+                .filter(v -> v.getHaNodeName() == null && v.getPropertyKey().equals(key.key()))
                 .map(ConfigurationPropertyEntity::getPropertyValue)
                 .findFirst();
-        var profileValue = countryProfile.values().get(parameter.propertyName());
+        var resolved = resolve(key, storedValue);
+        var dto = new ConfigurablePropertyDto();
+        dto.setPropertyName(key.key());
+        dto.setDefaultValue(key.defaultValue());
+        dto.setScope(categoryToScope(key.category()));
+        dto.setCurrentValue(storedValue.orElse(null));
+        dto.setEffectiveValue(resolved.value());
+        dto.setValueSource(resolved.source());
+        dto.setCountryProfile(resolved.countryProfile());
+        return dto;
+    }
+
+    /**
+     * The one place that decides which layer supplies a property: stored value, then country profile,
+     * then the default of the product's deployment mode.
+     */
+    private ResolvedValue resolve(ConfigKey<?> key, Optional<String> storedValue) {
         if (storedValue.isPresent()) {
-            systemPropertyDto.setCurrentValue(storedValue.get());
-            systemPropertyDto.setEffectiveValue(storedValue.get());
-            systemPropertyDto.setValueSource(ConfigurablePropertyValueSource.DB);
-        } else if (profileValue != null) {
-            systemPropertyDto.setEffectiveValue(profileValue);
-            systemPropertyDto.setValueSource(ConfigurablePropertyValueSource.COUNTRY_PROFILE);
-            systemPropertyDto.setCountryProfile(countryProfile.code());
-        } else {
-            systemPropertyDto.setEffectiveValue(parameter.defaultValue());
-            systemPropertyDto.setValueSource(ConfigurablePropertyValueSource.DEFAULT);
+            return new ResolvedValue(storedValue.get(), ConfigurablePropertyValueSource.DB, null);
         }
-        return systemPropertyDto;
+        var countryProfile = configurablePropertySource.countryProfile();
+        var profileValue = countryProfile.values().get(key.key());
+        if (profileValue != null) {
+            return new ResolvedValue(profileValue, ConfigurablePropertyValueSource.COUNTRY_PROFILE,
+                    countryProfile.code());
+        }
+        var containerDefault = key.containerDefaultValue();
+        var useContainerDefault = configurablePropertySource.deploymentMode() == DeploymentMode.CONTAINERIZED
+                && containerDefault != null;
+        return new ResolvedValue(useContainerDefault ? containerDefault : key.defaultValue(),
+                ConfigurablePropertyValueSource.DEFAULT, null);
     }
 
     /**
      * A property is configurable when the registry declares it exposed.
      */
     private Optional<ConfigKey<?>> findExposedKey(String propertyKey) {
+        return exposedKeys()
+                .filter(key -> key.key().equals(propertyKey))
+                .findFirst();
+    }
+
+    private Stream<ConfigKey<?>> exposedKeys() {
         return getConfigKeyProviders().stream()
                 .flatMap(provider -> provider.keys().stream())
-                .filter(key -> key.exposedInUi() && key.key().equals(propertyKey))
-                .findFirst();
+                .filter(ConfigKey::exposedInUi);
     }
 
     /**
@@ -211,6 +216,6 @@ public class ConfigurablePropertiesService {
         return configurablePropertySource.categoryToScope(category);
     }
 
-    private record PropertyDefinition(String propertyName, String defaultValue, String scope) {
+    private record ResolvedValue(String value, ConfigurablePropertyValueSource source, String countryProfile) {
     }
 }
