@@ -30,8 +30,10 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 
 import java.io.IOException;
 import java.security.PrivateKey;
@@ -43,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -75,13 +78,17 @@ class TlsKeyProvisioningTest {
                 XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
         stubProvisionedKey();
 
-        var result = provision();
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
 
-        assertThat(result.getKey()).isSameAs(provisionedKey);
-        assertThat(result.getCertChain()).containsExactly(identityCert, trustCert);
-        var stored = ArgumentCaptor.forClass(InternalSSLKey.class);
-        verify(vaultClient).createAdminServiceTlsCredentials(stored.capture());
-        assertThat(stored.getValue()).isSameAs(result);
+            var result = provision();
+
+            assertThat(result.getKey()).isSameAs(provisionedKey);
+            assertThat(result.getCertChain()).containsExactly(identityCert, trustCert);
+            var stored = ArgumentCaptor.forClass(InternalSSLKey.class);
+            verify(vaultClient).createAdminServiceTlsCredentials(stored.capture());
+            assertThat(stored.getValue()).isSameAs(result);
+        }
     }
 
     @Test
@@ -112,5 +119,58 @@ class TlsKeyProvisioningTest {
 
         verifyNoInteractions(keyClient);
         verify(vaultClient, never()).createAdminServiceTlsCredentials(any());
+    }
+
+    @Test
+    void shouldRethrowAndNeverCreateOnSecondaryNodeWhenTheStoreReportsItAbsent() throws Exception {
+        var missing = XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build();
+        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(missing);
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+
+            assertThatThrownBy(this::provision).isSameAs(missing);
+        }
+
+        verifyNoInteractions(keyClient);
+        verify(vaultClient, never()).createAdminServiceTlsCredentials(any());
+    }
+
+    @Test
+    void shouldCreateAndStoreTheKeyOnPrimaryNodeWhenTheStoreReportsItAbsent() throws Exception {
+        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(
+                XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
+        stubProvisionedKey();
+
+        InternalSSLKey result;
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
+
+            result = provision();
+        }
+
+        assertThat(result.getKey()).isSameAs(provisionedKey);
+        var stored = ArgumentCaptor.forClass(InternalSSLKey.class);
+        verify(vaultClient).createAdminServiceTlsCredentials(stored.capture());
+        assertThat(stored.getValue()).isSameAs(result);
+    }
+
+    @Test
+    void shouldCreateAndStoreTheKeyOnStandaloneNodeWhenTheStoreReportsItAbsent() throws Exception {
+        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(
+                XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
+        stubProvisionedKey();
+
+        InternalSSLKey result;
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
+
+            result = provision();
+        }
+
+        assertThat(result.getKey()).isSameAs(provisionedKey);
+        var stored = ArgumentCaptor.forClass(InternalSSLKey.class);
+        verify(vaultClient).createAdminServiceTlsCredentials(stored.capture());
+        assertThat(stored.getValue()).isSameAs(result);
     }
 }
