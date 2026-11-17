@@ -38,7 +38,6 @@ import org.niis.xroad.common.test.ui.utils.SeleniumUtils;
 import org.niis.xroad.cs.test.ui.TargetHostUrlProvider;
 import org.niis.xroad.cs.test.ui.configuration.TestProperties;
 import org.niis.xroad.cs.test.ui.page.CommonPageObj;
-import org.niis.xroad.cs.test.ui.utils.ChromiumDevTools;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -60,8 +59,6 @@ public abstract class BaseUiStepDefs {
     protected TargetHostUrlProvider targetHostUrlProvider;
     @Autowired
     protected TestReportService testReportService;
-    @Autowired
-    protected ChromiumDevTools chromiumDevTools;
 
     @PostConstruct
     private void init() {
