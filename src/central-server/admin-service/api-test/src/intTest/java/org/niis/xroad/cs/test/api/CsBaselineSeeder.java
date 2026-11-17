@@ -282,6 +282,69 @@ public class CsBaselineSeeder {
     }
 
     /**
+     * Inserts a uniquely named row into {@code issuer_dids} directly, unconditionally (unlike
+     * {@link #bindIssuerIdentity()}, which seeds only when the table is empty). For destructive tests
+     * that need a row of their own to remove, independent of whatever {@code bindIssuerIdentity} or an
+     * earlier run may have bound.
+     *
+     * @param namespace per-test identifier embedded in the DID to guarantee uniqueness
+     * @return the DB id of the inserted row
+     */
+    public int seedTrustedIssuer(String namespace) {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+        var did = "did:web:trusted-issuer-api-test-" + namespace;
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("""
+                        INSERT INTO centerui.issuer_dids (did, host, did_port, issuance_url, statuslist_base_url, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, now(), now())
+                        RETURNING id
+                        """)) {
+            stmt.setString(1, did);
+            stmt.setString(2, "trusted-issuer-api-test-" + namespace);
+            stmt.setInt(3, 6183);
+            stmt.setString(4, "https://trusted-issuer-api-test-" + namespace + ":6185/api/issuance/v1/participants/issuer");
+            stmt.setString(5, "https://trusted-issuer-api-test-" + namespace + ":6187/statuslist");
+            var rs = stmt.executeQuery();
+            rs.next();
+            return rs.getInt(1);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to seed a trusted issuer row into CS DB", e);
+        }
+    }
+
+    /**
+     * Reads the {@code removed_at} column of an {@code issuer_dids} row.
+     *
+     * @param id id of the row to read
+     * @return the removed_at timestamp as text, or {@code null} if the row has not been removed
+     */
+    public String queryIssuerDidRemovedAt(int id) {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("SELECT removed_at FROM centerui.issuer_dids WHERE id = ?")) {
+            stmt.setInt(1, id);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                var removedAt = rs.getTimestamp("removed_at");
+                return removedAt == null ? null : removedAt.toString();
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to query issuer_dids.removed_at", e);
+        }
+    }
+
+    /**
      * Stores a SYSTEM DID and DSP base URL on a registered security server directly in the database. The
      * management request path stores no pair, and this stack has no Issuer Service to publish one, so tests
      * that edit or read a stored pair seed it here. Overwrites any pair already stored.
