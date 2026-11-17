@@ -31,12 +31,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -86,6 +89,23 @@ class DataspaceIssuerDidServiceImplTest {
         when(issuerDidRepository.findAll()).thenReturn(List.of());
 
         assertThat(service.findAll()).isEmpty();
+    }
+
+    @Test
+    void findAllBoundReturnsRemovedAndLiveRowsEachWithItsRemovedFlag() {
+        var removedEntity = mock(IssuerDidEntity.class);
+        when(removedEntity.getDid()).thenReturn(DID_2);
+        when(removedEntity.getRemovedAt()).thenReturn(Instant.now());
+
+        var liveEntity = mock(IssuerDidEntity.class);
+        when(liveEntity.getDid()).thenReturn(DID_1);
+        when(liveEntity.getRemovedAt()).thenReturn(null);
+
+        when(issuerDidRepository.findAll()).thenReturn(List.of(removedEntity, liveEntity));
+
+        assertThat(service.findAllBound()).containsExactly(
+                new BoundIssuer(DID_1, false),
+                new BoundIssuer(DID_2, true));
     }
 
 }

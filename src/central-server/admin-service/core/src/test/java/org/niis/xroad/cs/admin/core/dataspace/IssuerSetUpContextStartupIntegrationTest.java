@@ -37,6 +37,7 @@ import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
 import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
@@ -171,6 +172,13 @@ class IssuerSetUpContextStartupIntegrationTest {
         IssuerHostService issuerHostService() {
             var service = mock(IssuerHostService.class);
             when(service.getState()).thenReturn(new IssuerHostState(HOST, false));
+            return service;
+        }
+
+        @Bean
+        DataspaceIssuerDidService dataspaceIssuerDidService() {
+            var service = mock(DataspaceIssuerDidService.class);
+            when(service.findAllBound()).thenReturn(List.of());
             return service;
         }
 

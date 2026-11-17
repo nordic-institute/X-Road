@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.dto.TrustedIssuer;
 import org.niis.xroad.cs.admin.api.dto.TrustedIssuerRemoval;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
@@ -58,6 +59,14 @@ public class DataspaceIssuerDidServiceImpl implements DataspaceIssuerDidService 
         return issuerDidRepository.findAll().stream()
                 .map(IssuerDidEntity::getDid)
                 .sorted(Comparator.naturalOrder())
+                .toList();
+    }
+
+    @Override
+    public List<BoundIssuer> findAllBound() {
+        return issuerDidRepository.findAll().stream()
+                .map(entity -> new BoundIssuer(entity.getDid(), entity.getRemovedAt() != null))
+                .sorted(Comparator.comparing(BoundIssuer::did))
                 .toList();
     }
 

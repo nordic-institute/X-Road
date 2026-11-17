@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.dto.TrustedIssuer;
 import org.niis.xroad.cs.admin.api.dto.TrustedIssuerRemoval;
 
@@ -52,6 +53,11 @@ public interface DataspaceIssuerDidService {
      * @return every bound Issuer DID of this instance, or an empty list if none is bound
      */
     List<String> findAll();
+
+    /**
+     * @return every bound Issuer, removed or not, each with its removed flag
+     */
+    List<BoundIssuer> findAllBound();
 
     /**
      * @return every trusted Issuer, i.e. not removed

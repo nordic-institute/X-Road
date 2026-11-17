@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -65,6 +67,7 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
     private static final Duration LEASE_TTL_MARGIN = Duration.ofSeconds(30);
 
     private final IssuerHostService issuerHostService;
+    private final DataspaceIssuerDidService dataspaceIssuerDidService;
     private final ConnectorCertificateCheck connectorCertificateCheck;
     private final DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
     private final IssuerSetUpLeaseService issuerSetUpLeaseService;
@@ -75,15 +78,16 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
 
     @Override
     public IssuerSetUpResult start() {
-        var state = issuerHostService.getState();
-
-        if (state.bound()) {
-            return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_SET_UP);
+        var boundRefusal = refusalForBoundIssuer();
+        if (boundRefusal.isPresent()) {
+            return boundRefusal.get();
         }
-        if (state.host() == null) {
+
+        var host = issuerHostService.getState().host();
+        if (host == null) {
             return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.HOST_NOT_SET);
         }
-        if (!connectorCertificateCheck.isReadyFor(state.host())) {
+        if (!connectorCertificateCheck.isReadyFor(host)) {
             return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.CERTIFICATE_NOT_READY);
         }
 
@@ -92,13 +96,29 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
             return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING);
         }
 
-        if (issuerHostService.getState().bound()) {
+        var postLeaseRefusal = refusalForBoundIssuer();
+        if (postLeaseRefusal.isPresent()) {
             issuerSetUpLeaseService.release(node);
-            return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_SET_UP);
+            return postLeaseRefusal.get();
         }
 
         executor.execute(() -> runProvisioning(node));
         return new IssuerSetUpResult.Accepted();
+    }
+
+    /**
+     * A removed issuer stays bound, so it still refuses set-up, with a cause distinct from a live bound
+     * issuer's.
+     */
+    private Optional<IssuerSetUpResult.Refused> refusalForBoundIssuer() {
+        var boundIssuers = dataspaceIssuerDidService.findAllBound();
+        if (boundIssuers.stream().anyMatch(issuer -> !issuer.removed())) {
+            return Optional.of(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_SET_UP));
+        }
+        if (!boundIssuers.isEmpty()) {
+            return Optional.of(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ISSUER_SERVICE_REMOVED));
+        }
+        return Optional.empty();
     }
 
     /**

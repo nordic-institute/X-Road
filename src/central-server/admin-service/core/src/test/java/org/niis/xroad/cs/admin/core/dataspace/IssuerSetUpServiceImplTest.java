@@ -32,14 +32,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
 import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -58,11 +61,14 @@ import static org.mockito.Mockito.when;
 class IssuerSetUpServiceImplTest {
 
     private static final String HOST = "issuer.example.org";
+    private static final String DID = "did:web:issuer.example.org%3A6183:issuer";
     private static final String NODE = "node-a";
     private static final int DEADLINE_AFTER_MS = 60000;
 
     @Mock
     private IssuerHostService issuerHostService;
+    @Mock
+    private DataspaceIssuerDidService dataspaceIssuerDidService;
     @Mock
     private ConnectorCertificateCheck connectorCertificateCheck;
     @Mock
@@ -76,7 +82,7 @@ class IssuerSetUpServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        issuerSetUpService = new IssuerSetUpServiceImpl(issuerHostService, connectorCertificateCheck,
+        issuerSetUpService = new IssuerSetUpServiceImpl(issuerHostService, dataspaceIssuerDidService, connectorCertificateCheck,
                 dataspaceIssuerProvisioningService, issuerSetUpLeaseService, issuerProvisioningRpcChannelProperties,
                 new HAConfigStatus(NODE, true));
     }
@@ -84,19 +90,31 @@ class IssuerSetUpServiceImplTest {
     /** Stubs every check before the lease so a test can start at "no run in progress". */
     private void givenEveryPrerequisiteCheckPasses() {
         when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, false));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of());
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
     }
 
     @Test
     void refusesAlreadySetUpWhenTheIssuerDidIsBound() {
-        when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, true));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer(DID, false)));
 
         var result = issuerSetUpService.start();
 
         assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_SET_UP));
-        // No collaborator here can write issuer_dids, so the already-bound refusal leaves it untouched
-        // by construction: proving that requires only that neither check ran past the bound check.
-        verifyNoInteractions(connectorCertificateCheck, dataspaceIssuerProvisioningService);
+        // The bound-issuer refusal runs before any other collaborator is consulted, so proving it leaves
+        // nothing else touched requires only that neither check below ran.
+        verifyNoInteractions(issuerHostService, connectorCertificateCheck, dataspaceIssuerProvisioningService);
+    }
+
+    @Test
+    void refusesIssuerServiceRemovedWhenTheOnlyBoundRowIsRemoved() {
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer(DID, true)));
+
+        var result = issuerSetUpService.start();
+
+        assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ISSUER_SERVICE_REMOVED));
+        verifyNoInteractions(issuerHostService, connectorCertificateCheck, dataspaceIssuerProvisioningService);
+        verify(issuerSetUpLeaseService, never()).tryAcquire(anyString(), any());
     }
 
     @Test
@@ -134,8 +152,9 @@ class IssuerSetUpServiceImplTest {
 
     @Test
     void refusesAlreadySetUpWhenTheIssuerBecomesBoundWhileAcquiringTheLease() {
-        when(issuerHostService.getState())
-                .thenReturn(new IssuerHostState(HOST, false), new IssuerHostState(HOST, true));
+        when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, false));
+        when(dataspaceIssuerDidService.findAllBound())
+                .thenReturn(List.of(), List.of(new BoundIssuer(DID, false)));
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
         when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);

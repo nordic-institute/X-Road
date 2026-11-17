@@ -4347,6 +4347,7 @@ components:
         - INITIALIZING
         - READY
         - FAILED
+        - REMOVED
       example: NOT_CONFIGURED
       type: string
     CanSignCause:

@@ -40,14 +40,14 @@ class IssuerServiceStatusTest {
 
     @Test
     void notConfiguredWhenHostIsNotSet() {
-        var status = IssuerServiceStatus.derive(null, false, false, null, null, CanSignResult.absent());
+        var status = IssuerServiceStatus.derive(null, false, false, null, null, false, CanSignResult.absent());
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.NOT_CONFIGURED);
     }
 
     @Test
     void notConfiguredWithNoCanSignCauseWhenTheProbeWasSkipped() {
-        var status = IssuerServiceStatus.derive(null, false, false, null, null, null);
+        var status = IssuerServiceStatus.derive(null, false, false, null, null, false, null);
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.NOT_CONFIGURED);
         assertThat(status.canSign()).isFalse();
@@ -56,21 +56,21 @@ class IssuerServiceStatusTest {
 
     @Test
     void waitingForCertificateWhenHostIsSetButCertificateIsNotReady() {
-        var status = IssuerServiceStatus.derive(HOST, false, false, DID, null, CanSignResult.absent());
+        var status = IssuerServiceStatus.derive(HOST, false, false, DID, null, false, CanSignResult.absent());
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.WAITING_FOR_CERTIFICATE);
     }
 
     @Test
     void readyToSetUpWhenPrerequisitesPassAndNothingIsBoundOrRunning() {
-        var status = IssuerServiceStatus.derive(HOST, true, false, DID, null, CanSignResult.absent());
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, null, false, CanSignResult.absent());
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY_TO_INITIALIZE);
     }
 
     @Test
     void readyToSetUpWhenUnboundAndTheIssuerCanSignForTheDidToBind() {
-        var status = IssuerServiceStatus.derive(HOST, true, false, DID, null, CanSignResult.canSign(DID));
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, null, false, CanSignResult.canSign(DID));
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY_TO_INITIALIZE);
         assertThat(status.canSign()).isTrue();
@@ -79,7 +79,7 @@ class IssuerServiceStatusTest {
 
     @Test
     void readyWhenBoundEvenThoughARunHoldsTheLease() {
-        var status = IssuerServiceStatus.derive(HOST, true, true, DID, DID, CanSignResult.canSign(DID));
+        var status = IssuerServiceStatus.derive(HOST, true, true, DID, DID, false, CanSignResult.canSign(DID));
 
         assertThat(status.runInProgress()).isTrue();
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY);
@@ -87,14 +87,14 @@ class IssuerServiceStatusTest {
 
     @Test
     void settingUpWhenARunHoldsTheLease() {
-        var status = IssuerServiceStatus.derive(HOST, true, true, DID, null, CanSignResult.absent());
+        var status = IssuerServiceStatus.derive(HOST, true, true, DID, null, false, CanSignResult.absent());
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.INITIALIZING);
     }
 
     @Test
     void readyWhenBoundAndTheIssuerCanSign() {
-        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID, CanSignResult.canSign(DID));
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID, false, CanSignResult.canSign(DID));
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY);
         assertThat(status.canSign()).isTrue();
@@ -103,7 +103,7 @@ class IssuerServiceStatusTest {
 
     @Test
     void failedWithTheCanSignCauseWhenBoundAndTheIssuerCannotSign() {
-        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID,
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID, false,
                 CanSignResult.cannotSign(CanSignCause.DID_NOT_PUBLISHED));
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
@@ -113,7 +113,7 @@ class IssuerServiceStatusTest {
 
     @Test
     void failedWithNoActiveKeyWhenBoundButTheParticipantContextIsAbsent() {
-        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID, CanSignResult.absent());
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID, false, CanSignResult.absent());
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
         assertThat(status.canSign()).isFalse();
@@ -122,7 +122,7 @@ class IssuerServiceStatusTest {
 
     @Test
     void readyWhenBoundEvenThoughCertificateIsNotReady() {
-        var status = IssuerServiceStatus.derive(HOST, false, false, DID, DID, CanSignResult.canSign(DID));
+        var status = IssuerServiceStatus.derive(HOST, false, false, DID, DID, false, CanSignResult.canSign(DID));
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY);
         assertThat(status.canSign()).isTrue();
@@ -131,7 +131,7 @@ class IssuerServiceStatusTest {
 
     @Test
     void failedWhenBoundAndCertificateIsNotReadyButTheIssuerCannotSign() {
-        var status = IssuerServiceStatus.derive(HOST, false, false, DID, DID,
+        var status = IssuerServiceStatus.derive(HOST, false, false, DID, DID, false,
                 CanSignResult.cannotSign(CanSignCause.DID_NOT_PUBLISHED));
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
@@ -141,7 +141,7 @@ class IssuerServiceStatusTest {
 
     @Test
     void failedWithDidMismatchWhenBoundButTheIssuerCanSignForAnotherDid() {
-        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID, CanSignResult.canSign(OTHER_DID));
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID, false, CanSignResult.canSign(OTHER_DID));
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
         assertThat(status.canSign()).isFalse();
@@ -150,7 +150,7 @@ class IssuerServiceStatusTest {
 
     @Test
     void failedWithDidMismatchWhenUnboundButTheIssuerCanSignForAnotherDid() {
-        var status = IssuerServiceStatus.derive(HOST, true, false, DID, null, CanSignResult.canSign(OTHER_DID));
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, null, false, CanSignResult.canSign(OTHER_DID));
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
         assertThat(status.canSign()).isFalse();
@@ -159,11 +159,25 @@ class IssuerServiceStatusTest {
 
     @Test
     void failedWhenUnboundButALeftoverParticipantContextCannotSign() {
-        var status = IssuerServiceStatus.derive(HOST, true, false, DID, null,
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, null, false,
                 CanSignResult.cannotSign(CanSignCause.DID_NOT_PUBLISHED));
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
         assertThat(status.canSign()).isFalse();
         assertThat(status.canSignCause()).isEqualTo(CanSignCause.DID_NOT_PUBLISHED);
+    }
+
+    @Test
+    void removedWhenTheBoundIssuerIsRemoved() {
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID, true, CanSignResult.absent());
+
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.REMOVED);
+    }
+
+    @Test
+    void removedWinsEvenWhenTheIssuerCanSignForTheRemovedDid() {
+        var status = IssuerServiceStatus.derive(HOST, true, false, DID, DID, true, CanSignResult.canSign(DID));
+
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.REMOVED);
     }
 }

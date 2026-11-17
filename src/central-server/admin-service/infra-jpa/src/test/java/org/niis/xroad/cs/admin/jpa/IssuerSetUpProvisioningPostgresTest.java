@@ -321,8 +321,9 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
     }
 
     private IssuerSetUpServiceImpl buildSetUpService(DataspaceIssuerProvisioningServiceImpl provisioningService, String node) {
-        return new IssuerSetUpServiceImpl(issuerHostService, new ConnectorCertificateCheck(dsTlsCertificateService), provisioningService,
-                issuerSetUpLeaseService, issuerProvisioningRpcChannelProperties, new HAConfigStatus(node, true));
+        return new IssuerSetUpServiceImpl(issuerHostService, dataspaceIssuerDidService,
+                new ConnectorCertificateCheck(dsTlsCertificateService), provisioningService, issuerSetUpLeaseService,
+                issuerProvisioningRpcChannelProperties, new HAConfigStatus(node, true));
     }
 
     private static Callable<IssuerSetUpResult> callStart(IssuerSetUpServiceImpl service, CyclicBarrier barrier) {

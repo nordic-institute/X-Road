@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
@@ -84,7 +85,7 @@ class IssuerHostServiceImplTest {
     @Test
     void getStateReturnsUnboundWhenNoIssuerDidIsRegistered() {
         when(systemParameterService.getIssuerServiceHost()).thenReturn("cs.example.org");
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of());
 
         var state = issuerHostService.getState();
 
@@ -95,7 +96,7 @@ class IssuerHostServiceImplTest {
     @Test
     void getStateReturnsNoHostWhenNoneIsSet() {
         when(systemParameterService.getIssuerServiceHost()).thenReturn(null);
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of());
 
         var state = issuerHostService.getState();
 
@@ -106,7 +107,7 @@ class IssuerHostServiceImplTest {
     @Test
     void getStateReturnsBoundWhenAnIssuerDidIsRegistered() {
         when(systemParameterService.getIssuerServiceHost()).thenReturn("cs.example.org");
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:web:cs.example.org"));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer("did:web:cs.example.org", false)));
 
         var state = issuerHostService.getState();
 
@@ -115,7 +116,7 @@ class IssuerHostServiceImplTest {
 
     @Test
     void setHostStoresTheHostAndReturnsTheResultingState() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of());
 
         var state = issuerHostService.setHost("cs.example.org");
 
@@ -126,7 +127,7 @@ class IssuerHostServiceImplTest {
 
     @Test
     void setHostStoresAndReturnsTheHostLowercased() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of());
 
         var state = issuerHostService.setHost("CS.Example.ORG");
 
@@ -149,7 +150,19 @@ class IssuerHostServiceImplTest {
 
     @Test
     void setHostRefusesWhenBoundAndReportsTheBoundHost() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:web:cs.example.org"));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer("did:web:cs.example.org", false)));
+        when(systemParameterService.getIssuerServiceHost()).thenReturn("cs.example.org");
+
+        var exception = assertThrows(ConflictException.class, () -> issuerHostService.setHost("other.example.org"));
+
+        assertEquals(ErrorMessage.ISSUER_SERVICE_ALREADY_BOUND.code(), exception.getErrorDeviation().code());
+        assertEquals(List.of("cs.example.org"), exception.getErrorDeviation().metadata());
+        verify(systemParameterService, never()).updateOrCreateParameter(eq(SystemParameterService.ISSUER_SERVICE_HOST), anyString());
+    }
+
+    @Test
+    void setHostRefusesWhenTheOnlyBoundRowIsRemoved() {
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer("did:web:cs.example.org", true)));
         when(systemParameterService.getIssuerServiceHost()).thenReturn("cs.example.org");
 
         var exception = assertThrows(ConflictException.class, () -> issuerHostService.setHost("other.example.org"));
@@ -161,7 +174,7 @@ class IssuerHostServiceImplTest {
 
     @Test
     void setHostRefusesWhileTheSetUpLeaseIsHeld() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of());
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.of("node-a"));
 
         var exception = assertThrows(ConflictException.class, () -> issuerHostService.setHost("other.example.org"));
@@ -181,7 +194,7 @@ class IssuerHostServiceImplTest {
         var haConfigStatus = mock(HAConfigStatus.class);
         var realSystemParameterService = new SystemParameterServiceImpl(repository, haConfigStatus, new SystemParameterMapperImpl());
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
-        when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidServiceMock.findAllBound()).thenReturn(List.of());
         var leaseServiceMock = mock(IssuerSetUpLeaseService.class);
         var realIssuerHostService =
                 new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
@@ -200,7 +213,7 @@ class IssuerHostServiceImplTest {
 
     @Test
     void setHostRefusesTheSameHostAfterBinding() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:web:cs.example.org"));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer("did:web:cs.example.org", false)));
         when(systemParameterService.getIssuerServiceHost()).thenReturn("cs.example.org");
 
         assertThrows(ConflictException.class, () -> issuerHostService.setHost("cs.example.org"));
@@ -218,14 +231,14 @@ class IssuerHostServiceImplTest {
         var haConfigStatus = mock(HAConfigStatus.class);
         var realSystemParameterService = new SystemParameterServiceImpl(repository, haConfigStatus, new SystemParameterMapperImpl());
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
-        when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidServiceMock.findAllBound()).thenReturn(List.of());
         var realIssuerHostService =
                 new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
                         mock(IssuerSetUpLeaseService.class));
 
         realIssuerHostService.setHost("first.example.org");
 
-        when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of("did:web:first.example.org"));
+        when(dataspaceIssuerDidServiceMock.findAllBound()).thenReturn(List.of(new BoundIssuer("did:web:first.example.org", false)));
 
         assertThrows(ConflictException.class, () -> realIssuerHostService.setHost("second.example.org"));
 
@@ -259,7 +272,7 @@ class IssuerHostServiceImplTest {
         var haConfigStatus = mock(HAConfigStatus.class);
         var realSystemParameterService = new SystemParameterServiceImpl(repository, haConfigStatus, new SystemParameterMapperImpl());
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
-        when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidServiceMock.findAllBound()).thenReturn(List.of());
         var realIssuerHostService =
                 new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
                         mock(IssuerSetUpLeaseService.class));
@@ -282,7 +295,7 @@ class IssuerHostServiceImplTest {
         var haConfigStatus = mock(HAConfigStatus.class);
         var realSystemParameterService = new SystemParameterServiceImpl(repository, haConfigStatus, new SystemParameterMapperImpl());
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
-        when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidServiceMock.findAllBound()).thenReturn(List.of());
         var realIssuerHostService =
                 new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
                         mock(IssuerSetUpLeaseService.class));
@@ -306,7 +319,7 @@ class IssuerHostServiceImplTest {
         var haConfigStatus = mock(HAConfigStatus.class);
         var realSystemParameterService = new SystemParameterServiceImpl(repository, haConfigStatus, new SystemParameterMapperImpl());
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
-        when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidServiceMock.findAllBound()).thenReturn(List.of());
         var realIssuerHostService =
                 new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator(),
                         mock(IssuerSetUpLeaseService.class));
@@ -321,7 +334,7 @@ class IssuerHostServiceImplTest {
 
     @Test
     void setHostCalledTwiceIssuesTwoUpdates() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of());
 
         issuerHostService.setHost("cs.example.org");
         issuerHostService.setHost("cs.example.org");
