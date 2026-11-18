@@ -14,6 +14,10 @@ dependencies {
   implementation("tools.jackson.core:jackson-databind")
 
   testImplementation(project(":common:common-test"))
+  testImplementation(project(":tool:liquibase-executor"))
+  testImplementation(libs.liquibase.core)
+  testImplementation(libs.postgresql)
+  testImplementation(libs.testcontainers.postgresql)
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.junit.jupiter.params)

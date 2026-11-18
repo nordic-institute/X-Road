@@ -51,7 +51,7 @@ import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr
 /**
  * Bitstring status list credentials, downloaded and read the way the stock revocation service does it.
  */
-public class BitstringStatusListKind implements IssuerDataKind<BitstringStatusListCredential> {
+public class BitstringStatusListFetcher implements IssuerDataFetcher<BitstringStatusListCredential> {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
     private static final String VC_CLAIM = "vc";
@@ -62,8 +62,9 @@ public class BitstringStatusListKind implements IssuerDataKind<BitstringStatusLi
     private final TokenValidationService tokenValidationService;
     private final DidPublicKeyResolver didPublicKeyResolver;
 
-    public BitstringStatusListKind(ObjectMapper mapper, Collection<String> acceptedContentTypes, EdcHttpClient httpClient,
-                                   TokenValidationService tokenValidationService, DidPublicKeyResolver didPublicKeyResolver) {
+    public BitstringStatusListFetcher(ObjectMapper mapper, Collection<String> acceptedContentTypes, EdcHttpClient httpClient,
+                                      TokenValidationService tokenValidationService,
+                                      DidPublicKeyResolver didPublicKeyResolver) {
         this.mapper = mapper.rebuild()
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -72,6 +73,11 @@ public class BitstringStatusListKind implements IssuerDataKind<BitstringStatusLi
         this.httpClient = httpClient;
         this.tokenValidationService = tokenValidationService;
         this.didPublicKeyResolver = didPublicKeyResolver;
+    }
+
+    @Override
+    public IssuerDataKind kind() {
+        return IssuerDataKind.STATUSLIST;
     }
 
     @Override

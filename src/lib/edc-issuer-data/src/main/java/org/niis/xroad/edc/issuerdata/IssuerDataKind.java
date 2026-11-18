@@ -27,30 +27,10 @@
 
 package org.niis.xroad.edc.issuerdata;
 
-import org.eclipse.edc.spi.result.Result;
-
-import java.time.Instant;
-import java.util.Optional;
-
 /**
- * One kind of data an issuer publishes under a key (for example a status list under its URL).
- *
- * @param <P> the parsed form of the data
+ * The value of the {@code kind} column of the issuer data table.
  */
-public interface IssuerDataKind<P> {
-
-    /**
-     * Downloads the raw data. A retryable failure means the issuer did not answer.
-     */
-    Result<String> download(String key);
-
-    /**
-     * Reads and verifies downloaded data.
-     */
-    Result<P> parse(String key, String payload);
-
-    /**
-     * @return the time the data itself says it stops being valid, when it says so.
-     */
-    Optional<Instant> ownExpiry(P parsed);
+public enum IssuerDataKind {
+    DID,
+    STATUSLIST
 }

@@ -42,7 +42,10 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.token.spi.TokenValidationService;
+import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.time.Clock;
@@ -54,7 +57,8 @@ import static org.niis.xroad.edc.issuerdata.IssuerDataExtension.NAME;
 
 /**
  * Replaces the stock bitstring status list revocation service with one that serves the last good status list
- * while the issuer does not answer. The stock cache time and accepted content type settings keep their meaning.
+ * while the issuer does not answer, also after a restart. The last good copies are kept in the default data source.
+ * The stock cache time and accepted content type settings keep their meaning.
  */
 @Extension(NAME)
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
@@ -84,6 +88,12 @@ public class IssuerDataExtension implements ServiceExtension {
 
     @Inject
     private GlobalConfProvider globalConfProvider;
+    @Inject
+    private DataSourceRegistry dataSourceRegistry;
+    @Inject
+    private TransactionContext transactionContext;
+    @Inject
+    private QueryExecutor queryExecutor;
 
     @Override
     public String name() {
@@ -97,9 +107,12 @@ public class IssuerDataExtension implements ServiceExtension {
         var contentTypes = List.of(context.getSetting(CONTENT_TYPES_SETTING, DEFAULT_CONTENT_TYPES).split(","));
         var mapper = typeManager.getMapper();
 
-        var kind = new BitstringStatusListKind(mapper, contentTypes, httpClient, tokenValidationService, didPublicKeyResolver);
-        var source = new LastGoodSource<BitstringStatusListCredential>(kind, Clock.systemUTC(), Ticker.systemTicker(),
-                Runnable::run, cacheTime, maximumAge(globalConfProvider), monitor);
+        var fetcher = new BitstringStatusListFetcher(mapper, contentTypes, httpClient, tokenValidationService,
+                didPublicKeyResolver);
+        var store = new SqlIssuerDataStore(dataSourceRegistry, DataSourceRegistry.DEFAULT_DATASOURCE, transactionContext,
+                queryExecutor);
+        var source = new LastGoodSource<BitstringStatusListCredential>(fetcher, Clock.systemUTC(), Ticker.systemTicker(),
+                Runnable::run, cacheTime, maximumAge(globalConfProvider), store, monitor);
         revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(
                 mapper, contentTypes, httpClient, tokenValidationService, didPublicKeyResolver, source));
     }

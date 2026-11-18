@@ -33,6 +33,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstrings
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,9 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bit
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_INDEX;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_PURPOSE;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_SIZE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class XRoadBitstringStatusListRevocationServiceTest {
 
@@ -71,10 +74,13 @@ class XRoadBitstringStatusListRevocationServiceTest {
         maximumAge.set(Result.success(Duration.ofSeconds(120)));
         var stack = EdcTestStack.create();
         var contentTypes = List.of("*/*");
-        var kind = new BitstringStatusListKind(stack.mapper(), contentTypes, stack.httpClient(),
+        var store = mock(IssuerDataStore.class);
+        when(store.write(any(), any(), any())).thenReturn(StoreResult.success());
+        when(store.read(any(), any())).thenReturn(StoreResult.notFound("no row"));
+        var fetcher = new BitstringStatusListFetcher(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        var source = new LastGoodSource<BitstringStatusListCredential>(kind, clock, Ticker.disabledTicker(), Runnable::run,
-                CACHE_TIME, maximumAge::get, mock(Monitor.class));
+        var source = new LastGoodSource<BitstringStatusListCredential>(fetcher, clock, Ticker.disabledTicker(), Runnable::run,
+                CACHE_TIME, maximumAge::get, store, mock(Monitor.class));
         service = new XRoadBitstringStatusListRevocationService(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver(), source);
     }

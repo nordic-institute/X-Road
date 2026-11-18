@@ -40,6 +40,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
+import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,6 +64,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class IssuerDataExtensionTest {
@@ -72,6 +76,7 @@ class IssuerDataExtensionTest {
     private final RevocationServiceRegistryImpl registry = new RevocationServiceRegistryImpl(mock(Monitor.class));
     private final RevocationListService statusList2021Service = mock(RevocationListService.class);
     private final GlobalConfProvider globalConf = mock(GlobalConfProvider.class);
+    private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
     private FakeIssuer issuer;
 
     @BeforeEach
@@ -95,6 +100,26 @@ class IssuerDataExtensionTest {
         issuer.down(true);
 
         assertThat(registry.checkValidity(credentialWith(bitstringStatus())).succeeded()).isTrue();
+    }
+
+    @Test
+    void shouldBootWithoutTouchingDatabaseOrGlobalConf() {
+        var freshGlobalConf = mock(GlobalConfProvider.class);
+        var freshDataSources = mock(DataSourceRegistry.class);
+        var freshRegistry = new RevocationServiceRegistryImpl(mock(Monitor.class));
+        var stack = EdcTestStack.create();
+        var typeManager = mock(TypeManager.class);
+        when(typeManager.getMapper()).thenReturn(stack.mapper());
+        var context = mock(ServiceExtensionContext.class);
+        when(context.getMonitor()).thenReturn(mock(Monitor.class));
+        when(context.getSetting(eq(IssuerDataExtension.CACHE_VALIDITY_SETTING), anyLong())).thenReturn(0L);
+        when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
+                .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
+        issuer.down(true);
+        new IssuerDataExtension(freshRegistry, typeManager, stack.httpClient(), stack.tokenValidationService(),
+                stack.didPublicKeyResolver(), freshGlobalConf, freshDataSources, new NoopTransactionContext(),
+                mock(QueryExecutor.class)).initialize(context);
+        verifyNoInteractions(freshDataSources, freshGlobalConf);
     }
 
     @Test
@@ -148,7 +173,8 @@ class IssuerDataExtensionTest {
                 stack.didPublicKeyResolver()));
 
         new IssuerDataExtension(registry, typeManager, stack.httpClient(), stack.tokenValidationService(),
-                stack.didPublicKeyResolver(), globalConf).initialize(context);
+                stack.didPublicKeyResolver(), globalConf, dataSourceRegistry, new NoopTransactionContext(),
+                mock(QueryExecutor.class)).initialize(context);
     }
 
     private CredentialStatus bitstringStatus() {

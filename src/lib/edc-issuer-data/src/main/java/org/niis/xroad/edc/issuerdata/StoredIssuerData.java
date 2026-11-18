@@ -27,42 +27,14 @@
 
 package org.niis.xroad.edc.issuerdata;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import java.time.Instant;
 
-import java.util.List;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-class BitstringStatusListKindTest {
-
-    private FakeIssuer issuer;
-    private BitstringStatusListKind kind;
-
-    @BeforeEach
-    void setUp() {
-        issuer = new FakeIssuer();
-        issuer.publishStatusList(Set.of(), null);
-        var stack = EdcTestStack.create();
-        kind = new BitstringStatusListKind(stack.mapper(), List.of("*/*"), stack.httpClient(),
-                stack.tokenValidationService(), stack.didPublicKeyResolver());
-    }
-
-    @AfterEach
-    void tearDown() {
-        issuer.close();
-    }
-
-    @Test
-    void shouldReportRetryableFailureWithoutIssuerResponseBodyWhenIssuerAnswers503() {
-        issuer.down(true);
-
-        var result = kind.download(issuer.statusListUrl());
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.isRetryable()).isTrue();
-        assertThat(result.getFailureMessages()).isNotEmpty().noneMatch(message -> message.contains(FakeIssuer.ERROR_BODY));
-    }
+/**
+ * One row of the issuer data table.
+ *
+ * @param payload    the downloaded data as received
+ * @param fetchedAt  when the data was downloaded
+ * @param validUntil the latest time the copy may be served when the issuer is down
+ */
+public record StoredIssuerData(String payload, Instant fetchedAt, Instant validUntil) {
 }

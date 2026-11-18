@@ -68,6 +68,7 @@ class FakeIssuer implements AutoCloseable {
     private final String did;
     private final String statusListUrl;
     private final AtomicBoolean down = new AtomicBoolean();
+    private final AtomicBoolean statusListDown = new AtomicBoolean();
     private final AtomicInteger statusListRequests = new AtomicInteger();
     private final AtomicReference<String> statusListJwt = new AtomicReference<>();
     private final String didDocument;
@@ -117,6 +118,13 @@ class FakeIssuer implements AutoCloseable {
     }
 
     /**
+     * Takes down only the status list; the DID document stays reachable.
+     */
+    void statusListDown(boolean value) {
+        statusListDown.set(value);
+    }
+
+    /**
      * Publishes a signed status list with the given positions set, optionally stating when it stops being valid.
      */
     void publishStatusList(Set<Integer> revokedIndexes, Instant validUntil) {
@@ -160,7 +168,7 @@ class FakeIssuer implements AutoCloseable {
             if (countsAsStatusListRequest) {
                 statusListRequests.incrementAndGet();
             }
-            var unavailable = down.get() || body == null;
+            var unavailable = down.get() || (countsAsStatusListRequest && statusListDown.get()) || body == null;
             var bytes = (unavailable ? ERROR_BODY : body).getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(unavailable ? 503 : 200, bytes.length);
             exchange.getResponseBody().write(bytes);
