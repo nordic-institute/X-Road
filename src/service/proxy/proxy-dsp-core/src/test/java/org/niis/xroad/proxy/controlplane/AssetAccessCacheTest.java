@@ -46,17 +46,30 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AssetAccessCacheTest {
+
+    /**
+     * Runs the load on the calling thread, so it (and the expiry Caffeine derives from its result) completes
+     * before {@link AssetAccessCache#get} returns, letting {@link ManualTicker} advance time deterministically
+     * right after.
+     */
+    private static final Executor DIRECT_EXECUTOR = Runnable::run;
 
     @Mock
     private AssetAccessClientProperties.Cache cacheProperties;
@@ -70,7 +83,7 @@ class AssetAccessCacheTest {
         when(cacheProperties.maximumSize()).thenReturn(10_000L);
         when(cacheProperties.defaultTtl()).thenReturn(Duration.ofMinutes(5));
         when(cacheProperties.margin()).thenReturn(Duration.ofSeconds(5));
-        cache = new AssetAccessCache(cacheProperties, ticker);
+        cache = new AssetAccessCache(cacheProperties, ticker, DIRECT_EXECUTOR);
         loadCount = new AtomicInteger();
     }
 
@@ -94,7 +107,7 @@ class AssetAccessCacheTest {
     @Test
     void aMarginThatWouldOutliveTheEntryIsClampedToAOneSecondLifetime() {
         when(cacheProperties.margin()).thenReturn(Duration.ofSeconds(10));
-        cache = new AssetAccessCache(cacheProperties, ticker);
+        cache = new AssetAccessCache(cacheProperties, ticker, DIRECT_EXECUTOR);
         var key = key("asset-1");
         cache.get(key, k -> load(5));
 
@@ -116,6 +129,103 @@ class AssetAccessCacheTest {
     }
 
     @Test
+    void concurrentLookupsOfTheSameKeyShareOneLoadAndReturnTheSameResult() throws Exception {
+        // DIRECT_EXECUTOR would run the load inline inside the first caller's cache lookup, so the second
+        // caller would block on Caffeine's internal per-key map lock rather than on a real in-flight future.
+        // This test needs the production constructor's real load executor, so the first caller's lookup
+        // returns (with the load still running on its own thread) before the second caller joins it.
+        var cacheUnderTest = new AssetAccessCache(cacheProperties);
+        var key = key("asset-1");
+        var loaderStarted = new CountDownLatch(1);
+        var releaseLoad = new CountDownLatch(1);
+        var loaderEntries = new AtomicInteger();
+        var results = new AtomicReferenceArray<AssetAccessCache.CachedEntry>(2);
+
+        Function<AssetAccessCache.CacheKey, AssetAccessCache.CachedEntry> blockingLoader = k -> {
+            loaderEntries.incrementAndGet();
+            loaderStarted.countDown();
+            awaitQuietly(releaseLoad);
+            return load(60);
+        };
+        var first = Thread.ofPlatform().start(() -> results.set(0, cacheUnderTest.get(key, blockingLoader)));
+        assertThat(loaderStarted.await(5, TimeUnit.SECONDS)).as("first load started").isTrue();
+        var second = Thread.ofPlatform().start(() -> results.set(1, cacheUnderTest.get(key, blockingLoader)));
+        // The load is still held, so a parked second caller is waiting on the in-flight future,
+        // not reading a completed cache entry.
+        awaitWaiting(second);
+
+        releaseLoad.countDown();
+        first.join(5_000);
+        second.join(5_000);
+
+        assertThat(loaderEntries.get()).as("loader invocations for the shared key").isEqualTo(1);
+        assertThat(loadCount.get()).isEqualTo(1);
+        assertThat(results.get(0)).as("first caller result").isNotNull();
+        assertThat(results.get(1)).as("second caller result").isNotNull().isSameAs(results.get(0));
+    }
+
+    @Test
+    void aFailedLoadIsNotCachedAndTheFailureReachesTheCaller() {
+        var key = key("asset-1");
+        var failure = new IllegalStateException("control plane unreachable");
+
+        assertThatThrownBy(() -> cache.get(key, k -> {
+            loadCount.incrementAndGet();
+            throw failure;
+        })).isSameAs(failure);
+
+        var result = cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(2);
+        assertThat(result.response().endpoint()).isEqualTo("http://provider/api/data");
+    }
+
+    /**
+     * On {@link #DIRECT_EXECUTOR}, the load and its completion run inline on the calling thread, so a failed
+     * future is always gone from the cache well before this method returns. Caffeine's own cache clears a
+     * failed future from a callback that can instead run on the load executor's thread, after {@link
+     * AssetAccessCache#get} has already woken the caller — so only a real, separate-thread load executor can
+     * expose a same-key retry that lands in that window. Many fresh keys, with no pause between a key's
+     * failing load and its retry, make that window land almost every time it still exists.
+     */
+    @Test
+    void aFailedLoadIsNotVisibleToAnImmediateRetryOnARealExecutor() {
+        var cacheUnderTest = new AssetAccessCache(cacheProperties);
+        var failure = new IllegalStateException("control plane unreachable");
+        int iterations = 1_000;
+
+        for (int i = 0; i < iterations; i++) {
+            var key = key("retry-" + i);
+
+            assertThatThrownBy(() -> cacheUnderTest.get(key, k -> {
+                throw failure;
+            })).isSameAs(failure);
+
+            var retried = new AtomicBoolean();
+            var result = cacheUnderTest.get(key, k -> {
+                retried.set(true);
+                return load(60);
+            });
+
+            assertThat(retried).as("iteration %d: the retry right after a failure must call the loader again", i).isTrue();
+            assertThat(result.response().endpoint()).isEqualTo("http://provider/api/data");
+        }
+    }
+
+    private static void awaitQuietly(CountDownLatch latch) {
+        try {
+            latch.await();
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private static void awaitWaiting(Thread thread) {
+        await().atMost(5, TimeUnit.SECONDS)
+                .until(() -> thread.getState() == Thread.State.WAITING);
+    }
+
+    @Test
     void invalidatingDropsTheEntryAndTheNextLookupLoadsAfresh() {
         var key = key("asset-1");
         cache.get(key, k -> load(60));
@@ -124,6 +234,32 @@ class AssetAccessCacheTest {
         cache.get(key, k -> load(60));
 
         assertThat(loadCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void invalidatingAnInFlightLoadDropsItTooSoTheNextLookupLoadsAfresh() throws Exception {
+        // A direct executor runs the load before the key is even visible as in-flight (see DIRECT_EXECUTOR),
+        // so this test needs the production constructor's real load executor to observe the in-flight window.
+        var cacheUnderTest = new AssetAccessCache(cacheProperties);
+        var key = key("asset-1");
+        var loaderStarted = new CountDownLatch(1);
+        var releaseLoad = new CountDownLatch(1);
+
+        var inFlight = Thread.ofPlatform().start(() -> cacheUnderTest.get(key, k -> {
+            loaderStarted.countDown();
+            awaitQuietly(releaseLoad);
+            return load(60);
+        }));
+        assertThat(loaderStarted.await(5, TimeUnit.SECONDS)).as("in-flight load started").isTrue();
+
+        cacheUnderTest.invalidate("test-participant-ctx", "asset-1", null);
+        releaseLoad.countDown();
+        inFlight.join(5_000);
+
+        cacheUnderTest.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).as("one load for the invalidated in-flight call, one for the fresh lookup")
+                .isEqualTo(2);
     }
 
     @Test
