@@ -61,6 +61,7 @@ dependencies {
 
   runtimeOnly(project(":lib:edc-vault-quarkus"))
   runtimeOnly(project(":lib:edc-jetty-tls"))
+  runtimeOnly(project(":lib:edc-issuer-data"))
 
   runtimeOnly(project(":lib:rpc-quarkus"))
   implementation(project(":service:signer:signer-client"))
@@ -70,5 +71,11 @@ dependencies {
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-provisioning-api"))
 
   testImplementation(testFixtures(project(":lib:bootstrap-edc-quarkus")))
+  testImplementation(project(":lib:edc-issuer-data"))
   testImplementation(libs.assertj.core)
+  testImplementation(libs.mockito.jupiter)
+  testImplementation(libs.edc.junit)
+  testImplementation(libs.edc.lib.core)
+  testImplementation(libs.edc.spi.core)
+  testImplementation(libs.edc.crypto.verifiablecredentials)
 }

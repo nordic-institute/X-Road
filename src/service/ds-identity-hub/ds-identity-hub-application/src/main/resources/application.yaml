@@ -51,11 +51,13 @@ xroad:
       # the classpath. XRoadStsApiConfigurationExtension registers the same STS port mapping and version info.
       # SqlSchemaBootstrapperExtension is excluded so that no EDC code can create tables;
       # XRoadNoOpSqlSchemaBootstrapperExtension provides the SqlSchemaBootstrapper the SQL stores inject.
+      # WebDidExtension is excluded so that IssuerDataExtension registers the only web DID resolver.
       excluded-service-extensions: >-
         org.eclipse.edc.web.jetty.JettyExtension,
         org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,
         org.eclipse.edc.api.iam.decentralizedclaims.sts.StsApiConfigurationExtension,
-        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension
+        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension,
+        org.eclipse.edc.iam.did.web.WebDidExtension
   ds:
     rpc:
       host: "0.0.0.0"

@@ -35,4 +35,7 @@ dependencies {
   testImplementation(libs.edc.core.controlplane.services)
   testImplementation(libs.edc.core.connector)
   testImplementation(libs.edc.spi.controlplane)
+  testImplementation(libs.edc.ih.core)
+  testImplementation(libs.edc.spi.identityhub)
+  testImplementation(libs.edc.spi.identityhub.vc)
 }

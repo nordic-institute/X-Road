@@ -44,8 +44,8 @@ import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
 
 /**
  * {@code GlobalConfConfigKeys} and the confclient RPC channel back the {@code GlobalConfProvider} CDI bean that
- * {@code lib:bootstrap-edc-quarkus}'s DataSpace outbound TLS trust extension consumes reflectively — no code in
- * this application calls it directly.
+ * {@code lib:bootstrap-edc-quarkus}'s DataSpace outbound TLS trust extension and the issuer data extension of
+ * {@code lib:edc-issuer-data} consume reflectively — no code in this application calls it directly.
  */
 class IdentityHubRpcConfig {
 
