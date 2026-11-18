@@ -27,7 +27,7 @@ You determine which servers are initialized by filling in the groups
 you can leave that group empty.
 
 **Note:** Study the structure of the example host files carefully and model the group hierarchies that you wish to implement in your own
-inventory files. For example, the group `[rhel_ss]` for RHEL-based security server LXD-containers is a child group to the security server group `[ss_servers]` and can be omitted entirely if you have no use for RHEL containers or are using the ee-variant.
+inventory files. For example, the group `[rhel_ss]` for RHEL-based security server LXD-containers is a child group to the security server group `[ss_servers]` and can be omitted entirely if you have no use for RHEL containers or are using a variant that has no RHEL package.
 #### Variant
 
 When installing security servers, the Ansible playbooks use the configuration variable `variant`
@@ -40,7 +40,7 @@ The recommended place for defining a different variant is the inventory file. Fo
 xrd-ss0 ansible_connection=lxd variant=fo
 ```
 
-The hurl step always checks through the admin API that ss0 reports a parameter from the country profile of its variant, so ss0 must run a country variant (the example inventories use `fo`).
+The hurl step always checks through the admin API that ss0 reports a parameter from the country profile of its variant, so ss0 must run a country variant. The playbook stops in its pre-flight checks when ss0 runs the `vanilla` variant. The inventories in `scripts/env-lxd/config/` set `variant=fo` on ss0.
 
 While it is possible to define different variants for different security servers, it is worth noting that upgrading from one variant to another is not supported.
 

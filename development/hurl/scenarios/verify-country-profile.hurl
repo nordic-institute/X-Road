@@ -1,12 +1,10 @@
 # Verify that ss0 runs with the country profile ss0_country_profile (country code, e.g. FO): at least one system
 # parameter reports that profile as its source.
 # Run after setup.hurl: run-hurl.sh concatenates the scenario files in file name order.
-# A failed assertion fails at once: the requests set retry to 0 over the runner's retry option.
+# A failed assertion fails at once: the assertion request sets retry to 0 over the runner's retry option.
 
 # Log in to ss0
 POST https://{{ss0_host}}:4000/login
-[Options]
-retry: 0
 [FormParams]
 username: {{ui_username}}
 password: {{ui_password}}

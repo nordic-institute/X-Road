@@ -228,6 +228,8 @@ Issue the following command to install the Security Server packages:
 sudo apt install xroad-securityserver
 ```
 
+To use a country profile, install a country package instead. See [2.6.2 Country profile](#262-country-profile).
+
 Upon the first installation of the packages, the system asks for the following information.
 
 * Account name for the user who will be granted the rights to perform all activities in the user interface (**reference data: 1.4**).
@@ -277,22 +279,20 @@ The profile files are in the X-Road source code, in the directory `src/lib/prope
 To use a country profile, install the country package `xroad-securityserver-<cc>` in place of the base package `xroad-securityserver`. Here `<cc>` is the lower case country code. To list the available country packages, run:
 
 ```bash
-# Ubuntu
 apt-cache search xroad-securityserver-
-# RHEL
-dnf search xroad-securityserver-
 ```
 
 Then install the package of your country. For example:
 
 ```bash
-# Ubuntu
 sudo apt install xroad-securityserver-<cc>
-# RHEL
-sudo dnf install xroad-securityserver-<cc>
 ```
 
 A country package installs `xroad-securityserver` and `xroad-opmonitor`, so no other package is needed. The same command adds a country profile to a server that has only the base package. Only one country package can be installed on a server. On the first installation of a country package, the X-Road services are restarted so that they load the profile.
+
+If you remove a country package, the X-Road services keep the profile until their next restart.
+
+The country profile is not part of the configuration backup. To restore a backup on a server that must use a country profile, install the same country package on that server before the restore.
 
 The value of a system parameter comes from the first of these sources that has a value:
 
@@ -300,15 +300,13 @@ The value of a system parameter comes from the first of these sources that has a
 2. The value of the country profile.
 3. The default value of X-Road.
 
-To see where a value comes from, open **Settings > System Parameters** in the admin user interface. The **Current Value** column shows the value that the server uses. The **Source** column shows its origin:
+To see where a value comes from, open **Settings > System Parameters** in the admin user interface. The **Current Value** column shows the value that the server uses after the restart that the user interface asks for when you save a change. The **Source** column shows its origin:
 
 | Source                 | Meaning                                                    |
 |------------------------|------------------------------------------------------------|
 | `Database`             | A value that an operator saved for the system parameter.   |
 | `Country profile <CC>` | The value of the profile of the installed country package. |
 | `Default`              | The default value of X-Road.                               |
-
-A profile can also set a system parameter that the admin user interface does not list. The server uses that value, but the Source column does not show it.
 
 ### 2.7 Post-Installation Checks
 

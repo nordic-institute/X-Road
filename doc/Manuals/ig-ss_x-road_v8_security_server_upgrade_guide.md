@@ -14,7 +14,7 @@ Doc. ID: IG-SS-8-UPGRADE
 | 19.05.2026 | 1.0     | Initial version                                                            | Egidijus Milierius |
 | 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables | Marc David         |
 | 19.10.2026 | 1.2     | Added the operational monitoring changes: settings migration, add-on flag, op-monitor package upgrade and TLS files | Eneli Reimets      |
-| 17.11.2026 | 1.3     | Documented that edits in `override-securityserver-*.ini` are not migrated, the combined package upgrade command and the batch signing prompt for country profiles | Ričardas Bučiūnas  |
+| 17.11.2026 | 1.3     | Country package settings edits, combined package upgrade command, batch signing prompt for country profiles | Ričardas Bučiūnas  |
 
 ## License
 
@@ -211,7 +211,7 @@ The wizard runs thirteen ordered steps and three sub-steps, 6a, 6b and 11a. Each
 | 5   | **PostgreSQL pre-flight**             | Parses the migrated `db.properties`, connects to the `serverconf` database, verifies PostgreSQL major version ≥ 15.                                                                                                                                                                                                   |
 | 6   | **OpenBao repository setup**          | Adds the OpenBao apt/yum repository so the 8.0 packages can pull in OpenBao dependencies.                                                                                                                                                                                                                             |
 | 6a  | **Record op-monitor state**           | Before the services stop, records once in `/var/lib/xroad-upgrade/op-monitor.state` whether the X-Road 7.8 operational monitoring add-on is enabled (its add-on configuration file is present) and whether the `xroad-opmonitor` package is installed. A resumed run reuses the stored state.                         |
-| 6b  | **Record country package**            | Before the services stop, records once in `/var/lib/xroad-upgrade/country-package.state` which country package (`xroad-securityserver-<cc>`) is installed, or `none`. A resumed run reuses the stored state.                                                                                     |
+| 6b  | **Record country package**            | Before the services stop, records once in `/var/lib/xroad-upgrade/country-package.state` which country package (`xroad-securityserver-<cc>`) is installed, or `none`. A resumed run reuses the stored state. The step stops when more than one country package is installed.                                                                                     |
 | 7   | **Stop X-Road services**              | Discovers all active `xroad-*` units via `systemctl` and stops each one, waiting up to 60 s per service to reach inactive state.                                                                                                                                                                                      |
 | 8   | **Switch to V8 repository**           | Backs up the existing X-Road sources file(s) with a `.v7.bak.<timestamp>` suffix, writes the V8 sources file, imports the V8 GPG key, refreshes package metadata.                                                                                                                                                     |
 | 9   | **Upgrade packages**                  | Runs `apt-get install -y` / `dnf install -y` for the package named by `XROAD_SS_PACKAGE` (default `xroad-securityserver`). When `xroad-opmonitor` was installed in 7.8, it is installed in the same command and the step fails unless it is at 8.x afterwards, so the proxy and op-monitor are upgraded together. The country package recorded in step 6b is handled the same way, so the server keeps its country profile.     |
@@ -253,7 +253,7 @@ Inspect the wizard log for any Java stack traces. Migration-CLI sub-commands som
 
 An X-Road 7.8 country package keeps its settings in `/etc/xroad/conf.d/override-securityserver-<cc>.ini`. X-Road 8 takes these values from the country profile in the product. The wizard installs the country package that step 6b recorded, so the server keeps its country profile.
 
-The wizard does not migrate edits that you made in `override-securityserver-*.ini`. The `ini-to-db` sub-step writes a warning that names the file and skips it. Step 13 later removes the file, and the `/etc/xroad` snapshot from step 3 keeps a copy.
+The wizard does not migrate edits that you made in `override-securityserver-*.ini`. The wizard skips this file and writes an information message to the log. Step 13 can remove the file, and the `/etc/xroad` snapshot from step 3 keeps a copy.
 
 Enter each edited value again as a system parameter, in the admin UI (**Settings > System Parameters**) or from the command line:
 

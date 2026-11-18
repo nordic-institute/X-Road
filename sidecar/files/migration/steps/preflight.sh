@@ -2,7 +2,7 @@
 #
 # Migration step 1: refuses to start unless the 7.8 configuration volume is
 # present and on 7.8.3 (with any package suffix, e.g. 7.8.3-1.ubuntu24.04),
-# the target configuration volume is unused, the country variant matches and
+# the target configuration volume is unused, the country matches and
 # XROAD_MIGRATION_SOFTTOKEN_PIN is given. Writes nothing.
 
 migration_preflight_check_source_version() {
@@ -43,7 +43,7 @@ migration_preflight_check_target_config_empty() {
 }
 
 # The 7.8 source country is the suffix of its override-securityserver-<country>.ini.
-migration_preflight_detect_source_variant() {
+migration_preflight_detect_source_country() {
   local f
   f="$(compgen -G "$SOURCE_CONFIG_DIR/conf.d/override-securityserver-*.ini" | head -1)"
   [[ -n "$f" ]] || return 1
@@ -52,18 +52,18 @@ migration_preflight_detect_source_variant() {
 }
 
 # The target country is the one the image bakes into XROAD_COUNTRY_PROFILE.
-migration_preflight_detect_target_variant() {
+migration_preflight_detect_target_country() {
   [[ -n "${XROAD_COUNTRY_PROFILE:-}" ]] || return 1
   echo "$XROAD_COUNTRY_PROFILE" | tr '[:upper:]' '[:lower:]'
 }
 
-migration_preflight_check_country_variant() {
-  local source_variant target_variant
-  source_variant="$(migration_preflight_detect_source_variant)" || source_variant=""
-  target_variant="$(migration_preflight_detect_target_variant)" || target_variant=""
+migration_preflight_check_country() {
+  local source_country target_country
+  source_country="$(migration_preflight_detect_source_country)" || source_country=""
+  target_country="$(migration_preflight_detect_target_country)" || target_country=""
 
-  if [[ "$source_variant" != "$target_variant" ]]; then
-    STEP_REASON="country variant mismatch: the source is ${source_variant:-the regular (non-variant) image} and the target is ${target_variant:-the regular (non-variant) image}"
+  if [[ "$source_country" != "$target_country" ]]; then
+    STEP_REASON="country mismatch: the source has ${source_country:-no country} and the target has ${target_country:-no country}"
     return 1
   fi
   return 0
@@ -79,7 +79,7 @@ migration_preflight_check_softtoken_pin() {
 step_preflight() {
   migration_preflight_check_source_version || return 1
   migration_preflight_check_target_config_empty || return 1
-  migration_preflight_check_country_variant || return 1
+  migration_preflight_check_country || return 1
   migration_preflight_check_softtoken_pin || return 1
   return 0
 }

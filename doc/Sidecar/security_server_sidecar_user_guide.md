@@ -137,7 +137,7 @@ The following parameters are used in example commands:
 | \<container name>                   | Name of the Security Server Sidecar container                                                                                     |
 | \<admin port>                       | Port for admin user interface (default 4000)                                                                                      |
 | \<healthcheck port>                 | Port for service health check (default 5588)                                                                                      |
-| \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https); a country profile can change them, see [2.13 Country Profile](#213-country-profile)) |
+| \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https))                                                              |
 | \<admin user>                       | Admin username                                                                                                                    |
 | \<admin password>                   | Admin password                                                                                                                    |
 | \<database host>                    | (Optional) host for external database                                                                                             |
@@ -175,7 +175,6 @@ Notes:
 * The inbound ports 5500/tcp and 5577/tcp for communicating with other Security Servers must be published to the same ports on the host (or the public interface if NAT/firewall is in use)
   * If the Security Server is only consuming services, it is not necessary to publish ports 5500 and 5577.
 * 4000, 8080, 8443 should be only accessible to internal clients (can be mapped to other ports)
-  * A country profile can change the consumer information system ports. Publish the ports that the server uses, see [2.13 Country Profile](#213-country-profile).
 
 See also [Docker Networking](https://docs.docker.com/network/)
 
@@ -226,8 +225,6 @@ docker run --detach \
   # Optional parameters - END
   niis/xroad-security-server-sidecar:<version[-type[-variant]]>
 ```
-
-The `-p <consumer information system port>:8443` option publishes the default https port of the consumer information system. When a country profile changes the port, publish the port that the server uses, see [2.13 Country Profile](#213-country-profile).
 
 Hash for admin user can be generated with multiple tools. Note that yescrypt ( `$y$xxxx` ) hash is not supported in older xroad images.
 A SHA512 hash can be generated with `mkpasswd -m SHA-512` or with docker command `docker run --rm -it docker.io/serversideup/mkpasswd -m SHA-512`
@@ -505,7 +502,9 @@ with `./entrypoint.d/10-seed-config.sh` executable on the host and containing th
 
 ### 2.13 Country Profile
 
-A country profile is a set of default values for system parameters that fit the rules of one country. The profiles are part of the image. The profile files are in the X-Road source code, in the directory `src/lib/properties-core/src/main/resources/xroad-config/country-profile/`. There is one YAML file for each profile, named `<CC>.yaml`, where `<CC>` is the upper case country code. The files define the values of the profiles. For the order of precedence and the **Source** column of the admin user interface, see section [2.6.2](../Manuals/ig-ss_x-road_v8_security_server_installation_guide.md#262-country-profile) of the Security Server Installation Guide: a value that you save as a system parameter always wins over the country profile.
+The profiles are part of the image. For the definition of a country profile, the order of precedence and the **Source** column of the admin user interface, see section [2.6.2](../Manuals/ig-ss_x-road_v8_security_server_installation_guide.md#262-country-profile) of the Security Server Installation Guide. A value that you save as a system parameter always wins over the country profile.
+
+The profile files are in the X-Road source code, in the directory `src/lib/properties-core/src/main/resources/xroad-config/country-profile/`. There is one YAML file for each profile, named `<CC>.yaml`, where `<CC>` is the upper case country code.
 
 To choose a country profile, do one of the following:
 
@@ -517,7 +516,9 @@ To choose a country profile, do one of the following:
 
 A value that is not a country code stops the start of the X-Road services. The log names the supported country codes. Without `XROAD_COUNTRY_PROFILE`, the Sidecar uses only the default values of X-Road.
 
-Some country profiles have a Sidecar-specific file, named `<CC>-sidecar.yaml`. The Sidecar image sets `XROAD_DEPLOYMENT_VARIANT=sidecar`, and the Sidecar then uses this file instead of `<CC>.yaml`. A profile without a Sidecar-specific file uses `<CC>.yaml`. Do not change `XROAD_DEPLOYMENT_VARIANT`: any value other than `sidecar` stops the start of the X-Road services.
+The country profile is not part of the configuration backup. To restore a backup, use the image of the same country, or start the container with the same `XROAD_COUNTRY_PROFILE`.
+
+Some country profiles have a Sidecar-specific file, named `<CC>-sidecar.yaml`. The Sidecar image sets `XROAD_DEPLOYMENT_VARIANT=sidecar`, and the Sidecar then uses this file instead of `<CC>.yaml`. A profile without a Sidecar-specific file uses `<CC>.yaml`. Do not change `XROAD_DEPLOYMENT_VARIANT`. When a country profile is selected, any value other than `sidecar` (in upper or lower case) stops the start of the X-Road services.
 
 The default ports of the Client Proxy for consumer information systems are 8080 (http) and 8443 (https). A country profile can change these ports. Publish the ports that the server uses. To see them, open **Settings > System Parameters** in the admin user interface.
 
@@ -706,7 +707,7 @@ Check that:
 * The Sidecar runs version 7.8.3. Migration mode refuses any other version, so upgrade an older Sidecar to 7.8.3 first.
 * The 7.8.3 Sidecar has a volume mounted at `/etc/xroad`.
 * You have the PIN of the software token.
-* You use the 8.0.0 image with the same country variant as the 7.8.3 image, or the image without a variant if the 7.8.3 image had none. X-Road 8 has no `slim` image: a `slim` 7.8.3 Sidecar image migrates to the 8.0.0 image without including message logging or environmental and operational monitoring.
+* You use the 8.0.0 image with the same country variant as the 7.8.3 image, or the image without a variant if the 7.8.3 image had none. If you use the image without a variant for a 7.8.3 image that had a country variant, pass `-e XROAD_COUNTRY_PROFILE=<CC>` with the country code of the 7.8.3 image in the migration command. X-Road 8 has no `slim` image: a `slim` 7.8.3 Sidecar image migrates to the 8.0.0 image without including message logging or environmental and operational monitoring.
 * You know that edits in the `override-securityserver-<cc>.ini` file of the 7.8.3 Sidecar are not migrated. After the migration, enter them again as system parameters, as in [2.13 Country Profile](#213-country-profile).
 
 In the commands below, `<7.8.3 config volume name>` and `<7.8.3 archive volume name>` are the volumes the 7.8.3 Sidecar mounted at `/etc/xroad` and `/var/lib/xroad`. If the 7.8.3 Sidecar had no volume at `/var/lib/xroad`, use a new volume instead. `<new config volume name>` and `<new database volume name>` are new volumes and must not exist yet.
@@ -904,7 +905,7 @@ For each reason below, fix the cause, then retry as described in [Retrying a fai
 
 * `source configuration version is <version>, not 7.8.3: upgrade to 7.8.3 first`: upgrade the 7.8 Sidecar to 7.8.3, then migrate.
 * `7.8 configuration volume is not mounted: /mnt/migration-source/etc/xroad is missing or empty`: mount the 7.8.3 configuration volume as in the migration command.
-* `country variant mismatch`: use the 8.0.0 image with the variant of the 7.8.3 image.
+* `country mismatch`: use the 8.0.0 image with the country of the 7.8.3 image, or pass `-e XROAD_COUNTRY_PROFILE=<CC>` with that country code when you use the image without a variant.
 * `XROAD_MIGRATION_SOFTTOKEN_PIN is not set`: add the variable as in the migration command.
 * `migration CLI steps failed`, with `No ACME account keystore password found` earlier in the log: add `ACCOUNT_KEYSTORE_PASSWORD` as in [Migration command additions](#migration-command-additions).
 * `target volume /etc/xroad is not empty`: the volumes hold a previous attempt.
