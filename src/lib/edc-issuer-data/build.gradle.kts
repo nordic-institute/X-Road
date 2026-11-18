@@ -10,6 +10,7 @@ dependencies {
   implementation(libs.quarkus.caffeine)
   implementation(libs.edc.spi.core)
   implementation(libs.edc.lib.core)
+  implementation(libs.edc.ih.identity.did.web)
   implementation(libs.okhttp)
   implementation("tools.jackson.core:jackson-databind")
 

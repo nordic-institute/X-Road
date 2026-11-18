@@ -31,6 +31,7 @@ import com.github.benmanes.caffeine.cache.Ticker;
 import liquibase.Scope;
 import liquibase.command.CommandScope;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListCredential;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreFailure;
@@ -49,6 +50,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
@@ -69,6 +71,8 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Runs the store and the last good source against a real Postgres with the real Liquibase changelogs of the control
@@ -85,6 +89,7 @@ class IssuerDataStorePostgresTest {
     private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
     private static final Duration MAXIMUM_AGE = Duration.ofSeconds(120);
     private static final Duration REFRESH_WAIT = Duration.ofMillis(100);
+    private static final Duration DID_DEADLINE = MAXIMUM_AGE;
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
 
@@ -265,6 +270,49 @@ class IssuerDataStorePostgresTest {
     }
 
     @Test
+    void shouldServeStatusListAndDidDocumentAfterRestartDuringFullIssuerOutage() {
+        try (var issuer = new FakeIssuer()) {
+            issuer.publishStatusList(Set.of(), null);
+            var statusListUrl = issuer.statusListUrl();
+            assertThat(instanceOf(issuer).statusList().lookup(statusListUrl).succeeded()).isTrue();
+            assertThat(controlPlane.store.read(IssuerDataKind.DID, issuer.did()).succeeded()).isTrue();
+            issuer.down(true);
+            var restarted = instanceOf(issuer);
+
+            clock.set(START.plus(DID_DEADLINE).minusSeconds(20));
+            assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
+            assertThat(restarted.did().lookup(issuer.did()).succeeded()).isTrue();
+
+            clock.set(START.plus(DID_DEADLINE).minusSeconds(4));
+            var expired = restarted.did().lookup(issuer.did());
+            assertThat(expired.failed()).isTrue();
+            assertThat(expired.isRetryable()).isTrue();
+        }
+    }
+
+    @Test
+    void shouldNotServeStatusListWithoutDidDocumentCopyAndReplaceItOnceIssuerAnswers() throws SQLException {
+        try (var issuer = new FakeIssuer()) {
+            issuer.publishStatusList(Set.of(), null);
+            var statusListUrl = issuer.statusListUrl();
+            assertThat(instanceOf(issuer).statusList().lookup(statusListUrl).succeeded()).isTrue();
+            controlPlane.execute("DELETE FROM xroad_issuer_data WHERE kind = ? AND key = ?", IssuerDataKind.DID.name(), issuer.did());
+            issuer.down(true);
+            var restarted = instanceOf(issuer);
+
+            clock.set(START.plusSeconds(10));
+            assertThat(restarted.statusList().lookup(statusListUrl).failed()).isTrue();
+
+            issuer.down(false);
+            clock.set(START.plus(CACHE_TIME).plus(LastGoodSource.MAXIMUM_BACKOFF));
+            assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
+            assertThat(controlPlane.store.read(IssuerDataKind.STATUSLIST, statusListUrl).getContent().fetchedAt())
+                    .isEqualTo(clock.instant());
+            assertThat(controlPlane.store.read(IssuerDataKind.DID, issuer.did()).succeeded()).isTrue();
+        }
+    }
+
+    @Test
     void shouldTreatCorruptRowAsNoCopyAndReplaceItWithNextSuccessfulFetch() throws SQLException {
         fakeSource(new FakeFetcher(), clock).lookup(key);
         controlPlane.execute("UPDATE xroad_issuer_data SET payload = ? WHERE key = ?", FakeFetcher.CORRUPT, key);
@@ -354,6 +402,28 @@ class IssuerDataStorePostgresTest {
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
         return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, MAXIMUM_ENTRIES,
                 IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get, controlPlane.store, monitor);
+    }
+
+    private Instance instanceOf(FakeIssuer issuer) {
+        var globalConf = mock(GlobalConfProvider.class);
+        when(globalConf.getInstanceIdentifier()).thenReturn("DEV");
+        when(globalConf.getCredentialIssuerDids("DEV")).thenReturn(Set.of(issuer.did()));
+
+        var didSource = new AtomicReference<LastGoodSource<DidDocument>>();
+        var stack = EdcTestStack.create((stockResolver, didFetcher) -> {
+            didSource.set(new LastGoodSource<>(didFetcher, clock, Ticker.disabledTicker(),
+                    Runnable::run, Duration.ZERO, MAXIMUM_ENTRIES, IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get,
+                    controlPlane.store, monitor));
+            return new IssuerDidResolver(stockResolver, didSource.get(), globalConf);
+        });
+        var fetcher = new BitstringStatusListFetcher(stack.mapper(), List.of("*/*"), stack.httpClient(),
+                stack.tokenValidationService(), stack.didPublicKeyResolver());
+        var statusList = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME,
+                MAXIMUM_ENTRIES, IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get, controlPlane.store, monitor);
+        return new Instance(statusList, didSource.get());
+    }
+
+    private record Instance(LastGoodSource<BitstringStatusListCredential> statusList, LastGoodSource<DidDocument> did) {
     }
 
     private static void applyChangelog(String jdbcUrl, String changelog) throws Exception {

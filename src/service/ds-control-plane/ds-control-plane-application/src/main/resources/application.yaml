@@ -58,11 +58,13 @@ xroad:
       # the delegate store class and dialect statements remain usable.
       # SqlSchemaBootstrapperExtension is excluded so that no EDC code can create tables;
       # XRoadNoOpSqlSchemaBootstrapperExtension provides the SqlSchemaBootstrapper the SQL stores inject.
+      # WebDidExtension is excluded so that IssuerDataExtension registers the only web DID resolver.
       excluded-service-extensions: >-
         org.eclipse.edc.signaling.DataPlaneSignalingApiExtension,
         org.eclipse.edc.web.jetty.JettyExtension,
         org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension,
-        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension
+        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension,
+        org.eclipse.edc.iam.did.web.WebDidExtension
   ds:
     rpc:
       host: "0.0.0.0"

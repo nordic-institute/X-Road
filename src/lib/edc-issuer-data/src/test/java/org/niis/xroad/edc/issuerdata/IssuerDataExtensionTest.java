@@ -28,6 +28,8 @@
 package org.niis.xroad.edc.issuerdata;
 
 import com.github.benmanes.caffeine.cache.Ticker;
+import org.eclipse.edc.iam.did.resolution.DidResolverRegistryImpl;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.RevocationServiceRegistryImpl;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring.BitstringStatusListRevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
@@ -89,6 +91,7 @@ class IssuerDataExtensionTest {
     private final RevocationListService statusList2021Service = mock(RevocationListService.class);
     private final GlobalConfProvider globalConf = mock(GlobalConfProvider.class);
     private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
+    private final DidResolverRegistry didResolvers = mock(DidResolverRegistry.class);
     private final List<IssuerDataExtension> extensions = new ArrayList<>();
     private FakeIssuer issuer;
 
@@ -153,8 +156,8 @@ class IssuerDataExtensionTest {
         when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
                 .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
         issuer.down(true);
-        var fresh = newExtension(freshRegistry, typeManager, stack, freshGlobalConf, freshDataSources, Clock.systemUTC(),
-                Ticker.systemTicker());
+        var fresh = newExtension(freshRegistry, typeManager, stack, mock(DidResolverRegistry.class), freshGlobalConf,
+                freshDataSources, Clock.systemUTC(), Ticker.systemTicker());
         extensions.add(fresh);
         fresh.initialize(context);
         verifyNoInteractions(freshDataSources, freshGlobalConf);
@@ -187,6 +190,33 @@ class IssuerDataExtensionTest {
         var result = idleRegistry.checkValidity(credential);
 
         assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void shouldRegisterResolverThatServesLastGoodIssuerDidDocumentWhileIssuerIsDown() {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        var realDidResolvers = new DidResolverRegistryImpl(Clock.systemUTC(), 0);
+        var stack = EdcTestStack.create();
+        var typeManager = mock(TypeManager.class);
+        when(typeManager.getMapper()).thenReturn(stack.mapper());
+        var context = mock(ServiceExtensionContext.class);
+        when(context.getMonitor()).thenReturn(mock(Monitor.class));
+        when(context.getSetting(eq(IssuerDataExtension.CACHE_VALIDITY_SETTING), anyLong())).thenReturn(0L);
+        when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
+                .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
+        var extension = newExtension(new RevocationServiceRegistryImpl(mock(Monitor.class)), typeManager, stack,
+                realDidResolvers, globalConf, dataSourceRegistry, Clock.systemUTC(), Ticker.systemTicker());
+        extensions.add(extension);
+
+        extension.initialize(context);
+
+        assertThat(realDidResolvers.resolve(issuer.did()).succeeded()).isTrue();
+        issuer.down(true);
+
+        var duringOutage = realDidResolvers.resolve(issuer.did());
+
+        assertThat(duringOutage.succeeded()).isTrue();
+        assertThat(duringOutage.getContent().getId()).isEqualTo(issuer.did());
     }
 
     @Test
@@ -249,19 +279,21 @@ class IssuerDataExtensionTest {
         when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
                 .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
 
-        var extension = newExtension(target, typeManager, stack, globalConf, dataSourceRegistry, clock, ticker);
+        var extension = newExtension(target, typeManager, stack, didResolvers, globalConf, dataSourceRegistry, clock,
+                ticker);
         extensions.add(extension);
         extension.initialize(context);
     }
 
     private static IssuerDataExtension newExtension(RevocationServiceRegistry revocationServiceRegistry,
                                                     TypeManager typeManager, EdcTestStack stack,
+                                                    DidResolverRegistry didResolvers,
                                                     GlobalConfProvider globalConfProvider,
                                                     DataSourceRegistry dataSources, Clock clock, Ticker ticker) {
         return new IssuerDataExtension(revocationServiceRegistry, typeManager, stack.httpClient(),
-                stack.tokenValidationService(), stack.didPublicKeyResolver(), globalConfProvider, dataSources,
-                new NoopTransactionContext(), mock(QueryExecutor.class), ExecutorInstrumentation.noop(), null, null,
-                clock, ticker);
+                stack.tokenValidationService(), stack.didPublicKeyResolver(), didResolvers, globalConfProvider,
+                dataSources, new NoopTransactionContext(), mock(QueryExecutor.class), ExecutorInstrumentation.noop(),
+                null, null, clock, ticker);
     }
 
     private CredentialStatus bitstringStatus() {

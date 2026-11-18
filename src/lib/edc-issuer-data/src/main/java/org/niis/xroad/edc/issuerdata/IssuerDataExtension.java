@@ -33,6 +33,8 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.iam.did.web.resolution.WebDidResolver;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -60,8 +62,9 @@ import static org.niis.xroad.edc.issuerdata.IssuerDataExtension.NAME;
 
 /**
  * Replaces the stock bitstring status list revocation service with one that serves the last good status list
- * while the issuer does not answer, also after a restart. The last good copies are kept in the default data source.
- * The stock cache time and accepted content type settings keep their meaning.
+ * while the issuer does not answer, also after a restart. It replaces the stock {@code web} DID resolver the same
+ * way for the credential issuer DIDs of the own instance. The last good copies are kept in the default data source.
+ * The stock cache time, accepted content type, DID over HTTPS and DNS over HTTPS settings keep their meaning.
  */
 @Extension(NAME)
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
@@ -73,7 +76,10 @@ public class IssuerDataExtension implements ServiceExtension {
     static final String CONTENT_TYPES_SETTING = "edc.iam.credential.revocation.mimetype";
     static final long DEFAULT_CACHE_VALIDITY_MILLIS = 15 * 60 * 1000L;
     static final String DEFAULT_CONTENT_TYPES = "*/*";
+    static final String WEB_DID_HTTPS_SETTING = "edc.iam.did.web.use.https";
+    static final String WEB_DID_DOH_SETTING = "edc.webdid.doh.url";
     static final long MAXIMUM_STATUS_LISTS = 128;
+    static final long MAXIMUM_ISSUER_DIDS = 32;
     static final Duration IDLE_EXPIRY = Duration.ofMinutes(30);
     static final String REFRESH_THREAD_PREFIX = "xroad-issuer-data-refresh-";
 
@@ -91,6 +97,9 @@ public class IssuerDataExtension implements ServiceExtension {
 
     @Inject
     private DidPublicKeyResolver didPublicKeyResolver;
+
+    @Inject
+    private DidResolverRegistry didResolverRegistry;
 
     @Inject
     private GlobalConfProvider globalConfProvider;
@@ -139,6 +148,15 @@ public class IssuerDataExtension implements ServiceExtension {
         revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(
                 mapper, contentTypes, httpClient, tokenValidationService, didPublicKeyResolver, source));
         availabilityRule = new IssuerStatusListAvailabilityRule(globalConfProvider, source);
+
+        var didHttpClient = didHttpClient(context);
+        var useHttps = context.getSetting(WEB_DID_HTTPS_SETTING, true);
+        var stockResolver = new WebDidResolver(didHttpClient, useHttps, mapper, monitor);
+        var didFetcher = new DidDocumentFetcher(didHttpClient, new DidWebUrl(useHttps), mapper);
+        var didSource = new LastGoodSource<>(didFetcher, clock, ticker,
+                refreshExecutor, Duration.ZERO, MAXIMUM_ISSUER_DIDS, IDLE_EXPIRY,
+                LastGoodSource.REFRESH_WAIT, maximumAge(globalConfProvider), store, monitor);
+        didResolverRegistry.register(new IssuerDidResolver(stockResolver, didSource, globalConfProvider));
     }
 
     @Provider
@@ -151,6 +169,11 @@ public class IssuerDataExtension implements ServiceExtension {
         if (refreshExecutor != null) {
             refreshExecutor.shutdownNow();
         }
+    }
+
+    private EdcHttpClient didHttpClient(ServiceExtensionContext context) {
+        var dohUrl = context.getSetting(WEB_DID_DOH_SETTING, null);
+        return dohUrl == null || dohUrl.isEmpty() ? httpClient : httpClient.withDns(dohUrl);
     }
 
     static Supplier<Result<Duration>> maximumAge(GlobalConfProvider globalConf) {

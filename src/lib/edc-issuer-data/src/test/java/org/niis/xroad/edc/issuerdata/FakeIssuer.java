@@ -73,7 +73,9 @@ class FakeIssuer implements AutoCloseable {
     private final AtomicBoolean statusListRefused = new AtomicBoolean();
     private final AtomicInteger statusListRequests = new AtomicInteger();
     private final AtomicReference<String> statusListJwt = new AtomicReference<>();
-    private final String didDocument;
+    private final AtomicReference<String> didDocument = new AtomicReference<>();
+    private final AtomicInteger didDocumentRequests = new AtomicInteger();
+    private final AtomicBoolean didDocumentRefused = new AtomicBoolean();
 
     FakeIssuer() {
         try {
@@ -85,20 +87,16 @@ class FakeIssuer implements AutoCloseable {
         var port = server.getAddress().getPort();
         did = "did:web:localhost%3A" + port + ":issuer";
         statusListUrl = "http://localhost:" + port + "/issuer/statuslist/1";
-        didDocument = """
-                {
-                  "@context": ["https://www.w3.org/ns/did/v1"],
-                  "id": "%s",
-                  "verificationMethod": [{
-                    "id": "%s#key-1",
-                    "type": "JsonWebKey2020",
-                    "controller": "%s",
-                    "publicKeyJwk": %s
-                  }],
-                  "authentication": ["%s#key-1"]
-                }
-                """.formatted(did, did, did, signingKey.toPublicJWK().toJSONString(), did);
-        server.createContext("/issuer/did.json", exchange -> answer(exchange, didDocument, false));
+        didDocument.set(didDocumentWithKey("key-1", signingKey));
+        server.createContext("/issuer/did.json", exchange -> {
+            didDocumentRequests.incrementAndGet();
+            if (didDocumentRefused.get()) {
+                exchange.sendResponseHeaders(404, -1);
+                exchange.close();
+                return;
+            }
+            answer(exchange, didDocument.get(), false);
+        });
         server.createContext("/issuer/statuslist/1", exchange -> answer(exchange, statusListJwt.get(), true));
         server.start();
     }
@@ -113,6 +111,42 @@ class FakeIssuer implements AutoCloseable {
 
     int statusListRequests() {
         return statusListRequests.get();
+    }
+
+    int didDocumentRequests() {
+        return didDocumentRequests.get();
+    }
+
+    /**
+     * The DID document exactly as the issuer serves it.
+     */
+    String didDocumentJson() {
+        return didDocument.get();
+    }
+
+    /**
+     * The public key of the signing key pair, as the DID document of this issuer lists it at the start.
+     */
+    Map<String, Object> signingPublicJwk() {
+        return signingKey.toPublicJWK().toJSONObject();
+    }
+
+    /**
+     * Makes the DID document answer 404.
+     */
+    void didDocumentRefused(boolean value) {
+        didDocumentRefused.set(value);
+    }
+
+    /**
+     * Replaces the published DID document with one that lists only the given key id, backed by a new key pair.
+     */
+    void publishDidDocumentWithOnlyKey(String keyId) {
+        try {
+            didDocument.set(didDocumentWithKey(keyId, new ECKeyGenerator(Curve.P_256).keyID(keyId).generate()));
+        } catch (JOSEException e) {
+            throw new IllegalStateException("Fake issuer could not create a key", e);
+        }
     }
 
     void down(boolean value) {
@@ -177,6 +211,22 @@ class FakeIssuer implements AutoCloseable {
                 }
                 """.formatted(statusListUrl, did, validUntilField, statusListUrl, encoded);
         statusListJwt.set(sign(JsonMapper.builder().build().readValue(credential, Map.class), null));
+    }
+
+    private String didDocumentWithKey(String keyId, ECKey key) {
+        return """
+                {
+                  "@context": ["https://www.w3.org/ns/did/v1"],
+                  "id": "%s",
+                  "verificationMethod": [{
+                    "id": "%s#%s",
+                    "type": "JsonWebKey2020",
+                    "controller": "%s",
+                    "publicKeyJwk": %s
+                  }],
+                  "authentication": ["%s#%s"]
+                }
+                """.formatted(did, did, keyId, did, key.toPublicJWK().toJSONString(), did, keyId);
     }
 
     private String sign(Map<?, ?> credential, String subject) {

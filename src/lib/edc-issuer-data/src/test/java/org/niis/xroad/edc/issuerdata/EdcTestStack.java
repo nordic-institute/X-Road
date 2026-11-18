@@ -34,6 +34,7 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.edc.iam.did.resolution.DidResolverRegistryImpl;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolver;
 import org.eclipse.edc.iam.did.web.resolution.WebDidResolver;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.keys.KeyParserRegistryImpl;
@@ -53,15 +54,36 @@ import static org.mockito.Mockito.mock;
 record EdcTestStack(ObjectMapper mapper, EdcHttpClient httpClient, TokenValidationService tokenValidationService,
                     DidPublicKeyResolver didPublicKeyResolver) {
 
+    /**
+     * Builds the resolver that is registered for {@code web} DIDs from the stock resolver and a fetcher of DID
+     * documents over plain HTTP.
+     */
+    interface DidResolverWrapper {
+        DidResolver wrap(DidResolver stockResolver, DidDocumentFetcher fetcher);
+    }
+
     static EdcTestStack create() {
+        return create((resolver, _) -> resolver);
+    }
+
+    static EdcTestStack create(DidResolverWrapper didResolverWrapper) {
         var monitor = mock(Monitor.class);
         var mapper = new JacksonTypeManager().getMapper();
         var httpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), monitor);
         var didResolvers = new DidResolverRegistryImpl(Clock.systemUTC(), 0);
-        didResolvers.register(new WebDidResolver(httpClient, false, mapper, monitor));
+        didResolvers.register(didResolverWrapper.wrap(new WebDidResolver(httpClient, false, mapper, monitor),
+                plainHttpFetcher(httpClient, mapper)));
         var keyParsers = new KeyParserRegistryImpl();
         keyParsers.register(new JwkParser(mapper, monitor));
         return new EdcTestStack(mapper, httpClient, new TokenValidationServiceImpl(),
                 new DidPublicKeyResolverImpl(keyParsers, didResolvers));
+    }
+
+    DidDocumentFetcher didDocumentFetcher() {
+        return plainHttpFetcher(httpClient, mapper);
+    }
+
+    private static DidDocumentFetcher plainHttpFetcher(EdcHttpClient httpClient, ObjectMapper mapper) {
+        return new DidDocumentFetcher(httpClient, new DidWebUrl(false), mapper);
     }
 }
