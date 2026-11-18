@@ -517,21 +517,7 @@ To choose a country profile, do one of the following:
 
 A value that is not a country code stops the start of the X-Road services. The log names the supported country codes. Without `XROAD_COUNTRY_PROFILE`, the Sidecar uses only the default values of X-Road.
 
-`XROAD_COUNTRY_PROFILE_EXCLUDE` is a comma-separated list of system parameter names that the Sidecar removes from the country profile. A removed parameter uses its default value, or the value that you saved for it. For example:
-
-```bash
-  -e XROAD_COUNTRY_PROFILE_EXCLUDE=<system parameter name>,<system parameter name> \
-```
-
-The Sidecar writes a warning to the log for each entry that is not a system parameter of the selected country profile, for example because of a spelling error. It also writes a warning, and ignores the list, when `XROAD_COUNTRY_PROFILE` is not set.
-
-A country image can set `XROAD_COUNTRY_PROFILE_EXCLUDE`. A value that you set for `XROAD_COUNTRY_PROFILE_EXCLUDE` replaces the value of the image, so a custom list must also contain the entries of the image value. To see the value of the image, run:
-
-```bash
-docker inspect --format '{{json .Config.Env}}' niis/xroad-security-server-sidecar:<version>-<variant>
-```
-
-If you use an image without a variant, copy the entries that you need from the value of a country image.
+Some country profiles have a Sidecar-specific file, named `<CC>-sidecar.yaml`. The Sidecar image sets `XROAD_DEPLOYMENT_VARIANT=sidecar`, and the Sidecar then uses this file instead of `<CC>.yaml`. A profile without a Sidecar-specific file uses `<CC>.yaml`. Do not change `XROAD_DEPLOYMENT_VARIANT`: any value other than `sidecar` stops the start of the X-Road services.
 
 The default ports of the Client Proxy for consumer information systems are 8080 (http) and 8443 (https). A country profile can change these ports. Publish the ports that the server uses. To see them, open **Settings > System Parameters** in the admin user interface.
 

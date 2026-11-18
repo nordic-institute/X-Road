@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -75,18 +76,18 @@ class CountryProfileKeysTest {
     }
 
     @ParameterizedTest
-    @MethodSource("supportedProfiles")
-    void everyProfileKeyIsACatalogueKey(String profile) {
-        var keys = CountryProfileLoader.resolve(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profile))
+    @MethodSource("profileEnvironments")
+    void everyProfileKeyIsACatalogueKey(Map<String, String> env) {
+        var keys = CountryProfileLoader.resolve(env)
                 .orElseThrow().values().keySet();
 
         assertThat(keys).isNotEmpty().isSubsetOf(catalogueKeys);
     }
 
     @ParameterizedTest
-    @MethodSource("supportedProfiles")
-    void everyProfileValueIsAcceptedByItsKeyConverterAndValidator(String profile) {
-        var values = CountryProfileLoader.resolve(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profile))
+    @MethodSource("profileEnvironments")
+    void everyProfileValueIsAcceptedByItsKeyConverterAndValidator(Map<String, String> env) {
+        var values = CountryProfileLoader.resolve(env)
                 .orElseThrow().values();
         var keys = new SsConfigurablePropertySource(DeploymentMode.NATIVE, CountryProfile.NONE)
                 .getConfigKeyProviders().stream()
@@ -96,7 +97,7 @@ class CountryProfileKeysTest {
         values.forEach((name, raw) -> {
             var key = keys.get(name);
             if (key != null) {
-                assertThat(validationMessage(key, raw)).as("%s=%s in profile %s", name, raw, profile).isNull();
+                assertThat(validationMessage(key, raw)).as("%s=%s in %s", name, raw, env).isNull();
             }
         });
     }
@@ -106,7 +107,12 @@ class CountryProfileKeysTest {
         return result.valid() ? null : result.message();
     }
 
-    private static List<String> supportedProfiles() {
-        return CountryProfileLoader.SUPPORTED_COUNTRIES;
+    private static List<Map<String, String>> profileEnvironments() {
+        return CountryProfileLoader.SUPPORTED_COUNTRIES.stream()
+                .flatMap(code -> Stream.of(
+                        Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, code),
+                        Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, code,
+                                CountryProfileLoader.VARIANT_ENV_VARIABLE, CountryProfileLoader.SIDECAR_VARIANT)))
+                .toList();
     }
 }

@@ -276,15 +276,19 @@ class ConfigurablePropertiesCatalogueTest {
     }
 
     @Test
-    void excludedProfileKeyReportsDefaultSource() {
-        var dto = propertiesWith(DeploymentMode.NATIVE, Map.of(
-                CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI",
-                CountryProfileLoader.EXCLUDE_ENV_VARIABLE, "xroad.signer.key-length"))
-                .get("xroad.signer.key-length");
+    void sidecarVariantReportsSidecarProfileValues() {
+        var properties = propertiesWith(DeploymentMode.NATIVE, Map.of(
+                CountryProfileLoader.PROFILE_ENV_VARIABLE, "EE",
+                CountryProfileLoader.VARIANT_ENV_VARIABLE, CountryProfileLoader.SIDECAR_VARIANT));
 
-        assertThat(dto.getEffectiveValue()).isEqualTo("2048");
-        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
-        assertThat(dto.getCountryProfile()).isNull();
+        var connectorHost = properties.get("xroad.proxy.client-proxy.connector-host");
+        assertThat(connectorHost.getEffectiveValue()).isEqualTo("0.0.0.0");
+        assertThat(connectorHost.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
+        assertThat(connectorHost.getCountryProfile()).isNull();
+        var keyLength = properties.get("xroad.signer.key-length");
+        assertThat(keyLength.getEffectiveValue()).isEqualTo("3072");
+        assertThat(keyLength.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.COUNTRY_PROFILE);
+        assertThat(keyLength.getCountryProfile()).isEqualTo("EE");
     }
 
     @Test

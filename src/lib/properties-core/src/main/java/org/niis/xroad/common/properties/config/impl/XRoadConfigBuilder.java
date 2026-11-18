@@ -137,8 +137,8 @@ public final class XRoadConfigBuilder {
 
     /**
      * Builds the configuration. The country profile layer is selected by the
-     * {@value CountryProfileLoader#PROFILE_ENV_VARIABLE} environment variable; keys listed in
-     * {@value CountryProfileLoader#EXCLUDE_ENV_VARIABLE} are removed from it.
+     * {@value CountryProfileLoader#PROFILE_ENV_VARIABLE} environment variable; the
+     * {@value CountryProfileLoader#VARIANT_ENV_VARIABLE} environment variable selects the Sidecar file of the profile.
      * @return resolved configuration with values cached at build time
      */
     public XRoadConfig build() {

@@ -27,17 +27,10 @@
 
 package org.niis.xroad.common.properties.config.impl;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,22 +48,9 @@ class CountryProfileLoaderTest {
 
     private static final String PROFILE_DIRECTORY = "xroad-config/country-profile/";
     private static final String INVALID_DIRECTORY = "country-profile-invalid/";
-
-    private Logger logger;
-    private ListAppender<ILoggingEvent> logAppender;
-
-    @BeforeEach
-    void attachLogAppender() {
-        logger = (Logger) LoggerFactory.getLogger(CountryProfileLoader.class);
-        logAppender = new ListAppender<>();
-        logAppender.start();
-        logger.addAppender(logAppender);
-    }
-
-    @AfterEach
-    void detachLogAppender() {
-        logger.detachAppender(logAppender);
-    }
+    private static final String SIDECAR_SUFFIX = "-sidecar.yaml";
+    private static final String CONNECTOR_HOST_KEY = "xroad.proxy.client-proxy.connector-host";
+    private static final String MIN_CLIENT_VERSION_KEY = "xroad.proxy.server.min-supported-client-version";
 
     @Test
     void listsRenderAsCommaSeparatedStrings() {
@@ -117,34 +97,48 @@ class CountryProfileLoaderTest {
     }
 
     @Test
-    void excludeListRemovesNamedKeysAndTrimsEntries() {
-        var all = resolve("FI", null);
+    void sidecarVariantLoadsSidecarFileWithoutConnectorHostAndKeepsCode() {
+        var profile = CountryProfileLoader.resolve(env("EE", CountryProfileLoader.SIDECAR_VARIANT)).orElseThrow();
 
-        var values = resolve("FI", " xroad.signer.key-length , xroad.proxy-ui-api.acme-challenge-port-enabled,, ");
-
-        assertThat(values).hasSize(all.size() - 2)
-                .doesNotContainKeys("xroad.signer.key-length", "xroad.proxy-ui-api.acme-challenge-port-enabled");
-        assertThat(warnings()).isEmpty();
+        assertThat(profile.code()).isEqualTo("EE");
+        assertThat(profile.values())
+                .doesNotContainKey(CONNECTOR_HOST_KEY)
+                .containsEntry("xroad.proxy.client-proxy.client-http-port", "80")
+                .containsEntry("xroad.proxy.client-proxy.client-https-port", "443");
     }
 
     @Test
-    void unmatchedExcludeEntryLogsOneWarningNamingEntryAndProfile() {
-        var all = resolve("FI", null);
-
-        var values = resolve("FI", "xroad.signer.key-length, not.a.key");
-
-        assertThat(values).hasSize(all.size() - 1);
-        assertThat(warnings()).singleElement().satisfies(message ->
-                assertThat(message).contains("'not.a.key'", "FI"));
+    void sidecarVariantWithoutSidecarFileLoadsBaseFile() {
+        assertThat(resolve("FI", CountryProfileLoader.SIDECAR_VARIANT)).isEqualTo(resolve("FI", null));
     }
 
     @Test
-    void excludeListWithoutProfileLogsOneWarningAndSelectsNothing() {
-        var profile = CountryProfileLoader.resolve(Map.of(CountryProfileLoader.EXCLUDE_ENV_VARIABLE, "xroad.signer.key-length"));
+    void withoutVariantNativeFileIsLoaded() {
+        assertThat(resolve("EE", null)).containsEntry(CONNECTOR_HOST_KEY, "127.0.0.1");
+    }
 
-        assertThat(profile).isEmpty();
-        assertThat(warnings()).singleElement().satisfies(message ->
-                assertThat(message).contains(CountryProfileLoader.EXCLUDE_ENV_VARIABLE, "ignored"));
+    @ParameterizedTest
+    @ValueSource(strings = {"", "  "})
+    void blankVariantBehavesAsUnset(String variant) {
+        assertThat(resolve("EE", variant)).isEqualTo(resolve("EE", null));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"native", "../x", "sidecar/../x", "sidecar.yaml"})
+    void unknownVariantIsRejected(String variant) {
+        var env = env("EE", variant);
+
+        assertThatThrownBy(() -> CountryProfileLoader.resolve(env))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unknown deployment variant")
+                .hasMessageContaining(CountryProfileLoader.VARIANT_ENV_VARIABLE);
+    }
+
+    @Test
+    void variantWithoutSelectorSelectsNothing() {
+        var env = Map.of(CountryProfileLoader.VARIANT_ENV_VARIABLE, CountryProfileLoader.SIDECAR_VARIANT);
+
+        assertThat(CountryProfileLoader.resolve(env)).isEmpty();
     }
 
     @Test
@@ -184,21 +178,31 @@ class CountryProfileLoaderTest {
         var uri = directory.toURI();
         if ("jar".equals(uri.getScheme())) {
             try (var jar = FileSystems.newFileSystem(uri, Map.of())) {
-                assertBundledCodesAreSupported(jar.getPath(PROFILE_DIRECTORY));
+                assertBundledFilesAreConsistent(jar.getPath(PROFILE_DIRECTORY));
             }
         } else {
-            assertBundledCodesAreSupported(Path.of(uri));
+            assertBundledFilesAreConsistent(Path.of(uri));
         }
     }
 
-    private static void assertBundledCodesAreSupported(Path directory) throws IOException {
+    private static void assertBundledFilesAreConsistent(Path directory) throws IOException {
         try (var files = Files.list(directory)) {
-            var codes = files.map(file -> file.getFileName().toString())
+            var names = files.map(file -> file.getFileName().toString())
                     .filter(name -> name.endsWith(".yaml"))
+                    .toList();
+            var baseCodes = names.stream()
+                    .filter(name -> !name.endsWith(SIDECAR_SUFFIX))
                     .map(name -> name.substring(0, name.length() - ".yaml".length()))
                     .toList();
+            var sidecarCodes = names.stream()
+                    .filter(name -> name.endsWith(SIDECAR_SUFFIX))
+                    .map(name -> name.substring(0, name.length() - SIDECAR_SUFFIX.length()))
+                    .toList();
 
-            assertThat(codes).containsExactlyInAnyOrderElementsOf(CountryProfileLoader.SUPPORTED_COUNTRIES);
+            assertThat(baseCodes).containsExactlyInAnyOrderElementsOf(CountryProfileLoader.SUPPORTED_COUNTRIES);
+            assertThat(sidecarCodes).isNotEmpty().isSubsetOf(baseCodes);
+            sidecarCodes.forEach(code -> assertThat(resolve(code, CountryProfileLoader.SIDECAR_VARIANT).get(MIN_CLIENT_VERSION_KEY))
+                    .isEqualTo(resolve(code, null).get(MIN_CLIENT_VERSION_KEY)));
         }
     }
 
@@ -230,18 +234,14 @@ class CountryProfileLoaderTest {
         return CountryProfileLoaderTest.class.getClassLoader().getResourceAsStream(name);
     }
 
-    private static Map<String, String> resolve(String code, String excludeList) {
-        var env = excludeList == null
-                ? Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, code)
-                : Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, code,
-                CountryProfileLoader.EXCLUDE_ENV_VARIABLE, excludeList);
-        return CountryProfileLoader.resolve(env).orElseThrow().values();
+    private static Map<String, String> resolve(String code, String variant) {
+        return CountryProfileLoader.resolve(env(code, variant)).orElseThrow().values();
     }
 
-    private List<String> warnings() {
-        return logAppender.list.stream()
-                .filter(event -> event.getLevel() == Level.WARN)
-                .map(ILoggingEvent::getFormattedMessage)
-                .toList();
+    private static Map<String, String> env(String code, String variant) {
+        return variant == null
+                ? Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, code)
+                : Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, code,
+                CountryProfileLoader.VARIANT_ENV_VARIABLE, variant);
     }
 }

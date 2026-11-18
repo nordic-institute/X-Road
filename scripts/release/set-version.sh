@@ -144,6 +144,7 @@ echo "Setting the last supported version to $LAST_SUPPORTED_VERSION"
 
 PROFILE_DIR=../../src/lib/properties-core/src/main/resources/xroad-config/country-profile
 set_profile_min_supported_client_version "$LAST_SUPPORTED_VERSION" "$PROFILE_DIR/EE.yaml"
+set_profile_min_supported_client_version "$LAST_SUPPORTED_VERSION" "$PROFILE_DIR/EE-sidecar.yaml"
 set_profile_min_supported_client_version "$LAST_SUPPORTED_VERSION" "$PROFILE_DIR/FI.yaml"
 
 set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" ../../scripts/packages/build-deb.sh

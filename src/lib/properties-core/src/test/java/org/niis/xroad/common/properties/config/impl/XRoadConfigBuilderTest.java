@@ -217,23 +217,30 @@ class XRoadConfigBuilderTest {
     }
 
     @Test
-    void excludedKeyResolvesDefaultAndOtherProfileKeysStayCountry() {
-        var config = proxyBuilder().build(fiEnvExcluding(
-                " xroad.proxy.server.support-clients-pooled-connections"));
-        var excluded = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
-        assertThat(excluded.value()).isFalse();
-        assertThat(excluded.source()).isEqualTo(Source.DEFAULT);
+    void sidecarVariantDropsCountryConnectorHostAndKeepsOtherProfileKeys() {
+        var config = proxyBuilder().build(eeEnv(CountryProfileLoader.SIDECAR_VARIANT));
+        var connectorHost = config.get(ProxyConfigKeys.CLIENT_PROXY_CONNECTOR_HOST);
+        assertThat(connectorHost.value()).isEqualTo("0.0.0.0");
+        assertThat(connectorHost.source()).isEqualTo(Source.DEFAULT);
         assertThat(config.get(ProxyConfigKeys.SERVER_MIN_SUPPORTED_CLIENT_VERSION).source())
                 .isEqualTo(Source.COUNTRY);
     }
 
     @Test
-    void dbRowWinsForExcludedKey() {
+    void withoutVariantCountryConnectorHostApplies() {
+        var config = proxyBuilder().build(eeEnv(null));
+        var connectorHost = config.get(ProxyConfigKeys.CLIENT_PROXY_CONNECTOR_HOST);
+        assertThat(connectorHost.value()).isEqualTo("127.0.0.1");
+        assertThat(connectorHost.source()).isEqualTo(Source.COUNTRY);
+    }
+
+    @Test
+    void dbRowWinsForConnectorHostInSidecarVariant() {
         var config = proxyBuilder()
-                .overrides(Map.of("xroad.proxy.server.support-clients-pooled-connections", "true"))
-                .build(fiEnvExcluding("xroad.proxy.server.support-clients-pooled-connections"));
-        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
-        assertThat(value.value()).isTrue();
+                .overrides(Map.of("xroad.proxy.client-proxy.connector-host", "10.0.0.1"))
+                .build(eeEnv(CountryProfileLoader.SIDECAR_VARIANT));
+        var value = config.get(ProxyConfigKeys.CLIENT_PROXY_CONNECTOR_HOST);
+        assertThat(value.value()).isEqualTo("10.0.0.1");
         assertThat(value.source()).isEqualTo(Source.DB);
     }
 
@@ -250,10 +257,11 @@ class XRoadConfigBuilderTest {
         assertThat(config.get(withContainerDefault).value()).isEqualTo("native");
     }
 
-    private static Map<String, String> fiEnvExcluding(String excludeList) {
-        return Map.of(
-                CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI",
-                CountryProfileLoader.EXCLUDE_ENV_VARIABLE, excludeList);
+    private static Map<String, String> eeEnv(String variant) {
+        return variant == null
+                ? Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "EE")
+                : Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "EE",
+                CountryProfileLoader.VARIANT_ENV_VARIABLE, variant);
     }
 
     private static XRoadConfigBuilder proxyBuilder() {
