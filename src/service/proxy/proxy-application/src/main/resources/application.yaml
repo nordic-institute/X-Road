@@ -5,6 +5,8 @@ quarkus:
     locations:
       - xroad-common.yaml
       - xroad-logging.yaml
+  scheduler:
+    start-mode: forced
   http:
     host: ${xroad.proxy.health-check-interface}
     host-enabled: ${xroad.proxy.health-check-enabled}

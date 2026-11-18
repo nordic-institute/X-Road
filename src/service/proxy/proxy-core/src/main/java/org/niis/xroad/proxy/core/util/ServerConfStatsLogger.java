@@ -25,19 +25,31 @@
  */
 package org.niis.xroad.proxy.core.util;
 
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.interceptor.Interceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 @Slf4j
+@ApplicationScoped
 @RequiredArgsConstructor
 public class ServerConfStatsLogger {
     private final ServerConfProvider serverConfProvider;
+    private final Scheduler scheduler;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-    @Scheduled(every = "60s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
-            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
-    public void execute() {
-        serverConfProvider.logStatistics();
+    public void init(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
+        scheduler.newJob(getClass().getSimpleName())
+                .setInterval("60s")
+                .setTask(_ -> serverConfProvider.logStatistics())
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .schedule();
     }
 }

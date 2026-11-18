@@ -34,7 +34,7 @@ protobufPlugin = "0.9.6"
 checkstyle = "11.0.1"
 jacoco = "0.8.14"
 resilience4j = "2.4.0"
-quarkus = "3.39.3"
+quarkus = "3.40.1.2"
 quarkus-vault = "4.10.0"
 smallryeConfig = "3.17.2"
 microprofile = "3.1.3"
@@ -331,7 +331,6 @@ edc-lib-dsp = { module = "org.eclipse.edc:dsp-lib", version.ref = "edc" }
 edc-lib-dsp-catalog-transform-v2025 = { module = "org.eclipse.edc:dsp-catalog-transform-2025", version.ref = "edc" }
 edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-lib-controlplane = { module = "org.eclipse.edc:control-plane-lib", version.ref = "edc" }
-edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }

@@ -27,6 +27,7 @@
 
 package org.niis.xroad.auxiliaryservice.core.backup.job;
 
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
 import org.junit.jupiter.api.Test;
@@ -71,7 +72,8 @@ class OldAutoBackupsRemovalJobTest {
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
 
-            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning)
+                    .init(new StartupEvent());
         }
 
         verify(scheduler).newJob(any());
@@ -89,7 +91,8 @@ class OldAutoBackupsRemovalJobTest {
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
 
-            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning)
+                    .init(new StartupEvent());
         }
 
         verify(scheduler).newJob(any());
@@ -103,7 +106,8 @@ class OldAutoBackupsRemovalJobTest {
 
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
-            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning)
+                    .init(new StartupEvent());
         }
 
         verifyNoInteractions(scheduler);
@@ -116,7 +120,8 @@ class OldAutoBackupsRemovalJobTest {
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class,
                 withSettings().strictness(Strictness.LENIENT))) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning)
+                    .init(new StartupEvent());
 
             nodeProperties.verifyNoInteractions();
         }
@@ -131,7 +136,8 @@ class OldAutoBackupsRemovalJobTest {
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class,
                 withSettings().strictness(Strictness.LENIENT))) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
-            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new OldAutoBackupsRemovalJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning)
+                    .init(new StartupEvent());
 
             nodeProperties.verifyNoInteractions();
         }

@@ -33,10 +33,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ExtensionScanTest {
 
+    private static final String XROAD_EDC_VAULT_EXTENSION =
+            "org.niis.xroad.edc.extension.vault.XRoadEdcVaultExtension";
+    private static final String STOCK_HASHICORP_VAULT_PACKAGE = "org.eclipse.edc.vault.hashicorp";
+
     @Test
     void everyNonExcludedExtensionOnTheRuntimeClasspathIsScannable() {
         var scanned = ExtensionScanGuard.scanNonExcluded(ExtensionScanTest.class.getResource("/application.yaml"));
 
         assertThat(scanned).isNotEmpty();
+    }
+
+    @Test
+    void secretsAreServedByTheXRoadVaultExtensionOnly() {
+        var scanned = ExtensionScanGuard.scanNonExcluded(ExtensionScanTest.class.getResource("/application.yaml"))
+                .stream().map(extension -> extension.getClass().getName()).toList();
+
+        assertThat(scanned)
+                .contains(XROAD_EDC_VAULT_EXTENSION)
+                .noneMatch(name -> name.startsWith(STOCK_HASHICORP_VAULT_PACKAGE));
     }
 }

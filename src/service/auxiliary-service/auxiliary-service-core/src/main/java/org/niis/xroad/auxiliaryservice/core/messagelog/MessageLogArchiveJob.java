@@ -29,13 +29,15 @@ package org.niis.xroad.auxiliaryservice.core.messagelog;
 
 import ee.ria.xroad.common.util.process.BlockingProcessRunner;
 
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
 import io.quarkus.scheduler.Scheduler;
 import io.quarkus.scheduler.common.runtime.util.SchedulerUtils;
-import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.interceptor.Interceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +46,6 @@ import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
-@Startup
 @ApplicationScoped
 @Slf4j
 @RequiredArgsConstructor
@@ -57,8 +58,7 @@ public class MessageLogArchiveJob {
     private final GlobalConfProvider globalConfProvider;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-    @PostConstruct
-    public void init() {
+    public void init(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
         if (isEnabled() && !NodeProperties.isSecondaryNode()) {
             log.info("Scheduling message log archival with cron expression: '{}'", properties.archiveCron());
             scheduler.newJob(getClass().getSimpleName())

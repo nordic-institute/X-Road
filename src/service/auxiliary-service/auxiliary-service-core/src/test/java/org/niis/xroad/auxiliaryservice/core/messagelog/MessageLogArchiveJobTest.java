@@ -30,6 +30,7 @@ package org.niis.xroad.auxiliaryservice.core.messagelog;
 import ee.ria.xroad.common.util.process.BlockingProcessRunner;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
 import org.jboss.logmanager.Logger;
@@ -90,7 +91,7 @@ class MessageLogArchiveJobTest {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
 
             new MessageLogArchiveJob(scheduler, properties, messageLogEnabledProperties, blockingProcessRunner,
-                    globalConfProvider, applicationNotRunning).init();
+                    globalConfProvider, applicationNotRunning).init(new StartupEvent());
         }
 
         verify(scheduler).newJob(any());
@@ -110,7 +111,7 @@ class MessageLogArchiveJobTest {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
 
             new MessageLogArchiveJob(scheduler, properties, messageLogEnabledProperties, blockingProcessRunner,
-                    globalConfProvider, applicationNotRunning).init();
+                    globalConfProvider, applicationNotRunning).init(new StartupEvent());
         }
 
         verify(scheduler).newJob(any());
@@ -128,7 +129,7 @@ class MessageLogArchiveJobTest {
         List<LogRecord> logEvents;
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
-            logEvents = capturedLogEventsOf(job::init);
+            logEvents = capturedLogEventsOf(() -> job.init(new StartupEvent()));
         }
 
         verifyNoInteractions(scheduler);
@@ -143,7 +144,7 @@ class MessageLogArchiveJobTest {
         var job = new MessageLogArchiveJob(scheduler, properties, messageLogEnabledProperties, blockingProcessRunner,
                 globalConfProvider, applicationNotRunning);
 
-        var logEvents = capturedLogEventsOf(job::init);
+        var logEvents = capturedLogEventsOf(() -> job.init(new StartupEvent()));
 
         verifyNoInteractions(scheduler);
         assertThat(logEvents).hasSize(1);
@@ -162,7 +163,7 @@ class MessageLogArchiveJobTest {
                 withSettings().strictness(Strictness.LENIENT))) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
 
-            logEvents = capturedLogEventsOf(job::init);
+            logEvents = capturedLogEventsOf(() -> job.init(new StartupEvent()));
 
             nodeProperties.verifyNoInteractions();
         }

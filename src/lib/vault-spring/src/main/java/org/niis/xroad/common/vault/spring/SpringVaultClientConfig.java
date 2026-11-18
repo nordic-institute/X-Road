@@ -37,10 +37,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.vault.core.VaultKeyValueOperationsSupport;
 import org.springframework.vault.core.VaultTemplate;
 
+import java.time.Duration;
+
 @Configuration
+@EnableScheduling
 public class SpringVaultClientConfig {
 
     @Bean
@@ -51,9 +55,26 @@ public class SpringVaultClientConfig {
                                         ObjectProvider<NodeIdentity> nodeIdentity,
                                         ObjectProvider<XRoadConfig> xRoadConfig) {
         var vaultKvClient = vaultTemplate.opsForKeyValue(rootPath, getKeyValueBackendVersion(version));
+        return new SpringVaultClient(vaultKvClient, nodeIdentity.getIfAvailable(), retryBudget(xRoadConfig));
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
+    SpringVaultTokenKeepalive springVaultTokenKeepalive(VaultTemplate vaultTemplate,
+                                                        ObjectProvider<XRoadConfig> xRoadConfig) {
+        return new SpringVaultTokenKeepalive(vaultTemplate, retryBudget(xRoadConfig), renewalInterval(xRoadConfig));
+    }
+
+    private static Duration retryBudget(ObjectProvider<XRoadConfig> xRoadConfig) {
         var config = xRoadConfig.getIfAvailable();
-        var retryBudget = config == null ? ResilientVaultCall.DEFAULT_BUDGET : config.value(CommonConfigKeys.VAULT_RETRY_BUDGET);
-        return new SpringVaultClient(vaultKvClient, nodeIdentity.getIfAvailable(), retryBudget);
+        return config == null ? ResilientVaultCall.DEFAULT_BUDGET : config.value(CommonConfigKeys.VAULT_RETRY_BUDGET);
+    }
+
+    private static Duration renewalInterval(ObjectProvider<XRoadConfig> xRoadConfig) {
+        var config = xRoadConfig.getIfAvailable();
+        return config == null
+                ? CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL.convertedDefaultValue()
+                : config.value(CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL);
     }
 
     private VaultKeyValueOperationsSupport.KeyValueBackend getKeyValueBackendVersion(String version) {

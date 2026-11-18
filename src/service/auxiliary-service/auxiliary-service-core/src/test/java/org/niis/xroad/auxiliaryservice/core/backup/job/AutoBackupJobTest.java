@@ -27,6 +27,7 @@
 
 package org.niis.xroad.auxiliaryservice.core.backup.job;
 
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
 import org.junit.jupiter.api.Test;
@@ -73,7 +74,7 @@ class AutoBackupJobTest {
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
 
-            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init(new StartupEvent());
         }
 
         verify(scheduler).newJob(any());
@@ -92,7 +93,7 @@ class AutoBackupJobTest {
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
 
-            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init(new StartupEvent());
         }
 
         verify(scheduler).newJob(any());
@@ -107,7 +108,7 @@ class AutoBackupJobTest {
 
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
-            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init(new StartupEvent());
         }
 
         verifyNoInteractions(scheduler);
@@ -120,7 +121,7 @@ class AutoBackupJobTest {
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class,
                 withSettings().strictness(Strictness.LENIENT))) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init(new StartupEvent());
             nodeProperties.verifyNoInteractions();
         }
 
@@ -134,7 +135,7 @@ class AutoBackupJobTest {
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class,
                 withSettings().strictness(Strictness.LENIENT))) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
-            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init();
+            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init(new StartupEvent());
             nodeProperties.verifyNoInteractions();
         }
 
