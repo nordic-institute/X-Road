@@ -28,7 +28,6 @@
 package org.niis.xroad.edc.issuerdata;
 
 import com.github.benmanes.caffeine.cache.Ticker;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.AfterEach;
@@ -80,6 +79,7 @@ class LastGoodSourceTest {
     private final IssuerDataStore store = mock(IssuerDataStore.class);
     private final AtomicReference<Result<Duration>> maximumAge = new AtomicReference<>();
     private final AtomicInteger maximumAgeReads = new AtomicInteger();
+    private final RecordingMonitor monitor = new RecordingMonitor();
     private final ExecutorService pool = Executors.newCachedThreadPool();
     private LastGoodSource<String> source;
 
@@ -110,7 +110,7 @@ class LastGoodSourceTest {
         return new LastGoodSource<>(fetcher, clock, ticker, executor, cacheTime, maximumEntries, idleExpiry, refreshWait, () -> {
             maximumAgeReads.incrementAndGet();
             return maximumAge.get();
-        }, store, mock(Monitor.class));
+        }, store, monitor);
     }
 
     @Test
@@ -267,6 +267,50 @@ class LastGoodSourceTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.isRetryable()).isTrue();
+    }
+
+    @Test
+    void shouldServeLastGoodCopyAndNeverStoreAnswerWhenIssuerRefusesWithinDeadline() {
+        source.lookup(KEY);
+        fetcher.refused = true;
+        clock.set(START.plus(CACHE_TIME).plusSeconds(10));
+        var result = source.lookup(KEY);
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().payload()).isEqualTo("payload-1");
+        verify(store, times(1)).write(any(), any(), any());
+        assertThat(monitor.warnings()).anyMatch(warning -> warning.contains("could not be refreshed"));
+    }
+
+    @Test
+    void shouldServeLastGoodCopyAndNeverStoreAnswerWhenIssuerAnswersInvalidListWithinDeadline() {
+        source.lookup(KEY);
+        fetcher.corruptAnswer = true;
+        clock.set(START.plus(CACHE_TIME).plusSeconds(10));
+        var result = source.lookup(KEY);
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().payload()).isEqualTo("payload-1");
+        verify(store, times(1)).write(any(), any(), any());
+        assertThat(monitor.warnings()).anyMatch(warning -> warning.contains("could not be refreshed"));
+    }
+
+    @Test
+    void shouldRefuseForGoodWhenIssuerRefusesPastDeadline() {
+        source.lookup(KEY);
+        fetcher.refused = true;
+        clock.set(START.plus(CACHE_TIME).plus(Duration.ofSeconds(55)));
+        var result = source.lookup(KEY);
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isFalse();
+    }
+
+    @Test
+    void shouldRefuseForGoodWhenIssuerAnswersInvalidListPastDeadline() {
+        source.lookup(KEY);
+        fetcher.corruptAnswer = true;
+        clock.set(START.plus(CACHE_TIME).plus(Duration.ofSeconds(55)));
+        var result = source.lookup(KEY);
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isFalse();
     }
 
     @Test

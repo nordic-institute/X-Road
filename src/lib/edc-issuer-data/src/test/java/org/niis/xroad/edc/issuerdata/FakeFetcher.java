@@ -38,8 +38,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A fetcher whose downloads the test switches on and off, holds back per key and makes throw. Payloads are numbered,
- * and the payload {@link #CORRUPT} cannot be parsed.
+ * A fetcher whose downloads the test switches on and off, makes refuse with a final failure or answer with a payload
+ * that cannot be parsed, holds back per key and makes throw. Payloads are numbered, and the payload {@link #CORRUPT}
+ * cannot be parsed.
  */
 final class FakeFetcher implements IssuerDataFetcher<String> {
 
@@ -49,6 +50,8 @@ final class FakeFetcher implements IssuerDataFetcher<String> {
     final AtomicInteger attempts = new AtomicInteger();
     final Map<String, CountDownLatch> gates = new ConcurrentHashMap<>();
     volatile boolean down;
+    volatile boolean refused;
+    volatile boolean corruptAnswer;
     volatile boolean throwing;
     volatile boolean parseRetryable;
     volatile Optional<Instant> ownExpiry = Optional.empty();
@@ -67,6 +70,12 @@ final class FakeFetcher implements IssuerDataFetcher<String> {
         }
         if (down) {
             return Result.retryableFailure("issuer down");
+        }
+        if (refused) {
+            return Result.failure("issuer refused the request");
+        }
+        if (corruptAnswer) {
+            return Result.success(CORRUPT);
         }
         return Result.success("payload-" + downloads.incrementAndGet());
     }

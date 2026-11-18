@@ -47,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -55,7 +56,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * An issuer on a local port that publishes its DID document and one status list credential, and can be switched
- * off to answer 503 with a body.
+ * off to answer 503 with a body or to refuse the status list with 404.
  */
 class FakeIssuer implements AutoCloseable {
 
@@ -69,6 +70,7 @@ class FakeIssuer implements AutoCloseable {
     private final String statusListUrl;
     private final AtomicBoolean down = new AtomicBoolean();
     private final AtomicBoolean statusListDown = new AtomicBoolean();
+    private final AtomicBoolean statusListRefused = new AtomicBoolean();
     private final AtomicInteger statusListRequests = new AtomicInteger();
     private final AtomicReference<String> statusListJwt = new AtomicReference<>();
     private final String didDocument;
@@ -125,6 +127,31 @@ class FakeIssuer implements AutoCloseable {
     }
 
     /**
+     * Makes the status list answer 404; the DID document stays reachable.
+     */
+    void statusListRefused(boolean value) {
+        statusListRefused.set(value);
+    }
+
+    /**
+     * Issues a credential JWT for the subject whose status entry points at this issuer's status list.
+     */
+    String issueCredential(String subjectDid, int statusIndex) {
+        var credential = Map.of(
+                "@context", List.of("https://www.w3.org/2018/credentials/v1"),
+                "type", List.of("VerifiableCredential", "MembershipCredential"),
+                "issuer", did,
+                "credentialSubject", Map.of("id", subjectDid),
+                "credentialStatus", Map.of(
+                        "id", statusListUrl + "#" + statusIndex,
+                        "type", "BitstringStatusListEntry",
+                        "statusPurpose", "revocation",
+                        "statusListIndex", String.valueOf(statusIndex),
+                        "statusListCredential", statusListUrl));
+        return sign(credential, subjectDid);
+    }
+
+    /**
      * Publishes a signed status list with the given positions set, optionally stating when it stops being valid.
      */
     void publishStatusList(Set<Integer> revokedIndexes, Instant validUntil) {
@@ -149,12 +176,13 @@ class FakeIssuer implements AutoCloseable {
                   }
                 }
                 """.formatted(statusListUrl, did, validUntilField, statusListUrl, encoded);
-        statusListJwt.set(sign(JsonMapper.builder().build().readValue(credential, Map.class)));
+        statusListJwt.set(sign(JsonMapper.builder().build().readValue(credential, Map.class), null));
     }
 
-    private String sign(Map<?, ?> credential) {
+    private String sign(Map<?, ?> credential, String subject) {
         try {
-            var claims = new JWTClaimsSet.Builder().issuer(did).issueTime(new Date()).claim("vc", credential).build();
+            var claims = new JWTClaimsSet.Builder().issuer(did).subject(subject).issueTime(new Date())
+                    .claim("vc", credential).build();
             var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(did + "#key-1").build(), claims);
             jwt.sign(new ECDSASigner(signingKey));
             return jwt.serialize();
@@ -167,6 +195,10 @@ class FakeIssuer implements AutoCloseable {
         try (exchange) {
             if (countsAsStatusListRequest) {
                 statusListRequests.incrementAndGet();
+            }
+            if (countsAsStatusListRequest && statusListRefused.get()) {
+                exchange.sendResponseHeaders(404, -1);
+                return;
             }
             var unavailable = down.get() || (countsAsStatusListRequest && statusListDown.get()) || body == null;
             var bytes = (unavailable ? ERROR_BODY : body).getBytes(StandardCharsets.UTF_8);

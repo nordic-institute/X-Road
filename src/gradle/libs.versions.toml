@@ -334,6 +334,7 @@ edc-lib-controlplane = { module = "org.eclipse.edc:control-plane-lib", version.r
 
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
+edc-iam-dcp-service = { module = "org.eclipse.edc:decentralized-claims-service", version.ref = "edc" }
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 edc-iam-dcp-cel = { module = "org.eclipse.edc:decentralized-claims-cel", version.ref = "edc" }

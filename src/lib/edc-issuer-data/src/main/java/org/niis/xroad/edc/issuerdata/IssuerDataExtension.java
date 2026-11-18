@@ -37,6 +37,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegi
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -108,6 +109,8 @@ public class IssuerDataExtension implements ServiceExtension {
 
     private ExecutorService refreshExecutor;
 
+    private IssuerStatusListAvailabilityRule availabilityRule;
+
     private Clock clock = Clock.systemUTC();
 
     private Ticker ticker = Ticker.systemTicker();
@@ -135,6 +138,12 @@ public class IssuerDataExtension implements ServiceExtension {
                 LastGoodSource.REFRESH_WAIT, maximumAge(globalConfProvider), store, monitor);
         revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(
                 mapper, contentTypes, httpClient, tokenValidationService, didPublicKeyResolver, source));
+        availabilityRule = new IssuerStatusListAvailabilityRule(globalConfProvider, source);
+    }
+
+    @Provider
+    public IssuerStatusListAvailabilityRule issuerStatusListAvailabilityRule() {
+        return availabilityRule;
     }
 
     @Override

@@ -38,6 +38,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegi
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -115,6 +116,25 @@ class IssuerDataExtensionTest {
 
         await().atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofMillis(100)).untilAsserted(() -> {
             assertThat(registry.checkValidity(credentialWith(bitstringStatus())).succeeded()).isTrue();
+            assertThat(issuer.statusListRequests()).isGreaterThan(requestsBeforeOutage);
+        });
+    }
+
+    @Test
+    void shouldProvideRuleThatReadsStatusListThroughTheSameSource() {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        var token = ClaimToken.Builder.newInstance()
+                .headers(Map.of("kid", issuer.did() + "#key-1"))
+                .claim("iss", issuer.did())
+                .claim("vc", Map.of("credentialStatus", Map.of("type", BitstringStatusListStatus.TYPE,
+                        STATUS_LIST_CREDENTIAL, issuer.statusListUrl())))
+                .build();
+        var rule = extensions.getFirst().issuerStatusListAvailabilityRule();
+        assertThat(rule.checkRule(token, Map.of()).succeeded()).isTrue();
+        issuer.statusListDown(true);
+        var requestsBeforeOutage = issuer.statusListRequests();
+        await().atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofMillis(100)).untilAsserted(() -> {
+            assertThat(rule.checkRule(token, Map.of()).succeeded()).isTrue();
             assertThat(issuer.statusListRequests()).isGreaterThan(requestsBeforeOutage);
         });
     }
@@ -240,8 +260,8 @@ class IssuerDataExtensionTest {
                                                     DataSourceRegistry dataSources, Clock clock, Ticker ticker) {
         return new IssuerDataExtension(revocationServiceRegistry, typeManager, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver(), globalConfProvider, dataSources,
-                new NoopTransactionContext(), mock(QueryExecutor.class), ExecutorInstrumentation.noop(), null, clock,
-                ticker);
+                new NoopTransactionContext(), mock(QueryExecutor.class), ExecutorInstrumentation.noop(), null, null,
+                clock, ticker);
     }
 
     private CredentialStatus bitstringStatus() {

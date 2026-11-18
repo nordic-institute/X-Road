@@ -109,6 +109,16 @@ class XRoadBitstringStatusListRevocationServiceTest {
     }
 
     @Test
+    void shouldVerifyClearCredentialUntilDeadlineAndRefuseAfterWhenIssuerRefusesTheStatusList() {
+        assertThat(service.checkValidity(status(CLEAR_INDEX)).succeeded()).isTrue();
+        issuer.statusListRefused(true);
+        clock.set(START.plus(CACHE_TIME).plusSeconds(100));
+        assertThat(service.checkValidity(status(CLEAR_INDEX)).succeeded()).isTrue();
+        clock.set(START.plus(CACHE_TIME).plusSeconds(116));
+        assertThat(service.checkValidity(status(CLEAR_INDEX)).failed()).isTrue();
+    }
+
+    @Test
     void shouldRefuseRevokedCredentialWhileLastGoodCopyIsServed() {
         assertThat(service.checkValidity(status(REVOKED_INDEX)).failed()).isTrue();
         issuer.down(true);

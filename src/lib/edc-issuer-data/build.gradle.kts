@@ -28,4 +28,10 @@ dependencies {
   testImplementation(libs.edc.ih.identity.did.core)
   testImplementation(libs.edc.ih.identity.did.web)
   testImplementation(libs.edc.crypto.verifiablecredentials)
+  testImplementation(libs.edc.crypto.verifiablecredentials.jwt)
+  testImplementation(libs.edc.iam.dcp.core)
+  testImplementation(libs.edc.iam.dcp.service)
+  testImplementation(libs.edc.core.controlplane.services)
+  testImplementation(libs.edc.core.connector)
+  testImplementation(libs.edc.spi.controlplane)
 }
