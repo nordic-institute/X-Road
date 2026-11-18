@@ -651,6 +651,20 @@ main() {
   fi
   log_message ""
 
+  # Step: Store the DID and DSP port rows (RHEL family; the packages do it on Debian)
+  # Runs before anything that starts the identity hub, the control plane or the admin service.
+  if [[ -f "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" ]]; then
+    if ! XROAD_DID_PORT="${XROAD_DID_PORT:-$DSP_DEFAULT_DID_PORT}" \
+       XROAD_DSP_PORT="${XROAD_DSP_PORT:-$DSP_DEFAULT_DSP_PORT}" \
+       XROAD_SS_PREINSTALLED="$ss_preinstalled" \
+       bash "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" write; then
+      log_die "DID and DSP port configuration failed"
+    fi
+  else
+    log_die "configure_dsp_ports.sh not found"
+  fi
+  log_message ""
+
   # Step: Apply Message Log choice to the configuration database (now provisioned)
   if [[ -f "$SCRIPT_DIR/tasks/configure_messagelog.sh" ]]; then
     if ! XROAD_MESSAGELOG_ENABLED="$XROAD_MESSAGELOG_ENABLED" \
