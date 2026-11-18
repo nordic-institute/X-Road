@@ -29,6 +29,8 @@ package org.niis.xroad.edc.issuerdata;
 
 import org.eclipse.edc.spi.result.StoreResult;
 
+import java.time.Instant;
+
 /**
  * Persistent last good copies of issuer data, shared by all nodes that use the same database.
  */
@@ -44,4 +46,12 @@ public interface IssuerDataStore {
      * Reads the row. Never throws; {@code notFound} means the row does not exist.
      */
     StoreResult<StoredIssuerData> read(IssuerDataKind kind, String key);
+
+    /**
+     * Deletes every row whose deadline is before {@code now}, whatever its content. Rows another node is replacing
+     * at the same moment are left to that node. Never throws.
+     *
+     * @return the number of deleted rows
+     */
+    StoreResult<Integer> deleteExpired(Instant now);
 }

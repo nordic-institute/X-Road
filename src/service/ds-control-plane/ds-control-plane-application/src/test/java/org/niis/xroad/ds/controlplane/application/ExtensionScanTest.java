@@ -38,6 +38,7 @@ class ExtensionScanTest {
     private static final String STOCK_HASHICORP_VAULT_PACKAGE = "org.eclipse.edc.vault.hashicorp";
     private static final String STOCK_WEB_DID_EXTENSION = "org.eclipse.edc.iam.did.web.WebDidExtension";
     private static final String ISSUER_DATA_EXTENSION = "org.niis.xroad.edc.issuerdata.IssuerDataExtension";
+    private static final String ISSUER_DATA_CLEANER_EXTENSION = "org.niis.xroad.edc.issuerdata.IssuerDataCleanerExtension";
     private static final String ISSUER_STATUS_LIST_RULE_EXTENSION =
             "org.niis.xroad.edc.extension.policy.controlplane.issuertrust.XRoadIssuerStatusListRuleExtension";
 
@@ -66,5 +67,13 @@ class ExtensionScanTest {
         assertThat(scanned)
                 .contains(ISSUER_DATA_EXTENSION, ISSUER_STATUS_LIST_RULE_EXTENSION)
                 .doesNotContain(STOCK_WEB_DID_EXTENSION);
+    }
+
+    @Test
+    void issuerDataCleanupExtensionIsPresent() {
+        var scanned = ExtensionScanGuard.scanNonExcluded(ExtensionScanTest.class.getResource("/application.yaml"))
+                .stream().map(extension -> extension.getClass().getName()).toList();
+
+        assertThat(scanned).contains(ISSUER_DATA_CLEANER_EXTENSION);
     }
 }

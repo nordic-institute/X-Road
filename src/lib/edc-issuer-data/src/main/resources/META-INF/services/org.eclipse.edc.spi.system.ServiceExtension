@@ -1,1 +1,2 @@
 org.niis.xroad.edc.issuerdata.IssuerDataExtension
+org.niis.xroad.edc.issuerdata.IssuerDataCleanerExtension

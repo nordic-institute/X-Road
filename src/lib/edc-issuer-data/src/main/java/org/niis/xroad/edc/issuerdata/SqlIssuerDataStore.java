@@ -35,11 +35,13 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.function.Function;
 
 /**
  * The {@code xroad_issuer_data} table behind the given data source. Times go in and out as UTC without a time zone,
@@ -57,6 +59,10 @@ public class SqlIssuerDataStore implements IssuerDataStore {
     private static final String SELECT = """
             SELECT payload, fetched_at, valid_until FROM xroad_issuer_data WHERE kind = ? AND key = ?""";
 
+    private static final String DELETE_EXPIRED = """
+            DELETE FROM xroad_issuer_data WHERE (kind, key) IN (
+                SELECT kind, key FROM xroad_issuer_data WHERE valid_until < ? FOR UPDATE SKIP LOCKED)""";
+
     private final DataSourceRegistry dataSourceRegistry;
     private final String dataSourceName;
     private final TransactionContext transactionContext;
@@ -64,38 +70,36 @@ public class SqlIssuerDataStore implements IssuerDataStore {
 
     @Override
     public StoreResult<Void> write(IssuerDataKind kind, String key, StoredIssuerData data) {
-        try {
-            return transactionContext.execute(() -> {
-                var dataSource = dataSourceRegistry.resolve(dataSourceName);
-                if (dataSource == null) {
-                    return StoreResult.<Void>generalError("DataSource %s could not be resolved".formatted(dataSourceName));
-                }
-                try (var connection = dataSource.getConnection()) {
-                    queryExecutor.execute(connection, UPSERT, kind.name(), key, data.payload(),
-                            utc(data.fetchedAt()), utc(data.validUntil()));
-                    return StoreResult.success();
-                } catch (SQLException e) {
-                    throw new EdcPersistenceException(e);
-                }
-            });
-        } catch (EdcException e) {
-            return StoreResult.generalError(e.getMessage());
-        }
+        return inConnection(connection -> {
+            queryExecutor.execute(connection, UPSERT, kind.name(), key, data.payload(),
+                    utc(data.fetchedAt()), utc(data.validUntil()));
+            return StoreResult.success();
+        });
     }
 
     @Override
     public StoreResult<StoredIssuerData> read(IssuerDataKind kind, String key) {
+        return inConnection(connection -> {
+            var row = queryExecutor.single(connection, false, SqlIssuerDataStore::toStoredData, SELECT, kind.name(), key);
+            return row == null ? StoreResult.<StoredIssuerData>notFound("No stored %s data for %s".formatted(kind, key))
+                    : StoreResult.success(row);
+        });
+    }
+
+    @Override
+    public StoreResult<Integer> deleteExpired(Instant now) {
+        return inConnection(connection -> StoreResult.success(queryExecutor.execute(connection, DELETE_EXPIRED, utc(now))));
+    }
+
+    private <T> StoreResult<T> inConnection(Function<Connection, StoreResult<T>> action) {
         try {
             return transactionContext.execute(() -> {
                 var dataSource = dataSourceRegistry.resolve(dataSourceName);
                 if (dataSource == null) {
-                    return StoreResult.<StoredIssuerData>generalError(
-                            "DataSource %s could not be resolved".formatted(dataSourceName));
+                    return StoreResult.<T>generalError("DataSource %s could not be resolved".formatted(dataSourceName));
                 }
                 try (var connection = dataSource.getConnection()) {
-                    var row = queryExecutor.single(connection, false, SqlIssuerDataStore::toStoredData, SELECT, kind.name(), key);
-                    return row == null ? StoreResult.<StoredIssuerData>notFound("No stored %s data for %s".formatted(kind, key))
-                            : StoreResult.success(row);
+                    return action.apply(connection);
                 } catch (SQLException e) {
                     throw new EdcPersistenceException(e);
                 }

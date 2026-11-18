@@ -48,6 +48,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -384,6 +385,112 @@ class IssuerDataStorePostgresTest {
         });
 
         assertThat(rowVisible.get()).isTrue();
+    }
+
+    @ParameterizedTest
+    @MethodSource("databases")
+    void shouldRemoveRowsPastDeadlineWhateverTheirContentAndKeepRefreshedAndCurrentRows(Database database) throws SQLException {
+        var expiredDid = "did:web:localhost%3A7001:issuer-" + UUID.randomUUID();
+        var corrupt = key + "-corrupt";
+        var refreshed = key + "-refreshed";
+        var deadlineNow = key + "-deadline-now";
+        var expired = new StoredIssuerData("expired", START.minusSeconds(200), START.minusSeconds(1));
+        database.store.write(IssuerDataKind.DID, expiredDid, expired);
+        database.store.write(IssuerDataKind.STATUSLIST, key, expired);
+        database.store.write(IssuerDataKind.STATUSLIST, corrupt, expired);
+        database.execute("UPDATE xroad_issuer_data SET payload = ? WHERE key = ?", FakeFetcher.CORRUPT, corrupt);
+        database.store.write(IssuerDataKind.STATUSLIST, refreshed, expired);
+        database.store.write(IssuerDataKind.STATUSLIST, refreshed, new StoredIssuerData("new", START, START.plusSeconds(100)));
+        database.store.write(IssuerDataKind.STATUSLIST, deadlineNow, new StoredIssuerData("list", START.minusSeconds(100), START));
+
+        new IssuerDataCleaner(database.store, clock, monitor).run();
+
+        assertThat(database.rowCount(expiredDid)).isZero();
+        assertThat(database.rowCount(key)).isZero();
+        assertThat(database.rowCount(corrupt)).isZero();
+        assertThat(database.rowCount(refreshed)).isEqualTo(1);
+        assertThat(database.rowCount(deadlineNow)).isEqualTo(1);
+        assertThat(monitor.warnings()).isEmpty();
+    }
+
+    @Test
+    void shouldCompareDeadlineAsUtcWhateverTheTimeZoneOfTheNode() {
+        controlPlane.store.write(IssuerDataKind.STATUSLIST, key,
+                new StoredIssuerData("list", START.minusSeconds(100), START.plusSeconds(30)));
+        var defaultZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tokyo"));
+        try {
+            assertThat(controlPlane.store.deleteExpired(START).getContent()).isZero();
+        } finally {
+            TimeZone.setDefault(defaultZone);
+        }
+
+        assertThat(controlPlane.store.read(IssuerDataKind.STATUSLIST, key).succeeded()).isTrue();
+    }
+
+    @Test
+    void shouldLeaveSameTableAndNotFailWhenTwoReplicasCleanUpTheSameRows() throws SQLException {
+        controlPlane.store.write(IssuerDataKind.STATUSLIST, key,
+                new StoredIssuerData("list", START.minusSeconds(200), START.minusSeconds(1)));
+        var replicaA = new IssuerDataCleaner(controlPlane.store, clock, monitor);
+        var replicaB = new IssuerDataCleaner(controlPlane.store, clock, monitor);
+
+        replicaA.run();
+        replicaB.run();
+
+        assertThat(controlPlane.rowCount(key)).isZero();
+        assertThat(monitor.warnings()).isEmpty();
+    }
+
+    @Test
+    @Timeout(10)
+    void shouldSkipRowAnotherReplicaIsReplacingWithoutWaitingAndRemoveItAtNextRun() throws SQLException {
+        controlPlane.store.write(IssuerDataKind.STATUSLIST, key,
+                new StoredIssuerData("list", START.minusSeconds(200), START.minusSeconds(1)));
+        try (var connection = controlPlane.connect()) {
+            connection.setAutoCommit(false);
+            try (var statement = connection.prepareStatement("SELECT 1 FROM xroad_issuer_data WHERE key = ? FOR UPDATE")) {
+                statement.setString(1, key);
+                statement.executeQuery().close();
+            }
+
+            assertThat(controlPlane.store.deleteExpired(START).getContent()).isZero();
+            assertThat(controlPlane.rowCount(key)).isEqualTo(1);
+            connection.rollback();
+        }
+
+        assertThat(controlPlane.store.deleteExpired(START).succeeded()).isTrue();
+        assertThat(controlPlane.rowCount(key)).isZero();
+    }
+
+    @Test
+    void shouldRemoveOnlyRowsOfTheDatabaseItRunsAgainst() throws SQLException {
+        var expired = new StoredIssuerData("list", START.minusSeconds(200), START.minusSeconds(1));
+        controlPlane.store.write(IssuerDataKind.STATUSLIST, key, expired);
+        identityHub.store.write(IssuerDataKind.STATUSLIST, key, expired);
+
+        new IssuerDataCleaner(identityHub.store, clock, monitor).run();
+
+        assertThat(identityHub.rowCount(key)).isZero();
+        assertThat(controlPlane.rowCount(key)).isEqualTo(1);
+    }
+
+    @Test
+    void shouldWarnAndNotThrowWhenCleanupCannotReachDatabase() {
+        var unreachable = new Database("unreachable", "jdbc:postgresql://localhost:1/none");
+
+        assertThat(unreachable.store.deleteExpired(START).failed()).isTrue();
+        new IssuerDataCleaner(unreachable.store, clock, monitor).run();
+
+        assertThat(monitor.warnings()).singleElement().asString().contains("could not be removed");
+    }
+
+    @Test
+    void shouldReturnFailureInsteadOfThrowingWhenCleanupDataSourceIsNotRegistered() {
+        var store = new SqlIssuerDataStore(new DefaultDataSourceRegistry(), DataSourceRegistry.DEFAULT_DATASOURCE,
+                new NoopTransactionContext(), new SqlQueryExecutor());
+
+        assertThat(store.deleteExpired(START).failed()).isTrue();
     }
 
     private LastGoodSource<String> sourceOnPool(SqlIssuerDataStore store) {
