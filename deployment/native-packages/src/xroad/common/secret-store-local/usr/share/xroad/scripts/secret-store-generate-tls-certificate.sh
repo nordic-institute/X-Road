@@ -1,30 +1,17 @@
 #!/bin/bash
 #
-# Generates the OpenBao TLS certificate. The certificate always names 127.0.0.1.
+# Generates the OpenBao TLS certificate for the given subject alternative names.
+# Without an argument the certificate names 127.0.0.1 only.
 #
-# Usage: secret-store-generate-tls-certificate.sh [--node-address <ip>] [--node-host <dns>]
+# Usage: secret-store-generate-tls-certificate.sh [<subjectAltName list, e.g. IP:127.0.0.1,DNS:node.example>]
 
 set -e
 
-SAN="IP:127.0.0.1"
-while [ $# -gt 0 ]; do
-    case "$1" in
-        --node-address)
-            [ $# -ge 2 ] || { echo >&2 "Missing value for $1"; exit 1; }
-            SAN="${SAN},IP:$2"
-            shift 2
-            ;;
-        --node-host)
-            [ $# -ge 2 ] || { echo >&2 "Missing value for $1"; exit 1; }
-            SAN="${SAN},DNS:$2"
-            shift 2
-            ;;
-        *)
-            echo >&2 "Usage: $0 [--node-address <ip>] [--node-host <dns>]"
-            exit 1
-            ;;
-    esac
-done
+if [ $# -gt 1 ]; then
+    echo >&2 "Usage: $0 [<subjectAltName list>]"
+    exit 1
+fi
+SAN="${1:-IP:127.0.0.1}"
 
 echo "Generating OpenBao TLS certificates for X-Road..."
 # Generate in temporary location first

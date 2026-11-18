@@ -15,6 +15,7 @@ source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
 IMAGE="${1:-${IMAGE_REGISTRY:-localhost:5555}/openbao-dev:${IMAGE_TAG:-latest}}"
 PACKAGE_SOURCES="${ROOT_DIR}/deployment/native-packages/src/xroad/common"
+POSTINST_FILE="${ROOT_DIR}/deployment/native-packages/src/xroad/ubuntu/generic/xroad-secret-store-local.postinst"
 SECRET_STORE_SCRIPTS_DIR="${PACKAGE_SOURCES}/secret-store-local/usr/share/xroad/scripts"
 BASE_SCRIPTS_DIR="${PACKAGE_SOURCES}/base/usr/share/xroad/scripts"
 NODE1_CONTAINER="secret-store-init-test-$$"
@@ -95,7 +96,7 @@ in_container() { docker exec "${CONTAINER}" "$@"; }
 
 stage_scripts() {
   mkdir -p "${SCRIPTS_DIR}"
-  cp -p "${SECRET_STORE_SCRIPTS_DIR}"/* "${BASE_SCRIPTS_DIR}/secret-store-join-bundle.sh" "${SCRIPTS_DIR}/"
+  cp -p "${SECRET_STORE_SCRIPTS_DIR}"/* "${BASE_SCRIPTS_DIR}/secret-store-join-bundle.sh" "${BASE_SCRIPTS_DIR}/_restore_xroad.sh" "${SCRIPTS_DIR}/"
 }
 write_shim() {
   cat >"${WORK_DIR}/curl-shim" <<'SHIM'
@@ -109,6 +110,47 @@ case "$*" in
     ;;
 esac
 exec /usr/bin/curl "$@"
+SHIM
+  cat >"${WORK_DIR}/install-shim" <<'SHIM'
+#!/bin/sh
+case "$*" in
+  *root-token) exit 1 ;;
+esac
+exec /usr/bin/install "$@"
+SHIM
+  cat >"${WORK_DIR}/debconf-confmodule" <<'SHIM'
+db_get() {
+  RET=$(sed -n "s|^$1=||p" /tmp/debconf-values)
+  return 0
+}
+db_stop() { :; }
+SHIM
+  cat >"${WORK_DIR}/systemd-invoke-shim" <<SHIM
+#!/bin/sh
+echo "deb-systemd-invoke \$*" >>${SHIM_CALLS_FILE}
+exit 0
+SHIM
+  cat >"${WORK_DIR}/restore-driver" <<'SHIM'
+#!/bin/bash
+RESTORE_SCRIPT=/usr/share/xroad/scripts/_restore_xroad.sh
+source /usr/share/xroad/scripts/_openbao.sh
+for function_name in setup_tmp_restore_dir extract_to_tmp_restore_dir remove_old_existing_files restore_openbao restart_services; do
+  eval "$(sed -n "/^${function_name} *() *{/,/^}/p" "${RESTORE_SCRIPT}")"
+done
+die() { echo "$@" >&2; exit 1; }
+RESTORE_DIR=/var/tmp/xroad/restore
+BACKUP_FILENAME=/tmp/node-a-backup.tar
+SKIP_DB_RESTORE=true
+SKIP_OPENBAO_RESTORE=false
+SKIP_REMOVAL=false
+OPENBAO_DATABASE_RESTORE_SCRIPT=/bin/true
+OPENBAO_DATABASE_DUMP_FILENAME=/var/lib/xroad/openbao_dbdump.dat
+START_CMD="echo start"
+BAO_ADDR=https://127.0.0.1:8200
+CONF_FILE_LIST=$(find /etc/openbao -not -path /etc/openbao/unseal-keys -not -path /etc/openbao/root-token -type f)
+for step in "$@"; do
+  "${step}"
+done
 SHIM
   cat >"${WORK_DIR}/sleep-shim" <<'SHIM'
 #!/bin/sh
@@ -640,6 +682,10 @@ run_writer() {
   docker exec "${CONTAINER}" bash "${CONFIG_WRITER}" "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
   RC=$?
 }
+run_writer_unprivileged() {
+  docker exec -u openbao "${CONTAINER}" bash "${CONFIG_WRITER}" "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
+}
 cert_names() {
   in_container openssl x509 -in "${TLS_CERT_FILE}" -noout -ext subjectAltName | tail -n +2 | tr -d ' ' | tr ',' '\n' | sort | paste -sd, -
 }
@@ -773,8 +819,24 @@ scenario_cluster_member() {
   check "host without address: exit non-zero" test "${RC}" -ne 0
   run_writer --bogus
   check "unknown option: exit non-zero" test "${RC}" -ne 0
+  run_writer --node-address 192.0.2.77
+  check "address of another host: exit non-zero" test "${RC}" -ne 0
+  check "address of another host: stderr says it is not an address of this host" grep -qF "is not an IPv4 address of this host" "${ERR_FILE}"
   check_eq "invalid arguments: configuration unchanged" "${config_before_invalid}" "$(config_hash)"
   check_eq "invalid arguments: no restart or trust install" "" "$(shim_calls)"
+  log_info "Scenario: a failed write is reported"
+  run_writer_unprivileged
+  check "unwritable configuration: exit non-zero" test "${RC}" -ne 0
+  check "unwritable configuration: stderr names the configuration file" grep -qF -- "${XROAD_CONFIG_FILE}" "${ERR_FILE}"
+  check_eq "unwritable configuration: configuration unchanged" "${config_before_invalid}" "$(config_hash)"
+  in_container sh -c "echo '# stale' >> ${DROP_IN_FILE}"
+  run_writer_unprivileged --node-address "${node_ip}" --node-host other.example.test
+  check "unwritable drop-in: exit non-zero" test "${RC}" -ne 0
+  check "unwritable drop-in: stderr names the drop-in" grep -qF -- "${DROP_IN_FILE}" "${ERR_FILE}"
+  check "unwritable drop-in: the stale drop-in is still there" in_container grep -qx '# stale' "${DROP_IN_FILE}"
+  run_writer --node-address "${node_ip}" --node-host other.example.test
+  check "drop-in repaired: exit 0" test "${RC}" -eq 0
+  check_unchanged_run "drop-in repaired rerun" --node-address "${node_ip}" --node-host other.example.test
   log_info "Scenario: back to a single server"
   run_writer
   check "single again: exit 0" test "${RC}" -eq 0
@@ -787,10 +849,6 @@ scenario_cluster_member() {
 }
 run_join() {
   docker exec -e "BAO_ADDR=${ADDR}" "${CONTAINER}" bash "${SETUP_SCRIPT}" --join >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
-}
-run_unseal_join() {
-  docker exec -e "BAO_ADDR=${ADDR}" "${CONTAINER}" timeout 150 bash "${UNSEAL_SCRIPT}" --join >"${OUT_FILE}" 2>"${ERR_FILE}"
   RC=$?
 }
 run_bundle() {
@@ -833,20 +891,14 @@ scenario_join_guards() {
       if [[ "${other}" != "${file}" ]]; then check "missing ${file}: stderr does not name ${other}" text_absent "${ERR_FILE}" "${other}"; fi
     done
     check_eq "missing ${file}: still uninitialised" false "$(store_initialised)"
-    run_unseal_join
-    check "missing ${file}: unseal script exit non-zero" test "${RC}" -ne 0
-    check "missing ${file}: unseal script names it" grep -qF -- "${file}" "${ERR_FILE}"
     in_container mv "${file}.saved" "${file}"
   done
   run_join
   check "uninitialised store: exit non-zero" test "${RC}" -ne 0
-  check "uninitialised store: stderr says it is not initialised" grep -qF "is not initialised" "${ERR_FILE}"
+  check "uninitialised store: stderr says it is not initialized" grep -qF "is not initialized" "${ERR_FILE}"
   check_eq "uninitialised store: still uninitialised" false "$(store_initialised)"
   check_eq "uninitialised store: root token file untouched" placeholder "$(in_container cat "${ROOT_TOKEN_FILE}")"
   check_eq "uninitialised store: unseal keys file untouched" placeholder "$(in_container cat "${UNSEAL_KEYS_FILE}")"
-  run_unseal_join
-  check "uninitialised store: unseal script exit non-zero" test "${RC}" -ne 0
-  check_eq "uninitialised store: unseal script leaves it uninitialised" false "$(store_initialised)"
 }
 scenario_join_node() {
   log_info "Scenario: single server, convert, export, import on a second node, join"
@@ -908,6 +960,14 @@ scenario_join_node() {
   check "import over an existing file: the environment file is not written" file_absent "${ENV_FILE}"
   check "import over an existing file: the unseal keys file is not written" file_absent "${UNSEAL_KEYS_FILE}"
   in_container rm -f "${ROOT_TOKEN_FILE}"
+  docker cp "${WORK_DIR}/install-shim" "${NODE2_CONTAINER}:/usr/local/bin/install" >/dev/null
+  in_container chmod +x /usr/local/bin/install
+  run_bundle import /tmp/join-bundle.tar
+  check "import with a failing install step: exit non-zero" test "${RC}" -ne 0
+  check "import with a failing install step: the environment file is rolled back" file_absent "${ENV_FILE}"
+  check "import with a failing install step: the unseal keys file is rolled back" file_absent "${UNSEAL_KEYS_FILE}"
+  check "import with a failing install step: the root token file is not written" file_absent "${ROOT_TOKEN_FILE}"
+  in_container rm -f /usr/local/bin/install
   run_bundle import /tmp/join-bundle.tar
   check "import: exit 0" test "${RC}" -eq 0
   check_eq "import: the three files equal the first node's" "${first_hashes}" "$(bundle_hashes)"
@@ -947,6 +1007,71 @@ scenario_join_node() {
   CONTAINER="${NODE1_CONTAINER}"
   check_eq "first node: client token still valid" 200 "$(client_token_status)"
   check_eq "first node: client token unchanged" "${first_client_hash}" "$(client_token_hash)"
+}
+run_postinst() {
+  docker exec -e "BAO_ADDR=${ADDR}" "${CONTAINER}" bash /tmp/postinst configure >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
+}
+scenario_postinst_join() {
+  log_info "Scenario: Debian postinst of a joining node"
+  CONTAINER="${NODE2_CONTAINER}"
+  ADDR="https://127.0.0.1:8200"
+  local ip2 config_before
+  ip2="$(in_container hostname -i | awk '{print $1}')"
+  in_container sh -c 'mkdir -p /usr/share/debconf /etc/xroad/backup.d && : > /etc/xroad/backup.d/10_openbao'
+  docker cp "${POSTINST_FILE}" "${CONTAINER}:/tmp/postinst" >/dev/null || exit 1
+  docker cp "${WORK_DIR}/debconf-confmodule" "${CONTAINER}:/usr/share/debconf/confmodule" >/dev/null || exit 1
+  docker cp "${WORK_DIR}/systemd-invoke-shim" "${CONTAINER}:/usr/local/bin/deb-systemd-invoke" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/deb-systemd-invoke
+  config_before="$(config_hash)"
+  in_container sh -c "printf 'xroad-common/secret-store-join=true\n' > /tmp/debconf-values"
+  run_postinst
+  check "join without a node address: exit non-zero" test "${RC}" -ne 0
+  check "join without a node address: stderr names the node address question" grep -qF "xroad-common/secret-store-node-address" "${ERR_FILE}"
+  check_eq "join without a node address: configuration unchanged" "${config_before}" "$(config_hash)"
+  in_container sh -c "printf 'xroad-common/secret-store-join=true\nxroad-common/secret-store-node-address=${ip2}\n' > /tmp/debconf-values"
+  run_postinst
+  check "join with a node address: exit 0" test "${RC}" -eq 0
+  check "join with a node address: the node joins the cluster" grep -qF "Joining the OpenBao cluster" "${OUT_FILE}"
+  check_eq "join with a node address: configuration unchanged" "${config_before}" "$(config_hash)"
+}
+scenario_restore_keeps_node_config() {
+  log_info "Scenario: restore keeps the node's OpenBao configuration and unseals OpenBao"
+  CONTAINER="${NODE2_CONTAINER}"
+  ADDR="https://127.0.0.1:8200"
+  local config_before env_before
+  in_container sh -c 'mkdir -p /etc/xroad/backup.d /var/lib/xroad /tmp/node-a/etc/openbao /tmp/node-a/etc/xroad /tmp/node-a/var/lib/xroad &&
+    : > /etc/xroad/backup.d/10_openbao &&
+    printf "# node A configuration\n" > /tmp/node-a/etc/openbao/xroad-openbao.hcl &&
+    printf "BAO_PG_CONNECTION_URL=archive\n" > /tmp/node-a/etc/openbao/openbao.env &&
+    printf x > /tmp/node-a/etc/xroad/archive-marker &&
+    printf dump > /tmp/node-a/var/lib/xroad/openbao_dbdump.dat &&
+    tar -cf /tmp/node-a-backup.tar -C /tmp/node-a etc var'
+  docker cp "${WORK_DIR}/restore-driver" "${CONTAINER}:/tmp/restore-driver" >/dev/null || exit 1
+  config_before="$(config_hash)"
+  env_before="$(in_container sha256sum "${ENV_FILE}")"
+  restart_bao
+  check_eq "restore: OpenBao starts sealed" true "$(seal_status_field sealed)"
+  run_restore_driver setup_tmp_restore_dir extract_to_tmp_restore_dir remove_old_existing_files restore_openbao restart_services
+  check "restore: exit 0" test "${RC}" -eq 0
+  check_eq "restore: the node's OpenBao configuration is kept" "${config_before}" "$(config_hash)"
+  check_eq "restore: the configuration owner" openbao:xroad "$(file_owner "${XROAD_CONFIG_FILE}")"
+  check_eq "restore: the configuration mode" 640 "$(file_mode "${XROAD_CONFIG_FILE}")"
+  check_eq "restore: the archive's configuration is kept beside it" "# node A configuration" "$(in_container cat "${XROAD_CONFIG_FILE}.restored")"
+  check_eq "restore: the node's OpenBao environment file is kept" "${env_before}" "$(in_container sha256sum "${ENV_FILE}")"
+  check_eq "restore: OpenBao is unsealed" false "$(seal_status_field sealed)"
+  restart_bao
+  in_container mv "${UNSEAL_KEYS_FILE}" "${UNSEAL_KEYS_FILE}.saved"
+  run_restore_driver restart_services
+  check "restore without usable unseal keys: exit non-zero" test "${RC}" -ne 0
+  check "restore without usable unseal keys: stderr says OpenBao is still sealed" grep -qF "still sealed" "${ERR_FILE}"
+  check_eq "restore without usable unseal keys: OpenBao stays sealed" true "$(seal_status_field sealed)"
+  in_container mv "${UNSEAL_KEYS_FILE}.saved" "${UNSEAL_KEYS_FILE}"
+  CONTAINER="${NODE1_CONTAINER}"
+}
+run_restore_driver() {
+  docker exec "${CONTAINER}" bash /tmp/restore-driver "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
 }
 scenario_import_base_only() {
   log_info "Scenario: import on a host that has only the xroad-base scripts"
@@ -996,6 +1121,8 @@ scenario_initializing_node
 scenario_cluster_member
 scenario_join_guards
 scenario_join_node
+scenario_postinst_join
+scenario_restore_keeps_node_config
 scenario_import_base_only
 
 if [[ "${FAILURES}" -ne 0 ]]; then

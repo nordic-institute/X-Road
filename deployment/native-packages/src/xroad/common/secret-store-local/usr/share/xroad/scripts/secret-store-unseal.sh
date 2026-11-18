@@ -4,10 +4,7 @@
 # Always exits 0, so that it never fails the OpenBao unit; when OpenBao cannot be unsealed
 # the reason is logged and the next start retries.
 #
-# With --join (a node joining an existing cluster) the join bundle files must be present and
-# OpenBao must already be initialised; otherwise it stops with a non-zero exit code.
-#
-# Usage: secret-store-unseal.sh [--join]
+# Usage: secret-store-unseal.sh
 umask 077
 
 # The whole run stays well under the unit's TimeoutStartSec, even when OpenBao accepts a
@@ -35,25 +32,12 @@ give_up() {
   exit 0
 }
 
-JOIN=false
-case "${1:-}" in
-  --join) JOIN=true ;;
-  "") ;;
-  *)
-    echo "Usage: $0 [--join]" >&2
-    exit 1
-    ;;
-esac
-
-if [ "$JOIN" = true ]; then
-  require_join_files
+if [ $# -ne 0 ]; then
+  echo "Usage: $0" >&2
+  exit 1
 fi
 
 wait_until_ready "$BAO_ADDR" || give_up "OpenBao is not reachable at $BAO_ADDR; leaving it as it is, the next start retries"
-
-if [ "$JOIN" = true ] && ! is_initialized "$BAO_ADDR"; then
-  fail_join_not_initialised
-fi
 
 if is_sealed "$BAO_ADDR"; then sealed_rc=0; else sealed_rc=$?; fi
 case "$sealed_rc" in

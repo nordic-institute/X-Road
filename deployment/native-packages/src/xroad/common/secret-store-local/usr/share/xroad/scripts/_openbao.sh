@@ -73,7 +73,7 @@ wait_until_ready() {
 # node answers the same; a standby without a working leader answers with a redirect.
 forwards_requests() {
   local addr="${1:-$BAO_ADDR}"
-  [ "$(curl -s -k -o /dev/null -w '%{http_code}' --connect-timeout 5 "$addr/v1/sys/mounts")" = "403" ]
+  [ "$(curl -s -k -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time "${BAO_API_MAX_TIME:-5}" "$addr/v1/sys/mounts")" = "403" ]
 }
 
 wait_until_active() {
@@ -83,7 +83,7 @@ wait_until_active() {
   local status
 
   while [ $attempt -lt $max_attempts ]; do
-    status=$(curl -s -k -o /dev/null -w '%{http_code}' --connect-timeout 5 "$addr/v1/sys/health")
+    status=$(curl -s -k -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time "${BAO_API_MAX_TIME:-5}" "$addr/v1/sys/health")
     # 200 is the active node. A 429 standby counts only once it forwards requests to the active node;
     # an unsealed node that has not yet taken or found the leader answers 429 too and redirects.
     if [ "$status" = "200" ]; then
@@ -100,8 +100,8 @@ wait_until_active() {
   return 1
 }
 
-fail_join_not_initialised() {
-  echo "Join mode: OpenBao is not initialised. Initialise it on the first node of the cluster; a joining node never initialises it" >&2
+fail_join_not_initialized() {
+  echo "Join mode: OpenBao is not initialized. Initialize it on the first node of the cluster; a joining node never initializes it" >&2
   exit 1
 }
 

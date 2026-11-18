@@ -22,17 +22,18 @@ die() {
 }
 
 # write_if_changed FILE MODE OWNER:GROUP CONTENT; returns 0 when the file was written, 1 when unchanged.
+# It runs as an if condition, where errexit is off, so a failed write ends the script here.
 write_if_changed() {
   local file="$1" mode="$2" owner="$3" content="$4" tmp
   if [ -f "$file" ] && [ "$(cat "$file")" = "$content" ]; then
     return 1
   fi
-  mkdir -p "$(dirname "$file")"
-  tmp=$(mktemp "${file}.XXXXXX")
-  printf '%s\n' "$content" >"$tmp"
-  chown "$owner" "$tmp"
-  chmod "$mode" "$tmp"
-  mv -f "$tmp" "$file"
+  mkdir -p "$(dirname "$file")" || die "Cannot write ${file}"
+  tmp=$(mktemp "${file}.XXXXXX") || die "Cannot write ${file}"
+  if ! { printf '%s\n' "$content" >"$tmp" && chown "$owner" "$tmp" && chmod "$mode" "$tmp" && mv -f "$tmp" "$file"; }; then
+    rm -f "$tmp"
+    die "Cannot write ${file}"
+  fi
 }
 
 listener_block() {
@@ -95,6 +96,9 @@ valid_ipv4() {
     [ "$((10#$octet))" -le 255 ] || return 1
   done
 }
+host_has_address() {
+  ip -4 -o addr show | awk -v address="$1" '{ split($4, parts, "/"); if (parts[1] == address) found = 1 } END { exit !found }'
+}
 valid_host() {
   [ "${#1}" -le 253 ] && [[ "$1" =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]]
 }
@@ -124,6 +128,7 @@ while [ $# -gt 0 ]; do
 done
 if [ -n "$NODE_ADDRESS" ]; then
   valid_ipv4 "$NODE_ADDRESS" || die "--node-address must be an IPv4 address: ${NODE_ADDRESS}"
+  host_has_address "$NODE_ADDRESS" || die "--node-address is not an IPv4 address of this host: ${NODE_ADDRESS}"
 elif [ -n "$NODE_HOST" ]; then
   die "--node-host requires --node-address"
 fi
@@ -140,10 +145,7 @@ if write_if_changed "$DROP_IN_FILE" 0644 root:root "$(drop_in)"; then
   fi
 fi
 if [ "$(wanted_cert_names)" != "$(current_cert_names)" ]; then
-  cert_args=()
-  [ -z "$NODE_ADDRESS" ] || cert_args+=(--node-address "$NODE_ADDRESS")
-  [ -z "$NODE_HOST" ] || cert_args+=(--node-host "$NODE_HOST")
-  "$TLS_SCRIPT" "${cert_args[@]}"
+  "$TLS_SCRIPT" "$(wanted_cert_names | paste -sd, -)"
   "$TRUST_SCRIPT"
   needs_restart=true
 fi

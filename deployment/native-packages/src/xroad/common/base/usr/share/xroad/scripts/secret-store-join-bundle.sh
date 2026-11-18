@@ -49,9 +49,13 @@ export_bundle() {
 }
 
 import_bundle() {
-  local source="$1" name existing=0
+  local source="$1" name existing=0 copy
   [ -f "$source" ] || die "The join bundle ${source} does not exist"
-  [ "$(tar -tf "$source" | sort)" = "$(printf '%s\n' "${BUNDLE_NAMES[@]}" | sort)" ] ||
+  extract_dir=$(mktemp -d)
+  trap 'rm -rf "$extract_dir"' EXIT
+  copy="${extract_dir}/bundle.tar"
+  cp -- "$source" "$copy"
+  [ "$(tar -tf "$copy" | sort)" = "$(printf '%s\n' "${BUNDLE_NAMES[@]}" | sort)" ] ||
     die "The join bundle ${source} must hold exactly: ${BUNDLE_NAMES[*]}"
   for name in "${BUNDLE_NAMES[@]}"; do
     if [ -e "${BUNDLE_DIR}/${name}" ] || [ -L "${BUNDLE_DIR}/${name}" ]; then
@@ -61,17 +65,19 @@ import_bundle() {
   done
   [ "$existing" -eq 0 ] || die "Nothing was imported"
 
-  extract_dir=$(mktemp -d)
-  trap 'rm -rf "$extract_dir"' EXIT
-  tar -xf "$source" -C "$extract_dir"
+  mkdir "${extract_dir}/files"
+  tar -xf "$copy" -C "${extract_dir}/files"
   for name in "${BUNDLE_NAMES[@]}"; do
-    if [ ! -f "${extract_dir}/${name}" ] || [ -L "${extract_dir}/${name}" ] || [ ! -s "${extract_dir}/${name}" ]; then
+    if [ ! -f "${extract_dir}/files/${name}" ] || [ -L "${extract_dir}/files/${name}" ] || [ ! -s "${extract_dir}/files/${name}" ]; then
       die "The join bundle entry ${name} is not a regular, non-empty file; nothing was imported"
     fi
   done
   [ -d "$BUNDLE_DIR" ] || install -d -m 0755 -o root -g root "$BUNDLE_DIR"
   for name in "${BUNDLE_NAMES[@]}"; do
-    install -m 0600 -o root -g root "${extract_dir}/${name}" "${BUNDLE_DIR}/${name}"
+    if ! install -m 0600 -o root -g root "${extract_dir}/files/${name}" "${BUNDLE_DIR}/${name}"; then
+      (cd "$BUNDLE_DIR" && rm -f -- "${BUNDLE_NAMES[@]}")
+      die "Installing ${BUNDLE_DIR}/${name} failed; nothing was imported"
+    fi
   done
   echo "Imported the join bundle into ${BUNDLE_DIR}"
 }
