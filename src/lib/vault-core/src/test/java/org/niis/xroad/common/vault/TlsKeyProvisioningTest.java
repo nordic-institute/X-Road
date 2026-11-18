@@ -60,6 +60,11 @@ class TlsKeyProvisioningTest {
     private final X509Certificate identityCert = mock(X509Certificate.class);
     private final X509Certificate trustCert = mock(X509Certificate.class);
 
+    @FunctionalInterface
+    private interface Provisioning {
+        InternalSSLKey run() throws Exception;
+    }
+
     private InternalSSLKey provision() throws Exception {
         return TlsKeyProvisioning.readOrProvision("admin-service",
                 vaultClient::getAdminServiceTlsCredentials,
@@ -67,28 +72,45 @@ class TlsKeyProvisioningTest {
                 keyClient);
     }
 
+    private InternalSSLKey provisionOnPrimary() throws Exception {
+        return TlsKeyProvisioning.readOrProvisionOnPrimary("admin-service",
+                vaultClient::getAdminServiceTlsCredentials,
+                vaultClient::createAdminServiceTlsCredentials,
+                keyClient);
+    }
+
+    private void stubAbsentKey() throws Exception {
+        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(
+                XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
+    }
+
     private void stubProvisionedKey() throws Exception {
         when(keyClient.provisionNewCerts()).thenReturn(new VaultKeyClient.VaultKeyData(
                 new X509Certificate[] {identityCert}, provisionedKey, new X509Certificate[] {trustCert}));
     }
 
+    private InternalSSLKey runOnNode(boolean secondary, Provisioning provisioning) throws Exception {
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(secondary);
+
+            return provisioning.run();
+        }
+    }
+
+    private void assertCreatedAndStored(InternalSSLKey result) throws Exception {
+        assertThat(result.getKey()).isSameAs(provisionedKey);
+        assertThat(result.getCertChain()).containsExactly(identityCert, trustCert);
+        var stored = ArgumentCaptor.forClass(InternalSSLKey.class);
+        verify(vaultClient).createAdminServiceTlsCredentials(stored.capture());
+        assertThat(stored.getValue()).isSameAs(result);
+    }
+
     @Test
     void shouldCreateAndStoreTheKeyWhenTheStoreReportsItAbsent() throws Exception {
-        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(
-                XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
+        stubAbsentKey();
         stubProvisionedKey();
 
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-
-            var result = provision();
-
-            assertThat(result.getKey()).isSameAs(provisionedKey);
-            assertThat(result.getCertChain()).containsExactly(identityCert, trustCert);
-            var stored = ArgumentCaptor.forClass(InternalSSLKey.class);
-            verify(vaultClient).createAdminServiceTlsCredentials(stored.capture());
-            assertThat(stored.getValue()).isSameAs(result);
-        }
+        assertCreatedAndStored(provision());
     }
 
     @Test
@@ -97,6 +119,7 @@ class TlsKeyProvisioningTest {
         when(vaultClient.getAdminServiceTlsCredentials()).thenReturn(existing);
 
         assertThat(provision()).isSameAs(existing);
+        assertThat(provisionOnPrimary()).isSameAs(existing);
 
         verifyNoInteractions(keyClient);
         verify(vaultClient, never()).createAdminServiceTlsCredentials(any());
@@ -110,11 +133,14 @@ class TlsKeyProvisioningTest {
                 XrdRuntimeException.systemException(ErrorCode.SECRET_STORE_UNAVAILABLE).details("store down").build(),
                 XrdRuntimeException.systemException(ErrorCode.INVALID_PROPERTY_VALUE).details("other").build(),
                 new IOException("corrupt"));
+        List<Provisioning> variants = List.of(this::provision, this::provisionOnPrimary);
 
         for (Exception failure : failures) {
             doThrow(failure).when(vaultClient).getAdminServiceTlsCredentials();
 
-            assertThatThrownBy(this::provision).isSameAs(failure);
+            for (Provisioning variant : variants) {
+                assertThatThrownBy(variant::run).isSameAs(failure);
+            }
         }
 
         verifyNoInteractions(keyClient);
@@ -122,55 +148,29 @@ class TlsKeyProvisioningTest {
     }
 
     @Test
-    void shouldRethrowAndNeverCreateOnSecondaryNodeWhenTheStoreReportsItAbsent() throws Exception {
+    void shouldRethrowAndNeverCreateOnSecondaryNodeWhenTheSharedKeyIsAbsent() throws Exception {
         var missing = XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build();
         when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(missing);
 
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
-
-            assertThatThrownBy(this::provision).isSameAs(missing);
-        }
+        assertThatThrownBy(() -> runOnNode(true, this::provisionOnPrimary)).isSameAs(missing);
 
         verifyNoInteractions(keyClient);
         verify(vaultClient, never()).createAdminServiceTlsCredentials(any());
     }
 
     @Test
-    void shouldCreateAndStoreTheKeyOnPrimaryNodeWhenTheStoreReportsItAbsent() throws Exception {
-        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(
-                XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
+    void shouldCreateAndStoreTheSharedKeyOnPrimaryOrStandaloneNodeWhenItIsAbsent() throws Exception {
+        stubAbsentKey();
         stubProvisionedKey();
 
-        InternalSSLKey result;
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-
-            result = provision();
-        }
-
-        assertThat(result.getKey()).isSameAs(provisionedKey);
-        var stored = ArgumentCaptor.forClass(InternalSSLKey.class);
-        verify(vaultClient).createAdminServiceTlsCredentials(stored.capture());
-        assertThat(stored.getValue()).isSameAs(result);
+        assertCreatedAndStored(runOnNode(false, this::provisionOnPrimary));
     }
 
     @Test
-    void shouldCreateAndStoreTheKeyOnStandaloneNodeWhenTheStoreReportsItAbsent() throws Exception {
-        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(
-                XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
+    void shouldCreateAndStoreTheKeyWhateverTheNodeTypeSetting() throws Exception {
+        stubAbsentKey();
         stubProvisionedKey();
 
-        InternalSSLKey result;
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-
-            result = provision();
-        }
-
-        assertThat(result.getKey()).isSameAs(provisionedKey);
-        var stored = ArgumentCaptor.forClass(InternalSSLKey.class);
-        verify(vaultClient).createAdminServiceTlsCredentials(stored.capture());
-        assertThat(stored.getValue()).isSameAs(result);
+        assertCreatedAndStored(runOnNode(true, this::provision));
     }
 }

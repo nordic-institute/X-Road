@@ -47,11 +47,17 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 /**
  * Single path for reading TLS material from the secret store and provisioning it when absent.
  * <p>
- * A primary or standalone node reads the existing key and provisions a new one only when the store reports
- * the key absent. A secondary node never creates or replaces anything: it reports the absent key to its
- * caller, whose service restart retries the read once the primary has provisioned it. Any read failure
- * other than the store reporting the key absent, such as the store being unreachable, sealed or failing
- * over, is passed on: it never leads to a key being created or replaced.
+ * {@link #readOrProvision} provisions the material whenever the store reports it absent. It is for a service
+ * that runs as a single instance, and for material that belongs to one Central Server node and is stored under
+ * that node's own path. Central Server nodes have no primary or secondary role.
+ * <p>
+ * {@link #readOrProvisionOnPrimary} is for material shared by every node of a Security Server cluster: a
+ * primary or standalone node provisions it, while a secondary node never creates or replaces anything and
+ * instead reports the absent key to its caller, whose service restart retries the read once the primary
+ * has provisioned it.
+ * <p>
+ * In all cases, any read failure other than the store reporting the key absent, such as the store being
+ * unreachable, sealed or failing over, is passed on: it never leads to a key being created or replaced.
  */
 @Slf4j
 @UtilityClass
@@ -70,11 +76,32 @@ public class TlsKeyProvisioning {
     /**
      * @param name      the key name, used in log messages
      * @param reader    reads the existing key; reports an absent key with {@code MISSING_SECRET}
+     * @param writer    stores a newly provisioned key
+     * @param keyClient provisions a new key and certificate chain
+     * @return the existing key, or the newly provisioned and stored one
+     */
+    public static InternalSSLKey readOrProvision(String name, KeyReader reader, KeyWriter writer, VaultKeyClient keyClient)
+            throws IOException, GeneralSecurityException {
+        try {
+            return reader.read();
+        } catch (XrdRuntimeException e) {
+            if (!e.isCausedBy(MISSING_SECRET)) {
+                throw e;
+            }
+            log.warn("Unable to locate '{}' TLS credentials, attempting to create new ones", name);
+        }
+        return provisionAndStore(name, writer, keyClient);
+    }
+
+    /**
+     * @param name      the key name, used in log messages
+     * @param reader    reads the existing key; reports an absent key with {@code MISSING_SECRET}
      * @param writer    stores a newly provisioned key; never called on a secondary node
      * @param keyClient provisions a new key and certificate chain; never called on a secondary node
      * @return the existing key, or the newly provisioned and stored one
      */
-    public static InternalSSLKey readOrProvision(String name, KeyReader reader, KeyWriter writer, VaultKeyClient keyClient)
+    public static InternalSSLKey readOrProvisionOnPrimary(String name, KeyReader reader, KeyWriter writer,
+                                                          VaultKeyClient keyClient)
             throws IOException, GeneralSecurityException {
         try {
             return reader.read();
@@ -88,6 +115,11 @@ public class TlsKeyProvisioning {
             }
             log.warn("Unable to locate '{}' TLS credentials, attempting to create new ones", name);
         }
+        return provisionAndStore(name, writer, keyClient);
+    }
+
+    private static InternalSSLKey provisionAndStore(String name, KeyWriter writer, VaultKeyClient keyClient)
+            throws IOException, GeneralSecurityException {
         var tlsKey = provision(keyClient);
         writer.write(tlsKey);
         log.info("Successfully created '{}' TLS credentials", name);
