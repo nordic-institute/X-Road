@@ -140,7 +140,6 @@ build() {
 build_variant() {
   echo "BUILDING variant $tag:$version$1-$2"
   docker build --progress=plain -f "$dir/Dockerfile-variant" \
-    --build-arg "VERSION=$version" \
     --build-arg "FROM=$tag:$version$1" \
     --build-arg "VARIANT=$2" \
     -t "$tag:$version$1-$2" "$dir"

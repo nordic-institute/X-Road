@@ -1,8 +1,8 @@
 # Dockerfile for country (member) variants
-ARG VERSION
 ARG FROM
 FROM $FROM
-ARG VERSION
 ARG VARIANT
+
+RUN test -n "$VARIANT"
 
 ENV XROAD_COUNTRY_PROFILE=${VARIANT}

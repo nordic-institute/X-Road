@@ -31,7 +31,7 @@ mkdir -p %{buildroot}/usr/share/xroad
 cp -p %{srcdir}/common/securityserver-fi/usr/share/xroad/country-profile %{buildroot}/usr/share/xroad/
 
 %files
-/usr/share/xroad/country-profile
+%attr(0644,root,root) /usr/share/xroad/country-profile
 
 %pre -p /bin/bash
 %upgrade_check

@@ -11,26 +11,24 @@ XROAD_SS_PACKAGE="${XROAD_SS_PACKAGE:-xroad-securityserver}"
 # Declared for consistency with other upgrade task files (e.g. run_migration_cli.sh).
 XROAD_MIGRATION_UNATTENDED="${XROAD_MIGRATION_UNATTENDED:-}"
 
-STATE_FILE="$UPGRADE_STATE_DIR/op-monitor.state"
-
 OPMONITOR_PACKAGE="xroad-opmonitor"
 
 PACKAGES=("$XROAD_SS_PACKAGE")
 
 # Names $OPMONITOR_PACKAGE in the install command only when the 7.8 package was installed.
 select_packages() {
-  if [[ ! -f "$STATE_FILE" ]]; then
-    log_die "Operational monitoring state not found at $STATE_FILE. Run capture_op_monitor_state.sh first."
+  if [[ ! -f "$OP_MONITOR_STATE_FILE" ]]; then
+    log_die "Operational monitoring state not found at $OP_MONITOR_STATE_FILE. Run capture_op_monitor_state.sh first."
   fi
 
   local daemon_pkg
-  daemon_pkg=$(read_state_value "$STATE_FILE" daemon_pkg)
+  daemon_pkg=$(read_state_value "$OP_MONITOR_STATE_FILE" daemon_pkg)
   case "$daemon_pkg" in
     installed)
       PACKAGES+=("$OPMONITOR_PACKAGE")
       ;;
     absent) ;;
-    *) log_die "Invalid daemon_pkg value '$daemon_pkg' in $STATE_FILE (expected installed or absent)" ;;
+    *) log_die "Invalid daemon_pkg value '$daemon_pkg' in $OP_MONITOR_STATE_FILE (expected installed or absent)" ;;
   esac
 }
 
@@ -45,7 +43,7 @@ select_country_package() {
   if [[ "$country_pkg" == "none" ]]; then
     return 0
   fi
-  if [[ " ${COUNTRY_PACKAGES[*]} " != *" $country_pkg "* ]]; then
+  if ! printf '%s\n' "${COUNTRY_PACKAGES[@]}" | grep -qxF -- "$country_pkg"; then
     log_die "Invalid country_pkg value '$country_pkg' in $COUNTRY_PACKAGE_STATE_FILE (expected none or a xroad-securityserver-<cc> package)"
   fi
   PACKAGES+=("$country_pkg")

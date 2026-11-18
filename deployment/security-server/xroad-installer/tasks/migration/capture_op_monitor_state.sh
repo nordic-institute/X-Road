@@ -6,8 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "$SCRIPT_DIR/../../lib/common.sh"
 
-STATE_FILE="$UPGRADE_STATE_DIR/op-monitor.state"
-
 ADDON_PACKAGE="xroad-addon-opmonitoring"
 ADDON_CONF="/usr/share/xroad/jlib/addon/proxy/opmonitoring.conf"
 DAEMON_PACKAGE="xroad-opmonitor"
@@ -47,8 +45,8 @@ main() {
 
   require_root
 
-  if [[ -f "$STATE_FILE" ]]; then
-    log_info "Operational monitoring state already recorded in $STATE_FILE — reusing it"
+  if [[ -f "$OP_MONITOR_STATE_FILE" ]]; then
+    log_info "Operational monitoring state already recorded in $OP_MONITOR_STATE_FILE — reusing it"
     return 0
   fi
 
@@ -56,7 +54,7 @@ main() {
   feature=$(detect_feature_state)
   daemon_pkg=$(detect_daemon_package_state)
 
-  record_state "$STATE_FILE" "feature=$feature" "daemon_pkg=$daemon_pkg"
+  record_state "$OP_MONITOR_STATE_FILE" "feature=$feature" "daemon_pkg=$daemon_pkg"
   log_info "Recorded operational monitoring state: feature=$feature, daemon_pkg=$daemon_pkg"
 }
 

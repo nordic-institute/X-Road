@@ -52,13 +52,14 @@ function validate_version {
 function sed_update_file {
   if [ -z "$(sed -i "${1}w /dev/stdout" "$2")" ]; then
     echo -e "\e[0;31mWarning:\e[0m file [$2] not updated"
+    return 1
   else
     echo "Successfully updated file [$2]"
   fi
 }
 
 function set_profile_min_supported_client_version {
-  sed_update_file "s/^\( *\)min-supported-client-version: .*$/\1min-supported-client-version: \"$1\"/" "$2"
+  sed_update_file "s/^\( *\)min-supported-client-version: .*$/\1min-supported-client-version: \"$1\"/" "$2" || exit 1
 }
 
 function set_last_supported_version {

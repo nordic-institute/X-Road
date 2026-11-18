@@ -16,24 +16,21 @@ XROAD_MIGRATION_UNATTENDED="${XROAD_MIGRATION_UNATTENDED:-}"
 # This constant must match the destination set in download_migration_cli.sh.
 MIGRATION_CLI_JAR="/var/tmp/migration-cli.jar"
 
-# Sentinel directory for per-step completion tracking.
-SENTINEL_DIR="/var/lib/xroad-upgrade"
-
 ensure_sentinel_dir() {
-  if [[ ! -d "$SENTINEL_DIR" ]]; then
-    mkdir -p "$SENTINEL_DIR"
-    chmod 750 "$SENTINEL_DIR"
-    log_info "Created sentinel directory: $SENTINEL_DIR"
+  if [[ ! -d "$UPGRADE_STATE_DIR" ]]; then
+    mkdir -p "$UPGRADE_STATE_DIR"
+    chmod 750 "$UPGRADE_STATE_DIR"
+    log_info "Created sentinel directory: $UPGRADE_STATE_DIR"
   fi
 }
 
 is_step_done() {
-  [[ -f "$SENTINEL_DIR/step-${1}.done" ]]
+  [[ -f "$UPGRADE_STATE_DIR/step-${1}.done" ]]
 }
 
 mark_step_done() {
-  touch "$SENTINEL_DIR/step-${1}.done"
-  log_info "Sentinel written: $SENTINEL_DIR/step-${1}.done"
+  touch "$UPGRADE_STATE_DIR/step-${1}.done"
+  log_info "Sentinel written: $UPGRADE_STATE_DIR/step-${1}.done"
 }
 
 # Prompt the operator for the soft token PIN before the keyconf migration step.
@@ -227,6 +224,10 @@ main() {
       continue
     fi
     ini_basename=$(basename "$ini_file" .ini)
+    if [[ "$ini_basename" == override-securityserver-* ]]; then
+      log_info "Skipping $ini_file — country values come from the country profile"
+      continue
+    fi
     run_migration_step "ini-to-db" --id "ini-to-db-${ini_basename}" \
       --description "Migrate INI configuration\n  from: $ini_file\n  into: configuration database\n\nThis step runs once per INI file (override-*.ini and local.ini)." \
       "$ini_file" "/etc/xroad/db.properties"
@@ -410,7 +411,7 @@ main() {
     log_info "The EE profile keeps batch signing enabled — skipping the batch signing prompt"
     mark_step_done "$batch_sentinel"
   elif [[ "${XROAD_MIGRATION_UNATTENDED:-}" == "true" ]]; then
-    log_info "Unattended mode: leaving batch signing at X-Road 8 default (disabled)"
+    log_info "Unattended mode: writing no batch signing property; batch signing follows the country profile, or the X-Road 8 default (disabled) without one"
     mark_step_done "$batch_sentinel"
   elif whiptail --title "Migration Step: batch-signing" --defaultno \
     --yesno "Keep batch signing enabled?\n\nBatch signing is disabled by default in X-Road 8. Select Yes to preserve the X-Road 7 behavior of batch signing being enabled." 12 60; then
