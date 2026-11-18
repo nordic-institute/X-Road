@@ -138,7 +138,8 @@ public class JdbcBoundIssuerIdentityReader implements BoundIssuerIdentityReader,
 
     private static Optional<BoundIssuerIdentity> readIssuerDid(Connection connection, String did) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT did, host, did_port, issuance_url, statuslist_base_url FROM issuer_dids WHERE did = ?")) {
+                "SELECT did, host, did_port, issuance_url, statuslist_base_url FROM issuer_dids "
+                        + "WHERE did = ? AND removed_at IS NULL")) {
             statement.setString(1, did);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
