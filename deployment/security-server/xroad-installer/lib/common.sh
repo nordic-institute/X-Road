@@ -273,7 +273,7 @@ execute_by_os() {
   "$fn"
 }
 
-# Country packages of the X-Road 7 Security Server. Mirrors the country profile files shipped in the product.
+# Security Server country packages. Mirrors the country profile files shipped in the product.
 COUNTRY_PACKAGES=(xroad-securityserver-ee xroad-securityserver-fi xroad-securityserver-is xroad-securityserver-fo)
 
 UPGRADE_STATE_DIR="/var/lib/xroad-upgrade"
