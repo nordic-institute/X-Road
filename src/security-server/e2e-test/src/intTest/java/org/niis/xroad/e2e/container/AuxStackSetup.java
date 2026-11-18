@@ -69,6 +69,7 @@ public class AuxStackSetup extends BaseComposeSetup {
                 .withEnv("PROXY_0", "xrd-ss0")
                 .withEnv("PROXY_UI_1", "ss1-ui")
                 .withEnv("PROXY_1", "xrd-ss1")
+                .withEnv("COUNTRY_PROFILE", E2eEnvSetup.SS0_COUNTRY_PROFILE)
                 .withLogConsumer(HURL, createLogConsumer(HURL))
                 .withLogConsumer(CS, createLogConsumer(CS))
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));

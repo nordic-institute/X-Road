@@ -189,9 +189,9 @@
     # (the DSL ignores conf.d yaml); this also restarts proxy and proxy-ui-api.
     - name: Seed xroad.* runtime config into serverconf
       include_tasks: roles/xroad-ss/tasks/seed-config-properties.yml
-    - name: Verify the FI country profile is active
+    - name: Verify the country profile of the variant is active
       include_tasks: roles/xroad-ss/tasks/verify-country-profile.yml
-      when: (variant | default('vanilla')) == 'fi'
+      when: (variant | default('vanilla')) != 'vanilla'
     # Runs before the restart task below so the proxy restart there picks up
     # the op-monitor addon flag from local.yaml.
     - name: Install and enable operational monitoring

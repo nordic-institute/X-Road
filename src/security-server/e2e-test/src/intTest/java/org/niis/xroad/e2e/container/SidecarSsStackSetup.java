@@ -98,6 +98,7 @@ public class SidecarSsStackSetup extends AbstractSsStack {
         return new ComposeContainer(composeProjectName(), composeFile(COMPOSE_SIDECAR_FILE))
                 .withEnv("XROAD_DSP_SERVERPROXY_HOSTNAME", "xrd-" + name)
                 .withEnv("SS_NAME", name)
+                .withEnv("COUNTRY_PROFILE", E2eEnvSetup.SS0_COUNTRY_PROFILE)
                 .withExposedService(SIDECAR, SsStackSetup.Port.PROXY,
                         forListeningPort().withStartupTimeout(PORT_WAIT_TIMEOUT))
                 .withExposedService(SIDECAR, SsStackSetup.Port.PROXY_HEALTHCHECK,
@@ -141,6 +142,13 @@ public class SidecarSsStackSetup extends AbstractSsStack {
                 });
     }
 
+    /**
+     * The packaged signer and proxy log to {@code /var/log/xroad/<service>.log}.
+     */
+    @Override
+    protected boolean logContains(String service, String text) {
+        return exec("grep", "-qF", text, "/var/log/xroad/%s.log".formatted(service)).getExitCode() == 0;
+    }
     /**
      * The one sidecar container answers to every service name the multi-container stack spreads
      * across ui/proxy/signer/configuration-client, so callers may pass any of those names; only the

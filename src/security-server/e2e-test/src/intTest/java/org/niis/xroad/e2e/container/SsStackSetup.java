@@ -73,6 +73,7 @@ public class SsStackSetup extends AbstractSsStack {
     private static final String COMPOSE_SS_E2E_DS_FILE = "compose.e2e.ds.yaml";
     private static final String COMPOSE_SS_MSGLOG_CLI = "compose.ss-msglog.e2e.yaml";
     private static final String XROAD_NETWORK = "xroad-network";
+    private static final String COUNTRY_PROFILE_ENV = "COUNTRY_PROFILE";
 
     private final String name;
     private final Set<Feature> features;
@@ -117,6 +118,9 @@ public class SsStackSetup extends AbstractSsStack {
                 .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE))
                 .withLogConsumer(DS_GATEWAY, createLogConsumer(name, DS_GATEWAY));
 
+        if (features.contains(Feature.COUNTRY_PROFILE)) {
+            env.withEnv(COUNTRY_PROFILE_ENV, E2eEnvSetup.SS0_COUNTRY_PROFILE);
+        }
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
         }
@@ -159,6 +163,10 @@ public class SsStackSetup extends AbstractSsStack {
                 });
     }
 
+    @Override
+    protected boolean logContains(String service, String text) {
+        return env.getContainerByServiceName(service).orElseThrow().getLogs().contains(text);
+    }
     private void connectToExternalNetwork(List<String> serviceNames) {
         for (String serviceName : serviceNames) {
             var containerState = env.getContainerByServiceName(serviceName).orElseThrow();
@@ -214,7 +222,8 @@ public class SsStackSetup extends AbstractSsStack {
         MESSAGE_LOG_ENCRYPTION("compose.ss-msglog-encryption.e2e.yaml"),
         OP_MONITOR("compose.ss-opmonitor.e2e.yaml"),
         LEGACY_PROTOCOL("compose.ss-acl-legacy.e2e.yaml"),
-        AGREEMENT_TOKEN_KEY_PRUNING("compose.ss-agreement-token-key-pruning.e2e.yaml");
+        AGREEMENT_TOKEN_KEY_PRUNING("compose.ss-agreement-token-key-pruning.e2e.yaml"),
+        COUNTRY_PROFILE("compose.ss-country-profile.e2e.yaml");
 
         private final String composeFile;
 

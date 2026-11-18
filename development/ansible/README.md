@@ -31,21 +31,16 @@ inventory files. For example, the group `[rhel_ss]` for RHEL-based security serv
 #### Variant
 
 When installing security servers, the Ansible playbooks use the configuration variable `variant`
-to select one of the available security server variants for installation. If no additional configurations have been made, the playbooks will install the `vanilla` variant. The currently supported variants are:
-- `vanilla` - the basic non-country-specific version of X-Road
-- `ee` - the Estonian country variant, no RHEL variant package available
-- `fi` - the Finnish country variant
-- `is` - the Icelandic country variant
-- `fo` - the Faroese country variant
+to select the security server package for installation. If no additional configurations have been made, the playbooks will install the `vanilla` variant, the basic non-country-specific version of X-Road.
+Any other value is the country code of an existing `xroad-securityserver-<variant>` package. Some variants have no RHEL package.
 
-Country variants provide country-specific configuration options and dependencies in order to suit the X-Road instances and policies of their host countries.
-The vanilla variant provides an operational X-Road installation without any country-specific configurations. Vanilla configurations can be considered the default X-Road configurations.
+The recommended place for defining a different variant is the inventory file. For example, a variant for one host:
+```
+[rhel_ss]
+xrd-ss0 ansible_connection=lxd variant=fo
+```
 
-The recommended place for defining a different variant is the inventory file. For example, the definition for the Finnish variant:
-```
-[ss_servers:vars]
-variant=fi
-```
+A host with a variant other than `vanilla` gets the country profile checks after installation: the signer and proxy logs must show the profile active, and the hurl step verifies the profile through the admin API.
 
 While it is possible to define different variants for different security servers, it is worth noting that upgrading from one variant to another is not supported.
 

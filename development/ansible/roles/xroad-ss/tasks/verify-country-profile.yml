@@ -1,15 +1,15 @@
 ---
-# The FI profile loads at process start; the services must have logged it.
-- name: wait for signer and proxy to log the active FI country profile
+# The country profile loads at process start; the services must have logged it.
+- name: wait for signer and proxy to log the active country profile
   become: true
   command:
     argv:
       - grep
       - -q
-      - Country profile FI active
+      - "Country profile {{ variant | upper }} active"
       - "/var/log/xroad/{{ item }}.log"
-  register: fi_profile_log
-  until: fi_profile_log.rc == 0
+  register: country_profile_log
+  until: country_profile_log.rc == 0
   retries: 12
   delay: 5
   changed_when: false
