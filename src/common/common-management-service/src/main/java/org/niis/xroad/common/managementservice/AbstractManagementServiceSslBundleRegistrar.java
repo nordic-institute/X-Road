@@ -29,23 +29,20 @@ package org.niis.xroad.common.managementservice;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.vault.TlsKeyStores;
 import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundleRegistry;
 import org.springframework.boot.ssl.SslStoreBundle;
 
 import java.io.IOException;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.GeneralSecurityException;
 
 @Slf4j
 public abstract class AbstractManagementServiceSslBundleRegistrar implements SslBundleRegistrar {
     public static final String BUNDLE_NAME = "management-service";
 
-    protected abstract InternalSSLKey resolveTlsCredentials() throws IOException, CertificateException,
-            NoSuchAlgorithmException, InvalidKeySpecException;
+    protected abstract InternalSSLKey resolveTlsCredentials() throws IOException, GeneralSecurityException;
 
     @Override
     public final void registerBundles(SslBundleRegistry registry) {
@@ -53,12 +50,8 @@ public abstract class AbstractManagementServiceSslBundleRegistrar implements Ssl
         try {
             var tlsCredentials = resolveTlsCredentials();
 
-            KeyStore keystore = KeyStore.getInstance("PKCS12");
-            keystore.load(null, null);
-            keystore.setKeyEntry(BUNDLE_NAME, tlsCredentials.getKey(), null, tlsCredentials.getCertChain());
-            SslStoreBundle storeBundle = SslStoreBundle.of(keystore, null, null);
-            SslBundle sslBundle = SslBundle.of(storeBundle);
-            registry.registerBundle(BUNDLE_NAME, sslBundle);
+            var keystore = TlsKeyStores.toPkcs12KeyStore(BUNDLE_NAME, tlsCredentials);
+            registry.registerBundle(BUNDLE_NAME, SslBundle.of(SslStoreBundle.of(keystore, null, null)));
         } catch (Exception e) {
             throw new IllegalStateException("Unable to register '%s' SSL bundle".formatted(BUNDLE_NAME), e);
         }

@@ -55,6 +55,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.ISSUER_DATA_FRESHNESS_SECONDS;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.LEGACY_PROTOCOL_DISABLED;
 
 @ExtendWith(MockitoExtension.class)
@@ -121,7 +122,8 @@ class SystemParameterServiceImplTest {
 
     @Test
     void legacyProtocolDisabledReadsStoredValue() {
-        when(systemParameterRepository.findByKey(LEGACY_PROTOCOL_DISABLED)).thenReturn(List.of(parameter("true")));
+        when(systemParameterRepository.findByKey(LEGACY_PROTOCOL_DISABLED))
+                .thenReturn(List.of(parameter(LEGACY_PROTOCOL_DISABLED, "true")));
 
         assertTrue(systemParameterService.isLegacyProtocolDisabled());
     }
@@ -129,14 +131,40 @@ class SystemParameterServiceImplTest {
     @Test
     void legacyProtocolDisabledIsReadFromSharedRowWhenHaConfigured() {
         when(currentHaConfigStatus.isHaConfigured()).thenReturn(true);
-        when(systemParameterRepository.findByKey(LEGACY_PROTOCOL_DISABLED)).thenReturn(List.of(parameter("true")));
+        when(systemParameterRepository.findByKey(LEGACY_PROTOCOL_DISABLED))
+                .thenReturn(List.of(parameter(LEGACY_PROTOCOL_DISABLED, "true")));
 
         assertTrue(systemParameterService.isLegacyProtocolDisabled());
         verify(systemParameterRepository, never()).findByKeyAndHaNodeName(anyString(), any());
     }
 
-    private static SystemParameterEntity parameter(String value) {
-        var entity = new SystemParameterEntity(LEGACY_PROTOCOL_DISABLED);
+    @Test
+    void issuerDataFreshnessSecondsDefaultsToSixHundred() {
+        when(systemParameterRepository.findByKey(ISSUER_DATA_FRESHNESS_SECONDS)).thenReturn(List.of());
+
+        assertEquals(600, systemParameterService.getIssuerDataFreshnessSeconds());
+    }
+
+    @Test
+    void issuerDataFreshnessSecondsReadsStoredValue() {
+        when(systemParameterRepository.findByKey(ISSUER_DATA_FRESHNESS_SECONDS))
+                .thenReturn(List.of(parameter(ISSUER_DATA_FRESHNESS_SECONDS, "120")));
+
+        assertEquals(120, systemParameterService.getIssuerDataFreshnessSeconds());
+    }
+
+    @Test
+    void issuerDataFreshnessSecondsIsReadFromSharedRowWhenHaConfigured() {
+        when(currentHaConfigStatus.isHaConfigured()).thenReturn(true);
+        when(systemParameterRepository.findByKey(ISSUER_DATA_FRESHNESS_SECONDS))
+                .thenReturn(List.of(parameter(ISSUER_DATA_FRESHNESS_SECONDS, "120")));
+
+        assertEquals(120, systemParameterService.getIssuerDataFreshnessSeconds());
+        verify(systemParameterRepository, never()).findByKeyAndHaNodeName(anyString(), any());
+    }
+
+    private static SystemParameterEntity parameter(String key, String value) {
+        var entity = new SystemParameterEntity(key);
         entity.setValue(value);
         return entity;
     }

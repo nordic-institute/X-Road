@@ -55,6 +55,12 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(6183)
             .build();
 
+    /** {@code xroad.dataspace.issuer.statuslist-port}. */
+    public static final ConfigKey<Integer> ISSUER_STATUSLIST_PORT = ISSUER
+            .integer("statuslist-port")
+            .withDefaultValue(6187)
+            .build();
+
     /** {@code xroad.dataspace.issuer.issuance-port}. */
     public static final ConfigKey<Integer> ISSUER_ISSUANCE_PORT = ISSUER
             .integer("issuance-port")
@@ -65,6 +71,18 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> ISSUER_CREDENTIAL_JSON_SCHEMA_URL = ISSUER
             .string("credential-json-schema-url")
             .withDefaultValue("https://example.com/schema/XRoadMembershipCredential.json")
+            .build();
+
+    /**
+     * {@code xroad.dataspace.issuer.listen-address} — the interface the Issuer Service's public DID,
+     * issuance and status-list ports bind to; distinct from {@code xroad.dataspace.issuer.host}, the
+     * advertised DID/URL host. {@code 0.0.0.0} (the default) and {@code ::} both listen on every
+     * interface, IPv4 and IPv6; blank is also accepted and listens on every interface.
+     */
+    public static final ConfigKey<String> ISSUER_LISTEN_ADDRESS = ISSUER
+            .string("listen-address")
+            .withDefaultValue("0.0.0.0")
+            .publishedToFramework()
             .build();
 
     /**

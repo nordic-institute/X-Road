@@ -36,12 +36,7 @@ import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Status;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.core.service.managementrequest.SystemDidRegistrationOutcome.OutcomeClass;
 
-import java.util.EnumSet;
-import java.util.Set;
-
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
 
 /**
  * The answer for one {@code memberDidReg} entry: a status and the reason within it. Every cause an entry can
@@ -52,10 +47,6 @@ final class MemberDidRegistrationOutcome {
 
     static final String CONFLICTING_DUPLICATE = "CONFLICTING_DUPLICATE";
     static final String SYSTEM_VALUES_NOT_STORED = "SYSTEM_VALUES_NOT_STORED";
-
-    /** Reasons the validator gives only for the SYSTEM pair; a member entry cannot get them. */
-    static final Set<ParticipantValueRejection> SYSTEM_PAIR_ONLY =
-            EnumSet.of(DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL, FOREIGN_SYSTEM_DID);
 
     private MemberDidRegistrationOutcome() {
     }
@@ -72,10 +63,17 @@ final class MemberDidRegistrationOutcome {
      * @throws IllegalArgumentException when the reason can only be given for the SYSTEM pair
      */
     static Result rejected(ClientId member, ParticipantValueRejection rejection, String registeredAddress) {
-        if (SYSTEM_PAIR_ONLY.contains(rejection)) {
+        if (isSystemPairOnly(rejection)) {
             throw new IllegalArgumentException("Reason " + rejection + " cannot occur for a member DID");
         }
         return of(member, SystemDidRegistrationOutcome.of(rejection, registeredAddress));
+    }
+
+    /**
+     * @return whether the validator gives the reason only for the SYSTEM pair, so a member entry cannot get it
+     */
+    static boolean isSystemPairOnly(ParticipantValueRejection rejection) {
+        return rejection.isDspBaseUrlReason() || rejection == FOREIGN_SYSTEM_DID;
     }
 
     static Result conflictingDuplicate(ClientId member) {

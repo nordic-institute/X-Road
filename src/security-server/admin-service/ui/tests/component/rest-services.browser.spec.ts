@@ -90,6 +90,7 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).toBeVisible();
 
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
@@ -119,6 +120,7 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).toBeVisible();
 
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
@@ -154,6 +156,7 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
     const saveBtn = page.getByTestId('dialog-save-button');
     await expect.element(saveBtn).toBeVisible();
 
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
@@ -185,6 +188,7 @@ describe('REST Services — add REST dialog form validation errors (Browser Mode
 
     const saveBtn = page.getByTestId('dialog-save-button');
 
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');

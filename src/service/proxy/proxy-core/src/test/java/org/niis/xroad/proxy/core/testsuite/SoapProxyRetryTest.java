@@ -39,7 +39,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.RestRetryTestUtil.CountingLogManager;
@@ -230,7 +229,6 @@ class SoapProxyRetryTest {
                 .overrides(PROPS)
                 .build());
         HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", "build/"))
                 .build());
         ctx = new TestContext(HELPER, true, mock(org.niis.xroad.monitor.rpc.MonitorRpcClient.class), RESOLVER,

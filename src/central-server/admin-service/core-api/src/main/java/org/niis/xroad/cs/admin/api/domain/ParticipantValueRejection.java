@@ -37,17 +37,23 @@ public enum ParticipantValueRejection {
     DID_TOO_LONG,
     /** The authority in the DID is not in its canonical form. */
     NOT_CANONICAL,
-    /** The host in the DID or the DSP base URL is not the registered address. */
+    /** The host in the DID is not the registered address. */
     HOST_DIFFERS,
     /** The registered address cannot be read as a host. */
     UNPARSEABLE_REGISTERED_ADDRESS,
-    /** The host in the DID or the DSP base URL, or the registered address, is not ASCII. */
+    /** The host in the DID, or the registered address, is not ASCII. */
     NON_ASCII_HOST,
     /** The DSP base URL does not use {@code https}. */
     DSP_BASE_URL_NOT_HTTPS,
     /** The DSP base URL is not a URL, or has an invalid port, user info, a query or a fragment. */
-    MALFORMED_DSP_BASE_URL,
-    /** The member DID has the shape of a DID of scheme version {@code v1} but cannot be decoded. */
+    DSP_BASE_URL_MALFORMED,
+    /** The authority in the DSP base URL is not in its canonical form. */
+    DSP_BASE_URL_NOT_CANONICAL,
+    /** The host in the DSP base URL is not the registered address. */
+    DSP_BASE_URL_HOST_DIFFERS,
+    /** The host in the DSP base URL is not ASCII. */
+    DSP_BASE_URL_NON_ASCII_HOST,
+    /** The member or SYSTEM DID has the shape of a DID of scheme version {@code v1} but cannot be decoded. */
     UNDECODABLE_DID,
     /** The member DID decodes to a participant other than the claimed member: another member or a SYSTEM participant. */
     DID_OF_OTHER_MEMBER,
@@ -58,5 +64,18 @@ public enum ParticipantValueRejection {
     /** The stored value is current for the registered address and differs from the published one. */
     VALUE_DIFFERS,
     /** The DID is stored for another Security Server. */
-    DID_HELD_BY_ANOTHER_SERVER
+    DID_HELD_BY_ANOTHER_SERVER,
+    /** An administrator replacement found no stored value to replace. */
+    NO_STORED_VALUE;
+
+    /**
+     * @return whether the reason is about the DSP base URL of a SYSTEM pair rather than about a DID
+     */
+    public boolean isDspBaseUrlReason() {
+        return switch (this) {
+            case DSP_BASE_URL_NOT_HTTPS, DSP_BASE_URL_MALFORMED, DSP_BASE_URL_NOT_CANONICAL, DSP_BASE_URL_HOST_DIFFERS,
+                    DSP_BASE_URL_NON_ASCII_HOST -> true;
+            default -> false;
+        };
+    }
 }

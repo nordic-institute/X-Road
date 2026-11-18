@@ -13,6 +13,7 @@ configurations.named("runtimeClasspath") {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
+  implementation(project(":common:common-core"))
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:properties-core"))
@@ -69,12 +70,11 @@ dependencies {
   runtimeOnly(libs.edc.sql.pool)
   runtimeOnly(libs.edc.core.sql.bootstrapper)
   runtimeOnly(libs.edc.sql.jti.validation)
-  runtimeOnly(libs.edc.sql.lease.core)
   runtimeOnly(libs.edc.sql.participantcontext.store)
   runtimeOnly(libs.edc.store.participantcontext.config.sql)
   runtimeOnly(libs.postgresql)
 
-  runtimeOnly(libs.edc.vault.hashicorp)
+  runtimeOnly(project(":lib:edc-vault-quarkus"))
   runtimeOnly(project(":lib:edc-jetty-tls"))
 
   runtimeOnly(project(":lib:rpc-quarkus"))
@@ -85,5 +85,20 @@ dependencies {
 
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(testFixtures(project(":lib:bootstrap-edc-quarkus")))
+  testImplementation(testFixtures(project(":service:ds-issuer-service:ds-issuer-service-customization")))
+  testImplementation(project(":service:ds-issuer-service:ds-issuer-service-customization"))
+  testImplementation(project(":common:common-test"))
+  testImplementation(libs.smallrye.config.yaml)
   testImplementation(libs.assertj.core)
+  testImplementation(libs.systemStubs)
+  testImplementation(libs.edc.ih.common.lib)
+  testImplementation(libs.mockito.core)
+  testImplementation(libs.edc.boot)
+  testImplementation(libs.edc.junit)
+  testImplementation(libs.edc.spi.core)
+  testImplementation(libs.edc.issuerservice.issuance.spi)
+  testImplementation(libs.edc.issuerservice.holder.spi)
+  testImplementation(libs.edc.issuer.issuance)
+  testImplementation(libs.edc.spi.identityhub.participantcontext)
+  testImplementation(libs.edc.issuer.local.statuslist.publisher)
 }

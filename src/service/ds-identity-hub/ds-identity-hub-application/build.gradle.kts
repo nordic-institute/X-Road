@@ -59,7 +59,7 @@ dependencies {
   runtimeOnly(libs.edc.configuration.filesystem)
   runtimeOnly(libs.edc.core.participantcontext.config)
 
-  runtimeOnly(libs.edc.vault.hashicorp)
+  runtimeOnly(project(":lib:edc-vault-quarkus"))
   runtimeOnly(project(":lib:edc-jetty-tls"))
 
   runtimeOnly(project(":lib:rpc-quarkus"))

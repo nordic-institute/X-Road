@@ -40,6 +40,7 @@ import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultResponse;
 import org.springframework.web.client.RestClientException;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -73,7 +74,7 @@ public class MigrationVaultClient extends SpringVaultClient {
     private final NodeScopedSecretPaths nodePaths;
 
     MigrationVaultClient(VaultKeyValueOperations kvOps, NodeIdentity nodeIdentity) {
-        super(kvOps);
+        super(kvOps, null, Duration.ZERO);
         this.kvOps = kvOps;
         this.nodePaths = new NodeScopedSecretPaths(nodeIdentity);
     }

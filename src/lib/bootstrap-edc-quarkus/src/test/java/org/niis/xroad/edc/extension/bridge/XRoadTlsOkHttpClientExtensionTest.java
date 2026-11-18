@@ -198,6 +198,61 @@ class XRoadTlsOkHttpClientExtensionTest {
     }
 
     @Test
+    void theBuiltClientDefaultsToTenSecondConnectAndReadTimeouts() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.connectTimeoutMillis()).isEqualTo(10_000);
+        assertThat(client.readTimeoutMillis()).isEqualTo(10_000);
+        verify(context).getSetting("edc.http.client.timeout.connect", 10L);
+        verify(context).getSetting("edc.http.client.timeout.read", 10L);
+    }
+
+    @Test
+    void theEdcClientTimeoutSettingsOverrideTheDefaults() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+        lenient().when(context.getSetting(ArgumentMatchers.eq("edc.http.client.timeout.connect"), ArgumentMatchers.anyLong()))
+                .thenReturn(3L);
+        lenient().when(context.getSetting(ArgumentMatchers.eq("edc.http.client.timeout.read"), ArgumentMatchers.anyLong()))
+                .thenReturn(45L);
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.connectTimeoutMillis()).isEqualTo(3_000);
+        assertThat(client.readTimeoutMillis()).isEqualTo(45_000);
+    }
+
+    @Test
+    void withNoConfiguredValueTheDispatcherUsesTheDefaultPerHostLimitAndMaxRequestsIsAtLeastThat() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.dispatcher().getMaxRequestsPerHost()).isEqualTo(8);
+        assertThat(client.dispatcher().getMaxRequests()).isGreaterThanOrEqualTo(8);
+    }
+
+    @Test
+    void aConfiguredValueReachesTheDispatcherAndMaxRequestsIsNeverBelowIt() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+        lenient().when(context.getSetting("xroad.dsp.outbound-http.max-requests-per-host", 8)).thenReturn(200);
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.dispatcher().getMaxRequestsPerHost()).isEqualTo(200);
+        assertThat(client.dispatcher().getMaxRequests()).isGreaterThanOrEqualTo(200);
+    }
+
+    @Test
     void shutdownClosesTheReloaderWithoutThrowing() throws Exception {
         var ca = selfSignedCa("Any CA");
         startHttpsServer(issueLeaf(ca, "any"));
@@ -217,11 +272,13 @@ class XRoadTlsOkHttpClientExtensionTest {
     private void stubContextServices() {
         lenient().when(context.getMonitor()).thenReturn(monitor);
         lenient().when(context.getService(GlobalConfProvider.class)).thenReturn(globalConfProvider);
-        lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.isNull())).thenReturn(null);
         // No setting configured in these tests: mirrors real behaviour (SettingResolver returns the
         // caller's own default) rather than Mockito's zero-value default, which would otherwise hand
         // PeriodicMaterialReloader.schedule a zero-second interval and blow up scheduleWithFixedDelay.
         lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.anyLong()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
+        // Same reasoning as the anyLong() stub above, for the int-typed per-host limit setting.
+        lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt()))
                 .thenAnswer(invocation -> invocation.getArgument(1));
     }
 

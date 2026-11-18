@@ -44,7 +44,7 @@ public record ParticipantValueResult(Outcome outcome, ParticipantValueRejection 
     public enum Outcome {
         /** The value was written, as a new value or as a replacement. */
         STORED,
-        /** Nothing was written: the stored value is already the published one, or there was nothing to replace. */
+        /** Nothing was written: the stored value is already the published one. */
         UNCHANGED,
         /** The value was refused; the reason is in {@link #rejection()}. */
         REJECTED

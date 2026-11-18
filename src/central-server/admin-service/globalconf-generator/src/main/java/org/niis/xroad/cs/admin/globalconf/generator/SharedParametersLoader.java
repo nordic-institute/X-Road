@@ -103,8 +103,8 @@ class SharedParametersLoader {
         var servers = securityServerService.findAll();
         var memberDids = withMemberDids ? getMemberDids(servers) : Map.<ClientId, Map<SecurityServerId, String>>of();
         return new SharedParameters(systemParameterService.getInstanceIdentifier(), getSources(), getApprovedCAs(),
-                getApprovedTSAs(), getApprovedConnectorTlsCAs(), getCredentialIssuerDids(), getMembers(memberDids),
-                getSecurityServers(servers), getGlobalGroups(), getGlobalSettings());
+                getApprovedTSAs(), getApprovedConnectorTlsCAs(), getCredentialIssuerDids(), getIssuerDataFreshnessSeconds(),
+                getMembers(memberDids), getSecurityServers(servers), getGlobalGroups(), getGlobalSettings());
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {
@@ -210,6 +210,10 @@ class SharedParametersLoader {
 
     private List<String> getCredentialIssuerDids() {
         return dataspaceIssuerDidService.findAll();
+    }
+
+    private Integer getIssuerDataFreshnessSeconds() {
+        return systemParameterService.getIssuerDataFreshnessSeconds();
     }
 
     private List<SharedParameters.CaInfo> toDsTlsCaInfos(List<DsTlsIntermediateCertificateAuthority> cas) {

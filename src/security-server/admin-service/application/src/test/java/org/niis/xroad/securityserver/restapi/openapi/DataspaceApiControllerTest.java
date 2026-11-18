@@ -48,6 +48,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatus
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.MemberPublication;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.ServerStatus;
+import org.niis.xroad.securityserver.restapi.service.HostStatus;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -87,7 +88,8 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
     void provisioningStatusCarriesTheServerLevelObject() {
         when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
-                new ServerStatus(true, "https://ss.example.test:7181/dsp", PublicationState.REJECTED, "DID_TAKEN")));
+                new ServerStatus(true, "https://ss.example.test:7181/dsp", PublicationState.REJECTED, "DID_TAKEN",
+                        true, false, HostStatus.OK)));
 
         var response = dataspaceApiController.getDataspaceProvisioningStatus();
 
@@ -97,6 +99,8 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
         assertThat(server.getDspBaseUrl()).isEqualTo("https://ss.example.test:7181/dsp");
         assertThat(server.getPublicationState()).isEqualTo(DataspacePublicationStateDto.REJECTED);
         assertThat(server.getPublicationReason()).isEqualTo("DID_TAKEN");
+        assertThat(server.getSystemDidMismatch()).isTrue();
+        assertThat(server.getDspBaseUrlMismatch()).isFalse();
         assertThat(response.getBody().getParticipantContexts()).hasSize(1);
     }
 
@@ -104,7 +108,7 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
     void provisioningStatusShowsNotSentWithoutAddressOrReason() {
         when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
-                new ServerStatus(false, null, PublicationState.NOT_SENT, null)));
+                new ServerStatus(false, null, PublicationState.NOT_SENT, null, false, false, HostStatus.OK)));
 
         var server = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getServer();
 
@@ -119,7 +123,7 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
     void provisioningStatusShowsTheLastSendFailureCauseWhileTheValueIsNotSent() {
         when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
                 new ServerStatus(true, "https://ss.example.test:7181/dsp", PublicationState.NOT_SENT,
-                        "SEND_FAILURE: timeout")));
+                        "SEND_FAILURE: timeout", false, false, HostStatus.OK)));
 
         var server = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getServer();
 
@@ -142,8 +146,9 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
         var member = new ParticipantContextStatus("DEV-COM-222", ParticipantKind.MEMBER, null, false, null,
                 CredentialStatus.ISSUED, IdentityStatus.OK);
         when(dataspaceProvisioningStatusService.readStatus()).thenReturn(new DataspaceStatus(true, true,
-                new ServerStatus(true, null, PublicationState.SUBMITTED, null), List.of(system, member),
-                Map.of("DEV-COM-222", new MemberPublication(PublicationState.REJECTED, "DID_TAKEN"))));
+                new ServerStatus(true, null, PublicationState.SUBMITTED, null, false, false, HostStatus.OK),
+                List.of(system, member),
+                Map.of("DEV-COM-222", new MemberPublication(PublicationState.REJECTED, "DID_TAKEN", false))));
 
         var contexts = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getParticipantContexts();
 
@@ -151,6 +156,40 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
         assertThat(contexts.getFirst().getPublicationReason()).isNull();
         assertThat(contexts.getLast().getPublicationState()).isEqualTo(DataspacePublicationStateDto.REJECTED);
         assertThat(contexts.getLast().getPublicationReason()).isEqualTo("DID_TAKEN");
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
+    void provisioningStatusShowsTheGlobalconfMismatchOfMemberContextsAndNoneForTheSystemContext() {
+        var system = new ParticipantContextStatus("xrd-ss0", ParticipantKind.SYSTEM, SYSTEM_DID, false, SYSTEM_DID,
+                CredentialStatus.ISSUED, IdentityStatus.OK);
+        var mismatching = new ParticipantContextStatus("DEV-COM-222", ParticipantKind.MEMBER, null, false, null,
+                CredentialStatus.ISSUED, IdentityStatus.OK);
+        var equal = new ParticipantContextStatus("DEV-COM-333", ParticipantKind.MEMBER, null, false, null,
+                CredentialStatus.ISSUED, IdentityStatus.OK);
+        when(dataspaceProvisioningStatusService.readStatus()).thenReturn(new DataspaceStatus(true, true,
+                new ServerStatus(true, null, PublicationState.PUBLISHED, null, false, false, HostStatus.OK),
+                List.of(system, mismatching, equal),
+                Map.of("DEV-COM-222", new MemberPublication(PublicationState.PUBLISHED, null, true),
+                        "DEV-COM-333", new MemberPublication(PublicationState.PUBLISHED, null, false))));
+
+        var contexts = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getParticipantContexts();
+
+        assertThat(contexts.getFirst().getGlobalconfMismatch()).isNull();
+        assertThat(contexts.get(1).getGlobalconfMismatch()).isTrue();
+        assertThat(contexts.get(2).getGlobalconfMismatch()).isFalse();
+    }
+
+    @ParameterizedTest
+    @EnumSource(HostStatus.class)
+    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
+    void provisioningStatusCarriesTheHostStatus(HostStatus hostStatus) {
+        when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
+                new ServerStatus(true, null, PublicationState.PUBLISHED, null, false, false, hostStatus)));
+
+        var server = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getServer();
+
+        assertThat(server.getHostStatus().name()).isEqualTo(hostStatus.name());
     }
 
     private static DataspaceStatus statusWith(ServerStatus server) {

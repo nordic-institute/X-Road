@@ -33,8 +33,8 @@ import org.junit.platform.suite.api.Suite;
 /**
  * Entry point of the {@code intTest} task and {@link ConsoleIntTestRunner}: runs every scenario class as one
  * serial suite in ascending class {@code @Order}. All classes exercise the same two signer tokens
- * (soft-token-000, xrd-softhsm-0) on the same long-lived signer + secondary-signer containers with no state
- * reset between classes - key/cert counts and even member-certificate totals asserted in later classes
+ * (soft-token-000, xrd-softhsm-0) on the same long-lived signer, secondary-signer and node-b signer containers
+ * with no state reset between classes - key/cert counts and even member-certificate totals asserted in later classes
  * (e.g. hardware-token) depend on earlier classes (software-token) having already run, exactly as the
  * legacy Cucumber suite's file-ordered scenario execution did. Overriding the parallel classpath default to
  * serial, class-ordered execution here (rather than per-class {@code @ResourceLock}s) is the conservative

@@ -29,8 +29,13 @@ dependencies {
   implementation("org.yaml:snakeyaml")
 
   testImplementation(project(":common:common-test"))
+  testImplementation(project(":lib:messagelog-core"))
+  testImplementation(project(":service:signer:signer-common"))
   testImplementation(libs.springBoot.starterTest)
   testImplementation(libs.systemStubs)
+  testImplementation(project(":tool:liquibase-executor"))
+  testImplementation(libs.liquibase.core)
+  testImplementation(libs.testcontainers.postgresql)
 
   xjc(libs.bundles.jaxb)
 }

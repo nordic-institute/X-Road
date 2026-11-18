@@ -37,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -48,11 +49,14 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
+import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestUtils;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.model.ParticipantState;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.model.PublicationState;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.niis.xroad.test.MutableClock;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 
@@ -62,7 +66,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,6 +86,9 @@ class DataspacePublicationWritersTest {
     private static final ServerSystemValues CARRIED = new ServerSystemValues(SYSTEM_DID.toString(), DSP_BASE_URL);
     private static final ServerSystemValues OTHER =
             new ServerSystemValues(SYSTEM_DID.toString(), "https://old.example.test:7181/dsp");
+    private static final ServerSystemValues SAME_HOST_OTHER_PORT = new ServerSystemValues(
+            ParticipantIdentifierScheme.systemDid("ss.example.test:8443").toString(),
+            "https://ss.example.test:7182/dsp");
     private static final ParticipantContext SYSTEM_CONTEXT = new ParticipantContext("xrd-ss0", ParticipantKind.SYSTEM, null);
     private static final long ROW_ID = 17L;
 
@@ -100,46 +106,41 @@ class DataspacePublicationWritersTest {
     private DataspacePublicationStage stage;
     private DataspacePublicationGlobalConfCheck check;
     private DsParticipantEntity row;
+    private MutableClock clock;
+    private final AdminServiceProperties adminServiceProperties = mock(AdminServiceProperties.class);
+    private final AdminServiceProperties.Dataspace dataspaceProperties = mock(AdminServiceProperties.Dataspace.class);
 
     @BeforeEach
     void setUp() {
-        row = new DsParticipantEntity();
+        clock = new MutableClock(Instant.parse("2026-11-10T12:00:00Z"));
+        when(adminServiceProperties.getDataspace()).thenReturn(dataspaceProperties);
+        when(dataspaceProperties.getPublicationSubmittedTimeoutMinutes()).thenReturn(60);
+        row = ParticipantRowTestUtils.systemEntity(SYSTEM_DID.toString(), PublicationState.NOT_SENT);
         row.setId(ROW_ID);
-        row.setDid(SYSTEM_DID.toString());
-        row.setState(ParticipantState.ACTIVE);
-        row.setPublicationState(PublicationState.NOT_SENT);
 
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(readinessPredicates.registeredAuthCertBytes()).thenReturn(Optional.of(new byte[] {1, 2, 3}));
         when(didAuthority.dspBaseUrlIfValid()).thenReturn(Optional.of(DSP_BASE_URL));
+        when(didAuthority.dspBaseUrlIfValid(any(OwnAddress.class))).thenReturn(Optional.of(DSP_BASE_URL));
         when(globalConfProvider.getServerSystemValues(SERVER_ID)).thenReturn(Optional.empty());
         when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any()))
                 .thenReturn(SystemDidRegistrationSendOutcome.stored(1));
         when(dsParticipantRepository.findActiveSystemParticipant()).thenAnswer(_ -> Optional.of(snapshot()));
-        when(dsParticipantRepository.transitionPublication(anyLong(), any(), any(), any())).thenAnswer(call -> {
-            PublicationState expected = call.getArgument(1);
-            if (row.getPublicationState() != expected) {
-                return false;
-            }
-            row.setPublicationState(call.getArgument(2));
-            row.setPublicationReason(call.getArgument(3));
-            return true;
-        });
+        when(dsParticipantRepository.transitionPublication(anyLong(), any(), any(), any()))
+                .thenAnswer(new ConditionalTransitionStub(_ -> row, clock::instant));
 
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
-                didRegistrationSender, mock(AdminServiceProperties.class));
-        check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, mock(ClientRepository.class),
-                globalConfProvider, readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
+                didRegistrationSender, adminServiceProperties);
+        check = PublicationCheckTestFactory.create(dsParticipantRepository, mock(ClientRepository.class),
+                globalConfProvider, readinessPredicates, didAuthority, adminServiceProperties, clock);
     }
 
     private DsParticipantEntity snapshot() {
-        var copy = new DsParticipantEntity();
+        var copy = ParticipantRowTestUtils.systemEntity(row.getDid(), row.getPublicationState());
         copy.setId(row.getId());
-        copy.setDid(row.getDid());
-        copy.setState(row.getState());
-        copy.setPublicationState(row.getPublicationState());
         copy.setPublicationReason(row.getPublicationReason());
+        copy.setPublicationChangedAt(row.getPublicationChangedAt());
         return copy;
     }
 
@@ -194,6 +195,92 @@ class DataspacePublicationWritersTest {
 
         verify(didRegistrationSender, times(1)).sendSystemDidRegisterRequest(any(), any(), any());
         assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+    }
+
+    @Test
+    void aSubmittedValueMissingFromGlobalconfIsSentAgainAfterTheTimeoutAndPublishedOnceGlobalconfCarriesIt() {
+        reconcilerPass();
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+
+        clock.advance(Duration.ofMinutes(61));
+        globalconfCheck();
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
+        var resetAt = row.getPublicationChangedAt();
+
+        clock.advance(Duration.ofMinutes(10));
+        globalconfCheck();
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
+        assertThat(row.getPublicationChangedAt()).isEqualTo(resetAt);
+
+        reconcilerPass();
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+        verify(didRegistrationSender, times(2)).sendSystemDidRegisterRequest(any(), any(), any());
+
+        clock.advance(Duration.ofMinutes(59));
+        globalconfCheck();
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+
+        carry(CARRIED);
+        globalconfCheck();
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.PUBLISHED);
+        var publishedAt = row.getPublicationChangedAt();
+
+        globalconfCheck();
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.PUBLISHED);
+        assertThat(row.getPublicationChangedAt()).isEqualTo(publishedAt);
+        verify(didRegistrationSender, times(2)).sendSystemDidRegisterRequest(any(), any(), any());
+    }
+
+    @Test
+    void theTimeoutIsTheConfiguredNumberOfMinutes() {
+        when(dataspaceProperties.getPublicationSubmittedTimeoutMinutes()).thenReturn(5);
+        reconcilerPass();
+
+        clock.advance(Duration.ofMinutes(6));
+        globalconfCheck();
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
+    }
+
+    @Test
+    void aSubmittedValueMissingFromGlobalconfStaysSubmittedPastTheTimeoutWhileTheAuthCertIsNotRegistered() {
+        reconcilerPass();
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+
+        clock.advance(Duration.ofDays(2));
+        globalconfCheck();
+        reconcilerPass();
+
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+        verify(didRegistrationSender, times(1)).sendSystemDidRegisterRequest(any(), any(), any());
+        verify(dsParticipantRepository, times(1)).transitionPublication(anyLong(), any(), any(), any());
+    }
+
+    @Test
+    void aSubmittedValueStaysSubmittedWhileTheDspBaseUrlCannotBeBuiltAndGlobalconfCarriesTheValues() {
+        reconcilerPass();
+        when(didAuthority.dspBaseUrlIfValid(any(OwnAddress.class))).thenReturn(Optional.empty());
+        carry(CARRIED);
+
+        globalconfCheck();
+        clock.advance(Duration.ofDays(2));
+        globalconfCheck();
+
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+        verify(dsParticipantRepository, times(1)).transitionPublication(anyLong(), any(), any(), any());
+    }
+
+    @Test
+    void aSubmittedValueWithADifferentValueInGlobalconfIsNeverSentAgainAfterTheTimeout() {
+        reconcilerPass();
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("ss.example.test");
+        carry(SAME_HOST_OTHER_PORT);
+
+        clock.advance(Duration.ofDays(2));
+        globalconfCheck();
+        reconcilerPass();
+
+        assertThat(row.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+        verify(didRegistrationSender, times(1)).sendSystemDidRegisterRequest(any(), any(), any());
     }
 
     @Test
@@ -277,19 +364,5 @@ class DataspacePublicationWritersTest {
         globalconfCheck();
 
         assertThat(row.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
-    }
-
-    @Test
-    void theDspBaseUrlIsNotBuiltForNotSentRejectedAndPublishedRows() {
-        for (var state : new PublicationState[] {PublicationState.NOT_SENT, PublicationState.REJECTED,
-                PublicationState.PUBLISHED}) {
-            row.setPublicationState(state);
-            carry(CARRIED);
-            globalconfCheck();
-            carry(null);
-            globalconfCheck();
-        }
-
-        verify(didAuthority, never()).dspBaseUrlIfValid();
     }
 }

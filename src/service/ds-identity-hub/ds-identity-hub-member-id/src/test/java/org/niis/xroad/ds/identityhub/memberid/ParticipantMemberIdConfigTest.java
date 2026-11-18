@@ -31,8 +31,11 @@ import org.eclipse.edc.encryption.EncryptionAlgorithmRegistryImpl;
 import org.eclipse.edc.participantcontext.config.defaults.store.InMemoryParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.config.service.ParticipantContextConfigServiceImpl;
 import org.eclipse.edc.participantcontext.config.validation.ParticipantContextConfigValidatorRegistryImpl;
+import org.eclipse.edc.participantcontext.defaults.store.InMemoryParticipantContextStore;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +46,7 @@ import java.time.Clock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,13 +56,16 @@ class ParticipantMemberIdConfigTest {
     private static final String MEMBER_ID = "DEV/COM/222";
     private static final String OTHER_MEMBER_ID = "DEV/COM/333";
 
+    private InMemoryParticipantContextStore participantContextStore;
     private ParticipantContextConfigService configService;
     private ParticipantMemberIdConfig memberIdConfig;
 
     @BeforeEach
     void setUp() {
+        participantContextStore = new InMemoryParticipantContextStore(CriterionOperatorRegistryImpl.ofDefaults());
+        participantContextStore.create(ParticipantContext.Builder.newInstance().id(CONTEXT_ID).identity(CONTEXT_ID).build());
         configService = new ParticipantContextConfigServiceImpl(new EncryptionAlgorithmRegistryImpl(), null,
-                new InMemoryParticipantContextConfigStore(), new NoopTransactionContext(), Clock.systemUTC(),
+                new InMemoryParticipantContextConfigStore(), participantContextStore, new NoopTransactionContext(), Clock.systemUTC(),
                 new ParticipantContextConfigValidatorRegistryImpl(false));
         memberIdConfig = new ParticipantMemberIdConfig(configService);
     }
@@ -121,5 +128,29 @@ class ParticipantMemberIdConfigTest {
         assertThat(memberIdConfig.remove("unknown").succeeded()).isTrue();
 
         assertThat(configService.get("unknown").failed()).isTrue();
+    }
+
+    @Test
+    void removingFromDeletedContextWithLeftoverConfigurationSucceeds() {
+        memberIdConfig.save(CONTEXT_ID, MEMBER_ID);
+        participantContextStore.deleteById(CONTEXT_ID);
+
+        assertThat(memberIdConfig.remove(CONTEXT_ID).succeeded()).isTrue();
+
+        assertThat(configService.get(CONTEXT_ID).getContent().getPrivateEntries())
+                .containsEntry(ParticipantMemberIdConfig.MEMBER_ID_KEY, MEMBER_ID);
+    }
+
+    @Test
+    void unexpectedFailureWhileRemovingIsReported() {
+        var failingService = mock(ParticipantContextConfigService.class);
+        when(failingService.get(CONTEXT_ID)).thenReturn(ServiceResult.success(
+                ParticipantContextConfiguration.Builder.newInstance().participantContextId(CONTEXT_ID).build()));
+        when(failingService.merge(any())).thenReturn(ServiceResult.unexpected("store unavailable"));
+
+        var removed = new ParticipantMemberIdConfig(failingService).remove(CONTEXT_ID);
+
+        assertThat(removed.failed()).isTrue();
+        assertThat(removed.getFailureDetail()).contains("store unavailable");
     }
 }

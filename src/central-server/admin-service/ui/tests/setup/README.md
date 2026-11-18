@@ -70,6 +70,52 @@ validation fails on any fixture that no longer matches its schema.
 - **DEFAULT_PERMISSIONS** covers the main CS navigation tabs
   (VIEW_MEMBERS, VIEW_SECURITY_SERVERS, VIEW_MANAGEMENT_REQUESTS, VIEW_GLOBAL_GROUPS).
 
+## State-driven mocks
+
+A handler never answers by how often it was called: components re-fetch, and a
+request left over from the previous test can reach the next test's handler.
+Keep the answer in one local variable per read endpoint (the state the reads
+return); the create, edit or delete handler reassigns or appends to it and the
+read handler returns it.
+
+```ts
+let keys = [createdKey];
+msw: [
+  specHttp.untyped.get('/api/v1/api-keys', () => HttpResponse.json(keys)),
+  specHttp.untyped.delete('/api/v1/api-keys/1', () => {
+    keys = [];
+    return new HttpResponse(null, { status: 200 });
+  }),
+],
+```
+
+- Read handlers never change state. A read sent as POST is still a read.
+- Search and filter reads answer from the request query, for example `query.get('q')`.
+- Read the variable inside the resolver, not when the handler is built.
+- Give an empty starting list an explicit type.
+- No `expect` inside handlers: errors thrown there are swallowed.
+- The final assertion must be false until the read after the change has rendered,
+  so it proves the change request was sent. An assertion that already holds on
+  the first load proves nothing.
+- Scope the final assertion to the table or list container, so a dialog,
+  snackbar or hint with the same text can't satisfy it.
+
+## Dialog autofocus
+
+Vuetify focuses a dialog's `autofocus` field about 50 ms after the dialog opens.
+A test that fills another field or opens a select first can lose focus to that
+late focus call. Before typing into another field or opening a select, wait
+inline for the autofocus field:
+
+```ts
+await page.getByTestId('add-global-group-button').click();
+await expect.element(page.getByTestId('add-global-group-code-input').getByRole('textbox')).toHaveFocus();
+await page.getByTestId('add-global-group-description-input').getByRole('textbox').fill('Test Group');
+```
+
+Skip the wait when the autofocus field is disabled, or when the dialog has only
+one text field.
+
 ## Browser-mode limitations
 
 Browser-mode specs do NOT fail on thrown errors or unhandled promise rejections.

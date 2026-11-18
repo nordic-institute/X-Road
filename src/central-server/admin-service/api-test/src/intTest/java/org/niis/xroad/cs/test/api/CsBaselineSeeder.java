@@ -254,9 +254,8 @@ public class CsBaselineSeeder {
 
     /**
      * Inserts a row into {@code issuer_dids} directly, binding the issuer identity. Idempotent: does
-     * nothing if a row is already present. This stack has no reachable Issuer Service, so the
-     * provisioning worker cannot bind and destructive tests that need a bound issuer seed the row
-     * directly.
+     * nothing if a row is already present. This stack has no reachable Issuer Service to run set-up
+     * against, so destructive tests that need a bound issuer seed the row directly.
      */
     public void bindIssuerIdentity() {
         var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
@@ -267,14 +266,127 @@ public class CsBaselineSeeder {
 
         try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
                 var stmt = conn.prepareStatement("""
-                        INSERT INTO centerui.issuer_dids (did, created_at, updated_at)
-                        SELECT ?, now(), now()
+                        INSERT INTO centerui.issuer_dids (did, host, did_port, issuance_url, statuslist_base_url, created_at, updated_at)
+                        SELECT ?, ?, ?, ?, ?, now(), now()
                         WHERE NOT EXISTS (SELECT 1 FROM centerui.issuer_dids)
                         """)) {
             stmt.setString(1, "did:web:issuer-service-api-test-binding");
+            stmt.setString(2, "issuer-service-api-test-binding");
+            stmt.setInt(3, 6183);
+            stmt.setString(4, "https://issuer-service-api-test-binding:6185/api/issuance/v1/participants/issuer");
+            stmt.setString(5, "https://issuer-service-api-test-binding:6187/statuslist");
             stmt.execute();
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to seed issuer_dids binding into CS DB", e);
+        }
+    }
+
+    /**
+     * Stores a SYSTEM DID and DSP base URL on a registered security server directly in the database. The
+     * management request path stores no pair, and this stack has no Issuer Service to publish one, so tests
+     * that edit or read a stored pair seed it here. Overwrites any pair already stored.
+     *
+     * @param serverId     security server identifier in {@code CS:class:code:serverCode} form
+     * @param systemDid    SYSTEM DID to store
+     * @param dspBaseUrl   DSP base URL to store
+     */
+    public void seedSystemPair(String serverId, String systemDid, String dspBaseUrl) {
+        var idParts = serverId.split(":");
+        var ownerClass = idParts[1];
+        var ownerCode = idParts[2];
+        var serverCode = idParts[3];
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("""
+                        UPDATE centerui.security_servers s SET system_did = ?, dsp_base_url = ?
+                        FROM centerui.security_server_clients o
+                        JOIN centerui.member_classes mc ON mc.id = o.member_class_id
+                        WHERE s.owner_id = o.id AND mc.code = ? AND o.member_code = ? AND s.server_code = ?
+                        """)) {
+            stmt.setString(1, systemDid);
+            stmt.setString(2, dspBaseUrl);
+            stmt.setString(3, ownerClass);
+            stmt.setString(4, ownerCode);
+            stmt.setString(5, serverCode);
+            if (stmt.executeUpdate() != 1) {
+                throw new IllegalStateException("Expected exactly one security server " + serverId);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to seed the SYSTEM pair of " + serverId, e);
+        }
+    }
+
+    /**
+     * Deletes the stored Issuer Service host row directly, reproducing the "host unset" state of a
+     * fresh install. This stack's baseline seeding always sets a host before any test runs, and there
+     * is no API to unset it, so the caller is responsible for restoring the host afterwards through the
+     * admin API.
+     */
+    public void clearIssuerServiceHost() {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("DELETE FROM centerui.system_parameters WHERE key = ?")) {
+            stmt.setString(1, "issuerServiceHost");
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to clear the Issuer Service host from the CS DB", e);
+        }
+    }
+
+    /**
+     * Claims the single-flight Issuer Service set-up lease directly, as if a run on {@code ownerNode}
+     * had just started it. The caller is responsible for releasing it afterwards with
+     * {@link #releaseIssuerSetUpLease()}; this stack has no reachable Issuer Service to run a real
+     * set-up that would hold the lease itself.
+     */
+    public void acquireIssuerSetUpLease(String ownerNode) {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("""
+                        INSERT INTO centerui.issuer_set_up_lease (id, owner_node, started_at, expires_at)
+                        VALUES (1, ?, now(), now() + interval '5 minutes')
+                        ON CONFLICT (id) DO UPDATE
+                            SET owner_node = excluded.owner_node,
+                                started_at = excluded.started_at,
+                                expires_at = excluded.expires_at
+                        """)) {
+            stmt.setString(1, ownerNode);
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to claim the issuer set-up lease in the CS DB", e);
+        }
+    }
+
+    /**
+     * Releases the issuer set-up lease claimed by {@link #acquireIssuerSetUpLease(String)}.
+     */
+    public void releaseIssuerSetUpLease() {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("DELETE FROM centerui.issuer_set_up_lease WHERE id = 1")) {
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to release the issuer set-up lease in the CS DB", e);
         }
     }
 

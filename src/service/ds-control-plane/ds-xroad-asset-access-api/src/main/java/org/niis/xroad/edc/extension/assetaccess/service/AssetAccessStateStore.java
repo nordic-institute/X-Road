@@ -27,8 +27,7 @@
 
 package org.niis.xroad.edc.extension.assetaccess.service;
 
-import org.eclipse.edc.controlplane.DataAddress;
-import org.eclipse.edc.spi.result.ServiceResult;
+import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,9 +61,9 @@ public class AssetAccessStateStore {
      * <p>The slot is claimed before {@code supplier} runs, so the supplier may block; a supplier that throws
      * synchronously fails the work and leaves no entry behind.
      */
-    public CompletableFuture<ServiceResult<DataAddress>> loadOrStartInFlight(
+    public CompletableFuture<AssetAccessResult> loadOrStartInFlight(
             String key,
-            Function<AcquisitionScope, CompletableFuture<ServiceResult<DataAddress>>> supplier) {
+            Function<AcquisitionScope, CompletableFuture<AssetAccessResult>> supplier) {
         while (true) {
             var claimed = new InFlight(key);
             var firstWaiter = claimed.addWaiter();
@@ -80,9 +79,9 @@ public class AssetAccessStateStore {
         }
     }
 
-    private CompletableFuture<ServiceResult<DataAddress>> start(
-            InFlight claimed, CompletableFuture<ServiceResult<DataAddress>> waiter,
-            Function<AcquisitionScope, CompletableFuture<ServiceResult<DataAddress>>> supplier) {
+    private CompletableFuture<AssetAccessResult> start(
+            InFlight claimed, CompletableFuture<AssetAccessResult> waiter,
+            Function<AcquisitionScope, CompletableFuture<AssetAccessResult>> supplier) {
         claimed.outcome.whenComplete((result, throwable) -> inFlightRequests.remove(claimed.key, claimed));
         try {
             supplier.apply(claimed.scope).whenComplete((result, throwable) -> {
@@ -100,7 +99,7 @@ public class AssetAccessStateStore {
 
     final class InFlight {
         private final String key;
-        private final CompletableFuture<ServiceResult<DataAddress>> outcome = new CompletableFuture<>();
+        private final CompletableFuture<AssetAccessResult> outcome = new CompletableFuture<>();
         private final AcquisitionScope scope = new AcquisitionScope();
         private int waiters;
         private boolean abandoned;
@@ -110,12 +109,12 @@ public class AssetAccessStateStore {
         }
 
         /** @return a new waiter, or {@code null} when the work was abandoned by all its waiters */
-        private synchronized CompletableFuture<ServiceResult<DataAddress>> addWaiter() {
+        private synchronized CompletableFuture<AssetAccessResult> addWaiter() {
             if (abandoned) {
                 return null;
             }
             waiters++;
-            var waiter = new CompletableFuture<ServiceResult<DataAddress>>();
+            var waiter = new CompletableFuture<AssetAccessResult>();
             waiter.whenComplete((result, throwable) -> {
                 if (waiter.isCancelled()) {
                     removeWaiter();

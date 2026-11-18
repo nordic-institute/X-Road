@@ -45,7 +45,6 @@ import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -62,6 +61,8 @@ import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.clientproxy.ClientRequestPreparationService;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor;
+import org.niis.xroad.proxy.core.clientproxy.DspFailover;
+import org.niis.xroad.proxy.core.clientproxy.DspSendFailureHandler;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
@@ -216,7 +217,6 @@ public abstract class AbstractProxyIntegrationTest {
                 .overrides(properties)
                 .build());
         CommonProperties commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", "build/"))
                 .build());
         startServices(proxyProperties, commonProperties);
@@ -264,7 +264,9 @@ public abstract class AbstractProxyIntegrationTest {
                 TEST_GLOBAL_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient,
                 CONSUMER_SIDE_DSP_PROCESSOR, identifierValidationService,
-                new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF));
+                new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF),
+                new DspFailover(CONSUMER_SIDE_DSP_PROCESSOR, httpSenderProviderClient,
+                        new DspSendFailureHandler(CONSUMER_SIDE_DSP_PROCESSOR)));
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),

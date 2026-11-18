@@ -8784,11 +8784,14 @@ components:
       required:
         - dataspace_ready
         - publication_state
+        - system_did_mismatch
+        - dsp_base_url_mismatch
+        - host_status
       properties:
         dataspace_ready:
           type: boolean
           readOnly: true
-          description: whether the data space is ready, that is globalconf lists a credential issuer for this instance
+          description: whether the data space is ready, that is a valid (unexpired) globalconf lists a credential issuer for this instance
         dsp_base_url:
           type: string
           readOnly: true
@@ -8799,11 +8802,39 @@ components:
           type: string
           readOnly: true
           description: reason for the publication state, for example the Central Server's conflict reason
+        system_did_mismatch:
+          type: boolean
+          readOnly: true
+          description: >-
+            true when globalconf announces a SYSTEM DID that differs from the bound one while the SYSTEM values are
+            submitted or published. The SYSTEM DID and the DSP base URL are stale together when either is announced
+            for another host than the registered address; a stale value never counts as a mismatch. False while
+            host_status is UNKNOWN
+        dsp_base_url_mismatch:
+          type: boolean
+          readOnly: true
+          description: >-
+            true when globalconf announces a DSP base URL that differs from the one built from the registered address
+            and the stored DSP port while the SYSTEM values are submitted or published. The SYSTEM DID and the DSP
+            base URL are stale together when either is announced for another host than the registered address; a
+            stale value never counts as a mismatch. False while host_status is UNKNOWN
+        host_status:
+          type: string
+          readOnly: true
+          description: >-
+            whether the DIDs of the active bindings, SYSTEM and members, carry the registered address as their host.
+            OK: every DID host is the registered address. DIFFERS: at least one DID host is another one, so
+            re-identification is due. UNKNOWN: the registered address is not known or not usable
+          enum:
+            - OK
+            - DIFFERS
+            - UNKNOWN
     DataspacePublicationState:
       type: string
       readOnly: true
       description: >-
-        whether the SYSTEM values have reached the Central Server. NOT_SENT: not sent yet or retrying.
+        whether the SYSTEM values of the server, or the DIDs of a member, have reached the Central Server.
+        NOT_SENT: not sent yet or retrying.
         SUBMITTED: accepted by the Central Server, not yet in globalconf. PUBLISHED: seen in globalconf.
         REJECTED: refused with a final reason.
       enum:
@@ -8865,6 +8896,13 @@ components:
           type: string
           readOnly: true
           description: reason for the publication state of a MEMBER context; absent for SYSTEM contexts
+        globalconf_mismatch:
+          type: boolean
+          readOnly: true
+          description: >-
+            true when globalconf announces a DID for the member that differs from the bound one while the DID is
+            submitted or published; absent for SYSTEM contexts. A stale value, one announced for another host than the
+            registered address, never counts as a mismatch. False while host_status is UNKNOWN
     AgreementTokenKeyStatus:
       type: object
       description: status of the agreement token signing key of the connected proxy

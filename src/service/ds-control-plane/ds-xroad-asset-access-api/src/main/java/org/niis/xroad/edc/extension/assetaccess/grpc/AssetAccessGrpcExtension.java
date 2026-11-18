@@ -50,7 +50,9 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
 
     @Setting(key = "xroad.asset-access.acquisition.timeout-seconds",
             description = "Longest overall asset acquisition in seconds (gRPC await for catalog → negotiation → transfer); "
-                    + "a caller asking for less gets less",
+                    + "a caller asking for less gets less. The candidate "
+                    + "being tried has no time limit of its own: it runs on what this budget has left, within the "
+                    + "per-stage limits.",
             defaultValue = "60")
     private long acquisitionTimeoutSeconds;
 

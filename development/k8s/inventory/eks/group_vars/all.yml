@@ -27,10 +27,6 @@ security_server_chart_version: "0.1.0"
 
 postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
 
-openbao_chart_repo: "https://openbao.github.io/openbao-helm"
-openbao_chart: "openbao/openbao"
-openbao_chart_version: "0.25.6"
-
 # cert_manager is not yet implemented in the openbao role — use self_signed
 # for initial bring-up. Migrate once the cert_manager path lands.
 openbao_tls_mode: self_signed

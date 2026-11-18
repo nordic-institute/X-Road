@@ -4,6 +4,8 @@ quarkus:
       enabled: false
   application:
     name: ds-identity-hub
+  scheduler:
+    start-mode: forced
   arc:
     unremovable-types:
       - org.niis.xroad.signer.client.SignerRpcClient
@@ -47,10 +49,13 @@ xroad:
       # StsClientTokenGeneratorService over the unwrapped embedded service instead.
       # StsApiConfigurationExtension is excluded because it injects the stock EDC JettyService, which is not on
       # the classpath. XRoadStsApiConfigurationExtension registers the same STS port mapping and version info.
+      # SqlSchemaBootstrapperExtension is excluded so that no EDC code can create tables;
+      # XRoadNoOpSqlSchemaBootstrapperExtension provides the SqlSchemaBootstrapper the SQL stores inject.
       excluded-service-extensions: >-
         org.eclipse.edc.web.jetty.JettyExtension,
         org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,
-        org.eclipse.edc.api.iam.decentralizedclaims.sts.StsApiConfigurationExtension
+        org.eclipse.edc.api.iam.decentralizedclaims.sts.StsApiConfigurationExtension,
+        org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension
   ds:
     rpc:
       host: "0.0.0.0"
@@ -71,23 +76,8 @@ web:
 
 edc:
   hostname: ${HOSTNAME:localhost}
-  vault:
-    hashicorp:
-      url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
-      token: "${XROAD_SECRET_STORE_TOKEN}"
-      # KV v2 mount; see ds-control-plane application.yaml for rationale.
-      folder: ds
-      health:
-        check:
-          enabled: false
-      api:
-        secret:
-          path: /v1/xrd-ds-secret
   datasource:
     default:
       url: ${xroad.db.ds-identity-hub.hibernate.connection.url}
       user: ${xroad.db.ds-identity-hub.hibernate.connection.username}
       password: ${xroad.db.ds-identity-hub.hibernate.connection.password}
-  sql:
-    schema:
-      autocreate: true

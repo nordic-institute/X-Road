@@ -67,7 +67,8 @@ public interface ParticipantValueStore {
     SystemPairCheck checkSystemPair(int securityServerId, String systemDid, String dspBaseUrl);
 
     /**
-     * Replaces the stored SYSTEM pair of a server. A server without a stored pair is left without one.
+     * Replaces the stored SYSTEM pair of a server. A server without a stored pair is left without one and
+     * the pair is refused as {@code NO_STORED_VALUE}.
      *
      * @param securityServerId the id of the server row
      * @param systemDid        the new SYSTEM DID
@@ -101,11 +102,24 @@ public interface ParticipantValueStore {
 
     /**
      * Replaces the stored member DIDs of a server, each entry on its own. A member without a stored DID on
-     * the server is left without one.
+     * the server is left without one and the entry is refused as {@code NO_STORED_VALUE}.
      *
      * @param securityServerId the id of the server row
      * @param memberDids       the new DID for each member
      * @return the outcome for each member, in the order of the given entries
      */
     Map<ClientId, ParticipantValueResult> replaceMemberDids(int securityServerId, Map<ClientId, String> memberDids);
+
+    /**
+     * Checks member DID replacements against a server without writing anything and without locking the server
+     * row. Each entry gets the result {@link #replaceMemberDids} would give it for the same input: refused with
+     * the reason, unchanged when equal to the stored DID, or stored when the replacement would be written. The
+     * server and its clients are read as the calling transaction sees them, with no lock and no refresh, so a
+     * change committed between this check and the replacement can make the replacement answer differently.
+     *
+     * @param securityServerId the id of the server row
+     * @param memberDids       the new DID for each member
+     * @return the result for each member, in the order of the given entries
+     */
+    Map<ClientId, ParticipantValueResult> checkMemberDidReplacements(int securityServerId, Map<ClientId, String> memberDids);
 }

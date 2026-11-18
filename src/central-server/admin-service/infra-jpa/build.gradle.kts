@@ -14,10 +14,12 @@ dependencies {
   testImplementation(testFixtures(project(":central-server:admin-service:globalconf-generator")))
   testImplementation(project(":tool:liquibase-executor"))
   testImplementation(libs.liquibase.core)
+  testImplementation(libs.picocli)
   testImplementation(project(":common:common-db"))
   testImplementation(project(":lib:ds-identity-core"))
   testImplementation(libs.postgresql)
   testImplementation(libs.hibernate.hikaricp)
   testImplementation(libs.awaitility)
   testImplementation(libs.testcontainers.postgresql)
+  testImplementation(libs.logback.classic)
 }

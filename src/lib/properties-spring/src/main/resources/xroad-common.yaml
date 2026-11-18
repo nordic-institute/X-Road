@@ -9,6 +9,11 @@ spring:
       port: ${XROAD_SECRET_STORE_PORT:8200}
       scheme: ${XROAD_SECRET_STORE_SCHEME:https}
       token: ${XROAD_SECRET_STORE_TOKEN}
+      connection-timeout: 5000
+      read-timeout: 10000
+      session:
+        lifecycle:
+          enabled: false
       kv:
         backend-version: 1
         backend: xrd-secret

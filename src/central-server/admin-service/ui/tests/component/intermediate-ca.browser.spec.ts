@@ -98,23 +98,23 @@ const basePermissions = [
 
 describe('0530 — CS Intermediate CA — add intermediate CA and list render (Browser Mode)', () => {
   it('add button opens dialog; after save the new intermediate CA appears in the list', async () => {
-    let intCasCallCount = 0;
+    let intCas: CertificateAuthority[] = [];
     await renderRoute(intermediateCasPath, {
       permissions: [...basePermissions, Permissions.ADD_APPROVED_CA],
       msw: [
         specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
           response(200).json(caDetail),
         ),
-        specHttp.get('/certification-services/{certification_service_id}/intermediate-cas', ({ response }) => {
-          intCasCallCount += 1;
-          return intCasCallCount === 1 ? response(200).json([]) : response(200).json([intCaRecord]);
-        }),
+        specHttp.get('/certification-services/{certification_service_id}/intermediate-cas', ({ response }) =>
+          response(200).json(intCas),
+        ),
         specHttp.get('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) =>
           response(200).json([]),
         ),
-        specHttp.post('/certification-services/{certification_service_id}/intermediate-cas', ({ response }) =>
-          response(201).json(intCaRecord),
-        ),
+        specHttp.post('/certification-services/{certification_service_id}/intermediate-cas', ({ response }) => {
+          intCas = [intCaRecord];
+          return response(201).json(intCaRecord);
+        }),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],
@@ -139,7 +139,7 @@ describe('0530 — CS Intermediate CA — add intermediate CA and list render (B
     await page.getByTestId('dialog-save-button').click();
 
     await expect.element(page.getByTestId('intermediate-cas-table')).toBeVisible();
-    await expect.element(page.getByText('Intermediate CA').first()).toBeVisible();
+    await expect.element(page.getByTestId('view-intermediate-ca-certificate')).toBeVisible();
   });
 });
 
@@ -174,25 +174,23 @@ describe('0530 — CS Intermediate CA — list table render, sort, and view cert
 
 describe('0530 — CS Intermediate CA — delete intermediate CA from list (Browser Mode)', () => {
   it('delete button triggers confirm dialog; after confirm the CA is removed from list', async () => {
-    let intCasCallCount = 0;
+    let intCas = [intCaRecord];
     await renderRoute(intermediateCasPath, {
       permissions: [...basePermissions, Permissions.DELETE_APPROVED_CA],
       msw: [
         specHttp.get('/certification-services/{certification_service_id}', ({ response }) =>
           response(200).json(caDetail),
         ),
-        specHttp.get('/certification-services/{certification_service_id}/intermediate-cas', ({ response }) => {
-          intCasCallCount += 1;
-          return intCasCallCount === 1
-            ? response(200).json([intCaRecord])
-            : response(200).json([]);
-        }),
+        specHttp.get('/certification-services/{certification_service_id}/intermediate-cas', ({ response }) =>
+          response(200).json(intCas),
+        ),
         specHttp.get('/certification-services/{certification_service_id}/ocsp-responders', ({ response }) =>
           response(200).json([]),
         ),
-        specHttp.delete('/intermediate-cas/{intermediate_ca_id}', ({ response }) =>
-          response(204).empty(),
-        ),
+        specHttp.delete('/intermediate-cas/{intermediate_ca_id}', ({ response }) => {
+          intCas = [];
+          return response(204).empty();
+        }),
         specHttp.get('/certification-services', ({ response }) => response(200).json([caItem])),
         specHttp.get('/timestamping-services', ({ response }) => response(200).json([])),
       ],

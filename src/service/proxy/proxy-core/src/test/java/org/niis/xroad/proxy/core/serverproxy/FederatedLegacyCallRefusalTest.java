@@ -38,7 +38,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.Message;
@@ -93,7 +92,6 @@ class FederatedLegacyCallRefusalTest {
                 .overrides(props)
                 .build());
         PROXY_TEST_SUITE_HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", "build/"))
                 .build());
         PROXY_TEST_SUITE_HELPER.startTestServices();

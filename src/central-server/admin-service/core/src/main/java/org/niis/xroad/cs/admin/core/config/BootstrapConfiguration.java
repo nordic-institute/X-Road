@@ -34,6 +34,7 @@ import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.spring.NodeIdentityConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
@@ -57,10 +58,14 @@ import org.springframework.vault.core.VaultTemplate;
         SpringOcspVerifierConfig.class,
         SpringSignerClientConfiguration.class,
         SpringRpcConfig.class,
-        SpringVaultClientConfig.class
+        SpringVaultClientConfig.class,
+        NodeIdentityConfig.class
 })
 @Configuration
 public class BootstrapConfiguration {
+
+    public static final String ADMIN_SERVICE_VAULT_KEY_CLIENT = "adminServiceVaultKeyClient";
+    public static final String MANAGEMENT_SERVICE_VAULT_KEY_CLIENT = "managementServiceVaultKeyClient";
 
     private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
 
@@ -84,15 +89,27 @@ public class BootstrapConfiguration {
         return bean;
     }
 
-    @Bean
+    @Bean(ADMIN_SERVICE_VAULT_KEY_CLIENT)
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
     VaultKeyClient springVaultKeyClient(VaultTemplate vaultTemplate, AdminServiceTlsProperties properties) {
         return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
     }
 
-    @Bean
+    @Bean(ADMIN_SERVICE_VAULT_KEY_CLIENT)
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "false", matchIfMissing = true)
     VaultKeyClient noopVaultKeyClient() {
+        return new NoopVaultKeyClient();
+    }
+
+    @Bean(MANAGEMENT_SERVICE_VAULT_KEY_CLIENT)
+    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
+    VaultKeyClient managementServiceSpringVaultKeyClient(VaultTemplate vaultTemplate, AdminServiceTlsProperties properties) {
+        return new SpringVaultKeyClient(vaultTemplate, properties.getManagementServiceCertificateProvisioning());
+    }
+
+    @Bean(MANAGEMENT_SERVICE_VAULT_KEY_CLIENT)
+    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "false", matchIfMissing = true)
+    VaultKeyClient managementServiceNoopVaultKeyClient() {
         return new NoopVaultKeyClient();
     }
 

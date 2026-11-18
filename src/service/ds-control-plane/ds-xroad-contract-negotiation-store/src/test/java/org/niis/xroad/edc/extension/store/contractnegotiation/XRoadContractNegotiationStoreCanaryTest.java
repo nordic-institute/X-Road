@@ -63,9 +63,10 @@ class XRoadContractNegotiationStoreCanaryTest {
     private static final String RE_DIFF_HINT = "Re-diff XRoadContractNegotiationStore#save and "
             + "XRoadPostgresContractNegotiationStatements against the current stock EDC contract-negotiation SQL "
             + "store, then, after a deliberate review, update the recorded EXPECTED_* constants in "
-            + "XRoadContractNegotiationStoreCanaryTest to match.";
+            + "XRoadContractNegotiationStoreCanaryTest to match. An EDC bump also needs the EDC table changesets: "
+            + "follow \"Upgrading EDC\" in src/tool/liquibase-executor/README.md.";
 
-    private static final String EXPECTED_EDC_VERSION = "1.0.0-RC6";
+    private static final String EXPECTED_EDC_VERSION = "1.0.0-RC7";
 
     private static final List<String> EXPECTED_AGREEMENT_UPSERT_COLUMNS = List.of(
             "agr_id", "provider_agent_id", "consumer_agent_id", "signing_date", "asset_id",

@@ -32,6 +32,18 @@
             <constraint annotation="org.niis.xroad.restapi.openapi.validator.OnlyAddressChars"/>
         </field>
     </bean>
+    <bean class="SecurityServerEditDto" ignore-annotations="false">
+        <field name="serverAddress">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.ValidHostAddress"/>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.OnlyAddressChars"/>
+        </field>
+    </bean>
+    <bean class="SystemDidCheckRequestDto" ignore-annotations="false">
+        <field name="serverAddress">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.ValidHostAddress"/>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.OnlyAddressChars"/>
+        </field>
+    </bean>
 
     <bean class="XRoadIdDto" ignore-annotations="false">
         <class ignore-annotations="false">

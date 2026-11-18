@@ -148,6 +148,7 @@ class AclParityTest extends E2eTest {
         var query = "SELECT property_value FROM configuration_properties WHERE property_key = '%s'"
                 .formatted(ProxyConfigKeys.DSP_ENABLED.key());
         var result = env.execInEnvContainer(SS1_ENV, SsStackSetup.DB_SERVERCONF,
+                "env", "PGOPTIONS=-c search_path=serverconf,public",
                 "psql", "-U", "postgres", "-d", "serverconf", "-tAX", "-c", query);
         if (result.getExitCode() != 0) {
             throw new IllegalStateException("reading dsp-enabled from the serverconf of %s failed: %s"

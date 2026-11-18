@@ -170,6 +170,7 @@ class TokenLifecycleTest extends SsApiTest {
         try {
             var result = stack.execInContainer(
                     SsApiTestContainerSetup.DB_SERVERCONF,
+                    "env", "PGOPTIONS=-c search_path=serverconf,public",
                     "psql", "-U", "postgres", "serverconf", "-c", sql);
             log.debug("psql: {}", result.getStdout());
             if (result.getExitCode() != 0) {

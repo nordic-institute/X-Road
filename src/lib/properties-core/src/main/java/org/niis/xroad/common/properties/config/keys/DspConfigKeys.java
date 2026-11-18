@@ -43,8 +43,10 @@ import static org.niis.xroad.common.properties.config.Validator.range;
  *
  * <p>A key is consumed in one of three ways. An EDC extension reads a key through
  * {@code ServiceExtensionContext.getSetting}: the control-plane extensions read the catalog cache keys, the
- * built-in services keys and the issuer-trust refresh interval, and the Issuer Service's DID resolution
- * extension reads the DID resolution fetch timeout. An X-Road process reads a key through {@code XRoadConfig}: the admin
+ * built-in services keys, the issuer-trust refresh interval, the task-poll worker count, the datasource pool
+ * size and the outbound per-host request limit, and the Issuer Service's DID resolution extension reads the
+ * DID resolution fetch timeout. An X-Road process reads a key
+ * through {@code XRoadConfig}: the admin
  * service reads both port keys through {@code AdminServiceProperties.Dataspace.getDidPort()} and
  * {@code getDspPort()}. An application configuration interpolates a
  * key with {@code ${...}}: the identity hub's DID web context port uses {@code ${xroad.dsp.did-port}}.
@@ -60,6 +62,9 @@ public final class DspConfigKeys implements ConfigKeyProvider {
     private static final Prefix BUILTIN_SERVICES = DSP.subPrefix("builtin-services");
     private static final Prefix ISSUER_TRUST = DSP.subPrefix("issuer-trust");
     private static final Prefix DID_RESOLUTION = DSP.subPrefix("did-resolution");
+    private static final Prefix TASK_POLL = DSP.subPrefix("task-poll");
+    private static final Prefix OUTBOUND_HTTP = DSP.subPrefix("outbound-http");
+    private static final Prefix CONTROL_PLANE_POOL = DSP.subPrefix("control-plane").subPrefix("pool");
 
     private static final DspConfigKeys INSTANCE = new DspConfigKeys();
 
@@ -144,6 +149,38 @@ public final class DspConfigKeys implements ConfigKeyProvider {
             .longValue("fetch-timeout-ms")
             .withDefaultValue(3000L)
             .withValidator(positiveLong())
+            .publishedToFramework()
+            .build();
+
+    /** {@code xroad.dsp.task-poll.workers}. */
+    public static final ConfigKey<Integer> TASK_POLL_WORKERS = TASK_POLL
+            .integer("workers")
+            .withDefaultValue(4)
+            .withValidator(range(1, Integer.MAX_VALUE))
+            .publishedToFramework()
+            .build();
+
+    /** {@code xroad.dsp.outbound-http.max-requests-per-host}. */
+    public static final ConfigKey<Integer> OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST = OUTBOUND_HTTP
+            .integer("max-requests-per-host")
+            .withDefaultValue(8)
+            .withValidator(range(1, Integer.MAX_VALUE))
+            .publishedToFramework()
+            .build();
+
+    /** {@code xroad.dsp.control-plane.pool.max-total}. */
+    public static final ConfigKey<Integer> CONTROL_PLANE_POOL_MAX_TOTAL = CONTROL_PLANE_POOL
+            .integer("max-total")
+            .withDefaultValue(16)
+            .withValidator(range(1, Integer.MAX_VALUE))
+            .publishedToFramework()
+            .build();
+
+    /** {@code xroad.dsp.control-plane.pool.max-idle}. */
+    public static final ConfigKey<Integer> CONTROL_PLANE_POOL_MAX_IDLE = CONTROL_PLANE_POOL
+            .integer("max-idle")
+            .withDefaultValue(16)
+            .withValidator(range(1, Integer.MAX_VALUE))
             .publishedToFramework()
             .build();
 

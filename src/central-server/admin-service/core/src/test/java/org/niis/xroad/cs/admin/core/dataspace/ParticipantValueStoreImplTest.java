@@ -82,6 +82,7 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_H
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NO_STORED_VALUE;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
@@ -107,7 +108,9 @@ class ParticipantValueStoreImplTest {
     private static final String OWNER_DID = "did:web:ss0.example.org%3A7183:v1:DEV:COM:222";
     private static final String CLIENT_DID = "did:web:ss0.example.org%3A7183:v1:DEV:COM:333";
     private static final String OTHER_CLIENT_DID = "did:web:ss0.example.org%3A7184:v1:DEV:COM:333";
+    private static final String OLD_OWNER_DID = "did:web:old.example.org%3A7183:v1:DEV:COM:222";
     private static final String OLD_CLIENT_DID = "did:web:old.example.org%3A7183:v1:DEV:COM:333";
+    private static final String WRONG_HOST_CLIENT_DID = "did:web:other.example.org%3A7183:v1:DEV:COM:333";
 
     private static final String HELD_REASON = "Published value rejected: " + DID_HELD_BY_ANOTHER_SERVER;
 
@@ -407,12 +410,33 @@ class ParticipantValueStoreImplTest {
     }
 
     @Test
-    void shouldNotAddSystemPairOnAdminReplace() {
+    void shouldLeaveAnEqualSystemPairAsItIsOnAdminReplace() {
+        server.setSystemDid(SYSTEM_DID);
+        server.setDspBaseUrl(DSP_URL);
+
         var result = store.replaceSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
 
         assertThat(result).isEqualTo(ParticipantValueResult.UNCHANGED);
+        assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
+        assertThat(server.getDspBaseUrl()).isEqualTo(DSP_URL);
+        verify(securityServerRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldRefuseToAddSystemPairOnAdminReplace() {
+        var result = store.replaceSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
+
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(NO_STORED_VALUE));
         assertThat(server.getSystemDid()).isNull();
         assertThat(server.getDspBaseUrl()).isNull();
+        verify(securityServerRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldRefuseToAddAnInvalidSystemPairOnAdminReplaceAsNotStored() {
+        var result = store.replaceSystemPair(SERVER_ID, SYSTEM_DID, "http://ss0.example.org/api/dsp");
+
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(NO_STORED_VALUE));
         verify(securityServerRepository, never()).saveAndFlush(any());
     }
 
@@ -442,6 +466,20 @@ class ParticipantValueStoreImplTest {
                 SERVER_CODE, "SS0",
                 OWNER_CLASS, "COM",
                 OWNER_CODE, "222"));
+    }
+
+    @Test
+    void shouldRejectSystemPairHeldByAnotherServerOnAdminReplaceWithoutConnectorAudit() {
+        server.setSystemDid(OTHER_SYSTEM_DID);
+        server.setDspBaseUrl(OTHER_DSP_URL);
+        when(securityServerRepository.existsBySystemDidAndIdNot(SYSTEM_DID, SERVER_ID)).thenReturn(true);
+
+        var result = store.replaceSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
+
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER));
+        assertThat(server.getSystemDid()).isEqualTo(OTHER_SYSTEM_DID);
+        verify(securityServerRepository, never()).saveAndFlush(any());
+        verifyNoInteractions(auditLogging);
     }
 
     @Test
@@ -524,14 +562,92 @@ class ParticipantValueStoreImplTest {
     }
 
     @Test
-    void shouldNotAddMemberDidOnAdminReplace() {
+    void shouldRefuseMemberDidWithNoStoredRowOnAdminReplace() {
         storedRows.put(1L, new MemberDidEntity(server, ownerEntity, OWNER_DID));
 
         var results = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
 
-        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.UNCHANGED);
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(NO_STORED_VALUE));
         assertThat(storedRows).containsOnlyKeys(1L);
         verify(memberDidRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldRefuseNoStoredRowBeforeTheHostCheckOnAdminReplace() {
+        var results = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, WRONG_HOST_CLIENT_DID));
+
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(NO_STORED_VALUE));
+        assertThat(storedRows).isEmpty();
+        verify(memberDidRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldRefuseNoStoredRowBeforeTheHostCheckOnTheReplacementDryRun() {
+        var results = store.checkMemberDidReplacements(SERVER_ID, Map.of(CLIENT, WRONG_HOST_CLIENT_DID));
+
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(NO_STORED_VALUE));
+        verify(memberDidRepository, never()).saveAndFlush(any());
+        verifyNoInteractions(auditLogging, entityManager);
+    }
+
+    @Test
+    void shouldStillCheckTheHostWhenTheMemberHasAStoredRowOnAdminReplace() {
+        storedRows.put(2L, new MemberDidEntity(server, clientEntity, CLIENT_DID));
+
+        var results = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, WRONG_HOST_CLIENT_DID));
+
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(HOST_DIFFERS));
+    }
+
+    @ParameterizedTest
+    @MethodSource("memberDidReplacementCases")
+    void shouldAnswerTheMemberDidReplacementCheckTheWayTheReplaceOperationDecides(MemberDidCase memberCase) {
+        memberCase.storedDid().ifPresent(did -> storedRows.put(2L, new MemberDidEntity(server, clientEntity, did)));
+        if (memberCase.heldByAnother()) {
+            didsOfOtherServers.add(memberCase.did());
+        }
+        var entry = new LinkedHashMap<ClientId, String>();
+        entry.put(memberCase.member(), memberCase.did());
+
+        var check = store.checkMemberDidReplacements(SERVER_ID, entry);
+        var replaced = store.replaceMemberDids(SERVER_ID, entry);
+
+        assertThat(check).containsExactly(Map.entry(memberCase.member(), memberCase.expected()));
+        assertThat(replaced).isEqualTo(check);
+    }
+
+    private static Stream<MemberDidCase> memberDidReplacementCases() {
+        return Stream.of(
+                new MemberDidCase("no stored row", CLIENT, CLIENT_DID, null, false,
+                        ParticipantValueResult.rejected(NO_STORED_VALUE)),
+                new MemberDidCase("no stored row, wrong host", CLIENT, WRONG_HOST_CLIENT_DID, null, false,
+                        ParticipantValueResult.rejected(NO_STORED_VALUE)),
+                new MemberDidCase("stored equal DID", CLIENT, CLIENT_DID, CLIENT_DID, false, ParticipantValueResult.UNCHANGED),
+                new MemberDidCase("stored different valid DID", CLIENT, OTHER_CLIENT_DID, CLIENT_DID, false,
+                        ParticipantValueResult.STORED),
+                new MemberDidCase("did of other member", CLIENT, OWNER_DID, CLIENT_DID, false,
+                        ParticipantValueResult.rejected(DID_OF_OTHER_MEMBER)),
+                new MemberDidCase("held by another server", CLIENT, OTHER_CLIENT_DID, CLIENT_DID, true,
+                        ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)),
+                new MemberDidCase("member not served", UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999", null,
+                        false, ParticipantValueResult.rejected(MEMBER_NOT_SERVED)));
+    }
+
+    @Test
+    void shouldLockServerRowBeforeReadingOrReplacingAnyDidRow() {
+        storedRows.put(1L, new MemberDidEntity(server, ownerEntity, OLD_OWNER_DID));
+        storedRows.put(2L, new MemberDidEntity(server, clientEntity, OLD_CLIENT_DID));
+
+        store.replaceMemberDids(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
+
+        InOrder order = inOrder(securityServerRepository, entityManager, memberDidRepository);
+        order.verify(securityServerRepository).lockForUpdateById(SERVER_ID);
+        order.verify(securityServerRepository).findById(SERVER_ID);
+        order.verify(entityManager).refresh(server);
+        order.verify(securityServerRepository).findServedMembers(SERVER_ID);
+        order.verify(memberDidRepository).findBySecurityServerIdAndMemberIdIn(eq(SERVER_ID), any());
+        order.verify(memberDidRepository).findDidsHeldByOtherServers(any(), eq(SERVER_ID));
+        order.verify(memberDidRepository, times(2)).saveAndFlush(any());
     }
 
     @Test
@@ -561,6 +677,18 @@ class ParticipantValueStoreImplTest {
                 OWNER_CODE, "222",
                 MEMBER_CLASS, "COM",
                 MEMBER_CODE, "333"));
+    }
+
+    @Test
+    void shouldRejectMemberDidHeldByAnotherServerOnAdminReplaceWithoutConnectorAudit() {
+        storedRows.put(2L, new MemberDidEntity(server, clientEntity, OTHER_CLIENT_DID));
+        didsOfOtherServers.add(CLIENT_DID);
+
+        var results = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
+
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER));
+        assertThat(storedRows.get(2L).getDid()).isEqualTo(OTHER_CLIENT_DID);
+        verifyNoInteractions(auditLogging);
     }
 
     @Test
@@ -663,6 +791,15 @@ class ParticipantValueStoreImplTest {
     }
 
     @Test
+    void shouldRefuseUnservedMemberAsNotServedOnAdminReplace() {
+        var results = store.replaceMemberDids(SERVER_ID,
+                Map.of(UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999"));
+
+        assertThat(results).containsEntry(UNRELATED, ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
+        assertThat(storedRows).isEmpty();
+    }
+
+    @Test
     void shouldRejectMemberDidForMemberThatIsNeitherOwnerNorClient() {
         var results = store.writeMemberDidsOnce(SERVER_ID,
                 Map.of(UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999"));
@@ -762,7 +899,7 @@ class ParticipantValueStoreImplTest {
     }
 
     @Test
-    void shouldIssueNoMemberStoredRowOrHeldQueryWhenEveryEntryIsRejected() {
+    void shouldIssueNoHeldQueryOrWriteWhenEveryEntryIsRejected() {
         var entries = new LinkedHashMap<ClientId, String>();
         entries.put(UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999");
         entries.put(CLIENT, "not-a-did");
@@ -773,7 +910,8 @@ class ParticipantValueStoreImplTest {
         assertThat(checked.values()).doesNotContain(ParticipantValueResult.STORED);
         assertThat(written).isEqualTo(checked);
         verify(securityServerRepository, times(2)).findServedMembers(SERVER_ID);
-        verifyNoInteractions(memberDidRepository);
+        verify(memberDidRepository, never()).findDidsHeldByOtherServers(any(), anyInt());
+        verify(memberDidRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -833,6 +971,7 @@ class ParticipantValueStoreImplTest {
     @Test
     void shouldRejectValuesWhenAddressChangedBeforeTheStoreCall() {
         server.setAddress("moved.example.org");
+        storedRows.put(2L, new MemberDidEntity(server, clientEntity, CLIENT_DID));
 
         var pair = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
         var members = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, CLIENT_DID));

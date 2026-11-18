@@ -38,7 +38,6 @@ import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
-import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProvisioningWorker;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -51,7 +50,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -75,8 +73,6 @@ class InitializationServiceImplTest {
     private AuditDataHelper auditDataHelper;
     @Mock
     private ExternalProcessRunner externalProcessRunner;
-    @Mock
-    private DataspaceIssuerProvisioningWorker dataspaceIssuerProvisioningWorker;
 
     private InitializationServiceImpl service;
 
@@ -105,7 +101,6 @@ class InitializationServiceImplTest {
                 auditDataHelper,
                 new HAConfigStatus("node1", false),
                 externalProcessRunner,
-                dataspaceIssuerProvisioningWorker,
                 GPG_KEY_PATH,
                 GPG_HOME
         );
@@ -120,8 +115,7 @@ class InitializationServiceImplTest {
     }
 
     @Test
-    void initializeSucceedsAndTriggersIssuerProvisioning() {
+    void initializeSucceeds() {
         assertDoesNotThrow(() -> service.initialize(dto()));
-        verify(dataspaceIssuerProvisioningWorker).provisionAsync();
     }
 }

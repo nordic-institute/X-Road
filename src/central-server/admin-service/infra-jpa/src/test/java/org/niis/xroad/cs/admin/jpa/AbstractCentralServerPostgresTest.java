@@ -49,10 +49,13 @@ import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Runs the real {@code centerui-changelog.xml} against a Postgres testcontainer and wires the Central Server
@@ -136,6 +139,51 @@ abstract class AbstractCentralServerPostgresTest {
             backendPid.set(jdbc.queryForObject("select pg_backend_pid()", Integer.class));
             return work.get();
         });
+    }
+
+    /**
+     * Runs {@code holderWork} in a transaction that stays open, starts {@code racingWork} in a second transaction,
+     * waits until that session waits for a lock, then lets the holder commit.
+     *
+     * @param holderWork  work that takes the lock and keeps it until the racing session waits
+     * @param racingWork  work that has to wait for the holder's lock
+     * @return the finished racing session; its failure, if any, is the one {@code get()} reports
+     * @throws Exception when the holder fails or a session does not finish in time
+     */
+    protected final Future<?> raceForLock(Runnable holderWork, Runnable racingWork) throws Exception {
+        var locked = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var holder = executor.submit(() -> transactions.execute(status -> {
+                holderWork.run();
+                locked.countDown();
+                await(release);
+                return null;
+            }));
+            awaitHolding(locked, holder);
+            var racingPid = new AtomicInteger();
+            var racing = executor.submit(inTransaction(racingPid, () -> {
+                racingWork.run();
+                return null;
+            }));
+            awaitLockedSession(racingPid);
+            assertThat(racing.isDone()).isFalse();
+
+            release.countDown();
+
+            holder.get(WAIT_SECONDS, TimeUnit.SECONDS);
+            try {
+                racing.get(WAIT_SECONDS, TimeUnit.SECONDS);
+            } catch (ExecutionException _) {
+                // the caller reads the racing session's failure from the returned future
+            }
+            return racing;
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+            executor.close();
+        }
     }
 
     protected final void awaitLockedSession(AtomicInteger waiterBackendPid) {

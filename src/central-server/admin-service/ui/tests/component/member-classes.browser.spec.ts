@@ -71,6 +71,7 @@ describe('0300 — CS Member Classes — invalid description on add (Browser Mod
     await page.getByTestId('system-settings-add-member-class-button').click();
 
     await expect.element(page.getByTestId('system-settings-member-class-edit-dialog')).toBeVisible();
+    await expect.element(page.getByTestId('system-settings-member-class-code-edit-field').getByRole('textbox')).toHaveFocus();
 
     await page
       .getByTestId('system-settings-member-class-code-edit-field')

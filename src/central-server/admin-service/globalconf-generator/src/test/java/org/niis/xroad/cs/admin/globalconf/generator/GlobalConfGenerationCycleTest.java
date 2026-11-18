@@ -97,6 +97,8 @@ class GlobalConfGenerationCycleTest {
     private static final String INSTANCE = "XRD";
     private static final String LEGACY_PROTOCOL_DISABLED = "legacyProtocolDisabled";
     private static final String LEGACY_PROTOCOL_DISABLED_TRUE = "<legacyProtocolDisabled>true</legacyProtocolDisabled>";
+    private static final String ISSUER_DATA_FRESHNESS_SECONDS = "issuerDataFreshnessSeconds";
+    private static final String DEFAULT_ISSUER_DATA_FRESHNESS_SECONDS = "600";
     private static final int FIRST_VERSION = 2;
     private static final int CURRENT_VERSION = 7;
     private static final String STALE_DIRECTORY = "20200101000000000000000";
@@ -169,6 +171,42 @@ class GlobalConfGenerationCycleTest {
     }
 
     @Test
+    void versionSevenCarriesTheDefaultIssuerDataFreshnessWhenNoValueIsStored() throws IOException {
+        var service = createService(null);
+
+        service.generate();
+
+        verify(eventPublisher).publishEvent(SUCCESS);
+        assertThat(sharedParameters(CURRENT_VERSION)).contains(issuerDataFreshness(DEFAULT_ISSUER_DATA_FRESHNESS_SECONDS));
+    }
+
+    @Test
+    void versionSevenCarriesTheStoredIssuerDataFreshness() throws IOException {
+        systemParameters.put(ISSUER_DATA_FRESHNESS_SECONDS, "120");
+        var service = createService(null);
+
+        service.generate();
+
+        assertThat(sharedParameters(CURRENT_VERSION)).contains(issuerDataFreshness("120"));
+    }
+
+    @Test
+    void issuerDataFreshnessChangesAreCarriedOnTheNextCycleAndNeverReachOlderVersions() throws IOException {
+        var service = createService(null);
+
+        service.generate();
+        assertThat(sharedParameters(CURRENT_VERSION)).contains(issuerDataFreshness(DEFAULT_ISSUER_DATA_FRESHNESS_SECONDS));
+
+        systemParameters.put(ISSUER_DATA_FRESHNESS_SECONDS, "0");
+        service.generate();
+        assertThat(sharedParameters(CURRENT_VERSION)).contains(issuerDataFreshness("0"));
+
+        for (int version = FIRST_VERSION; version < CURRENT_VERSION; version++) {
+            assertThat(sharedParameters(version)).as("V%d", version).doesNotContain(ISSUER_DATA_FRESHNESS_SECONDS);
+        }
+    }
+
+    @Test
     void minimumVersionSevenWritesOnlyVersionSevenAndLeavesOlderDirectoriesUntouched() throws IOException {
         for (int version = FIRST_VERSION; version < CURRENT_VERSION; version++) {
             var staleFile = generatedConfDir.resolve("V" + version).resolve(STALE_DIRECTORY).resolve("marker");
@@ -205,6 +243,10 @@ class GlobalConfGenerationCycleTest {
         assertThat(children(versionDir)).as("V%d", version).contains("internalconf", "externalconf");
         assertThat(Files.readString(versionDir.resolve("internalconf"))).contains("Version: " + version);
         assertThat(Files.readString(versionDir.resolve("externalconf"))).contains("Version: " + version);
+    }
+
+    private static String issuerDataFreshness(String seconds) {
+        return "<" + ISSUER_DATA_FRESHNESS_SECONDS + ">" + seconds + "</" + ISSUER_DATA_FRESHNESS_SECONDS + ">";
     }
 
     private String sharedParameters(int version) throws IOException {
@@ -277,6 +319,8 @@ class GlobalConfGenerationCycleTest {
         when(service.getOcspFreshnessSeconds()).thenReturn(3600);
         when(service.getAuthCertRegUrl()).thenReturn("https://cs.example:4001/managementservice/");
         when(service.getManagementServiceProviderId()).thenReturn(ClientId.Conf.create(INSTANCE, "GOV", "MGMT"));
+        when(service.getIssuerDataFreshnessSeconds()).thenAnswer(_ -> Integer.parseInt(
+                systemParameters.getOrDefault(ISSUER_DATA_FRESHNESS_SECONDS, DEFAULT_ISSUER_DATA_FRESHNESS_SECONDS)));
         when(service.isLegacyProtocolDisabled())
                 .thenAnswer(invocation -> Boolean.parseBoolean(systemParameters.get(LEGACY_PROTOCOL_DISABLED)));
         return service;

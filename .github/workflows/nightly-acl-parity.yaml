@@ -1,0 +1,54 @@
+name: Nightly ACL Parity
+
+# Runs the compose e2e suite in the ACL parity modes kept off pull requests; `dsp` runs in
+# Build and Test. Builds only what the compose legs consume, then runs one leg per mode.
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write # Required by the Gradle dependency graph submission in build-and-package
+  actions: read # Required for https://github.com/dorny/test-reporter
+  checks: write # Required for https://github.com/dorny/test-reporter
+  packages: write # Required to push application images
+
+concurrency:
+  group: nightly-acl-parity
+  cancel-in-progress: false
+
+jobs:
+  # The job name must keep the prefix `build & package`: the wait step of _test-e2e.yml finds
+  # this job by it to fail fast when the build fails.
+  build-and-package:
+    name: build & package
+    uses: ./.github/workflows/_build-and-package.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+      compose_e2e_only: true
+
+  # no needs edge on build-and-package (see _test-e2e.yml)
+  e2e:
+    name: e2e
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - acl_mode: legacy
+            runs_on: ubuntu-24.04
+            timeout_minutes: 120
+          - acl_mode: dsp-refusal
+            runs_on: xrd-runner-8c
+            timeout_minutes: 120
+    uses: ./.github/workflows/_test-e2e.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+      variant: compose
+      runs_on: ${{ matrix.runs_on }}
+      timeout_minutes: ${{ matrix.timeout_minutes }}
+      acl_mode: ${{ matrix.acl_mode }}
+      acl_report: true

@@ -28,6 +28,7 @@
 package org.niis.xroad.configuration.migration;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.migration.utils.InstallationType;
 
 import java.util.Map;
 import java.util.Scanner;
@@ -41,15 +42,23 @@ public abstract class BasePropertiesToDbMigrator {
     abstract Map<String, String> loadProperties(String filePath);
 
     public void migrate(String filePath, String dbPropertiesPath) {
-        Map<String, String> properties = new TreeMap<>(loadProperties(filePath));
+        migrate(filePath, dbPropertiesPath, InstallationType.SECURITY_SERVER);
+    }
+
+    public void migrate(String filePath, String dbPropertiesPath, InstallationType installationType) {
+        Map<String, String> loadedProperties = new TreeMap<>(loadProperties(filePath));
 
         if (log.isDebugEnabled()) {
             log.debug("Loaded properties from file {}:", filePath);
-            properties.forEach((k, v) -> log.debug("{}={}", k, v));
+            loadedProperties.forEach((k, v) -> log.debug("{}={}", k, v));
         }
 
+        LegacyConfigValueConverter.ConversionResult conversionResult = LegacyConfigValueConverter.convert(loadedProperties);
+        conversionResult.warnings().forEach(log::warn);
+        Map<String, String> properties = new TreeMap<>(conversionResult.properties());
+
         if (confirmProceed(properties)) {
-            saveToDb(properties, dbPropertiesPath);
+            saveToDb(properties, dbPropertiesPath, installationType);
             log.info("Total values migrated to DB: {}", properties.size());
         } else {
             log.info("Skipping migration.");
@@ -75,8 +84,8 @@ public abstract class BasePropertiesToDbMigrator {
         return System.getenv(name);
     }
 
-    void saveToDb(Map<String, String> properties, String dbPropertiesPath) {
-        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
+    void saveToDb(Map<String, String> properties, String dbPropertiesPath, InstallationType installationType) {
+        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath, installationType)) {
             properties.forEach((key, value) -> {
                 log.debug("Saving property {}={}", key, value);
                 dbRepo.saveProperty(String.valueOf(key), String.valueOf(value));

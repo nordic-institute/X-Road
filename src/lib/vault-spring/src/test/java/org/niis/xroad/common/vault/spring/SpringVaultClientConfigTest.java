@@ -1,0 +1,152 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.common.vault.spring;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.dbsource.InvalidNodeNameException;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
+import org.springframework.scheduling.config.IntervalTask;
+import org.springframework.scheduling.config.ScheduledTask;
+import org.springframework.vault.core.VaultKeyValueOperations;
+import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
+import org.springframework.vault.core.VaultTemplate;
+import org.springframework.web.client.ResourceAccessException;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+
+import java.time.Duration;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(SystemStubsExtension.class)
+class SpringVaultClientConfigTest {
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
+
+    private final VaultKeyValueOperations kvOperations = mock(VaultKeyValueOperations.class);
+    private final VaultTemplate vaultTemplate = mock(VaultTemplate.class);
+
+    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withBean(VaultTemplate.class, () -> vaultTemplate)
+            .withPropertyValues(
+                    "spring.cloud.vault.enabled=true",
+                    "spring.cloud.vault.kv.backend=xrd-secret",
+                    "spring.cloud.vault.kv.backend-version=1");
+
+    SpringVaultClientConfigTest() {
+        when(vaultTemplate.opsForKeyValue("xrd-secret", KeyValueBackend.KV_1)).thenReturn(kvOperations);
+    }
+
+    @Test
+    void shouldReadAdminTlsFromThePlainPathWhenNoNodeIdentityIsProvided() {
+        contextRunner.withUserConfiguration(SpringVaultClientConfig.class).run(context -> {
+            assertThat(context).doesNotHaveBean(NodeIdentity.class);
+
+            var client = context.getBean(SpringVaultClient.class);
+            assertThatThrownBy(client::getAdminServiceTlsCredentials)
+                    .isInstanceOf(XrdRuntimeException.class);
+
+            verify(kvOperations).get("tls/admin-service");
+        });
+    }
+
+    @Test
+    void shouldMakeASingleAttemptWhenTheRetryBudgetKeyIsZero() {
+        when(kvOperations.get("tls/admin-service")).thenThrow(new ResourceAccessException("connection refused"));
+        var xRoadConfig = XRoadConfigBuilder.create()
+                .overrides(Map.of(CommonConfigKeys.VAULT_RETRY_BUDGET.key(), "0s"))
+                .build();
+
+        contextRunner.withUserConfiguration(SpringVaultClientConfig.class)
+                .withBean(XRoadConfig.class, () -> xRoadConfig)
+                .run(context -> {
+                    var client = context.getBean(SpringVaultClient.class);
+
+                    assertThatThrownBy(client::getAdminServiceTlsCredentials)
+                            .isInstanceOfSatisfying(XrdRuntimeException.class,
+                                    e -> assertThat(e.isCausedBy(ErrorCode.SECRET_STORE_UNAVAILABLE)).isTrue());
+                    verify(kvOperations, times(1)).get("tls/admin-service");
+                });
+    }
+
+    @Test
+    void shouldScheduleTheTokenRenewalAtTheConfiguredIntervalStartingImmediately() {
+        var xRoadConfig = XRoadConfigBuilder.create()
+                .overrides(Map.of(
+                        CommonConfigKeys.VAULT_RETRY_BUDGET.key(), "0s",
+                        CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL.key(), "PT1H"))
+                .build();
+
+        contextRunner.withUserConfiguration(SpringVaultClientConfig.class)
+                .withBean(XRoadConfig.class, () -> xRoadConfig)
+                .run(context -> {
+                    var tasks = context.getBean(ScheduledAnnotationBeanPostProcessor.class).getScheduledTasks();
+
+                    assertThat(tasks).extracting(ScheduledTask::getTask)
+                            .singleElement()
+                            .isInstanceOfSatisfying(IntervalTask.class, task -> {
+                                assertThat(task.getIntervalDuration()).isEqualTo(Duration.ofHours(1));
+                                assertThat(task.getInitialDelayDuration()).isEqualTo(Duration.ZERO);
+                            });
+                });
+    }
+
+    @Test
+    void shouldTakeTheNodeNameFromTheEnvironmentVariable() {
+        variables.set("XROAD_NODE_NAME", "node_env");
+        contextRunner.withUserConfiguration(NodeIdentityConfig.class)
+                .run(context -> assertThat(context.getBean(NodeIdentity.class))
+                        .isEqualTo(new NodeIdentity("node_env", true)));
+    }
+    @Test
+    void shouldRejectAnInvalidNodeName() {
+        variables.set("XROAD_NODE_NAME", "_bad");
+        contextRunner.withUserConfiguration(NodeIdentityConfig.class)
+                .run(context -> assertThat(context).hasFailed().getFailure()
+                        .hasStackTraceContaining(XrdRuntimeException.class.getName())
+                        .rootCause()
+                        .isInstanceOf(InvalidNodeNameException.class)
+                        .hasMessageContaining(NodeProperties.NODE_NAME_ENV_VARIABLE));
+    }
+}
