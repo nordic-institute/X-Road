@@ -54,7 +54,7 @@ class XRoadIssuanceGateTest {
 
     @Test
     void refusesTheRequestWhileUnboundAndNeverCallsTheDelegate() {
-        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var gate = new XRoadIssuanceGate(delegate, holder);
 
         var result = gate.initiateCredentialsIssuance("participant-1", message, context);
@@ -66,7 +66,7 @@ class XRoadIssuanceGateTest {
     @Test
     void letsTheRequestThroughAfterTheFirstBoundLoad() {
         var bound = identity("DID-GATE");
-        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var gate = new XRoadIssuanceGate(delegate, holder);
         holder.start();
         var expected = ServiceResult.success(new CredentialRequestMessage.Response("process-1", false));

@@ -46,7 +46,7 @@ class XRoadStatusListCredentialPublisherTest {
 
     @Test
     void refusesToCreateOrPublishWhileUnbound() {
-        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var publisher = new XRoadStatusListCredentialPublisher(holder);
 
         var publishResult = publisher.publish(statusListCredential("credential-1"));
@@ -58,7 +58,7 @@ class XRoadStatusListCredentialPublisherTest {
     @Test
     void publishesUnderTheBoundStatuslistBaseUrlAfterTheFirstBoundLoad() {
         var bound = identity("DID-PUBLISH", "https://issuer.example/statuslist");
-        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var publisher = new XRoadStatusListCredentialPublisher(holder);
         holder.start();
 

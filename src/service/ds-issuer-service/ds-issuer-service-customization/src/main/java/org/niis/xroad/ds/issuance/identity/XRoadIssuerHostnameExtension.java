@@ -103,7 +103,7 @@ public class XRoadIssuerHostnameExtension implements ServiceExtension {
     public Hostname hostname() {
         return () -> holder.identity()
                 .map(BoundIssuerIdentity::host)
-                .orElseThrow(() -> new EdcException(NAME + ": the issuer identity is not bound yet"));
+                .orElseThrow(() -> new EdcException(NAME + ": the issuer identity is not bound"));
     }
 
     /**

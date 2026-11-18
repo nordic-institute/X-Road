@@ -57,7 +57,7 @@ public class XRoadStatusListCredentialPublisher implements StatusListCredentialP
     @Override
     public Result<String> publish(VerifiableCredentialResource verifiableCredentialResource) {
         if (holder.identity().isEmpty()) {
-            return Result.failure(NAME + ": the issuer identity is not bound yet");
+            return Result.failure(NAME + ": the issuer identity is not bound");
         }
         return Result.success(verifiableCredentialResource.getVerifiableCredential().credential().getId());
     }
@@ -66,6 +66,6 @@ public class XRoadStatusListCredentialPublisher implements StatusListCredentialP
     public String publicUrl(String credentialId) {
         return holder.identity()
                 .map(identity -> createUrl(identity.statuslistBaseUrl(), credentialId))
-                .orElseThrow(() -> new EdcException(NAME + ": the issuer identity is not bound yet"));
+                .orElseThrow(() -> new EdcException(NAME + ": the issuer identity is not bound"));
     }
 }

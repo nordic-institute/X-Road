@@ -87,7 +87,7 @@ public class XRoadStatusListCredentialController {
         var identity = holder.identity();
         if (identity.isEmpty()) {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                    .entity(NAME + ": the issuer identity is not bound yet")
+                    .entity(NAME + ": the issuer identity is not bound")
                     .build();
         }
 

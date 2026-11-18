@@ -36,6 +36,7 @@ public interface BoundIssuerIdentityReader {
     /**
      * @return the bound issuer identity, or empty when the Central Server has no issuer host set, or
      *     no {@code issuer_dids} row matches the DID rebuilt from that host and the published DID port
+     *     (including a row the Security Officer removed)
      */
     Optional<BoundIssuerIdentity> read();
 }

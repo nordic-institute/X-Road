@@ -62,7 +62,7 @@ class XRoadStatusListCredentialControllerTest {
     @Test
     void servesAListCreatedUnderABoundBaseThatDiffersFromTheCallback() {
         var bound = new BoundIssuerIdentity("DID-SERVE", "issuer.example", 7183, "https://issuer.example/issuance", BOUND_BASE_URL);
-        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         holder.start();
         var credentialId = BOUND_BASE_URL + "/credential-1";
         when(store.query(any())).thenReturn(StoreResult.success(List.of(statusListCredential(credentialId))));
@@ -78,7 +78,7 @@ class XRoadStatusListCredentialControllerTest {
 
     @Test
     void returnsServiceUnavailableWhileUnbound() {
-        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var controller = new XRoadStatusListCredentialController(store, monitor, () -> JsonMapper.builder().build(), holder);
 
         var response = controller.resolveStatusListCredential(MediaType.WILDCARD, requestContext(CALLBACK_ADDRESS + "/credential-1"));

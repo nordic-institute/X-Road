@@ -49,7 +49,7 @@ class XRoadIssuerHostnameExtensionTest {
 
     @Test
     void hostnameRefusesWhileUnbound() {
-        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var extension = new XRoadIssuerHostnameExtension(holder);
 
         var hostname = extension.hostname();
@@ -63,7 +63,7 @@ class XRoadIssuerHostnameExtensionTest {
     void hostnameReturnsTheBoundHostAfterTheHoldersFirstBoundLoadWithNoRestart() {
         var bound = new BoundIssuerIdentity("DID-HOST", "issuer.example", 7183,
                 "https://issuer.example/issuance", "https://issuer.example/statuslist");
-        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var extension = new XRoadIssuerHostnameExtension(holder);
         var hostname = extension.hostname();
 
@@ -79,7 +79,7 @@ class XRoadIssuerHostnameExtensionTest {
 
     @Test
     void bootsWithNoBindingWithoutAnError() {
-        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var extension = new XRoadIssuerHostnameExtension(holder);
 
         assertThatCode(() -> {
@@ -94,7 +94,7 @@ class XRoadIssuerHostnameExtensionTest {
     void bootsWithoutAnErrorWhileTheCentralServerDatabaseIsUnreachable() {
         var holder = new BoundIssuerIdentityHolder(() -> {
             throw new IllegalStateException("the Central Server database is unreachable");
-        }, monitor, CHECK_INTERVAL);
+        }, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var extension = new XRoadIssuerHostnameExtension(holder);
 
         assertThatCode(() -> {

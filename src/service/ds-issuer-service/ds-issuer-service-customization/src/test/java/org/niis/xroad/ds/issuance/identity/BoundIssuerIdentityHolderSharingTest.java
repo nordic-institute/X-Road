@@ -61,7 +61,7 @@ class BoundIssuerIdentityHolderSharingTest {
     void theHostnameProviderThePublisherAndTheGateUseTheSameHolderInstance() {
         var bound = new BoundIssuerIdentity("DID-SHARED", "issuer.example", 7183,
                 "https://issuer.example/issuance", "https://issuer.example/statuslist");
-        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         var hostnameExtension = new XRoadIssuerHostnameExtension(holder);
 
         assertThat(hostnameExtension.boundIssuerIdentityHolder()).isSameAs(holder);
