@@ -324,10 +324,10 @@ Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for ea
 - What they set: the port on which the server serves the documents of its decentralized identifiers (DIDs), and the port for the Dataspace Protocol (DSP).
 - Defaults: 7183 for the DID port and 8183 for the DSP port. Each port is a number from 1024 to 65535, and the two ports must be different.
 - Interactive prompt: the wizard asks for each port right after the version gate, before it changes anything, with the default filled in. An invalid answer is asked again, and cancelling the question keeps the default.
-- Pre-set values: `XROAD_DID_PORT` and `XROAD_DSP_PORT`, in the environment or in the `--config-file` (see `xroad-upgrade.conf.sample`). A port that is set is not asked. An invalid value stops the wizard before it changes anything.
+- Pre-set values: `XROAD_DID_PORT` and `XROAD_DSP_PORT`, set in the `--config-file` (`xroad-upgrade.conf`, see `xroad-upgrade.conf.sample`). A port that is set is not asked. An invalid value stops the wizard before it changes anything.
 - Unattended default: with `XROAD_UPGRADE_UNATTENDED=true` the wizard does not ask, and a port that is not set uses its default.
 - Storage: step 11b writes the chosen ports to the configuration database before the services start. A port equal to its default is not written, because a missing row means the default. A port that already has a row keeps the existing value.
-- Secondary node: the wizard does not ask and writes nothing when `/etc/xroad/conf.d/node.ini` has the value `secondary` for `type` in the `[node]` section, or when `XROAD_IGNORE_DATABASE_SETUP` is set. The primary node owns the rows. See [2.6.2 DID and DSP ports](ig-ss_x-road_v8_security_server_installation_guide.md#262-did-and-dsp-ports) in the Security Server Installation Guide.
+- Secondary node: the wizard does not ask and writes nothing when `/etc/xroad/conf.d/node.ini` has the value `secondary` (the legacy value `slave` also counts) for `type` in the `[node]` section, or when `XROAD_IGNORE_DATABASE_SETUP` is set. The primary node owns the rows. See [2.6.2 DID and DSP ports](ig-ss_x-road_v8_security_server_installation_guide.md#262-did-and-dsp-ports) in the Security Server Installation Guide.
 - Choose the ports now. A port cannot change after its DID is bound, and the upgraded server is already registered, so its DIDs are bound soon after X-Road 8 starts.
 
 ### Secrets in unattended mode
