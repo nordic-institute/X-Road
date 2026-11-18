@@ -30,8 +30,6 @@
       value: "5"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
       value: "https://{{ xroad_host_fqdn }}"
-    - key: xroad.common-rpc.channel.control-plane.host
-      value: "127.0.0.1"
     - key: xroad.common-global-conf.source
       value: REMOTE
     # Registration of the DS TLS CA (setup.hurl) happens well after xroad-proxy,
