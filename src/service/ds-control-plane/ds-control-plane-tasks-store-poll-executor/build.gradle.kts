@@ -17,12 +17,15 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":lib:properties-core"))
+
     api(libs.edc.spi.core)
     api(libs.edc.spi.controlplane)
 
     testImplementation(libs.awaitility)
     testImplementation(libs.assertj.core)
     testImplementation(libs.mockito.jupiter)
+    testImplementation(libs.junit.jupiter.params)
     testImplementation(libs.edc.junit)
     testImplementation(libs.edc.lib.core)
     testImplementation(libs.edc.lib.controlplane)
@@ -34,5 +37,14 @@ dependencies {
     testImplementation(libs.edc.core.controlplane.transfer.tasks)
     testImplementation(testFixtures(libs.edc.spi.controlplane))
     testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.postgresql)
+    testImplementation(libs.edc.sql.contract.negotiation)
+    testImplementation(libs.edc.sql.transfer.process)
+    testImplementation(libs.edc.sql.lease)
+    testImplementation(libs.edc.sql.lease.spi)
+    testImplementation(libs.edc.sql.tasks.store)
+    testImplementation(libs.edc.transaction.local)
+    testImplementation(testFixtures(libs.edc.sql.test.fixtures))
 }
 

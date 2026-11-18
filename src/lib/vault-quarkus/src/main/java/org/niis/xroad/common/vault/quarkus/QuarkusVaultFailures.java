@@ -42,13 +42,13 @@ import java.util.concurrent.TimeoutException;
  * Client errors such as 403 and 404 and TLS failures such as a rejected certificate are never retried.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-final class QuarkusVaultFailures {
+public final class QuarkusVaultFailures {
 
     private static final int HTTP_TEMPORARY_REDIRECT = 307;
     private static final int HTTP_SERVER_ERROR = 500;
     private static final String VAULT_CLIENT_PACKAGE = "io.quarkus.vault.client.";
 
-    static boolean isRetryable(Throwable failure) {
+    public static boolean isRetryable(Throwable failure) {
         var chain = ExceptionUtils.getThrowableList(failure);
         if (chain.stream().anyMatch(SSLException.class::isInstance)) {
             return false;

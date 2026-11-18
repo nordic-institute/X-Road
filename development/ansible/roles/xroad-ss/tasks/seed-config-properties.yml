@@ -12,6 +12,36 @@
 #
 # TEMPORARY (dataspaces dev): remove once packaging seeds these via debconf
 #   answerable questions / real STS-issued tokens.
+#
+# xroad.proxy.dsp.cache.enabled is kept out of the loop below and made
+# idempotent (get, then set only on mismatch): it toggles per run through
+# xroad_ss_dsp_cache_enabled, unlike the other keys, whose command tasks
+# always report changed because db_property.sh set is an unconditional upsert.
+# Defaulted inline, not only in roles/xroad-ss/defaults/main.yml: some callers
+# include_tasks this file directly, which does not load role defaults.
+- name: read current xroad.proxy.dsp.cache.enabled value
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - get
+      - xroad.proxy.dsp.cache.enabled
+  register: dsp_cache_enabled_current
+  changed_when: false
+  failed_when: dsp_cache_enabled_current.rc == 2
+
+- name: seed xroad.proxy.dsp.cache.enabled
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - xroad.proxy.dsp.cache.enabled
+      - "{{ xroad_ss_dsp_cache_enabled | default(false) | lower }}"
+      - --yes
+  when: dsp_cache_enabled_current.stdout != (xroad_ss_dsp_cache_enabled | default(false) | lower)
+  changed_when: true
+
 - name: seed xroad runtime config into serverconf configuration_properties
   become: true
   command:
@@ -22,8 +52,6 @@
       - "{{ item.value }}"
       - --yes
   loop:
-    - key: xroad.proxy.dsp.cache.enabled
-      value: "false"
     # Seconds (prod default 60); short so a fixture-written dataset is visible to the
     # suite's first DSP catalog fetch well inside the fixture-to-suite gap.
     - key: xroad.dsp.catalog.cache.ttl-seconds

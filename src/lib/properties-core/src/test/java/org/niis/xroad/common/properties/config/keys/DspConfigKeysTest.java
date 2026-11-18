@@ -89,6 +89,38 @@ class DspConfigKeysTest {
     }
 
     @Test
+    void taskPollWorkersRejectsLessThanOneAndAcceptsDefault() {
+        assertThat(DspConfigKeys.TASK_POLL_WORKERS.validate(0).valid()).isFalse();
+        assertThat(DspConfigKeys.TASK_POLL_WORKERS.validate(-1).valid()).isFalse();
+        assertThat(DspConfigKeys.TASK_POLL_WORKERS.validate(1).valid()).isTrue();
+        assertThat(DspConfigKeys.TASK_POLL_WORKERS.convertedDefaultValue()).isEqualTo(4);
+    }
+
+    @Test
+    void outboundHttpMaxRequestsPerHostRejectsLessThanOneAndAcceptsDefault() {
+        assertThat(DspConfigKeys.OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST.validate(0).valid()).isFalse();
+        assertThat(DspConfigKeys.OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST.validate(-1).valid()).isFalse();
+        assertThat(DspConfigKeys.OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST.validate(1).valid()).isTrue();
+        assertThat(DspConfigKeys.OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST.convertedDefaultValue()).isEqualTo(8);
+    }
+
+    @Test
+    void controlPlanePoolMaxTotalRejectsLessThanOneAndAcceptsDefault() {
+        assertThat(DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL.validate(0).valid()).isFalse();
+        assertThat(DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL.validate(-1).valid()).isFalse();
+        assertThat(DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL.validate(1).valid()).isTrue();
+        assertThat(DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL.convertedDefaultValue()).isEqualTo(16);
+    }
+
+    @Test
+    void controlPlanePoolMaxIdleRejectsLessThanOneAndAcceptsDefault() {
+        assertThat(DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE.validate(0).valid()).isFalse();
+        assertThat(DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE.validate(-1).valid()).isFalse();
+        assertThat(DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE.validate(1).valid()).isTrue();
+        assertThat(DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE.convertedDefaultValue()).isEqualTo(16);
+    }
+
+    @Test
     void serverProxyUrlRejectsBlank() {
         assertThat(DspConfigKeys.BUILTIN_SERVICES_SERVER_PROXY_URL.validate("").valid()).isFalse();
         assertThat(DspConfigKeys.BUILTIN_SERVICES_SERVER_PROXY_URL.validate(null).valid()).isFalse();
@@ -119,7 +151,11 @@ class DspConfigKeysTest {
                         "xroad.dsp.builtin-services.metaservices.enabled",
                         "xroad.dsp.builtin-services.server-proxy-url",
                         "xroad.dsp.issuer-trust.refresh-interval-seconds",
-                        "xroad.dsp.did-resolution.fetch-timeout-ms");
+                        "xroad.dsp.did-resolution.fetch-timeout-ms",
+                        "xroad.dsp.task-poll.workers",
+                        "xroad.dsp.outbound-http.max-requests-per-host",
+                        "xroad.dsp.control-plane.pool.max-total",
+                        "xroad.dsp.control-plane.pool.max-idle");
     }
 
     @Test

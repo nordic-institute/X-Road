@@ -24,18 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.dataspace;
+package org.niis.xroad.edc.extension.vault;
 
-import lombok.experimental.UtilityClass;
+import io.quarkus.vault.client.VaultClient;
+import io.quarkus.vault.runtime.VaultConfigHolder;
+import io.quarkus.vault.runtime.client.VaultClientProducer;
+import io.quarkus.vault.runtime.config.VaultRuntimeConfig;
+import io.smallrye.config.PropertiesConfigSource;
+import io.smallrye.config.SmallRyeConfigBuilder;
+import io.vertx.core.Vertx;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-/**
- * Builds the issuer's {@code did:web} identifier from its published host and DID port. The provisioning run
- * and the derived status both need the same identifier, so this is its one source.
- */
-@UtilityClass
-class IssuerDidFormat {
+import java.util.Map;
 
-    String didFor(String host, int didPort) {
-        return "did:web:" + host + "%3A" + didPort + ":issuer";
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+final class TestVaultClients {
+
+    private static final int CLIENT_TIMEOUT_SECONDS = 1;
+
+    static VaultClient connectedTo(Vertx vertx, int port) {
+        var properties = Map.of(
+                "quarkus.vault.url", "http://127.0.0.1:" + port,
+                "quarkus.vault.authentication.client-token", "test-token",
+                "quarkus.vault.connect-timeout", CLIENT_TIMEOUT_SECONDS + "S",
+                "quarkus.vault.read-timeout", CLIENT_TIMEOUT_SECONDS + "S");
+        var config = new SmallRyeConfigBuilder()
+                .withMapping(VaultRuntimeConfig.class)
+                .withSources(new PropertiesConfigSource(properties, "test", 500))
+                .build()
+                .getConfigMapping(VaultRuntimeConfig.class);
+        var holder = new VaultConfigHolder().setVaultRuntimeConfig(config);
+        return new VaultClientProducer().sharedVaultClient(vertx, holder, false);
     }
 }

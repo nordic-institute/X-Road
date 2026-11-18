@@ -74,7 +74,7 @@ dependencies {
   runtimeOnly(libs.edc.store.participantcontext.config.sql)
   runtimeOnly(libs.postgresql)
 
-  runtimeOnly(libs.edc.vault.hashicorp)
+  runtimeOnly(project(":lib:edc-vault-quarkus"))
   runtimeOnly(project(":lib:edc-jetty-tls"))
 
   runtimeOnly(project(":lib:rpc-quarkus"))
@@ -100,4 +100,5 @@ dependencies {
   testImplementation(libs.edc.issuerservice.holder.spi)
   testImplementation(libs.edc.issuer.issuance)
   testImplementation(libs.edc.spi.identityhub.participantcontext)
+  testImplementation(libs.edc.issuer.local.statuslist.publisher)
 }

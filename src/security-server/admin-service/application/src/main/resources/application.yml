@@ -14,7 +14,7 @@ spring:
       maximum-pool-size: 5
       minimum-idle: 1
       data-source-properties:
-        currentSchema: ${xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema:public}
+        currentSchema: '${xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema:"$user",public}'
         ApplicationName: ${spring.application.name}
   jpa:
     open-in-view: false

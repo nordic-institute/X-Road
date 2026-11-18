@@ -26,11 +26,14 @@
 package org.niis.xroad.monitor.core;
 
 import io.grpc.stub.StreamObserver;
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.interceptor.Interceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
@@ -44,7 +47,6 @@ import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
  * System metrics sensor collects information such as
  * memory, cpu, swap and file descriptors.
  */
-@Startup
 @Slf4j
 @ApplicationScoped
 public class SystemMetricsSensor {
@@ -78,7 +80,9 @@ public class SystemMetricsSensor {
         var channel = rpcChannelFactory.createChannel(rpcChannelProperties);
 
         monitorServiceStub = MonitorServiceGrpc.newStub(channel).withWaitForReady();
+    }
 
+    public void schedule(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
         var interval = envMonitorProperties.systemMetricsSensorInterval();
         scheduler.newJob(getClass().getSimpleName())
                 .setInterval(interval.toString())

@@ -1,6 +1,8 @@
 quarkus:
   application:
     name: Configuration Proxy CLI util
+  scheduler:
+    enabled: false
 
   config:
     locations:
