@@ -43,6 +43,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,9 +63,11 @@ class XRoadBitstringStatusListRevocationServiceTest {
     private static final Duration CACHE_TIME = Duration.ofSeconds(60);
     private static final int REVOKED_INDEX = 10;
     private static final int CLEAR_INDEX = 15;
+    private static final Duration REFRESH_WAIT = Duration.ofSeconds(10);
 
     private final MutableClock clock = new MutableClock(START);
     private final AtomicReference<Result<Duration>> maximumAge = new AtomicReference<>();
+    private final ExecutorService refreshPool = Executors.newCachedThreadPool();
     private FakeIssuer issuer;
     private XRoadBitstringStatusListRevocationService service;
 
@@ -79,14 +83,15 @@ class XRoadBitstringStatusListRevocationServiceTest {
         when(store.read(any(), any())).thenReturn(StoreResult.notFound("no row"));
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        var source = new LastGoodSource<BitstringStatusListCredential>(fetcher, clock, Ticker.disabledTicker(), Runnable::run,
-                CACHE_TIME, maximumAge::get, store, mock(Monitor.class));
+        var source = new LastGoodSource<BitstringStatusListCredential>(fetcher, clock, Ticker.disabledTicker(), refreshPool,
+                CACHE_TIME, REFRESH_WAIT, maximumAge::get, store, mock(Monitor.class));
         service = new XRoadBitstringStatusListRevocationService(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver(), source);
     }
 
     @AfterEach
     void tearDown() {
+        refreshPool.shutdownNow();
         issuer.close();
     }
 
@@ -158,6 +163,39 @@ class XRoadBitstringStatusListRevocationServiceTest {
         service.checkValidity(status(REVOKED_INDEX));
 
         assertThat(issuer.statusListRequests()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldRefuseCredentialRevokedAfterFirstCheckOnceCacheTimeHasPassed() {
+        issuer.publishStatusList(Set.of(), null);
+        assertThat(service.checkValidity(status(REVOKED_INDEX)).succeeded()).isTrue();
+        issuer.publishStatusList(Set.of(REVOKED_INDEX), null);
+
+        clock.set(START.plus(CACHE_TIME).minusSeconds(1));
+        assertThat(service.checkValidity(status(REVOKED_INDEX)).succeeded()).isTrue();
+
+        clock.set(START.plus(CACHE_TIME));
+        var result = service.checkValidity(status(REVOKED_INDEX));
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureDetail()).contains("status at index " + REVOKED_INDEX + " is '1'");
+        assertThat(issuer.statusListRequests()).isEqualTo(2);
+    }
+
+    @Test
+    void shouldAskIssuerOnceInOneBackoffWindowWhileItIsDown() {
+        assertThat(service.checkValidity(status(CLEAR_INDEX)).succeeded()).isTrue();
+        issuer.down(true);
+        clock.set(START.plus(CACHE_TIME).plusSeconds(1));
+        assertThat(service.checkValidity(status(CLEAR_INDEX)).succeeded()).isTrue();
+        var requestsAfterFirstFailure = issuer.statusListRequests();
+
+        for (var i = 0; i < 10; i++) {
+            clock.advance(Duration.ofMillis(300));
+            assertThat(service.checkValidity(status(CLEAR_INDEX)).succeeded()).isTrue();
+        }
+
+        assertThat(issuer.statusListRequests()).isEqualTo(requestsAfterFirstFailure);
     }
 
     private CredentialStatus status(int index) {

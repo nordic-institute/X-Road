@@ -39,8 +39,11 @@ import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.sql.datasource.ConnectionFactoryDataSource;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.datasource.spi.DefaultDataSourceRegistry;
+import org.eclipse.edc.transaction.local.LocalDataSourceRegistry;
+import org.eclipse.edc.transaction.local.LocalTransactionContext;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,6 +62,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -77,6 +82,7 @@ class IssuerDataStorePostgresTest {
     private static final Instant START = Instant.parse("2026-11-18T10:00:00Z");
     private static final Duration CACHE_TIME = Duration.ofSeconds(60);
     private static final Duration MAXIMUM_AGE = Duration.ofSeconds(120);
+    private static final Duration REFRESH_WAIT = Duration.ofMillis(100);
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
 
@@ -87,6 +93,7 @@ class IssuerDataStorePostgresTest {
     private final RecordingMonitor monitor = new RecordingMonitor();
     private final MutableClock clock = new MutableClock(START);
     private final AtomicReference<Result<Duration>> maximumAge = new AtomicReference<>();
+    private final ExecutorService refreshPool = Executors.newCachedThreadPool();
 
     @BeforeAll
     static void createDatabases() throws Exception {
@@ -115,6 +122,11 @@ class IssuerDataStorePostgresTest {
     @BeforeEach
     void setUp() {
         maximumAge.set(Result.success(MAXIMUM_AGE));
+    }
+
+    @AfterEach
+    void shutDownRefreshPool() {
+        refreshPool.shutdownNow();
     }
 
     static Stream<Database> databases() {
@@ -267,11 +279,11 @@ class IssuerDataStorePostgresTest {
         assertThat(warnings.getFirst()).contains(key).doesNotContain(FakeFetcher.CORRUPT);
 
         fetcher.down = false;
-        clock.set(START.plusSeconds(31));
+        clock.set(START.plusSeconds(100));
         assertThat(restarted.lookup(key).succeeded()).isTrue();
         assertThat(controlPlane.store.read(IssuerDataKind.STATUSLIST, key).getContent())
                 .extracting(StoredIssuerData::payload, StoredIssuerData::fetchedAt)
-                .containsExactly("payload-1", START.plusSeconds(31));
+                .containsExactly("payload-1", START.plusSeconds(100));
     }
 
     @Test
@@ -293,17 +305,53 @@ class IssuerDataStorePostgresTest {
         assertThat(replicaB.lookup(key).getContent().payload()).isEqualTo("payload-10");
     }
 
+    @Test
+    void shouldLeaveOuterTransactionCommittableWhenStoreStatementFails() throws SQLException {
+        var transactionContext = new LocalTransactionContext(monitor);
+        var transactionalStore = controlPlane.storeIn(transactionContext);
+        var source = sourceOnPool(transactionalStore);
+        var markerKey = "marker-" + UUID.randomUUID();
+        var oversizedKey = "k".repeat(2049);
+
+        transactionContext.execute(() -> {
+            transactionalStore.write(IssuerDataKind.DID, markerKey, new StoredIssuerData("marker", START, START.plus(CACHE_TIME)));
+            assertThat(source.lookup(oversizedKey).succeeded()).isTrue();
+        });
+
+        assertThat(monitor.warnings()).anyMatch(message -> message.contains("could not be stored"));
+        assertThat(controlPlane.rowCount(markerKey)).isEqualTo(1);
+    }
+
+    @Test
+    void shouldHoldNoRowLockAfterCheckInsideOuterTransaction() {
+        var transactionContext = new LocalTransactionContext(monitor);
+        var source = sourceOnPool(controlPlane.storeIn(transactionContext));
+        var rowVisible = new AtomicReference<Boolean>();
+
+        transactionContext.execute(() -> {
+            assertThat(source.lookup(key).succeeded()).isTrue();
+            rowVisible.set(controlPlane.lockRowWithoutWaiting(key));
+        });
+
+        assertThat(rowVisible.get()).isTrue();
+    }
+
+    private LastGoodSource<String> sourceOnPool(SqlIssuerDataStore store) {
+        return new LastGoodSource<>(new FakeFetcher(), clock, Ticker.disabledTicker(), refreshPool, CACHE_TIME,
+                Duration.ofSeconds(10), maximumAge::get, store, monitor);
+    }
+
     private LastGoodSource<String> fakeSource(FakeFetcher fetcher, MutableClock sourceClock) {
-        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, maximumAge::get,
-                controlPlane.store, monitor);
+        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, REFRESH_WAIT,
+                maximumAge::get, controlPlane.store, monitor);
     }
 
     private LastGoodSource<BitstringStatusListCredential> realSource(MutableClock sourceClock) {
         var stack = EdcTestStack.create();
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), List.of("*/*"), stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, maximumAge::get,
-                controlPlane.store, monitor);
+        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, REFRESH_WAIT,
+                maximumAge::get, controlPlane.store, monitor);
     }
 
     private static void applyChangelog(String jdbcUrl, String changelog) throws Exception {
@@ -327,14 +375,36 @@ class IssuerDataStorePostgresTest {
         private Database(String name, String jdbcUrl) {
             this.name = name;
             this.jdbcUrl = jdbcUrl;
+            var registry = new DefaultDataSourceRegistry();
+            registry.register(DataSourceRegistry.DEFAULT_DATASOURCE, dataSource());
+            this.store = new SqlIssuerDataStore(registry, DataSourceRegistry.DEFAULT_DATASOURCE, new NoopTransactionContext(),
+                    new SqlQueryExecutor());
+        }
+
+        private ConnectionFactoryDataSource dataSource() {
             var properties = new Properties();
             properties.put("user", POSTGRES.getUsername());
             properties.put("password", POSTGRES.getPassword());
-            var registry = new DefaultDataSourceRegistry();
-            registry.register(DataSourceRegistry.DEFAULT_DATASOURCE,
-                    new ConnectionFactoryDataSource(new DriverManagerConnectionFactory(), jdbcUrl, properties));
-            this.store = new SqlIssuerDataStore(registry, DataSourceRegistry.DEFAULT_DATASOURCE, new NoopTransactionContext(),
+            return new ConnectionFactoryDataSource(new DriverManagerConnectionFactory(), jdbcUrl, properties);
+        }
+
+        private SqlIssuerDataStore storeIn(LocalTransactionContext transactionContext) {
+            var registry = new LocalDataSourceRegistry(transactionContext);
+            registry.register(DataSourceRegistry.DEFAULT_DATASOURCE, dataSource());
+            return new SqlIssuerDataStore(registry, DataSourceRegistry.DEFAULT_DATASOURCE, transactionContext,
                     new SqlQueryExecutor());
+        }
+
+        private boolean lockRowWithoutWaiting(String rowKey) {
+            try (var connection = connect();
+                 var statement = connection.prepareStatement("SELECT 1 FROM xroad_issuer_data WHERE key = ? FOR UPDATE NOWAIT")) {
+                statement.setString(1, rowKey);
+                try (var resultSet = statement.executeQuery()) {
+                    return resultSet.next();
+                }
+            } catch (SQLException e) {
+                throw new IllegalStateException("Row could not be locked", e);
+            }
         }
 
         @Override

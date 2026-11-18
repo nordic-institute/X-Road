@@ -39,6 +39,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstrings
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -51,6 +52,8 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 import static org.niis.xroad.edc.issuerdata.IssuerDataExtension.NAME;
@@ -70,6 +73,7 @@ public class IssuerDataExtension implements ServiceExtension {
     static final String CONTENT_TYPES_SETTING = "edc.iam.credential.revocation.mimetype";
     static final long DEFAULT_CACHE_VALIDITY_MILLIS = 15 * 60 * 1000L;
     static final String DEFAULT_CONTENT_TYPES = "*/*";
+    static final String REFRESH_THREAD_PREFIX = "xroad-issuer-data-refresh-";
 
     @Inject
     private RevocationServiceRegistry revocationServiceRegistry;
@@ -94,6 +98,10 @@ public class IssuerDataExtension implements ServiceExtension {
     private TransactionContext transactionContext;
     @Inject
     private QueryExecutor queryExecutor;
+    @Inject
+    private ExecutorInstrumentation executorInstrumentation;
+
+    private ExecutorService refreshExecutor;
 
     @Override
     public String name() {
@@ -111,10 +119,19 @@ public class IssuerDataExtension implements ServiceExtension {
                 didPublicKeyResolver);
         var store = new SqlIssuerDataStore(dataSourceRegistry, DataSourceRegistry.DEFAULT_DATASOURCE, transactionContext,
                 queryExecutor);
+        refreshExecutor = executorInstrumentation.instrument(
+                Executors.newCachedThreadPool(Thread.ofPlatform().name(REFRESH_THREAD_PREFIX, 0).daemon().factory()), NAME);
         var source = new LastGoodSource<BitstringStatusListCredential>(fetcher, Clock.systemUTC(), Ticker.systemTicker(),
-                Runnable::run, cacheTime, maximumAge(globalConfProvider), store, monitor);
+                refreshExecutor, cacheTime, LastGoodSource.REFRESH_WAIT, maximumAge(globalConfProvider), store, monitor);
         revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(
                 mapper, contentTypes, httpClient, tokenValidationService, didPublicKeyResolver, source));
+    }
+
+    @Override
+    public void shutdown() {
+        if (refreshExecutor != null) {
+            refreshExecutor.shutdownNow();
+        }
     }
 
     static Supplier<Result<Duration>> maximumAge(GlobalConfProvider globalConf) {

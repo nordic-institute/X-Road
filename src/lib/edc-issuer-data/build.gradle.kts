@@ -24,6 +24,7 @@ dependencies {
   testImplementation(libs.awaitility)
   testImplementation(libs.nimbus.jose.jwt)
   testImplementation(libs.edc.junit)
+  testImplementation(libs.edc.transaction.local)
   testImplementation(libs.edc.ih.identity.did.core)
   testImplementation(libs.edc.ih.identity.did.web)
   testImplementation(libs.edc.crypto.verifiablecredentials)

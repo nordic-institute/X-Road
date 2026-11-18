@@ -30,19 +30,26 @@ package org.niis.xroad.edc.issuerdata;
 import org.eclipse.edc.spi.result.Result;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A fetcher whose downloads the test switches on and off. Payloads are numbered, and the payload {@link #CORRUPT}
- * cannot be parsed.
+ * A fetcher whose downloads the test switches on and off, holds back per key and makes throw. Payloads are numbered,
+ * and the payload {@link #CORRUPT} cannot be parsed.
  */
 final class FakeFetcher implements IssuerDataFetcher<String> {
 
     static final String CORRUPT = "corrupt";
 
     final AtomicInteger downloads = new AtomicInteger();
+    final AtomicInteger attempts = new AtomicInteger();
+    final Map<String, CountDownLatch> gates = new ConcurrentHashMap<>();
     volatile boolean down;
+    volatile boolean throwing;
     volatile boolean parseRetryable;
     volatile Optional<Instant> ownExpiry = Optional.empty();
 
@@ -53,10 +60,27 @@ final class FakeFetcher implements IssuerDataFetcher<String> {
 
     @Override
     public Result<String> download(String key) {
+        attempts.incrementAndGet();
+        awaitGate(key);
+        if (throwing) {
+            throw new IllegalStateException("fetcher broke");
+        }
         if (down) {
             return Result.retryableFailure("issuer down");
         }
         return Result.success("payload-" + downloads.incrementAndGet());
+    }
+
+    private void awaitGate(String key) {
+        var gate = gates.get(key);
+        if (gate == null) {
+            return;
+        }
+        try {
+            gate.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override

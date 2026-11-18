@@ -33,11 +33,13 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
@@ -50,6 +52,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,6 +80,7 @@ class IssuerDataExtensionTest {
     private final RevocationListService statusList2021Service = mock(RevocationListService.class);
     private final GlobalConfProvider globalConf = mock(GlobalConfProvider.class);
     private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
+    private final List<IssuerDataExtension> extensions = new ArrayList<>();
     private FakeIssuer issuer;
 
     @BeforeEach
@@ -91,6 +95,7 @@ class IssuerDataExtensionTest {
 
     @AfterEach
     void tearDown() {
+        extensions.forEach(IssuerDataExtension::shutdown);
         issuer.close();
     }
 
@@ -116,9 +121,9 @@ class IssuerDataExtensionTest {
         when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
                 .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
         issuer.down(true);
-        new IssuerDataExtension(freshRegistry, typeManager, stack.httpClient(), stack.tokenValidationService(),
-                stack.didPublicKeyResolver(), freshGlobalConf, freshDataSources, new NoopTransactionContext(),
-                mock(QueryExecutor.class)).initialize(context);
+        var fresh = newExtension(freshRegistry, typeManager, stack, freshGlobalConf, freshDataSources);
+        extensions.add(fresh);
+        fresh.initialize(context);
         verifyNoInteractions(freshDataSources, freshGlobalConf);
     }
 
@@ -172,9 +177,17 @@ class IssuerDataExtensionTest {
                 List.of(IssuerDataExtension.DEFAULT_CONTENT_TYPES), stack.httpClient(), stack.tokenValidationService(),
                 stack.didPublicKeyResolver()));
 
-        new IssuerDataExtension(registry, typeManager, stack.httpClient(), stack.tokenValidationService(),
-                stack.didPublicKeyResolver(), globalConf, dataSourceRegistry, new NoopTransactionContext(),
-                mock(QueryExecutor.class)).initialize(context);
+        var extension = newExtension(registry, typeManager, stack, globalConf, dataSourceRegistry);
+        extensions.add(extension);
+        extension.initialize(context);
+    }
+    private static IssuerDataExtension newExtension(RevocationServiceRegistry revocationServiceRegistry,
+                                                    TypeManager typeManager, EdcTestStack stack,
+                                                    GlobalConfProvider globalConfProvider,
+                                                    DataSourceRegistry dataSources) {
+        return new IssuerDataExtension(revocationServiceRegistry, typeManager, stack.httpClient(),
+                stack.tokenValidationService(), stack.didPublicKeyResolver(), globalConfProvider, dataSources,
+                new NoopTransactionContext(), mock(QueryExecutor.class), ExecutorInstrumentation.noop(), null);
     }
 
     private CredentialStatus bitstringStatus() {
