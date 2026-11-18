@@ -116,8 +116,9 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
                 VALUES ('%s', 'true', now(), now())
                 ON CONFLICT (property_key, ha_node_name) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now()
                 """.formatted(ProxyConfigKeys.LEGACY_PROTOCOL_DISABLED.key());
-        var stored = stack.execInContainer(SsStackSetup.DB_SERVERCONF, "psql", "-U", "postgres", "-d", "serverconf",
-                "-v", "ON_ERROR_STOP=1", "-c", upsert);
+        var stored = stack.execInContainer(SsStackSetup.DB_SERVERCONF,
+                "env", "PGOPTIONS=-c search_path=serverconf,public",
+                "psql", "-U", "postgres", "-d", "serverconf", "-v", "ON_ERROR_STOP=1", "-c", upsert);
         if (stored.getExitCode() != 0) {
             throw new IllegalStateException(
                     "storing legacy-protocol-disabled in the serverconf of ss0 failed: " + stored.getStderr());
@@ -188,6 +189,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
             return sidecar.execMessagelogSql(sql);
         }
         var result = execInEnvContainer(envName, SsStackSetup.DB_MESSAGELOG,
+                "env", "PGOPTIONS=-c search_path=messagelog,public",
                 "psql", "-U", "postgres", "-d", "messagelog", "-tAX", "-c", sql);
         if (result.getExitCode() != 0) {
             throw new IllegalStateException("psql query on %s failed: %s".formatted(envName, result.getStderr()));

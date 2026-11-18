@@ -167,6 +167,15 @@ class ParticipantIdentifierSchemeTest {
     }
 
     @Test
+    void shouldTryDecodeADidWithoutThrowing() {
+        assertThat(ParticipantIdentifierScheme.tryDecodeDid("did:web:ss0.example.org:v1:system"))
+                .contains(new SystemParticipant(SS_HOST));
+        assertThat(ParticipantIdentifierScheme.tryDecodeDid("did:web:ss0.example.org:v9:system")).isEmpty();
+        assertThat(ParticipantIdentifierScheme.tryDecodeDid("not-a-did")).isEmpty();
+        assertThat(ParticipantIdentifierScheme.tryDecodeDid(null)).isEmpty();
+    }
+
+    @Test
     void shouldDeriveSystemIdentifiers() {
         assertThat(ParticipantIdentifierScheme.SYSTEM_SEGMENT).isEqualTo("system");
         assertThat(ParticipantIdentifierScheme.systemDid(SS_HOST)).hasToString("did:web:ss0.example.org:v1:system");

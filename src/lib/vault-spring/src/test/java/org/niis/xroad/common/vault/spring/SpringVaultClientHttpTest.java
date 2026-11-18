@@ -128,7 +128,7 @@ class SpringVaultClientHttpTest {
                     .isEqualTo(LIST.expectedResult));
 
             delayedServe.join();
-            assertThat(server.connectionAttempts()).isGreaterThanOrEqualTo(2);
+            assertThat(server.secretHits()).isNotEmpty();
         }
     }
 

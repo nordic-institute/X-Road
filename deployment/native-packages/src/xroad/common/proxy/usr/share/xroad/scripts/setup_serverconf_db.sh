@@ -4,19 +4,7 @@ if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
   exit 0
 fi
 
-log() { echo >&2 "$@"; }
-die() {
-  log "$@"
-  exit 1
-}
-
-get_prop() {
-  crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
-}
-
-gen_pw() {
-  head -c 24 /dev/urandom | base64 | tr "/+" "_-"
-}
+source /usr/share/xroad/scripts/_setup_db.sh
 
 setup_database() {
 
@@ -109,6 +97,9 @@ setup_database() {
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
     log "Database and user exists, skipping database creation."
   else
+    refuse_existing_database "$db_user" "$db_database" "$db_properties" \
+      "$(get_prop ${db_properties} "xroad.db.${db_name}.hibernate.connection.password" "")" || exit 1
+
     if [[ $(get_prop ${root_properties} "$db_name.database.admin_user" "") == "" ]]; then
       db_admin_user="${db_user}_admin"
       db_admin_conn_user="${db_admin_user}${suffix}"
@@ -124,39 +115,22 @@ setup_database() {
       chmod 600 ${root_properties}
     fi
 
-    {
-      cat <<EOF
-\set ON_ERROR_STOP on
-CREATE DATABASE "${db_database}" ENCODING 'UTF8';
-REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
-DO \$\$
-BEGIN
-  CREATE ROLE "${db_admin_user}" LOGIN PASSWORD '${db_admin_password}';
-  GRANT "${db_admin_user}" to "${db_master_user}";
-  EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_admin_user already exists';
-END\$\$;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_admin_user}";
-\c "${db_database}"
-CREATE EXTENSION hstore;
-CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_admin_user}";
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to "${db_admin_user}";
-EOF
-      if [ "$db_user" != "$db_admin_user" ]; then
-        cat <<EOF
-DO \$\$
-BEGIN
-  CREATE ROLE "${db_user}" LOGIN PASSWORD '${db_password}';
-  GRANT "${db_user}" to "${db_master_user}";
-  EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_user already exists';
-END\$\$;
-GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
-GRANT USAGE ON SCHEMA public to "${db_user}";
-EOF
-      fi
-    } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
+    local single_role=off
+    if [ "$db_user" == "$db_admin_user" ]; then
+      single_role=on
+    fi
+
+    run_db_bootstrap \
+      db_name="$db_database" \
+      admin_role="$db_admin_user" \
+      admin_password="$db_admin_password" \
+      runtime_role="$db_user" \
+      runtime_password="$db_password" \
+      master_role="$db_master_user" \
+      schema_name="$db_schema" \
+      hstore=on \
+      single_role="$single_role" ||
+      die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
 
     if [[ -w "$root_properties" ]]; then
       crudini --set --inplace "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
@@ -183,6 +157,8 @@ EOF
   else
     log "$db_properties is not writable, not updating database properties"
   fi
+
+  check_runtime_login "$db_user" "$db_properties" || exit 1
 
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then

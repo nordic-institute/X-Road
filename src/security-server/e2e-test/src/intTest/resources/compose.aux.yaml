@@ -3,10 +3,8 @@ services:
     image: ${CS_IMG}
     environment:
       - XROAD_HOST=cs
-      # The DS TLS trust replaces JVM defaults on the shared EDC OkHttp client, which EDC's vault
-      # client also uses -- OpenBao's self-signed cert (installed system-wide by the image's postinst)
-      # must be handed to it explicitly. Read via plain System.getenv in VaultEndpointTrust, not
-      # through EDC's @Setting resolution, so an env var is enough.
+      # The image's postinst already installs OpenBao's self-signed cert in the system trust store,
+      # so this explicit path is belt-and-braces.
       - QUARKUS_VAULT_TLS_CA_CERT=/usr/local/share/ca-certificates/openbao.crt
     deploy:
       resources:

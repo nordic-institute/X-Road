@@ -28,6 +28,7 @@ package org.niis.xroad.common.vault;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -37,6 +38,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -45,18 +47,25 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
- * Minimal OpenBao stand-in served over real HTTP. Every secret holds the payload {@code v} and every
- * listing the single key {@code k1}. It keeps the body of every write it accepts. A listening socket in
+ * Minimal OpenBao stand-in served over real HTTP, for one secret mount ({@code xrd-secret} unless given).
+ * Every KV v1 secret holds the payload {@code v} and every listing the single key {@code k1}. A KV v2 mount
+ * keeps a value per key in the field {@code content}: a read of a missing key answers 404 and a delete on
+ * {@code metadata/} removes the key. It keeps the body of every write it accepts. A listening socket in
  * front of the HTTP server owns the port and decides per connection whether to reset or relay it.
  */
 public final class FakeOpenBao implements AutoCloseable {
 
     private static final int HTTP_TEMPORARY_REDIRECT = 307;
-    private static final String SECRET_PATH = "/v1/xrd-secret";
+    private static final String DEFAULT_MOUNT = "xrd-secret";
+    private static final String DATA_SEGMENT = "data/";
+    private static final String METADATA_SEGMENT = "metadata/";
+    private static final String CONTENT_FIELD = "content";
+    private static final JsonMapper JSON = JsonMapper.builder().build();
     private static final String LEADER_PATH = "/leader";
     private static final String DOWN_LEADER_PATH = "/leader-down";
 
@@ -85,12 +94,15 @@ public final class FakeOpenBao implements AutoCloseable {
     }
 
     private final KvVersion kvVersion;
+    private final String secretPath;
     private final HttpServer server;
     private final ServerSocket front;
     private final ExecutorService executor = Executors.newCachedThreadPool(daemonThreads());
     private final Set<Socket> openSockets = ConcurrentHashMap.newKeySet();
     private final List<String> hits = new CopyOnWriteArrayList<>();
+    private final List<String> rawHits = new CopyOnWriteArrayList<>();
     private final List<String> storedBodies = new CopyOnWriteArrayList<>();
+    private final Map<String, String> secrets = new ConcurrentHashMap<>();
     private final AtomicInteger failuresLeft = new AtomicInteger();
     private final AtomicInteger connectionAttempts = new AtomicInteger();
     private volatile boolean serving;
@@ -98,8 +110,9 @@ public final class FakeOpenBao implements AutoCloseable {
     private volatile int status;
     private volatile long sleepMillis;
 
-    private FakeOpenBao(KvVersion kvVersion) throws IOException {
+    private FakeOpenBao(KvVersion kvVersion, String mount) throws IOException {
         this.kvVersion = kvVersion;
+        this.secretPath = "/v1/" + mount;
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.setExecutor(executor);
         server.createContext("/", this::handle);
@@ -112,7 +125,14 @@ public final class FakeOpenBao implements AutoCloseable {
      * A fake that answers requests at once.
      */
     public static FakeOpenBao started(KvVersion kvVersion) throws IOException {
-        var fake = new FakeOpenBao(kvVersion);
+        return started(kvVersion, DEFAULT_MOUNT);
+    }
+
+    /**
+     * A fake of the given mount that answers requests at once.
+     */
+    public static FakeOpenBao started(KvVersion kvVersion, String mount) throws IOException {
+        var fake = new FakeOpenBao(kvVersion, mount);
         fake.serve();
         return fake;
     }
@@ -122,7 +142,14 @@ public final class FakeOpenBao implements AutoCloseable {
      * client sees a server that is not up yet without another process taking the port.
      */
     public static FakeOpenBao resettingConnections(KvVersion kvVersion) throws IOException {
-        return new FakeOpenBao(kvVersion);
+        return resettingConnections(kvVersion, DEFAULT_MOUNT);
+    }
+
+    /**
+     * Like {@link #resettingConnections(KvVersion)}, for the given mount.
+     */
+    public static FakeOpenBao resettingConnections(KvVersion kvVersion, String mount) throws IOException {
+        return new FakeOpenBao(kvVersion, mount);
     }
 
     /**
@@ -154,7 +181,14 @@ public final class FakeOpenBao implements AutoCloseable {
     }
 
     public List<String> secretHits() {
-        return hits.stream().filter(h -> h.contains(" " + SECRET_PATH)).toList();
+        return hits.stream().filter(h -> h.contains(" " + secretPath + "/")).toList();
+    }
+
+    /**
+     * Like {@link #secretHits()}, with the request path exactly as it went over the wire.
+     */
+    public List<String> rawSecretHits() {
+        return rawHits.stream().filter(h -> h.contains(" " + secretPath + "/")).toList();
     }
 
     public List<String> leaderHits() {
@@ -245,10 +279,11 @@ public final class FakeOpenBao implements AutoCloseable {
             var uri = ex.getRequestURI();
             var body = new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             hits.add(method + " " + uri.getPath());
+            rawHits.add(method + " " + uri.getRawPath());
             var path = uri.getPath();
             if (path.startsWith(DOWN_LEADER_PATH + "/")) {
                 throw new IOException("fake leader is unreachable");
-            } else if (path.startsWith(LEADER_PATH + "/") || !path.startsWith(SECRET_PATH)) {
+            } else if (path.startsWith(LEADER_PATH + "/") || !path.startsWith(secretPath + "/")) {
                 send(ex, HTTP_OK, "{\"data\":{}}");
             } else if (failuresLeft.getAndUpdate(n -> Math.max(0, n - 1)) > 0) {
                 fail(ex, method, uri, body);
@@ -289,24 +324,39 @@ public final class FakeOpenBao implements AutoCloseable {
         var query = uri.getQuery() == null ? "" : uri.getQuery();
         if ("LIST".equals(method) || query.contains("list=true")) {
             send(ex, HTTP_OK, "{\"data\":{\"keys\":[\"k1\"]}}");
+        } else if (kvVersion == KvVersion.V2) {
+            succeedV2(ex, method, uri, body);
         } else if ("GET".equals(method)) {
-            send(ex, HTTP_OK, readBody());
+            send(ex, HTTP_OK, "{\"data\":{\"payload\":\"v\"}}");
         } else if ("DELETE".equals(method)) {
             ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
         } else {
             storedBodies.add(body);
-            if (kvVersion == KvVersion.V2) {
-                send(ex, HTTP_OK, "{\"data\":{\"version\":2}}");
-            } else {
-                ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
-            }
+            ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
         }
     }
 
-    private String readBody() {
-        return kvVersion == KvVersion.V2
-                ? "{\"data\":{\"data\":{\"payload\":\"v\"},\"metadata\":{\"version\":1}}}"
-                : "{\"data\":{\"payload\":\"v\"}}";
+    private void succeedV2(HttpExchange ex, String method, URI uri, String body) throws IOException {
+        var kvPath = uri.getPath().substring(secretPath.length() + 1);
+        if (kvPath.startsWith(METADATA_SEGMENT) && "DELETE".equals(method)) {
+            secrets.remove(kvPath.substring(METADATA_SEGMENT.length()));
+            ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
+        } else if (kvPath.startsWith(DATA_SEGMENT) && "GET".equals(method)) {
+            var value = secrets.get(kvPath.substring(DATA_SEGMENT.length()));
+            if (value == null) {
+                send(ex, HTTP_NOT_FOUND, "{\"errors\":[]}");
+            } else {
+                send(ex, HTTP_OK, JSON.writeValueAsString(Map.of("data", Map.of(
+                        "data", Map.of(CONTENT_FIELD, value), "metadata", Map.of("version", 1)))));
+            }
+        } else if (kvPath.startsWith(DATA_SEGMENT) && !"DELETE".equals(method)) {
+            storedBodies.add(body);
+            secrets.put(kvPath.substring(DATA_SEGMENT.length()),
+                    JSON.readTree(body).path("data").path(CONTENT_FIELD).asString());
+            send(ex, HTTP_OK, "{\"data\":{\"version\":2}}");
+        } else {
+            ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
+        }
     }
 
     private static void send(HttpExchange ex, int code, String body) throws IOException {

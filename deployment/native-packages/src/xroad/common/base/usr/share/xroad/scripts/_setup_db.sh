@@ -32,6 +32,57 @@ gen_pw() {
   head -c 24 /dev/urandom | base64 | tr "/+" "_-"
 }
 
+DB_SQL_DIR=/usr/share/xroad/db
+
+# Quotes a value as a psql single-quoted \set argument.
+psql_quote() {
+  local value="${1//\\/\\\\}"
+  printf "'%s'" "${value//\'/\'\'}"
+}
+
+# Runs the shared bootstrap SQL through psql_master, which the caller defines.
+# Arguments are name=value pairs, the psql variables documented in bootstrap-roles.sql.
+run_db_bootstrap() {
+  local pair file
+  for file in bootstrap-roles.sql bootstrap-schema.sql; do
+    [[ -r "$DB_SQL_DIR/$file" ]] || {
+      log "Bootstrap SQL file $DB_SQL_DIR/$file is missing or unreadable."
+      return 1
+    }
+  done
+  {
+    for pair in "$@"; do
+      printf '\\set %s %s\n' "${pair%%=*}" "$(psql_quote "${pair#*=}")"
+    done
+    cat "$DB_SQL_DIR/bootstrap-roles.sql" "$DB_SQL_DIR/bootstrap-schema.sql"
+  } | psql_master
+}
+
+# Logs a message naming the role and returns 1 when the runtime role cannot log in. The caller defines psql_dbuser.
+# Arguments: $1 - runtime role, $2 - properties file holding its stored password
+check_runtime_login() {
+  PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null && return 0
+  log "Logging in as database role '$1' failed after database setup. If the role already existed, its password differs from the one in $2: set the stored password to match the role and rerun."
+  return 1
+}
+
+# Succeeds when the database exists. The caller defines psql_master.
+# Arguments: $1 - database name
+database_exists() {
+  local -r name="${1//\'/\'\'}"
+  [[ "$(printf "SELECT 1 FROM pg_database WHERE datname = '%s';\n" "$name" | psql_master 2>/dev/null)" == 1 ]]
+}
+
+# Logs a message and returns 1 when the runtime login failed although the database exists and a password is stored for it.
+# The caller then stops before changing anything. The caller defines psql_master.
+# Arguments: $1 - runtime role, $2 - database name, $3 - properties file, $4 - stored runtime password
+refuse_existing_database() {
+  [[ -n "$4" ]] || return 0
+  database_exists "$2" || return 0
+  log "Logging in as database role '$1' failed. Database '$2' already exists and $3 stores a password for it, so nothing was changed. Set the stored password to match the role and rerun."
+  return 1
+}
+
 setup_database() {
   local -r db_name="$1"
   local -r db_default_user="$2"
@@ -138,6 +189,8 @@ setup_database() {
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
     log "Database and user exists, skipping database creation."
   else
+    refuse_existing_database "$db_user" "$db_database" "$db_properties" "$(get_db_prop 'password' '')" || exit 1
+
     if [[ $(get_prop ${root_properties} "$db_name.database.admin_user" "") == "" ]]; then
       db_admin_user="${db_user}_admin"
       db_admin_conn_user="${db_admin_user}${suffix}"
@@ -157,40 +210,22 @@ setup_database() {
       db_schema="$db_user"
     fi
 
-    {
-      cat <<EOF
-\set ON_ERROR_STOP on
-CREATE DATABASE "${db_database}" ENCODING 'UTF8';
-REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
-DO \$\$
-BEGIN
-  CREATE ROLE "${db_admin_user}" LOGIN PASSWORD '${db_admin_password}';
-  GRANT "${db_admin_user}" to "${db_master_user}";
-  EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_admin_user already exists';
-END
-\$\$;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_admin_user}";
-\c "${db_database}"
-CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_admin_user}";
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to "${db_admin_user}";
-EOF
-      if [ "$db_user" != "$db_admin_user" ]; then
-        cat <<EOF
-DO \$\$
-BEGIN
-  CREATE ROLE "${db_user}" LOGIN PASSWORD '${db_password}';
-  GRANT "${db_user}" to "${db_master_user}";
-  EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_user already exists';
-END
-\$\$;
-GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
-GRANT USAGE ON SCHEMA public to "${db_user}";
-EOF
-      fi
-    } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
+    local single_role=off
+    if [ "$db_user" == "$db_admin_user" ]; then
+      single_role=on
+    fi
+
+    run_db_bootstrap \
+      db_name="$db_database" \
+      admin_role="$db_admin_user" \
+      admin_password="$db_admin_password" \
+      runtime_role="$db_user" \
+      runtime_password="$db_password" \
+      master_role="$db_master_user" \
+      schema_name="$db_schema" \
+      hstore=off \
+      single_role="$single_role" ||
+      die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
 
     if [ -w "$root_properties" ]; then
       crudini --set --inplace "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
@@ -214,6 +249,8 @@ EOF
     crudini --set ${db_properties} '' "xroad.db.$db_name.hibernate.connection.username" "${db_conn_user}"
     crudini --set ${db_properties} '' "xroad.db.$db_name.hibernate.connection.password" "${db_password}"
   fi
+
+  check_runtime_login "$db_user" "$db_properties" || exit 1
 
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then
