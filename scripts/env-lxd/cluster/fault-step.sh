@@ -435,7 +435,7 @@ openbao_failover() {
   openbao_is_standby "$candidate" || fail "the OpenBao of $candidate is not a standby; nothing changed"
   service_stop "$active" openbao
   if ! $DRY_RUN; then
-    wait_for openbao_is_active "$candidate" || fail "the OpenBao of $candidate is not active after ${TIMEOUT}s"
+    wait_for openbao_is_active "$candidate" || fail "the OpenBao of $candidate is not active after ${TIMEOUT}s; $active stays stopped: start it again with '$0 service-start $active openbao'"
     info "the OpenBao of $candidate is active"
   fi
   $START_AGAIN || return 0

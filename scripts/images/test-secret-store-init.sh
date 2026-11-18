@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Container test for the xroad-secret-store-local setup script.
+# Container test for the secret store scripts: init, config writer, unseal and join bundle.
 #
-# Runs the real secret-store-init.sh (mounted read-only from this checkout) against a real OpenBao
-# started from the dev OpenBao image, once per scenario, and checks the resulting OpenBao state.
+# Runs the real scripts (mounted read-only from this checkout) against a real OpenBao started from the
+# dev OpenBao image, once per scenario, and checks the resulting OpenBao state. It also runs the supervisor
+# unseal listener of the Central Server container and compares the policy in the HA guide with the one
+# the init script writes.
 #
 # Usage: ./test-secret-store-init.sh [image]
 #   image defaults to ${IMAGE_REGISTRY:-localhost:5555}/openbao-dev:${IMAGE_TAG:-latest}
@@ -23,7 +25,7 @@ NODE2_CONTAINER="${NODE1_CONTAINER}-2"
 CONTAINER="${NODE1_CONTAINER}"
 PG_CONTAINER="${NODE1_CONTAINER}-pg"
 NETWORK="${NODE1_CONTAINER}-net"
-PG_IMAGE="${PG_IMAGE:-postgres:16-alpine}"
+PG_IMAGE="${PG_IMAGE:-postgres:18-alpine}"
 PG_PASSWORD="test-pg-$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
 WORK_DIR="$(mktemp -d)"
 SCRIPTS_DIR="${WORK_DIR}/scripts"
@@ -38,7 +40,9 @@ BUNDLE_SCRIPT="/usr/share/xroad/scripts/secret-store-join-bundle.sh"
 ENV_FILE="/etc/openbao/openbao.env"
 CONFIG_WRITER="/usr/share/xroad/scripts/secret-store-cluster-config.sh"
 TLS_SCRIPT="/usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh"
-UNSEAL_SCRIPT=""
+UNSEAL_SCRIPT="/usr/share/xroad/scripts/secret-store-unseal.sh"
+LISTENER_SCRIPT="${ROOT_DIR}/development/docker/central-server/files/unseal-on-start-listener.sh"
+HA_GUIDE="${ROOT_DIR}/doc/Manuals/ig-csha_x-road_6_ha_installation_guide.md"
 XROAD_CONFIG_FILE="/etc/openbao/xroad-openbao.hcl"
 DROP_IN_FILE="/etc/systemd/system/openbao.service.d/xroad.conf"
 BAO_LOG="/var/log/bao.log"
@@ -156,6 +160,21 @@ SHIM
 #!/bin/sh
 echo "$1" >>/shim/sleeps
 SHIM
+  cat >"${WORK_DIR}/listener-unseal-stub" <<'SHIM'
+#!/bin/sh
+echo called >>/tmp/unseal-calls
+wc -c | tr -d ' ' >/tmp/unseal-stdin-bytes
+SHIM
+  chmod +x "${WORK_DIR}/listener-unseal-stub"
+  cat >"${WORK_DIR}/listener-driver" <<'SHIM'
+#!/bin/bash
+header() { printf 'ver:3.0 server:supervisor serial:1 pool:openbao-unseal poolserial:1 eventname:PROCESS_STATE_RUNNING len:%s\n%s' "${#1}" "$1"; }
+events="$(header 'processname:xroad-signer groupname:xroad-signer from_state:STARTING pid:1'; header 'processname:openbao groupname:openbao from_state:STARTING pid:2'; header 'processname:openbao-sidecar groupname:openbao-sidecar from_state:STARTING pid:3')"
+reply=$(printf '%s' "${events}" | UNSEAL_SCRIPT=/tmp/listener-unseal-stub bash /listener.sh 2>/dev/null | tr '\n' '|')
+echo "reply=${reply}"
+echo "calls=$(wc -l </tmp/unseal-calls | tr -d ' ')"
+echo "stdin-bytes=$(cat /tmp/unseal-stdin-bytes)"
+SHIM
 }
 
 wait_for_server() {
@@ -257,19 +276,26 @@ restart_container() {
   start_bao
   wait_for_server
 }
-# run_setup [VAR=value ...]; sets RC, stdout in OUT_FILE and stderr in ERR_FILE.
+# run_in_container [docker exec option ...] -- COMMAND [ARG ...]; sets RC, stdout in OUT_FILE and stderr in ERR_FILE.
+run_in_container() {
+  local options=()
+  while [[ "$1" != -- ]]; do options+=("$1"); shift; done
+  shift
+  docker exec ${options[@]+"${options[@]}"} "${CONTAINER}" "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
+  RC=$?
+}
+
+# run_setup [VAR=value ...]
 run_setup() {
   local env_args=(-e "BAO_ADDR=${ADDR}")
   local arg
   for arg in "$@"; do env_args+=(-e "${arg}"); done
-  docker exec "${env_args[@]}" "${CONTAINER}" bash "${SETUP_SCRIPT}" >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
+  run_in_container "${env_args[@]}" -- bash "${SETUP_SCRIPT}"
 }
 
-# run_unseal [address]; runs the script the drop-in names as ExecStartPost, sets RC and the output files.
+# run_unseal [address]; runs the script the drop-in names as ExecStartPost.
 run_unseal() {
-  docker exec -e "BAO_ADDR=${1:-${ADDR}}" "${CONTAINER}" timeout 150 bash "${UNSEAL_SCRIPT}" >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
+  run_in_container -e "BAO_ADDR=${1:-${ADDR}}" -- timeout 150 bash "${UNSEAL_SCRIPT}"
 }
 
 start_hanging_listener() {
@@ -296,10 +322,8 @@ run_setup_with_curl_shim() {
   local env_args=(-e "BAO_ADDR=${ADDR}" -e "SHIM_STATUS=${status}")
   local arg
   for arg in "$@"; do env_args+=(-e "${arg}"); done
-  docker exec "${env_args[@]}" "${CONTAINER}" sh -c \
-    'mkdir -p /shim && : >/shim/lookups && : >/shim/sleeps && cp /curl-shim /shim/curl && cp /sleep-shim /shim/sleep && chmod +x /shim/curl /shim/sleep && PATH=/shim:$PATH exec bash '"${SETUP_SCRIPT}" \
-    >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
+  run_in_container "${env_args[@]}" -- sh -c \
+    'mkdir -p /shim && : >/shim/lookups && : >/shim/sleeps && cp /curl-shim /shim/curl && cp /sleep-shim /shim/sleep && chmod +x /shim/curl /shim/sleep && PATH=/shim:$PATH exec bash '"${SETUP_SCRIPT}"
 }
 
 shim_lookup_count() { in_container cat /shim/lookups | wc -l | tr -d ' '; }
@@ -316,6 +340,16 @@ mounts_snapshot() {
 
 policy_text() {
   bao_get sys/policies/acl/xroad-policy | jq -r '.data.policy // empty'
+}
+
+# Reads a policy on stdin and prints it without comment lines and blank lines.
+policy_rules() {
+  grep -v -e '^[[:space:]]*#' -e '^[[:space:]]*$'
+}
+
+# Prints the HCL block that follows the "Policy." paragraph of the HA guide.
+guide_policy_block() {
+  awk '/^\*\*Policy\.\*\*/ {seen = 1} seen && /^```hcl$/ {inside = 1; next} inside && /^```$/ {exit} inside' "${HA_GUIDE}"
 }
 
 ca_fingerprint() {
@@ -345,6 +379,8 @@ state_snapshot() {
 
 file_mode() { in_container stat -c %a "$1" 2>/dev/null; }
 
+file_owner() { in_container stat -c %U:%G "$1" 2>/dev/null; }
+
 file_exists() { in_container test -e "$1"; }
 
 file_absent() { in_container test ! -e "$1"; }
@@ -355,12 +391,18 @@ text_absent() {
   ! grep -qF -- "$2" "$1"
 }
 
+# secret_absent FILE TEXT: like text_absent, and fails when the last run left both output files empty.
+secret_absent() {
+  [[ -s "${OUT_FILE}" || -s "${ERR_FILE}" ]] || return 1
+  text_absent "$@"
+}
+
 policy_write_count() { grep -c "Writing policy\\.\\.\\." "${ERR_FILE}"; }
 
 check_no_secret_in_output() {
   local label="$1" what="$2" secret="$3"
-  check "${label}: stderr holds no ${what}" text_absent "${ERR_FILE}" "${secret}"
-  check "${label}: stdout holds no ${what}" text_absent "${OUT_FILE}" "${secret}"
+  check "${label}: stderr holds no ${what}" secret_absent "${ERR_FILE}" "${secret}"
+  check "${label}: stdout holds no ${what}" secret_absent "${OUT_FILE}" "${secret}"
 }
 
 check_no_issued_secrets_in_output() {
@@ -546,6 +588,8 @@ scenario_pki_setup_writes_policy() {
   check "PKI set-up: policy written" test -n "$(policy_text)"
   local policy_after_pki
   policy_after_pki="$(policy_text)"
+  check "PKI set-up: the HA guide holds a policy block" test -n "$(guide_policy_block)"
+  check_eq "PKI set-up: the policy block of the HA guide equals the policy written" "$(policy_rules <<<"${policy_after_pki}")" "$(guide_policy_block | policy_rules)"
   run_setup "BAO_TOKEN=${ROOT_TOKEN}"
   check "root run after PKI set-up: exit 0" test "${RC}" -eq 0
   check_eq "root run after PKI set-up: policy unchanged" "${policy_after_pki}" "$(policy_text)"
@@ -567,15 +611,13 @@ scenario_initializing_node() {
   check_eq "drop-in: one -config argument" 1 "$(in_container grep -o -- '-config=' "${DROP_IN_FILE}" | wc -l | tr -d ' ')"
   check "drop-in: ExecStart is cleared first" in_container grep -qx 'ExecStart=' "${DROP_IN_FILE}"
   check "drop-in: only the X-Road file is read" in_container grep -qE "^ExecStart=/usr/bin/bao server -config=${XROAD_CONFIG_FILE}\$" "${DROP_IN_FILE}"
-  UNSEAL_SCRIPT="$(in_container sed -n 's/^ExecStartPost=[-+@!:]*//p' "${DROP_IN_FILE}")"
-  check_eq "drop-in: ExecStartPost runs the unseal-only script" /usr/share/xroad/scripts/secret-store-unseal.sh "${UNSEAL_SCRIPT}"
+  check_eq "drop-in: ExecStartPost runs the unseal-only script" "${UNSEAL_SCRIPT}" "$(in_container sed -n 's/^ExecStartPost=[-+@!:]*//p' "${DROP_IN_FILE}")"
   check "drop-in: OpenBao restarts on failure" in_container grep -qx 'Restart=on-failure' "${DROP_IN_FILE}"
   check "drop-in: restart delay is set" in_container grep -qE '^RestartSec=[0-9]+$' "${DROP_IN_FILE}"
   check "OpenBao log: no unknown or unsupported field" test "$(in_container grep -c 'unknown or unsupported field' "${BAO_LOG}")" -eq 0
   local config_before
   config_before="$(config_state)"
-  in_container bash "${CONFIG_WRITER}" >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
+  run_writer
   check "writer second run: exit 0" test "${RC}" -eq 0
   check_eq "writer second run: files unchanged" "${config_before}" "$(config_state)"
   run_setup
@@ -678,14 +720,8 @@ scenario_initializing_node() {
 }
 
 TLS_CERT_FILE="/opt/openbao/tls/tls.crt"
-run_writer() {
-  docker exec "${CONTAINER}" bash "${CONFIG_WRITER}" "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
-}
-run_writer_unprivileged() {
-  docker exec -u openbao "${CONTAINER}" bash "${CONFIG_WRITER}" "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
-}
+run_writer() { run_in_container -- bash "${CONFIG_WRITER}" "$@"; }
+run_writer_unprivileged() { run_in_container -u openbao -- bash "${CONFIG_WRITER}" "$@"; }
 cert_names() {
   in_container openssl x509 -in "${TLS_CERT_FILE}" -noout -ext subjectAltName | tail -n +2 | tr -d ' ' | tr ',' '\n' | sort | paste -sd, -
 }
@@ -847,16 +883,9 @@ scenario_cluster_member() {
   check "single again: serves 127.0.0.1" serves_name 127.0.0.1 127.0.0.1
   check "single again: node address no longer served" not_listening "${node_ip}"
 }
-run_join() {
-  docker exec -e "BAO_ADDR=${ADDR}" "${CONTAINER}" bash "${SETUP_SCRIPT}" --join >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
-}
-run_bundle() {
-  docker exec "${CONTAINER}" bash "${BUNDLE_SCRIPT}" "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
-}
+run_join() { run_in_container -e "BAO_ADDR=${ADDR}" -- bash "${SETUP_SCRIPT}" --join; }
+run_bundle() { run_in_container -- bash "${BUNDLE_SCRIPT}" "$@"; }
 store_initialised() { in_container curl -sk "${ADDR}/v1/sys/init" | jq -r '.initialized'; }
-file_owner() { in_container stat -c %U:%G "$1" 2>/dev/null; }
 bundle_hashes() { in_container sha256sum "${ENV_FILE}" "${UNSEAL_KEYS_FILE}" "${ROOT_TOKEN_FILE}" 2>/dev/null | cut -d' ' -f1; }
 wait_for_ready_file() {
   for _ in $(seq 1 60); do
@@ -872,7 +901,6 @@ copy_between_nodes() {
 scenario_join_guards() {
   log_info "Scenario: join mode never initialises OpenBao"
   ADDR="https://127.0.0.1:8200"
-  UNSEAL_SCRIPT="/usr/share/xroad/scripts/secret-store-unseal.sh"
   start_real_server
   local file other
   check_eq "join guards: the store starts uninitialised" false "$(store_initialised)"
@@ -903,7 +931,6 @@ scenario_join_guards() {
 scenario_join_node() {
   log_info "Scenario: single server, convert, export, import on a second node, join"
   ADDR="https://127.0.0.1:8200"
-  UNSEAL_SCRIPT="/usr/share/xroad/scripts/secret-store-unseal.sh"
   start_real_server
   local ip1 ip2 first_hashes first_client_hash first_mounts before after file
   ip1="$(in_container hostname -i | awk '{print $1}')"
@@ -1008,10 +1035,7 @@ scenario_join_node() {
   check_eq "first node: client token still valid" 200 "$(client_token_status)"
   check_eq "first node: client token unchanged" "${first_client_hash}" "$(client_token_hash)"
 }
-run_postinst() {
-  docker exec -e "BAO_ADDR=${ADDR}" "${CONTAINER}" bash /tmp/postinst configure >"${OUT_FILE}" 2>"${ERR_FILE}"
-  RC=$?
-}
+run_postinst() { run_in_container -e "BAO_ADDR=${ADDR}" -- bash /tmp/postinst configure; }
 scenario_postinst_join() {
   log_info "Scenario: Debian postinst of a joining node"
   CONTAINER="${NODE2_CONTAINER}"
@@ -1069,14 +1093,30 @@ scenario_restore_keeps_node_config() {
   in_container mv "${UNSEAL_KEYS_FILE}.saved" "${UNSEAL_KEYS_FILE}"
   CONTAINER="${NODE1_CONTAINER}"
 }
-run_restore_driver() {
-  docker exec "${CONTAINER}" bash /tmp/restore-driver "$@" >"${OUT_FILE}" 2>"${ERR_FILE}"
+run_restore_driver() { run_in_container -- bash /tmp/restore-driver "$@"; }
+driver_field() { sed -n "s/^$1=//p" "${OUT_FILE}"; }
+scenario_supervisor_listener() {
+  log_info "Scenario: supervisor listener unseals OpenBao when the openbao program starts"
+  docker run --rm \
+    -v "${LISTENER_SCRIPT}:/listener.sh:ro" \
+    -v "${WORK_DIR}/listener-unseal-stub:/tmp/listener-unseal-stub:ro" \
+    -v "${WORK_DIR}/listener-driver:/tmp/listener-driver:ro" \
+    --entrypoint bash "${IMAGE}" /tmp/listener-driver >"${OUT_FILE}" 2>"${ERR_FILE}"
   RC=$?
+  check "listener: exit 0" test "${RC}" -eq 0
+  check_eq "listener: answers READY, then RESULT 2 OK to each of the three events" \
+    'READY|RESULT 2|OKREADY|RESULT 2|OKREADY|RESULT 2|OKREADY|' "$(driver_field reply)"
+  check_eq "listener: runs the unseal script once, for processname:openbao only" 1 "$(driver_field calls)"
+  check_eq "listener: the unseal script reads no supervisor input" 0 "$(driver_field stdin-bytes)"
 }
 scenario_import_base_only() {
   log_info "Scenario: import on a host that has only the xroad-base scripts"
   local file first_hashes
   CONTAINER="${NODE1_CONTAINER}"
+  if ! file_exists /tmp/join-bundle.tar; then
+    log_error "scenario_import_base_only imports the bundle that scenario_join_node exports on the first node; run scenario_join_node first"
+    exit 1
+  fi
   first_hashes="$(bundle_hashes)"
   docker cp "${NODE1_CONTAINER}:/tmp/join-bundle.tar" "${WORK_DIR}/transfer" >/dev/null || exit 1
   docker rm -f "${BASE_ONLY_CONTAINER}" >/dev/null 2>&1
@@ -1124,6 +1164,7 @@ scenario_join_node
 scenario_postinst_join
 scenario_restore_keeps_node_config
 scenario_import_base_only
+scenario_supervisor_listener
 
 if [[ "${FAILURES}" -ne 0 ]]; then
   log_error "${FAILURES} check(s) failed"

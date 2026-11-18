@@ -78,7 +78,7 @@ scripts/env-lxd/cluster/check-cluster.sh
 scripts/env-lxd/cluster/fault-step.sh [--dry-run] [--start-again] <action> <host> [<service>]
 ```
 
-`check-cluster.sh` verifies the running cluster against the inventory and exits non-zero on any failure. Each run leaves a row in the table `cluster_probe` of the `postgres` database and the member class `CLUSTERPROBE` in the Central Server.
+`check-cluster.sh` verifies the running cluster against the inventory and exits non-zero on any failure. It checks the Patroni, etcd and database state, the Central Server nodes and the shared OpenBao cluster: every node runs OpenBao, HA is on, exactly one node is active and the others are standby, and the tokens, certificates and secrets of each node are as expected. Each run leaves a row in the table `cluster_probe` of the `postgres` database and the member class `CLUSTERPROBE` in the Central Server.
 
 `fault-step.sh` is the only supported way to change a running cluster. `<host>` is a cluster host name. Each action waits for its state (at most `FAULT_STEP_TIMEOUT` seconds) and fails with a message otherwise. Repeating a node or service action that already reached its state changes nothing and exits 0. `db-switchover`, `db-promote` and `openbao-failover` exit 1 and change nothing when the host already leads. `--dry-run` prints the commands and changes nothing.
 
@@ -92,7 +92,7 @@ scripts/env-lxd/cluster/fault-step.sh [--dry-run] [--start-again] <action> <host
 | `service-start <host> <service>` | start one systemd unit |
 | `db-switchover <replica-host>` | planned handover of the database leadership to the replica |
 | `db-promote <replica-host>` | forced failover to the replica |
-| `openbao-failover <node>` | stop the `openbao` unit of the node that holds the active OpenBao and wait until the OpenBao of the standby `<node>` is active; `--start-again` starts the stopped one again and waits until it is a standby |
+| `openbao-failover <node>` | stop the `openbao` unit of the node that holds the active OpenBao and wait until the OpenBao of the standby `<node>` is active; `--start-again` starts the stopped one again and waits until it is a standby; when the standby does not become active in time, the stopped one stays stopped: start it with `service-start <host> openbao` |
 
 Exit codes: 0 state reached, 1 failed or timed out, 2 unknown action, host or service, or wrong arguments (nothing changed).
 
