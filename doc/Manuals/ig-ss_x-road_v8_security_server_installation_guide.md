@@ -270,15 +270,29 @@ TLS certificates for the user interface, the information system access point and
 
 #### 2.6.2 Country profile
 
-A country profile is a set of default values for system parameters that fit the rules of one country. X-Road 8 has profiles for Estonia (`EE`), Finland (`FI`), the Faroe Islands (`FO`) and Iceland (`IS`). The profiles are part of the product. A server without a country package uses only the default values of X-Road.
+A country profile is a set of default values for system parameters that fit the rules of one country. The profiles are part of the product. A server without a country package uses only the default values of X-Road.
 
-To use a country profile, install the country package in place of the base package `xroad-securityserver`:
+The profile files are in the X-Road source code, in the directory `src/lib/properties-core/src/main/resources/xroad-config/country-profile/`. There is one YAML file for each profile, named `<CC>.yaml`, where `<CC>` is the upper case country code. The files define the values of the profiles.
+
+To use a country profile, install the country package `xroad-securityserver-<cc>` in place of the base package `xroad-securityserver`. Here `<cc>` is the lower case country code. To list the available country packages, run:
 
 ```bash
-sudo apt install xroad-securityserver-ee
+# Ubuntu
+apt-cache search xroad-securityserver-
+# RHEL
+dnf search xroad-securityserver-
 ```
 
-The country packages are `xroad-securityserver-ee`, `xroad-securityserver-fi`, `xroad-securityserver-fo` and `xroad-securityserver-is`. Each of them installs `xroad-securityserver` and `xroad-opmonitor`, so no other package is needed. The same command adds a country profile to a server that has only the base package. Only one country package can be installed on a server. On the first installation of a country package, the X-Road services are restarted so that they load the profile.
+Then install the package of your country. For example:
+
+```bash
+# Ubuntu
+sudo apt install xroad-securityserver-<cc>
+# RHEL
+sudo dnf install xroad-securityserver-<cc>
+```
+
+A country package installs `xroad-securityserver` and `xroad-opmonitor`, so no other package is needed. The same command adds a country profile to a server that has only the base package. Only one country package can be installed on a server. On the first installation of a country package, the X-Road services are restarted so that they load the profile.
 
 The value of a system parameter comes from the first of these sources that has a value:
 
@@ -288,11 +302,11 @@ The value of a system parameter comes from the first of these sources that has a
 
 To see where a value comes from, open **Settings > System Parameters** in the admin user interface. The **Current Value** column shows the value that the server uses. The **Source** column shows its origin:
 
-| Source               | Meaning                                                           |
-|----------------------|-------------------------------------------------------------------|
-| `Database`           | A value that an operator saved for the system parameter.          |
-| `Country profile EE` | The value of the profile of the installed country package.        |
-| `Default`            | The default value of X-Road.                                      |
+| Source                 | Meaning                                                    |
+|------------------------|------------------------------------------------------------|
+| `Database`             | A value that an operator saved for the system parameter.   |
+| `Country profile <CC>` | The value of the profile of the installed country package. |
+| `Default`              | The default value of X-Road.                               |
 
 A profile can also set a system parameter that the admin user interface does not list. The server uses that value, but the Source column does not show it.
 

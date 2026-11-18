@@ -14,7 +14,7 @@ Doc. ID: IG-SS-8-UPGRADE
 | 19.05.2026 | 1.0     | Initial version                                                            | Egidijus Milierius |
 | 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables | Marc David         |
 | 19.10.2026 | 1.2     | Added the operational monitoring changes: settings migration, add-on flag, op-monitor package upgrade and TLS files | Eneli Reimets      |
-| 17.11.2026 | 1.3     | Documented that edits in `override-securityserver-*.ini` are not migrated, the combined package upgrade command and the Estonian batch signing default | Ričardas Bučiūnas  |
+| 17.11.2026 | 1.3     | Documented that edits in `override-securityserver-*.ini` are not migrated, the combined package upgrade command and the batch signing prompt for country profiles | Ričardas Bučiūnas  |
 
 ## License
 
@@ -135,7 +135,7 @@ The wizard expects the bundled helper scripts under `lib/` and the migration tas
 
 ### Interactive mode
 
-Run the wizard as root. It prompts for confirmation at the version gate, before each migration CLI sub-step, for the soft token PIN, and for the two operator choices (batch signing, strict identifier checks). An Estonian server is not asked about batch signing, see [Operator choices](#operator-choices).
+Run the wizard as root. It prompts for confirmation at the version gate, before each migration CLI sub-step, for the soft token PIN, and for the two operator choices (batch signing, strict identifier checks). The wizard does not ask about batch signing when the country profile already enables it, see [Operator choices](#operator-choices).
 
 ```bash
 sudo bash /opt/xroad-installer/xroad-upgrade.sh
@@ -211,7 +211,7 @@ The wizard runs thirteen ordered steps and three sub-steps, 6a, 6b and 11a. Each
 | 5   | **PostgreSQL pre-flight**             | Parses the migrated `db.properties`, connects to the `serverconf` database, verifies PostgreSQL major version ≥ 15.                                                                                                                                                                                                   |
 | 6   | **OpenBao repository setup**          | Adds the OpenBao apt/yum repository so the 8.0 packages can pull in OpenBao dependencies.                                                                                                                                                                                                                             |
 | 6a  | **Record op-monitor state**           | Before the services stop, records once in `/var/lib/xroad-upgrade/op-monitor.state` whether the X-Road 7.8 operational monitoring add-on is enabled (its add-on configuration file is present) and whether the `xroad-opmonitor` package is installed. A resumed run reuses the stored state.                         |
-| 6b  | **Record country package**            | Before the services stop, records once in `/var/lib/xroad-upgrade/country-package.state` which country package (`xroad-securityserver-ee`, `-fi`, `-is` or `-fo`) is installed, or `none`. A resumed run reuses the stored state.                                                                                     |
+| 6b  | **Record country package**            | Before the services stop, records once in `/var/lib/xroad-upgrade/country-package.state` which country package (`xroad-securityserver-<cc>`) is installed, or `none`. A resumed run reuses the stored state.                                                                                     |
 | 7   | **Stop X-Road services**              | Discovers all active `xroad-*` units via `systemctl` and stops each one, waiting up to 60 s per service to reach inactive state.                                                                                                                                                                                      |
 | 8   | **Switch to V8 repository**           | Backs up the existing X-Road sources file(s) with a `.v7.bak.<timestamp>` suffix, writes the V8 sources file, imports the V8 GPG key, refreshes package metadata.                                                                                                                                                     |
 | 9   | **Upgrade packages**                  | Runs `apt-get install -y` / `dnf install -y` for the package named by `XROAD_SS_PACKAGE` (default `xroad-securityserver`). When `xroad-opmonitor` was installed in 7.8, it is installed in the same command and the step fails unless it is at 8.x afterwards, so the proxy and op-monitor are upgraded together. The country package recorded in step 6b is handled the same way, so the server keeps its country profile.     |
@@ -242,7 +242,7 @@ Step 11 invokes `migration-cli.jar` for the sub-commands listed below. Each sub-
 | `pgp-keys`                                | Message-log archive PGP keys from the GPG home directory (per `message-log.archive-gpg-home-directory` in `local.ini`, default `/etc/xroad/gpghome`) into the OpenBao secret store.                                                          |
 | `messagelog-key-mappings`                 | The message-log archive encryption key mapping file (path from `local.ini` `message-log.archive-encryption-keys-config`; no default) into the configuration database.                                                                        |
 | `messagelog-db-encryption-keys`           | The X-Road 7 message-log database encryption key from a PKCS#12 keystore (settings from `local.ini` `[message-log]`: `messagelog-keystore`, `messagelog-keystore-password`, `messagelog-key-id`) into the OpenBao secret store.              |
-| `set-property` (batch signing)            | Sets `xroad.proxy.batch-signing-enabled=true` only if the operator chose to preserve the X-Road 7 behavior. Not run on an Estonian server. See [Operator choices](#operator-choices).                                                                                       |
+| `set-property` (batch signing)            | Sets `xroad.proxy.batch-signing-enabled=true` only if the operator chose to preserve the X-Road 7 behavior. The wizard does not ask about batch signing when the country profile already enables it. See [Operator choices](#operator-choices).                                                                                       |
 | `set-property` (strict identifier checks) | Sets `xroad.proxy.strict-identifier-checks=false` if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices).                                                                                        |
 
 `account-keystore-password` is not carried into the `xroad.acme` database value: X-Road 8 has no code path that reads it back out, so the wizard writes a scrubbed copy of `acme.yml` to the database and leaves the file on disk unchanged. If you inspect `xroad.acme` after migration and expect to see that field, this is why it's missing.
@@ -321,7 +321,7 @@ Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for ea
 - Interactive prompt default: disabled (X-Road 8 default).
 - Unattended default: disabled (X-Road 8 default).
 - Choose "Yes" only if you intentionally rely on the X-Road 7 batching behavior.
-- Estonian server (country package `xroad-securityserver-ee`): the Estonian country profile keeps batch signing enabled. The wizard does not show the prompt, writes a log message and records the step as done. An unattended run needs no setting. To disable batch signing afterwards, set `xroad.proxy.batch-signing-enabled` to `false` as a system parameter.
+- The wizard does not ask about batch signing when the country profile already enables it. It writes a log message and records the step as done. An unattended run needs no setting. To disable batch signing afterwards, set `xroad.proxy.batch-signing-enabled` to `false` as a system parameter.
 
 **Strict identifier checks** (`xroad.proxy.strict-identifier-checks`).
 
@@ -453,7 +453,7 @@ rpm -q xroad-opmonitor
 # Ubuntu
 dpkg-query -W -f='${Package} ${Status}\n' 'xroad-securityserver-*' | grep 'install ok installed'
 # RHEL
-rpm -q xroad-securityserver-ee xroad-securityserver-fi xroad-securityserver-is xroad-securityserver-fo
+rpm -qa 'xroad-securityserver-*'
 ```
 
 **7. Stop all X-Road services.**

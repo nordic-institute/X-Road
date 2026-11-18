@@ -39,7 +39,7 @@ Doc. ID: UG-SS-SIDECAR
 | 14.09.2026 | 1.29    | Added health-check and external secret store network ports       | Eneli Reimets             |
 | 06.11.2026 | 1.30    | Link the operational monitoring connection trust settings        | Eneli Reimets             |
 | 12.11.2026 | 1.31    | Document the 7.8.3 to 8.0.0 migration                            | Marc David                |
-| 17.11.2026 | 1.32    | Document country profiles, the EE batch signing default and the EE client ports | Ričardas Bučiūnas         |
+| 17.11.2026 | 1.32    | Document country profile selection and precedence                | Ričardas Bučiūnas         |
 
 ## License
 
@@ -69,7 +69,6 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [2.11 Health Checks](#211-health-checks)
   * [2.12 First-Boot Hook Scripts](#212-first-boot-hook-scripts)
   * [2.13 Country Profile](#213-country-profile)
-    * [Client ports of the EE images](#client-ports-of-the-ee-images)
 * [3 Initial configuration](#3-initial-configuration)
   * [3.1 Enabling ACME Support](#31-enabling-acme-support)
   * [3.2 Configuring the memory allocation for the Proxy Service](#32-configuring-the-memory-allocation-for-the-proxy-service)
@@ -102,9 +101,9 @@ The Security Server Sidecar has several images with alternative configurations:
 | **Image**                                                | **Description**                                                                             |
 |-----------------------------------------------------------|-----------------------------------------------------------------------------------------------|
 | niis/xroad-security-server-sidecar:\<version>            | Image with message logging, environmental monitoring, operational monitoring and dataspace services. |
-| niis/xroad-security-server-sidecar:\<version>-\<variant> | Same image but with the NIIS member/partner country variant (ee,fi,fo,is) configuration settings included. |
+| niis/xroad-security-server-sidecar:\<version>-\<variant> | Same image but with the NIIS member/partner country variant (`<cc>`, the country code) configuration settings included. |
 
-All images can act as a provider or consumer Security Server. The images with a country code suffix (e.g., `-fi`) include NIIS member/partner -specific configuration. See [2.13 Country Profile](#213-country-profile).
+All images can act as a provider or consumer Security Server. The images with a country code suffix (`-<cc>`) include NIIS member/partner -specific configuration. See [2.13 Country Profile](#213-country-profile).
 
 The `slim` image, which didn't include message logging or environmental and operational monitoring, was removed in X-Road 8. Instead, the additional modules can now be enabled and disabled using the Security Server admin UI or the management REST API.
 
@@ -138,7 +137,7 @@ The following parameters are used in example commands:
 | \<container name>                   | Name of the Security Server Sidecar container                                                                                     |
 | \<admin port>                       | Port for admin user interface (default 4000)                                                                                      |
 | \<healthcheck port>                 | Port for service health check (default 5588)                                                                                      |
-| \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https); the `ee` images use 80 (http), 443 (https), see [Client ports of the EE images](#client-ports-of-the-ee-images)) |
+| \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https); a country profile can change them, see [2.13 Country Profile](#213-country-profile)) |
 | \<admin user>                       | Admin username                                                                                                                    |
 | \<admin password>                   | Admin password                                                                                                                    |
 | \<database host>                    | (Optional) host for external database                                                                                             |
@@ -157,7 +156,7 @@ The table below lists the required connections between different components.
 | Connection | Source                      | Target                      | Target Ports     | Protocol | Note                    |
 |------------|-----------------------------|-----------------------------|------------------|----------|-------------------------|
 | Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                         |
-| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443 (`ee` images: 80, 443) | tcp      | From "internal" network, see [Client ports of the EE images](#client-ports-of-the-ee-images) |
+| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network, a country profile can change the ports, see [2.13 Country Profile](#213-country-profile) |
 | Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network |
 | Inbound    | Monitoring / orchestrator   | Sidecar                     | 5588             | http     | Health check, see [2.11 Health Checks](#211-health-checks) |
 | Inbound    | ACME Server                 | Sidecar                     | 80               | http     |                         |
@@ -176,7 +175,7 @@ Notes:
 * The inbound ports 5500/tcp and 5577/tcp for communicating with other Security Servers must be published to the same ports on the host (or the public interface if NAT/firewall is in use)
   * If the Security Server is only consuming services, it is not necessary to publish ports 5500 and 5577.
 * 4000, 8080, 8443 should be only accessible to internal clients (can be mapped to other ports)
-  * For the `ee` images, the consumer information system ports are 80 and 443 instead of 8080 and 8443. See [Client ports of the EE images](#client-ports-of-the-ee-images).
+  * A country profile can change the consumer information system ports. Publish the ports that the server uses, see [2.13 Country Profile](#213-country-profile).
 
 See also [Docker Networking](https://docs.docker.com/network/)
 
@@ -228,7 +227,7 @@ docker run --detach \
   niis/xroad-security-server-sidecar:<version[-type[-variant]]>
 ```
 
-The `-p <consumer information system port>:8443` option publishes the https port of the consumer information system. For the `ee` images, use `-p <consumer information system port>:443` instead. See [Client ports of the EE images](#client-ports-of-the-ee-images).
+The `-p <consumer information system port>:8443` option publishes the default https port of the consumer information system. When a country profile changes the port, publish the port that the server uses, see [2.13 Country Profile](#213-country-profile).
 
 Hash for admin user can be generated with multiple tools. Note that yescrypt ( `$y$xxxx` ) hash is not supported in older xroad images.
 A SHA512 hash can be generated with `mkpasswd -m SHA-512` or with docker command `docker run --rm -it docker.io/serversideup/mkpasswd -m SHA-512`
@@ -315,8 +314,6 @@ docker run -d \
 niis/xroad-security-server-sidecar:<version[-type[-variant]>
 ```
 
-For the `ee` images, use `-p <consumer information system port>:443` instead of `-p <consumer information system port>:8443`. See [Client ports of the EE images](#client-ports-of-the-ee-images).
-
 X-Road Security Server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. 
 See [IG-SS](#Ref_IG-SS) for more information about using remote database.
 
@@ -396,8 +393,6 @@ docker run --detach \
   -v sidecar_db_volume:/var/lib/postgresql/18/main \
   niis/xroad-security-server-sidecar:8.0.0
 ```
-
-For the `ee` images, use `-p 443:443` instead of `-p 8443:8443`. See [Client ports of the EE images](#client-ports-of-the-ee-images).
 
 ### 2.8 Automatic backups
 
@@ -510,14 +505,14 @@ with `./entrypoint.d/10-seed-config.sh` executable on the host and containing th
 
 ### 2.13 Country Profile
 
-A country profile is a set of default values for system parameters that fit the rules of one country. The profiles for Estonia (`EE`), Finland (`FI`), the Faroe Islands (`FO`) and Iceland (`IS`) are part of the image. For the order of precedence and the **Source** column of the admin user interface, see section [2.6.2](../Manuals/ig-ss_x-road_v8_security_server_installation_guide.md#262-country-profile) of the Security Server Installation Guide: a value that you save as a system parameter always wins over the country profile.
+A country profile is a set of default values for system parameters that fit the rules of one country. The profiles are part of the image. The profile files are in the X-Road source code, in the directory `src/lib/properties-core/src/main/resources/xroad-config/country-profile/`. There is one YAML file for each profile, named `<CC>.yaml`, where `<CC>` is the upper case country code. The files define the values of the profiles. For the order of precedence and the **Source** column of the admin user interface, see section [2.6.2](../Manuals/ig-ss_x-road_v8_security_server_installation_guide.md#262-country-profile) of the Security Server Installation Guide: a value that you save as a system parameter always wins over the country profile.
 
 To choose a country profile, do one of the following:
 
-* Use the image of the country: `niis/xroad-security-server-sidecar:<version>-<variant>`, where `<variant>` is `ee`, `fi`, `fo` or `is`. The image sets `XROAD_COUNTRY_PROFILE` for you.
-* Use the image without a variant and set the variable when you start the container. The value is a country code, `EE`, `FI`, `FO` or `IS`, in upper or lower case:
+* Use the image of the country: `niis/xroad-security-server-sidecar:<version>-<variant>`, where `<variant>` is the lower case country code `<cc>`. The image sets `XROAD_COUNTRY_PROFILE` for you.
+* Use the image without a variant and set the variable when you start the container. The value is a country code `<CC>`, in upper or lower case:
     ```bash
-      -e XROAD_COUNTRY_PROFILE=<country code> \
+      -e XROAD_COUNTRY_PROFILE=<CC> \
     ```
 
 A value that is not a country code stops the start of the X-Road services. The log names the supported country codes. Without `XROAD_COUNTRY_PROFILE`, the Sidecar uses only the default values of X-Road.
@@ -525,22 +520,20 @@ A value that is not a country code stops the start of the X-Road services. The l
 `XROAD_COUNTRY_PROFILE_EXCLUDE` is a comma-separated list of system parameter names that the Sidecar removes from the country profile. A removed parameter uses its default value, or the value that you saved for it. For example:
 
 ```bash
-  -e XROAD_COUNTRY_PROFILE_EXCLUDE=xroad.proxy.client-proxy.connector-host,xroad.signer.key-length \
+  -e XROAD_COUNTRY_PROFILE_EXCLUDE=<system parameter name>,<system parameter name> \
 ```
 
 The Sidecar writes a warning to the log for each entry that is not a system parameter of the selected country profile, for example because of a spelling error. It also writes a warning, and ignores the list, when `XROAD_COUNTRY_PROFILE` is not set.
 
-The `ee` image sets `XROAD_COUNTRY_PROFILE_EXCLUDE` to `xroad.proxy.client-proxy.connector-host`. The Estonian profile sets this parameter to `127.0.0.1`, and then the Client Proxy would not accept connections from outside the container. A value that you set for `XROAD_COUNTRY_PROFILE_EXCLUDE` replaces the value of the image, so a custom list on the `ee` image must keep `xroad.proxy.client-proxy.connector-host`. When you set `XROAD_COUNTRY_PROFILE=EE` on the image without a variant, add it to `XROAD_COUNTRY_PROFILE_EXCLUDE` yourself. The `fi`, `fo` and `is` images exclude nothing.
-
-#### Client ports of the EE images
-
-As in X-Road 7, the Estonian profile sets the Client Proxy to listen on port 80 (http) and port 443 (https) for consumer information systems. The `ee`, `primary-ee` and `secondary-ee` images, and any Sidecar with `XROAD_COUNTRY_PROFILE=EE`, use these ports. The other images use port 8080 (http) and port 8443 (https).
-
-Publish the container ports of the Estonian profile, not 8080 and 8443. For example, to map the https port of the consumer information system to host port 443:
+A country image can set `XROAD_COUNTRY_PROFILE_EXCLUDE`. A value that you set for `XROAD_COUNTRY_PROFILE_EXCLUDE` replaces the value of the image, so a custom list must also contain the entries of the image value. To see the value of the image, run:
 
 ```bash
-  -p 443:443 \
+docker inspect --format '{{json .Config.Env}}' niis/xroad-security-server-sidecar:<version>-<variant>
 ```
+
+If you use an image without a variant, copy the entries that you need from the value of a country image.
+
+The default ports of the Client Proxy for consumer information systems are 8080 (http) and 8443 (https). A country profile can change these ports. Publish the ports that the server uses. To see them, open **Settings > System Parameters** in the admin user interface.
 
 ## 3 Initial configuration
 
@@ -624,7 +617,7 @@ Upgrading to a new image is supported, provided that:
 * A volume is used for `/etc/xroad`.
 * A remote database is used, or a volume is mapped to `/var/lib/postgresql/18/main`.
 * The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
-* The same variant (ee, fi, ...) is used for the new container.
+* The same variant (`<cc>`) is used for the new container.
 
 If the prerequisites are met, upgrading is straightforward:
 
@@ -728,7 +721,7 @@ Check that:
 * The 7.8.3 Sidecar has a volume mounted at `/etc/xroad`.
 * You have the PIN of the software token.
 * You use the 8.0.0 image with the same country variant as the 7.8.3 image, or the image without a variant if the 7.8.3 image had none. X-Road 8 has no `slim` image: a `slim` 7.8.3 Sidecar image migrates to the 8.0.0 image without including message logging or environmental and operational monitoring.
-* You know that edits in the `override-securityserver-<country>.ini` file of the 7.8.3 Sidecar are not migrated. After the migration, enter them again as system parameters, as in [2.13 Country Profile](#213-country-profile).
+* You know that edits in the `override-securityserver-<cc>.ini` file of the 7.8.3 Sidecar are not migrated. After the migration, enter them again as system parameters, as in [2.13 Country Profile](#213-country-profile).
 
 In the commands below, `<7.8.3 config volume name>` and `<7.8.3 archive volume name>` are the volumes the 7.8.3 Sidecar mounted at `/etc/xroad` and `/var/lib/xroad`. If the 7.8.3 Sidecar had no volume at `/var/lib/xroad`, use a new volume instead. `<new config volume name>` and `<new database volume name>` are new volumes and must not exist yet.
 
@@ -761,7 +754,7 @@ Add these environment variables to the migration command to change what the migr
 | `XROAD_MIGRATION_MESSAGE_LOG_ENABLED`      | `true` or `false` | Message logging is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`          |
 | `XROAD_MIGRATION_ENV_MONITORING_ENABLED`   | `true` or `false` | Environmental monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim` |
 | `XROAD_MIGRATION_OP_MONITORING_ENABLED`    | `true` or `false` | Operational monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`   |
-| `XROAD_MIGRATION_BATCH_SIGNING_ENABLED`    | `true`            | Batch signing is disabled, the X-Road 8 default. The `ee` image keeps it enabled (country profile)   |
+| `XROAD_MIGRATION_BATCH_SIGNING_ENABLED`    | `true`            | Batch signing is disabled, the X-Road 8 default, unless the country profile enables it           |
 | `XROAD_MIGRATION_STRICT_IDENTIFIER_CHECKS` | `true`            | Strict identifier checks are disabled, the X-Road 7 behaviour                                        |
 
 #### Migrating with a local database
