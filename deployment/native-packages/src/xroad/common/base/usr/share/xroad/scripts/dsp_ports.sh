@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Value checks for the DID port and the DSP port of a Security Server, the rule that tells a host
-# that asks for and stores no ports (a standby node, read from node.ini), and the database rows that
+# that asks for and stores no ports (a secondary node, read from node.ini), and the database rows that
 # hold a port chosen at installation.
 #
 # Usage (when sourced):
@@ -10,9 +10,11 @@
 #   ports_differ "<did port>" "<dsp port>"   # Returns 0 when the two valid ports are different numbers
 #   node_type                           # Prints the [node] type of node.ini; prints nothing when there is none
 #   dsp_port_rows_skip_reason           # Why this host asks for and stores no ports (returns 1 when it does)
+#   read_effective_dsp_port "<key>" "<port>"   # Prints the port the services use: the existing row, else the given port
 #   store_dsp_port_rows "<did port>" "<dsp port>"   # Stores the ports that differ from the default, keeps existing rows
 #   write_dsp_port_rows "<did port>" "<dsp port>"   # Package entry point: skip rule, value checks, then store_dsp_port_rows
 #   $DSP_DEFAULT_DID_PORT, $DSP_DEFAULT_DSP_PORT   # Ports used when the database has no row
+#   $DSP_DID_PORT_KEY, $DSP_DSP_PORT_KEY            # Database keys of the two port rows
 #
 # The Security Server installer stages this file into its lib/ directory and uses it for the port checks.
 # xroad-proxy.config runs before this package is unpacked and carries a copy of normalize_port,
@@ -26,6 +28,8 @@ DSP_DID_PORT_KEY=xroad.dsp.did-port
 DSP_DSP_PORT_KEY=xroad.dsp.dsp-port
 
 dsp_ports_log() { echo >&2 "$@"; }
+
+dsp_db_property() { "${DB_PROPERTY_SCRIPT:-/usr/share/xroad/scripts/db_property.sh}" "$@"; }
 
 # Prints the port number without leading zeros (08183 is 8183).
 # Accepts digits only, in the range 1024-65535. Returns 1 and prints nothing otherwise.
@@ -58,7 +62,7 @@ node_type() {
 }
 
 # Prints why this host asks for and stores no DID and DSP ports, and returns 0; returns 1 when it does.
-# A standby node shares or replicates the primary's database, so the primary owns the port rows;
+# A secondary node shares or replicates the primary's database, so the primary owns the port rows;
 # an image build or a container reconfigure has no deployment to store them for.
 dsp_port_rows_skip_reason() {
   if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
@@ -84,21 +88,14 @@ dsp_port_rows_skip_reason() {
 # 1 when there is none (the given port is printed), 2 on a database error.
 read_effective_dsp_port() {
   local key="$1" port="$2"
-  local db_property="${DB_PROPERTY_SCRIPT:-/usr/share/xroad/scripts/db_property.sh}"
   local value rc=0
 
-  value=$("$db_property" get "$key") || rc=$?
+  value=$(dsp_db_property get "$key") || rc=$?
   case "$rc" in
     0) dsp_ports_log "Keeping existing ${key}=${value}"; printf '%s\n' "$value"; return 0 ;;
     1) printf '%s\n' "$port"; return 1 ;;
     *) dsp_ports_log "FATAL: failed to read the row ${key} from the database"; return 2 ;;
   esac
-}
-
-# Prints a port in comparable form: without leading zeros when it is a valid port, else as is.
-# Arguments: $1 - port value
-comparable_port() {
-  normalize_port "$1" || printf '%s\n' "$1"
 }
 
 # Stores the DID port and the DSP port chosen at installation. A port equal to its default is not
@@ -108,26 +105,27 @@ comparable_port() {
 # Returns non-zero, naming the key and the value, on a database error or when the effective ports are equal.
 store_dsp_port_rows() {
   local did="$1" dsp="$2"
-  local db_property="${DB_PROPERTY_SCRIPT:-/usr/share/xroad/scripts/db_property.sh}"
-  local did_effective dsp_effective did_rc=0 dsp_rc=0
+  local did_effective dsp_effective did_comparable dsp_comparable did_rc=0 dsp_rc=0
 
   did_effective=$(read_effective_dsp_port "$DSP_DID_PORT_KEY" "$did") || did_rc=$?
   (( did_rc <= 1 )) || return 1
   dsp_effective=$(read_effective_dsp_port "$DSP_DSP_PORT_KEY" "$dsp") || dsp_rc=$?
   (( dsp_rc <= 1 )) || return 1
 
-  if [[ "$(comparable_port "$did_effective")" == "$(comparable_port "$dsp_effective")" ]]; then
+  did_comparable=$(normalize_port "$did_effective") || did_comparable="$did_effective"
+  dsp_comparable=$(normalize_port "$dsp_effective") || dsp_comparable="$dsp_effective"
+  if [[ "$did_comparable" == "$dsp_comparable" ]]; then
     dsp_ports_log "FATAL: the DID port and the DSP port must be different, both are '${did_effective}'" \
       "(${DSP_DID_PORT_KEY}=${did_effective}, ${DSP_DSP_PORT_KEY}=${dsp_effective})"
     return 1
   fi
 
   if (( did_rc == 1 )) && [[ "$did" != "$DSP_DEFAULT_DID_PORT" ]]; then
-    "$db_property" set --if-absent "$DSP_DID_PORT_KEY" "$did" \
+    dsp_db_property set --if-absent "$DSP_DID_PORT_KEY" "$did" \
       || { dsp_ports_log "FATAL: failed to store ${DSP_DID_PORT_KEY}=${did} in the database"; return 1; }
   fi
   if (( dsp_rc == 1 )) && [[ "$dsp" != "$DSP_DEFAULT_DSP_PORT" ]]; then
-    "$db_property" set --if-absent "$DSP_DSP_PORT_KEY" "$dsp" \
+    dsp_db_property set --if-absent "$DSP_DSP_PORT_KEY" "$dsp" \
       || { dsp_ports_log "FATAL: failed to store ${DSP_DSP_PORT_KEY}=${dsp} in the database"; return 1; }
   fi
 }

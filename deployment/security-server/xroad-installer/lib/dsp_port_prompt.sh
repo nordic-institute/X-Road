@@ -6,6 +6,7 @@
 # Usage (when sourced):
 #   validate_dsp_port_config   # Stops the script when XROAD_DID_PORT or XROAD_DSP_PORT holds an invalid value
 #   select_dsp_ports           # Asks for the ports that are still empty, then logs the chosen ports
+#   select_dsp_ports --no-prompt   # Same, but uses the default for a port that is still empty instead of asking
 #
 
 DSP_PORT_PROMPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -54,13 +55,24 @@ ask_port() {
   done
 }
 
-# Collects the DID port and the DSP port
+# Collects the DID port and the DSP port. With --no-prompt a port that is still empty gets its default.
 select_dsp_ports() {
+  local prompt=true
+  [[ "${1:-}" == "--no-prompt" ]] && prompt=false
+
   if [[ -z "$XROAD_DID_PORT" ]]; then
-    XROAD_DID_PORT=$(ask_port "DID port" "$DSP_DEFAULT_DID_PORT" "$XROAD_DSP_PORT")
+    if [[ "$prompt" == true ]]; then
+      XROAD_DID_PORT=$(ask_port "DID port" "$DSP_DEFAULT_DID_PORT" "$XROAD_DSP_PORT")
+    else
+      XROAD_DID_PORT="$DSP_DEFAULT_DID_PORT"
+    fi
   fi
   if [[ -z "$XROAD_DSP_PORT" ]]; then
-    XROAD_DSP_PORT=$(ask_port "DSP port" "$DSP_DEFAULT_DSP_PORT" "$XROAD_DID_PORT")
+    if [[ "$prompt" == true ]]; then
+      XROAD_DSP_PORT=$(ask_port "DSP port" "$DSP_DEFAULT_DSP_PORT" "$XROAD_DID_PORT")
+    else
+      XROAD_DSP_PORT="$DSP_DEFAULT_DSP_PORT"
+    fi
   fi
   ports_differ "$XROAD_DID_PORT" "$XROAD_DSP_PORT" \
     || log_die "The DID port and the DSP port must be different, both are '$XROAD_DID_PORT'."

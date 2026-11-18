@@ -66,7 +66,7 @@ OPTIONS:
                                 (see xroad-upgrade.conf.sample for available variables)
     -h, --help                  Show this help message
 
-ENVIRONMENT / CONFIG FILE VARIABLES:
+CONFIG FILE VARIABLES (set with --config-file):
     XROAD_DID_PORT              Port for the dataspace identity (DID) documents, 1024-65535 (default: $DSP_DEFAULT_DID_PORT)
     XROAD_DSP_PORT              Port for the Dataspace Protocol (DSP), 1024-65535 (default: $DSP_DEFAULT_DSP_PORT)
                                 Asked interactively when not set; with XROAD_UPGRADE_UNATTENDED=true the defaults are used.
@@ -124,17 +124,13 @@ dsp_ports_failure_hint() {
 }
 
 # Chooses the DID and DSP ports. Unattended runs use the defaults for a missing port, interactive runs ask.
-# A standby node asks for and stores no ports.
+# A secondary node asks for and stores no ports.
 select_upgrade_dsp_ports() {
   local skip_reason
   if skip_reason=$(dsp_port_rows_skip_reason); then
     log_info "${skip_reason}, not asking for the DID and DSP ports"
   elif [[ "${XROAD_UPGRADE_UNATTENDED:-}" == "true" ]]; then
-    XROAD_DID_PORT="${XROAD_DID_PORT:-$DSP_DEFAULT_DID_PORT}"
-    XROAD_DSP_PORT="${XROAD_DSP_PORT:-$DSP_DEFAULT_DSP_PORT}"
-    ports_differ "$XROAD_DID_PORT" "$XROAD_DSP_PORT" \
-      || log_die "The DID port and the DSP port must be different, both are '$XROAD_DID_PORT'."
-    log_info "DID port: $XROAD_DID_PORT, DSP port: $XROAD_DSP_PORT"
+    select_dsp_ports --no-prompt
   else
     select_dsp_ports
   fi
@@ -301,6 +297,7 @@ main() {
   log_message "Next steps:"
   log_message "  - Review the log file: $XROAD_INSTALLER_LOG_FILE"
   log_message "  - Verify services: systemctl list-units 'xroad-*'"
+  log_message "  - A service that did not start is reported as a warning in the log file; check it with systemctl status <service>"
   log_message ""
 }
 

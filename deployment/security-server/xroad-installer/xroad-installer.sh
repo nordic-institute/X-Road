@@ -66,11 +66,11 @@ OPTIONS:
     --config-file FILE          Path to a configuration file containing installation settings
     -h, --help                  Show this help message
 
-CONFIGURATION FILE KEYS (also read from the environment) for the dataspace ports:
+CONFIGURATION FILE KEYS (set with --config-file) for the dataspace ports:
     XROAD_DID_PORT              Port for the dataspace identity (DID) documents, 1024-65535 (default: $DSP_DEFAULT_DID_PORT)
     XROAD_DSP_PORT              Port for the Dataspace Protocol (DSP), 1024-65535 (default: $DSP_DEFAULT_DSP_PORT)
                                 The two ports must differ. A key that is not set is asked for interactively.
-                                A standby node (node.ini type secondary) is not asked.
+                                A secondary node (node.ini type secondary) is not asked.
 
 EXAMPLES:
     sudo ./xroad-installer.sh
@@ -523,7 +523,7 @@ main() {
   fi
   log_message ""
 
-  # Step: Collect and preseed DID and DSP ports (Debian family; the packages store the rows)
+  # Step: Collect and preseed DID and DSP ports (the packages store the rows)
   local dsp_ports_skip_reason
   if dsp_ports_skip_reason=$(dsp_port_rows_skip_reason); then
     log_info "${dsp_ports_skip_reason}, not asking for the DID and DSP ports"

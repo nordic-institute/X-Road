@@ -17,18 +17,26 @@ XROAD_SERVICES=(
   "xroad-auxiliary-service"
 )
 
+FAILED_SERVICES=()
+
+# Returns 0 when the service is active, 1 when it is not active within 60 seconds.
 wait_for_service_active() {
   local service="$1"
   local retries=0
   local max_retries=30  # 30 x 2s = 60s timeout (D-02)
   while ! systemctl is-active --quiet "$service"; do
     if [[ $retries -ge $max_retries ]]; then
-      log_die "Service $service failed to start within 60 seconds. Check: systemctl status $service"
+      return 1
     fi
     sleep 2
     retries=$(( retries + 1 ))
   done
   log_info "Service $service is active"
+}
+
+start_service() {
+  local service="$1"
+  systemctl start "$service" && wait_for_service_active "$service"
 }
 
 start_xroad_services() {
@@ -43,8 +51,10 @@ start_xroad_services() {
       continue
     fi
     log_message "Starting: $service"
-    systemctl start "$service"
-    wait_for_service_active "$service"
+    if ! start_service "$service"; then
+      FAILED_SERVICES+=("$service")
+      log_warn "Service $service did not start or was not active within 60 seconds; starting the other services anyway. Check: systemctl status $service"
+    fi
   done
 }
 
@@ -61,7 +71,11 @@ main() {
   start_xroad_services
 
   log_message ""
-  log_info "All X-Road services started."
+  if [[ ${#FAILED_SERVICES[@]} -gt 0 ]]; then
+    log_warn "X-Road services started, but these services are not active: ${FAILED_SERVICES[*]}. Check: systemctl status ${FAILED_SERVICES[*]}"
+  else
+    log_info "All X-Road services started."
+  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then main; fi
