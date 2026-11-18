@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.2
+Version: 1.3
 Doc. ID: IG-SS-8
 
 ---
@@ -14,6 +14,7 @@ Doc. ID: IG-SS-8
 | 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis |
 | 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets   |
 | 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets   |
+| 18.11.2026 | 1.3     | Added the DID and DSP port choice at installation                    | Justas Samuolis |
 
 ## License
 
@@ -38,6 +39,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.5 Setup Package Repositories](#25-setup-package-repositories)
   - [2.6 Security Server Installation](#26-security-server-installation)
     - [2.6.1 Provisioning TLS certificates](#261-provisioning-tls-certificates) 
+    - [2.6.2 DID and DSP ports](#262-did-and-dsp-ports)
   - [2.7 Post-Installation Checks](#27-post-installation-checks)
   - [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
@@ -262,9 +264,63 @@ Upon the first installation of the packages, the system asks for the following i
 
             IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
 
+* The decentralized identifier (DID) port and the Dataspace Protocol (DSP) port, on the first installation only. The defaults are 7183 and 8183. See [2.6.2 DID and DSP ports](#262-did-and-dsp-ports).
+
 #### 2.6.1 Provisioning TLS certificates
 
 TLS certificates for the user interface, the information system access point and gRPC services are automatically provisioned at the application startup, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).  
+
+#### 2.6.2 DID and DSP ports
+
+The Security Server serves the documents of its decentralized identifiers (DIDs) on the DID port and the Dataspace Protocol (DSP) on the DSP port. The defaults are 7183 for the DID port and 8183 for the DSP port.
+
+The ports are chosen once, on the first installation, before the services start. A DID cannot change its port after it is bound, so the installation never asks for the ports again and never changes them later.
+
+Each port must be a number from 1024 to 65535, and the DID port must differ from the DSP port. Leading zeros are ignored (`08183` is `8183`). A port that equals its default is not stored, because a missing row means the default. A port that differs from its default is stored in the `serverconf` database as the key `xroad.dsp.did-port` or `xroad.dsp.dsp-port`, before the identity hub, the control plane and the admin service (`xroad-ds-identity-hub`, `xroad-ds-control-plane`, `xroad-proxy-ui-api`) start. The installation stops with an error when a port cannot be stored, or when an answer is not valid. A key that already has a row keeps its value.
+
+**Ubuntu packages**
+
+`apt` asks for the DID port and the DSP port on the first installation of the package `xroad-proxy`, with the defaults filled in. An invalid answer is asked again. To answer them in advance, preseed the answers before the installation. The owner is `xroad-proxy` and the keys are `xroad-common/did-port` and `xroad-common/dsp-port`:
+
+```bash
+echo "xroad-proxy xroad-common/did-port string 7190" | sudo debconf-set-selections
+echo "xroad-proxy xroad-common/dsp-port string 8190" | sudo debconf-set-selections
+```
+
+A non-interactive installation without preseeded answers uses the defaults. An invalid preseeded value stops the installation.
+
+**Reinstall, upgrade and reconfigure**
+
+A reinstall, a package upgrade and `sudo dpkg-reconfigure xroad-proxy` neither ask for the ports nor change them. An upgrade from X-Road 7.8 to X-Road 8 runs the upgrade wizard, which asks for the ports once, see the [Security Server Upgrade Guide](ig-ss_x-road_v8_security_server_upgrade_guide.md#operator-choices). Changing them after the upgrade is not supported: the upgraded server is already registered, so its DIDs are bound soon after X-Road 8 starts.
+
+To use other ports on a server that was installed with the defaults, before the server is registered and its DIDs are bound, write the rows by hand and restart the services that read them:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.dsp.did-port 7190 --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.dsp.dsp-port 8190 --yes
+sudo systemctl restart xroad-ds-identity-hub xroad-ds-control-plane xroad-proxy-ui-api
+```
+
+The checks of the installation do not run for rows written by hand. Use values that follow the rules above. Changing a port after the DIDs are bound is not supported.
+
+**Secondary nodes**
+
+A secondary node of a cluster neither asks for the ports nor stores them, because the primary node owns the rows. The packages treat the host as a secondary node when one of these holds:
+
+* `/etc/xroad/conf.d/node.ini` has the value `secondary` for `type` in the `[node]` section before the packages are installed. The directory does not exist before the installation, so create it by hand:
+
+  ```bash
+  sudo mkdir -p /etc/xroad/conf.d
+  printf '[node]\ntype=secondary\n' | sudo tee /etc/xroad/conf.d/node.ini
+  ```
+
+* The environment variable `XROAD_IGNORE_DATABASE_SETUP` is set, with any value. This is the supported switch for installing a secondary node. It also makes the packages skip their database setup, so use it only for a node that uses the database of the primary node.
+
+A node that was installed first and made a secondary later, as described in the [External Load Balancer Installation Guide](LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md), has port rows in its own local database when ports other than the defaults were chosen at its installation. The rows are unused once the node uses the database replicated from the primary node.
+
+**Firewall**
+
+The DID port must accept inbound connections from the Central Server and from other Security Servers, which fetch DID documents from it. Other Security Servers send Dataspace Protocol messages to the DSP port. When a port differs from its default, change the firewall rules to match.
 
 ### 2.7 Post-Installation Checks
 
