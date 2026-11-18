@@ -179,9 +179,15 @@
       "header": {
         "propertyName": "Omaduse nimi",
         "currentValue": "Praegune väärtus",
+        "source": "Allikas",
         "defaultValue": "Vaikeväärtus",
         "description": "Kirjeldus"
       }
+    },
+    "source": {
+      "default": "Vaikimisi",
+      "countryProfile": "Riigiprofiil {country}",
+      "db": "Andmebaas"
     }
   },
   "error_code": {
