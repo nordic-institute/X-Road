@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.2
+Version: 1.3
 Doc. ID: IG-SS-8
 
 ---
@@ -14,6 +14,7 @@ Doc. ID: IG-SS-8
 | 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis |
 | 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets   |
 | 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets   |
+| 18.11.2026 | 1.3     | Name the OpenBao configuration files in Annex C                      | Ričardas Bučiūnas |
 
 ## License
 
@@ -342,7 +343,8 @@ The installer creates the database roles itself. If they already exist, on Postg
 
 Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
 Files:<br/>
-`openbao.hcl` - OpenBao main configuration file. Contains DB credentials and other options.<br/>
+`xroad-openbao.hcl` - OpenBao configuration file. Contains the listener and storage options.<br/>
+`openbao.env` - OpenBao database connection and credentials.<br/>
 `root-token` - root OpenBao token.<br/>
 `unseal-keys` - OpenBao unseal keys.
 

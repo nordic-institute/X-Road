@@ -1,6 +1,6 @@
 # X-Road 8: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 1.3
+Version: 1.4
 Doc. ID: IG-CS-8
 
 ---
@@ -12,6 +12,7 @@ Doc. ID: IG-CS-8
 | 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check, the default node name, the shared rows of a standalone server and the signer rows | Ričardas Bučiūnas |
 | 12.11.2026 | 1.2     | Describe the root token file that every node of a cluster keeps                                      | Ričardas Bučiūnas |
 | 17.11.2026 | 1.3     | Document the ports between the nodes of a cluster and the OpenBao configuration files                | Ričardas Bučiūnas |
+| 18.11.2026 | 1.4     | Correct the introduction and the line breaks of the OpenBao configuration files                      | Ričardas Bučiūnas |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -447,11 +448,11 @@ The installer creates the database roles itself. If they already exist, on Postg
 
 ## Annex C `xroad-secret-store-local` default configuration
 
-Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
+Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`, except the systemd drop-in.<br/>
 Files:<br/>
 `xroad-openbao.hcl` - OpenBao configuration file that X-Road writes with `/usr/share/xroad/scripts/secret-store-cluster-config.sh`. It holds the listeners, the storage settings and the addresses that a node announces to the other nodes of a cluster. Owner `openbao:xroad`, mode `640`. The `openbao.hcl` file of the OpenBao package is not used.<br/>
 `/etc/systemd/system/openbao.service.d/xroad.conf` - systemd drop-in that starts OpenBao with the file above only, unseals OpenBao after every start and restarts it after a failure.<br/>
 `openbao.env` - the database connection of OpenBao, including the credentials of the database role `openbao`. Owner `openbao:xroad`, mode `640`. A node that joins a cluster gets the file from the join bundle.<br/>
 `root-token` - root OpenBao token. Owner `root:root`, mode `600`. In a cluster, every node keeps the same file, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#42-root-token-file-and-unseal-keys-on-every-node).<br/>
-`unseal-keys` - OpenBao unseal keys. Owner `root:root`, mode `600`. In a cluster, every node keeps the same file.
+`unseal-keys` - OpenBao unseal keys. Owner `root:root`, mode `600`. In a cluster, every node keeps the same file.<br/>
 The steps for joining a node to a cluster are in the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#43-joining-the-openbao-cluster).

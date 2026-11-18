@@ -1,6 +1,6 @@
 # LXD Central Server cluster
 
-A two-node Central Server cluster on LXD, built from the packages of this checkout. Both nodes use one PostgreSQL database. Patroni runs PostgreSQL on two hosts (one leader, one streaming replica) and fails over automatically. A haproxy host gives the cluster one name and one database write address.
+A two-node Central Server cluster on LXD, built from the packages of this checkout. Both nodes use one PostgreSQL database and share one OpenBao cluster: node 1 creates it and node 2 joins it with the product scripts (`secret-store-cluster-config.sh`, `secret-store-join-bundle.sh`). Patroni runs PostgreSQL on two hosts (one leader, one streaming replica) and fails over automatically. A haproxy host gives the cluster one name and one database write address.
 
 | Host | Role |
 |---|---|
@@ -11,7 +11,6 @@ A two-node Central Server cluster on LXD, built from the packages of this checko
 
 Limits:
 
-- Both nodes share one OpenBao cluster: node 1 creates it and node 2 joins it with the product scripts (`secret-store-cluster-config.sh`, `secret-store-join-bundle.sh`).
 - `start-cluster.sh` does not initialise the Central Server, so `check-cluster.sh` skips the signer PIN and software token login checks there. In the dev env profile the hurl setup initialises node 1 and logs its token in without autologin, so the PIN check fails on node 1.
 - The Linux variant has not been run on a Linux host.
 
@@ -96,7 +95,7 @@ scripts/env-lxd/cluster/fault-step.sh [--dry-run] [--start-again] <action> <host
 
 Exit codes: 0 state reached, 1 failed or timed out, 2 unknown action, host or service, or wrong arguments (nothing changed).
 
-What to wait for after a fault (Patroni `ttl` 30 s, `loop_wait` 10 s): the write address works again within 15 s after `db-switchover`, `db-promote` or `node-stop` of the leader, and within 50 s after `node-freeze` of the leader.
+What to wait for after a fault (Patroni `ttl` 30 s, `loop_wait` 10 s): the write address works again within 15 s after `db-switchover`, `db-promote` or `node-stop` of the leader, and within 50 s after `node-freeze` of the leader. `openbao-failover` waits at most `FAULT_STEP_TIMEOUT` seconds (default 180) for the OpenBao of `<node>` to become active. With `--start-again` it waits at most the same time for the stopped OpenBao to become a standby.
 
 The first Central Server admin API change after a failover may need a retry. `check-cluster.sh` waits for Patroni and for that change (see the wait variables below).
 
