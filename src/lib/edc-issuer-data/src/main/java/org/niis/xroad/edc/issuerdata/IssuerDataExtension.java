@@ -34,7 +34,6 @@ import lombok.NoArgsConstructor;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -73,6 +72,8 @@ public class IssuerDataExtension implements ServiceExtension {
     static final String CONTENT_TYPES_SETTING = "edc.iam.credential.revocation.mimetype";
     static final long DEFAULT_CACHE_VALIDITY_MILLIS = 15 * 60 * 1000L;
     static final String DEFAULT_CONTENT_TYPES = "*/*";
+    static final long MAXIMUM_STATUS_LISTS = 128;
+    static final Duration IDLE_EXPIRY = Duration.ofMinutes(30);
     static final String REFRESH_THREAD_PREFIX = "xroad-issuer-data-refresh-";
 
     @Inject
@@ -92,16 +93,24 @@ public class IssuerDataExtension implements ServiceExtension {
 
     @Inject
     private GlobalConfProvider globalConfProvider;
+
     @Inject
     private DataSourceRegistry dataSourceRegistry;
+
     @Inject
     private TransactionContext transactionContext;
+
     @Inject
     private QueryExecutor queryExecutor;
+
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
     private ExecutorService refreshExecutor;
+
+    private Clock clock = Clock.systemUTC();
+
+    private Ticker ticker = Ticker.systemTicker();
 
     @Override
     public String name() {
@@ -111,7 +120,7 @@ public class IssuerDataExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var cacheTime = Duration.ofMillis(context.getSetting(CACHE_VALIDITY_SETTING, DEFAULT_CACHE_VALIDITY_MILLIS));
+        var cacheTime = Duration.ofMillis(Math.max(0, context.getSetting(CACHE_VALIDITY_SETTING, DEFAULT_CACHE_VALIDITY_MILLIS)));
         var contentTypes = List.of(context.getSetting(CONTENT_TYPES_SETTING, DEFAULT_CONTENT_TYPES).split(","));
         var mapper = typeManager.getMapper();
 
@@ -121,8 +130,9 @@ public class IssuerDataExtension implements ServiceExtension {
                 queryExecutor);
         refreshExecutor = executorInstrumentation.instrument(
                 Executors.newCachedThreadPool(Thread.ofPlatform().name(REFRESH_THREAD_PREFIX, 0).daemon().factory()), NAME);
-        var source = new LastGoodSource<BitstringStatusListCredential>(fetcher, Clock.systemUTC(), Ticker.systemTicker(),
-                refreshExecutor, cacheTime, LastGoodSource.REFRESH_WAIT, maximumAge(globalConfProvider), store, monitor);
+        var source = new LastGoodSource<>(fetcher, clock, ticker,
+                refreshExecutor, cacheTime, MAXIMUM_STATUS_LISTS, IDLE_EXPIRY,
+                LastGoodSource.REFRESH_WAIT, maximumAge(globalConfProvider), store, monitor);
         revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(
                 mapper, contentTypes, httpClient, tokenValidationService, didPublicKeyResolver, source));
     }

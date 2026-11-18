@@ -64,6 +64,12 @@ import java.util.function.Supplier;
  * memory copy and the stored copy is then the candidate. A stored copy is read again through
  * {@link IssuerDataFetcher#parse} like a fresh download. Store calls run only on the executor, never on the thread of
  * a check, so they never join a transaction of the caller.
+ * <p>
+ * Memory holds at most a fixed number of keys, and a key with no check for the idle expiry is dropped. The idle expiry
+ * does not depend on the cache time, so a cache time of zero still keeps the copy and the retry delay of a key in
+ * memory. A dropped key whose copy was stored falls back to its stored row with the same deadline: the next check
+ * downloads, and when that fails or does not finish within the refresh wait, the stored copy is read. A key dropped
+ * while its refresh runs or its backoff is active costs at most one more download or one restarted backoff.
  *
  * @param <P> the parsed form of the data
  */
@@ -86,12 +92,15 @@ public class LastGoodSource<P> {
     private final Cache<String, KeyState<P>> entries;
 
     /**
-     * @param executor runs the refreshes and every store call; it must not run tasks on the calling thread in
-     *                 production
+     * @param executor       runs the refreshes and every store call; it must not run tasks on the calling thread in
+     *                       production
+     * @param maximumEntries the most keys held in memory
+     * @param idleExpiry     how long a key may go without a check before it is dropped from memory; independent of the
+     *                       cache time and of the retry delay
      */
     public LastGoodSource(IssuerDataFetcher<P> fetcher, Clock clock, Ticker ticker, Executor executor, Duration cacheTime,
-                          Duration refreshWait, Supplier<Result<Duration>> maximumAge, IssuerDataStore store,
-                          Monitor monitor) {
+                          long maximumEntries, Duration idleExpiry, Duration refreshWait, Supplier<Result<Duration>> maximumAge,
+                          IssuerDataStore store, Monitor monitor) {
         this.fetcher = fetcher;
         this.clock = clock;
         this.executor = executor;
@@ -100,7 +109,16 @@ public class LastGoodSource<P> {
         this.maximumAge = maximumAge;
         this.store = store;
         this.monitor = monitor;
-        this.entries = Caffeine.newBuilder().ticker(ticker).executor(Runnable::run).build();
+        this.entries = Caffeine.newBuilder()
+                .ticker(ticker)
+                .executor(Runnable::run)
+                .maximumSize(maximumEntries)
+                .expireAfterAccess(idleExpiry)
+                .build();
+    }
+
+    long cachedKeys() {
+        return entries.estimatedSize();
     }
 
     /**

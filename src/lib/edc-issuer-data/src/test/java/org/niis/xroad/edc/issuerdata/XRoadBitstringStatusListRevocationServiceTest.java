@@ -29,7 +29,6 @@ package org.niis.xroad.edc.issuerdata;
 
 import com.github.benmanes.caffeine.cache.Ticker;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -64,6 +63,8 @@ class XRoadBitstringStatusListRevocationServiceTest {
     private static final int REVOKED_INDEX = 10;
     private static final int CLEAR_INDEX = 15;
     private static final Duration REFRESH_WAIT = Duration.ofSeconds(10);
+    private static final long MAXIMUM_ENTRIES = 128;
+    private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
 
     private final MutableClock clock = new MutableClock(START);
     private final AtomicReference<Result<Duration>> maximumAge = new AtomicReference<>();
@@ -83,8 +84,8 @@ class XRoadBitstringStatusListRevocationServiceTest {
         when(store.read(any(), any())).thenReturn(StoreResult.notFound("no row"));
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        var source = new LastGoodSource<BitstringStatusListCredential>(fetcher, clock, Ticker.disabledTicker(), refreshPool,
-                CACHE_TIME, REFRESH_WAIT, maximumAge::get, store, mock(Monitor.class));
+        var source = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), refreshPool,
+                CACHE_TIME, MAXIMUM_ENTRIES, IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get, store, mock(Monitor.class));
         service = new XRoadBitstringStatusListRevocationService(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver(), source);
     }

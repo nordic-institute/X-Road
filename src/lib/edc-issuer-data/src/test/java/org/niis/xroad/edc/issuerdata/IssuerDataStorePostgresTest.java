@@ -81,6 +81,8 @@ class IssuerDataStorePostgresTest {
     private static final String IDENTITY_HUB_DATABASE = "identity_hub";
     private static final Instant START = Instant.parse("2026-11-18T10:00:00Z");
     private static final Duration CACHE_TIME = Duration.ofSeconds(60);
+    private static final long MAXIMUM_ENTRIES = 128;
+    private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
     private static final Duration MAXIMUM_AGE = Duration.ofSeconds(120);
     private static final Duration REFRESH_WAIT = Duration.ofMillis(100);
 
@@ -338,20 +340,20 @@ class IssuerDataStorePostgresTest {
 
     private LastGoodSource<String> sourceOnPool(SqlIssuerDataStore store) {
         return new LastGoodSource<>(new FakeFetcher(), clock, Ticker.disabledTicker(), refreshPool, CACHE_TIME,
-                Duration.ofSeconds(10), maximumAge::get, store, monitor);
+                MAXIMUM_ENTRIES, IDLE_EXPIRY, Duration.ofSeconds(10), maximumAge::get, store, monitor);
     }
 
     private LastGoodSource<String> fakeSource(FakeFetcher fetcher, MutableClock sourceClock) {
-        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, REFRESH_WAIT,
-                maximumAge::get, controlPlane.store, monitor);
+        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, MAXIMUM_ENTRIES,
+                IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get, controlPlane.store, monitor);
     }
 
     private LastGoodSource<BitstringStatusListCredential> realSource(MutableClock sourceClock) {
         var stack = EdcTestStack.create();
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), List.of("*/*"), stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, REFRESH_WAIT,
-                maximumAge::get, controlPlane.store, monitor);
+        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, MAXIMUM_ENTRIES,
+                IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get, controlPlane.store, monitor);
     }
 
     private static void applyChangelog(String jdbcUrl, String changelog) throws Exception {
