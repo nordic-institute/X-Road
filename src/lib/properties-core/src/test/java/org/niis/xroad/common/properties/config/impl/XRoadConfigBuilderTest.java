@@ -191,7 +191,9 @@ class XRoadConfigBuilderTest {
     @Test
     void unknownProfileNameFailsBuild() {
         var builder = proxyBuilder();
-        assertThatThrownBy(() -> builder.build(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "XX")))
+        var env = Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "XX");
+
+        assertThatThrownBy(() -> builder.build(env))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("'XX'")
                 .hasMessageContaining("supported profiles");

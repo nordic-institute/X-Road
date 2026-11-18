@@ -58,9 +58,12 @@ class CountryProfileKeysTest {
     void everyProfileKeyIsARegisteredExposedKey(Map<String, String> env) {
         var keys = profileValues(env).keySet();
 
-        assertThat(keys).isNotEmpty().isSubsetOf(REGISTERED_KEYS.keySet());
-        assertThat(keys).allSatisfy(name ->
-                assertThat(REGISTERED_KEYS.get(name).exposedInUi()).as("%s is exposed in the UI", name).isTrue());
+        assertThat(keys)
+                .isNotEmpty()
+                .isSubsetOf(REGISTERED_KEYS.keySet())
+                .allSatisfy(name ->
+                        assertThat(REGISTERED_KEYS.get(name).exposedInUi())
+                                .as("%s is exposed in the UI", name).isTrue());
     }
 
     @ParameterizedTest
