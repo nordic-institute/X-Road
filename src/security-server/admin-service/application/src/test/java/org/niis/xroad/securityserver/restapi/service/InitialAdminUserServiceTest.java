@@ -116,19 +116,25 @@ public class InitialAdminUserServiceTest {
     @Test
     public void requiredOnPrimaryNode() {
         bootstrapState();
+
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
+
             assertThat(service.isInitialAdminUserRequired()).isTrue();
         }
     }
+
     @Test
     public void notRequiredOnSecondaryNode() {
         bootstrapState();
+
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+
             assertThat(service.isInitialAdminUserRequired()).isFalse();
         }
     }
+
     @Test
     public void createDelegatesToAdminUserServiceWithFullPamRoleSet() {
         bootstrapState();
@@ -176,13 +182,16 @@ public class InitialAdminUserServiceTest {
     @Test
     public void createRejectedOnSecondaryNode() {
         bootstrapState();
+
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
             nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+
             assertThatThrownBy(() -> service.createInitialAdminUser(USERNAME, PASSWORD))
                     .isInstanceOf(InitialAdminUserNotAllowedException.class);
         }
         verify(adminUserService, never()).create(org.mockito.ArgumentMatchers.any());
     }
+
     private void bootstrapState() {
         when(userAuthenticationConfig.getAuthenticationProvider()).thenReturn(AuthenticationProviderType.DATABASE);
         when(adminUserService.count()).thenReturn(0L);

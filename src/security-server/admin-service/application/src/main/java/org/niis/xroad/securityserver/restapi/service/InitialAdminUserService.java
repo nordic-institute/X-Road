@@ -48,7 +48,8 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INIT
  * Handles creation of the very first admin user when database-based authentication is enabled
  * and the Security Server has not yet been initialized. The endpoints backed by this service are
  * unauthenticated; bootstrap state is verified for every call so the entry point closes as soon
- * as an admin exists or the server is fully initialized.
+ * as an admin exists or the server is fully initialized, and is never offered on a secondary
+ * cluster node.
  */
 @Slf4j
 @Service
