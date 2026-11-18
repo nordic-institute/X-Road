@@ -4,8 +4,6 @@ if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
   exit 0
 fi
 
-/usr/share/xroad/scripts/migrate_opmonitor_db_properties.sh
-
 source /usr/share/xroad/scripts/_setup_db.sh
 
 default_host=$1

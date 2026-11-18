@@ -91,13 +91,8 @@ val identityScript = rootProject.file(
   "../deployment/native-packages/src/xroad/common/op-monitor/usr/share/xroad/scripts/generate_opmonitor_rpc_identity.sh"
 )
 
-val migrateDbPropertiesScript = rootProject.file(
-  "../deployment/native-packages/src/xroad/common/op-monitor/usr/share/xroad/scripts/migrate_opmonitor_db_properties.sh"
-)
-
 tasks.test {
   inputs.file(identityScript).withPropertyName("identityScript")
-  inputs.file(migrateDbPropertiesScript).withPropertyName("migrateDbPropertiesScript")
 }
 
 val rootScriptTestDir = layout.buildDirectory.dir("root-script-test")
