@@ -8,6 +8,8 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 
 XROAD_SERVICES=(
   "xroad-signer"
+  "xroad-ds-identity-hub"
+  "xroad-ds-control-plane"
   "xroad-proxy"
   "xroad-opmonitor"
   "xroad-monitor"
