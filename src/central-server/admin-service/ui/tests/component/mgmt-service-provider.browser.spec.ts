@@ -104,20 +104,16 @@ describe('0460 — CS Mgmt Service Provider — initial config render (Browser M
 
 describe('0460 — CS Mgmt Service Provider — select subsystem dialog populates fields (Browser Mode)', () => {
   it('opening select-subsystem dialog, picking a subsystem updates the provider identifier and shows success snackbar', async () => {
-    let configCallCount = 0;
+    let config = emptyConfig;
     await renderRoute(SYSTEM_SETTINGS_PATH, {
       permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
       msw: [
         memberClassesHandler,
-        specHttp.get('/management-services-configuration', ({ response }) => {
-          configCallCount += 1;
-          return configCallCount === 1
-            ? response(200).json(emptyConfig)
-            : response(200).json(configAfterSelect);
+        specHttp.get('/management-services-configuration', ({ response }) => response(200).json(config)),
+        specHttp.patch('/management-services-configuration', ({ response }) => {
+          config = configAfterSelect;
+          return response(200).json(configAfterSelect);
         }),
-        specHttp.patch('/management-services-configuration', ({ response }) =>
-          response(200).json(configAfterSelect),
-        ),
         specHttp.get('/clients', ({ response }) => response(200).json(subsystemClient as never)),
       ],
     });

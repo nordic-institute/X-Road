@@ -38,7 +38,6 @@ import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
@@ -80,7 +79,6 @@ public class OpMonitorConfig {
     XRoadConfig buildConfig(String appName, DeploymentMode deploymentMode) {
         var builder = XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
-                .register(CommonConfigKeys.instance())
                 .register(OpMonitorConfigKeys.instance())
                 .register(HealthCheckConfigKeys.instance())
                 .deploymentMode(deploymentMode);

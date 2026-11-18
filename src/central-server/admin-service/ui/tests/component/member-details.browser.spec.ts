@@ -133,7 +133,7 @@ describe('1040 — CS Member Details — used servers list render and unregister
       member_name: 'E2E TC4 Test Member',
     };
 
-    let usedServersCallCount = 0;
+    let usedServers: SecurityServer[] = [serverFixture];
     await renderRoute(`/members/${encodeURIComponent('CS:E2E-TC1:e2e-tc4-test-member')}/details`, {
       permissions: unregisterPermissions,
       msw: [
@@ -141,16 +141,14 @@ describe('1040 — CS Member Details — used servers list render and unregister
         specHttp.get('/members/{member_id}/owned-servers', ({ response }) =>
           response(200).json([] as never),
         ),
-        specHttp.get('/members/{member_id}/used-servers', ({ response }) => {
-          usedServersCallCount += 1;
-          return usedServersCallCount === 1
-            ? response(200).json([serverFixture] as never)
-            : response(200).json([] as never);
-        }),
+        specHttp.get('/members/{member_id}/used-servers', ({ response }) => response(200).json(usedServers as never)),
         specHttp.get('/members/{member_id}/global-groups', ({ response }) =>
           response(200).json([] as never),
         ),
-        specHttp.delete('/members/{member_id}/servers/{server_id}', ({ response }) => response(204).empty()),
+        specHttp.delete('/members/{member_id}/servers/{server_id}', ({ response }) => {
+          usedServers = [];
+          return response(204).empty();
+        }),
       ],
     });
 
@@ -326,22 +324,16 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
 
     it('saves through the PATCH, closes, reloads both lists and shows the notify banner', async () => {
       const patchSpy = vi.fn();
-      let ownedCalls = 0;
-      let usedCalls = 0;
+      let currentServer = withDid;
       await renderWith(
         [],
         [],
         [
-          specHttp.get('/members/{member_id}/owned-servers', ({ response }) => {
-            ownedCalls += 1;
-            return response(200).json((ownedCalls === 1 ? [withDid] : [{ ...withDid, member_did: NEW_DID }]) as never);
-          }),
-          specHttp.get('/members/{member_id}/used-servers', ({ response }) => {
-            usedCalls += 1;
-            return response(200).json((usedCalls === 1 ? [withDid] : [{ ...withDid, member_did: NEW_DID }]) as never);
-          }),
+          specHttp.get('/members/{member_id}/owned-servers', ({ response }) => response(200).json([currentServer] as never)),
+          specHttp.get('/members/{member_id}/used-servers', ({ response }) => response(200).json([currentServer] as never)),
           specHttp.patch('/members/{member_id}/servers/{server_id}', async ({ request, response }) => {
             patchSpy(await request.json());
+            currentServer = { ...withDid, member_did: NEW_DID };
             return response(204).empty();
           }),
         ],
@@ -356,8 +348,6 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
       expect(patchSpy).toHaveBeenCalledWith({ member_did: NEW_DID });
       await expect.element(page.getByTestId('owned-servers-table').getByTestId('member-did')).toMatchTextContent(NEW_DID);
       await expect.element(page.getByTestId('used-servers-table').getByTestId('member-did')).toMatchTextContent(NEW_DID);
-      expect(ownedCalls).toBe(2);
-      expect(usedCalls).toBe(2);
       await expect.element(page.getByTestId('success-snackbar')).toMatchTextContent('Member DID successfully updated');
       const banner = page.getByTestId('contextual-alert');
       await expect.element(banner).toMatchTextContent(NOTIFY_TEXT);
@@ -402,6 +392,7 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
       ]);
 
       await didField(dialog).fill(NEW_DID);
+      const usedCallsBeforeSubmit = usedCalls;
       submitDialogForm();
 
       await expect.element(dialog.getByTestId('contextual-alert')).toMatchTextContent(text);
@@ -409,7 +400,7 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
       await expect.element(didField(dialog)).toHaveValue(NEW_DID);
       await expect.element(page.getByText(NOTIFY_TEXT)).not.toBeInTheDocument();
       await expect.element(page.getByTestId('success-snackbar')).not.toBeInTheDocument();
-      expect(usedCalls).toBe(1);
+      expect(usedCalls).toBe(usedCallsBeforeSubmit);
     });
   });
 

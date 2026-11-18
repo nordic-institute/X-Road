@@ -80,7 +80,8 @@ public class ParticipantMemberIdConfig {
     }
 
     /**
-     * Removes the stored member id. Succeeds without writing when the context has no configuration.
+     * Removes the stored member id. Succeeds without writing when the context has no configuration, and when the
+     * participant context itself no longer exists, because the configuration service refuses writes for it.
      */
     public ServiceResult<Void> remove(String participantContextId) {
         var current = configService.get(participantContextId);
@@ -89,7 +90,8 @@ public class ParticipantMemberIdConfig {
                     ? ServiceResult.success()
                     : ServiceResult.unexpected(current.getFailureDetail());
         }
-        return configService.merge(patch(participantContextId, null));
+        var merged = configService.merge(patch(participantContextId, null));
+        return merged.failed() && merged.reason() == ServiceFailure.Reason.NOT_FOUND ? ServiceResult.success() : merged;
     }
 
     private static ParticipantContextConfiguration patch(String participantContextId, String memberId) {

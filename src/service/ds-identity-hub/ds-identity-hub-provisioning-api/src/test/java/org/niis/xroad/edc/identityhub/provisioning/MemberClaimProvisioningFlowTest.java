@@ -64,6 +64,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,6 +82,7 @@ import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -114,8 +116,10 @@ class MemberClaimProvisioningFlowTest {
     private final ParticipantSecureTokenService delegate = mock();
     private final StreamObserver<CreateParticipantContextResp> createObserver = mock();
     private final StreamObserver<DeleteParticipantContextResp> deleteObserver = mock();
+    private final ExecutorService eventExecutor = Executors.newSingleThreadExecutor();
 
     private IdentityHubProvisioningGrpcService service;
+    private IdentityHubParticipantContextService spiedParticipantContextService;
     private ParticipantContextConfigService configService;
     private ParticipantMemberIdConfig memberIdConfig;
     private ParticipantSecureTokenService tokenService;
@@ -138,13 +142,14 @@ class MemberClaimProvisioningFlowTest {
         when(keyPairService.addKeyPair(anyString(), any(), anyBoolean())).thenReturn(ServiceResult.success());
         when(keyPairService.query(any())).thenReturn(ServiceResult.success(List.of()));
         var transactionContext = new NoopTransactionContext();
+        var participantContextStore = new InMemoryParticipantContextStore(criterionOperatorRegistry);
         configService = new ParticipantContextConfigServiceImpl(new EncryptionAlgorithmRegistryImpl(), null,
-                new InMemoryParticipantContextConfigStore(), transactionContext, clock,
+                new InMemoryParticipantContextConfigStore(), participantContextStore, transactionContext, clock,
                 new ParticipantContextConfigValidatorRegistryImpl(false));
 
-        context.registerService(ParticipantContextStore.class, new InMemoryParticipantContextStore(criterionOperatorRegistry));
+        context.registerService(ParticipantContextStore.class, participantContextStore);
         context.registerService(DidResourceStore.class, new InMemoryDidResourceStore(criterionOperatorRegistry));
-        context.registerService(EventRouter.class, new EventRouterImpl(monitor, Executors.newSingleThreadExecutor(), clock));
+        context.registerService(EventRouter.class, new EventRouterImpl(monitor, eventExecutor, clock));
         context.registerService(TransactionContext.class, transactionContext);
         context.registerService(Telemetry.class, new Telemetry());
         context.registerService(Clock.class, clock);
@@ -163,7 +168,8 @@ class MemberClaimProvisioningFlowTest {
         var recordsPurger = mock(ParticipantCredentialRecordsPurger.class);
         when(recordsPurger.purge(anyString())).thenReturn(new ParticipantCredentialRecordsPurger.PurgeCounts(0, 0));
         memberIdConfig = spy(new ParticipantMemberIdConfig(configService));
-        service = new IdentityHubProvisioningGrpcService(participantContextService, memberIdConfig,
+        spiedParticipantContextService = spy(participantContextService);
+        service = new IdentityHubProvisioningGrpcService(spiedParticipantContextService, memberIdConfig,
                 mock(CredentialRequestManager.class),
                 recordsPurger, mock(DidResolverRegistry.class), new RpcResponseHandler(), monitor);
 
@@ -171,6 +177,11 @@ class MemberClaimProvisioningFlowTest {
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("outer-jwt").build()));
         when(signer.sign(any(), anyString(), anyString())).thenReturn(Result.success("signed-jws"));
         tokenService = new XRoadClaimAwareSecureTokenService(delegate, participantContextService, memberIdConfig, signer, monitor);
+    }
+
+    @AfterEach
+    void tearDown() {
+        eventExecutor.shutdownNow();
     }
 
     @Test
@@ -214,11 +225,75 @@ class MemberClaimProvisioningFlowTest {
     @Test
     void deletedMemberLeavesNoMemberIdConfigEntry() {
         service.createParticipantContext(createRequest(MEMBER_ID, false), createObserver);
-        service.deleteParticipantContext(DeleteParticipantContextReq.newBuilder()
-                .setParticipantContextId(PARTICIPANT_CONTEXT_ID).build(), deleteObserver);
+
+        service.deleteParticipantContext(deleteRequest(), deleteObserver);
+
         verify(deleteObserver).onCompleted();
+        verify(deleteObserver, never()).onError(any());
         var config = configService.get(PARTICIPANT_CONTEXT_ID);
-        assertThat(config.failed() || !config.getContent().getPrivateEntries().containsKey("xroadMemberId")).isTrue();
+        assertThat(config.succeeded()).isTrue();
+        assertThat(config.getContent().getPrivateEntries()).doesNotContainKey("xroadMemberId");
+        assertThat(spiedParticipantContextService.getParticipantContext(PARTICIPANT_CONTEXT_ID).failed()).isTrue();
+    }
+
+    @Test
+    void deletingAnAlreadyDeletedMemberSucceeds() {
+        service.createParticipantContext(createRequest(MEMBER_ID, false), createObserver);
+        service.deleteParticipantContext(deleteRequest(), deleteObserver);
+        StreamObserver<DeleteParticipantContextResp> secondObserver = mock();
+
+        service.deleteParticipantContext(deleteRequest(), secondObserver);
+
+        verify(secondObserver).onCompleted();
+        verify(secondObserver, never()).onError(any());
+    }
+
+    @Test
+    void deletedAndRecreatedMemberStartsWithoutTheEarlierMemberId() {
+        service.createParticipantContext(createRequest(MEMBER_ID, false), createObserver);
+        service.deleteParticipantContext(deleteRequest(), deleteObserver);
+        assertThat(memberIdConfig.find(PARTICIPANT_CONTEXT_ID)).isEmpty();
+
+        service.createParticipantContext(createRequest(OTHER_MEMBER_ID, false), createObserver);
+
+        assertThat(memberIdConfig.find(PARTICIPANT_CONTEXT_ID)).contains(OTHER_MEMBER_ID);
+        requestToken();
+        assertThat(signedMember()).isEqualTo(OTHER_MEMBER_ID);
+    }
+
+    @Test
+    void retryAfterFailedContextDeleteDeletesTheMember() {
+        service.createParticipantContext(createRequest(MEMBER_ID, false), createObserver);
+        doReturn(ServiceResult.unexpected("db down")).doCallRealMethod()
+                .when(spiedParticipantContextService).deleteParticipantContext(PARTICIPANT_CONTEXT_ID);
+        service.deleteParticipantContext(deleteRequest(), deleteObserver);
+        verify(deleteObserver).onError(any(StatusRuntimeException.class));
+        assertThat(spiedParticipantContextService.getParticipantContext(PARTICIPANT_CONTEXT_ID).succeeded()).isTrue();
+        StreamObserver<DeleteParticipantContextResp> retryObserver = mock();
+
+        service.deleteParticipantContext(deleteRequest(), retryObserver);
+
+        verify(retryObserver).onCompleted();
+        verify(retryObserver, never()).onError(any());
+        assertThat(spiedParticipantContextService.getParticipantContext(PARTICIPANT_CONTEXT_ID).failed()).isTrue();
+        assertThat(memberIdConfig.find(PARTICIPANT_CONTEXT_ID)).isEmpty();
+    }
+
+    @Test
+    void contextLeftByAFailedDeleteIsGivenItsMemberIdAgainOnReprovisioning() {
+        service.createParticipantContext(createRequest(MEMBER_ID, false), createObserver);
+        doReturn(ServiceResult.unexpected("db down")).when(spiedParticipantContextService)
+                .deleteParticipantContext(PARTICIPANT_CONTEXT_ID);
+        service.deleteParticipantContext(deleteRequest(), deleteObserver);
+        assertThat(memberIdConfig.find(PARTICIPANT_CONTEXT_ID)).isEmpty();
+
+        service.createParticipantContext(createRequest(MEMBER_ID, false), createObserver);
+
+        assertThat(memberIdConfig.find(PARTICIPANT_CONTEXT_ID)).contains(MEMBER_ID);
+    }
+
+    private static DeleteParticipantContextReq deleteRequest() {
+        return DeleteParticipantContextReq.newBuilder().setParticipantContextId(PARTICIPANT_CONTEXT_ID).build();
     }
 
     private void requestToken() {

@@ -40,6 +40,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.HexFormat;
 
 /**
@@ -57,7 +58,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
     private final VaultClient vaultClient;
 
     DsHttpsKeyStoreLoader(VaultClient vaultClient) {
-        this.vaultClient = vaultClient;
+        this.vaultClient = vaultClient.withRetryBudget(Duration.ZERO);
     }
 
     @Override

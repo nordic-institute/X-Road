@@ -28,16 +28,23 @@
 package org.niis.xroad.common.vault.spring;
 
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.vault.NoopVaultClient;
+import org.niis.xroad.common.vault.ResilientVaultCall;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.vault.core.VaultKeyValueOperationsSupport;
 import org.springframework.vault.core.VaultTemplate;
 
+import java.time.Duration;
+
 @Configuration
+@EnableScheduling
 public class SpringVaultClientConfig {
 
     @Bean
@@ -45,9 +52,29 @@ public class SpringVaultClientConfig {
     SpringVaultClient springVaultClient(VaultTemplate vaultTemplate,
                                         @Value("${spring.cloud.vault.kv.backend}") String rootPath,
                                         @Value("${spring.cloud.vault.kv.backend-version}") String version,
-                                        ObjectProvider<NodeIdentity> nodeIdentity) {
+                                        ObjectProvider<NodeIdentity> nodeIdentity,
+                                        ObjectProvider<XRoadConfig> xRoadConfig) {
         var vaultKvClient = vaultTemplate.opsForKeyValue(rootPath, getKeyValueBackendVersion(version));
-        return new SpringVaultClient(vaultKvClient, nodeIdentity.getIfAvailable());
+        return new SpringVaultClient(vaultKvClient, nodeIdentity.getIfAvailable(), retryBudget(xRoadConfig));
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
+    SpringVaultTokenKeepalive springVaultTokenKeepalive(VaultTemplate vaultTemplate,
+                                                        ObjectProvider<XRoadConfig> xRoadConfig) {
+        return new SpringVaultTokenKeepalive(vaultTemplate, retryBudget(xRoadConfig), renewalInterval(xRoadConfig));
+    }
+
+    private static Duration retryBudget(ObjectProvider<XRoadConfig> xRoadConfig) {
+        var config = xRoadConfig.getIfAvailable();
+        return config == null ? ResilientVaultCall.DEFAULT_BUDGET : config.value(CommonConfigKeys.VAULT_RETRY_BUDGET);
+    }
+
+    private static Duration renewalInterval(ObjectProvider<XRoadConfig> xRoadConfig) {
+        var config = xRoadConfig.getIfAvailable();
+        return config == null
+                ? CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL.convertedDefaultValue()
+                : config.value(CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL);
     }
 
     private VaultKeyValueOperationsSupport.KeyValueBackend getKeyValueBackendVersion(String version) {

@@ -58,7 +58,6 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -208,7 +207,6 @@ class ClientRestMessageProcessorTest {
                 .register(ProxyConfigKeys.instance())
                 .build());
         var commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .build());
         var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider,
                 new OwnSecurityServerResolver(new ServerConfProviderIdentitySource(serverConfProvider), globalConfProvider));
@@ -1277,7 +1275,6 @@ class ClientRestMessageProcessorTest {
                         "xroad.proxy.client-proxy.enable-request-retry", String.valueOf(requestRetryEnabled)))
                 .build());
         var commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", tempDir.toString()))
                 .build());
         var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider,

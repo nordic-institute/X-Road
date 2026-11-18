@@ -131,9 +131,9 @@ configure_openbao_storage() {
     return 0
   fi
 
-  if grep -q '^storage "file"' /etc/openbao/openbao.hcl; then
+  if grep -Eq '^storage "(file|pebbledb)"' /etc/openbao/openbao.hcl; then
     echo "Configuring OpenBao to use PostgreSQL storage backend"
-    sed -i.bak 's/^storage "file" {/storage "postgresql" {/' /etc/openbao/openbao.hcl
+    sed -i.bak -E 's/^storage "(file|pebbledb)" \{/storage "postgresql" {/' /etc/openbao/openbao.hcl
     sed -i '/^\s*path\s*=.*openbao.*data/d' /etc/openbao/openbao.hcl
   fi
 }

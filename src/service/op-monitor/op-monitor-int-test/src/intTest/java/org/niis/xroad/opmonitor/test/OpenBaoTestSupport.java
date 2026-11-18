@@ -30,6 +30,7 @@ import io.quarkus.vault.client.http.jdk.JDKVaultHttpClient;
 import io.quarkus.vault.runtime.VaultConfigHolder;
 import io.quarkus.vault.runtime.VaultKvManager;
 import io.quarkus.vault.runtime.config.VaultRuntimeConfig;
+import org.niis.xroad.common.vault.ResilientVaultCall;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.opmonitor.test.container.OpMonitorContainerSetup;
@@ -65,7 +66,8 @@ final class OpenBaoTestSupport {
     }
 
     static VaultClient quarkusVaultClient(io.quarkus.vault.client.VaultClient vaultApi) {
-        return new QuarkusVaultClient(new VaultKVSecretEngine(new VaultKvManager(vaultApi, quarkusConfigHolder())));
+        return new QuarkusVaultClient(new VaultKVSecretEngine(new VaultKvManager(vaultApi, quarkusConfigHolder())),
+                ResilientVaultCall.DEFAULT_BUDGET);
     }
 
     static void deleteOpMonitorCaRecord(OpMonitorContainerSetup stack) {

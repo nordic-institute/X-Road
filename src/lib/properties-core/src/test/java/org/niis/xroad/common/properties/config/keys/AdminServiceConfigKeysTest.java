@@ -47,4 +47,15 @@ class AdminServiceConfigKeysTest {
     void provisioningBatchSizeIsNotPublishedToTheFramework() {
         assertThat(AdminServiceConfigKeys.DATASPACE_PROVISIONING_BATCH_SIZE.publishedToFramework()).isFalse();
     }
+
+    @Test
+    void publicationSubmittedTimeoutDefaultsToSixtyAndRejectsValuesOutsideFiveToTenThousandEighty() {
+        var key = AdminServiceConfigKeys.DATASPACE_PUBLICATION_SUBMITTED_TIMEOUT_MINUTES;
+
+        assertThat(key.convertedDefaultValue()).isEqualTo(60);
+        assertThat(key.validate(4).valid()).isFalse();
+        assertThat(key.validate(10081).valid()).isFalse();
+        assertThat(key.validate(5).valid()).isTrue();
+        assertThat(key.validate(10080).valid()).isTrue();
+    }
 }

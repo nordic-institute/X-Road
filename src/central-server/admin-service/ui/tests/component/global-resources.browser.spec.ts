@@ -63,23 +63,22 @@ describe('0340 — CS Global Resources — add dialog save-disabled gating and l
       updated_at: '2024-01-01T00:00:00Z',
     };
 
-    let groupsCallCount = 0;
+    let groups = [ownersGroup];
     await renderRoute('/settings/global-resources', {
       permissions: globalResourcesPermissions,
       msw: [
-        specHttp.get('/global-groups', ({ response }) => {
-          groupsCallCount += 1;
-          return groupsCallCount === 1
-            ? response(200).json([ownersGroup])
-            : response(200).json([ownersGroup, newGroup]);
+        specHttp.get('/global-groups', ({ response }) => response(200).json(groups)),
+        specHttp.post('/global-groups', ({ response }) => {
+          groups = [ownersGroup, newGroup];
+          return response(201).json(newGroup);
         }),
-        specHttp.post('/global-groups', ({ response }) => response(201).json(newGroup)),
       ],
     });
 
     await expect.element(page.getByTestId('global-groups-table')).toBeVisible();
 
     await page.getByTestId('add-global-group-button').click();
+    await expect.element(page.getByTestId('add-global-group-code-input').getByRole('textbox')).toHaveFocus();
 
     await expect.element(page.getByTestId('dialog-save-button')).toBeDisabled();
 
@@ -103,6 +102,7 @@ describe('0340 — CS Global Resources — invalid description on add (Browser M
     await expect.element(page.getByTestId('global-groups-table')).toBeVisible();
 
     await page.getByTestId('add-global-group-button').click();
+    await expect.element(page.getByTestId('add-global-group-code-input').getByRole('textbox')).toHaveFocus();
 
     await page.getByTestId('add-global-group-code-input').getByRole('textbox').fill('valid-code');
     await page
@@ -138,6 +138,7 @@ describe('0340 — CS Global Resources — colon in code field (Browser Mode)', 
     await expect.element(page.getByTestId('global-groups-table')).toBeVisible();
 
     await page.getByTestId('add-global-group-button').click();
+    await expect.element(page.getByTestId('add-global-group-code-input').getByRole('textbox')).toHaveFocus();
 
     await page.getByTestId('add-global-group-code-input').getByRole('textbox').fill('no:colons');
     await page.getByTestId('add-global-group-description-input').getByRole('textbox').fill('Some description');

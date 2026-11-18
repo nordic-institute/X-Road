@@ -122,6 +122,24 @@ class ValidatorTest {
     }
 
     @Test
+    void durationBetweenAcceptsBothBoundsInclusive() {
+        var validator = Validator.durationBetween(Duration.ZERO, Duration.ofMinutes(5));
+
+        assertThat(validator.validate(Duration.ZERO).valid()).isTrue();
+        assertThat(validator.validate(Duration.ofSeconds(30)).valid()).isTrue();
+        assertThat(validator.validate(Duration.ofMinutes(5)).valid()).isTrue();
+    }
+
+    @Test
+    void durationBetweenRejectsOutsideTheRangeAndNull() {
+        var validator = Validator.durationBetween(Duration.ZERO, Duration.ofMinutes(5));
+
+        assertThat(validator.validate(Duration.ofMillis(-1)).valid()).isFalse();
+        assertThat(validator.validate(Duration.ofMinutes(5).plusMillis(1)).valid()).isFalse();
+        assertThat(validator.validate(null).valid()).isFalse();
+    }
+
+    @Test
     void negativeDurationDefaultWithPositiveFailsAtBuild() {
         var builder = Prefix.of("xroad.signer")
                 .keyDuration("csr-timeout")
@@ -169,6 +187,8 @@ class ValidatorTest {
         assertThat(Validator.nonEmpty().describe()).contains("non-empty");
         assertThat(Validator.positive().describe()).contains("positive duration");
         assertThat(Validator.nonNegative().describe()).contains("non-negative duration");
+        assertThat(Validator.durationBetween(Duration.ZERO, Duration.ofMinutes(5)).describe())
+                .contains("within [PT0S, PT5M]");
         assertThat(Validator.positiveLong().describe()).contains("positive number");
         assertThat(Validator.positiveInt().describe()).contains("positive number");
     }

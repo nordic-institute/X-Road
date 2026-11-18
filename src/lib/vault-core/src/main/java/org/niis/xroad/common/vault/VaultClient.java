@@ -49,6 +49,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
@@ -232,6 +233,15 @@ public interface VaultClient {
      * @param keyId the id of the key to delete
      */
     void deleteAgreementTokenSigningKey(String keyId);
+
+    /**
+     * Returns a view of this client whose secret store calls are retried for the given time instead of the
+     * configured one. A zero budget makes a single attempt per call.
+     *
+     * @param budget the total elapsed time a failing call may be retried for
+     * @return a client sharing this client's connection and settings, with the given retry budget
+     */
+    VaultClient withRetryBudget(Duration budget);
 
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();

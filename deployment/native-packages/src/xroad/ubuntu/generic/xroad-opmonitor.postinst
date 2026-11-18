@@ -9,7 +9,7 @@ configure() {
   db_get xroad-common/database-host || RET=""
   db_stop
 
-  /usr/share/xroad/scripts/setup_opmonitor_db.sh "$RET"
+  /usr/share/xroad/scripts/setup_opmonitor_db.sh "$RET" || abort "Database setup failed. ABORTING."
 }
 
 if [[ "$1" == "configure" || "$1" == "reconfigure" ]]; then

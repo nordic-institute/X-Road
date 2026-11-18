@@ -43,6 +43,7 @@ describe('AddRestDialog — validation (Browser Mode)', () => {
 
   it('Save button remains disabled with invalid URL (no service code)', async () => {
     await render(AddRestDialog, { props: { clientId: 'CS:GOV:1234:SUBS1' } });
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
     await urlInput.fill('not-a-valid-url');
@@ -54,6 +55,7 @@ describe('AddRestDialog — validation (Browser Mode)', () => {
 
   it('URL is not valid error is visible after entering invalid URL and blurring', async () => {
     await render(AddRestDialog, { props: { clientId: 'CS:GOV:1234:SUBS1' } });
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
     await urlInput.fill('not-a-valid-url');
@@ -64,6 +66,7 @@ describe('AddRestDialog — validation (Browser Mode)', () => {
 
   it('Service Code field error is visible after entering a valid URL and blurring service code', async () => {
     await render(AddRestDialog, { props: { clientId: 'CS:GOV:1234:SUBS1' } });
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
 
     const urlInput = page.getByTestId('service-url-text-field').getByRole('textbox');
     await urlInput.fill('https://example.com/api');
@@ -81,6 +84,7 @@ describe('AddRestDialog — validation (Browser Mode)', () => {
 
   it('Save button becomes enabled once URL and Service Code are both valid', async () => {
     await render(AddRestDialog, { props: { clientId: 'CS:GOV:1234:SUBS1' } });
+    await expect.element(page.getByTestId('service-url-text-field').getByRole('textbox')).toHaveFocus();
 
     await page.getByTestId('rest-radio-button').getByRole('radio').click();
 

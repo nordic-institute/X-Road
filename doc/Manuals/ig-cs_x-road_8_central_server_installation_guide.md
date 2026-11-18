@@ -424,7 +424,7 @@ Refer to X-Road 7. Central Server Installation Guide [IG-CS](#Ref_IG-CS), sectio
 ```properties
 spring.datasource.username=centerui
 spring.datasource.password=<randomly generated password stored is stored here>
-spring.datasource.hikari.data-source-properties.currentSchema=centerui
+spring.datasource.hikari.data-source-properties.currentSchema=centerui,public
 spring.datasource.url=jdbc:postgresql://127.0.0.1:5432/centerui_production
 skip_migrations=false
 ```
@@ -436,6 +436,10 @@ skip_migrations=false
 | centerui_admin | centerui_production | CREATE,TEMPORARY,CONNECT  | The database admin user to create/modify the schema                      |                            
 | openbao        | openbao             | CREATE,TEMPORARY,CONNECT  | The database user for local OpenBao (package `xroad-secret-store-local`) | 
 | postgres       | ALL                 | ALL                       | PostgreSQL database default superuser.                                   |
+
+If a database role already exists and its password differs from the one stored in `db.properties`, the installation stops with the message "Logging in as database role '<role>' failed". Set the stored password in `db.properties` to match the role and rerun the installation.
+
+The installer creates the database roles itself. If they already exist, on PostgreSQL 16 and later the master user needs ADMIN OPTION on them.
 
 ## Annex C `xroad-secret-store-local` default configuration
 

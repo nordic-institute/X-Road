@@ -41,9 +41,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -83,13 +85,14 @@ public class IniUtil {
 
     public Map<String, Object> loadToNestedMap(String filePath, String rootPrefix) {
         var ini = load(filePath);
+        var keysInChain = collectOperatorChainKeys(filePath);
 
         Map<String, Object> properties = new HashMap<>();
         for (String section : ini.parsedContent().getSections()) {
             for (Iterator<String> it = ini.parsedContent().getSection(section).getKeys(); it.hasNext(); ) {
                 var sectionKey = it.next();
                 var key = section + "." + sectionKey;
-                if (LegacyConfigPathMapping.shouldKeep(key)) {
+                if (LegacyConfigPathMapping.shouldKeep(key) && !LegacyConfigPathMapping.isSuperseded(key, keysInChain)) {
                     var mappedKeys = LegacyConfigPathMapping.map(key);
                     var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
                     mappedKeys.forEach(mappedKey ->
@@ -125,13 +128,14 @@ public class IniUtil {
 
     public Map<String, String> loadToFlatMap(String filePath, String rootPrefix) {
         var ini = load(filePath);
+        var keysInChain = collectOperatorChainKeys(filePath);
 
         Map<String, String> properties = new HashMap<>();
         for (String section : ini.parsedContent().getSections()) {
             for (Iterator<String> it = ini.parsedContent().getSection(section).getKeys(); it.hasNext(); ) {
                 var sectionKey = it.next();
                 var key = String.join(".", section, sectionKey);
-                if (LegacyConfigPathMapping.shouldKeep(key)) {
+                if (LegacyConfigPathMapping.shouldKeep(key) && !LegacyConfigPathMapping.isSuperseded(key, keysInChain)) {
                     var mappedKeys = LegacyConfigPathMapping.map(key);
                     var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
                     mappedKeys.forEach(mappedKey ->
@@ -150,6 +154,24 @@ public class IniUtil {
         }
 
         return properties;
+    }
+
+    private Set<String> collectOperatorChainKeys(String filePath) {
+        Set<String> keys = new HashSet<>();
+        for (Path file : operatorIniChain(Paths.get(filePath))) {
+            keys.addAll(collectKeys(load(file.toString()).parsedContent()));
+        }
+        return keys;
+    }
+
+    private static Set<String> collectKeys(INIConfiguration ini) {
+        Set<String> keys = new HashSet<>();
+        for (String section : ini.getSections()) {
+            for (Iterator<String> it = ini.getSection(section).getKeys(); it.hasNext(); ) {
+                keys.add(section + "." + it.next());
+            }
+        }
+        return keys;
     }
 
     private static void skipOpMonitorDaemonProperties(Map<String, String> properties, String rootPrefix) {

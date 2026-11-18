@@ -25,11 +25,13 @@
  */
 package org.niis.xroad.monitor.core;
 
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
-import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.interceptor.Interceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
@@ -46,7 +48,6 @@ import java.util.ArrayList;
  * parsing output from those.
  */
 @Slf4j
-@Startup
 @ApplicationScoped
 @RequiredArgsConstructor
 public class ExecListingSensor {
@@ -56,8 +57,7 @@ public class ExecListingSensor {
     private final EnvMonitorProperties envMonitorProperties;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-    @PostConstruct
-    public void init() {
+    public void init(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
         var interval = envMonitorProperties.execListingSensorInterval();
         log.info("Creating sensor, measurement interval: {}", interval);
         scheduler.newJob(getClass().getSimpleName())

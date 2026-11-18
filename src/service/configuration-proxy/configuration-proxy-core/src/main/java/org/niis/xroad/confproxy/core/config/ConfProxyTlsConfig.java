@@ -26,28 +26,21 @@
  */
 package org.niis.xroad.confproxy.core.config;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
-
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.vault.TlsKeyProvisioning;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.util.stream.Stream;
+import java.security.GeneralSecurityException;
 
-import static java.util.Arrays.stream;
-
-@Slf4j
 class ConfProxyTlsConfig {
 
     @ApplicationScoped
@@ -56,8 +49,9 @@ class ConfProxyTlsConfig {
     }
 
     @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, VaultKeyClient vaultKeyClient) {
-        VaultClient vaultClient = new QuarkusVaultClient(kvSecretEngine);
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, VaultKeyClient vaultKeyClient, XRoadConfig xRoadConfig) {
+        VaultClient vaultClient = new QuarkusVaultClient(kvSecretEngine,
+                xRoadConfig.value(CommonConfigKeys.VAULT_RETRY_BUDGET));
         try {
             ensureTlsKeyPresent(vaultKeyClient, vaultClient);
         } catch (Exception e) {
@@ -67,18 +61,11 @@ class ConfProxyTlsConfig {
     }
 
     private void ensureTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient)
-            throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        try {
-            vaultClient.getConfigurationProxyTlsCredentials();
-        } catch (Exception e) {
-            log.warn("Unable to locate configuration proxy TLS credentials, attempting to create new ones", e);
-            var vaultKeyData = vaultKeyClient.provisionNewCerts();
-            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
-                    .toArray(X509Certificate[]::new);
-            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createConfigurationProxyTlsCredentials(internalTlsKey);
-            log.info("Successfully created configuration proxy TLS credentials");
-        }
+            throws IOException, GeneralSecurityException {
+        TlsKeyProvisioning.readOrProvision("configuration proxy",
+                vaultClient::getConfigurationProxyTlsCredentials,
+                vaultClient::createConfigurationProxyTlsCredentials,
+                vaultKeyClient);
     }
 
 }

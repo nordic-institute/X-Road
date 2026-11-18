@@ -193,21 +193,22 @@ describe('0480 — CS Global Group Members — add members to non-owner group sh
       paging_metadata: { total_items: 2, items: 2, limit: 25, offset: 0 },
     };
 
-    let membersCallCount = 0;
+    let members: GroupMemberListView[] = noMembers;
     await renderRoute(`/settings/global-resources/global-groups/${GROUP_CODE}`, {
       permissions: groupPermissions,
       msw: [
         groupGroupHandler(groupFixture),
-        specHttp.post('/global-groups/{group_code}/members', ({ response }) => {
-          membersCallCount += 1;
-          return membersCallCount === 1
-            ? response(200).json({ items: noMembers, paging_metadata: { total_items: 0, items: 0, limit: 25, offset: 0 } } as never)
-            : response(200).json({ items: twoMembers, paging_metadata: { total_items: 2, items: 2, limit: 25, offset: 0 } } as never);
-        }),
-        clientsHandler(twoClients),
-        specHttp.post('/global-groups/{group_code}/members/add', ({ response }) =>
-          response(201).json(addedMembers),
+        specHttp.post('/global-groups/{group_code}/members', ({ response }) =>
+          response(200).json({
+            items: members,
+            paging_metadata: { total_items: members.length, items: members.length, limit: 25, offset: 0 },
+          } as never),
         ),
+        clientsHandler(twoClients),
+        specHttp.post('/global-groups/{group_code}/members/add', ({ response }) => {
+          members = twoMembers;
+          return response(201).json(addedMembers);
+        }),
       ],
     });
 
@@ -216,13 +217,17 @@ describe('0480 — CS Global Group Members — add members to non-owner group sh
 
     await expect.element(page.getByTestId('select-members-list')).toBeVisible();
 
-    await page.getByText(memberFixture.name).first().click();
-    await page.getByText(secondMemberFixture.name).first().click();
+    await expect.element(page.getByTestId('select-members-list').getByText(secondMemberFixture.name)).toBeVisible();
 
+    await page.getByTestId('select-members-list').getByRole('checkbox').nth(1).click();
+    await page.getByTestId('select-members-list').getByRole('checkbox').nth(2).click();
+
+    await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
-    await expect.element(page.getByText(memberFixture.name).first()).toBeVisible();
-    await expect.element(page.getByText(secondMemberFixture.name).first()).toBeVisible();
+    const membersTable = page.getByTestId('global-group-members');
+    await expect.element(membersTable.getByText(memberFixture.name)).toBeVisible();
+    await expect.element(membersTable.getByText(secondMemberFixture.name)).toBeVisible();
   });
 });
 
@@ -258,18 +263,14 @@ describe('0480 — CS Global Group Members — search field in add-members dialo
       paging_metadata: { total_items: 1, items: 1, limit: 25, offset: 0 },
     };
 
-    let clientsCallCount = 0;
     await renderRoute(`/settings/global-resources/global-groups/${GROUP_CODE}`, {
       permissions: groupPermissions,
       msw: [
         groupGroupHandler(groupFixture),
         membersHandler(noMembers),
-        specHttp.get('/clients', ({ response }) => {
-          clientsCallCount += 1;
-          return clientsCallCount === 1
-            ? response(200).json(candidateClient as never)
-            : response(200).json(filteredCandidates as never);
-        }),
+        specHttp.get('/clients', ({ query, response }) =>
+          response(200).json((query.get('q') === 'Filtered' ? filteredCandidates : candidateClient) as never),
+        ),
       ],
     });
 
@@ -321,18 +322,14 @@ describe('0480 — CS Global Group Members — selection preserved when search f
       paging_metadata: { total_items: 1, items: 1, limit: 25, offset: 0 },
     };
 
-    let clientsCallCount = 0;
     await renderRoute(`/settings/global-resources/global-groups/${GROUP_CODE}`, {
       permissions: groupPermissions,
       msw: [
         groupGroupHandler(groupFixture),
         membersHandler(noMembers),
-        specHttp.get('/clients', ({ response }) => {
-          clientsCallCount += 1;
-          return clientsCallCount === 1
-            ? response(200).json(twoClients as never)
-            : response(200).json(filteredToKeep as never);
-        }),
+        specHttp.get('/clients', ({ query, response }) =>
+          response(200).json((query.get('q') === 'Keep' ? filteredToKeep : twoClients) as never),
+        ),
       ],
     });
 
@@ -350,24 +347,28 @@ describe('0480 — CS Global Group Members — selection preserved when search f
       .getByRole('textbox')
       .fill('Keep');
 
+    await expect.element(page.getByText('Other Candidate')).not.toBeInTheDocument();
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
   });
 });
 
 describe('0480 — CS Global Group Members — delete member confirmation gating and removal (Browser Mode)', () => {
   it('save disabled with wrong code, enabled with correct code, member removed after submit', async () => {
-    let membersCallCount = 0;
+    let members: GroupMemberListView[] = oneMembers;
     await renderRoute(`/settings/global-resources/global-groups/${GROUP_CODE}`, {
       permissions: groupPermissions,
       msw: [
         groupGroupHandler(groupFixture),
-        specHttp.post('/global-groups/{group_code}/members', ({ response }) => {
-          membersCallCount += 1;
-          return membersCallCount === 1
-            ? response(200).json({ items: oneMembers, paging_metadata: { total_items: 1, items: 1, limit: 25, offset: 0 } } as never)
-            : response(200).json({ items: noMembers, paging_metadata: { total_items: 0, items: 0, limit: 25, offset: 0 } } as never);
+        specHttp.post('/global-groups/{group_code}/members', ({ response }) =>
+          response(200).json({
+            items: members,
+            paging_metadata: { total_items: members.length, items: members.length, limit: 25, offset: 0 },
+          } as never),
+        ),
+        specHttp.delete('/global-groups/{group_code}/members/{client_id}', ({ response }) => {
+          members = noMembers;
+          return response(204).empty();
         }),
-        specHttp.delete('/global-groups/{group_code}/members/{client_id}', ({ response }) => response(204).empty()),
       ],
     });
 

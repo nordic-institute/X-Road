@@ -28,62 +28,73 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.google.common.base.Suppliers;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.niis.xroad.securityserver.restapi.service.DifferenceSignals;
+import org.niis.xroad.securityserver.restapi.service.DifferenceSignals.Differences;
 import org.niis.xroad.securityserver.restapi.service.HostedMembers;
-import org.niis.xroad.securityserver.restapi.service.MemberPublicationCheck;
+import org.niis.xroad.securityserver.restapi.service.PublicationCheck;
 import org.niis.xroad.securityserver.restapi.service.PublicationCheckAction;
-import org.niis.xroad.securityserver.restapi.service.SystemPublicationCheck;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.Set;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.EnumSet;
 
 /**
  * Step of the globalconf check that compares the SYSTEM values and the member DIDs on the binding rows with what the
- * reloaded globalconf carries. A submitted value that globalconf carries becomes published. A published SYSTEM value
- * that globalconf no longer carries while the authentication certificate is registered, and a published member DID
- * that globalconf no longer carries while the member is hosted on this server, go back to not sent, so the next
- * reconciler pass sends them again. The SYSTEM values and the member DIDs are checked independently.
+ * reloaded globalconf carries. It looks up the registered address of this Security Server once, builds the DSP base
+ * URL from that address and one {@link DifferenceSignals} from both, and runs three steps with them, each in its own
+ * transaction:
+ * <ol>
+ *     <li>the SYSTEM values, decided by {@link PublicationCheck};</li>
+ *     <li>the member DIDs of the rows in a sent state, decided by {@link PublicationCheck};</li>
+ *     <li>the differences between the binding rows and globalconf, evaluated afresh from the rows as they are
+ *     then and handed to {@link DataspaceDifferenceLog}; the rows are not read while the address is not
+ *     registered.</li>
+ * </ol>
+ * {@link PublicationCheck} holds the transition rules.
  *
  * <p>Runs after the transaction of the globalconf check has committed, so the members hosted here are read from the
  * committed serverconf, including the client statuses of that check. A globalconf check that rolls back publishes
- * nothing. The globalconf check skips secondary nodes and backup restores. Never throws: a failure is logged and the
- * next check retries. Each step reads and transitions in its own transaction.
+ * nothing. The globalconf check skips secondary nodes and backup restores. Never throws: a failure, of the address
+ * lookup, of the signal setup or of a step, is logged and the next check retries.
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DataspacePublicationGlobalConfCheck {
-
-    private static final Set<PublicationState> SENT = Set.of(PublicationState.SUBMITTED, PublicationState.PUBLISHED);
 
     private final DsParticipantRepository dsParticipantRepository;
     private final ClientRepository clientRepository;
     private final GlobalConfProvider globalConfProvider;
+    private final DataspaceDifferenceLog differenceLog;
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceDidAuthority didAuthority;
-    private final TransactionTemplate transactionTemplate;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
+    private final AdminServiceProperties adminServiceProperties;
+    private final PlatformTransactionManager transactionManager;
 
-    public DataspacePublicationGlobalConfCheck(DsParticipantRepository dsParticipantRepository,
-            ClientRepository clientRepository, GlobalConfProvider globalConfProvider,
-            DataspaceReadinessPredicates readinessPredicates, DataspaceDidAuthority didAuthority,
-            PlatformTransactionManager transactionManager) {
-        this.dsParticipantRepository = dsParticipantRepository;
-        this.clientRepository = clientRepository;
-        this.globalConfProvider = globalConfProvider;
-        this.readinessPredicates = readinessPredicates;
-        this.didAuthority = didAuthority;
-        this.transactionTemplate = new TransactionTemplate(transactionManager);
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-    }
+    @Setter(AccessLevel.PACKAGE)
+    private Clock clock = Clock.systemUTC();
 
     /**
      * Runs one check against the already reloaded globalconf.
@@ -91,41 +102,73 @@ public class DataspacePublicationGlobalConfCheck {
      * @param securityServerId the identifier of this Security Server
      */
     public void check(SecurityServerId securityServerId) {
-        runStep("SYSTEM values", () -> checkSystemValues(securityServerId));
-        runStep("member DIDs", () -> checkMemberDids(securityServerId));
+        OwnAddress address;
+        DifferenceSignals signals;
+        try {
+            address = ownSecurityServerResolver.address(securityServerId);
+            var dspBaseUrl = didAuthority.dspBaseUrlIfValid(address).orElse(null);
+            signals = DifferenceSignals.of(securityServerId, globalConfProvider, address.registeredAddress().orElse(null),
+                    dspBaseUrl);
+        } catch (Exception e) {
+            logFailure("own address lookup and signal setup", e);
+            return;
+        }
+        runStep("SYSTEM values", () -> checkSystemValues(signals));
+        runStep("member DIDs", () -> checkMemberDids(signals));
+        runStep("differences", () -> differenceLog.record(evaluateDifferences(address, signals)));
+    }
+
+    private Differences evaluateDifferences(OwnAddress address, DifferenceSignals signals) {
+        if (!(address instanceof OwnAddress.Registered)) {
+            return Differences.UNKNOWN;
+        }
+        var members = dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class));
+        var system = dsParticipantRepository.findActiveSystemParticipant().orElse(null);
+        return signals.evaluate(system, members);
     }
 
     private void runStep(String subject, Runnable step) {
+        var transactionTemplate = new TransactionTemplate(transactionManager,
+                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
         try {
             transactionTemplate.executeWithoutResult(_ -> step.run());
         } catch (Exception e) {
-            log.error("Dataspace publication: globalconf check of the {} failed, the next check retries", subject, e);
+            logFailure(subject, e);
         }
     }
 
-    private void checkSystemValues(SecurityServerId securityServerId) {
+    private static void logFailure(String subject, Exception e) {
+        log.error("Dataspace publication: globalconf check of the {} failed, the next check retries", subject, e);
+    }
+
+    private void checkSystemValues(DifferenceSignals signals) {
         dsParticipantRepository.findActiveSystemParticipant().ifPresent(system -> {
-            var action = SystemPublicationCheck.decide(system.getPublicationState(), system.getDid(),
-                    () -> didAuthority.dspBaseUrlIfValid().orElse(null),
-                    globalConfProvider.getServerSystemValues(securityServerId).orElse(null),
-                    readinessPredicates::hasRegisteredAuthCert);
+            var action = PublicationCheck.decide(system.getPublicationState(),
+                    () -> signals.compareSystemValues(system).overall(),
+                    readinessPredicates::hasRegisteredAuthCert, system.getPublicationChangedAt(), submittedBefore());
             if (action != PublicationCheckAction.NONE) {
                 transition(system, "SYSTEM values", action.expected(), action.next());
             }
         });
     }
 
-    private void checkMemberDids(SecurityServerId securityServerId) {
-        var hostedMembers = HostedMembers.of(clientRepository.getAllLocalClients());
-        for (var row : dsParticipantRepository.findActiveMembers(SENT)) {
+    private void checkMemberDids(DifferenceSignals signals) {
+        var rows = dsParticipantRepository.findActiveMembers(PublicationState.SENT);
+        var hostedMembers = Suppliers.memoize(() -> HostedMembers.of(clientRepository.getAllLocalClients()));
+        var submittedBefore = submittedBefore();
+        for (var row : rows) {
             var member = row.getMemberIdentifier();
-            var action = MemberPublicationCheck.decide(row.getPublicationState(), row.getDid(),
-                    globalConfProvider.getMemberDid(member, securityServerId).orElse(null),
-                    hostedMembers.contains(member));
+            var action = PublicationCheck.decide(row.getPublicationState(), () -> signals.compareMemberDid(row),
+                    () -> hostedMembers.get().contains(member), row.getPublicationChangedAt(), submittedBefore);
             if (action != PublicationCheckAction.NONE) {
                 transition(row, "member DID of " + member.asEncodedId(), action.expected(), action.next());
             }
         }
+    }
+
+    private Instant submittedBefore() {
+        var minutes = adminServiceProperties.getDataspace().getPublicationSubmittedTimeoutMinutes();
+        return clock.instant().minus(Duration.ofMinutes(minutes));
     }
 
     private void transition(DsParticipantEntity row, String subject, PublicationState expected, PublicationState next) {

@@ -105,18 +105,16 @@ describe('0450 — CS Member Subsystems — add subsystem dialog and immediate a
       used_security_servers: [],
     };
 
-    let subsystemsCallCount = 0;
+    let subsystems: Subsystem[] = [];
     await renderRoute(`/members/${memberId}/subsystems`, {
       permissions: memberPermissions,
       msw: [
         memberHandler,
-        specHttp.get('/members/{member_id}/subsystems', ({ response }) => {
-          subsystemsCallCount += 1;
-          return subsystemsCallCount === 1
-            ? response(200).json([] as never)
-            : response(200).json([newSubsystem] as never);
+        specHttp.get('/members/{member_id}/subsystems', ({ response }) => response(200).json(subsystems as never)),
+        specHttp.post('/subsystems', ({ response }) => {
+          subsystems = [newSubsystem];
+          return response(201).json(newSubsystem as never);
         }),
-        specHttp.post('/subsystems', ({ response }) => response(201).json(newSubsystem as never)),
       ],
     });
 
@@ -129,7 +127,7 @@ describe('0450 — CS Member Subsystems — add subsystem dialog and immediate a
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
-    await expect.element(page.getByText('NEW-SUB')).toBeVisible();
+    await expect.element(page.getByTestId('subsystems-table').getByText('NEW-SUB')).toBeVisible();
   });
 });
 
@@ -140,18 +138,16 @@ describe('0450 — CS Member Subsystems — rename subsystem and immediate appea
       subsystem_name: 'Renamed Name',
     };
 
-    let subsystemsCallCount = 0;
+    let currentSubsystem = subsystemFixture;
     await renderRoute(`/members/${memberId}/subsystems`, {
       permissions: memberPermissions,
       msw: [
         memberHandler,
-        specHttp.get('/members/{member_id}/subsystems', ({ response }) => {
-          subsystemsCallCount += 1;
-          return subsystemsCallCount === 1
-            ? response(200).json([subsystemFixture] as never)
-            : response(200).json([renamedSubsystem] as never);
+        specHttp.get('/members/{member_id}/subsystems', ({ response }) => response(200).json([currentSubsystem] as never)),
+        specHttp.patch('/subsystems/{subsystem_id}', ({ response }) => {
+          currentSubsystem = renamedSubsystem;
+          return response(200).json(memberFixture as never);
         }),
-        specHttp.patch('/subsystems/{subsystem_id}', ({ response }) => response(200).json(memberFixture as never)),
       ],
     });
 
@@ -164,24 +160,22 @@ describe('0450 — CS Member Subsystems — rename subsystem and immediate appea
 
     submitDialogForm();
 
-    await expect.element(page.getByText('Renamed Name')).toBeVisible();
+    await expect.element(page.getByTestId('subsystems-table').getByText('Renamed Name')).toBeVisible();
   });
 });
 
 describe('0450 — CS Member Subsystems — delete unregistered subsystem (Browser Mode)', () => {
   it('clicking delete and confirming removes the row from the table', async () => {
-    let subsystemsCallCount = 0;
+    let subsystems: Subsystem[] = [subsystemFixture];
     await renderRoute(`/members/${memberId}/subsystems`, {
       permissions: memberPermissions,
       msw: [
         memberHandler,
-        specHttp.get('/members/{member_id}/subsystems', ({ response }) => {
-          subsystemsCallCount += 1;
-          return subsystemsCallCount === 1
-            ? response(200).json([subsystemFixture] as never)
-            : response(200).json([] as never);
+        specHttp.get('/members/{member_id}/subsystems', ({ response }) => response(200).json(subsystems as never)),
+        specHttp.delete('/subsystems/{subsystem_id}', ({ response }) => {
+          subsystems = [];
+          return response(204).empty();
         }),
-        specHttp.delete('/subsystems/{subsystem_id}', ({ response }) => response(204).empty()),
       ],
     });
 

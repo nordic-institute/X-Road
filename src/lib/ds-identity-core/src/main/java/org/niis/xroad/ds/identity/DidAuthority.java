@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.ds.identity;
 
+import jakarta.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -33,7 +34,9 @@ import java.net.Inet6Address;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.regex.Pattern;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -48,6 +51,8 @@ public class DidAuthority {
     /** The port a {@code did:web} authority omits. */
     public static final int DEFAULT_HTTPS_PORT = 443;
 
+    private static final String HTTPS_SCHEME_PREFIX = "https://";
+    private static final Pattern URL_AUTHORITY_END = Pattern.compile("[/?#]");
     private static final int NON_ASCII_START = 0x80;
     private static final int MIN_PORT = 1;
     private static final int MAX_PORT = 65535;
@@ -145,6 +150,13 @@ public class DidAuthority {
      *         {@value #MIN_PORT} to {@value #MAX_PORT}
      */
     public static Parsed parse(String authority) {
+        return parseCanonical(authority).parsed();
+    }
+
+    private record ParsedCanonical(Parsed parsed, String canonicalHost) {
+    }
+
+    private static ParsedCanonical parseCanonical(String authority) {
         if (authority == null || authority.isEmpty()) {
             throw emptyHost(authority);
         }
@@ -162,8 +174,9 @@ public class DidAuthority {
         if (bracketed && !isIpv6Literal(host)) {
             throw malformedBrackets(authority, "does not enclose an IPv6 literal");
         }
-        canonicalHost(host);
-        return new Parsed(host, portText == null ? OptionalInt.empty() : OptionalInt.of(parsePort(authority, portText)));
+        var canonicalHost = canonicalHost(host);
+        var port = portText == null ? OptionalInt.empty() : OptionalInt.of(parsePort(authority, portText));
+        return new ParsedCanonical(new Parsed(host, port), canonicalHost);
     }
 
     /**
@@ -180,6 +193,35 @@ public class DidAuthority {
             return authority.equals(canonical(parsed.host(), parsed.port().orElse(DEFAULT_HTTPS_PORT)));
         } catch (XrdRuntimeException _) {
             return false;
+        }
+    }
+
+    /**
+     * The authority of an {@code https} URL: the text after the scheme up to the first {@code /}, {@code ?} or
+     * {@code #}. The scheme is matched in any case; nothing else is checked.
+     *
+     * @param url a URL
+     * @return the authority, or empty when the URL is {@code null} or does not start with {@code https://}
+     */
+    public static Optional<String> httpsAuthority(@Nullable String url) {
+        if (url == null || !url.regionMatches(true, 0, HTTPS_SCHEME_PREFIX, 0, HTTPS_SCHEME_PREFIX.length())) {
+            return Optional.empty();
+        }
+        return Optional.of(URL_AUTHORITY_END.split(url.substring(HTTPS_SCHEME_PREFIX.length()), 2)[0]);
+    }
+
+    /**
+     * Unlike {@link #canonicalHost(String)}, which takes a bare host, this takes a host with an optional port and
+     * drops the port.
+     *
+     * @param authority an authority as {@link #parse(String)} reads it, or {@code null}
+     * @return its canonical host without the port, or empty when the authority is {@code null} or {@link #parse(String)} rejects it
+     */
+    public static Optional<String> canonicalHostOf(@Nullable String authority) {
+        try {
+            return Optional.of(parseCanonical(authority).canonicalHost());
+        } catch (XrdRuntimeException _) {
+            return Optional.empty();
         }
     }
 
@@ -214,7 +256,7 @@ public class DidAuthority {
      */
     public static boolean isUriHost(String authority) {
         try {
-            return new URI("https://" + authority).getHost() != null;
+            return new URI(HTTPS_SCHEME_PREFIX + authority).getHost() != null;
         } catch (URISyntaxException _) {
             return false;
         }

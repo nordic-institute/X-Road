@@ -41,7 +41,6 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -117,7 +116,6 @@ class LegacyCallRefusalTest {
 
         PROXY_TEST_SUITE_HELPER.proxyProperties = buildProxyProperties(PROPS);
         PROXY_TEST_SUITE_HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
-                .register(CommonConfigKeys.instance())
                 .overrides(Map.of("xroad.common.temp-files-path", "build/"))
                 .build());
         PROXY_TEST_SUITE_HELPER.startTestServices();
@@ -245,6 +243,42 @@ class LegacyCallRefusalTest {
                 requestFileName = "getWsdl-subsystem.query";
             }
         };
+        request.execute(ctx);
+        verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
+    }
+
+    @Test
+    void shouldServeTokenlessMemberAddressedListMethodsRequestWhenTheInstanceRefuses() throws Exception {
+        startContext();
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
+        stubMetaserviceBypass();
+        var request = new Probe("listMethods-member.query", null);
+        request.execute(ctx);
+        assertThat(request.faultCode).isNull();
+        assertTrue(request.served);
+        assertThat(request.aclChecks).hasValue(0);
+        verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
+    }
+
+    @Test
+    void shouldServeTokenlessMemberAddressedAllowedMethodsRequestWhenTheInstanceRefuses() throws Exception {
+        startContext();
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
+        stubMetaserviceBypass();
+        var request = new Probe("allowedMethods.query", null);
+        request.execute(ctx);
+        assertThat(request.faultCode).isNull();
+        assertTrue(request.served);
+        assertThat(request.aclChecks).hasValue(0);
+        verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
+    }
+
+    @Test
+    void shouldServeTokenlessMemberAddressedGetWsdlRequestWhenTheInstanceRefuses() throws Exception {
+        startContext();
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
+        stubMetaserviceBypass();
+        var request = new GetWSDLMessage();
         request.execute(ctx);
         verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
     }

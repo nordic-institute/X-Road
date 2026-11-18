@@ -42,6 +42,7 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Prefix;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Validator;
 import org.niis.xroad.common.properties.config.Value;
@@ -53,6 +54,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
+import java.time.Duration;
 import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -159,6 +161,13 @@ class XRoadConfigBuilderTest {
                 "PATH", "/usr/bin"));
 
         assertThat(ignored).containsExactly("XROAD_TEST_WITH_CONTAINER");
+    }
+
+    @Test
+    void createRegistersCommonConfigKeysWithoutExplicitRegistration() {
+        var config = XRoadConfigBuilder.create().build();
+
+        assertThat(config.value(CommonConfigKeys.VAULT_RETRY_BUDGET)).isEqualTo(Duration.ofSeconds(30));
     }
 
     @Test

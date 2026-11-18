@@ -1,9 +1,9 @@
 ---
 # Pre-seeds the Issuer Service dev-only trust reload interval in
 # local-ds-issuer-service.yaml before the xroad-ds-issuer-service postinst runs:
-# the postinst merges its own keys into that same file and skips keys already
-# present, so the file has to exist first. Permanent dev tuning, independent of
-# packaging.
+# the postinst creates that file only if it is absent, and the `copy` below is
+# non-forcing, so it must land first or the postinst's empty file would already
+# be there for it to skip. Permanent dev tuning, independent of packaging.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
 # of xroad-cs) before this file runs.

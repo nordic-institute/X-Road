@@ -37,28 +37,6 @@
   </suppress>
 
   <!-- ============================================================
-       C2: CPE false positive — `hashicorp:vault` / Eclipse EDC vault-hashicorp.
-       EDC `vault-hashicorp` is a client SDK wrapping the Vault HTTP API.
-       CVEs target the HashiCorp Vault server, not reachable through the client.
-       ============================================================ -->
-  <suppress>
-    <notes><![CDATA[
-      CPE collision: Eclipse EDC `vault-hashicorp` and `vault-hashicorp-spi` are client-side SDKs
-      that talk to a remote Vault server over HTTPS. CVEs against HashiCorp Vault server
-      (CVE-2024-2048, CVE-2026-4525, CVE-2025-3879, CVE-2025-6000, CVE-2020-16250/51,
-      CVE-2026-3605, CVE-2025-11621, CVE-2023-24999, CVE-2018-19786, CVE-2026-5807,
-      CVE-2020-10661, CVE-2020-13223, CVE-2020-7220, CVE-2021-27400, CVE-2023-5077,
-      CVE-2023-6337, CVE-2024-5798, CVE-2021-32923, CVE-2025-5999, CVE-2025-6037,
-      CVE-2023-0620, CVE-2021-43998, CVE-2023-0665, CVE-2024-8365, CVE-2025-4166,
-      CVE-2025-6014, CVE-2021-41802, CVE-2023-2121, CVE-2020-10660, CVE-2020-25594,
-      CVE-2021-27668, CVE-2021-3024, CVE-2021-38554, CVE-2022-41316, CVE-2023-3775,
-      CVE-2023-25000, CVE-2025-6011) are not reachable through the client.
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.eclipse\.edc/vault-hashicorp(-spi)?@.*$</packageUrl>
-    <cpe>cpe:/a:hashicorp:vault</cpe>
-  </suppress>
-
-  <!-- ============================================================
        C3: CPE false positive — `keypair` npm package vs Eclipse EDC keypair-* modules.
        CVE-2021-41117 is in https://www.npmjs.com/package/keypair (Node.js).
        ============================================================ -->

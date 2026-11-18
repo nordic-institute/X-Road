@@ -139,6 +139,7 @@ describe('SS DS TLS Certificate card — key generated, certificate pending (Bro
     await expect.poll(() => page.getByTestId('ds-tls-order-certificate-button').query()).toBeNull();
 
     await page.getByTestId('ds-tls-generate-csr-button').click();
+    await expect.element(page.getByTestId('ds-tls-csr-distinguished-name').getByRole('textbox')).toHaveFocus();
     await page.getByTestId('ds-tls-csr-distinguished-name').getByRole('textbox').fill('CN=ds.example.org');
     await page.getByTestId('ds-tls-csr-subject-alt-name').getByRole('textbox').fill('ds.example.org');
     await page.getByTestId('dialog-save-button').click();

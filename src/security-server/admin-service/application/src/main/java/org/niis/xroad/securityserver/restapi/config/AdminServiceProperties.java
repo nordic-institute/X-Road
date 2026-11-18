@@ -369,6 +369,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
             return config.value(DspConfigKeys.DSP_PORT);
         }
 
+        public int getPublicationSubmittedTimeoutMinutes() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_PUBLICATION_SUBMITTED_TIMEOUT_MINUTES);
+        }
+
         public int getIdentityHubStsPort() {
             return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_STS_PORT);
         }

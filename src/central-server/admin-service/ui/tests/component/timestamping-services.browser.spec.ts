@@ -81,16 +81,16 @@ const basePermissions = [
 
 describe('0570 — CS Timestamping Services — add timestamping service and list render (Browser Mode)', () => {
   it('add button opens dialog; save-disabled until URL filled; after save the new TSA appears in the list', async () => {
-    let tsaCallCount = 0;
+    let services: TimestampingService[] = [];
     await renderRoute(TRUST_SERVICES_PATH, {
       permissions: [...basePermissions, Permissions.ADD_APPROVED_TSA],
       msw: [
         specHttp.get('/certification-services', ({ response }) => response(200).json([])),
-        specHttp.get('/timestamping-services', ({ response }) => {
-          tsaCallCount += 1;
-          return tsaCallCount === 1 ? response(200).json([]) : response(200).json([tsaRecord]);
+        specHttp.get('/timestamping-services', ({ response }) => response(200).json(services)),
+        specHttp.post('/timestamping-services', ({ response }) => {
+          services = [tsaRecord];
+          return response(201).json(tsaRecord);
         }),
-        specHttp.post('/timestamping-services', ({ response }) => response(201).json(tsaRecord)),
       ],
     });
 
@@ -120,7 +120,7 @@ describe('0570 — CS Timestamping Services — add timestamping service and lis
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
-    await expect.element(page.getByText('http://tsa.example.com').first()).toBeVisible();
+    await expect.element(page.getByTestId('timestamping-services-table').getByText('http://tsa.example.com')).toBeVisible();
   });
 });
 
@@ -145,18 +145,16 @@ describe('0570 — CS Timestamping Services — list table columns render, sort,
 describe('0570 — CS Timestamping Services — edit dialog render with cert-view and URL/cost fields (Browser Mode)', () => {
   it('edit button opens dialog with current URL, cost-type radios, cert-view, and cert-change controls; save updates the list', async () => {
     const updatedTsa: TimestampingService = { ...tsaRecord, url: 'http://tsa-updated.example.com', cost_type: 'PAID' };
-    let tsaCallCount = 0;
+    let services = [tsaRecord];
     await renderRoute(TRUST_SERVICES_PATH, {
       permissions: [...basePermissions, Permissions.EDIT_APPROVED_TSA],
       msw: [
         specHttp.get('/certification-services', ({ response }) => response(200).json([])),
-        specHttp.get('/timestamping-services', ({ response }) => {
-          tsaCallCount += 1;
-          return tsaCallCount === 1 ? response(200).json([tsaRecord]) : response(200).json([updatedTsa]);
+        specHttp.get('/timestamping-services', ({ response }) => response(200).json(services)),
+        specHttp.patch('/timestamping-services/{timestamping_service_id}', ({ response }) => {
+          services = [updatedTsa];
+          return response(200).json(updatedTsa);
         }),
-        specHttp.patch('/timestamping-services/{timestamping_service_id}', ({ response }) =>
-          response(200).json(updatedTsa),
-        ),
       ],
     });
 
@@ -178,24 +176,22 @@ describe('0570 — CS Timestamping Services — edit dialog render with cert-vie
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     submitDialogForm();
 
-    await expect.element(page.getByText('http://tsa-updated.example.com').first()).toBeVisible();
+    await expect.element(page.getByTestId('timestamping-services-table').getByText('http://tsa-updated.example.com')).toBeVisible();
   });
 });
 
 describe('0570 — CS Timestamping Services — delete timestamping service from list (Browser Mode)', () => {
   it('delete button triggers confirm dialog; after confirm the TSA is removed from the list', async () => {
-    let tsaCallCount = 0;
+    let services = [tsaRecord];
     await renderRoute(TRUST_SERVICES_PATH, {
       permissions: [...basePermissions, Permissions.DELETE_APPROVED_TSA],
       msw: [
         specHttp.get('/certification-services', ({ response }) => response(200).json([])),
-        specHttp.get('/timestamping-services', ({ response }) => {
-          tsaCallCount += 1;
-          return tsaCallCount === 1 ? response(200).json([tsaRecord]) : response(200).json([]);
+        specHttp.get('/timestamping-services', ({ response }) => response(200).json(services)),
+        specHttp.delete('/timestamping-services/{timestamping_service_id}', ({ response }) => {
+          services = [];
+          return response(204).empty();
         }),
-        specHttp.delete('/timestamping-services/{timestamping_service_id}', ({ response }) =>
-          response(204).empty(),
-        ),
       ],
     });
 
