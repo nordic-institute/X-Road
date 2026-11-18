@@ -73,11 +73,17 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * so it runs only while the issuer has exactly one status list and that list has room, as on a freshly
  * provisioned environment, and self-skips otherwise.
  *
+ * <p>Having proved that both fresh credentials verify, the scenario removes the Central Server's one
+ * trusted issuer and repeats one member's call through ss0's proxy: once the next globalconf refresh
+ * drops the issuer from every Security Server's trusted set, the same credential is rejected. Removal is
+ * permanent, so the class runs last among the e2e tests, its {@code @Order} raised above every other
+ * class, including {@link AclParityTest}'s 500.
+ *
  * <p>Needs {@link CsIssuerDbOps}, which only the LXD adapter implements, and the dataspace protocol
  * stack, so it self-skips elsewhere via {@link Assumptions}, like {@link SsMemberDeprovisioningTest}.
  */
 @DisplayName("SS dataspace - credentials issued after the first status list is full still verify")
-@Order(380)
+@Order(600)
 class SsStatusListRolloverTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
@@ -173,6 +179,16 @@ class SsStatusListRolloverTest extends E2eTest {
                     .as("slots taken in the new status list")
                     .isGreaterThanOrEqualTo(MEMBERS.size());
         });
+        var trustedIssuerId = then("the Central Server lists exactly one trusted issuer", () -> {
+            var issuerIds = CentralServerApi.listTrustedIssuers(csBaseUrl, csSession);
+            assertThat(issuerIds).as("trusted issuers").hasSize(1);
+            return issuerIds.getFirst();
+        });
+        and("the trusted issuer is removed", () ->
+                CentralServerApi.deleteTrustedIssuer(csBaseUrl, csSession, trustedIssuerId));
+        then("after the next globalconf refresh, ss0's proxy rejects a credential signed by the removed issuer",
+                () -> IssuerRemovedFault.awaitCallFailsAsConsumerFailed(
+                        () -> callService(env, SS0_ENV, MOCK1_X_ROAD_CLIENT, MEMBERS.getFirst().servicePath())));
     }
 
     private int querySingleInt(CsIssuerDbOps issuerDb, String sql) {

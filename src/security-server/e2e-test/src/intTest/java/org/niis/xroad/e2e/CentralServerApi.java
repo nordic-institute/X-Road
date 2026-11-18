@@ -42,7 +42,8 @@ import static org.niis.xroad.e2e.AdminApi.authed;
 import static org.niis.xroad.e2e.AdminApi.sendJson;
 
 /**
- * Central Server admin REST API access: approval of pending client registration requests and global groups.
+ * Central Server admin REST API access: approval of pending client registration requests, global groups, and
+ * trusted issuers.
  */
 @UtilityClass
 class CentralServerApi {
@@ -123,5 +124,18 @@ class CentralServerApi {
     /** Deletes the global group and returns the HTTP status of the call without asserting it. */
     static int requestGlobalGroupDeletion(String csBaseUrl, AdminSession cs, String code) {
         return authed(cs).delete(csBaseUrl + "/api/v1/global-groups/" + code).getStatusCode();
+    }
+
+    /** Lists the ids of the Central Server's trusted issuers. */
+    static List<Integer> listTrustedIssuers(String csBaseUrl, AdminSession cs) {
+        var response = authed(cs).get(csBaseUrl + "/api/v1/trusted-issuers");
+        assertThat(response.getStatusCode()).as("list trusted issuers").isEqualTo(HTTP_OK);
+        return response.jsonPath().getList("id", Integer.class);
+    }
+
+    /** Removes the trusted issuer, which is permanent: it cannot be set up again. */
+    static void deleteTrustedIssuer(String csBaseUrl, AdminSession cs, int id) {
+        var response = authed(cs).delete(csBaseUrl + "/api/v1/trusted-issuers/" + id);
+        assertThat(response.getStatusCode()).as("delete trusted issuer %d", id).isEqualTo(HTTP_NO_CONTENT);
     }
 }
