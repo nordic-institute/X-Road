@@ -85,6 +85,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -329,7 +330,7 @@ class XRoadTlsOkHttpClientExtensionTest {
         lenient().when(context.getSetting(anyString(), anyLong()))
                 .thenAnswer(invocation -> invocation.getArgument(1));
         // Same reasoning as the anyLong() stub above, for the int-typed per-host limit setting.
-        lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt()))
+        lenient().when(context.getSetting(anyString(), anyInt()))
                 .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
