@@ -378,8 +378,10 @@ edc-issuer-credentials = { module = "org.eclipse.edc:issuerservice-credentials",
 edc-issuer-issuance = { module = "org.eclipse.edc:issuerservice-issuance", version.ref = "edc" }
 edc-issuer-dcp-issuer-core = { module = "org.eclipse.edc:dcp-issuer-core", version.ref = "edc" }
 edc-issuer-dcp-issuer-api = { module = "org.eclipse.edc:dcp-issuer-api", version.ref = "edc" }
+edc-issuer-dcp-issuer-spi = { module = "org.eclipse.edc:dcp-issuer-spi", version.ref = "edc" }
 edc-issuer-issuance-rules = { module = "org.eclipse.edc:issuerservice-issuance-rules", version.ref = "edc" }
 edc-issuer-holder-attestations = { module = "org.eclipse.edc:issuerservice-holder-attestations", version.ref = "edc" }
+edc-issuer-local-statuslist-publisher = { module = "org.eclipse.edc:local-statuslist-publisher", version.ref = "edc" }
 # Issuer Service SQL store modules (issuerservice-feature-sql-bom members)
 edc-issuer-sql-holder = { module = "org.eclipse.edc:issuerservice-holder-store-sql", version.ref = "edc" }
 edc-issuer-sql-attestation-definition = { module = "org.eclipse.edc:issuerservice-attestation-definition-store-sql", version.ref = "edc" }

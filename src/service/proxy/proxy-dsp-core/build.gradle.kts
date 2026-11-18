@@ -36,6 +36,7 @@ dependencies {
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.mockito.core)
   testImplementation(libs.wiremock.standalone)
+  testImplementation(libs.awaitility)
 
   testImplementation(project(":tool:liquibase-executor"))
   testImplementation(libs.liquibase.core)

@@ -34,6 +34,7 @@ import org.niis.xroad.cs.admin.api.domain.CanSignOutcome;
 import org.niis.xroad.cs.admin.api.domain.CanSignResult;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
+import org.niis.xroad.ds.identity.IssuerDidFormat;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 import org.springframework.stereotype.Service;
 
