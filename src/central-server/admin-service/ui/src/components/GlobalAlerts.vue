@@ -69,7 +69,14 @@
             />
           </template>
           <XrdBtn
-            v-if="isIssuerServiceStatusAlert(item) && canOpenIssuerService"
+            v-if="isIssuerServiceSetupRequired(item) && canOpenIssuerService"
+            variant="text"
+            prepend-icon="arrow_forward"
+            text="issuerService.setUp"
+            @click="router.push({ name: RouteName.IssuerService })"
+          />
+          <XrdBtn
+            v-else-if="isIssuerServiceKeyAlert(item) && canOpenIssuerService"
             variant="text"
             prepend-icon="arrow_forward"
             text="issuerService.viewStatus"
@@ -125,12 +132,12 @@ function isInactiveExternalToken(item: ErrorCoded) {
   return item.errorCode === 'status.signing_key.external.token_not_active';
 }
 
-function isIssuerServiceStatusAlert(item: ErrorCoded) {
-  return (
-    item.errorCode === 'status.issuer_service.setup_required' ||
-    item.errorCode === 'status.issuer_service.key_missing' ||
-    item.errorCode === 'status.issuer_service.key_missing_check_failed'
-  );
+function isIssuerServiceSetupRequired(item: ErrorCoded) {
+  return item.errorCode === 'status.issuer_service.setup_required';
+}
+
+function isIssuerServiceKeyAlert(item: ErrorCoded) {
+  return item.errorCode === 'status.issuer_service.key_missing' || item.errorCode === 'status.issuer_service.key_missing_check_failed';
 }
 
 function navigate(name: RouteName, action: string) {

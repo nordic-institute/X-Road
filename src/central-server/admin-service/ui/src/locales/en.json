@@ -381,6 +381,7 @@
     "service": "Issuer Service",
     "serviceCanSign": "Can sign",
     "serviceCannotSign": "Cannot sign",
+    "setUp": "Set up",
     "viewCertificate": "View certificate",
     "viewStatus": "View status"
   },
@@ -627,7 +628,7 @@
     "issuer_service": {
       "key_missing": "Issuer Service signing key missing",
       "key_missing_check_failed": "Failed to check the Issuer Service signing key",
-      "setup_required": "Issuer Service set-up required",
+      "setup_required": "Issuer Service not initialized",
       "status_check_failed": "Failed to check the Issuer Service set-up status"
     },
     "signer_error": "Invocation of signer client failed",

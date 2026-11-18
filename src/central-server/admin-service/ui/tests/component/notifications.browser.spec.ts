@@ -76,7 +76,7 @@ describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
   });
 });
 
-describe('CS Global Alerts — Issuer Service set-up required (Browser Mode)', () => {
+describe('CS Global Alerts — Issuer Service not initialized (Browser Mode)', () => {
   const setupRequiredHandlers = [
     specHttp.untyped.get('/api/v1/notifications/alerts', () =>
       HttpResponse.json([{ errorCode: 'status.issuer_service.setup_required' }]),
@@ -99,9 +99,9 @@ describe('CS Global Alerts — Issuer Service set-up required (Browser Mode)', (
       msw: setupRequiredHandlers,
     });
 
-    await expect.element(page.getByText('Issuer Service set-up required')).toBeVisible();
+    await expect.element(page.getByText('Issuer Service not initialized')).toBeVisible();
 
-    await page.getByText('View status').click();
+    await page.getByText('Set up').click();
 
     await expect.element(page.getByTestId('issuer-service-view')).toBeVisible();
   });
@@ -112,8 +112,8 @@ describe('CS Global Alerts — Issuer Service set-up required (Browser Mode)', (
       msw: setupRequiredHandlers,
     });
 
-    await expect.element(page.getByText('Issuer Service set-up required')).toBeVisible();
-    await expect.element(page.getByText('View status')).not.toBeInTheDocument();
+    await expect.element(page.getByText('Issuer Service not initialized')).toBeVisible();
+    await expect.element(page.getByText('Set up')).not.toBeInTheDocument();
   });
 
   it('shows no action while the Issuer Service tab is open', async () => {
@@ -123,8 +123,8 @@ describe('CS Global Alerts — Issuer Service set-up required (Browser Mode)', (
     });
 
     await expect.element(page.getByTestId('issuer-service-view')).toBeVisible();
-    await expect.element(page.getByText('Issuer Service set-up required')).toBeVisible();
-    await expect.element(page.getByText('View status')).not.toBeInTheDocument();
+    await expect.element(page.getByText('Issuer Service not initialized')).toBeVisible();
+    await expect.element(page.getByText('Set up')).not.toBeInTheDocument();
   });
 });
 

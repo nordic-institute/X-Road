@@ -560,10 +560,10 @@ The tab shows "Initialization in progress" and keeps refreshing until the run en
 
 Two alerts about the Issuer Service appear on every page until they are resolved:
 
-- **"Issuer Service set-up required"** — shown while no issuer identity is bound. Set the host, get a certificate, and initialize, as above.
-- **"Issuer Service signing key missing"** — shown while an identity is bound but the issuer's signing key has no secret in the secret store (OpenBao). The Issuer Service cannot sign until the secret is restored.
+- **"Issuer Service not initialized"** — shown while no issuer identity is bound. Its action, "Set up", opens the tab. Set the host, get a certificate, and initialize, as above.
+- **"Issuer Service signing key missing"** — shown while an identity is bound but the issuer's signing key has no secret in the secret store (OpenBao). The Issuer Service cannot sign until the secret is restored. Its action, "View status", opens the tab.
 
-For users who can see the Issuer Service tab, each alert has a "View status" action that opens the tab. The action is not shown on the tab itself.
+Only users who can see the Issuer Service tab get these actions, and neither is shown on the tab itself.
 
 #### 4.5.6 Configuring the Issuer Service Host via the REST API
 
