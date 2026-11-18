@@ -123,6 +123,17 @@ dsp_ports_failure_hint() {
   printf 'Do not re-run the wizard: it accepts only 7.8 installations.'
 }
 
+# Prints the recovery hint for a failed service start: the commands run from the wizard directory, in a
+# non-root shell.
+start_failure_hint() {
+  printf '%s\n' "Some X-Road services are not active. The upgrade is installed and the other services were started." \
+    "The obsolete V7 files were not removed." \
+    "Run: systemctl status <service> to diagnose. Fix the cause, then run:"
+  printf '  cd %q\n' "$SCRIPT_DIR"
+  printf '  sudo bash tasks/migration/start_xroad_services.sh\n'
+  printf 'Do not re-run the wizard: it accepts only 7.8 installations.'
+}
+
 # Chooses the DID and DSP ports. Unattended runs use the defaults for a missing port, interactive runs ask.
 # A secondary node asks for and stores no ports.
 select_upgrade_dsp_ports() {
@@ -283,7 +294,7 @@ main() {
   # Step 13: Start X-Road services, is-active polling.
   run_step "start_xroad_services.sh" \
     "X-Road services started" \
-    "Service start failed after successful upgrade. Run: systemctl status <service> to diagnose."
+    "$(start_failure_hint)"
 
   # Step 14: Remove obsolete V7 config files (operator-confirmed; unattended deletes by default — set XROAD_DELETE_OBSOLETE_FILES=no to keep).
   run_step "cleanup_obsolete_files.sh" \
@@ -297,7 +308,6 @@ main() {
   log_message "Next steps:"
   log_message "  - Review the log file: $XROAD_INSTALLER_LOG_FILE"
   log_message "  - Verify services: systemctl list-units 'xroad-*'"
-  log_message "  - A service that did not start is reported as a warning in the log file; check it with systemctl status <service>"
   log_message ""
 }
 

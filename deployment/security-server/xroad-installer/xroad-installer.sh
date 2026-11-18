@@ -391,6 +391,16 @@ select_messagelog() {
   log_info "Message log enabled: $XROAD_MESSAGELOG_ENABLED"
 }
 
+# Returns 0 when the xroad-proxy package is fully installed.
+is_security_server_installed() {
+  detect_os
+  case "$OS_FAMILY" in
+    debian) [[ "$(dpkg-query -W -f='${Status}' xroad-proxy 2>/dev/null)" == "install ok installed" ]] ;;
+    rhel) rpm -q --quiet xroad-proxy ;;
+    *) return 1 ;;
+  esac
+}
+
 # Main installer function
 main() {
   # Parse command-line arguments
@@ -527,6 +537,8 @@ main() {
   local dsp_ports_skip_reason
   if dsp_ports_skip_reason=$(dsp_port_rows_skip_reason); then
     log_info "${dsp_ports_skip_reason}, not asking for the DID and DSP ports"
+  elif is_security_server_installed; then
+    log_info "The Security Server is already installed, keeping the stored DID and DSP ports and not asking for them"
   else
     select_dsp_ports
     if [[ -f "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" ]]; then

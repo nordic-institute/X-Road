@@ -72,7 +72,8 @@ main() {
 
   log_message ""
   if [[ ${#FAILED_SERVICES[@]} -gt 0 ]]; then
-    log_warn "X-Road services started, but these services are not active: ${FAILED_SERVICES[*]}. Check: systemctl status ${FAILED_SERVICES[*]}"
+    log_warn "These X-Road services are not active: ${FAILED_SERVICES[*]}. Check: systemctl status ${FAILED_SERVICES[*]}"
+    exit "$EXIT_ERROR"
   else
     log_info "All X-Road services started."
   fi
