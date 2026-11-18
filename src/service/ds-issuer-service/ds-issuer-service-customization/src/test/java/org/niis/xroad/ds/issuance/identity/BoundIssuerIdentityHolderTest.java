@@ -40,8 +40,7 @@ import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -290,13 +289,25 @@ class BoundIssuerIdentityHolderTest {
 
     @Test
     void startLogsAndReturnsUnboundWithoutThrowingWhenTheDatabaseIsUnreachable() {
+        var failure = new IllegalStateException("the Central Server database is unreachable");
         try (var holder = new BoundIssuerIdentityHolder(() -> {
-            throw new IllegalStateException("the Central Server database is unreachable");
+            throw failure;
         }, monitor, CHECK_INTERVAL)) {
             assertThat(holder.identity()).isEmpty();
             holder.start();
             assertThat(holder.identity()).isEmpty();
-            verify(monitor).warning(anyString(), any(Throwable.class));
+            verify(monitor).warning(eq(BoundIssuerIdentityHolder.NAME + ": first load failed; starting degraded and polling"),
+                    eq(failure));
+        }
+    }
+
+    @Test
+    void startLogsTheMissingBindingWarningWithoutAThrowableWhenTheFirstLoadFindsNoBinding() {
+        try (var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL)) {
+            assertThat(holder.identity()).isEmpty();
+            holder.start();
+            assertThat(holder.identity()).isEmpty();
+            verify(monitor).warning(BoundIssuerIdentityHolder.NAME + ": no binding yet; starting degraded and polling");
         }
     }
 

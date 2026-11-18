@@ -84,8 +84,10 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
         try {
             applyAndStop(load().material());
             return;
+        } catch (IssuerIdentityNotBoundException _) {
+            monitor.warning(NAME + ": no binding yet; starting degraded and polling");
         } catch (Exception e) {
-            monitor.warning(NAME + ": the first load did not find a binding; starting degraded and polling", e);
+            monitor.warning(NAME + ": first load failed; starting degraded and polling", e);
         }
         var scheduled = PeriodicMaterialReloader.scheduleUntilFirstLoad(NAME, pendingInterval, pendingInterval, 1, Duration.ZERO,
                 this::load, this::applyAndStop, monitor, null);
@@ -135,8 +137,18 @@ public final class BoundIssuerIdentityHolder implements AutoCloseable {
         throw unboundException();
     }
 
-    private static IllegalStateException unboundException() {
-        return new IllegalStateException(NAME + ": the issuer identity is not bound yet");
+    private static IssuerIdentityNotBoundException unboundException() {
+        return new IssuerIdentityNotBoundException(NAME + ": the issuer identity is not bound yet");
+    }
+
+    /**
+     * Distinguishes "not bound yet" from every other first-load failure, so {@link #start()} can log the two
+     * separately while still being an {@link IllegalStateException} for any caller that catches that type.
+     */
+    static final class IssuerIdentityNotBoundException extends IllegalStateException {
+        IssuerIdentityNotBoundException(String message) {
+            super(message);
+        }
     }
 
     private void applyAndStop(BoundIssuerIdentity bound) {
