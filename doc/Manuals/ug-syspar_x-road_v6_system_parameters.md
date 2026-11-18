@@ -708,7 +708,7 @@ This section describes the system parameters used by the X-Road central server. 
 | confSignCertHashAlgoUri     | string         | http://www.w3.org/2001/04/xmlenc#sha512 | URI of the algorithm used for calculating the hash value of the certificate used to sign the global configuration.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512.            |
 | ocspFreshnessSeconds        | integer        | 3600                                    | Defines the validity period (in seconds) for the OCSP responses retrieved from the OCSP responders. OCSP responses older than the validity period are considered expired and cannot be used for certificate verification.                       |
 | timeStampingIntervalSeconds | integer        | 60                                      | Defines the interval of time-stamping service calls. Interval in seconds after which message log records must be timestamped. The interval must be between 60 and 86400 seconds. **Note: this value must be less than *ocspFreshnessSeconds.*** |
-| issuerDataFreshnessSeconds  | integer        | 600                                     | How long security servers keep using the last good Issuer Service data after it should have been refreshed, when the Issuer Service cannot be reached. 0 = the data is not used once a refresh fails. |
+| issuerDataFreshnessSeconds  | integer        | 600                                     | How long security servers keep using the last good Issuer Service data after it should have been refreshed, when the Issuer Service cannot be reached. 0 = the data is not used once a refresh fails. A negative value is treated as 0. |
 
 ## 5 Configuration Proxy System Parameters
 
