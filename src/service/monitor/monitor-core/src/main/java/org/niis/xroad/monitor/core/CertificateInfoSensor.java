@@ -27,11 +27,13 @@ package org.niis.xroad.monitor.core;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
-import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.interceptor.Interceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.CertificateMonitoringInfo.CertificateType;
@@ -54,7 +56,6 @@ import java.util.stream.Stream;
  * Before using CertificateInfoSensor, SignerClient needs to have been initialized
  * with SignerClient.init()
  */
-@Startup
 @Slf4j
 @ApplicationScoped
 public class CertificateInfoSensor {
@@ -92,8 +93,7 @@ public class CertificateInfoSensor {
         log.info("Creating sensor, measurement interval: {}", envMonitorProperties.certificateInfoSensorInterval());
     }
 
-    @PostConstruct
-    public void init() {
+    public void init(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
         var interval = envMonitorProperties.certificateInfoSensorInterval();
         scheduler.newJob(getClass().getSimpleName())
                 .setInterval(interval.toString())

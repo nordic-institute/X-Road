@@ -1,6 +1,8 @@
 quarkus:
   application:
     name: message-log-archiver
+  scheduler:
+    enabled: false
   config:
     locations:
       - xroad-common.yaml

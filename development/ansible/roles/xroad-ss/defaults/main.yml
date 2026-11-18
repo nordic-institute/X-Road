@@ -19,3 +19,7 @@ xroad_host_fqdn: "{{ inventory_hostname }}.lxd"
 # name; empty when xroad_host_fqdn already equals inventory_hostname (perftest),
 # so alt-subject strings never carry a duplicate SAN.
 xroad_host_extra_dns_san: "{{ ',DNS:' + inventory_hostname if xroad_host_fqdn != inventory_hostname else '' }}"
+
+# Seeded into xroad.proxy.dsp.cache.enabled (see seed-config-properties.yml).
+# Off by default; enable per run with -e xroad_ss_dsp_cache_enabled=true.
+xroad_ss_dsp_cache_enabled: false

@@ -45,8 +45,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Mints independent, self-signed test certificate authorities and leaf certificates signed by them, so tests can
- * exercise real TLS handshakes against several distinct CAs (a listed DS TLS CA, an unlisted one, a member-only
- * approved CA, a "public web-PKI-style" CA, a vault CA) without depending on any single shared test keystore.
+ * exercise real TLS handshakes against several distinct CAs (a listed DS TLS CA, an unlisted one) without
+ * depending on any single shared test keystore.
  */
 final class TestCa {
 

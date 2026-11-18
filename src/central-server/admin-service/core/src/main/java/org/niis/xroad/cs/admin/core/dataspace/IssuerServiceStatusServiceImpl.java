@@ -36,6 +36,7 @@ import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerServiceStatusService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
+import org.niis.xroad.ds.identity.IssuerDidFormat;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

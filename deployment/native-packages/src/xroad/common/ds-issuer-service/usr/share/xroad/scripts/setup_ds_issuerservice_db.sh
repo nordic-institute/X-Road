@@ -90,12 +90,35 @@ crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.username"
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.password" "$runtime_pw"
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.hikari.dataSource.currentSchema" "${SCHEMA_NAME},public"
 
+# Connection settings for the bound-identity reader: the same role, pointed at the Central Server's
+# own schema instead of this service's. Plain JDBC, not Hibernate, hence the plain key names.
+crudini --set "$DB_PROPS" '' "xroad.db.ds-issuer-service-identity.url" "$db_url"
+crudini --set "$DB_PROPS" '' "xroad.db.ds-issuer-service-identity.username" "$ROLE_NAME"
+crudini --set "$DB_PROPS" '' "xroad.db.ds-issuer-service-identity.password" "$runtime_pw"
+crudini --set "$DB_PROPS" '' "xroad.db.ds-issuer-service-identity.schema" "$db_schema"
+
 if [[ "$role_ready" == false ]]; then
-  psql_master -d postgres <<SQL || die "Failed to create role $ROLE_NAME"
+  # Also grants read access to the Central Server's own schema, as the same superuser connection,
+  # covering the order where this role is created after the Central Server already exists. The
+  # runAlways grant changeset in the centerui changelog covers the reverse order (a Central Server
+  # migration running after this role already exists) and re-applies the grant after a restore,
+  # which drops and recreates the schema without it. While the Central Server migrations are
+  # deferred, its tables do not exist yet; the grant is then left to that changeset.
+  psql_master -d postgres <<SQL || die "Failed to create role $ROLE_NAME or grant it read access to the $db_schema schema in $db_database"
 CREATE ROLE "$ROLE_NAME" LOGIN PASSWORD '$runtime_pw';
 GRANT TEMPORARY,CONNECT ON DATABASE "$db_database" TO "$ROLE_NAME";
 \c "$db_database"
 GRANT USAGE ON SCHEMA public TO "$ROLE_NAME";
+DO \$\$
+BEGIN
+  IF to_regclass('"$db_schema".issuer_dids') IS NOT NULL
+      AND to_regclass('"$db_schema".system_parameters') IS NOT NULL
+      AND to_regclass('"$db_schema".configuration_properties') IS NOT NULL THEN
+    GRANT USAGE ON SCHEMA "$db_schema" TO "$ROLE_NAME";
+    GRANT SELECT ON "$db_schema".issuer_dids, "$db_schema".system_parameters, "$db_schema".configuration_properties TO "$ROLE_NAME";
+  END IF;
+END
+\$\$;
 SQL
 fi
 

@@ -41,6 +41,9 @@ class ExtensionScanTest {
             "org.eclipse.edc.api.iam.decentralizedclaims.sts.StsApiConfigurationExtension";
     private static final String XROAD_STS_CONFIGURATION_EXTENSION =
             "org.niis.xroad.ds.identityhub.sts.XRoadStsApiConfigurationExtension";
+    private static final String XROAD_EDC_VAULT_EXTENSION =
+            "org.niis.xroad.edc.extension.vault.XRoadEdcVaultExtension";
+    private static final String STOCK_HASHICORP_VAULT_PACKAGE = "org.eclipse.edc.vault.hashicorp";
 
     @Test
     void everyNonExcludedExtensionOnTheRuntimeClasspathIsScannable() {
@@ -54,6 +57,15 @@ class ExtensionScanTest {
         assertThat(scanned)
                 .contains(XROAD_STS_CONFIGURATION_EXTENSION)
                 .doesNotContain(STOCK_STS_CONFIGURATION_EXTENSION);
+    }
+
+    @Test
+    void secretsAreServedByTheXRoadVaultExtensionOnly() {
+        var scanned = scan().stream().map(extension -> extension.getClass().getName()).toList();
+
+        assertThat(scanned)
+                .contains(XROAD_EDC_VAULT_EXTENSION)
+                .noneMatch(name -> name.startsWith(STOCK_HASHICORP_VAULT_PACKAGE));
     }
 
     private List<ServiceExtension> scan() {

@@ -37,6 +37,9 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.dbsource.InvalidNodeNameException;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
+import org.springframework.scheduling.config.IntervalTask;
+import org.springframework.scheduling.config.ScheduledTask;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
 import org.springframework.vault.core.VaultTemplate;
@@ -45,6 +48,7 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,6 +107,28 @@ class SpringVaultClientConfigTest {
                             .isInstanceOfSatisfying(XrdRuntimeException.class,
                                     e -> assertThat(e.isCausedBy(ErrorCode.SECRET_STORE_UNAVAILABLE)).isTrue());
                     verify(kvOperations, times(1)).get("tls/admin-service");
+                });
+    }
+
+    @Test
+    void shouldScheduleTheTokenRenewalAtTheConfiguredIntervalStartingImmediately() {
+        var xRoadConfig = XRoadConfigBuilder.create()
+                .overrides(Map.of(
+                        CommonConfigKeys.VAULT_RETRY_BUDGET.key(), "0s",
+                        CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL.key(), "PT1H"))
+                .build();
+
+        contextRunner.withUserConfiguration(SpringVaultClientConfig.class)
+                .withBean(XRoadConfig.class, () -> xRoadConfig)
+                .run(context -> {
+                    var tasks = context.getBean(ScheduledAnnotationBeanPostProcessor.class).getScheduledTasks();
+
+                    assertThat(tasks).extracting(ScheduledTask::getTask)
+                            .singleElement()
+                            .isInstanceOfSatisfying(IntervalTask.class, task -> {
+                                assertThat(task.getIntervalDuration()).isEqualTo(Duration.ofHours(1));
+                                assertThat(task.getInitialDelayDuration()).isEqualTo(Duration.ZERO);
+                            });
                 });
     }
 

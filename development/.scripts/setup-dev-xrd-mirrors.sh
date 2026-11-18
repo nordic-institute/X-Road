@@ -22,8 +22,10 @@ while IFS='=' read -r key value; do
   [[ -z "$key" ]] && continue
 
   # Trim whitespace
-  key=$(echo "$key" | xargs)
-  value=$(echo "$value" | xargs)
+  key="${key#"${key%%[![:space:]]*}"}"
+  key="${key%"${key##*[![:space:]]}"}"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
 
   # Only export XROAD_MIRROR_* properties
   if [[ "$key" == XROAD_MIRROR_* ]]; then

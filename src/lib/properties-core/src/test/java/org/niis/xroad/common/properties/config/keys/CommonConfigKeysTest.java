@@ -26,14 +26,19 @@
 package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 
 import java.time.Duration;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CommonConfigKeysTest {
     private static final String VAULT_RETRY_BUDGET_KEY = "xroad.common.vault-retry.budget";
     private static final Duration MAX_BUDGET = Duration.ofMinutes(5);
+    private static final String VAULT_TOKEN_RENEWAL_INTERVAL_KEY = "xroad.common.vault-token-renewal.interval";
 
     @Test
     void vaultRetryBudgetIsExposedUnderItsKeyAndNotInTheUi() {
@@ -49,5 +54,32 @@ class CommonConfigKeysTest {
         assertThat(CommonConfigKeys.VAULT_RETRY_BUDGET.validate(Duration.ofSeconds(-1)).valid()).isFalse();
         assertThat(CommonConfigKeys.VAULT_RETRY_BUDGET.validate(MAX_BUDGET.plusMillis(1)).valid()).isFalse();
         assertThat(CommonConfigKeys.VAULT_RETRY_BUDGET.validate(null).valid()).isFalse();
+    }
+
+    @Test
+    void vaultTokenRenewalIntervalAcceptsTenMinutesUpToSevenDays() {
+        assertThat(interval("10m")).isEqualTo(Duration.ofMinutes(10));
+        assertThat(interval("24h")).isEqualTo(Duration.ofHours(24));
+        assertThat(interval("7d")).isEqualTo(Duration.ofDays(7));
+        assertThat(interval("30m")).isEqualTo(Duration.ofMinutes(30));
+        assertThat(interval("PT30M")).isEqualTo(Duration.ofMinutes(30));
+    }
+
+    @Test
+    void vaultTokenRenewalIntervalOutsideTheRangeOrUnparseableStopsStartup() {
+        for (String value : new String[] {"PT0S", "9m", "-30m", "8d", "not-a-duration"}) {
+            assertThatThrownBy(() -> interval(value))
+                    .as(value)
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining(VAULT_TOKEN_RENEWAL_INTERVAL_KEY);
+        }
+    }
+
+    private static Duration interval(String stored) {
+        XRoadConfig config = XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .overrides(Map.of(VAULT_TOKEN_RENEWAL_INTERVAL_KEY, stored))
+                .build();
+        return config.value(CommonConfigKeys.VAULT_TOKEN_RENEWAL_INTERVAL);
     }
 }

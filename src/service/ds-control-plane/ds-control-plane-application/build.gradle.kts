@@ -64,7 +64,7 @@ dependencies {
   runtimeOnly(libs.edc.configuration.filesystem)
 
   runtimeOnly(project(":service:ds-control-plane:ds-control-plane-tasks-store-poll-executor"))
-  runtimeOnly(libs.edc.vault.hashicorp)
+  runtimeOnly(project(":lib:edc-vault-quarkus"))
 
   runtimeOnly(libs.edc.dataplane.signaling)
   runtimeOnly(libs.edc.core.participantcontext.connector.classic)
@@ -77,6 +77,7 @@ dependencies {
   testImplementation(project(":service:ds-control-plane:ds-control-plane-tasks-store-poll-executor"))
   testImplementation(testFixtures(project(":lib:bootstrap-edc-quarkus")))
   testImplementation(libs.smallrye.config.yaml)
+  testImplementation(libs.smallrye.config.core)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.assertj.core)
 }

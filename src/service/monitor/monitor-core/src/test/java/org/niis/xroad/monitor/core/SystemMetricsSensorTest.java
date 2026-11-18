@@ -30,6 +30,7 @@ import ee.ria.xroad.common.TestPortUtils;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import io.grpc.stub.StreamObserver;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
 import org.junit.jupiter.api.AfterAll;
@@ -137,6 +138,7 @@ class SystemMetricsSensorTest {
                 new RpcChannelFactory(RPC_CREDENTIALS_CONFIGURER), proxyRpcClientProperties,
                 scheduler, mock(Scheduled.ApplicationNotRunning.class));
         systemMetricsSensor.afterPropertiesSet();
+        systemMetricsSensor.schedule(new StartupEvent());
 
         response = StatsResp.newBuilder()
                 .setOpenFileDescriptorCount(0)
