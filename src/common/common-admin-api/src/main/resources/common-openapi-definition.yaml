@@ -756,6 +756,8 @@ components:
     ConfigurablePropertyDto:
       type: object
       description: A single configurable property, including metadata for UI rendering, the value stored in the database and the value in effect.
+      required:
+        - value_source
       properties:
         property_name:
           type: string
@@ -773,11 +775,11 @@ components:
         default_value:
           type: string
           format: text
-          description: textual representation of property's default value
+          description: textual representation of property's default value for the active deployment mode
         effective_value:
           type: string
           format: text
-          description: textual representation of the value in effect, resolved from the database, the country profile and the default, in that order
+          description: textual representation of the value in effect, resolved from the database, the country profile and the default, in that order; absent when no layer gives a value
           maxLength: 4096
         value_source:
           $ref: '#/components/schemas/ConfigurablePropertyValueSource'

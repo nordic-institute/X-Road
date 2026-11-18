@@ -26,80 +26,63 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
-import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
-import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
-import org.niis.xroad.restapi.service.ConfigurablePropertySource.CountryProfile;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 /**
- * A key in a bundled country profile that is not a catalogue key would be ignored at runtime, so every
- * profile key must be declared in the Security Server configurable-properties catalogue.
+ * A key in a bundled country profile that is not an exposed catalogue key would be ignored at runtime or could not
+ * be edited, and a key published to a framework would reach the process outside the resolver, so every profile
+ * key must be a registered, exposed key that no framework publishes.
  */
-@ExtendWith(MockitoExtension.class)
 class CountryProfileKeysTest {
 
-    @Mock
-    private ConfigurationPropertyRepository repository;
+    private static final Map<String, ConfigKey<?>> REGISTERED_KEYS =
+            new SsConfigurablePropertySource(DeploymentMode.NATIVE, ActiveCountryProfile.NONE)
+                    .getConfigKeyProviders().stream()
+                    .flatMap(provider -> provider.keys().stream())
+                    .collect(Collectors.toMap(ConfigKey::key, key -> key, (first, _) -> first));
 
-    @Mock
-    private AuditDataHelper auditDataHelper;
+    @ParameterizedTest
+    @MethodSource("profileEnvironments")
+    void everyProfileKeyIsARegisteredExposedKey(Map<String, String> env) {
+        var keys = profileValues(env).keySet();
 
-    private Set<String> catalogueKeys;
-
-    @BeforeEach
-    void setup() {
-        when(repository.findAll()).thenReturn(List.of());
-        var service = new ConfigurablePropertiesService(auditDataHelper, repository,
-                new SsConfigurablePropertySource(DeploymentMode.NATIVE, CountryProfile.NONE));
-        catalogueKeys = service.getConfigurationProperties().stream()
-                .map(ConfigurablePropertyDto::getPropertyName)
-                .collect(Collectors.toSet());
+        assertThat(keys).isNotEmpty().isSubsetOf(REGISTERED_KEYS.keySet());
+        assertThat(keys).allSatisfy(name ->
+                assertThat(REGISTERED_KEYS.get(name).exposedInUi()).as("%s is exposed in the UI", name).isTrue());
     }
 
     @ParameterizedTest
     @MethodSource("profileEnvironments")
-    void everyProfileKeyIsACatalogueKey(Map<String, String> env) {
-        var keys = CountryProfileLoader.resolve(env)
-                .orElseThrow().values().keySet();
-
-        assertThat(keys).isNotEmpty().isSubsetOf(catalogueKeys);
+    void noProfileKeyIsPublishedToFramework(Map<String, String> env) {
+        assertThat(profileValues(env).keySet()).allSatisfy(name ->
+                assertThat(REGISTERED_KEYS.get(name).publishedToFramework())
+                        .as("%s is published to a framework", name).isFalse());
     }
 
     @ParameterizedTest
     @MethodSource("profileEnvironments")
     void everyProfileValueIsAcceptedByItsKeyConverterAndValidator(Map<String, String> env) {
-        var values = CountryProfileLoader.resolve(env)
-                .orElseThrow().values();
-        var keys = new SsConfigurablePropertySource(DeploymentMode.NATIVE, CountryProfile.NONE)
-                .getConfigKeyProviders().stream()
-                .flatMap(provider -> provider.keys().stream())
-                .collect(Collectors.toMap(ConfigKey::key, key -> key, (first, _) -> first));
-
-        values.forEach((name, raw) -> {
-            var key = keys.get(name);
-            if (key != null) {
-                assertThat(validationMessage(key, raw)).as("%s=%s in %s", name, raw, env).isNull();
-            }
+        profileValues(env).forEach((name, raw) -> {
+            var key = REGISTERED_KEYS.get(name);
+            assertThat(key).as("%s is registered", name).isNotNull();
+            assertThat(validationMessage(key, raw)).as("%s=%s in %s", name, raw, env).isNull();
         });
+    }
+
+    private static Map<String, String> profileValues(Map<String, String> env) {
+        return CountryProfileLoader.resolve(env).orElseThrow().values();
     }
 
     private static <T> String validationMessage(ConfigKey<T> key, String raw) {

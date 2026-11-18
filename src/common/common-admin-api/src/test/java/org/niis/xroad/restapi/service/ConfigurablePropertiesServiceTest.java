@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
@@ -45,7 +46,6 @@ import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
-import org.niis.xroad.restapi.service.ConfigurablePropertySource.CountryProfile;
 
 import java.util.List;
 import java.util.Map;
@@ -87,9 +87,9 @@ class ConfigurablePropertiesServiceTest {
             ConfigKeyProvider.forPrefix(SCOPELESS));
 
     private static final ConfigurablePropertySource TEST_SOURCE = sourceWith(DeploymentMode.NATIVE,
-            CountryProfile.NONE);
+            ActiveCountryProfile.NONE);
 
-    private static ConfigurablePropertySource sourceWith(DeploymentMode mode, CountryProfile profile) {
+    private static ConfigurablePropertySource sourceWith(DeploymentMode mode, ActiveCountryProfile profile) {
         return new ConfigurablePropertySource() {
             @Override
             public List<ConfigKeyProvider> getConfigKeyProviders() {
@@ -102,7 +102,7 @@ class ConfigurablePropertiesServiceTest {
             }
 
             @Override
-            public CountryProfile countryProfile() {
+            public ActiveCountryProfile countryProfile() {
                 return profile;
             }
 
@@ -119,8 +119,8 @@ class ConfigurablePropertiesServiceTest {
     }
 
     private static final String PROFILE_VALUE = "7";
-    private static final CountryProfile PROFILE_WITH_RETRY_COUNT =
-            new CountryProfile("XX", Map.of(EXPOSED_KEY.key(), PROFILE_VALUE));
+    private static final ActiveCountryProfile PROFILE_WITH_RETRY_COUNT =
+            new ActiveCountryProfile("XX", Map.of(EXPOSED_KEY.key(), PROFILE_VALUE));
 
     private static final String PROPERTY_NAME = EXPOSED_KEY.key();
     private static final String PROPERTY_VALUE = "10000";
@@ -280,16 +280,17 @@ class ConfigurablePropertiesServiceTest {
         when(repository.findAll()).thenReturn(List.of());
 
         var containerized = findProperty(
-                serviceWith(DeploymentMode.CONTAINERIZED, CountryProfile.NONE).getConfigurationProperties(),
+                serviceWith(DeploymentMode.CONTAINERIZED, ActiveCountryProfile.NONE).getConfigurationProperties(),
                 CONTAINER_KEY.key());
         var nativeMode = findProperty(
-                serviceWith(DeploymentMode.NATIVE, CountryProfile.NONE).getConfigurationProperties(),
+                serviceWith(DeploymentMode.NATIVE, ActiveCountryProfile.NONE).getConfigurationProperties(),
                 CONTAINER_KEY.key());
 
         assertEquals("container-value", containerized.getEffectiveValue());
         assertEquals(ConfigurablePropertyValueSource.DEFAULT, containerized.getValueSource());
-        assertEquals("native-value", containerized.getDefaultValue());
+        assertEquals("container-value", containerized.getDefaultValue());
         assertEquals("native-value", nativeMode.getEffectiveValue());
+        assertEquals("native-value", nativeMode.getDefaultValue());
     }
 
     @Test
@@ -297,7 +298,7 @@ class ConfigurablePropertiesServiceTest {
         when(repository.findAll()).thenReturn(List.of());
 
         var parameter = findProperty(
-                serviceWith(DeploymentMode.CONTAINERIZED, CountryProfile.NONE).getConfigurationProperties(),
+                serviceWith(DeploymentMode.CONTAINERIZED, ActiveCountryProfile.NONE).getConfigurationProperties(),
                 PROPERTY_NAME);
 
         assertEquals(DEFAULT_VALUE, parameter.getEffectiveValue());
@@ -305,7 +306,7 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void profileValueWinsOverContainerDefault() {
-        var profile = new CountryProfile("XX", Map.of(CONTAINER_KEY.key(), "profile-value"));
+        var profile = new ActiveCountryProfile("XX", Map.of(CONTAINER_KEY.key(), "profile-value"));
         var profiledService = serviceWith(DeploymentMode.CONTAINERIZED, profile);
         when(repository.findAll()).thenReturn(List.of());
 
@@ -337,9 +338,9 @@ class ConfigurablePropertiesServiceTest {
         when(repository.findByPropertyKey(CONTAINER_KEY.key())).thenReturn(Optional.empty());
 
         assertEquals(Optional.of("container-value"),
-                serviceWith(DeploymentMode.CONTAINERIZED, CountryProfile.NONE).getEffectiveValue(CONTAINER_KEY.key()));
+                serviceWith(DeploymentMode.CONTAINERIZED, ActiveCountryProfile.NONE).getEffectiveValue(CONTAINER_KEY.key()));
         assertEquals(Optional.of("native-value"),
-                serviceWith(DeploymentMode.NATIVE, CountryProfile.NONE).getEffectiveValue(CONTAINER_KEY.key()));
+                serviceWith(DeploymentMode.NATIVE, ActiveCountryProfile.NONE).getEffectiveValue(CONTAINER_KEY.key()));
     }
 
     @Test
@@ -476,7 +477,7 @@ class ConfigurablePropertiesServiceTest {
         verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, "");
     }
 
-    private ConfigurablePropertiesService serviceWith(DeploymentMode mode, CountryProfile profile) {
+    private ConfigurablePropertiesService serviceWith(DeploymentMode mode, ActiveCountryProfile profile) {
         return new ConfigurablePropertiesService(auditDataHelper, repository, sourceWith(mode, profile));
     }
 

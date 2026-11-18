@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -39,7 +40,6 @@ import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
-import org.niis.xroad.restapi.service.ConfigurablePropertySource.CountryProfile;
 
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +56,7 @@ import static org.mockito.Mockito.when;
  * monitoring, message log archiver and message log encryption keys reach the Security Server
  * catalogue from their own modules, with the scope names the {@code configuration_properties}
  * table and the UI expect. Also covers the effective value and source reported for the active country
- * profile, its exclusions and the deployment mode.
+ * profile and the deployment mode.
  */
 @ExtendWith(MockitoExtension.class)
 class ConfigurablePropertiesCatalogueTest {
@@ -137,7 +137,7 @@ class ConfigurablePropertiesCatalogueTest {
     @BeforeEach
     void setup() {
         service = new ConfigurablePropertiesService(auditDataHelper, repository,
-                new SsConfigurablePropertySource(DeploymentMode.NATIVE, CountryProfile.NONE));
+                new SsConfigurablePropertySource(DeploymentMode.NATIVE, ActiveCountryProfile.NONE));
         when(repository.findAll()).thenReturn(List.of());
     }
 
@@ -298,7 +298,7 @@ class ConfigurablePropertiesCatalogueTest {
 
         assertThat(dto.getEffectiveValue()).isEqualTo("DATABASE");
         assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
-        assertThat(dto.getDefaultValue()).isEqualTo("PAM");
+        assertThat(dto.getDefaultValue()).isEqualTo("DATABASE");
     }
 
     @Test
@@ -317,8 +317,7 @@ class ConfigurablePropertiesCatalogueTest {
 
     private Map<String, ConfigurablePropertyDto> propertiesWith(DeploymentMode mode, Map<String, String> env) {
         var countryProfile = CountryProfileLoader.resolve(env)
-                .map(profile -> new CountryProfile(profile.code(), profile.values()))
-                .orElse(CountryProfile.NONE);
+                .orElse(ActiveCountryProfile.NONE);
         var profileService = new ConfigurablePropertiesService(auditDataHelper, repository,
                 new SsConfigurablePropertySource(mode, countryProfile));
         return profileService.getConfigurationProperties().stream()

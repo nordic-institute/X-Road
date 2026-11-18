@@ -140,7 +140,7 @@ public class ConfigurablePropertiesService {
         var resolved = resolve(key, storedValue);
         var dto = new ConfigurablePropertyDto();
         dto.setPropertyName(key.key());
-        dto.setDefaultValue(key.defaultValue());
+        dto.setDefaultValue(defaultValue(key));
         dto.setScope(categoryToScope(key.category()));
         dto.setCurrentValue(storedValue.orElse(null));
         dto.setEffectiveValue(resolved.value());
@@ -163,11 +163,14 @@ public class ConfigurablePropertiesService {
             return new ResolvedValue(profileValue, ConfigurablePropertyValueSource.COUNTRY_PROFILE,
                     countryProfile.code());
         }
+        return new ResolvedValue(defaultValue(key), ConfigurablePropertyValueSource.DEFAULT, null);
+    }
+
+    private String defaultValue(ConfigKey<?> key) {
         var containerDefault = key.containerDefaultValue();
         var useContainerDefault = configurablePropertySource.deploymentMode() == DeploymentMode.CONTAINERIZED
                 && containerDefault != null;
-        return new ResolvedValue(useContainerDefault ? containerDefault : key.defaultValue(),
-                ConfigurablePropertyValueSource.DEFAULT, null);
+        return useContainerDefault ? containerDefault : key.defaultValue();
     }
 
     /**

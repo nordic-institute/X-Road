@@ -28,6 +28,7 @@
 package org.niis.xroad.common.properties.config.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -147,9 +148,7 @@ public final class XRoadConfigBuilder {
 
     XRoadConfig build(Map<String, String> env) {
         warnIgnoredEnvVars(env);
-        var countryProfile = CountryProfileLoader.resolve(env)
-                .map(ActiveCountryProfile::values)
-                .orElse(Map.of());
+        var countryProfile = CountryProfileLoader.resolve(env).orElse(ActiveCountryProfile.NONE);
         return new DefaultXRoadConfig(providers, overrides, countryProfile, deploymentMode);
     }
 
@@ -184,9 +183,11 @@ public final class XRoadConfigBuilder {
     private static final class DefaultXRoadConfig implements XRoadConfig {
 
         private final Map<ConfigKey<?>, Value<?>> resolved;
+        private final ActiveCountryProfile countryProfile;
 
         DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides,
-                           Map<String, String> countryProfile, DeploymentMode deploymentMode) {
+                           ActiveCountryProfile countryProfile, DeploymentMode deploymentMode) {
+            this.countryProfile = countryProfile;
             var map = new LinkedHashMap<ConfigKey<?>, Value<?>>();
             for (var provider : providers) {
                 for (var key : provider.keys()) {
@@ -197,6 +198,11 @@ public final class XRoadConfigBuilder {
                     map.size(),
                     map.keySet().stream().map(ConfigKey::key).collect(Collectors.joining("\n\t")));
             this.resolved = map;
+        }
+
+        @Override
+        public ActiveCountryProfile countryProfile() {
+            return countryProfile;
         }
 
         @Override
@@ -216,32 +222,35 @@ public final class XRoadConfigBuilder {
         }
 
         private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides,
-                                            Map<String, String> countryProfile, DeploymentMode mode) {
+                                            ActiveCountryProfile countryProfile, DeploymentMode mode) {
             var raw = overrides.get(key.key());
             if (raw != null) {
-                return new Value<>(key, converAndValidate(raw, key), Source.DB);
+                return new Value<>(key, converAndValidate(raw, key, ""), Source.DB);
             }
-            var countryRaw = countryProfile.get(key.key());
+            var countryRaw = countryProfile.values().get(key.key());
             if (countryRaw != null) {
-                return new Value<>(key, converAndValidate(countryRaw, key), Source.COUNTRY);
+                var origin = " (from country profile %s)".formatted(countryProfile.code());
+                return new Value<>(key, converAndValidate(countryRaw, key, origin), Source.COUNTRY);
             }
             var useContainerDefault = mode == DeploymentMode.CONTAINERIZED && key.containerDefaultValue() != null;
             var converted = useContainerDefault ? key.convertedContainerDefaultValue() : key.convertedDefaultValue();
             return new Value<>(key, converted, Source.DEFAULT);
         }
 
-        private static <T> T converAndValidate(String raw, ConfigKey<T> key) {
+        private static <T> T converAndValidate(String raw, ConfigKey<T> key, String origin) {
             T converted;
             try {
                 converted = key.convert(raw);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException(
-                        "Unparseable config value \"%s\" for %s: %s".formatted(raw, key.key(), e.getMessage()), e);
+                        "Unparseable config value \"%s\" for %s%s: %s"
+                                .formatted(raw, key.key(), origin, e.getMessage()), e);
             }
             var result = key.validate(converted);
             if (!result.valid()) {
                 throw new IllegalArgumentException(
-                        "Invalid config value \"%s\" for %s: %s".formatted(raw, key.key(), result.message()));
+                        "Invalid config value \"%s\" for %s%s: %s"
+                                .formatted(raw, key.key(), origin, result.message()));
             }
             return converted;
         }

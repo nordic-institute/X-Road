@@ -38,6 +38,7 @@ import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +51,6 @@ class CountryProfileLoaderTest {
     private static final String INVALID_DIRECTORY = "country-profile-invalid/";
     private static final String SIDECAR_SUFFIX = "-sidecar.yaml";
     private static final String CONNECTOR_HOST_KEY = "xroad.proxy.client-proxy.connector-host";
-    private static final String MIN_CLIENT_VERSION_KEY = "xroad.proxy.server.min-supported-client-version";
 
     @Test
     void listsRenderAsCommaSeparatedStrings() {
@@ -76,10 +76,6 @@ class CountryProfileLoaderTest {
                 .allSatisfy((key, _) -> assertThat(key).startsWith("xroad."));
     }
 
-    @Test
-    void metadataBlockIsNotLoaded() {
-        assertThat(resolve("FI", null).keySet()).noneMatch(key -> key.startsWith("metadata"));
-    }
 
     @Test
     void resolveReturnsNormalisedCodeForLowerCaseSelectorWithSurroundingBlanks() {
@@ -201,8 +197,11 @@ class CountryProfileLoaderTest {
 
             assertThat(baseCodes).containsExactlyInAnyOrderElementsOf(CountryProfileLoader.SUPPORTED_COUNTRIES);
             assertThat(sidecarCodes).isNotEmpty().isSubsetOf(baseCodes);
-            sidecarCodes.forEach(code -> assertThat(resolve(code, CountryProfileLoader.SIDECAR_VARIANT).get(MIN_CLIENT_VERSION_KEY))
-                    .isEqualTo(resolve(code, null).get(MIN_CLIENT_VERSION_KEY)));
+            sidecarCodes.forEach(code -> {
+                var expected = new HashMap<>(resolve(code, null));
+                expected.remove(CONNECTOR_HOST_KEY);
+                assertThat(resolve(code, CountryProfileLoader.SIDECAR_VARIANT)).isEqualTo(expected);
+            });
         }
     }
 

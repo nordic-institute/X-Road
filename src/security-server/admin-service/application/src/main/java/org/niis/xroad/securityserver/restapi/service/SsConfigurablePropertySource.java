@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -79,7 +80,7 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
             MessageLogEncryptionConfigKeys.instance());
 
     private final DeploymentMode deploymentMode;
-    private final CountryProfile countryProfile;
+    private final ActiveCountryProfile countryProfile;
 
     @Override
     public DeploymentMode deploymentMode() {
@@ -87,7 +88,7 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
     }
 
     @Override
-    public CountryProfile countryProfile() {
+    public ActiveCountryProfile countryProfile() {
         return countryProfile;
     }
 

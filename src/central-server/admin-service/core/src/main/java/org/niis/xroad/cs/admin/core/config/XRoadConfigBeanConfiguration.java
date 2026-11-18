@@ -58,10 +58,14 @@ public class XRoadConfigBeanConfiguration {
     }
 
     @Bean
-    XRoadConfig xRoadConfig(@Value("${spring.application.name:centralserver-admin-service}") String appName,
-                            Environment environment, XRoadConfigOverrides overrides) {
-        var deploymentMode = environment.matchesProfiles("containerized")
+    DeploymentMode deploymentMode(Environment environment) {
+        return environment.matchesProfiles("containerized")
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    @Bean
+    XRoadConfig xRoadConfig(@Value("${spring.application.name:centralserver-admin-service}") String appName,
+                            DeploymentMode deploymentMode, XRoadConfigOverrides overrides) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(CsAdminServiceConfigKeys.instance())

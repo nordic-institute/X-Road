@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.config.impl;
+package org.niis.xroad.common.properties.config;
 
 import java.util.Map;
 
@@ -33,7 +33,10 @@ import java.util.Map;
  * The country profile selected for this process.
  *
  * @param code   normalised (upper-case) country code
- * @param values dotted configuration key to the string value the profile supplies, after exclusions
+ * @param values dotted configuration key to the string value the profile supplies
  */
 public record ActiveCountryProfile(String code, Map<String, String> values) {
+
+    /** No country profile active. */
+    public static final ActiveCountryProfile NONE = new ActiveCountryProfile(null, Map.of());
 }

@@ -29,6 +29,7 @@ package org.niis.xroad.common.properties.config.impl;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.dataformat.yaml.YAMLMapper;
@@ -40,8 +41,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -70,7 +69,6 @@ public class CountryProfileLoader {
     private static final String SIDECAR_RESOURCE_SUFFIX = "-sidecar" + RESOURCE_SUFFIX;
     private static final String ROOT_KEY = "xroad";
     private static final YAMLMapper MAPPER = YAMLMapper.builder().build();
-    private static final Set<String> LOGGED = ConcurrentHashMap.newKeySet();
 
     /**
      * @param env environment variables; {@link #PROFILE_ENV_VARIABLE} selects the profile and
@@ -91,9 +89,7 @@ public class CountryProfileLoader {
         }
         var resource = resourceName(code, isSidecar(env.get(VARIANT_ENV_VARIABLE)));
         var values = readProfile(code, resource);
-        if (LOGGED.add(resource + ":" + values.size())) {
-            log.info("Country profile {} active from {}, {} key(s) applied", code, resource, values.size());
-        }
+        log.debug("Country profile {} active from {}, {} key(s) applied", code, resource, values.size());
         return Optional.of(new ActiveCountryProfile(code, Map.copyOf(values)));
     }
 

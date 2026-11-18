@@ -53,7 +53,7 @@ public class IniUtil {
     private static final String HOST_KEY = "host";
     private static final String LOCAL_INI = "local.ini";
     static final String OVERRIDE_INI_PREFIX = "override-";
-    static final String INI_SUFFIX = ".ini";
+    private static final String INI_SUFFIX = ".ini";
 
     private final OpMonitorHostRule opMonitorHostRule;
 
@@ -194,17 +194,19 @@ public class IniUtil {
         return ini.parsedContent().getSection(OP_MONITOR_SECTION).getString(HOST_KEY);
     }
 
+    static boolean isOverrideIniName(String fileName) {
+        return fileName.startsWith(OVERRIDE_INI_PREFIX) && fileName.endsWith(INI_SUFFIX);
+    }
+
     private static List<Path> operatorIniChain(Path file) {
         var name = file.getFileName().toString();
-        var isOverride = name.startsWith(OVERRIDE_INI_PREFIX) && name.endsWith(INI_SUFFIX);
-        if (!isOverride && !LOCAL_INI.equals(name)) {
+        if (!isOverrideIniName(name) && !LOCAL_INI.equals(name)) {
             return List.of(file);
         }
         var directory = file.toAbsolutePath().getParent();
         try (Stream<Path> siblings = Files.list(directory)) {
             var chain = new ArrayList<>(siblings
-                    .filter(p -> p.getFileName().toString().startsWith(OVERRIDE_INI_PREFIX)
-                            && p.getFileName().toString().endsWith(INI_SUFFIX))
+                    .filter(p -> isOverrideIniName(p.getFileName().toString()))
                     .sorted(Comparator.comparing(p -> p.getFileName().toString()))
                     .toList());
             chain.add(directory.resolve(LOCAL_INI));

@@ -25,12 +25,12 @@
  */
 package org.niis.xroad.restapi.service;
 
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Per-product plug-in point for {@link ConfigurablePropertiesService}: supplies the
@@ -51,10 +51,10 @@ public interface ConfigurablePropertySource {
     String categoryToScope(Category category);
 
     /**
-     * @return the active country profile, {@link CountryProfile#NONE} when the product has none
+     * @return the active country profile, {@link ActiveCountryProfile#NONE} when the product has none
      */
-    default CountryProfile countryProfile() {
-        return CountryProfile.NONE;
+    default ActiveCountryProfile countryProfile() {
+        return ActiveCountryProfile.NONE;
     }
 
     /**
@@ -63,17 +63,5 @@ public interface ConfigurablePropertySource {
      */
     default DeploymentMode deploymentMode() {
         return DeploymentMode.NATIVE;
-    }
-
-    /**
-     * Country profile applied to the product's configuration.
-     *
-     * @param code   country code of the profile
-     * @param values dotted configuration key to the string value the profile supplies
-     */
-    record CountryProfile(String code, Map<String, String> values) {
-
-        /** No country profile active. */
-        public static final CountryProfile NONE = new CountryProfile(null, Map.of());
     }
 }

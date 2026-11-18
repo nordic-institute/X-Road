@@ -28,6 +28,8 @@
 package org.niis.xroad.common.properties.config.impl;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -36,6 +38,9 @@ import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Validator;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.time.Duration;
 import java.util.Map;
@@ -43,7 +48,10 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ExtendWith(SystemStubsExtension.class)
 class XRoadConfigBuilderTest {
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     private static final Map<String, String> FI_ENV = Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI");
 
@@ -190,6 +198,26 @@ class XRoadConfigBuilderTest {
     }
 
     @Test
+    void profileValueFailingConversionFailsBuildNamingTheProfile() {
+        var signer = Prefix.of("xroad.signer");
+        signer.key("key-length", Integer.class)
+                .withConverter(raw -> {
+                    if ("3072".equals(raw)) {
+                        throw new IllegalArgumentException("not a number");
+                    }
+                    return Integer.parseInt(raw);
+                })
+                .withDefaultValue("2048")
+                .build();
+        var builder = XRoadConfigBuilder.create().register(ConfigKeyProvider.forPrefix(signer));
+
+        assertThatThrownBy(() -> builder.build(FI_ENV))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("xroad.signer.key-length")
+                .hasMessageContaining("country profile FI");
+    }
+
+    @Test
     void profileValueRejectedByKeyValidatorFailsBuild() {
         var signer = Prefix.of("xroad.signer");
         signer.integer("key-length").withValidator(Validator.range(1, 2048)).withDefaultValue(2048).build();
@@ -198,22 +226,29 @@ class XRoadConfigBuilderTest {
         assertThatThrownBy(() -> builder.build(FI_ENV))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("xroad.signer.key-length")
-                .hasMessageContaining("3072");
+                .hasMessageContaining("3072")
+                .hasMessageContaining("country profile FI");
     }
 
     @Test
-    void blankProfileNameLeavesCountryLayerOut() {
-        var config = proxyBuilder().build(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "  "));
+    void publicBuildReadsCountryProfileFromEnvironment() {
+        variables.set(CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI");
+
+        var config = XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).build();
+
         var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
-        assertThat(value.value()).isFalse();
-        assertThat(value.source()).isEqualTo(Source.DEFAULT);
+        assertThat(value.value()).isTrue();
+        assertThat(value.source()).isEqualTo(Source.COUNTRY);
+        assertThat(config.countryProfile().code()).isEqualTo("FI");
     }
 
     @Test
-    void lowerCaseProfileNameSelectsProfile() {
-        var config = proxyBuilder().build(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "fi"));
-        assertThat(config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS).source())
-                .isEqualTo(Source.COUNTRY);
+    void configExposesTheProfileItWasBuiltWith() {
+        var config = proxyBuilder().build(FI_ENV);
+
+        assertThat(config.countryProfile().code()).isEqualTo("FI");
+        assertThat(config.countryProfile().values()).containsEntry("xroad.signer.key-length", "3072");
+        assertThat(proxyBuilder().build(Map.of()).countryProfile()).isEqualTo(ActiveCountryProfile.NONE);
     }
 
     @Test

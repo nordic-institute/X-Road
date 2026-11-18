@@ -94,7 +94,7 @@ function sourceLabel(prop: ConfigurablePropertyDto): string {
       return t('configurableProperties.source.countryProfile', { country: prop.country_profile ?? '' }).trim();
     case 'DB':
       return t('configurableProperties.source.db');
-    default:
+    case 'DEFAULT':
       return t('configurableProperties.source.default');
   }
 }

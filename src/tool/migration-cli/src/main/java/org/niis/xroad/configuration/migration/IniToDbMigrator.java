@@ -60,7 +60,7 @@ public class IniToDbMigrator extends BasePropertiesToDbMigrator {
 
     private static boolean isCountryOverride(String filePath) {
         var name = Paths.get(filePath).getFileName().toString();
-        return name.startsWith(COUNTRY_OVERRIDE_PREFIX) && name.endsWith(IniUtil.INI_SUFFIX);
+        return IniUtil.isOverrideIniName(name) && name.startsWith(COUNTRY_OVERRIDE_PREFIX);
     }
 
     @Override

@@ -40,7 +40,7 @@ The recommended place for defining a different variant is the inventory file. Fo
 xrd-ss0 ansible_connection=lxd variant=fo
 ```
 
-A host with a variant other than `vanilla` gets the country profile checks after installation: the signer and proxy logs must show the profile active. The hurl step always checks through the admin API that ss0 reports a parameter from the country profile of its variant, so ss0 must run a country variant (the example inventories use `fo`).
+The hurl step always checks through the admin API that ss0 reports a parameter from the country profile of its variant, so ss0 must run a country variant (the example inventories use `fo`).
 
 While it is possible to define different variants for different security servers, it is worth noting that upgrading from one variant to another is not supported.
 
