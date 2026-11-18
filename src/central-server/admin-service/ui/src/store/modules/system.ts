@@ -102,6 +102,7 @@ export const useSystem = defineStore('system', {
 
       return api.post('/initialization', formData).then(() => {
         notifications.setFlag(KEY_CONTINUE_INIT, true);
+        return this.fetchSystemStatus();
       });
     },
   },

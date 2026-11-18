@@ -30,6 +30,7 @@ import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
 import { worker } from '../setup/browser-setup';
 import { TokenInitStatus } from '@/openapi-types';
+import { Permissions, RouteName } from '@/global';
 
 // Render the init page with a NOT_INITIALIZED system state so all fields are editable.
 async function renderInitPage() {
@@ -175,5 +176,58 @@ describe('0100 — CS Initialization — inline error on weak PIN (Browser Mode)
 
     // Message may render in both the PIN field error and a notification; first() handles either.
     await expect.element(page.getByText('The provided pin code was too weak').first()).toBeVisible();
+  });
+});
+
+describe('0100 — CS Initialization — leaves the view after a successful init (Browser Mode)', () => {
+  it('lands on Members once initialization succeeds, after the system status is refreshed', async () => {
+    let serverInitialized = false;
+
+    function systemStatus() {
+      return serverInitialized
+        ? {
+            initialization_status: {
+              instance_identifier: 'CS-E2E',
+              central_server_address: 'valid.example.org',
+              software_token_init_status: TokenInitStatus.INITIALIZED,
+            },
+            high_availability_status: { is_ha_configured: false, node_name: undefined },
+          }
+        : {
+            initialization_status: {
+              instance_identifier: '',
+              central_server_address: '',
+              software_token_init_status: TokenInitStatus.NOT_INITIALIZED,
+            },
+            high_availability_status: { is_ha_configured: false, node_name: undefined },
+          };
+    }
+
+    worker.use(
+      specHttp.get('/system/status', ({ response }) => response(200).json(systemStatus() as never)),
+      specHttp.post('/initialization', ({ response }) => {
+        serverInitialized = true;
+        return response(201).empty();
+      }),
+    );
+
+    const { router } = await renderRoute('/init', {
+      withGuard: true,
+      permissions: [Permissions.INIT_CONFIG, Permissions.VIEW_MEMBERS],
+      systemStatus: { systemStatus: systemStatus() },
+    });
+
+    await expect.element(page.getByTestId('instance-identifier--input').getByRole('textbox')).toHaveFocus();
+
+    await page.getByTestId('instance-identifier--input').getByRole('textbox').fill('CS-E2E');
+    await page.getByTestId('address--input').getByRole('textbox').fill('valid.example.org');
+    await page.getByTestId('pin--input').getByRole('textbox').fill('Valid_Pin_11');
+    await page.getByTestId('confirm-pin--input').getByRole('textbox').fill('Valid_Pin_11');
+
+    await page.getByTestId('submit-button').click();
+
+    await expect.element(page.getByTestId('members-table')).toBeVisible();
+    await expect.element(page.getByTestId('central-server-initialization-page')).not.toBeInTheDocument();
+    expect(router.currentRoute.value.name).toBe(RouteName.Members);
   });
 });

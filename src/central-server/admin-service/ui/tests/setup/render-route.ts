@@ -61,6 +61,13 @@ export interface RenderRouteOptions {
    */
   bootstrap?: boolean;
   /**
+   * When true, installs the real createXrdRouter beforeEach guard while still booting
+   * authenticated with the given permissions and system status — for specs that need
+   * the guard's isServerInitialized check to run against a normal, authenticated boot
+   * (e.g. the Initial Configuration success-path redirect). Ignored when `bootstrap` is set.
+   */
+  withGuard?: boolean;
+  /**
    * Override the system status patched into the system store before the route mounts.
    * By default the store is patched with an INITIALIZED state (instance_identifier 'CS',
    * central_server_address 'cs.example.org', software_token_init_status INITIALIZED).
@@ -85,7 +92,7 @@ export async function renderRoute(
   path: string,
   options: RenderRouteOptions = {},
 ): Promise<{ router: Router }> {
-  const { permissions = DEFAULT_PERMISSIONS, session = 'alive', bootstrap = false, systemStatus } = options;
+  const { permissions = DEFAULT_PERMISSIONS, session = 'alive', bootstrap = false, withGuard = false, systemStatus } = options;
 
   await ensureMessages();
 
@@ -128,7 +135,7 @@ export async function renderRoute(
   }
 
   let router: Router;
-  if (bootstrap) {
+  if (bootstrap || withGuard) {
     router = createXrdRouter({
       forbiddenRouteName: RouteName.Forbidden,
       initialisationRouteName: RouteName.Initialisation,

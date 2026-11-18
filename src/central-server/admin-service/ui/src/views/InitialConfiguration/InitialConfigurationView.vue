@@ -252,16 +252,16 @@ export default defineComponent({
               this.setFieldError('init.address', addressErrors);
               this.addError(error);
             }
-            return;
+            return this.fetchSystemStatus();
           } else if (isPinFieldError(errorInfo)) {
             this.setFieldError('init.pin', this.$t('error_code.token_weak_pin'));
           }
 
           this.addError(error);
+          return this.fetchSystemStatus();
         })
         .finally(() => {
           this.submitting = false;
-          return this.fetchSystemStatus();
         });
 
       function isPinFieldError(error: ErrorInfo) {
