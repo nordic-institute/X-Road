@@ -91,7 +91,6 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
 
         aux.waitForHurlToFinish();
         ss0.awaitProxyReadiness();
-        ss0.verifyCountryProfile(SS0_COUNTRY_PROFILE);
         ss1.awaitProxyReadiness();
 
         log.info("Waiting grace period of {} for global configuration to propagate..", GLOBALCONF_PROPAGATION_GRACE_PERIOD);

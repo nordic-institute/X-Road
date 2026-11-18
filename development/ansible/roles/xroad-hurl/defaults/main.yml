@@ -7,14 +7,10 @@ hurl_scenario_dir: "{{ playbook_dir }}/../hurl/scenarios"
 # proxied traffic, so every extra proxied call here shifts those counts. The test-proxy-*.hurl
 # smoke files remain in development/hurl/scenarios for manual runs (override hurl_files or run
 # them via run-hurl.sh on the hurl host).
-# First security server host with a variant other than vanilla, empty if none. verify-country-profile.hurl
-# is copied, and country_profile_host and country_profile_code are written to vars.env, only when one exists.
-hurl_country_profile_host: >-
-  {{ groups.get('ss_servers', []) | map('extract', hostvars) | selectattr('variant', 'defined')
-     | rejectattr('variant', 'equalto', 'vanilla') | map(attribute='inventory_hostname') | first | default('', true) }}
-hurl_country_profile_code: >-
-  {{ (hostvars[hurl_country_profile_host].variant | upper) if hurl_country_profile_host | length > 0 else '' }}
-hurl_files: "{{ ['setup.hurl'] + (['verify-country-profile.hurl'] if hurl_country_profile_host | length > 0 else []) }}"
+# verify-country-profile.hurl requires ss0 to run a country variant (inventory variable `variant`).
+hurl_files:
+  - setup.hurl
+  - verify-country-profile.hurl
 # Path of a vars.env file to copy into the scenario directory under its basename. Empty: vars.env is
 # rendered from templates/vars.env.j2 with the variables below.
 hurl_env_file: ""

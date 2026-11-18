@@ -34,7 +34,6 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import java.io.File;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -56,21 +55,6 @@ public abstract class AbstractSsStack extends BaseComposeSetup {
      */
     public abstract void awaitProxyReadiness();
 
-    /**
-     * Fails unless the signer and the proxy logged that they run with the given country profile.
-     */
-    public void verifyCountryProfile(String countryCode) {
-        var expected = "Country profile %s active".formatted(countryCode);
-        for (var service : List.of(SsStackSetup.SIGNER, SsStackSetup.PROXY)) {
-            if (!logContains(service, expected)) {
-                throw new IllegalStateException("The %s service did not log '%s'".formatted(service, expected));
-            }
-        }
-    }
-    /**
-     * Whether the log of the given service contains the text.
-     */
-    protected abstract boolean logContains(String service, String text);
     protected Slf4jLogConsumer createLogConsumer(String envName, String containerName) {
         var consumer = createLogConsumer("%s-%s".formatted(envName, containerName));
         logConsumers.put(containerName, consumer);

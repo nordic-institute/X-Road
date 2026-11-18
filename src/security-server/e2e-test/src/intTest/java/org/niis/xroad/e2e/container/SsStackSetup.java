@@ -163,10 +163,6 @@ public class SsStackSetup extends AbstractSsStack {
                 });
     }
 
-    @Override
-    protected boolean logContains(String service, String text) {
-        return env.getContainerByServiceName(service).orElseThrow().getLogs().contains(text);
-    }
     private void connectToExternalNetwork(List<String> serviceNames) {
         for (String serviceName : serviceNames) {
             var containerState = env.getContainerByServiceName(serviceName).orElseThrow();

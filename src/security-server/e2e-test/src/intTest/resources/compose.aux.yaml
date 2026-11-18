@@ -115,8 +115,7 @@ services:
       --variable ss0_proxy=${PROXY_0}
       --variable ss1_proxy=${PROXY_1}
       --variable is_host=cs
-      --variable country_profile_host=${PROXY_UI_0}
-      --variable country_profile_code=${COUNTRY_PROFILE}
+      --variable ss0_country_profile=${COUNTRY_PROFILE}
       --file-root /hurl-files
       /hurl-src/setup.hurl
       /hurl-src/verify-country-profile.hurl

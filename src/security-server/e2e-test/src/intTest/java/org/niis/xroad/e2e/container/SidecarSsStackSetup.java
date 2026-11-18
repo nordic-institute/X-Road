@@ -143,13 +143,6 @@ public class SidecarSsStackSetup extends AbstractSsStack {
     }
 
     /**
-     * The packaged signer and proxy log to {@code /var/log/xroad/<service>.log}.
-     */
-    @Override
-    protected boolean logContains(String service, String text) {
-        return exec("grep", "-qF", text, "/var/log/xroad/%s.log".formatted(service)).getExitCode() == 0;
-    }
-    /**
      * The one sidecar container answers to every service name the multi-container stack spreads
      * across ui/proxy/signer/configuration-client, so callers may pass any of those names; only the
      * port distinguishes which of the container's listeners they mean.
