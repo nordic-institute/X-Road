@@ -51,7 +51,7 @@ function validate_version {
 # Params: sed substitution ending in its closing delimiter, file. Reports whether the file changed.
 function sed_update_file {
   if [ -z "$(sed -i "${1}w /dev/stdout" "$2")" ]; then
-    echo -e "\e[0;31mWarning:\e[0m file [$2] not updated"
+    echo -e "\e[0;31mError:\e[0m file [$2] not updated"
     return 1
   else
     echo "Successfully updated file [$2]"

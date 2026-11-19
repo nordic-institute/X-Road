@@ -225,7 +225,7 @@ main() {
     fi
     ini_basename=$(basename "$ini_file" .ini)
     if [[ "$ini_basename" == override-securityserver-* ]]; then
-      log_info "Skipping $ini_file — country values come from the country profile"
+      log_warn "Skipping country package settings file $ini_file: country values come from the country profile. Edits made in this file are not migrated; re-enter them as system parameters"
       continue
     fi
     run_migration_step "ini-to-db" --id "ini-to-db-${ini_basename}" \

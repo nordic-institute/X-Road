@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +50,8 @@ import java.util.stream.Collectors;
  * {@code <CC>-sidecar.yaml} file is bundled, that file is loaded instead. The {@code xroad} subtree is flattened
  * to dotted DSL keys with string values; lists render as comma-separated strings. The {@code metadata} block is
  * informational and not loaded. The selector is case-insensitive and validated against {@link #SUPPORTED_COUNTRIES}.
+ * A profile is read, parsed and logged once per process for each (profile code, variant) pair; later calls reuse the
+ * loaded result.
  */
 @Slf4j
 @UtilityClass
@@ -69,6 +72,7 @@ public class CountryProfileLoader {
     private static final String SIDECAR_RESOURCE_SUFFIX = "-sidecar" + RESOURCE_SUFFIX;
     private static final String ROOT_KEY = "xroad";
     private static final YAMLMapper MAPPER = YAMLMapper.builder().build();
+    private static final Map<ProfileKey, ActiveCountryProfile> LOADED = new ConcurrentHashMap<>();
 
     /**
      * @param env environment variables; {@link #PROFILE_ENV_VARIABLE} selects the profile and
@@ -87,10 +91,15 @@ public class CountryProfileLoader {
             throw new IllegalArgumentException("Unknown country profile '%s' in %s; supported profiles: %s"
                     .formatted(code, PROFILE_ENV_VARIABLE, String.join(", ", SUPPORTED_COUNTRIES)));
         }
-        var resource = resourceName(code, isSidecar(env.get(VARIANT_ENV_VARIABLE)));
-        var values = readProfile(code, resource);
-        log.debug("Country profile {} active from {}, {} key(s) applied", code, resource, values.size());
-        return Optional.of(new ActiveCountryProfile(code, Map.copyOf(values)));
+        var sidecar = isSidecar(env.get(VARIANT_ENV_VARIABLE));
+        return Optional.of(LOADED.computeIfAbsent(new ProfileKey(code, sidecar), CountryProfileLoader::load));
+    }
+
+    private static ActiveCountryProfile load(ProfileKey key) {
+        var resource = resourceName(key.code(), key.sidecar());
+        var values = readProfile(key.code(), resource);
+        log.info("Country profile {} loaded from {}, {} key(s) applied", key.code(), resource, values.size());
+        return new ActiveCountryProfile(key.code(), Map.copyOf(values));
     }
 
     private static boolean isSidecar(String value) {
@@ -158,5 +167,8 @@ public class CountryProfileLoader {
                             .formatted(profile, key));
         }
         return node.asString();
+    }
+
+    private record ProfileKey(String code, boolean sidecar) {
     }
 }

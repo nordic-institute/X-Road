@@ -779,7 +779,7 @@ components:
         effective_value:
           type: string
           format: text
-          description: textual representation of the value in effect, resolved from the database, the country profile and the default, in that order; absent when no layer gives a value
+          description: textual representation of the value in effect, resolved from the shared database rows, the country profile and the default, in that order; a Central Server cluster node can have its own row that is not shown here; absent when no layer gives a value
           maxLength: 4096
         value_source:
           $ref: '#/components/schemas/ConfigurablePropertyValueSource'

@@ -1184,7 +1184,7 @@
             "acme-challenge-path": "File system path where ACME HTTP-01 challenge tokens are served.",
             "allow-csr-for-key-with-certificate": "Controls if generating the new CSR is allowed for a key that has an existing certificate.",
             "auth-cert-reg-signature-digest-algorithm-id": "Signature digest algorithm used for generating authentication certificate registration request. Possible values are - SHA-256, SHA-384, SHA-512.",
-            "proxy-server-url": "URL of the Security Server proxy used by the Admin API.",
+            "proxy-server-url": "URL of the Security Server proxy used by the Admin API. When not set: https://localhost:<client HTTPS port>.",
             "proxy-server-connect-timeout": "Milliseconds to wait when establishing a connection to the proxy server.",
             "proxy-server-socket-timeout": "Milliseconds to wait for data from the proxy server socket (0 = no timeout).",
             "proxy-server-enable-connection-reuse": "When enabled, HTTP connections to the proxy server are reused across requests.",

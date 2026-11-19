@@ -27,10 +27,17 @@
 
 package org.niis.xroad.common.properties.config.impl;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +58,46 @@ class CountryProfileLoaderTest {
     private static final String INVALID_DIRECTORY = "country-profile-invalid/";
     private static final String SIDECAR_SUFFIX = "-sidecar.yaml";
     private static final String CONNECTOR_HOST_KEY = "xroad.proxy.client-proxy.connector-host";
+
+    private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    private final Logger logger = (Logger) LoggerFactory.getLogger(CountryProfileLoader.class);
+
+    @BeforeEach
+    void captureLog() {
+        appender.start();
+        logger.addAppender(appender);
+        logger.setLevel(Level.INFO);
+    }
+
+    @AfterEach
+    void releaseLog() {
+        logger.detachAppender(appender);
+        logger.setLevel(null);
+    }
+
+    @Test
+    void aProfileIsLoadedAndLoggedOncePerCodeAndVariant() {
+        var env = env("IS", CountryProfileLoader.SIDECAR_VARIANT);
+
+        var first = CountryProfileLoader.resolve(env).orElseThrow();
+        var second = CountryProfileLoader.resolve(env).orElseThrow();
+
+        assertThat(second).isSameAs(first);
+        assertThat(appender.list)
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .containsExactly("Country profile IS loaded from xroad-config/country-profile/IS.yaml, "
+                        + first.values().size() + " key(s) applied");
+    }
+
+    @Test
+    void differentVariantsOfOneProfileAreLoadedSeparately() {
+        var base = CountryProfileLoader.resolve(env("EE", null)).orElseThrow();
+        var sidecar = CountryProfileLoader.resolve(env("EE", CountryProfileLoader.SIDECAR_VARIANT)).orElseThrow();
+
+        assertThat(sidecar).isNotSameAs(base);
+        assertThat(base.values()).containsKey(CONNECTOR_HOST_KEY);
+        assertThat(sidecar.values()).doesNotContainKey(CONNECTOR_HOST_KEY);
+    }
 
     @Test
     void listsRenderAsCommaSeparatedStrings() {
