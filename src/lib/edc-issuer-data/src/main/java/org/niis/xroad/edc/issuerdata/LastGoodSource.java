@@ -61,9 +61,10 @@ import java.util.function.Supplier;
  * <p>
  * Every successful download is also written to the {@link IssuerDataStore}. The store is read when a refresh fails
  * and when a key has no copy in memory and its refresh is not finished within the refresh wait: the later of the
- * memory copy and the stored copy is then the candidate. A stored copy is read again through
- * {@link IssuerDataFetcher#parse} like a fresh download. Store calls run only on the executor, never on the thread of
- * a check, so they never join a transaction of the caller.
+ * memory copy and the stored copy is then the candidate. Data is verified when it is downloaded; a stored copy is read
+ * back through {@link IssuerDataFetcher#parseStored} as stored. A stored copy with a non-retryable read-back failure is
+ * ignored until the next successful download. Store calls run only on the executor, never on the thread of a check, so they never
+ * join a transaction of the caller.
  * <p>
  * Memory holds at most a fixed number of keys, and a key with no check for the idle expiry is dropped. The idle expiry
  * does not depend on the cache time, so a cache time of zero still keeps the copy and the retry delay of a key in
@@ -314,7 +315,7 @@ public class LastGoodSource<P> {
         if (state.copy() != null && !stored.fetchedAt().isAfter(state.copy().fetchedAt())) {
             return;
         }
-        var parsed = attempt(key, () -> fetcher.parse(key, stored.payload()));
+        var parsed = attempt(key, () -> fetcher.parseStored(key, stored.payload()));
         if (parsed.failed()) {
             monitor.warning("Stored issuer data of '%s' is not usable: %s".formatted(key, parsed.getFailureDetail()));
             if (!parsed.isRetryable()) {

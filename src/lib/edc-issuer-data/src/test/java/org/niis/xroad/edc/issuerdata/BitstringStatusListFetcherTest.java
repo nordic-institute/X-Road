@@ -31,6 +31,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
@@ -64,5 +66,47 @@ class BitstringStatusListFetcherTest {
         assertThat(result.failed()).isTrue();
         assertThat(result.isRetryable()).isTrue();
         assertThat(result.getFailureMessages()).isNotEmpty().noneMatch(message -> message.contains(FakeIssuer.ERROR_BODY));
+    }
+
+    @Test
+    void shouldRejectSignedListWithKeyMissingFromDidDocumentOnParseAndAcceptItOnParseStored() {
+        var payload = fetcher.download(issuer.statusListUrl()).getContent();
+        issuer.publishDidDocumentWithOnlyKey("key-2");
+        assertThat(fetcher.parse(issuer.statusListUrl(), payload).failed()).isTrue();
+        var stored = fetcher.parseStored(issuer.statusListUrl(), payload);
+        assertThat(stored.succeeded()).isTrue();
+        assertThat(stored.getContent().getCredentialSubject()).isNotEmpty();
+    }
+
+    @Test
+    void shouldReadStoredListWhileIssuerIsDown() {
+        var payload = fetcher.download(issuer.statusListUrl()).getContent();
+        issuer.down(true);
+        assertThat(fetcher.parseStored(issuer.statusListUrl(), payload).succeeded()).isTrue();
+    }
+
+    @Test
+    void shouldRejectStoredPayloadThatIsNotJws() {
+        assertThat(fetcher.parseStored(issuer.statusListUrl(), "not-a-jws").failed()).isTrue();
+    }
+
+    @Test
+    void shouldRejectStoredListWithoutCredentialSubject() {
+        var vc = """
+                {"@context": ["https://www.w3.org/ns/credentials/v2"],
+                 "type": ["VerifiableCredential", "BitstringStatusListCredential"],
+                 "issuer": "%s"}
+                """.formatted(issuer.did());
+        var payload = unsignedJws("{\"alg\":\"ES256\",\"kid\":\"%s#key-1\"}".formatted(issuer.did()),
+                "{\"vc\":%s}".formatted(vc));
+        var result = fetcher.parseStored(issuer.statusListUrl(), payload);
+        assertThat(result.failed()).isTrue();
+    }
+
+    private static String unsignedJws(String header, String claims) {
+        var encoder = Base64.getUrlEncoder().withoutPadding();
+        return encoder.encodeToString(header.getBytes(StandardCharsets.UTF_8)) + "."
+                + encoder.encodeToString(claims.getBytes(StandardCharsets.UTF_8)) + "."
+                + encoder.encodeToString("signature".getBytes(StandardCharsets.UTF_8));
     }
 }

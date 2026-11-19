@@ -33,7 +33,7 @@ import java.time.Instant;
  * The last good download of one issuer document.
  *
  * @param payload    the downloaded data as received
- * @param parsed     the verified, parsed form of {@code payload}
+ * @param parsed     the parsed form of {@code payload}, verified at download and read back as stored
  * @param fetchedAt  when the data was downloaded
  * @param validUntil the latest time the copy may be served when the issuer is down
  * @param <P>        the parsed form of the data

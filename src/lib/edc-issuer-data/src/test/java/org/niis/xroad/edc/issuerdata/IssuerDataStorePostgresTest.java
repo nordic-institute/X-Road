@@ -292,7 +292,25 @@ class IssuerDataStorePostgresTest {
     }
 
     @Test
-    void shouldNotServeStatusListWithoutDidDocumentCopyAndReplaceItOnceIssuerAnswers() throws SQLException {
+    void shouldServeStatusListUntilItsOwnDeadlineAfterRestartDuringFullOutageWithDidDocumentPastItsDeadline() {
+        try (var issuer = new FakeIssuer()) {
+            issuer.publishStatusList(Set.of(), null);
+            var statusListUrl = issuer.statusListUrl();
+            assertThat(instanceOf(issuer).statusList().lookup(statusListUrl).succeeded()).isTrue();
+            issuer.down(true);
+            var restarted = instanceOf(issuer);
+            clock.set(START.plus(DID_DEADLINE));
+            var did = restarted.did().lookup(issuer.did());
+            assertThat(did.failed()).isTrue();
+            assertThat(did.isRetryable()).isTrue();
+            assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
+            clock.set(START.plus(CACHE_TIME).plus(MAXIMUM_AGE).minusSeconds(4));
+            assertThat(restarted.statusList().lookup(statusListUrl).failed()).isTrue();
+        }
+    }
+
+    @Test
+    void shouldServeStoredStatusListWithoutDidDocumentCopyAfterRestartAndReplaceBothRowsOnceIssuerAnswers() throws SQLException {
         try (var issuer = new FakeIssuer()) {
             issuer.publishStatusList(Set.of(), null);
             var statusListUrl = issuer.statusListUrl();
@@ -302,7 +320,7 @@ class IssuerDataStorePostgresTest {
             var restarted = instanceOf(issuer);
 
             clock.set(START.plusSeconds(10));
-            assertThat(restarted.statusList().lookup(statusListUrl).failed()).isTrue();
+            assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
 
             issuer.down(false);
             clock.set(START.plus(CACHE_TIME).plus(LastGoodSource.MAXIMUM_BACKOFF));

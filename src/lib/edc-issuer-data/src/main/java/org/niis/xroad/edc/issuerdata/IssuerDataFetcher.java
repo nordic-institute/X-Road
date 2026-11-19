@@ -50,9 +50,19 @@ public interface IssuerDataFetcher<P> {
     Result<String> download(String key);
 
     /**
-     * Reads and verifies downloaded data.
+     * Reads downloaded data and verifies it, including its signature when it has one. Verification happens only here,
+     * at download.
      */
     Result<P> parse(String key, String payload);
+
+    /**
+     * Reads data that was verified when it was downloaded and has been stored since. The default reads it like
+     * {@link #parse}; a fetcher whose data has a signature overrides it to read the data without checking the
+     * signature again.
+     */
+    default Result<P> parseStored(String key, String payload) {
+        return parse(key, payload);
+    }
 
     /**
      * @return the time the data itself says it stops being valid, when it says so.

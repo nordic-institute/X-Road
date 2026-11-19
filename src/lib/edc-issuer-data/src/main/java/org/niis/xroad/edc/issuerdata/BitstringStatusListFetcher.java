@@ -34,6 +34,7 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.http.spi.EdcHttpClientException;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListCredential;
+import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import tools.jackson.core.JacksonException;
@@ -102,8 +103,18 @@ public class BitstringStatusListFetcher implements IssuerDataFetcher<BitstringSt
     @Override
     @Nonnull
     public Result<BitstringStatusListCredential> parse(String key, String payload) {
+        return read(key, payload, didPublicKeyResolver);
+    }
+
+    @Override
+    @Nonnull
+    public Result<BitstringStatusListCredential> parseStored(String key, String payload) {
+        return read(key, payload, TokenValidationService.NO_SIGNATURE_VERIFICATION);
+    }
+
+    private Result<BitstringStatusListCredential> read(String key, String payload, PublicKeyResolver keys) {
         try {
-            var credential = JSON_CONTENT_TYPE.equals(acceptHeader) ? readJson(payload) : readJwt(payload);
+            var credential = JSON_CONTENT_TYPE.equals(acceptHeader) ? readJson(payload) : readJwt(payload, keys);
             if (credential.failed()) {
                 return credential;
             }
@@ -140,8 +151,8 @@ public class BitstringStatusListFetcher implements IssuerDataFetcher<BitstringSt
         return Result.success(mapper.readValue(payload, BitstringStatusListCredential.class));
     }
 
-    private Result<BitstringStatusListCredential> readJwt(String payload) {
-        var validated = tokenValidationService.validate(payload, didPublicKeyResolver, List.of());
+    private Result<BitstringStatusListCredential> readJwt(String payload, PublicKeyResolver keys) {
+        var validated = tokenValidationService.validate(payload, keys, List.of());
         if (validated.failed()) {
             return validated.mapFailure();
         }
