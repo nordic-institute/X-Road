@@ -364,6 +364,24 @@ describe('CS Issuer Service tab — Initialize button enabled state (Browser Mod
     await expect.element(page.getByTestId('issuer-service-identity-row').getByText('did:web:issuer.example.org')).toBeVisible();
     await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeDisabled();
   });
+
+  it('shows the bound DID once bound, in place of the DID that would bind', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [
+        statusHandler({
+          ...READY_TO_INITIALIZE,
+          bound: true,
+          can_sign: true,
+          status: 'READY',
+          bound_did: 'did:web:other-issuer.example.org',
+        }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-identity-row').getByText('did:web:other-issuer.example.org')).toBeVisible();
+    await expect.poll(() => page.getByTestId('issuer-service-identity-row').getByText('did:web:issuer.example.org').query()).toBeNull();
+  });
 });
 
 describe('CS Issuer Service tab — Initialize confirmation (Browser Mode)', () => {

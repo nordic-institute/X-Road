@@ -580,13 +580,14 @@ curl --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:
     "certificate_ready": true,
     "run_in_progress": false,
     "did_to_bind": "did:web:issuer.example.org%3A6183:issuer",
+    "bound_did": null,
     "can_sign": false,
     "can_sign_cause": "NO_ACTIVE_KEY",
     "status": "READY_TO_INITIALIZE"
 }
 ```
 
-`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run is in progress. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `status` summarizes these into one value:
+`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run is in progress. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `bound_did` is the identifier the Issuer Service did bind; it is `null` until `bound` is `true`. `status` summarizes these into one value:
 
 - `NOT_CONFIGURED` — the host is not set yet.
 - `WAITING_FOR_CERTIFICATE` — the host is set, but the connector TLS certificate is not yet present, valid and unexpired.

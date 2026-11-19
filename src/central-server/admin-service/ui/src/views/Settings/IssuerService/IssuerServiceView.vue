@@ -87,8 +87,8 @@
             <template #value>
               <XrdStatusChip
                 :type="state?.bound ? 'success' : 'error'"
-                :text="state?.did_to_bind ? '' : 'issuerService.identityNotSet'"
-                :translated-text="state?.did_to_bind ?? ''"
+                :text="identityDid ? '' : 'issuerService.identityNotSet'"
+                :translated-text="identityDid ?? ''"
               />
             </template>
           </XrdCardTableRow>
@@ -106,7 +106,7 @@
       data-test="issuer-service-initialize-confirm-dialog"
       title="issuerService.initializeConfirmTitle"
       text="issuerService.initializeConfirmText"
-      :data="{ did: state?.did_to_bind ?? '' }"
+      :data="{ did: identityDid ?? '' }"
       accept-button-text="issuerService.initialize"
       @cancel="showInitializeConfirm = false"
       @accept="confirmInitialize"
@@ -164,6 +164,8 @@ const canInitialize = computed(() => hasPermission(Permissions.INITIALIZE_ISSUER
 const initializeEnabled = computed(
   () => !state.value?.bound && !!state.value?.host_set && !!state.value?.certificate_ready && !state.value?.run_in_progress,
 );
+
+const identityDid = computed(() => state.value?.bound_did ?? state.value?.did_to_bind);
 
 const canSignText = computed(() => {
   if (state.value?.can_sign) {
