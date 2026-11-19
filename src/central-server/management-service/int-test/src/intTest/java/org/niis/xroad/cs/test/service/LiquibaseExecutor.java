@@ -86,6 +86,8 @@ public class LiquibaseExecutor {
         String password = containerDatabaseProvider.getAdminPassword();
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password)) {
+            ensureDsIssuerServiceRoleExists(connection);
+
             // Drop all tables in the schema first
             dropAllTablesInSchema(connection);
             long dropTime = stopWatch.getTime(TimeUnit.MILLISECONDS);
@@ -115,6 +117,20 @@ public class LiquibaseExecutor {
                     totalTime, dropTime, liquibaseTime);
         } catch (SQLException e) {
             throw new DatabaseException(e);
+        }
+    }
+
+    @SneakyThrows
+    private void ensureDsIssuerServiceRoleExists(Connection connection) {
+        try (var stmt = connection.createStatement()) {
+            stmt.execute("""
+                    DO $$
+                    BEGIN
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'ds-issuer-service') THEN
+                        CREATE ROLE "ds-issuer-service";
+                      END IF;
+                    END $$;
+                    """);
         }
     }
 

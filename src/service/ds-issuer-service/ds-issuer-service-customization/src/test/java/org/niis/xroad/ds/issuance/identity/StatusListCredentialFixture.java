@@ -24,18 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.dataspace;
+package org.niis.xroad.ds.issuance.identity;
 
 import lombok.experimental.UtilityClass;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredentialContainer;
+import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
+
+import java.time.Instant;
 
 /**
- * Builds the issuer's {@code did:web} identifier from its published host and DID port. The provisioning run
- * and the derived status both need the same identifier, so this is its one source.
+ * Builds the minimal {@link VerifiableCredentialResource} the statuslist publisher needs: only the credential
+ * ID the published URL is built from matters to these tests.
  */
 @UtilityClass
-class IssuerDidFormat {
+class StatusListCredentialFixture {
 
-    String didFor(String host, int didPort) {
-        return "did:web:" + host + "%3A" + didPort + ":issuer";
+    static VerifiableCredentialResource statusListCredential(String credentialId) {
+        var credential = VerifiableCredential.Builder.newInstance()
+                .id(credentialId)
+                .type("any")
+                .issuer(new Issuer("any"))
+                .credentialSubject(new CredentialSubject())
+                .issuanceDate(Instant.now())
+                .build();
+        return VerifiableCredentialResource.Builder.newStatusList()
+                .issuerId("any")
+                .holderId("any")
+                .credential(new VerifiableCredentialContainer("any", CredentialFormat.VC1_0_JWT, credential))
+                .build();
     }
 }
