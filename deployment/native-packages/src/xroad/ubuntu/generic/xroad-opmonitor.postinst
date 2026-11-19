@@ -1,6 +1,12 @@
 #!/bin/bash
 . /usr/share/debconf/confmodule
 
+abort() {
+  local rc=$?
+  echo "xroad-opmonitor: FATAL: $*" >&2
+  exit $((rc == 0 ? 1 : rc))
+}
+
 configure() {
   chown xroad:xroad /etc/xroad/backup.d/??_xroad-opmonitor
   chmod 0440 /etc/xroad/backup.d/??_xroad-opmonitor
