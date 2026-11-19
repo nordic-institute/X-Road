@@ -26,7 +26,7 @@
  */
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { page } from 'vitest/browser';
-import { HttpResponse } from 'msw';
+import { HttpResponse, type RequestHandler } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
 import { submitDialogForm } from '../setup/dialog-helpers';
@@ -314,6 +314,7 @@ describe('CS Issuer Service tab — Initialize button enabled state (Browser Mod
       msw: [statusHandler({ ...READY_TO_INITIALIZE, host: null, host_set: false, did_to_bind: undefined })],
     });
 
+    await expect.element(page.getByTestId('issuer-service-host-row').getByText('Not set')).toBeVisible();
     await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeDisabled();
   });
 
@@ -323,6 +324,7 @@ describe('CS Issuer Service tab — Initialize button enabled state (Browser Mod
       msw: [statusHandler({ ...READY_TO_INITIALIZE, certificate_ready: false })],
     });
 
+    await expect.element(page.getByTestId('issuer-service-certificate-row').getByText('Not ready')).toBeVisible();
     await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeDisabled();
   });
 
@@ -464,7 +466,7 @@ describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
     return { ...READY_TO_INITIALIZE, bound: true, can_sign: true, run_in_progress: false, status: 'READY' };
   }
 
-  async function renderAndStartRun() {
+  async function renderAndStartRun(extraHandlers: RequestHandler[] = []) {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     let reads = 0;
     let phase: RunPhase = 'ready';
@@ -480,6 +482,7 @@ describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
           phase = 'running';
           return new HttpResponse(null, { status: 202 });
         }),
+        ...extraHandlers,
       ],
     });
 
@@ -524,5 +527,159 @@ describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
 
     await vi.advanceTimersByTimeAsync(60_000);
     expect(reads()).toBe(readsAtUnmount);
+  });
+
+  it('checks alerts again once the run ends', async () => {
+    let alertReads = 0;
+    const { end } = await renderAndStartRun([
+      specHttp.untyped.get('/api/v1/notifications/alerts', () => {
+        alertReads++;
+        return HttpResponse.json([]);
+      }),
+    ]);
+    await expect.poll(() => alertReads).toBeGreaterThanOrEqual(1);
+    const alertReadsWhileRunning = alertReads;
+
+    end();
+    await vi.advanceTimersByTimeAsync(5_000);
+    await expect.poll(() => page.getByTestId('issuer-service-run-in-progress').query()).toBeNull();
+
+    expect(alertReads).toBeGreaterThan(alertReadsWhileRunning);
+  });
+});
+
+describe('CS Issuer Service tab — initialize refusal re-reads status (Browser Mode)', () => {
+  it('re-reads the status after a refused initialize', async () => {
+    let bound = false;
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: INITIALIZE_PERMISSIONS,
+      msw: [
+        specHttp.untyped.get('/api/v1/issuer-service', () =>
+          HttpResponse.json(bound ? { ...READY_TO_INITIALIZE, bound: true, can_sign: true, status: 'READY' } : READY_TO_INITIALIZE),
+        ),
+        specHttp.untyped.post('/api/v1/issuer-service/initialize', () => {
+          bound = true;
+          return HttpResponse.json({ status: 409, error: { code: 'issuer_service_already_running' } }, { status: 409 });
+        }),
+      ],
+    });
+
+    await page.getByTestId('issuer-service-initialize-button').click();
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.element(page.getByTestId('contextual-alert')).toMatchTextContent('Initialization is already running');
+    await expect.element(page.getByTestId('issuer-service-initialize-button')).toBeDisabled();
+  });
+});
+
+describe('CS Issuer Service tab — host save refusal (Browser Mode)', () => {
+  it('closes the dialog and re-reads the status when the host save is refused', async () => {
+    let bound = false;
+
+    function currentStatus() {
+      return bound
+        ? {
+            host: 'issuer.example.org',
+            bound: true,
+            host_set: true,
+            certificate_ready: false,
+            run_in_progress: false,
+            can_sign: false,
+            status: 'WAITING_FOR_CERTIFICATE',
+            did_to_bind: 'did:web:issuer.example.org',
+          }
+        : { host: null, bound: false, host_set: false, certificate_ready: false, run_in_progress: false, can_sign: false, status: 'NOT_CONFIGURED' };
+    }
+
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: EDIT_HOST_PERMISSIONS,
+      msw: [
+        specHttp.untyped.get('/api/v1/issuer-service', () => HttpResponse.json(currentStatus())),
+        specHttp.untyped.put('/api/v1/issuer-service/host', () => {
+          bound = true;
+          return HttpResponse.json({ status: 409, error: { code: 'issuer_service_already_bound' } }, { status: 409 });
+        }),
+      ],
+    });
+
+    await page.getByTestId('issuer-service-host-edit-button').click();
+    await page.getByTestId('issuer-service-host-edit-field').getByRole('textbox').fill('issuer.example.org');
+    await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
+    submitDialogForm();
+
+    await expect.element(page.getByTestId('issuer-service-host-edit-dialog')).not.toBeInTheDocument();
+    await expect.element(page.getByTestId('issuer-service-identity-row').getByText('did:web:issuer.example.org')).toBeVisible();
+  });
+
+  it('checks alerts again once a host save succeeds', async () => {
+    let alertReads = 0;
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: EDIT_HOST_PERMISSIONS,
+      msw: [
+        statusHandler({}),
+        specHttp.put('/issuer-service/host', ({ response }) =>
+          response(200).json({
+            host: 'issuer.example.org',
+            bound: false,
+            host_set: true,
+            certificate_ready: false,
+            run_in_progress: false,
+            can_sign: false,
+            status: 'WAITING_FOR_CERTIFICATE',
+          }),
+        ),
+        specHttp.untyped.get('/api/v1/notifications/alerts', () => {
+          alertReads++;
+          return HttpResponse.json([]);
+        }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-host-edit-button')).toBeVisible();
+    await expect.poll(() => alertReads).toBeGreaterThanOrEqual(1);
+    const alertReadsBeforeSave = alertReads;
+
+    await page.getByTestId('issuer-service-host-edit-button').click();
+    await page.getByTestId('issuer-service-host-edit-field').getByRole('textbox').fill('issuer.example.org');
+    await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
+    submitDialogForm();
+
+    await expect.element(page.getByTestId('issuer-service-host-edit-dialog')).not.toBeInTheDocument();
+    await expect.poll(() => alertReads).toBeGreaterThan(alertReadsBeforeSave);
+  });
+});
+
+describe('CS Issuer Service tab — failed first read (Browser Mode)', () => {
+  it('shows a retry action after a failed first read and renders the table once the retry succeeds', async () => {
+    let shouldFail = true;
+
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: [
+        specHttp.untyped.get('/api/v1/issuer-service', () => {
+          if (shouldFail) {
+            return HttpResponse.json({ status: 500, error: { code: 'internal_error' } }, { status: 500 });
+          }
+          return HttpResponse.json({
+            host: null,
+            bound: false,
+            host_set: false,
+            certificate_ready: false,
+            run_in_progress: false,
+            can_sign: false,
+            status: 'NOT_CONFIGURED',
+          });
+        }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-retry-button')).toBeVisible();
+    await expect.poll(() => page.getByTestId('issuer-service-host-row').query()).toBeNull();
+
+    shouldFail = false;
+    await page.getByTestId('issuer-service-retry-button').click();
+
+    await expect.element(page.getByTestId('issuer-service-host-row').getByText('Not set')).toBeVisible();
+    await expect.poll(() => page.getByTestId('issuer-service-retry-button').query()).toBeNull();
   });
 });

@@ -26,6 +26,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
+import { HttpResponse } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
 import { worker } from '../setup/browser-setup';
@@ -227,6 +228,58 @@ describe('0100 — CS Initialization — leaves the view after a successful init
     await page.getByTestId('submit-button').click();
 
     await expect.element(page.getByTestId('members-table')).toBeVisible();
+    await expect.element(page.getByTestId('central-server-initialization-page')).not.toBeInTheDocument();
+    expect(router.currentRoute.value.name).toBe(RouteName.Members);
+  });
+});
+
+describe('0100 — CS Initialization — leaves the view after a successful init even when the status re-read fails (Browser Mode)', () => {
+  it('still lands on Members when the POST succeeds but the status GET fails', async () => {
+    let initialized = false;
+
+    worker.use(
+      specHttp.untyped.get('/api/v1/system/status', () =>
+        initialized
+          ? HttpResponse.json({ status: 500, error: { code: 'internal_error' } }, { status: 500 })
+          : HttpResponse.json({
+              initialization_status: {
+                instance_identifier: '',
+                central_server_address: '',
+                software_token_init_status: TokenInitStatus.NOT_INITIALIZED,
+              },
+              high_availability_status: { is_ha_configured: false },
+            }),
+      ),
+      specHttp.post('/initialization', ({ response }) => {
+        initialized = true;
+        return response(201).empty();
+      }),
+    );
+
+    const { router } = await renderRoute('/init', {
+      withGuard: true,
+      permissions: [Permissions.INIT_CONFIG, Permissions.VIEW_MEMBERS],
+      systemStatus: {
+        systemStatus: {
+          initialization_status: {
+            instance_identifier: '',
+            central_server_address: '',
+            software_token_init_status: TokenInitStatus.NOT_INITIALIZED,
+          },
+          high_availability_status: { is_ha_configured: false, node_name: undefined },
+        },
+      },
+    });
+
+    await expect.element(page.getByTestId('instance-identifier--input').getByRole('textbox')).toHaveFocus();
+
+    await page.getByTestId('instance-identifier--input').getByRole('textbox').fill('CS-E2E');
+    await page.getByTestId('address--input').getByRole('textbox').fill('valid.example.org');
+    await page.getByTestId('pin--input').getByRole('textbox').fill('Valid_Pin_11');
+    await page.getByTestId('confirm-pin--input').getByRole('textbox').fill('Valid_Pin_11');
+
+    await page.getByTestId('submit-button').click();
+
     await expect.element(page.getByTestId('central-server-initialization-page')).not.toBeInTheDocument();
     expect(router.currentRoute.value.name).toBe(RouteName.Members);
   });

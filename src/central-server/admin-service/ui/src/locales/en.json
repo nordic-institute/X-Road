@@ -377,6 +377,8 @@
     "initializeConfirmText": "This will bind {did} as the issuer identity. The host and the identity cannot change afterwards.",
     "initializeConfirmTitle": "Initialize the Issuer Service",
     "initializeStarted": "Issuer Service initialization started",
+    "loadFailed": "Could not load the Issuer Service status",
+    "retry": "Retry",
     "runInProgress": "Initialization in progress",
     "service": "Issuer Service",
     "serviceCanSign": "Can sign",

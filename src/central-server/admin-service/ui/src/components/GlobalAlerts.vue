@@ -69,17 +69,10 @@
             />
           </template>
           <XrdBtn
-            v-if="isIssuerServiceSetupRequired(item) && canOpenIssuerService"
+            v-if="isIssuerServiceAlert(item) && canOpenIssuerService"
             variant="text"
             prepend-icon="arrow_forward"
-            text="issuerService.setUp"
-            @click="router.push({ name: RouteName.IssuerService })"
-          />
-          <XrdBtn
-            v-else-if="isIssuerServiceKeyAlert(item) && canOpenIssuerService"
-            variant="text"
-            prepend-icon="arrow_forward"
-            text="issuerService.viewStatus"
+            :text="issuerServiceAlertLabel(item)"
             @click="router.push({ name: RouteName.IssuerService })"
           />
         </template>
@@ -138,6 +131,14 @@ function isIssuerServiceSetupRequired(item: ErrorCoded) {
 
 function isIssuerServiceKeyAlert(item: ErrorCoded) {
   return item.errorCode === 'status.issuer_service.key_missing' || item.errorCode === 'status.issuer_service.key_missing_check_failed';
+}
+
+function isIssuerServiceAlert(item: ErrorCoded) {
+  return isIssuerServiceSetupRequired(item) || isIssuerServiceKeyAlert(item);
+}
+
+function issuerServiceAlertLabel(item: ErrorCoded) {
+  return isIssuerServiceSetupRequired(item) ? 'issuerService.setUp' : 'issuerService.viewStatus';
 }
 
 function navigate(name: RouteName, action: string) {

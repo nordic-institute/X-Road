@@ -56,9 +56,7 @@
 
 <script lang="ts" setup>
 import { useForm } from 'vee-validate';
-import { XrdSimpleDialog } from '@niis/shared-ui';
-import type { DialogSaveHandler } from '@niis/shared-ui';
-import { useNotifications } from '@niis/shared-ui';
+import { getErrorInfo, useNotifications, XrdSimpleDialog, type DialogSaveHandler } from '@niis/shared-ui';
 import { ref } from 'vue';
 
 import { useIssuerService } from '@/store/modules/issuer-service';
@@ -89,11 +87,17 @@ function onSave(evt: Event, handler: DialogSaveHandler) {
   return handleSubmit((values) => {
     loading.value = true;
     return setHost(values.host)
-      .then(() => {
+      .then((result) => {
         addSuccessMessage('issuerService.hostSaveSuccess');
-        emit('save');
+        emit('save', result);
       })
-      .catch((error) => handler.addError(error))
+      .catch((error) => {
+        if (getErrorInfo(error).status === 409) {
+          emit('save');
+        } else {
+          handler.addError(error);
+        }
+      })
       .finally(() => (loading.value = false));
   })(evt);
 }

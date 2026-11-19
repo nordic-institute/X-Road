@@ -102,7 +102,16 @@ export const useSystem = defineStore('system', {
 
       return api.post('/initialization', formData).then(() => {
         notifications.setFlag(KEY_CONTINUE_INIT, true);
-        return this.fetchSystemStatus();
+        return this.fetchSystemStatus().catch(() => {
+          this.systemStatus = {
+            ...this.systemStatus,
+            initialization_status: {
+              instance_identifier: formData.instance_identifier,
+              central_server_address: formData.central_server_address,
+              software_token_init_status: TokenInitStatus.INITIALIZED,
+            },
+          };
+        });
       });
     },
   },

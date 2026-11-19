@@ -41,58 +41,64 @@
             @click="showInitializeConfirm = true"
           />
         </template>
-        <v-alert v-if="state?.run_in_progress" data-test="issuer-service-run-in-progress" type="info" variant="tonal" class="mb-4 mx-4">
-          {{ $t('issuerService.runInProgress') }}
+        <v-alert v-if="loadFailed" data-test="issuer-service-retry-alert" type="error" variant="tonal" class="mb-4 mx-4">
+          {{ $t('issuerService.loadFailed') }}
+          <XrdBtn data-test="issuer-service-retry-button" variant="text" text="issuerService.retry" @click="loadStatus" />
         </v-alert>
-        <XrdCardTable>
-          <XrdCardTableRow data-test="issuer-service-host-row" label="issuerService.host">
-            <template #value>
-              <XrdStatusChip
-                :type="state?.host_set ? 'success' : 'error'"
-                :text="state?.host_set ? '' : 'issuerService.hostNotSet'"
-                :translated-text="state?.host ?? ''"
+        <template v-else-if="state">
+          <v-alert v-if="state.run_in_progress" data-test="issuer-service-run-in-progress" type="info" variant="tonal" class="mb-4 mx-4">
+            {{ $t('issuerService.runInProgress') }}
+          </v-alert>
+          <XrdCardTable>
+            <XrdCardTableRow data-test="issuer-service-host-row" label="issuerService.host">
+              <template #value>
+                <XrdStatusChip
+                  :type="state.host_set ? 'success' : 'error'"
+                  :text="state.host_set ? '' : 'issuerService.hostNotSet'"
+                  :translated-text="state.host ?? ''"
+                />
+              </template>
+              <XrdBtn
+                v-if="canEditHost"
+                data-test="issuer-service-host-edit-button"
+                variant="text"
+                color="tertiary"
+                text="action.edit"
+                @click="showEditHostDialog = true"
               />
-            </template>
-            <XrdBtn
-              v-if="canEditHost"
-              data-test="issuer-service-host-edit-button"
-              variant="text"
-              color="tertiary"
-              text="action.edit"
-              @click="showEditHostDialog = true"
-            />
-          </XrdCardTableRow>
-          <XrdCardTableRow data-test="issuer-service-certificate-row" label="issuerService.certificate">
-            <template #value>
-              <XrdStatusChip
-                :type="state?.certificate_ready ? 'success' : 'error'"
-                :text="state?.certificate_ready ? 'issuerService.certificateReady' : 'issuerService.certificateNotReady'"
+            </XrdCardTableRow>
+            <XrdCardTableRow data-test="issuer-service-certificate-row" label="issuerService.certificate">
+              <template #value>
+                <XrdStatusChip
+                  :type="state.certificate_ready ? 'success' : 'error'"
+                  :text="state.certificate_ready ? 'issuerService.certificateReady' : 'issuerService.certificateNotReady'"
+                />
+              </template>
+              <XrdBtn
+                v-if="hasPermissionToViewDsTlsCertificate"
+                data-test="issuer-service-certificate-link"
+                variant="text"
+                color="tertiary"
+                text="issuerService.viewCertificate"
+                @click="router.push({ name: RouteName.DsTlsCertificate })"
               />
-            </template>
-            <XrdBtn
-              v-if="hasPermissionToViewDsTlsCertificate"
-              data-test="issuer-service-certificate-link"
-              variant="text"
-              color="tertiary"
-              text="issuerService.viewCertificate"
-              @click="router.push({ name: RouteName.DsTlsCertificate })"
-            />
-          </XrdCardTableRow>
-          <XrdCardTableRow data-test="issuer-service-can-sign-row" label="issuerService.service">
-            <template #value>
-              <XrdStatusChip :type="state?.can_sign ? 'success' : 'error'" :text="canSignText" />
-            </template>
-          </XrdCardTableRow>
-          <XrdCardTableRow data-test="issuer-service-identity-row" label="issuerService.identity">
-            <template #value>
-              <XrdStatusChip
-                :type="state?.bound ? 'success' : 'error'"
-                :text="identityDid ? '' : 'issuerService.identityNotSet'"
-                :translated-text="identityDid ?? ''"
-              />
-            </template>
-          </XrdCardTableRow>
-        </XrdCardTable>
+            </XrdCardTableRow>
+            <XrdCardTableRow data-test="issuer-service-can-sign-row" label="issuerService.service">
+              <template #value>
+                <XrdStatusChip :type="state.can_sign ? 'success' : 'error'" :text="canSignText" />
+              </template>
+            </XrdCardTableRow>
+            <XrdCardTableRow data-test="issuer-service-identity-row" label="issuerService.identity">
+              <template #value>
+                <XrdStatusChip
+                  :type="state.bound ? 'success' : 'error'"
+                  :text="identityDid ? '' : 'issuerService.identityNotSet'"
+                  :translated-text="identityDid ?? ''"
+                />
+              </template>
+            </XrdCardTableRow>
+          </XrdCardTable>
+        </template>
       </XrdCard>
     </XrdSubView>
     <EditIssuerServiceHostDialog
@@ -133,6 +139,7 @@ import EditIssuerServiceHostDialog from '@/views/Settings/IssuerService/EditIssu
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useIssuerService } from '@/store/modules/issuer-service';
+import { useAlerts } from '@/store/modules/alerts';
 import { IssuerServiceState } from '@/openapi-types';
 import { CAN_SIGN_CAUSE_TEXT } from '@/util/can-sign-cause-text';
 import { usePolling } from '@/composables/use-polling';
@@ -142,10 +149,12 @@ const POLL_INTERVAL_MS = 5_000;
 const router = useRouter();
 const { hasPermission } = useUser();
 const { getStatus, initialize } = useIssuerService();
+const { checkAlerts } = useAlerts();
 const { addError, addSuccessMessage } = useNotifications();
 
 const state = ref<IssuerServiceState>();
 const loading = ref(true);
+const loadFailed = ref(false);
 const showEditHostDialog = ref(false);
 const showInitializeConfirm = ref(false);
 const initializing = ref(false);
@@ -154,8 +163,20 @@ const polling = usePolling<IssuerServiceState>({
   intervalMs: POLL_INTERVAL_MS,
   request: getStatus,
   shouldContinue: (result) => result.run_in_progress,
-  onResult: (result) => (state.value = result),
-  onError: (error) => addError(error),
+  onResult: (result) => {
+    const wasRunning = state.value?.run_in_progress;
+    state.value = result;
+    loadFailed.value = false;
+    if (wasRunning && !result.run_in_progress) {
+      checkAlerts();
+    }
+  },
+  onError: (error) => {
+    addError(error);
+    if (!state.value) {
+      loadFailed.value = true;
+    }
+  },
 });
 
 const hasPermissionToViewDsTlsCertificate = computed(() => hasPermission(Permissions.VIEW_DS_TLS_CERT));
@@ -177,12 +198,18 @@ const canSignText = computed(() => {
 
 function loadStatus() {
   loading.value = true;
+  loadFailed.value = false;
   return polling.refresh().finally(() => (loading.value = false));
 }
 
-function onHostSaved() {
+function onHostSaved(result?: IssuerServiceState) {
   showEditHostDialog.value = false;
-  loadStatus();
+  if (result) {
+    state.value = result;
+    checkAlerts();
+  } else {
+    loadStatus();
+  }
 }
 
 function confirmInitialize() {
@@ -193,7 +220,10 @@ function confirmInitialize() {
       addSuccessMessage('issuerService.initializeStarted');
       return polling.refresh();
     })
-    .catch((error) => addError(error))
+    .catch((error) => {
+      addError(error);
+      return polling.refresh();
+    })
     .finally(() => (initializing.value = false));
 }
 
