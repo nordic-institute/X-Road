@@ -117,6 +117,21 @@ public class OpMonitorFileIdentityContainerSetup extends BaseComposeSetup {
     }
 
     /**
+     * Returns the readiness endpoint response body of op-monitor, read from inside its container.
+     */
+    public String readinessResponse() {
+        return readinessResponse(OP_MONITOR);
+    }
+
+    /**
+     * Returns the readiness endpoint response body of the given op-monitor service, read from inside its container.
+     */
+    public String readinessResponse(String service) {
+        return execInContainer(service, "curl", "-s", "--max-time", "5",
+                "http://127.0.0.1:" + QUARKUS_HEALTH_PORT + "/q/health/ready").getStdout();
+    }
+
+    /**
      * Makes an HTTP request to the OpenBao address from inside the op-monitor container, so that the trap has a
      * connection to record.
      */

@@ -34,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
@@ -90,6 +91,9 @@ class OpMonitorFileIdentityIntTest {
     private static final String SERVICE_STORED = "DEV:COM:222:TestService:storedWithFileIdentity.v1";
     private static final Instant STORE_WINDOW = Instant.now().minus(20, ChronoUnit.DAYS);
     private static final String ACCEPTED_CONNECTION = "accepting connection";
+    private static final String OPENBAO_TRAP = "op-monitor-file-identity-openbao-trap";
+    private static final String DATABASE_CHECK = "OP_MONITOR_DATABASE_READINESS_CHECK";
+    private static final String SECRET_STORE_CHECK = "Vault connection health check";
     private static final long FAIL_FAST_DEADLINE_SECONDS = 10;
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(30);
 
@@ -131,6 +135,34 @@ class OpMonitorFileIdentityIntTest {
     }
 
     @Test
+    @ResourceLock(OPENBAO_TRAP)
+    @DisplayName("op-monitor in file mode reports ready with no secret store check and no connection to OpenBao")
+    void reportsReadyWithoutOpenBao() {
+        var connectionsBefore = given("the connections the OpenBao trap has accepted so far",
+                () -> acceptedConnections(stack.openBaoTrapLog()));
+        var readiness = when("the op-monitor readiness endpoint is read",
+                () -> JsonPath.from(stack.readinessResponse()));
+        assertReadyWithoutSecretStoreCheck(readiness);
+        then("the trap accepted no further connection", () ->
+                assertThat(acceptedConnections(stack.openBaoTrapLog())).isEqualTo(connectionsBefore));
+    }
+
+    @Test
+    @DisplayName("op-monitor in file mode with an OpenBao token reports ready with no secret store check and no "
+            + "connection to OpenBao")
+    void reportsReadyWithTokenWithoutOpenBao() {
+        when("the op-monitor service with a token is live", () -> await().atMost(POLL_TIMEOUT)
+                .untilAsserted(() -> assertThat(stack.livenessResponse(OpMonitorFileIdentityContainerSetup.WITH_TOKEN))
+                        .contains("UP")));
+        var readiness = when("its readiness endpoint is read",
+                () -> JsonPath.from(stack.readinessResponse(OpMonitorFileIdentityContainerSetup.WITH_TOKEN)));
+        assertReadyWithoutSecretStoreCheck(readiness);
+        then("its trap recorded no connection", () ->
+                assertThat(stack.tokenTrapLog()).doesNotContain(ACCEPTED_CONNECTION));
+    }
+
+    @Test
+    @ResourceLock(OPENBAO_TRAP)
     @DisplayName("A client of the Security Server RPC CA that trusts the op-monitor CA stores and queries records "
             + "with no connection to the OpenBao address")
     void trustedClientStoresAndQueriesWithoutOpenBao() {
@@ -199,6 +231,19 @@ class OpMonitorFileIdentityIntTest {
     void startupFailsOnTwoTrustedCas() {
         assertStartupFails(OpMonitorFileIdentityContainerSetup.TWO_TRUSTED_CAS,
                 "/identity/trusted-ca.crt: expected exactly one CA certificate but found 2");
+    }
+
+    private static void assertReadyWithoutSecretStoreCheck(JsonPath readiness) {
+        then("the status is UP, the database check is UP and no secret store check is registered", () -> {
+            assertThat(readiness.getString("status")).isEqualTo("UP");
+            assertThat(readiness.getString("checks.find { it.name == '%s' }.status".formatted(DATABASE_CHECK)))
+                    .isEqualTo("UP");
+            assertThat(readiness.getList("checks.name", String.class)).doesNotContain(SECRET_STORE_CHECK);
+        });
+    }
+
+    private static long acceptedConnections(String trapLog) {
+        return trapLog.lines().filter(line -> line.contains(ACCEPTED_CONNECTION)).count();
     }
 
     private static void assertStartupFails(String service, String expectedMessage) {
