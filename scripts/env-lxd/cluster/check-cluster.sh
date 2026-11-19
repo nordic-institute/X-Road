@@ -93,7 +93,9 @@ EOF
 # Prints "<name> <value>" lines for the OpenBao of the node. Arguments: the node's HA node name and the HA node name
 # of the first node. Whether the openbao and xroad-center units are active is printed as "openbao <state>" and
 # "xroad-center <state>". While openbao is active: HA state of the node from the leader endpoint (ha-enabled, is-self),
-# SHA-256 hashes of the root token, unseal keys and client token files, and HTTP status codes of reads made with the
+# SHA-256 hashes of the root token, unseal keys and client token files, the size and md5 of the upstream OpenBao
+# environment file with its packaged md5, the number of dpkg leftovers in /etc/openbao, the owner, group and mode of
+# the X-Road OpenBao environment file, and HTTP status codes of reads made with the
 # node's own client token. While xroad-center is active: the HTTP status of the node's own and the shared TLS secret
 # of each service as "<secret path> <HTTP status>". The services' client token is sent from standard input to curl,
 # so it appears in no argument list, and no response body is printed.
@@ -119,6 +121,11 @@ if systemctl is-active --quiet openbao; then
   echo "root-token $(hash_of /etc/openbao/root-token)"
   echo "unseal-keys $(hash_of /etc/openbao/unseal-keys)"
   echo "client-token $(hash_of /etc/xroad/secret-store-client-token)"
+  echo "upstream-env-size $(stat -c %s /etc/openbao/openbao.env)"
+  echo "upstream-env-md5 $(md5sum /etc/openbao/openbao.env | cut -d ' ' -f1)"
+  echo "upstream-env-packaged-md5 $(dpkg-query -W -f='${Conffiles}\n' openbao 2>/dev/null | awk '$1 == "/etc/openbao/openbao.env" {print $2}')"
+  echo "dpkg-leftovers $(find /etc/openbao -maxdepth 1 \( -name '*.dpkg-dist' -o -name '*.dpkg-old' -o -name '*.dpkg-new' \) | wc -l)"
+  echo "xroad-env-owner-mode $(stat -c '%U:%G:%a' /etc/openbao/xroad-openbao.env)"
   echo "pins $(status_of "xrd-secret/signer/token-pins/$1/?list=true")"
   echo "first-node-tls-key $(status_of "xrd-secret/tls/admin-service/$2")"
   echo "ds-list $(status_of "xrd-ds-secret/metadata/ds?list=true")"
@@ -254,7 +261,7 @@ ACTIVE_OPENBAO_NODES=0
 # status lines $4 of OPENBAO_STATUS_SCRIPT, collects the file hashes for the comparison between nodes and counts the
 # node when its OpenBao is active.
 check_openbao_node() {
-  local node=$1 node_name=$2 first_name=$3 status=$4 expected_cn expected_dns expected_ip names name value hash reason
+  local node=$1 node_name=$2 first_name=$3 status=$4 expected_cn expected_dns expected_ip names name value hash reason expected_hash
   value=$(status_field "$status" ha-enabled)
   if [[ "$value" == "true" ]]; then
     pass "$node OpenBao has HA enabled"
@@ -282,6 +289,31 @@ check_openbao_node() {
       *) CLIENT_TOKEN_HASHES+="$hash"$'\n' ;;
     esac
   done
+  value=$(status_field "$status" upstream-env-size)
+  if [[ "$value" == "0" ]]; then
+    pass "$node upstream /etc/openbao/openbao.env is empty as packaged"
+  else
+    fail "$node upstream /etc/openbao/openbao.env has $value bytes, expected 0"
+  fi
+  value=$(status_field "$status" upstream-env-md5)
+  expected_hash=$(status_field "$status" upstream-env-packaged-md5)
+  if [[ -n "$expected_hash" && "$value" == "$expected_hash" ]]; then
+    pass "$node upstream /etc/openbao/openbao.env has the packaged md5"
+  else
+    fail "$node upstream /etc/openbao/openbao.env md5 '$value' differs from the packaged md5 '$expected_hash'"
+  fi
+  value=$(status_field "$status" dpkg-leftovers)
+  if [[ "$value" == "0" ]]; then
+    pass "$node /etc/openbao holds no .dpkg-dist, .dpkg-old or .dpkg-new file"
+  else
+    fail "$node /etc/openbao holds $value .dpkg-dist, .dpkg-old or .dpkg-new files"
+  fi
+  value=$(status_field "$status" xroad-env-owner-mode)
+  if [[ "$value" == "openbao:xroad:640" ]]; then
+    pass "$node /etc/openbao/xroad-openbao.env is owned by openbao:xroad with mode 640"
+  else
+    fail "$node /etc/openbao/xroad-openbao.env has owner:group:mode '$value', expected openbao:xroad:640"
+  fi
   value=$(status_field "$status" first-node-tls-key)
   if [[ "$value" == "200" ]]; then
     pass "$node reads tls/admin-service/$first_name with its own client token"

@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 CONFIG_FILE=/etc/openbao/xroad-openbao.hcl
+ENV_FILE=/etc/openbao/xroad-openbao.env
 DROP_IN_DIR=/etc/systemd/system/openbao.service.d
 DROP_IN_FILE="${DROP_IN_DIR}/xroad.conf"
 SCRIPTS_DIR=/usr/share/xroad/scripts
@@ -70,6 +71,8 @@ EOF
 drop_in() {
   cat <<EOF
 [Service]
+EnvironmentFile=
+EnvironmentFile=${ENV_FILE}
 ExecStart=
 ExecStart=${BAO_BINARY} server -config=${CONFIG_FILE}
 ExecStartPost=-+${UNSEAL_SCRIPT}
@@ -135,6 +138,7 @@ fi
 if [ -n "$NODE_HOST" ]; then
   valid_host "$NODE_HOST" || die "--node-host must be a DNS name: ${NODE_HOST}"
 fi
+[ -s "$ENV_FILE" ] || die "The OpenBao database connection file ${ENV_FILE} is missing or empty. Create it by installing the Central Server or Security Server package, or import the join bundle of the cluster."
 needs_restart=false
 if write_if_changed "$CONFIG_FILE" 0640 openbao:xroad "$(server_config)"; then
   needs_restart=true

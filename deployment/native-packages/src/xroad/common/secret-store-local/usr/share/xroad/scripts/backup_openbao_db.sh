@@ -3,10 +3,10 @@
 dump_file="$1"
 
 # Source environment file to get database credentials
-if [[ -f /etc/openbao/openbao.env ]]; then
-  source /etc/openbao/openbao.env
+if [[ -f /etc/openbao/xroad-openbao.env ]]; then
+  source /etc/openbao/xroad-openbao.env
 else
-  echo "Unable to find OpenBao environment file at /etc/openbao/openbao.env"
+  echo "Unable to find OpenBao environment file at /etc/openbao/xroad-openbao.env"
   exit 1
 fi
 

@@ -37,7 +37,7 @@ UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 SETUP_SCRIPT="/usr/share/xroad/scripts/secret-store-init.sh"
 BUNDLE_SCRIPT="/usr/share/xroad/scripts/secret-store-join-bundle.sh"
-ENV_FILE="/etc/openbao/openbao.env"
+ENV_FILE="/etc/openbao/xroad-openbao.env"
 CONFIG_WRITER="/usr/share/xroad/scripts/secret-store-cluster-config.sh"
 TLS_SCRIPT="/usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh"
 UNSEAL_SCRIPT="/usr/share/xroad/scripts/secret-store-unseal.sh"
@@ -229,15 +229,17 @@ run_node_container() {
       mkdir -p /etc/openbao /opt/openbao/tls /etc/xroad /run/systemd/system /usr/local/share/ca-certificates /usr/local/bin
       chown xroad:xroad /etc/xroad
       if [ "$WRITE_ENV" = yes ]; then
-        printf "BAO_PG_CONNECTION_URL=%s\n" "$BAO_PG_CONNECTION_URL" > /etc/openbao/openbao.env
-        chown openbao:xroad /etc/openbao/openbao.env
-        chmod 640 /etc/openbao/openbao.env
+        printf "BAO_PG_CONNECTION_URL=%s\n" "$BAO_PG_CONNECTION_URL" > '"${ENV_FILE}"'
+        chown openbao:xroad '"${ENV_FILE}"'
+        chmod 640 '"${ENV_FILE}"'
       fi
       for tool in systemctl update-ca-certificates; do
         printf "#!/bin/sh\necho \"\${0##*/} \$*\" >>'"${SHIM_CALLS_FILE}"'\nexit 0\n" > /usr/local/bin/$tool
         chmod +x /usr/local/bin/$tool
       done
-      [ -f '"${XROAD_CONFIG_FILE}"' ] || bash '"${CONFIG_WRITER}"' || exit 1
+      if [ "$WRITE_ENV" = yes ] && [ ! -f '"${XROAD_CONFIG_FILE}"' ]; then
+        bash '"${CONFIG_WRITER}"' || exit 1
+      fi
       touch '"${READY_FILE}"'
       exec tail -f /dev/null' >/dev/null || exit 1
 }
@@ -254,7 +256,7 @@ start_bao() {
   done
   docker exec -d "${CONTAINER}" sh -c '
     config=$(sed -n "s/^ExecStart=.* server -config=//p" '"${DROP_IN_FILE}"' | tail -n 1)
-    exec su -s /bin/sh -c "set -a; . /etc/openbao/openbao.env; exec bao server -config=${config}" openbao >'"${BAO_LOG}"' 2>&1'
+    exec su -s /bin/sh -c "set -a; . ${ENV_FILE}; exec bao server -config=${config}" openbao >'"${BAO_LOG}"' 2>&1'
 }
 stop_bao() {
   in_container pkill -x bao
@@ -860,6 +862,23 @@ scenario_cluster_member() {
   check "address of another host: stderr says it is not an address of this host" grep -qF "is not an IPv4 address of this host" "${ERR_FILE}"
   check_eq "invalid arguments: configuration unchanged" "${config_before_invalid}" "$(config_hash)"
   check_eq "invalid arguments: no restart or trust install" "" "$(shim_calls)"
+  log_info "Scenario: a missing or empty database connection file changes nothing"
+  local state_before_refusal
+  state_before_refusal="$(config_state)"
+  in_container mv "${ENV_FILE}" "${ENV_FILE}.saved"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host other.example.test --disable-standby-reads
+  check "absent connection file: exit non-zero" test "${RC}" -ne 0
+  check "absent connection file: stderr names the file" grep -qF -- "${ENV_FILE}" "${ERR_FILE}"
+  check_eq "absent connection file: configuration and drop-in unchanged" "${state_before_refusal}" "$(config_state)"
+  check_eq "absent connection file: no restart or trust install" "" "$(shim_calls)"
+  in_container sh -c ": > ${ENV_FILE}"
+  run_writer --node-address "${node_ip}" --node-host other.example.test --disable-standby-reads
+  check "empty connection file: exit non-zero" test "${RC}" -ne 0
+  check "empty connection file: stderr names the file" grep -qF -- "${ENV_FILE}" "${ERR_FILE}"
+  check_eq "empty connection file: configuration and drop-in unchanged" "${state_before_refusal}" "$(config_state)"
+  check_eq "empty connection file: no restart or trust install" "" "$(shim_calls)"
+  in_container mv -f "${ENV_FILE}.saved" "${ENV_FILE}"
   log_info "Scenario: a failed write is reported"
   run_writer_unprivileged
   check "unwritable configuration: exit non-zero" test "${RC}" -ne 0
@@ -951,7 +970,7 @@ scenario_join_node() {
   check "export: exit 0" test "${RC}" -eq 0
   check_eq "export: archive mode" 600 "$(file_mode /tmp/join-bundle.tar)"
   check_eq "export: archive owner" root:root "$(file_owner /tmp/join-bundle.tar)"
-  check_eq "export: archive holds the three files and no client token" openbao.env,root-token,unseal-keys \
+  check_eq "export: archive holds the three files and no client token" root-token,unseal-keys,xroad-openbao.env \
     "$(in_container tar -tf /tmp/join-bundle.tar | sort | paste -sd, -)"
   check_no_issued_secrets_in_output "export"
   run_bundle export /tmp/join-bundle.tar
@@ -963,22 +982,27 @@ scenario_join_node() {
   check "export without the unseal keys file: stderr names it" grep -qF -- "${UNSEAL_KEYS_FILE}" "${ERR_FILE}"
   check "export without the unseal keys file: no archive written" file_absent /tmp/missing-file.tar
   in_container mv "${UNSEAL_KEYS_FILE}.saved" "${UNSEAL_KEYS_FILE}"
-  in_container sh -c 'mkdir /tmp/bad && cp /etc/openbao/openbao.env /etc/openbao/unseal-keys /etc/openbao/root-token /tmp/bad/ && printf x > /tmp/bad/extra && cd /tmp/bad && tar -cf /tmp/bad-bundle.tar openbao.env unseal-keys root-token extra'
+  in_container sh -c 'mkdir /tmp/bad && cp /etc/openbao/xroad-openbao.env /etc/openbao/unseal-keys /etc/openbao/root-token /tmp/bad/ && printf x > /tmp/bad/extra && cd /tmp/bad && tar -cf /tmp/bad-bundle.tar xroad-openbao.env unseal-keys root-token extra && mkdir /tmp/old && cp /etc/openbao/xroad-openbao.env /tmp/old/openbao.env && cp /etc/openbao/unseal-keys /etc/openbao/root-token /tmp/old/ && tar -cf /tmp/old-bundle.tar -C /tmp/old openbao.env unseal-keys root-token'
 
   log_info "Scenario: import on the second node"
   CONTAINER="${NODE2_CONTAINER}"
   run_node_container no
   wait_for_ready_file
   ip2="$(in_container hostname -i | awk '{print $1}')"
-  run_writer --node-address "${ip2}"
-  check "second node: convert exit 0" test "${RC}" -eq 0
   CONTAINER="${NODE1_CONTAINER}"
   copy_between_nodes /tmp/join-bundle.tar
   copy_between_nodes /tmp/bad-bundle.tar
+  copy_between_nodes /tmp/old-bundle.tar
   CONTAINER="${NODE2_CONTAINER}"
   run_bundle import /tmp/bad-bundle.tar
   check "import with an unknown entry: exit non-zero" test "${RC}" -ne 0
   check "import with an unknown entry: nothing imported" file_absent "${ENV_FILE}"
+  run_bundle import /tmp/old-bundle.tar
+  check "import of an old-format bundle: exit non-zero" test "${RC}" -ne 0
+  check "import of an old-format bundle: stderr lists the expected names" grep -qF "must hold exactly: xroad-openbao.env unseal-keys root-token" "${ERR_FILE}"
+  check "import of an old-format bundle: the environment file is not written" file_absent "${ENV_FILE}"
+  check "import of an old-format bundle: no upstream environment file is written" file_absent /etc/openbao/openbao.env
+  check "import of an old-format bundle: the unseal keys file is not written" file_absent "${UNSEAL_KEYS_FILE}"
   in_container sh -c "printf 'keepme' > ${ROOT_TOKEN_FILE}"
   run_bundle import /tmp/join-bundle.tar
   check "import over an existing file: exit non-zero" test "${RC}" -ne 0
@@ -1008,9 +1032,11 @@ scenario_join_node() {
   check_eq "second import: files unchanged" "${first_hashes}" "$(bundle_hashes)"
 
   log_info "Scenario: join on the second node"
-  in_container sh -c "chown -R openbao:openbao /etc/openbao && chgrp -R xroad /etc/openbao && chmod 640 ${ENV_FILE}"
+  in_container sh -c "chown -R openbao:openbao /etc/openbao && chgrp -R xroad /etc/openbao"
   check_eq "package steps: root token file owner is the OpenBao user" openbao:xroad "$(file_owner "${ROOT_TOKEN_FILE}")"
   check_eq "package steps: unseal keys file owner is the OpenBao user" openbao:xroad "$(file_owner "${UNSEAL_KEYS_FILE}")"
+  run_writer --node-address "${ip2}"
+  check "second node: convert exit 0" test "${RC}" -eq 0
   start_bao
   wait_for_server
   check_eq "second node: starts sealed" true "$(seal_status_field sealed)"
@@ -1054,10 +1080,14 @@ scenario_postinst_join() {
   check "join without a node address: stderr names the node address question" grep -qF "xroad-common/secret-store-node-address" "${ERR_FILE}"
   check_eq "join without a node address: configuration unchanged" "${config_before}" "$(config_hash)"
   in_container sh -c "printf 'xroad-common/secret-store-join=true\nxroad-common/secret-store-node-address=${ip2}\n' > /tmp/debconf-values"
+  in_container sh -c "chown root:root ${ENV_FILE} && chmod 600 ${ENV_FILE}"
+  check_eq "join with a node address: the imported environment file starts as root-only" root:root:600 "$(file_owner "${ENV_FILE}"):$(file_mode "${ENV_FILE}")"
   run_postinst
   check "join with a node address: exit 0" test "${RC}" -eq 0
   check "join with a node address: the node joins the cluster" grep -qF "Joining the OpenBao cluster" "${OUT_FILE}"
   check_eq "join with a node address: configuration unchanged" "${config_before}" "$(config_hash)"
+  check_eq "join with a node address: the environment file is owned by the OpenBao user" openbao:xroad "$(file_owner "${ENV_FILE}")"
+  check_eq "join with a node address: the environment file mode" 640 "$(file_mode "${ENV_FILE}")"
 }
 scenario_restore_keeps_node_config() {
   log_info "Scenario: restore keeps the node's OpenBao configuration and unseals OpenBao"
@@ -1067,7 +1097,7 @@ scenario_restore_keeps_node_config() {
   in_container sh -c 'mkdir -p /etc/xroad/backup.d /var/lib/xroad /tmp/node-a/etc/openbao /tmp/node-a/etc/xroad /tmp/node-a/var/lib/xroad &&
     : > /etc/xroad/backup.d/10_openbao &&
     printf "# node A configuration\n" > /tmp/node-a/etc/openbao/xroad-openbao.hcl &&
-    printf "BAO_PG_CONNECTION_URL=archive\n" > /tmp/node-a/etc/openbao/openbao.env &&
+    printf "BAO_PG_CONNECTION_URL=archive\n" > /tmp/node-a/etc/openbao/xroad-openbao.env &&
     printf x > /tmp/node-a/etc/xroad/archive-marker &&
     printf dump > /tmp/node-a/var/lib/xroad/openbao_dbdump.dat &&
     tar -cf /tmp/node-a-backup.tar -C /tmp/node-a etc var'

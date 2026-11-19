@@ -264,13 +264,13 @@ extract_to_tmp_restore_dir () {
     if [[ -f /etc/openbao/unseal-keys ]]; then
         cp /etc/openbao/unseal-keys ${RESTORE_DIR}/etc/openbao/unseal-keys
     fi
-    if [[ -f /etc/openbao/openbao.env ]]; then
-        mv ${RESTORE_DIR}/etc/openbao/openbao.env ${RESTORE_DIR}/etc/openbao/openbao.env.restored
-        cp /etc/openbao/openbao.env ${RESTORE_DIR}/etc/openbao/openbao.env
+    if [[ -f /etc/openbao/xroad-openbao.env ]]; then
+        mv ${RESTORE_DIR}/etc/openbao/xroad-openbao.env ${RESTORE_DIR}/etc/openbao/xroad-openbao.env.restored
+        cp /etc/openbao/xroad-openbao.env ${RESTORE_DIR}/etc/openbao/xroad-openbao.env
     fi
 
-    chown openbao:xroad ${RESTORE_DIR}/etc/openbao/openbao.env
-    chmod 640 ${RESTORE_DIR}/etc/openbao/openbao.env
+    chown openbao:xroad ${RESTORE_DIR}/etc/openbao/xroad-openbao.env
+    chmod 640 ${RESTORE_DIR}/etc/openbao/xroad-openbao.env
 
     # keep the node's own OpenBao configuration (node address, certificate)
     if [[ -f /etc/openbao/xroad-openbao.hcl ]]; then

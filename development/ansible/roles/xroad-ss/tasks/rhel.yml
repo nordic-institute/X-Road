@@ -25,10 +25,10 @@
         mode: "0751"
         force: false
 
-    - name: openbao.env environment file
+    - name: xroad-openbao.env environment file
       template:
-        src: "openbao.env.j2"
-        dest: "/etc/openbao/openbao.env"
+        src: "xroad-openbao.env.j2"
+        dest: "/etc/openbao/xroad-openbao.env"
         owner: "openbao"
         group: "openbao"
         mode: "0600"

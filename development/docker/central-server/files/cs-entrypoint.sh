@@ -133,10 +133,10 @@ else
 fi
 
 # Load OpenBao environment file
-if [ -f /etc/openbao/openbao.env ]; then
+if [ -f /etc/openbao/xroad-openbao.env ]; then
   log "Loading OpenBao environment variables"
   set -a
-  . /etc/openbao/openbao.env
+  . /etc/openbao/xroad-openbao.env
   set +a
 fi
 

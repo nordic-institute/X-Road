@@ -372,7 +372,7 @@ To turn off standby reads, add `--disable-standby-reads` to the command. See the
 
 Do steps 2 to 4 for each new node, one node after the other.
 
-**2. Export the join bundle on node 1.** The join bundle is a file that holds what a new node needs to use the existing OpenBao: the OpenBao database connection (`openbao.env`), the unseal keys and the root token. It does not hold the database admin credentials and no client token. The target file must not exist, because the command refuses to overwrite it. Step 4 deletes the archive after the import. The directory `/run` is on a memory-backed file system, so the file is gone after a reboot:
+**2. Export the join bundle on node 1.** The join bundle is a file that holds what a new node needs to use the existing OpenBao: the OpenBao database connection (`xroad-openbao.env`), the unseal keys and the root token. It does not hold the database admin credentials and no client token. The target file must not exist, because the command refuses to overwrite it. Step 4 deletes the archive after the import. The directory `/run` is on a memory-backed file system, so the file is gone after a reboot:
 
 ```bash
 sudo /usr/share/xroad/scripts/secret-store-join-bundle.sh export /run/xroad-openbao-join.tar
@@ -414,7 +414,7 @@ sudo cat /run/xroad-openbao-join.tar | ssh <admin>@<new-node> \
     ```bash
     sudo /usr/share/xroad/scripts/secret-store-join-bundle.sh import /run/xroad-openbao-join.tar
     ```
-    The files `openbao.env`, `unseal-keys` and `root-token` go to `/etc/openbao`. The import refuses to overwrite any of these files; if one exists, it imports nothing.
+    The files `xroad-openbao.env`, `unseal-keys` and `root-token` go to `/etc/openbao`. The import refuses to overwrite any of these files; if one exists, it imports nothing.
 6.  Delete the archive. Run the command on the new node and on node 1:
     ```bash
     sudo rm /run/xroad-openbao-join.tar
@@ -449,7 +449,7 @@ The response of `sys/leader` shows `"ha_enabled":true`, `"is_self"` (true on the
 
 **Limits.** The join answers and the install-time join guard exist in the Debian and Ubuntu packages only. The guard is the run of `secret-store-init.sh --join` in the installation: it fails when the bundle files are missing or the OpenBao is not initialized, and it never initializes a new OpenBao. The `%post` script of the Red Hat package `xroad-secret-store-local` has no join answers and does not run the guard. This guide does not describe a join on Red Hat.
 
-**Files on every node.** The file `/etc/openbao/openbao.env` has the mode `640` and is owned by `openbao:xroad`. Section [4.2](#42-root-token-file-and-unseal-keys-on-every-node) gives the owner and mode of the root token file and the unseal keys file.
+**Files on every node.** The file `/etc/openbao/xroad-openbao.env` has the mode `640` and is owned by `openbao:xroad`. Section [4.2](#42-root-token-file-and-unseal-keys-on-every-node) gives the owner and mode of the root token file and the unseal keys file.
 
 **Standby reads.** By default, a standby OpenBao instance answers read requests itself. If PostgreSQL uses logical replication, turn standby reads off, so that no node reads a stale secret. Do it on every node, with `--disable-standby-reads` (step 1) or with the answer `xroad-common/secret-store-disable-standby-reads` (item 7 of step 4), and use the same choice on all nodes.
 

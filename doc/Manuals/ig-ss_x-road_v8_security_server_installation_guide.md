@@ -344,7 +344,7 @@ The installer creates the database roles itself. If they already exist, on Postg
 Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
 Files:<br/>
 `xroad-openbao.hcl` - OpenBao configuration file. Contains the listener and storage options.<br/>
-`openbao.env` - OpenBao database connection and credentials.<br/>
+`xroad-openbao.env` - OpenBao database connection and credentials. Owner `openbao:xroad`, mode `640`.<br/>
 `root-token` - root OpenBao token.<br/>
 `unseal-keys` - OpenBao unseal keys.
 

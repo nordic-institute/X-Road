@@ -24,12 +24,12 @@ get_properties_files() {
 load_or_generate_credentials() {
   local suffix="$1"
 
-  if [ -f /etc/openbao/openbao.env ] && [ -s /etc/openbao/openbao.env ]; then
-    echo "Found existing /etc/openbao/openbao.env, attempting to load credentials"
-    source /etc/openbao/openbao.env
+  if [ -f /etc/openbao/xroad-openbao.env ] && [ -s /etc/openbao/xroad-openbao.env ]; then
+    echo "Found existing /etc/openbao/xroad-openbao.env, attempting to load credentials"
+    source /etc/openbao/xroad-openbao.env
 
     if [ -n "${BAO_PG_USER}" ] && [ -n "${BAO_PG_PASSWORD}" ] && [ -n "${BAO_PG_DATABASE}" ]; then
-      echo "Successfully loaded credentials from /etc/openbao/openbao.env"
+      echo "Successfully loaded credentials from /etc/openbao/xroad-openbao.env"
       db_conn_user="${BAO_PG_USER}"
       db_user=${db_conn_user%%@*}
       db_password="${BAO_PG_PASSWORD}"
@@ -38,8 +38,8 @@ load_or_generate_credentials() {
       db_database="${BAO_PG_DATABASE}"
       db_schema="${BAO_PG_SCHEMA}"
     else
-      echo "WARNING: /etc/openbao/openbao.env exists but is incomplete, regenerating"
-      rm -f /etc/openbao/openbao.env
+      echo "WARNING: /etc/openbao/xroad-openbao.env exists but is incomplete, regenerating"
+      rm -f /etc/openbao/xroad-openbao.env
       db_conn_user="openbao$suffix"
       db_user=${db_conn_user%%@*}
       db_password="$(gen_pw)"
@@ -49,9 +49,9 @@ load_or_generate_credentials() {
       db_port=""
     fi
   else
-    if [ -f /etc/openbao/openbao.env ]; then
-      echo "WARNING: /etc/openbao/openbao.env exists but is empty, regenerating"
-      rm -f /etc/openbao/openbao.env
+    if [ -f /etc/openbao/xroad-openbao.env ]; then
+      echo "WARNING: /etc/openbao/xroad-openbao.env exists but is empty, regenerating"
+      rm -f /etc/openbao/xroad-openbao.env
     fi
     echo "Generating new credentials for OpenBao database"
     db_conn_user="openbao$suffix"
@@ -134,21 +134,21 @@ EOF
 # narrowing this to root-only breaks backups. It grants raw OpenBao storage
 # access, not secret disclosure — the root token and unseal keys stay root-only.
 enforce_env_file_permissions() {
-  chmod 0640 /etc/openbao/openbao.env
-  chown openbao:xroad /etc/openbao/openbao.env
+  chmod 0640 /etc/openbao/xroad-openbao.env
+  chown openbao:xroad /etc/openbao/xroad-openbao.env
 }
 
 create_env_file_if_needed() {
-  if [ -f /etc/openbao/openbao.env ]; then
-    echo "/etc/openbao/openbao.env already exists, preserving existing credentials"
+  if [ -f /etc/openbao/xroad-openbao.env ]; then
+    echo "/etc/openbao/xroad-openbao.env already exists, preserving existing credentials"
     enforce_env_file_permissions
     return 0
   fi
 
-  echo "Creating /etc/openbao/openbao.env with database credentials"
+  echo "Creating /etc/openbao/xroad-openbao.env with database credentials"
   local db_options="?search_path=$db_schema"
 
-  cat >/etc/openbao/openbao.env <<EOF
+  cat >/etc/openbao/xroad-openbao.env <<EOF
 # Individual components for backup/restore scripts
 BAO_PG_USER=${db_conn_user}
 BAO_PG_PASSWORD=${db_password}

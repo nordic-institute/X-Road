@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Moves the files a new node needs to join the OpenBao cluster: the OpenBao environment file,
+# Moves the files a new node needs to join the OpenBao cluster: the X-Road OpenBao environment file,
 # the unseal keys file and the root token file. The archive holds secrets; keep it root-only
 # and delete it after the import.
 #
@@ -11,7 +11,7 @@ set -euo pipefail
 umask 077
 
 BUNDLE_DIR=/etc/openbao
-BUNDLE_NAMES=(openbao.env unseal-keys root-token)
+BUNDLE_NAMES=(xroad-openbao.env unseal-keys root-token)
 extract_dir=
 
 die() {
