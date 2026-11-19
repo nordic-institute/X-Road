@@ -186,6 +186,6 @@ public class NoopVaultClient implements VaultClient {
 
     @Override
     public boolean dsIssuerServiceKeypairSecretExists(String alias) {
-        return false;
+        throw new UnsupportedOperationException("Not supported");
     }
 }

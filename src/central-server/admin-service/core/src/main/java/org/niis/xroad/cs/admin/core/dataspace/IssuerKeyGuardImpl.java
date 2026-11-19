@@ -25,17 +25,22 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.cs.admin.api.service.IssuerKeyGuard;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+
 @Service
-@RequiredArgsConstructor
 public class IssuerKeyGuardImpl implements IssuerKeyGuard {
 
-    private final IssuerKeyPairReader issuerKeyPairReader;
+    private final IssuerKeyPairReaderImpl issuerKeyPairReader;
     private final VaultClient vaultClient;
+
+    public IssuerKeyGuardImpl(IssuerKeyPairReaderImpl issuerKeyPairReader, VaultClient vaultClient) {
+        this.issuerKeyPairReader = issuerKeyPairReader;
+        this.vaultClient = vaultClient.withRetryBudget(Duration.ZERO);
+    }
 
     @Override
     public boolean signingKeySecretPresent() {

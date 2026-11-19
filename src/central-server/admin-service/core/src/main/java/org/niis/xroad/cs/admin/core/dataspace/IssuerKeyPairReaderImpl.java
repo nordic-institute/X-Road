@@ -36,25 +36,28 @@ import java.util.Optional;
 /**
  * Reads the Issuer Service's key-pair table with a native query rather than a JPA entity: the Central Server
  * owns no part of that schema and this is its only query against it.
+ * <p>
+ * The query orders candidates by timestamp, newest first, so the result is the first Signing key by that
+ * order if the XRDADR-48 invariant of exactly one Signing key is ever broken. A planned key switch has a
+ * short window with no Signing key at all, in which case the result is empty.
  */
 @Component
 @Transactional
 @RequiredArgsConstructor
-class IssuerKeyPairReaderImpl implements IssuerKeyPairReader {
+class IssuerKeyPairReaderImpl {
 
-    private static final String ISSUER_PARTICIPANT_ID = "issuer";
     private static final int SIGNING_STATE = 200;
 
     private final EntityManager entityManager;
 
-    @Override
     @SuppressWarnings("unchecked")
     public Optional<String> findSigningKeyAlias() {
         List<String> aliases = entityManager.createNativeQuery(
                         "select private_key_alias from \"ds-issuer-service\".keypair_resource "
-                                + "where participant_context_id = ?1 and state = ?2 and is_default_pair = true",
+                                + "where participant_context_id = ?1 and state = ?2 and is_default_pair = true "
+                                + "order by \"timestamp\" desc, private_key_alias",
                         String.class)
-                .setParameter(1, ISSUER_PARTICIPANT_ID)
+                .setParameter(1, DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID)
                 .setParameter(2, SIGNING_STATE)
                 .getResultList();
         return aliases.stream().findFirst();

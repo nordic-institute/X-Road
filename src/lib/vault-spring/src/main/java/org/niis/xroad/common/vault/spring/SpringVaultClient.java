@@ -298,7 +298,8 @@ public class SpringVaultClient implements VaultClient {
             throw new IllegalStateException("Data Space secret store mount is not configured for this client");
         }
         var path = DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER + "/" + alias;
-        return resilientCall.execute("read", path, () -> dsIssuerServiceVaultClient.get(path)) != null;
+        VaultResponse vaultResponse = resilientCall.execute("read", path, () -> dsIssuerServiceVaultClient.get(path));
+        return vaultResponse != null && vaultResponse.getData() != null;
     }
 
     /**

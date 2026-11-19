@@ -405,10 +405,14 @@ class SpringVaultClientTest {
 
     @Test
     void shouldReportDsIssuerServiceKeypairSecretExistsOnlyWhenTheSecretIsThere() {
-        when(dsIssuerServiceVaultKeyValueOperations.get("ds/issuer-key")).thenReturn(new VaultResponse());
+        var presentResponse = new VaultResponse();
+        presentResponse.setData(Map.of("private_key", "value"));
+        when(dsIssuerServiceVaultKeyValueOperations.get("ds/issuer-key")).thenReturn(presentResponse);
+        when(dsIssuerServiceVaultKeyValueOperations.get("ds/null-data-key")).thenReturn(new VaultResponse());
         when(dsIssuerServiceVaultKeyValueOperations.get("ds/missing-key")).thenReturn(null);
 
         assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).isTrue();
+        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("null-data-key")).isFalse();
         assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("missing-key")).isFalse();
     }
 

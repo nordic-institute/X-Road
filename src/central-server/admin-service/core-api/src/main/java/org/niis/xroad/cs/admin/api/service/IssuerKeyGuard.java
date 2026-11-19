@@ -33,8 +33,10 @@ package org.niis.xroad.cs.admin.api.service;
 public interface IssuerKeyGuard {
 
     /**
-     * @return {@code true} when exactly one key is in the Signing state and its secret exists in OpenBao;
-     *         {@code false} when no Signing key exists or its secret is missing. Retired keys are ignored.
+     * @return {@code true} when a Signing key exists and its secret exists in OpenBao; {@code false} when no
+     *         Signing key exists or its secret is missing. Retired keys are ignored. If the XRDADR-48
+     *         invariant of exactly one Signing key is ever broken, the one considered is the first by the
+     *         reader's order. A planned key switch has a short window with no Signing key at all.
      */
     boolean signingKeySecretPresent();
 }

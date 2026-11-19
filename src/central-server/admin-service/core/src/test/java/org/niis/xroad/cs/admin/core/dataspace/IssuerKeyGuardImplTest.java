@@ -25,89 +25,65 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.vault.VaultClient;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Duration;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class IssuerKeyGuardImplTest {
 
-    private static final int SIGNING_STATE = 200;
-    private static final int RETIRED_STATE = 300;
-
-    private final FakeIssuerKeyPairReader keyPairReader = new FakeIssuerKeyPairReader();
+    private final IssuerKeyPairReaderImpl keyPairReader = mock(IssuerKeyPairReaderImpl.class);
     private final VaultClient vaultClient = mock(VaultClient.class);
-    private final IssuerKeyGuardImpl guard = new IssuerKeyGuardImpl(keyPairReader, vaultClient);
+    private final VaultClient budgetZeroVaultClient = mock(VaultClient.class);
+    private IssuerKeyGuardImpl guard;
+
+    @BeforeEach
+    void setUp() {
+        when(vaultClient.withRetryBudget(Duration.ZERO)).thenReturn(budgetZeroVaultClient);
+        guard = new IssuerKeyGuardImpl(keyPairReader, vaultClient);
+    }
 
     @Test
     void answersNoWhenNoSigningKeyExists() {
+        when(keyPairReader.findSigningKeyAlias()).thenReturn(Optional.empty());
+
         assertThat(guard.signingKeySecretPresent()).isFalse();
-        verifyNoInteractions(vaultClient);
+        verifyNoInteractions(budgetZeroVaultClient);
     }
 
     @Test
     void answersNoWhenSigningKeySecretIsAbsent() {
-        keyPairReader.addKey("issuer-key", SIGNING_STATE, true);
-        when(vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).thenReturn(false);
+        when(keyPairReader.findSigningKeyAlias()).thenReturn(Optional.of("issuer-key"));
+        when(budgetZeroVaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).thenReturn(false);
 
         assertThat(guard.signingKeySecretPresent()).isFalse();
     }
 
     @Test
     void answersYesWhenSigningKeySecretExists() {
-        keyPairReader.addKey("issuer-key", SIGNING_STATE, true);
-        when(vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).thenReturn(true);
+        when(keyPairReader.findSigningKeyAlias()).thenReturn(Optional.of("issuer-key"));
+        when(budgetZeroVaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).thenReturn(true);
 
         assertThat(guard.signingKeySecretPresent()).isTrue();
     }
 
     @Test
-    void answersYesWhenARetiredKeyWithoutASecretSitsNextToAHealthySigningKey() {
-        keyPairReader.addKey("retired-key", RETIRED_STATE, false);
-        keyPairReader.addKey("issuer-key", SIGNING_STATE, true);
-        when(vaultClient.dsIssuerServiceKeypairSecretExists("retired-key")).thenReturn(false);
-        when(vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).thenReturn(true);
+    void readsTheSecretThroughTheZeroRetryBudgetVaultClient() {
+        when(keyPairReader.findSigningKeyAlias()).thenReturn(Optional.of("issuer-key"));
+        when(budgetZeroVaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).thenReturn(true);
 
-        assertThat(guard.signingKeySecretPresent()).isTrue();
-    }
+        guard.signingKeySecretPresent();
 
-    @Test
-    void answersYesAfterARotationWhereTheOriginalAliasIsRetiredAndAnotherKeySigns() {
-        keyPairReader.addKey("issuer-key", RETIRED_STATE, false);
-        keyPairReader.addKey("issuer-key-2", SIGNING_STATE, true);
-        when(vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).thenReturn(false);
-        when(vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key-2")).thenReturn(true);
-
-        assertThat(guard.signingKeySecretPresent()).isTrue();
-    }
-
-    /**
-     * Stands in for the real key-pair table read, applying the same Signing-state selection
-     * ({@code state = 200 and is_default_pair}) in memory so a guard test needs no database.
-     */
-    private static final class FakeIssuerKeyPairReader implements IssuerKeyPairReader {
-        private record Row(String alias, int state, boolean isDefaultPair) {
-        }
-
-        private final List<Row> rows = new ArrayList<>();
-
-        void addKey(String alias, int state, boolean isDefaultPair) {
-            rows.add(new Row(alias, state, isDefaultPair));
-        }
-
-        @Override
-        public Optional<String> findSigningKeyAlias() {
-            return rows.stream()
-                    .filter(row -> row.state() == SIGNING_STATE && row.isDefaultPair())
-                    .map(Row::alias)
-                    .findFirst();
-        }
+        verify(vaultClient, never()).dsIssuerServiceKeypairSecretExists(any());
     }
 }
