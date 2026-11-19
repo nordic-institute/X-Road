@@ -27,7 +27,6 @@
 
 package org.niis.xroad.edc.issuerdata;
 
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -40,7 +39,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -89,7 +87,7 @@ class IssuerDataCleanerExtensionTest {
     }
 
     @Test
-    void shouldRunRepeatedlyOnPrimaryOrStandaloneNode() {
+    void shouldRunCleanupAgainstTheStoreOnPrimaryOrStandaloneNode() {
         when(transactionContext.execute(any(TransactionContext.ResultTransactionBlock.class)))
                 .thenAnswer(_ -> StoreResult.success(0));
         extension = extensionOnNode(false);
@@ -97,25 +95,7 @@ class IssuerDataCleanerExtensionTest {
         extension.initialize(context);
         extension.start();
 
-        verify(transactionContext, timeout(5000).atLeast(2)).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
-    @Test
-    void shouldKeepRunningAfterFailedDelete() {
-        var calls = new AtomicInteger();
-        when(transactionContext.execute(any(TransactionContext.ResultTransactionBlock.class))).thenAnswer(_ -> {
-            if (calls.incrementAndGet() == 1) {
-                throw new EdcException("database is down");
-            }
-            return StoreResult.success(0);
-        });
-        extension = extensionOnNode(false);
-
-        extension.initialize(context);
-        assertThatCode(extension::start).doesNotThrowAnyException();
-
-        verify(monitor, timeout(5000)).warning(contains("could not be removed"));
-        verify(transactionContext, timeout(5000).atLeast(2)).execute(any(TransactionContext.ResultTransactionBlock.class));
+        verify(transactionContext, timeout(5000).atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     private IssuerDataCleanerExtension extensionOnNode(boolean secondary) {

@@ -43,10 +43,6 @@ import org.niis.xroad.common.properties.NodeProperties;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -60,8 +56,6 @@ public class IssuerDataCleanerExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Issuer Data Cleanup";
     static final Duration DEFAULT_INTERVAL = Duration.ofMinutes(10);
-    static final String THREAD_NAME = "xroad-issuer-data-cleanup";
-    private static final long SHUTDOWN_TIMEOUT_SECONDS = 5;
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -84,7 +78,7 @@ public class IssuerDataCleanerExtension implements ServiceExtension {
 
     private IssuerDataCleaner cleaner;
 
-    private ScheduledExecutorService executor;
+    private IssuerDataCleanupScheduler scheduler;
 
     private Monitor monitor;
 
@@ -107,42 +101,13 @@ public class IssuerDataCleanerExtension implements ServiceExtension {
             monitor.info("Issuer data cleanup not scheduled: this is a secondary cluster node");
             return;
         }
-        executor = executorInstrumentation.instrument(
-                Executors.newSingleThreadScheduledExecutor(Thread.ofPlatform().name(THREAD_NAME).daemon().factory()), NAME);
-        scheduleNextRun();
+        scheduler = IssuerDataCleanupScheduler.start(cleaner::run, interval, executorInstrumentation, monitor);
     }
 
     @Override
     public void shutdown() {
-        if (executor == null) {
-            return;
-        }
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException _) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private void run() {
-        try {
-            cleaner.run();
-        } catch (RuntimeException e) {
-            monitor.warning("Issuer data cleanup failed", e);
-        } finally {
-            scheduleNextRun();
-        }
-    }
-
-    private void scheduleNextRun() {
-        try {
-            executor.schedule(this::run, interval.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (RejectedExecutionException _) {
-            monitor.debug("Issuer data cleanup stopped");
+        if (scheduler != null) {
+            scheduler.close();
         }
     }
 }
