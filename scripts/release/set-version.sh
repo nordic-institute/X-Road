@@ -48,12 +48,22 @@ function validate_version {
   fi
 }
 
-function set_last_supported_version {
-  if [ -z $(sed -i "s/^$1=.*$/$1=$2/w /dev/stdout" "$3") ]; then
-    echo -e "\e[0;31mWarning:\e[0m file [$3] not updated"
+# Params: sed substitution ending in its closing delimiter, file. Reports whether the file changed.
+function sed_update_file {
+  if [ -z "$(sed -i "${1}w /dev/stdout" "$2")" ]; then
+    echo -e "\e[0;31mError:\e[0m file [$2] not updated"
+    return 1
   else
-    echo "Successfully updated file [$3]"
+    echo "Successfully updated file [$2]"
   fi
+}
+
+function set_profile_min_supported_client_version {
+  sed_update_file "s/^\( *\)min-supported-client-version: .*$/\1min-supported-client-version: \"$1\"/" "$2" || exit 1
+}
+
+function set_last_supported_version {
+  sed_update_file "s/^$1=.*$/$1=$2/" "$3"
 }
 
 for i in "$@"; do
@@ -133,9 +143,10 @@ LAST_SUPPORTED_VERSION=${lastVersion:-$LAST_SUPPORTED_VERSION_CANDIDATE}
 validate_version "$LAST_SUPPORTED_VERSION"
 echo "Setting the last supported version to $LAST_SUPPORTED_VERSION"
 
-#todo xrd 8 (note: prop name changed)
-set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" ../../deployment/native-packages/src/xroad/default-configuration/override-securityserver-ee.ini
-set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" ../../deployment/native-packages/src/xroad/default-configuration/override-securityserver-fi.ini
+PROFILE_DIR=../../src/lib/properties-core/src/main/resources/xroad-config/country-profile
+set_profile_min_supported_client_version "$LAST_SUPPORTED_VERSION" "$PROFILE_DIR/EE.yaml"
+set_profile_min_supported_client_version "$LAST_SUPPORTED_VERSION" "$PROFILE_DIR/EE-sidecar.yaml"
+set_profile_min_supported_client_version "$LAST_SUPPORTED_VERSION" "$PROFILE_DIR/FI.yaml"
 
 set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" ../../scripts/packages/build-deb.sh
 set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" ../../scripts/packages/build-rpm.sh

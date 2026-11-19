@@ -194,6 +194,11 @@ main() {
     "Operational monitoring state recorded" \
     "Recording the operational monitoring state failed. No services stopped yet. Fix the issue and re-run the wizard."
 
+  # Step 6b: Record the installed country package — must run before the package step so it is upgraded with the base package.
+  run_step "capture_country_package.sh" \
+    "Country package recorded" \
+    "Recording the country package failed. No services stopped yet. Fix the issue and re-run the wizard."
+
   # Step 7: Stop X-Road services — dynamic discovery, polling wait.
   run_step "stop_xroad_services.sh" \
     "X-Road services stopped" \
@@ -209,7 +214,7 @@ main() {
     "serverconf.identifier deduplication finished" \
     "serverconf.identifier deduplication failed. Fix the problematic rows manually and re-run the upgrade wizard."
 
-  # Step 10: Upgrade packages — apt-get install / yum update -y for xroad-securityserver, plus xroad-opmonitor when it was installed in 7.8.
+  # Step 10: Upgrade packages — apt-get install / yum update -y for xroad-securityserver, plus xroad-opmonitor and the country package when they were installed in 7.8.
   run_step "upgrade_packages.sh" \
     "Security Server packages upgraded to 8.0" \
     "Package upgrade failed. V8 repo is active. Check this step's log messages for the package that failed; xroad-securityserver may already be at 8.x. Investigate before retrying, because the wizard only accepts 7.8 installations."

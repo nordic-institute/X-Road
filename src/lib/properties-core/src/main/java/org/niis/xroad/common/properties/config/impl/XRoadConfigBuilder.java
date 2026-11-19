@@ -28,9 +28,9 @@
 package org.niis.xroad.common.properties.config.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Country;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Value;
@@ -103,7 +103,7 @@ public final class XRoadConfigBuilder {
     /**
      * Loads the DB-override layer from the {@code configuration_properties} table via the
      * {@code DB_CONFIG_SOURCE_*} environment. No-op when the DB config source is disabled or
-     * its URL is unset, so callers fall back to packaged defaults. Reuses the framework-neutral
+     * its URL is unset, so callers fall back to the country profile and packaged defaults. Reuses the framework-neutral
      * {@link CachedDbConfigSource}.
      * @param appName application name (drives the read-pool name)
      * @return this builder
@@ -123,29 +123,40 @@ public final class XRoadConfigBuilder {
         var dbSourceConfig = DbSourceConfig.loadValues(appName, nodeNameProvider);
         if (dbSourceConfig.getUrl() != null) {
             var dbProps = new CachedDbConfigSource(dbSourceConfig).getProperties();
-            var merged = new java.util.LinkedHashMap<>(overrides);
+            var merged = new LinkedHashMap<>(overrides);
             merged.putAll(dbProps);
             this.overrides = Map.copyOf(merged);
             var nodeName = dbSourceConfig.getNodeName();
             log.info("Loaded {} config override(s) from DB for '{}' ({})", dbProps.size(), appName,
                     nodeName == null ? "shared rows only" : "shared rows and rows of node '" + nodeName + "'");
         } else {
-            log.info("DB config source disabled; '{}' uses packaged defaults only", appName);
+            log.info("DB config source disabled; '{}' resolves from the country profile, when one is active, "
+                    + "and packaged defaults", appName);
         }
         return this;
     }
 
-    /** @return resolved configuration with values cached at build time */
+    /**
+     * Builds the configuration. The country profile layer is selected by the
+     * {@value CountryProfileLoader#PROFILE_ENV_VARIABLE} environment variable; the
+     * {@value CountryProfileLoader#VARIANT_ENV_VARIABLE} environment variable selects the Sidecar file of the profile.
+     * @return resolved configuration with values cached at build time
+     */
     public XRoadConfig build() {
-        warnIgnoredEnvVars(System.getenv());
-        return new DefaultXRoadConfig(providers, overrides, deploymentMode);
+        return build(System.getenv());
+    }
+
+    XRoadConfig build(Map<String, String> env) {
+        warnIgnoredEnvVars(env);
+        var countryProfile = CountryProfileLoader.resolve(env).orElse(ActiveCountryProfile.NONE);
+        return new DefaultXRoadConfig(providers, overrides, countryProfile, deploymentMode);
     }
 
     void warnIgnoredEnvVars(Map<String, String> env) {
         var ignored = ignoredEnvVars(env);
         if (!ignored.isEmpty()) {
             log.warn("Environment variable(s) [{}] match registered xroad.* config keys but are IGNORED: "
-                            + "XRoadConfig resolves DB overrides and packaged defaults only. "
+                            + "XRoadConfig resolves DB overrides, the country profile and packaged defaults only. "
                             + "Set the value(s) in the configuration_properties table instead.",
                     String.join(", ", ignored));
         }
@@ -165,25 +176,33 @@ public final class XRoadConfigBuilder {
 
     /**
      * Eager resolver. Resolves every registered key at construction (DB override &rarr;
-     * packaged default) and caches the resulting {@link Value}s; v1 does not reread until
+     * country profile &rarr; packaged default) and caches the resulting {@link Value}s; v1 does not reread until
      * a new instance is built.
      */
     @Slf4j
     private static final class DefaultXRoadConfig implements XRoadConfig {
 
         private final Map<ConfigKey<?>, Value<?>> resolved;
+        private final ActiveCountryProfile countryProfile;
 
-        DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides, DeploymentMode deploymentMode) {
+        DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides,
+                           ActiveCountryProfile countryProfile, DeploymentMode deploymentMode) {
+            this.countryProfile = countryProfile;
             var map = new LinkedHashMap<ConfigKey<?>, Value<?>>();
             for (var provider : providers) {
                 for (var key : provider.keys()) {
-                    map.put(key, resolve(key, overrides, deploymentMode));
+                    map.put(key, resolve(key, overrides, countryProfile, deploymentMode));
                 }
             }
             log.debug("Loaded {} key(s):\n\t{}",
                     map.size(),
                     map.keySet().stream().map(ConfigKey::key).collect(Collectors.joining("\n\t")));
             this.resolved = map;
+        }
+
+        @Override
+        public ActiveCountryProfile countryProfile() {
+            return countryProfile;
         }
 
         @Override
@@ -202,33 +221,36 @@ public final class XRoadConfigBuilder {
             return Optional.ofNullable((Value<T>) resolved.get(key));
         }
 
-        @Override
-        public Optional<Country> country() {
-            return Optional.empty();
-        }
-
-        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides, DeploymentMode mode) {
+        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides,
+                                            ActiveCountryProfile countryProfile, DeploymentMode mode) {
             var raw = overrides.get(key.key());
             if (raw != null) {
-                return new Value<>(key, converAndValidate(raw, key), Source.DB);
+                return new Value<>(key, converAndValidate(raw, key, ""), Source.DB);
+            }
+            var countryRaw = countryProfile.values().get(key.key());
+            if (countryRaw != null) {
+                var origin = " (from country profile %s)".formatted(countryProfile.code());
+                return new Value<>(key, converAndValidate(countryRaw, key, origin), Source.COUNTRY);
             }
             var useContainerDefault = mode == DeploymentMode.CONTAINERIZED && key.containerDefaultValue() != null;
             var converted = useContainerDefault ? key.convertedContainerDefaultValue() : key.convertedDefaultValue();
             return new Value<>(key, converted, Source.DEFAULT);
         }
 
-        private static <T> T converAndValidate(String raw, ConfigKey<T> key) {
+        private static <T> T converAndValidate(String raw, ConfigKey<T> key, String origin) {
             T converted;
             try {
                 converted = key.convert(raw);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException(
-                        "Unparseable config value \"%s\" for %s: %s".formatted(raw, key.key(), e.getMessage()), e);
+                        "Unparseable config value \"%s\" for %s%s: %s"
+                                .formatted(raw, key.key(), origin, e.getMessage()), e);
             }
             var result = key.validate(converted);
             if (!result.valid()) {
                 throw new IllegalArgumentException(
-                        "Invalid config value \"%s\" for %s: %s".formatted(raw, key.key(), result.message()));
+                        "Invalid config value \"%s\" for %s%s: %s"
+                                .formatted(raw, key.key(), origin, result.message()));
             }
             return converted;
         }

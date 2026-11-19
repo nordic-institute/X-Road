@@ -1,0 +1,28 @@
+services:
+  signer:
+    environment:
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
+  proxy:
+    environment:
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
+  ui:
+    environment:
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
+  configuration-client:
+    environment:
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
+  monitor:
+    environment:
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
+  auxiliary-service:
+    environment:
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
+  message-log-cli:
+    environment:
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
+  ds-control-plane:
+    environment:
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
+  ds-identity-hub:
+    environment:
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}

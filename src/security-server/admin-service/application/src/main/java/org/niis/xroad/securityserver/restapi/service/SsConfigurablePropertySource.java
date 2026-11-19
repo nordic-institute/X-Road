@@ -26,9 +26,12 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
@@ -55,6 +58,7 @@ import java.util.List;
  * Security Server's system-parameters catalogue, and their category-to-scope mapping.
  */
 @Component
+@RequiredArgsConstructor
 public class SsConfigurablePropertySource implements ConfigurablePropertySource {
 
     private static final List<ConfigKeyProvider> SS_PROVIDERS = List.of(
@@ -74,6 +78,19 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
             MonitorConfigKeys.instance(),
             MessageLogArchiverConfigKeys.instance(),
             MessageLogEncryptionConfigKeys.instance());
+
+    private final DeploymentMode deploymentMode;
+    private final ActiveCountryProfile countryProfile;
+
+    @Override
+    public DeploymentMode deploymentMode() {
+        return deploymentMode;
+    }
+
+    @Override
+    public ActiveCountryProfile countryProfile() {
+        return countryProfile;
+    }
 
     @Override
     public List<ConfigKeyProvider> getConfigKeyProviders() {

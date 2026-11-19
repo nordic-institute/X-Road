@@ -11,29 +11,42 @@ XROAD_SS_PACKAGE="${XROAD_SS_PACKAGE:-xroad-securityserver}"
 # Declared for consistency with other upgrade task files (e.g. run_migration_cli.sh).
 XROAD_MIGRATION_UNATTENDED="${XROAD_MIGRATION_UNATTENDED:-}"
 
-STATE_FILE="/var/lib/xroad-upgrade/op-monitor.state"
-
 OPMONITOR_PACKAGE="xroad-opmonitor"
 
 PACKAGES=("$XROAD_SS_PACKAGE")
-UPGRADE_OPMONITOR=false
 
 # Names $OPMONITOR_PACKAGE in the install command only when the 7.8 package was installed.
 select_packages() {
-  if [[ ! -f "$STATE_FILE" ]]; then
-    log_die "Operational monitoring state not found at $STATE_FILE. Run capture_op_monitor_state.sh first."
+  if [[ ! -f "$OP_MONITOR_STATE_FILE" ]]; then
+    log_die "Operational monitoring state not found at $OP_MONITOR_STATE_FILE. Run capture_op_monitor_state.sh first."
   fi
 
   local daemon_pkg
-  daemon_pkg=$(sed -n 's/^daemon_pkg=//p' "$STATE_FILE")
+  daemon_pkg=$(read_state_value "$OP_MONITOR_STATE_FILE" daemon_pkg)
   case "$daemon_pkg" in
     installed)
       PACKAGES+=("$OPMONITOR_PACKAGE")
-      UPGRADE_OPMONITOR=true
       ;;
     absent) ;;
-    *) log_die "Invalid daemon_pkg value '$daemon_pkg' in $STATE_FILE (expected installed or absent)" ;;
+    *) log_die "Invalid daemon_pkg value '$daemon_pkg' in $OP_MONITOR_STATE_FILE (expected installed or absent)" ;;
   esac
+}
+
+# Names the country package in the install command only when it was installed in 7.8.
+select_country_package() {
+  if [[ ! -f "$COUNTRY_PACKAGE_STATE_FILE" ]]; then
+    log_die "Country package state not found at $COUNTRY_PACKAGE_STATE_FILE. Run capture_country_package.sh first."
+  fi
+
+  local country_pkg
+  country_pkg=$(read_state_value "$COUNTRY_PACKAGE_STATE_FILE" country_pkg)
+  if [[ "$country_pkg" == "none" ]]; then
+    return 0
+  fi
+  if ! printf '%s\n' "${COUNTRY_PACKAGES[@]}" | grep -qxF -- "$country_pkg"; then
+    log_die "Invalid country_pkg value '$country_pkg' in $COUNTRY_PACKAGE_STATE_FILE (expected none or a xroad-securityserver-<cc> package)"
+  fi
+  PACKAGES+=("$country_pkg")
 }
 
 verify_upgraded_to_v8() {
@@ -54,64 +67,59 @@ verify_upgraded_to_v8() {
   log_info "Upgraded $package: $pre -> $post"
 }
 
-upgrade_packages_ubuntu() {
-  log_message "Upgrading X-Road Security Server packages on Ubuntu..."
+installed_version_ubuntu() {
+  dpkg-query -W -f='${Version}' "$1" 2>/dev/null || echo ""
+}
+
+installed_version_rhel() {
+  rpm -q --queryformat '%{VERSION}' "$1" 2>/dev/null || echo ""
+}
+
+install_packages_ubuntu() {
+  log_message "  Running: DEBIAN_FRONTEND=noninteractive apt-get install -y ${PACKAGES[*]}"
+  DEBIAN_FRONTEND=noninteractive apt-get install -y "${PACKAGES[@]}"
+}
+
+install_packages_rhel() {
+  log_message "  Running: yum update -y ${PACKAGES[*]}"
+  yum update -y "${PACKAGES[@]}"
+}
+
+# Installs PACKAGES, then checks each one moved to a 8.x version.
+upgrade_packages() {
+  local os_label="$1"
+  local version_fn="installed_version_$2"
+  local install_fn="install_packages_$2"
+
+  log_message "Upgrading X-Road Security Server packages on $os_label..."
   log_message ""
 
   log_message "Package to upgrade: ${PACKAGES[*]}"
   log_message ""
 
-  local pre_version opmonitor_pre_version=""
-  pre_version=$(dpkg-query -W -f='${Version}' "$XROAD_SS_PACKAGE" 2>/dev/null || echo "")
-  if [[ "$UPGRADE_OPMONITOR" == "true" ]]; then
-    opmonitor_pre_version=$(dpkg-query -W -f='${Version}' "$OPMONITOR_PACKAGE" 2>/dev/null || echo "")
-  fi
+  local -A pre_versions=()
+  local package
+  for package in "${PACKAGES[@]}"; do
+    pre_versions[$package]=$("$version_fn" "$package")
+  done
 
   log_message "Upgrading ${PACKAGES[*]}..."
-  log_message "  Running: DEBIAN_FRONTEND=noninteractive apt-get install -y ${PACKAGES[*]}"
-  if ! DEBIAN_FRONTEND=noninteractive apt-get install -y "${PACKAGES[@]}"; then
+  if ! "$install_fn"; then
     log_die "Failed to upgrade ${PACKAGES[*]}"
   fi
 
-  local post_version
-  post_version=$(dpkg-query -W -f='${Version}' "$XROAD_SS_PACKAGE" 2>/dev/null || echo "")
-  verify_upgraded_to_v8 "$pre_version" "$post_version"
-  if [[ "$UPGRADE_OPMONITOR" == "true" ]]; then
-    local opmonitor_post_version
-    opmonitor_post_version=$(dpkg-query -W -f='${Version}' "$OPMONITOR_PACKAGE" 2>/dev/null || echo "")
-    verify_upgraded_to_v8 "$opmonitor_pre_version" "$opmonitor_post_version" "$OPMONITOR_PACKAGE"
-  fi
+  for package in "${PACKAGES[@]}"; do
+    verify_upgraded_to_v8 "${pre_versions[$package]}" "$("$version_fn" "$package")" "$package"
+  done
   log_message ""
 }
 
+upgrade_packages_ubuntu() {
+  upgrade_packages Ubuntu ubuntu
+}
+
 upgrade_packages_rhel() {
-  log_message "Upgrading X-Road Security Server packages on RHEL..."
-  log_message ""
-
-  log_message "Package to upgrade: ${PACKAGES[*]}"
-  log_message ""
-
-  local pre_version opmonitor_pre_version=""
-  pre_version=$(rpm -q --queryformat '%{VERSION}' "$XROAD_SS_PACKAGE" 2>/dev/null || echo "")
-  if [[ "$UPGRADE_OPMONITOR" == "true" ]]; then
-    opmonitor_pre_version=$(rpm -q --queryformat '%{VERSION}' "$OPMONITOR_PACKAGE" 2>/dev/null || echo "")
-  fi
-
-  log_message "Upgrading ${PACKAGES[*]}..."
-  log_message "  Running: yum update -y ${PACKAGES[*]}"
-  if ! yum update -y "${PACKAGES[@]}"; then
-    log_die "Failed to upgrade ${PACKAGES[*]}"
-  fi
-
-  local post_version
-  post_version=$(rpm -q --queryformat '%{VERSION}' "$XROAD_SS_PACKAGE" 2>/dev/null || echo "")
-  verify_upgraded_to_v8 "$pre_version" "$post_version"
-  if [[ "$UPGRADE_OPMONITOR" == "true" ]]; then
-    local opmonitor_post_version
-    opmonitor_post_version=$(rpm -q --queryformat '%{VERSION}' "$OPMONITOR_PACKAGE" 2>/dev/null || echo "")
-    verify_upgraded_to_v8 "$opmonitor_pre_version" "$opmonitor_post_version" "$OPMONITOR_PACKAGE"
-  fi
-  log_message ""
+  upgrade_packages RHEL rhel
 }
 
 main() {
@@ -123,6 +131,7 @@ main() {
   require_root
 
   select_packages
+  select_country_package
 
   mask_xroad_units
 
