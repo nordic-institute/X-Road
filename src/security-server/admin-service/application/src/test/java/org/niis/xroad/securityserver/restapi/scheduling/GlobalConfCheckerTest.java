@@ -42,10 +42,11 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
-import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.securityserver.restapi.repository.PendingAddressChangeRepository;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
@@ -81,6 +82,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -129,7 +131,9 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @MockitoSpyBean
     private OwnSecurityServerResolver ownSecurityServerResolver;
     @Autowired
-    private SecurityServerAddressChangeStatus addressChangeStatus;
+    private PendingAddressChangeRepository pendingAddressChangeRepository;
+    @Autowired
+    private PersistenceUtils persistenceUtils;
     @MockitoBean
     private DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
     @MockitoBean
@@ -175,7 +179,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         clientStatusSnapshot.clear();
         jdbcTemplate.query("SELECT id, clientstatus FROM client",
                 (RowCallbackHandler) rs -> clientStatusSnapshot.put(rs.getLong("id"), rs.getString("clientstatus")));
-        addressChangeStatus.clear();
+        pendingAddressChangeRepository.delete();
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
         doAnswer(answer -> null).when(globalConfProvider).reload();
 
@@ -472,66 +476,72 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Test
     public void registeredWithMatchingAddressClearsPendingAddressChange() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
-        addressChangeStatus.setAddress(NEW_ADDRESS);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
         globalConfChecker.checkGlobalConf();
-        assertFalse(addressChangeStatus.getAddressChangeRequest().isPresent());
+        assertFalse(pendingAddress().isPresent());
     }
     @Test
     public void registeredWithDifferentAddressKeepsPendingAddressChange() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn("old.example.org");
-        addressChangeStatus.setAddress(NEW_ADDRESS);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
         globalConfChecker.checkGlobalConf();
-        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
     }
     @Test
     public void notRegisteredKeepsPendingAddressChangeAndSyncContinues() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(null);
-        addressChangeStatus.setAddress(NEW_ADDRESS);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
         globalConfChecker.checkGlobalConf();
-        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
         verifySyncRan();
     }
     @Test
     public void globalConfUnavailableKeepsPendingAddressChangeAndSyncContinues() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID))
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable"));
-        addressChangeStatus.setAddress(NEW_ADDRESS);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
         globalConfChecker.checkGlobalConf();
-        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
         verifySyncRan();
     }
     @Test
     public void secondCycleWhileNotRegisteredChangesNothingMore() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(null);
-        addressChangeStatus.setAddress(NEW_ADDRESS);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
         globalConfChecker.checkGlobalConf();
         var subsystemStatusAfterFirstCycle = clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus();
         globalConfChecker.checkGlobalConf();
-        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
         assertEquals(subsystemStatusAfterFirstCycle, clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus());
     }
     @Test
     public void ownerNotInitialisedSkipsServerConfUpdate() {
         doReturn(new OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
-        addressChangeStatus.setAddress(NEW_ADDRESS);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
         globalConfChecker.checkGlobalConf();
         verifySyncSkipped();
     }
     @Test
     public void secondCycleWhileOwnerNotInitialisedChangesNothingMore() {
         doReturn(new OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
-        addressChangeStatus.setAddress(NEW_ADDRESS);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
         globalConfChecker.checkGlobalConf();
         globalConfChecker.checkGlobalConf();
         verifySyncSkipped();
     }
+    private Optional<String> pendingAddress() {
+        persistenceUtils.flush();
+        persistenceUtils.getCurrentSession().clear();
+        return pendingAddressChangeRepository.findRequestedAddress();
+    }
+
     private void verifySyncRan() {
         assertEquals(Client.STATUS_GLOBALERR, clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus());
         verify(signerRpcClient).getTokens();
         verify(globalConfProvider).getApprovedTsps(any());
     }
     private void verifySyncSkipped() {
-        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
         assertEquals(Client.STATUS_REGISTERED, clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus());
         verify(ownSecurityServerResolver, never()).address(any(SecurityServerId.class));
         verify(signerRpcClient, never()).getTokens();

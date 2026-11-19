@@ -24,27 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.securityserver.restapi.repository;
 
-package org.niis.xroad.securityserver.restapi.cache;
+import org.hibernate.Session;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.entity.PendingAddressChangeEntity;
 
-import lombok.Setter;
-import org.springframework.stereotype.Component;
+import java.time.Instant;
 
-import java.util.Optional;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.when;
 
-@Component
-public class SecurityServerAddressChangeStatus {
+@ExtendWith(MockitoExtension.class)
+class PendingAddressChangeRepositoryTest {
 
-    @Setter
-    private String address;
+    @Mock
+    private PersistenceUtils persistenceUtils;
+    @Mock
+    private Session session;
 
-    public Optional<String> getAddressChangeRequest() {
-        return Optional.ofNullable(address);
+    @Test
+    void saveWritesTheRowToTheDatabaseBeforeReturning() {
+        when(persistenceUtils.getCurrentSession()).thenReturn(session);
+        var repository = new PendingAddressChangeRepository(persistenceUtils);
+
+        repository.save("new.example.org", Instant.now());
+
+        var persistThenFlush = inOrder(session, persistenceUtils);
+        persistThenFlush.verify(session).persist(any(PendingAddressChangeEntity.class));
+        persistThenFlush.verify(persistenceUtils).flush();
     }
-
-    public void clear() {
-        this.address = null;
-    }
-
 
 }

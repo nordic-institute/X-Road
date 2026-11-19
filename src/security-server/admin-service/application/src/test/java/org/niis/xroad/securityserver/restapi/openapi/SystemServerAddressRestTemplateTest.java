@@ -34,8 +34,8 @@ import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
-import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressDto;
+import org.niis.xroad.securityserver.restapi.repository.PendingAddressChangeRepository;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -77,7 +77,7 @@ public class SystemServerAddressRestTemplateTest extends AbstractApiControllerTe
         client = TestUtils.addApiKeyAuthorizationHeader(webTestClient);
         managementRequestSenderService = mock(ManagementRequestSenderService.class);
         var realSystemService = new SystemService(globalConfService, serverConfService, currentSecurityServerId,
-                managementRequestSenderService, mock(AuditDataHelper.class), new SecurityServerAddressChangeStatus(),
+                managementRequestSenderService, mock(AuditDataHelper.class), mock(PendingAddressChangeRepository.class),
                 mock(ConfClientRpcClient.class), new MaintenanceModeStatus(), globalConfProvider, mock(ProxyRpcClient.class),
                 ownSecurityServerResolver);
         when(systemService.changeSecurityServerAddress(any()))

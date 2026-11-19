@@ -41,9 +41,9 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
-import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.repository.PendingAddressChangeRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -88,7 +88,7 @@ public class GlobalConfChecker {
     private final ServerConfRepository serverConfRepository;
     private final GlobalConfProvider globalConfProvider;
     private final SignerRpcClient signerRpcClient;
-    private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final PendingAddressChangeRepository pendingAddressChangeRepository;
     private final SubsystemNameStatus subsystemNameStatus;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final MailNotificationHelper mailNotificationHelper;
@@ -152,7 +152,7 @@ public class GlobalConfChecker {
     }
 
     private void updateServerConf(SecurityServerId securityServerId) {
-        addressChangeStatus.getAddressChangeRequest()
+        pendingAddressChangeRepository.findRequestedAddress()
                 .ifPresent(requestedAddress -> clearAddressChangeIfRegistered(securityServerId, requestedAddress));
 
         switch (maintenanceModeStatus.getStatus()) {
@@ -188,7 +188,7 @@ public class GlobalConfChecker {
 
     private void clearAddressChangeIfRegistered(SecurityServerId securityServerId, String requestedAddress) {
         switch (ownSecurityServerResolver.address(securityServerId)) {
-            case OwnAddress.Registered(_, var address) when requestedAddress.equals(address) -> addressChangeStatus.clear();
+            case OwnAddress.Registered(_, var address) when requestedAddress.equals(address) -> pendingAddressChangeRepository.delete();
             case OwnAddress.Registered _ -> log.debug("Registered address differs - keeping address change request");
             case OwnAddress.NotRegistered _ -> log.debug("Server not registered - keeping address change request");
             case OwnAddress.GlobalConfUnavailable _ -> log.debug("Globalconf unavailable - keeping address change request");
