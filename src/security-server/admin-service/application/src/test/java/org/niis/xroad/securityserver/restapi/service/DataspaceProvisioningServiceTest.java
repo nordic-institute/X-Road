@@ -483,6 +483,31 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
+    void participantContextsExcludesSystemWhileItsRowIsAnUnconvergedTombstone() {
+        givenServerConfWithOwner(OWNER);
+        var ownerClient = clientWith(OWNER);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(ownerClient));
+        var decommissioned = boundSystemParticipant(SS_HOST);
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(decommissioned));
+
+        var contexts = service.participantContexts();
+
+        assertThat(contexts).extracting(DataspaceProvisioningService.ParticipantContext::kind)
+                .containsExactly(ParticipantKind.MEMBER);
+    }
+
+    @Test
+    void participantContextsListsSystemWhileItsRowIsActive() {
+        givenServerConfWithOwner(OWNER);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(boundSystemParticipant(SS_HOST)));
+
+        assertThat(service.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContext::kind)
+                .containsExactly(ParticipantKind.SYSTEM);
+    }
+
+    @Test
     void participantContextsCollapsesSubsystemOfAlreadyProvisionedMemberIntoNoNewContext() {
         givenServerConfWithOwner(OWNER);
         var subsystem = ClientId.Conf.create(MEMBER.getXRoadInstance(), MEMBER.getMemberClass(), MEMBER.getMemberCode(), "SUB");
@@ -1348,6 +1373,47 @@ class DataspaceProvisioningServiceTest {
     @Test
     void registeredAddressKnownIsTrueForRegisteredServer() {
         assertThat(service.registeredAddressKnown()).isTrue();
+    }
+
+    // --- bindingHold ---
+
+    @Test
+    void bindingHoldIsHeldWhenABindingDiffersAndTheSystemDidCanBeMinted() {
+        when(dsParticipantRepository.hasDifferingBindings(argThat(matcher -> matcher.authorityHostMatches(SS_ADDRESS))))
+                .thenReturn(true);
+
+        assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.HELD);
+    }
+
+    @Test
+    void bindingHoldIsNoneWhenTheRepositoryFindsNoDifferingBinding() {
+        when(dsParticipantRepository.hasDifferingBindings(any())).thenReturn(false);
+
+        assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.NONE);
+    }
+
+    @Test
+    void bindingHoldIsNoneWithoutAQueryWhileTheAddressIsNotRegistered() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+
+        assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.NONE);
+        verifyNoInteractions(dsParticipantRepository);
+    }
+
+    @Test
+    void bindingHoldIsAddressCannotCarryDidWhenABindingDiffersAndTheSystemDidCannotBeMinted() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(SS_ADDRESS + ":8443");
+        when(dsParticipantRepository.hasDifferingBindings(any())).thenReturn(true);
+
+        assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.ADDRESS_CANNOT_CARRY_DID);
+    }
+
+    @Test
+    void bindingHoldIsNoneWhenNoBindingDiffersEvenIfTheSystemDidCannotBeMinted() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(SS_ADDRESS + ":8443");
+        when(dsParticipantRepository.hasDifferingBindings(any())).thenReturn(false);
+
+        assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.NONE);
     }
 
     // --- decommissionedParticipants / teardownParticipant ---

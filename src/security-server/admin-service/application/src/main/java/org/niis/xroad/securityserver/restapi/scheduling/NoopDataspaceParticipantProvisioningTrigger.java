@@ -50,6 +50,11 @@ public final class NoopDataspaceParticipantProvisioningTrigger implements Datasp
         log.debug("Dataspace participant provisioning requested while disabled, ignoring");
     }
 
+    @Override
+    public boolean isActive() {
+        return false;
+    }
+
     @Slf4j
     static class IsActive implements Condition {
         @Override

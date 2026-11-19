@@ -41,6 +41,7 @@ import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.BindingHold;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
@@ -123,6 +124,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         return thread;
     });
     private final AtomicBoolean runQueued = new AtomicBoolean();
+    private final AtomicBoolean bindingHeld = new AtomicBoolean();
+    private final AtomicBoolean addressCannotCarryDid = new AtomicBoolean();
     private final Map<IdentityStatus, Set<String>> warnedSkippedIds = new EnumMap<>(IdentityStatus.class);
     private final Map<IdentityStatus, Instant> lastSkippedWarning = new EnumMap<>(IdentityStatus.class);
     @Setter(AccessLevel.PACKAGE)
@@ -160,6 +163,11 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
             log.warn("Dataspace: failed to schedule participant provisioning; the scheduled worker will "
                     + "converge on its next tick", e);
         }
+    }
+
+    @Override
+    public boolean isActive() {
+        return true;
     }
 
     private void dispatchAsync() {
@@ -263,10 +271,18 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * context is bound before any context of that batch is provisioned. A context that fails to bind or
      * to provision is left out without holding back the rest of its batch.
      *
+     * <p>While an active binding has a DID host that is not the registered address, the pass binds no new
+     * context and does not run {@link DataspacePublicationStage}; the contexts that already hold an active
+     * binding row are provisioned as usual. The hold does not apply while the registered address cannot carry
+     * a DID, because re-identification would refuse and the hold would never end. The hold is read once per pass,
+     * every pass, because the publication stage runs every pass. The start and the end of the hold, and the start of
+     * the address state, are logged once each.
+     *
      * <p>The pass ends with {@link DataspacePublicationStage}, also when every context converged. It is
-     * skipped only while the owner is unknown, since the server has no identity to send under. The stage
-     * gets the contexts provisioned in this tick: those converged at its start and those whose ensure
-     * call reported the anchor confirmed, and whether the owner member's credential was issued at its start.
+     * skipped while the owner is unknown, since the server has no identity to send under, and while the hold
+     * above applies. The stage gets the contexts provisioned in this tick: those converged at its start and
+     * those whose ensure call reported the anchor confirmed, and whether the owner member's credential was
+     * issued at its start.
      */
     private int ensure() {
         var contexts = dataspaceProvisioningService.participantContexts();
@@ -276,6 +292,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
             return contextCount;
         }
 
+        var bindingHold = dataspaceProvisioningService.bindingHold();
+        logHoldTransition(bindingHold);
+        boolean hold = bindingHold == BindingHold.HELD;
         var statuses = statusesOf(contexts);
         Set<ParticipantContext> provisioned = new HashSet<>();
         List<ParticipantContext> nonConverged = new ArrayList<>();
@@ -296,14 +315,33 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
             log.debug("Dataspace provisioning: all {} participant context(s) converged, only Control Plane records re-applied",
                     contexts.size());
         } else {
-            provisioned.addAll(provisionNonConverged(nonConverged, statuses));
+            provisioned.addAll(provisionNonConverged(nonConverged, statuses, hold));
         }
-        publicationStage.publish(provisioned, ownerCredentialIssued(contexts, statuses));
+        if (!hold) {
+            publicationStage.publish(provisioned, ownerCredentialIssued(contexts, statuses));
+        }
         return contextCount;
     }
 
+    private void logHoldTransition(BindingHold bindingHold) {
+        boolean hold = bindingHold == BindingHold.HELD;
+        if (bindingHeld.getAndSet(hold) != hold) {
+            if (hold) {
+                log.warn("Dataspace provisioning: an active binding has a DID host that is not the registered address, "
+                        + "binding and publication are held until the participants are re-identified");
+            } else {
+                log.info("Dataspace provisioning: binding and publication are no longer held");
+            }
+        }
+        boolean cannotCarryDid = bindingHold == BindingHold.ADDRESS_CANNOT_CARRY_DID;
+        if (addressCannotCarryDid.getAndSet(cannotCarryDid) != cannotCarryDid && cannotCarryDid) {
+            log.warn("Dataspace provisioning: an active binding has a DID host that is not the registered address, "
+                    + "but the registered address cannot carry a DID, so binding and publication are not held");
+        }
+    }
+
     private List<ParticipantContext> provisionNonConverged(List<ParticipantContext> nonConverged,
-            Map<ParticipantContext, ParticipantContextStatus> statuses) {
+            Map<ParticipantContext, ParticipantContextStatus> statuses, boolean hold) {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         logSkippedContexts(nonConverged, statuses);
 
@@ -312,13 +350,13 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         List<ParticipantContext> ensured = new ArrayList<>();
         for (int from = 0; from < ordered.size(); from += batchSize) {
             var batch = ordered.subList(from, Math.min(ordered.size(), from + batchSize));
-            ensured.addAll(provisionBatch(batch, statuses, authCertRegistered));
+            ensured.addAll(provisionBatch(batch, statuses, authCertRegistered, hold));
         }
         return ensured;
     }
 
     private List<ParticipantContext> provisionBatch(List<ParticipantContext> batch,
-            Map<ParticipantContext, ParticipantContextStatus> statuses, boolean authCertRegistered) {
+            Map<ParticipantContext, ParticipantContextStatus> statuses, boolean authCertRegistered, boolean hold) {
         boolean dataspaceReady = readinessPredicates.isDataspaceReady();
         boolean globalConfUsable = readinessPredicates.isGlobalConfUsable();
         boolean addressKnown = dataspaceProvisioningService.registeredAddressKnown();
@@ -326,7 +364,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
                 + " registeredAddressKnown={}", dataspaceReady, authCertRegistered, globalConfUsable, addressKnown);
 
         var provisionable = provisionableContexts(batch, statuses,
-                DataspaceReadinessPredicates.mayBind(dataspaceReady, authCertRegistered) && addressKnown);
+                DataspaceReadinessPredicates.mayBind(dataspaceReady, authCertRegistered) && addressKnown && !hold);
         var ensuredContexts = ensureContexts(provisionable);
 
         if (authCertRegistered && globalConfUsable) {
@@ -382,8 +420,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
             if (mayBind) {
                 bound.addAll(bind(unbound, statuses));
             } else {
-                log.debug("Dataspace provisioning: dataspace not ready, auth cert not registered or registered address "
-                        + "not in GlobalConf yet, leaving {} context(s) unbound and unprovisioned", unbound.size());
+                log.debug("Dataspace provisioning: dataspace not ready, auth cert not registered, registered address "
+                        + "not in GlobalConf yet or binding on hold, leaving {} context(s) unbound and unprovisioned",
+                        unbound.size());
             }
         }
         return nonConverged.stream().filter(bound::contains).toList();

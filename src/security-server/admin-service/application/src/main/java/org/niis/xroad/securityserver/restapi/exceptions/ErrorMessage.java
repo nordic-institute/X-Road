@@ -124,6 +124,8 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     RE_IDENTIFICATION_NOT_NEEDED("re_identification_not_needed"),
     RE_IDENTIFICATION_ADDRESS_UNKNOWN("re_identification_address_unknown"),
     RE_IDENTIFICATION_CANNOT_BIND("re_identification_cannot_bind"),
+    RE_IDENTIFICATION_CANNOT_MINT("re_identification_cannot_mint"),
+    RE_IDENTIFICATION_PROVISIONING_INACTIVE("re_identification_provisioning_inactive"),
     SERVER_NOT_INITIALIZED("server_not_initialized"),
     GLOBAL_CONF_UNAVAILABLE("global_conf_unavailable"),
     CANNOT_REGISTER_OWNER(ERROR_CANNOT_REGISTER_OWNER),

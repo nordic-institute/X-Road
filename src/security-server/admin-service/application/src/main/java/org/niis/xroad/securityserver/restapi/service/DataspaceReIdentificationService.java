@@ -26,19 +26,30 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningTrigger;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.model.ParticipantType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.RE_IDENTIFICATION_ADDRESS_UNKNOWN;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.RE_IDENTIFICATION_CANNOT_BIND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.RE_IDENTIFICATION_CANNOT_MINT;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.RE_IDENTIFICATION_NOT_NEEDED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.RE_IDENTIFICATION_PROVISIONING_INACTIVE;
 
 /**
  * Re-identifies the participants of the Security Server after its registered address changed: retires every active
@@ -52,17 +63,20 @@ public class DataspaceReIdentificationService {
 
     private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final DataspaceReadinessPredicates readinessPredicates;
+    private final DataspaceDidAuthority didAuthority;
     private final DsParticipantRepository dsParticipantRepository;
     private final DataspaceParticipantProvisioningTrigger provisioningTrigger;
 
     /**
-     * Re-identifies on the operator's request. Retires nothing unless the registered address is known and the
-     * provisioning worker could bind again. Starts the provisioning worker after the commit when it retired a
-     * binding.
+     * Re-identifies on the operator's request. Retires nothing unless the registered address is known, the
+     * provisioning worker is active and could bind again, and every DID it would bind can be created at the
+     * registered address. Retires exactly the bindings it checked. Starts the provisioning worker after the commit
+     * when it retired a binding.
      *
      * @return the number of bindings retired, always above 0
-     * @throws ConflictException when the registered address is not known, when the worker could not bind again, or
-     *                           when no active binding differs from the registered address
+     * @throws ConflictException when the registered address is not known, when the provisioning worker is not
+     *                           active, when the worker could not bind again, when a DID cannot be created at the
+     *                           registered address, or when no active binding differs from the registered address
      */
     @Transactional
     public int reIdentifyOnOperatorRequest() {
@@ -70,11 +84,16 @@ public class DataspaceReIdentificationService {
                 .map(RegisteredHostMatcher::of)
                 .filter(RegisteredHostMatcher::isRegisteredAddressUsable)
                 .orElseThrow(() -> new ConflictException(RE_IDENTIFICATION_ADDRESS_UNKNOWN.build()));
+        if (!provisioningTrigger.isActive()) {
+            throw new ConflictException(RE_IDENTIFICATION_PROVISIONING_INACTIVE.build());
+        }
         if (!DataspaceReadinessPredicates.mayBind(
                 readinessPredicates.isDataspaceReady(), readinessPredicates.hasRegisteredAuthCert())) {
             throw new ConflictException(RE_IDENTIFICATION_CANNOT_BIND.build());
         }
-        int retired = dsParticipantRepository.retireDifferingBindings(matcher);
+        var rowsToRetire = dsParticipantRepository.findDifferingBindings(matcher);
+        failUnlessEveryDidCanBeMinted(rowsToRetire);
+        int retired = dsParticipantRepository.retireBindings(rowsToRetire.stream().map(DsParticipantEntity::getId).toList());
         if (retired == 0) {
             throw new ConflictException(RE_IDENTIFICATION_NOT_NEEDED.build());
         }
@@ -82,5 +101,35 @@ public class DataspaceReIdentificationService {
                 retired);
         provisioningTrigger.provisionParticipantAsync();
         return retired;
+    }
+
+    private void failUnlessEveryDidCanBeMinted(List<DsParticipantEntity> rowsToRetire) {
+        for (var row : rowsToRetire) {
+            var result = mint(row);
+            if (result instanceof DidMintResult.Rejected(var reason, var detail, var _)) {
+                log.warn("Dataspace: re-identification refused, the DID of participant {} cannot be created: {} ({})",
+                        row.getCtxId(), reason, detail);
+                throw new ConflictException(RE_IDENTIFICATION_CANNOT_MINT.build());
+            }
+        }
+    }
+
+    private DidMintResult mint(DsParticipantEntity row) {
+        try {
+            return row.getParticipantType() == ParticipantType.SYSTEM
+                    ? didAuthority.mintSystemDid()
+                    : didAuthority.mintMemberDid(ClientId.Conf.ensure(row.getMemberIdentifier()));
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(VALIDATION_ERROR)) {
+                log.warn("Dataspace: re-identification refused, the DID of participant {} cannot be created: {}",
+                        row.getCtxId(), e.getMessage());
+                throw new ConflictException(RE_IDENTIFICATION_CANNOT_MINT.build());
+            }
+            if (e.isCausedBy(DSP_PROVISIONING_FAILED)) {
+                log.warn("Dataspace: re-identification refused, the registered address is gone: {}", e.getMessage());
+                throw new ConflictException(RE_IDENTIFICATION_ADDRESS_UNKNOWN.build());
+            }
+            throw e;
+        }
     }
 }

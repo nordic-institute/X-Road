@@ -37,8 +37,6 @@ import org.hibernate.Session;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
-import org.niis.xroad.ds.identity.DecodedParticipant;
-import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
@@ -49,11 +47,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 /**
  * Data access object implementation for bound dataspace participants.
  */
 public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
+
+    private static final int ID_CHUNK_SIZE = 1000;
 
     private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
 
@@ -145,19 +146,64 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
     }
 
     /**
-     * Flips every {@link ParticipantState#ACTIVE} row, SYSTEM and MEMBER, whose DID host is not the registered
-     * address to {@link ParticipantState#DECOMMISSIONED}, whatever its publication state. Rows at the registered
-     * address are left as they are, as is a row whose DID cannot be decoded or whose scheme version is not
-     * supported, since its host cannot be read. Does nothing when the registered address cannot be used, since then
-     * no host can be compared. The member identifier is fetched together with the row.
+     * Flips the rows with the given ids to {@link ParticipantState#DECOMMISSIONED}, whatever their publication state.
+     * The rows are flipped by conditional bulk updates, chunked to stay under the database parameter limit, so a row
+     * that is no longer {@link ParticipantState#ACTIVE} when its update runs is left as it is and not counted.
+     *
+     * @param session the Hibernate session
+     * @param ids     the ids of the rows to flip
+     * @return the number of rows flipped
+     */
+    public int retireBindings(Session session, List<Long> ids) {
+        int retired = 0;
+        for (var chunk : chunksOf(ids)) {
+            retired += session.createMutationQuery("update DsParticipantEntity set state = :decommissioned "
+                            + "where id in :ids and state = :active")
+                    .setParameter("decommissioned", ParticipantState.DECOMMISSIONED)
+                    .setParameter("ids", chunk)
+                    .setParameter("active", ParticipantState.ACTIVE)
+                    .executeUpdate();
+        }
+        return retired;
+    }
+
+    /**
+     * Tells whether any {@link ParticipantState#ACTIVE} row, SYSTEM or MEMBER, has a DID host that is not the
+     * registered address, by the rule that {@link #findDifferingBindings} uses. Stops at the first such row. Always
+     * {@code false} when the registered address cannot be used.
      *
      * @param session     the Hibernate session
      * @param hostMatcher the matcher for the registered address
-     * @return the number of rows flipped
+     * @return {@code true} if at least one active row has a DID host that is not the registered address
      */
-    public int retireDifferingBindings(Session session, RegisteredHostMatcher hostMatcher) {
+    public boolean hasDifferingBindings(Session session, RegisteredHostMatcher hostMatcher) {
         if (!hostMatcher.isRegisteredAddressUsable()) {
-            return 0;
+            return false;
+        }
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
+        query.multiselect(root.get("schemeVersion"), root.get("did"))
+                .where(cb.equal(root.get("state"), ParticipantState.ACTIVE));
+
+        try (var rows = session.createQuery(query).getResultStream()) {
+            return rows.anyMatch(columns -> hostMatcher.isBindingHostDifferent((String) columns[0], (String) columns[1]));
+        }
+    }
+
+    /**
+     * Finds every {@link ParticipantState#ACTIVE} row, SYSTEM and MEMBER, whose DID host is not the registered
+     * address. A row whose DID cannot be decoded or whose scheme version is not supported is not among them, since
+     * its host cannot be read. Empty when the registered address cannot be used, since then no host can be
+     * compared. The member identifier is fetched together with the row.
+     *
+     * @param session     the Hibernate session
+     * @param hostMatcher the matcher for the registered address
+     * @return the active rows whose DID host is not the registered address, in no particular order
+     */
+    public List<DsParticipantEntity> findDifferingBindings(Session session, RegisteredHostMatcher hostMatcher) {
+        if (!hostMatcher.isRegisteredAddressUsable()) {
+            return List.of();
         }
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
@@ -165,19 +211,15 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         root.fetch("memberIdentifier", JoinType.LEFT);
         query.select(root).where(cb.equal(root.get("state"), ParticipantState.ACTIVE));
 
-        var differing = session.createQuery(query).list().stream()
-                .filter(row -> hostDiffers(row, hostMatcher))
+        return session.createQuery(query).list().stream()
+                .filter(row -> hostMatcher.isBindingHostDifferent(row.getSchemeVersion(), row.getDid()))
                 .toList();
-        differing.forEach(row -> row.setState(ParticipantState.DECOMMISSIONED));
-        return differing.size();
     }
 
-    private static boolean hostDiffers(DsParticipantEntity row, RegisteredHostMatcher hostMatcher) {
-        return ParticipantIdentifierScheme.SCHEME_VERSION.equals(row.getSchemeVersion())
-                && ParticipantIdentifierScheme.tryDecodeDid(row.getDid())
-                .map(DecodedParticipant::ssHost)
-                .filter(host -> !hostMatcher.authorityHostMatches(host))
-                .isPresent();
+    private static List<List<Long>> chunksOf(List<Long> ids) {
+        return IntStream.range(0, (ids.size() + ID_CHUNK_SIZE - 1) / ID_CHUNK_SIZE)
+                .mapToObj(chunk -> ids.subList(chunk * ID_CHUNK_SIZE, Math.min(ids.size(), (chunk + 1) * ID_CHUNK_SIZE)))
+                .toList();
     }
 
     /**

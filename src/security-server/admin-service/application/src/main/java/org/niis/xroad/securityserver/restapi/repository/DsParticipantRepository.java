@@ -86,14 +86,37 @@ public class DsParticipantRepository {
     }
 
     /**
-     * Flips every active binding row, SYSTEM and MEMBER, whose DID host is not the registered address to
-     * decommissioned, in the caller's transaction.
+     * Flips the rows with the given ids to decommissioned, in the caller's transaction. A row that is no longer
+     * active is left as it is.
      *
-     * @param hostMatcher the matcher for the registered address
+     * @param ids the ids of the rows to flip
      * @return the number of rows flipped
      */
-    public int retireDifferingBindings(RegisteredHostMatcher hostMatcher) {
-        return dsParticipantDAO.retireDifferingBindings(persistenceUtils.getCurrentSession(), hostMatcher);
+    public int retireBindings(List<Long> ids) {
+        return dsParticipantDAO.retireBindings(persistenceUtils.getCurrentSession(), ids);
+    }
+
+    /**
+     * Finds the active binding rows, SYSTEM and MEMBER, whose DID host is not the registered address.
+     *
+     * @param hostMatcher the matcher for the registered address
+     * @return the active rows whose DID host is not the registered address
+     */
+    @Transactional(readOnly = true)
+    public List<DsParticipantEntity> findDifferingBindings(RegisteredHostMatcher hostMatcher) {
+        return dsParticipantDAO.findDifferingBindings(persistenceUtils.getCurrentSession(), hostMatcher);
+    }
+
+    /**
+     * Tells whether any active binding row, SYSTEM or MEMBER, has a DID host that is not the registered address.
+     * It uses the rule that {@link #findDifferingBindings} uses to pick its rows.
+     *
+     * @param hostMatcher the matcher for the registered address
+     * @return {@code true} if at least one active row has a differing DID host
+     */
+    @Transactional(readOnly = true)
+    public boolean hasDifferingBindings(RegisteredHostMatcher hostMatcher) {
+        return dsParticipantDAO.hasDifferingBindings(persistenceUtils.getCurrentSession(), hostMatcher);
     }
 
     /**

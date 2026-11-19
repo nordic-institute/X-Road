@@ -2687,8 +2687,11 @@ paths:
           description: request specified an invalid format
         '409':
           description: >
-            the registered address is unknown (re_identification_address_unknown), the provisioning worker could
-            not bind new DIDs (re_identification_cannot_bind), or no binding differs (re_identification_not_needed)
+            the registered address is unknown (re_identification_address_unknown), participant provisioning is not
+            active on this node (re_identification_provisioning_inactive), the provisioning worker could not bind
+            new DIDs (re_identification_cannot_bind), a new DID cannot be created at the registered address because
+            the address includes a port or the DID would be too long (re_identification_cannot_mint), or no binding
+            differs (re_identification_not_needed)
           content:
             application/json:
               schema:

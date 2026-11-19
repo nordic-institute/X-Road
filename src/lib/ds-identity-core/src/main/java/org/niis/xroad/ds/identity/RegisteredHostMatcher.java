@@ -80,6 +80,24 @@ public final class RegisteredHostMatcher {
     }
 
     /**
+     * The rule that makes a binding stale: its scheme version is supported, its DID decodes and the host of the DID
+     * is not the registered address. A binding whose host cannot be read is not stale, and no binding is stale while
+     * the registered address cannot be used.
+     *
+     * @param schemeVersion the scheme version the binding was made under
+     * @param did           the DID of the binding in wire form
+     * @return whether the binding is stale
+     */
+    public boolean isBindingHostDifferent(@Nullable String schemeVersion, @Nullable String did) {
+        return isRegisteredAddressUsable()
+                && ParticipantIdentifierScheme.SCHEME_VERSION.equals(schemeVersion)
+                && ParticipantIdentifierScheme.tryDecodeDid(did)
+                .map(DecodedParticipant::ssHost)
+                .filter(host -> !authorityHostMatches(host))
+                .isPresent();
+    }
+
+    /**
      * @param systemDid  the SYSTEM DID
      * @param dspBaseUrl the DSP base URL
      * @return whether the host of either is not the registered address, or the registered address cannot be used

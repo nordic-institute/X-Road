@@ -42,6 +42,13 @@ public sealed interface DataspaceParticipantProvisioningTrigger
     void provisionParticipantAsync();
 
     /**
+     * @return whether this implementation provisions participants: {@code true} for
+     *         {@link DataspaceParticipantProvisioningWorker}, {@code false} for
+     *         {@link NoopDataspaceParticipantProvisioningTrigger}
+     */
+    boolean isActive();
+
+    /**
      * The pure decision behind which implementation is active: {@link DataspaceParticipantProvisioningWorker}
      * when the node is not secondary and participant provisioning is switched on,
      * {@link NoopDataspaceParticipantProvisioningTrigger} under the exact negation.
