@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.serverconf.impl.dao.DsParticipantDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
@@ -82,6 +83,17 @@ public class DsParticipantRepository {
      */
     public boolean decommissionMember(ClientId member) {
         return dsParticipantDAO.decommissionMember(persistenceUtils.getCurrentSession(), member);
+    }
+
+    /**
+     * Flips every active binding row, SYSTEM and MEMBER, whose DID host is not the registered address to
+     * decommissioned, in the caller's transaction.
+     *
+     * @param hostMatcher the matcher for the registered address
+     * @return the number of rows flipped
+     */
+    public int retireDifferingBindings(RegisteredHostMatcher hostMatcher) {
+        return dsParticipantDAO.retireDifferingBindings(persistenceUtils.getCurrentSession(), hostMatcher);
     }
 
     /**

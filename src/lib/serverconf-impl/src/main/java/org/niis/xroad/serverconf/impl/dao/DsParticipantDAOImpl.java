@@ -31,11 +31,15 @@ import ee.ria.xroad.common.identifier.ClientId;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
+import org.niis.xroad.ds.identity.DecodedParticipant;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
@@ -138,6 +142,42 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         }
         existing.get().setState(ParticipantState.DECOMMISSIONED);
         return true;
+    }
+
+    /**
+     * Flips every {@link ParticipantState#ACTIVE} row, SYSTEM and MEMBER, whose DID host is not the registered
+     * address to {@link ParticipantState#DECOMMISSIONED}, whatever its publication state. Rows at the registered
+     * address are left as they are, as is a row whose DID cannot be decoded or whose scheme version is not
+     * supported, since its host cannot be read. Does nothing when the registered address cannot be used, since then
+     * no host can be compared. The member identifier is fetched together with the row.
+     *
+     * @param session     the Hibernate session
+     * @param hostMatcher the matcher for the registered address
+     * @return the number of rows flipped
+     */
+    public int retireDifferingBindings(Session session, RegisteredHostMatcher hostMatcher) {
+        if (!hostMatcher.isRegisteredAddressUsable()) {
+            return 0;
+        }
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
+        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
+        root.fetch("memberIdentifier", JoinType.LEFT);
+        query.select(root).where(cb.equal(root.get("state"), ParticipantState.ACTIVE));
+
+        var differing = session.createQuery(query).list().stream()
+                .filter(row -> hostDiffers(row, hostMatcher))
+                .toList();
+        differing.forEach(row -> row.setState(ParticipantState.DECOMMISSIONED));
+        return differing.size();
+    }
+
+    private static boolean hostDiffers(DsParticipantEntity row, RegisteredHostMatcher hostMatcher) {
+        return ParticipantIdentifierScheme.SCHEME_VERSION.equals(row.getSchemeVersion())
+                && ParticipantIdentifierScheme.tryDecodeDid(row.getDid())
+                .map(DecodedParticipant::ssHost)
+                .filter(host -> !hostMatcher.authorityHostMatches(host))
+                .isPresent();
     }
 
     /**

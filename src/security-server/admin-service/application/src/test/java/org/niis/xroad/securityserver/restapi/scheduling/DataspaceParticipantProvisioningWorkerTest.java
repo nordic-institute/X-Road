@@ -122,6 +122,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     private AdminServiceProperties.Dataspace dataspace;
 
     private static final Did HUB_DID = Did.parse("did:web:ss.example.test%3A7183:xrd-ss0");
+    private static final Did NEW_HOST_DID = Did.parse("did:web:ss.new.test%3A7183:xrd-ss0");
     private static final Did DRIFTED_INTENDED_DID = Did.parse("did:web:ss.moved.test%3A7183:xrd-ss0");
 
     private static final ParticipantContextStatus UNBOUND_CONTEXT =
@@ -1389,6 +1390,37 @@ class DataspaceParticipantProvisioningWorkerTest {
         assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
         verify(dataspaceProvisioningService, never()).teardownParticipant(any());
+    }
+
+    @Test
+    void afterTheRetiredBindingsAreTornDownTheSystemAndMembersAreBoundAgainAtTheNewHostUnderTheSameContextIds() {
+        var retiredSystem = new TombstonedParticipant(1L, SYSTEM_ID);
+        var retiredMember = new TombstonedParticipant(2L, MEMBER_ID);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.decommissionedParticipants()).thenReturn(List.of(retiredSystem, retiredMember));
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT)).thenReturn(
+                new ParticipantContextStatus(SYSTEM_ID, ParticipantKind.SYSTEM, null, false, NEW_HOST_DID,
+                        CredentialStatus.ABSENT, IdentityStatus.UNBOUND));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT)).thenReturn(
+                new ParticipantContextStatus(MEMBER_ID, ParticipantKind.MEMBER, null, false, NEW_HOST_DID,
+                        CredentialStatus.ABSENT, IdentityStatus.UNBOUND));
+
+        worker.provisionParticipant();
+
+        var tornDown = ArgumentCaptor.forClass(TombstonedParticipant.class);
+        var boundMembers = ArgumentCaptor.<Map<ClientId, Did>>captor();
+        var ensured = ArgumentCaptor.forClass(ParticipantContext.class);
+        var order = inOrder(dataspaceProvisioningService, participantBindingService);
+        order.verify(dataspaceProvisioningService, times(2)).teardownParticipant(tornDown.capture());
+        order.verify(participantBindingService).bindMembersIfAbsent(boundMembers.capture());
+        order.verify(participantBindingService).bindSystemIfAbsent(NEW_HOST_DID);
+        order.verify(dataspaceProvisioningService, times(2)).ensureParticipantContext(ensured.capture());
+        assertThat(tornDown.getAllValues()).extracting(TombstonedParticipant::participantContextId)
+                .containsExactly("system", "TEST:COM:5678");
+        assertThat(boundMembers.getValue()).containsOnlyKeys(MEMBER).containsValue(NEW_HOST_DID);
+        assertThat(ensured.getAllValues()).extracting(ParticipantContext::participantId)
+                .containsExactly("system", "TEST:COM:5678");
     }
 
     // --- single-threaded convergence ---

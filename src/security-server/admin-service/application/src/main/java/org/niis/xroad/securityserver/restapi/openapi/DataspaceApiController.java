@@ -28,9 +28,10 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.AgreementTokenKeyRotationDto;
@@ -45,6 +46,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatus
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.MemberPublication;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.ServerStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceReIdentificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,13 +62,14 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
-@Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class DataspaceApiController implements DataspaceApi {
 
     private final DataspaceProvisioningStatusService dataspaceProvisioningStatusService;
     private final AgreementTokenKeyService agreementTokenKeyService;
+    private final DataspaceReIdentificationService reIdentificationService;
+    private final AuditDataHelper auditDataHelper;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_DATASPACE_STATUS')")
@@ -94,6 +97,15 @@ public class DataspaceApiController implements DataspaceApi {
     public ResponseEntity<AgreementTokenKeyRotationDto> rotateAgreementTokenKey() {
         var newKeyId = agreementTokenKeyService.rotate();
         return new ResponseEntity<>(new AgreementTokenKeyRotationDto().keyId(newKeyId), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('CHANGE_SS_ADDRESS')")
+    @AuditEventMethod(event = RestApiAuditEvent.RE_IDENTIFY_DATASPACE_PARTICIPANTS)
+    public ResponseEntity<Void> reIdentifyDataspaceParticipants() {
+        int retired = reIdentificationService.reIdentifyOnOperatorRequest();
+        auditDataHelper.put(RestApiAuditProperty.RETIRED_BINDING_COUNT, retired);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     private DataspaceProvisioningStatusDto toDto(DataspaceStatus status) {

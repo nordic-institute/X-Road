@@ -325,7 +325,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={} globalConfUsable={}"
                 + " registeredAddressKnown={}", dataspaceReady, authCertRegistered, globalConfUsable, addressKnown);
 
-        var provisionable = provisionableContexts(batch, statuses, dataspaceReady && authCertRegistered && addressKnown);
+        var provisionable = provisionableContexts(batch, statuses,
+                DataspaceReadinessPredicates.mayBind(dataspaceReady, authCertRegistered) && addressKnown);
         var ensuredContexts = ensureContexts(provisionable);
 
         if (authCertRegistered && globalConfUsable) {
