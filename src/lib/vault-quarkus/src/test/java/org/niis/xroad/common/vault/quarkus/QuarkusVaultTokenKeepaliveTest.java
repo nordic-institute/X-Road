@@ -32,12 +32,16 @@ import io.quarkus.scheduler.Scheduler;
 import io.quarkus.scheduler.Scheduler.JobDefinition;
 import io.quarkus.vault.client.VaultClient;
 import jakarta.enterprise.inject.Instance;
+import org.eclipse.microprofile.config.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 
 import java.time.Duration;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.RETURNS_SELF;
@@ -49,10 +53,12 @@ import static org.mockito.Mockito.when;
 
 class QuarkusVaultTokenKeepaliveTest {
 
+    private static final String CLIENT_TOKEN = "quarkus.vault.authentication.client-token";
+
     private final Scheduler scheduler = mock(Scheduler.class);
     private final Instance<VaultClient> vaultClient = instance();
     private final Instance<XRoadConfig> config = instance();
-    private final Instance<VaultTokenRenewalPolicy> renewalPolicy = instance();
+    private final Config quarkusConfig = mock(Config.class);
     private final XRoadConfig xRoadConfig = mock(XRoadConfig.class);
     private final JobDefinition<?> job = mock(JobDefinition.class, RETURNS_SELF);
 
@@ -65,56 +71,50 @@ class QuarkusVaultTokenKeepaliveTest {
     }
 
     @Test
-    void shouldNotResolveConfigOrClientWhenSchedulerIsDisabled() {
-        when(renewalPolicy.isUnsatisfied()).thenReturn(true);
-
+    void shouldNotReadTokenConfigOrClientWhenSchedulerIsDisabled() {
         keepalive(false).schedule(new StartupEvent());
 
-        verifyNoInteractions(config, vaultClient, scheduler);
+        verifyNoInteractions(quarkusConfig, config, vaultClient, scheduler);
     }
 
     @Test
-    void shouldScheduleRenewalWhenNoPolicyExists() {
-        when(renewalPolicy.isUnsatisfied()).thenReturn(true);
+    void shouldScheduleRenewalWhenTokenIsSet() {
+        givenToken(Optional.of("token"));
 
         keepalive(true).schedule(new StartupEvent());
 
-        verifyRenewalScheduled();
-    }
-
-    @Test
-    void shouldScheduleRenewalWhenPolicyRequiresRenewal() {
-        givenPolicy(true);
-
-        keepalive(true).schedule(new StartupEvent());
-
-        verifyRenewalScheduled();
-    }
-
-    @Test
-    void shouldNotTouchConfigClientOrSchedulerWhenPolicyDoesNotRequireRenewal() {
-        givenPolicy(false);
-
-        keepalive(true).schedule(new StartupEvent());
-
-        verifyNoInteractions(config, vaultClient, scheduler);
-    }
-
-    private void verifyRenewalScheduled() {
         verify(config).get();
         verify(vaultClient).get();
         verify(scheduler).newJob("vault-token-keepalive");
         verify(job).schedule();
     }
 
-    private void givenPolicy(boolean required) {
-        when(renewalPolicy.isUnsatisfied()).thenReturn(false);
-        when(renewalPolicy.get()).thenReturn(() -> required);
+    @Test
+    void shouldNotTouchConfigClientOrSchedulerWhenTokenIsMissing() {
+        givenToken(Optional.empty());
+
+        keepalive(true).schedule(new StartupEvent());
+
+        verifyNoInteractions(config, vaultClient, scheduler);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "\t"})
+    void shouldNotTouchConfigClientOrSchedulerWhenTokenIsBlank(String token) {
+        givenToken(Optional.of(token));
+
+        keepalive(true).schedule(new StartupEvent());
+
+        verifyNoInteractions(config, vaultClient, scheduler);
+    }
+
+    private void givenToken(Optional<String> token) {
+        when(quarkusConfig.getOptionalValue(CLIENT_TOKEN, String.class)).thenReturn(token);
     }
 
     private QuarkusVaultTokenKeepalive keepalive(boolean schedulerEnabled) {
         return new QuarkusVaultTokenKeepalive(scheduler, mock(Scheduled.ApplicationNotRunning.class),
-                schedulerEnabled, vaultClient, config, renewalPolicy);
+                schedulerEnabled, vaultClient, config, quarkusConfig);
     }
 
     @SuppressWarnings("unchecked")

@@ -148,17 +148,14 @@ class OpMonitorFileIdentityIntTest {
     }
 
     @Test
-    @DisplayName("op-monitor in file mode with an OpenBao token reports ready with no secret store check and no "
-            + "connection to OpenBao")
-    void reportsReadyWithTokenWithoutOpenBao() {
+    @DisplayName("op-monitor in file mode with an OpenBao token reports ready with no secret store check")
+    void reportsReadyWithTokenWithoutSecretStoreCheck() {
         when("the op-monitor service with a token is live", () -> await().atMost(POLL_TIMEOUT)
                 .untilAsserted(() -> assertThat(stack.livenessResponse(OpMonitorFileIdentityContainerSetup.WITH_TOKEN))
                         .contains("UP")));
         var readiness = when("its readiness endpoint is read",
                 () -> JsonPath.from(stack.readinessResponse(OpMonitorFileIdentityContainerSetup.WITH_TOKEN)));
         assertReadyWithoutSecretStoreCheck(readiness);
-        then("its trap recorded no connection", () ->
-                assertThat(stack.tokenTrapLog()).doesNotContain(ACCEPTED_CONNECTION));
     }
 
     @Test
@@ -203,13 +200,16 @@ class OpMonitorFileIdentityIntTest {
     }
 
     @Test
-    @DisplayName("op-monitor starts in file mode with an OpenBao token set and makes no connection to OpenBao")
-    void startsWithTokenAndMakesNoOpenBaoConnection() {
+    @DisplayName("op-monitor in file mode with an OpenBao token renews the token and stays live when the renewal "
+            + "fails")
+    void renewsTokenAndStaysLiveWhenRenewalFails() {
         when("the op-monitor service with a token is started", () -> await().atMost(POLL_TIMEOUT)
                 .untilAsserted(() -> assertThat(stack.livenessResponse(OpMonitorFileIdentityContainerSetup.WITH_TOKEN))
                         .contains("UP")));
-        var trapLog = when("the trap log of that service is read", stack::tokenTrapLog);
-        then("the trap recorded no connection", () -> assertThat(trapLog).doesNotContain(ACCEPTED_CONNECTION));
+        then("its trap records the renewal connection", () -> await().atMost(POLL_TIMEOUT).untilAsserted(() ->
+                assertThat(stack.tokenTrapLog()).contains(ACCEPTED_CONNECTION)));
+        then("the service is still live", () ->
+                assertThat(stack.livenessResponse(OpMonitorFileIdentityContainerSetup.WITH_TOKEN)).contains("UP"));
     }
 
     @Test
