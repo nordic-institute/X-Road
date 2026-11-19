@@ -505,6 +505,7 @@
         "title": "Editar dirección del servidor de seguridad"
       }
     },
+    "declined": "Rechazado",
     "disabled": "Temporalmente deshabilitado",
     "dspBaseUrl": "URL base de DSP",
     "ownerClass": "Clase del propietario",
@@ -512,6 +513,7 @@
     "ownerName": "Nombre del propietario",
     "pending": "Aprobación pendiente",
     "registered": "Registrado",
+    "revoked": "Revocado",
     "securityServer": {
       "certificationAuthority": "Autoridad de certificación",
       "deleteSecurityServer": "Eliminar servidor de seguridad",
