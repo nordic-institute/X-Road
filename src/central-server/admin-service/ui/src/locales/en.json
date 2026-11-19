@@ -111,7 +111,7 @@
     "invalid_url": "Invalid url",
     "issuer_service_already_bound": "The issuer DID is already bound",
     "issuer_service_already_running": "Initialization is already running",
-    "issuer_service_certificate_not_ready": "The Issuer Service TLS certificate is not ready",
+    "issuer_service_certificate_not_ready": "The Connector TLS certificate is not ready",
     "issuer_service_host_not_set": "Set the Issuer Service host first",
     "key_and_cert_generation_failed": "Failed to generate TLS key and certificate",
     "key_generation_failed": "Signing key generation failed",

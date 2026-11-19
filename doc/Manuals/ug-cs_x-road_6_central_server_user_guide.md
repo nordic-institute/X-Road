@@ -527,7 +527,7 @@ Access rights: Security Officer
 
 The Issuer Service gives Security Servers their membership credentials. Before it can do that, it must be set up in order: set the issuer host, get a connector TLS certificate for that host, then initialize the service. Every membership credential names the Issuer Service by its host, so the host becomes part of the Issuer Service's permanent identity once that identity is bound.
 
-Only the Security Officer role can view the Issuer Service tab, edit the host or initialize the service; a user without that role does not see the tab.
+Only the Security Officer role can view the Issuer Service tab, edit the host or initialize the service; a user without that role does not see the tab. Adding, editing or deleting the Connector TLS CA in the Trust Services tab needs the System Administrator role.
 
 #### 4.5.1 The Issuer Service Tab
 
@@ -558,12 +558,14 @@ The tab shows "Initialization in progress" and keeps refreshing until the run en
 
 #### 4.5.5 Issuer Service Alerts
 
-Two alerts about the Issuer Service appear on every page until they are resolved:
+Four alerts about the Issuer Service can appear on every page until they are resolved:
 
 - **"Issuer Service not initialized"** — shown while no issuer identity is bound. Its action, "Set up", opens the tab. Set the host, get a certificate, and initialize, as above.
 - **"Issuer Service signing key missing"** — shown while an identity is bound but the issuer's signing key has no secret in the secret store (OpenBao). The Issuer Service cannot sign until the secret is restored. Its action, "View status", opens the tab.
+- **"Failed to check the Issuer Service signing key"** — shown when the Central Server cannot read whether the issuer's signing key has a secret. Its action, "View status", opens the tab.
+- **"Failed to check the Issuer Service set-up status"** — shown when the Central Server cannot read the Issuer Service's set-up state. This alert has no action.
 
-Only users who can see the Issuer Service tab get these actions, and neither is shown on the tab itself.
+Only users who can see the Issuer Service tab get the "Set up" and "View status" actions. The alerts also appear on the Issuer Service tab, but without these actions.
 
 #### 4.5.6 Configuring the Issuer Service Host via the REST API
 
@@ -580,14 +582,13 @@ curl --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:
     "certificate_ready": true,
     "run_in_progress": false,
     "did_to_bind": "did:web:issuer.example.org%3A6183:issuer",
-    "bound_did": null,
     "can_sign": false,
     "can_sign_cause": "NO_ACTIVE_KEY",
     "status": "READY_TO_INITIALIZE"
 }
 ```
 
-`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run is in progress. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `bound_did` is the identifier the Issuer Service did bind; it is `null` until `bound` is `true`. `status` summarizes these into one value:
+`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run is in progress. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `bound_did` is the identifier the Issuer Service bound; it is present once `bound` is `true`. `status` summarizes these into one value:
 
 - `NOT_CONFIGURED` — the host is not set yet.
 - `WAITING_FOR_CERTIFICATE` — the host is set, but the connector TLS certificate is not yet present, valid and unexpired.
