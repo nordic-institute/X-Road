@@ -110,9 +110,9 @@ LIQUIBASE_COMMAND_PASSWORD="$db_admin_password" /usr/share/xroad/db/liquibase.sh
   die "Running database migrations failed, please check database availability and configuration in ${DB_PROPS}"
 
 # Grants this Central Server's own database role read-only access to the key-pair table the migration
-# above just created, instead of waiting for the next centerui migration run (the deferred grant in the
-# centerui changelog) to pick it up.
-psql_admin <<SQL || die "Failed to grant ${db_user%%@*} read access to $SCHEMA_NAME.keypair_resource in $db_database"
+# above just created. A failure here only loses the key-missing alert's direct table read, so it logs
+# a warning and lets the install continue rather than aborting it.
+psql_admin <<SQL || log "Failed to grant ${db_user%%@*} read access to $SCHEMA_NAME.keypair_resource in $db_database, continuing without it"
 GRANT USAGE ON SCHEMA "$SCHEMA_NAME" TO "${db_user%%@*}";
 GRANT SELECT ON "$SCHEMA_NAME".keypair_resource TO "${db_user%%@*}";
 SQL
