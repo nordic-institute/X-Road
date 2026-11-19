@@ -257,9 +257,15 @@
       "header": {
         "propertyName": "Property Name",
         "currentValue": "Current Value",
+        "source": "Source",
         "defaultValue": "Default Value",
         "description": "Description"
       }
+    },
+    "source": {
+      "default": "Default",
+      "countryProfile": "Country profile {country}",
+      "db": "Database"
     }
   },
   "dataTables": {

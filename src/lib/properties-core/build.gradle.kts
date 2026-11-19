@@ -7,6 +7,7 @@ plugins {
 dependencies {
   implementation(platform(libs.jackson.bom))
   implementation("tools.jackson.core:jackson-databind")
+  implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
 
   implementation(libs.slf4j.api)
   implementation(libs.smallrye.config.core)
@@ -18,6 +19,7 @@ dependencies {
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.systemStubs)
   testImplementation(libs.junit.jupiter.params)
+  testImplementation(libs.logback.classic)
 
   testFixturesImplementation(libs.smallrye.config.core)
   testFixturesImplementation(libs.h2database)

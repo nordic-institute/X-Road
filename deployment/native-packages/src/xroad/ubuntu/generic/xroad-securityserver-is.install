@@ -1,1 +1,1 @@
-../../../../src/xroad/default-configuration/override-securityserver-is.ini etc/xroad/conf.d/
+../../../../src/xroad/common/securityserver-is/usr/* usr/

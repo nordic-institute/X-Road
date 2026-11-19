@@ -1,0 +1,8 @@
+metadata:
+  country: FO
+  description: Faroe Islands Security Server settings
+
+xroad:
+  signer:
+    key-length: 3072
+    enforce-token-pin-policy: true

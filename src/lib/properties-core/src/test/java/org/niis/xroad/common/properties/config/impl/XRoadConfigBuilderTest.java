@@ -28,18 +28,32 @@
 package org.niis.xroad.common.properties.config.impl;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Prefix;
+import org.niis.xroad.common.properties.config.Source;
+import org.niis.xroad.common.properties.config.Validator;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ExtendWith(SystemStubsExtension.class)
 class XRoadConfigBuilderTest {
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
+
+    private static final Map<String, String> FI_ENV = Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI");
 
     private final Prefix scope = Prefix.of("xroad.test");
     private final ConfigKey<String> withContainerDefault = scope.string("with-container")
@@ -137,6 +151,137 @@ class XRoadConfigBuilderTest {
     }
 
     @Test
+    void countryProfileValueResolvesWithCountrySource() {
+        var config = proxyBuilder().build(FI_ENV);
+
+        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(value.value()).isTrue();
+        assertThat(value.source()).isEqualTo(Source.COUNTRY);
+    }
+
+    @Test
+    void keyAbsentFromCountryProfileResolvesDefault() {
+        var config = proxyBuilder().build(FI_ENV);
+
+        var value = config.get(ProxyConfigKeys.CLIENT_PROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD);
+        assertThat(value.value()).isEqualTo(3600);
+        assertThat(value.source()).isEqualTo(Source.DEFAULT);
+    }
+
+    @Test
+    void dbRowWinsOverCountryProfile() {
+        var config = proxyBuilder()
+                .overrides(Map.of("xroad.proxy.server.support-clients-pooled-connections", "false"))
+                .build(FI_ENV);
+
+        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(value.value()).isFalse();
+        assertThat(value.source()).isEqualTo(Source.DB);
+    }
+
+    @Test
+    void unsetSelectorLeavesCountryLayerOut() {
+        var config = proxyBuilder().build(Map.of());
+
+        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(value.value()).isFalse();
+        assertThat(value.source()).isEqualTo(Source.DEFAULT);
+    }
+
+    @Test
+    void unknownProfileNameFailsBuild() {
+        var builder = proxyBuilder();
+        var env = Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "XX");
+
+        assertThatThrownBy(() -> builder.build(env))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("'XX'")
+                .hasMessageContaining("supported profiles");
+    }
+
+    @Test
+    void profileValueFailingConversionFailsBuildNamingTheProfile() {
+        var signer = Prefix.of("xroad.signer");
+        signer.key("key-length", Integer.class)
+                .withConverter(raw -> {
+                    if ("3072".equals(raw)) {
+                        throw new IllegalArgumentException("not a number");
+                    }
+                    return Integer.parseInt(raw);
+                })
+                .withDefaultValue("2048")
+                .build();
+        var builder = XRoadConfigBuilder.create().register(ConfigKeyProvider.forPrefix(signer));
+
+        assertThatThrownBy(() -> builder.build(FI_ENV))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("xroad.signer.key-length")
+                .hasMessageContaining("country profile FI");
+    }
+
+    @Test
+    void profileValueRejectedByKeyValidatorFailsBuild() {
+        var signer = Prefix.of("xroad.signer");
+        signer.integer("key-length").withValidator(Validator.range(1, 2048)).withDefaultValue(2048).build();
+        var builder = XRoadConfigBuilder.create().register(ConfigKeyProvider.forPrefix(signer));
+
+        assertThatThrownBy(() -> builder.build(FI_ENV))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("xroad.signer.key-length")
+                .hasMessageContaining("3072")
+                .hasMessageContaining("country profile FI");
+    }
+
+    @Test
+    void publicBuildReadsCountryProfileFromEnvironment() {
+        variables.set(CountryProfileLoader.PROFILE_ENV_VARIABLE, "FI");
+
+        var config = XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).build();
+
+        var value = config.get(ProxyConfigKeys.SERVER_SUPPORT_CLIENTS_POOLED_CONNECTIONS);
+        assertThat(value.value()).isTrue();
+        assertThat(value.source()).isEqualTo(Source.COUNTRY);
+        assertThat(config.countryProfile().code()).isEqualTo("FI");
+    }
+
+    @Test
+    void configExposesTheProfileItWasBuiltWith() {
+        var config = proxyBuilder().build(FI_ENV);
+
+        assertThat(config.countryProfile().code()).isEqualTo("FI");
+        assertThat(config.countryProfile().values()).containsEntry("xroad.signer.key-length", "3072");
+        assertThat(proxyBuilder().build(Map.of()).countryProfile()).isEqualTo(ActiveCountryProfile.NONE);
+    }
+
+    @Test
+    void sidecarVariantDropsCountryConnectorHostAndKeepsOtherProfileKeys() {
+        var config = proxyBuilder().build(eeEnv(CountryProfileLoader.SIDECAR_VARIANT));
+        var connectorHost = config.get(ProxyConfigKeys.CLIENT_PROXY_CONNECTOR_HOST);
+        assertThat(connectorHost.value()).isEqualTo("0.0.0.0");
+        assertThat(connectorHost.source()).isEqualTo(Source.DEFAULT);
+        assertThat(config.get(ProxyConfigKeys.SERVER_MIN_SUPPORTED_CLIENT_VERSION).source())
+                .isEqualTo(Source.COUNTRY);
+    }
+
+    @Test
+    void withoutVariantCountryConnectorHostApplies() {
+        var config = proxyBuilder().build(eeEnv(null));
+        var connectorHost = config.get(ProxyConfigKeys.CLIENT_PROXY_CONNECTOR_HOST);
+        assertThat(connectorHost.value()).isEqualTo("127.0.0.1");
+        assertThat(connectorHost.source()).isEqualTo(Source.COUNTRY);
+    }
+
+    @Test
+    void dbRowWinsForConnectorHostInSidecarVariant() {
+        var config = proxyBuilder()
+                .overrides(Map.of("xroad.proxy.client-proxy.connector-host", "10.0.0.1"))
+                .build(eeEnv(CountryProfileLoader.SIDECAR_VARIANT));
+        var value = config.get(ProxyConfigKeys.CLIENT_PROXY_CONNECTOR_HOST);
+        assertThat(value.value()).isEqualTo("10.0.0.1");
+        assertThat(value.source()).isEqualTo(Source.DB);
+    }
+
+    @Test
     void overridesOfUnregisteredKeysAreIgnoredAndRegisteredKeysKeepTheirValues() {
         var config = XRoadConfigBuilder.create().register(provider)
                 .overrides(Map.of(
@@ -147,5 +292,16 @@ class XRoadConfigBuilderTest {
 
         assertThat(config.get(nativeOnly).value()).isEqualTo("set");
         assertThat(config.get(withContainerDefault).value()).isEqualTo("native");
+    }
+
+    private static Map<String, String> eeEnv(String variant) {
+        return variant == null
+                ? Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "EE")
+                : Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, "EE",
+                CountryProfileLoader.VARIANT_ENV_VARIABLE, variant);
+    }
+
+    private static XRoadConfigBuilder proxyBuilder() {
+        return XRoadConfigBuilder.create().register(ProxyConfigKeys.instance());
     }
 }

@@ -173,7 +173,7 @@ class MessageLogBodyLoggingAndNewKeysTest {
 
     @Test
     void messageBodyLoggingFromOverrideIsMigratedWhenNoFileSetsSoapBodyLogging() throws IOException {
-        var override = write("override-securityserver-fi.ini", """
+        var override = write("override-90-operator.ini", """
                 [message-log]
                 message-body-logging=false
                 """);

@@ -86,28 +86,28 @@ Description: X-Road monitoring service
  Monitoring service
 
 Package: xroad-securityserver-fi
-Conflicts: xroad-centralserver
+Conflicts: xroad-centralserver, xroad-securityserver-is, xroad-securityserver-ee, xroad-securityserver-fo
 Architecture: all
 Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.
 
 Package: xroad-securityserver-is
-Conflicts: xroad-centralserver
+Conflicts: xroad-centralserver, xroad-securityserver-fi, xroad-securityserver-ee, xroad-securityserver-fo
 Architecture: all
 Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Icelandic settings
  This is meta-package of X-Road security server with Icelandic settings.
 
 Package: xroad-securityserver-ee
-Conflicts: xroad-centralserver
+Conflicts: xroad-centralserver, xroad-securityserver-fi, xroad-securityserver-is, xroad-securityserver-fo
 Architecture: all
 Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Estonian settings
  This is meta-package of X-Road security server with Estonian settings.
 
 Package: xroad-securityserver-fo
-Conflicts: xroad-centralserver
+Conflicts: xroad-centralserver, xroad-securityserver-fi, xroad-securityserver-is, xroad-securityserver-ee
 Architecture: all
 Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with the Faroe Islands' settings
