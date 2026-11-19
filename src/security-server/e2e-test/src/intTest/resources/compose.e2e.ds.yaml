@@ -117,6 +117,8 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
       # Validity in ms (EDC default 900000); 1 ms ~= no cache, so revocation is seen immediately in the test.
       - EDC_IAM_CREDENTIAL_REVOCATION_CACHE_VALIDITY=1
+      # DID document cache time in ms (EDC default 300000); a few seconds, so a DID document is fetched again within seconds.
+      - EDC_DID_RESOLVER_CACHE_EXPIRY=3000
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
       - DB_CONFIG_SOURCE_PASSWORD=secret
@@ -160,6 +162,7 @@ services:
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME=ds_identity_hub
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD=secret
       - DEBUG=true
+      - EDC_DID_RESOLVER_CACHE_EXPIRY=3000
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
       - DB_CONFIG_SOURCE_PASSWORD=secret
