@@ -544,7 +544,7 @@ describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
     await vi.advanceTimersByTimeAsync(5_000);
     await expect.poll(() => page.getByTestId('issuer-service-run-in-progress').query()).toBeNull();
 
-    expect(alertReads).toBeGreaterThan(alertReadsWhileRunning);
+    await expect.poll(() => alertReads).toBeGreaterThan(alertReadsWhileRunning);
   });
 });
 
