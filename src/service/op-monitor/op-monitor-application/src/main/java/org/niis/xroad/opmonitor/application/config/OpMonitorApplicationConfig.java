@@ -30,11 +30,18 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.healthcheck.HealthCheckProperties;
 import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.vault.quarkus.VaultTokenRenewalPolicy;
 
 class OpMonitorApplicationConfig {
 
     @ApplicationScoped
     HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
         return new XRoadHealthCheckProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    VaultTokenRenewalPolicy vaultTokenRenewalPolicy(RpcProperties rpcProperties) {
+        return () -> rpcProperties.identitySource() == RpcProperties.IdentitySource.OPENBAO;
     }
 }

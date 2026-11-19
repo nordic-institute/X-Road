@@ -78,7 +78,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
  * 0220 - op-monitor runs without OpenBao on key material created by the packaged identity tool. The stack has no
- * OpenBao service and no token; a trap at the OpenBao address records any connection. Clients connect as a proxy does:
+ * OpenBao service; a trap at the OpenBao address records any connection. The main op-monitor service has no token, and
+ * a second one is started with a token and a trap of its own. Clients connect as a proxy does:
  * a certificate of the Security Server RPC CA, trust in the tool-generated op-monitor CA. The stack is this class's
  * own, separate from the shared one.
  */
@@ -167,6 +168,16 @@ class OpMonitorFileIdentityIntTest {
                 assertThatThrownBy(() -> failFastStub.storeOperationalData(StoreOperationalDataReq.getDefaultInstance()))
                         .isInstanceOfSatisfying(StatusRuntimeException.class,
                                 e -> assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNAVAILABLE)));
+    }
+
+    @Test
+    @DisplayName("op-monitor starts in file mode with an OpenBao token set and makes no connection to OpenBao")
+    void startsWithTokenAndMakesNoOpenBaoConnection() {
+        when("the op-monitor service with a token is started", () -> await().atMost(POLL_TIMEOUT)
+                .untilAsserted(() -> assertThat(stack.livenessResponse(OpMonitorFileIdentityContainerSetup.WITH_TOKEN))
+                        .contains("UP")));
+        var trapLog = when("the trap log of that service is read", stack::tokenTrapLog);
+        then("the trap recorded no connection", () -> assertThat(trapLog).doesNotContain(ACCEPTED_CONNECTION));
     }
 
     @Test

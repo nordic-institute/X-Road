@@ -43,7 +43,8 @@ import org.niis.xroad.common.vault.VaultTokenKeepalive;
 /**
  * Renews the secret store token shared by all services of a node at startup and every configured interval. The
  * bean is discovered through the library's Jandex index, and schedules the renewal only where the scheduler is
- * enabled ({@code quarkus.scheduler.enabled=false} switches it off).
+ * enabled ({@code quarkus.scheduler.enabled=false} switches it off) and, when the service provides a
+ * {@link VaultTokenRenewalPolicy}, the policy requires it.
  */
 @ApplicationScoped
 class QuarkusVaultTokenKeepalive {
@@ -55,22 +56,25 @@ class QuarkusVaultTokenKeepalive {
     private final boolean schedulerEnabled;
     private final Instance<VaultClient> vaultClient;
     private final Instance<XRoadConfig> config;
+    private final Instance<VaultTokenRenewalPolicy> renewalPolicy;
 
     QuarkusVaultTokenKeepalive(Scheduler scheduler,
                                Scheduled.ApplicationNotRunning applicationNotRunning,
                                @ConfigProperty(name = "quarkus.scheduler.enabled", defaultValue = "true")
                                boolean schedulerEnabled,
                                Instance<VaultClient> vaultClient,
-                               Instance<XRoadConfig> config) {
+                               Instance<XRoadConfig> config,
+                               Instance<VaultTokenRenewalPolicy> renewalPolicy) {
         this.scheduler = scheduler;
         this.applicationNotRunning = applicationNotRunning;
         this.schedulerEnabled = schedulerEnabled;
         this.vaultClient = vaultClient;
         this.config = config;
+        this.renewalPolicy = renewalPolicy;
     }
 
     void schedule(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
-        if (!schedulerEnabled) {
+        if (!schedulerEnabled || !renewalRequired()) {
             return;
         }
         var xRoadConfig = config.get();
@@ -84,6 +88,10 @@ class QuarkusVaultTokenKeepalive {
                 .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
                 .setSkipPredicate(applicationNotRunning)
                 .schedule();
+    }
+
+    private boolean renewalRequired() {
+        return renewalPolicy.isUnsatisfied() || renewalPolicy.get().renewalRequired();
     }
 
     private static void renewSelf(VaultClient vaultClient) {
