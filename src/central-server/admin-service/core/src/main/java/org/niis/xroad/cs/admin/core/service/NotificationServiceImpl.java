@@ -81,7 +81,6 @@ public class NotificationServiceImpl implements NotificationService {
     public Set<AlertInfo> getAlerts() {
         final Set<AlertInfo> alerts = new HashSet<>();
         alerts.addAll(checkDsTlsAcmeEnrollment());
-        alerts.addAll(checkIssuerServiceStatus());
 
         final List<TokenInfo> tokens;
         try {
@@ -93,6 +92,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         if (isInitialized(tokens)) {
+            alerts.addAll(checkIssuerServiceStatus());
             alerts.addAll(checkGlobalConfGenerationStatus());
             alerts.addAll(checkConfigurationSigningKey(SOURCE_TYPE_INTERNAL, tokens));
             if (adminServiceProperties.isTrustedAnchorsAllowed()) {

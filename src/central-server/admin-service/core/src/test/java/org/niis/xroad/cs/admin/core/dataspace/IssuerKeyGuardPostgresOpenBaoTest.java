@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import jakarta.persistence.EntityManager;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -36,6 +38,8 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.spring.SpringVaultClient;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
@@ -44,6 +48,9 @@ import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
 import org.niis.xroad.cs.admin.core.service.NotificationServiceImpl;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
+import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 import org.springframework.vault.authentication.TokenAuthentication;
 import org.springframework.vault.client.VaultEndpoint;
 import org.springframework.vault.core.VaultKeyValueOperations;
@@ -59,6 +66,7 @@ import java.sql.DriverManager;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -66,6 +74,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.SUCCESS;
+import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_INTERNAL;
+import static org.niis.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
+import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 
 /**
  * Proves the Issuer Service key-missing guard against a real {@code ds-issuer-service} schema and a real
@@ -85,6 +97,9 @@ class IssuerKeyGuardPostgresOpenBaoTest {
     private static final int ROTATED_STATE = 300;
     private static final int OPENBAO_PORT = 8200;
     private static final String OPENBAO_ROOT_TOKEN = "test-root-token";
+    private static final String INSTANCE_IDENTIFIER = "DEV";
+    private static final String SOFTWARE_TOKEN_ID = "0";
+    private static final String CONFIGURATION_SIGNING_KEY_ID = "configuration-signing-key";
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
     private static final GenericContainer<?> OPENBAO = new GenericContainer<>("openbao/openbao:2.6.1")
@@ -204,25 +219,59 @@ class IssuerKeyGuardPostgresOpenBaoTest {
     /**
      * Wires the real {@link NotificationServiceImpl} to the real {@link #guard} built in
      * {@link #wireRealCollaboratorsAndClearTheTable()} and a {@link DataspaceIssuerDidService} stub that
-     * reports one bound DID, so the alert's only real dependency is the guard. Every other collaborator is
-     * mocked just enough that {@code getAlerts()} reaches the issuer key check without throwing.
+     * reports one bound DID, so the alert's only real dependency is the guard. The Central Server is mocked
+     * as initialized (instance identifier, Central Server address, an initialized software token) so that
+     * {@code getAlerts()} reaches the issuer key check, and every other collaborator is mocked just enough
+     * that the checks run alongside it do not throw.
      */
     private NotificationServiceImpl notificationServiceWithTheRealGuard() {
         var systemParameterService = mock(SystemParameterService.class);
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        when(systemParameterService.getCentralServerAddress()).thenReturn("https://cs");
+        when(systemParameterService.getConfExpireIntervalSeconds()).thenReturn(600);
+
+        var keyInfo = KeyInfoProto.newBuilder()
+                .setAvailable(true)
+                .setUsage(SIGNING)
+                .setFriendlyName("")
+                .setId(CONFIGURATION_SIGNING_KEY_ID)
+                .setLabel("")
+                .setPublicKey("")
+                .setSignMechanismName("")
+                .build();
+        var softwareToken = new TokenInfo(TokenInfoProto.newBuilder()
+                .setType("")
+                .setFriendlyName("")
+                .setId(SOFTWARE_TOKEN_ID)
+                .setReadOnly(false)
+                .setAvailable(true)
+                .setActive(true)
+                .setSerialNumber("")
+                .setLabel("")
+                .setStatus(OK)
+                .addKeyInfo(keyInfo)
+                .build());
 
         var signerProxyFacade = mock(SignerProxyFacade.class);
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(signerProxyFacade.getTokens()).thenReturn(List.of(softwareToken));
+
+        var configurationSigningKeysService = mock(ConfigurationSigningKeysService.class);
+        var signingKey = new ConfigurationSigningKey();
+        signingKey.setKeyIdentifier(CONFIGURATION_SIGNING_KEY_ID);
+        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL)).thenReturn(Optional.of(signingKey));
+
+        var globalConfGenerationStatus = mock(GlobalConfGenerationStatusService.class);
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
 
         var dsTlsCertificateService = mock(DsTlsCertificateService.class);
         when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, null));
 
         return new NotificationServiceImpl(
-                mock(ConfigurationSigningKeysService.class),
+                configurationSigningKeysService,
                 systemParameterService,
                 mock(AdminServiceProperties.class),
                 signerProxyFacade,
-                mock(GlobalConfGenerationStatusService.class),
+                globalConfGenerationStatus,
                 dsTlsCertificateService,
                 new OneBoundDidStub(),
                 guard);

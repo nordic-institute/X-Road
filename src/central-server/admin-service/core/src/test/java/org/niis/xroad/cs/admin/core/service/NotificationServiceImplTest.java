@@ -44,7 +44,6 @@ import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
-import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.IssuerKeyGuard;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
@@ -76,6 +75,8 @@ import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceImplTest {
 
+    private static final String SIGNING_KEY_ID = "id";
+
     @Mock
     private SignerProxyFacade signerProxyFacade;
     @Mock
@@ -91,8 +92,6 @@ class NotificationServiceImplTest {
     @Mock
     private DataspaceIssuerDidService dataspaceIssuerDidService;
     @Mock
-    private DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
-    @Mock
     private IssuerKeyGuard issuerKeyGuard;
 
     @InjectMocks
@@ -103,6 +102,15 @@ class NotificationServiceImplTest {
         lenient().when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, null));
         lenient().when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
         lenient().when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(true);
+        lenient().when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        lenient().when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+        lenient().when(systemParameterService.getConfExpireIntervalSeconds()).thenReturn(600);
+        lenient().when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
+        lenient().when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
+                .thenReturn(Optional.of(signingKey(SIGNING_KEY_ID)));
+        lenient().when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
+                .thenReturn(Optional.of(signingKey(SIGNING_KEY_ID)));
+        lenient().when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
     }
 
     @Test
@@ -117,15 +125,7 @@ class NotificationServiceImplTest {
 
     @Test
     void getAlertsAllOk() {
-        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
-        confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
-        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -144,7 +144,6 @@ class NotificationServiceImplTest {
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
-        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -156,16 +155,7 @@ class NotificationServiceImplTest {
 
     @Test
     void getAlertsTokenNotActive() {
-        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
-        confSigningKey.setKeyIdentifier("id");
         mockInitialized(false, true);
-        when(systemParameterService.getConfExpireIntervalSeconds()).thenReturn(600);
-        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -176,16 +166,8 @@ class NotificationServiceImplTest {
 
     @Test
     void getAlertsKeyNotActiveConfStatusUnknown() {
-        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
-        confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, false);
-
         when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(UNKNOWN, null));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -197,16 +179,9 @@ class NotificationServiceImplTest {
 
     @Test
     void getAlertsGlobalConfExpired() {
-        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
-        confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
         when(globalConfGenerationStatus.get())
                 .thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now().minus(1, HOURS)));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -217,14 +192,6 @@ class NotificationServiceImplTest {
     @Test
     void getAlertsDsTlsAcmeEnrollmentFailing() {
         mockInitialized(true, true);
-        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
-        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
-        confSigningKey.setKeyIdentifier("id");
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
         when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "CA unreachable"));
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
@@ -236,14 +203,6 @@ class NotificationServiceImplTest {
     @Test
     void getAlertsDsTlsAcmeRenewalFailing() {
         mockInitialized(true, true);
-        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
-        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
-        confSigningKey.setKeyIdentifier("id");
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
-                .thenReturn(Optional.of(confSigningKey));
-        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
         when(dsTlsCertificateService.getEnrollmentStatus())
                 .thenReturn(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, Instant.now(), "CA unreachable"));
 
@@ -256,8 +215,6 @@ class NotificationServiceImplTest {
     @Test
     void getAlertsDsTlsAcmeFailingSurfacesEvenWhenNotYetInitialized() {
         // instance identifier left blank -> isInitialized() is false, so none of the signer/globalconf checks run
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
         when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "CA unreachable"));
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
@@ -268,8 +225,6 @@ class NotificationServiceImplTest {
     @Test
     void getAlertsDsTlsAcmeEnrollmentStatusCheckThrowsProducesFallbackAlertNotException() {
         when(dsTlsCertificateService.getEnrollmentStatus()).thenThrow(new RuntimeException("vault unreachable"));
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -290,106 +245,51 @@ class NotificationServiceImplTest {
 
     @Test
     void getAlertsIssuerServiceSetupRequiredWhenNoDidBound() {
+        mockInitialized(true, true);
         when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-        assertThat(alerts).containsExactly(new AlertInfo("status.issuer_service.setup_required"));
-    }
-
-    @Test
-    void getAlertsNoIssuerServiceSetupRequiredAlertWhenDidBound() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
-
-        final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-        assertThat(alerts).noneMatch(alert -> alert.getErrorCode().equals("status.issuer_service.setup_required"));
-    }
-
-    @Test
-    void getAlertsIssuerServiceSetupCheckThrowsProducesFallbackAlertNotException() {
-        when(dataspaceIssuerDidService.findAll()).thenThrow(new RuntimeException("db unreachable"));
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
-
-        final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-        assertThat(alerts).containsExactly(new AlertInfo("status.issuer_service.status_check_failed"));
-    }
-
-    @Test
-    void getAlertsIssuerServiceSetupCheckMakesNoIssuerServiceCall() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
-
-        notificationService.getAlerts();
-
-        verifyNoInteractions(dataspaceIssuerProvisioningService);
-    }
-
-    @Test
-    void getAlertsIssuerServiceKeyMissingWhenDidBoundAndSecretMissing() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
-        when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(false);
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
-
-        final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-        assertThat(alerts).containsExactly(new AlertInfo("status.issuer_service.key_missing"));
-    }
-
-    @Test
-    void getAlertsNoIssuerServiceKeyMissingAlertWhenSecretPresent() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
-        when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(true);
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
-
-        final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-        assertThat(alerts).noneMatch(alert -> alert.getErrorCode().equals("status.issuer_service.key_missing"));
-    }
-
-    @Test
-    void getAlertsNoIssuerServiceKeyMissingAlertAndGuardNotCalledWhenNoDidBound() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
-
-        final Set<AlertInfo> alerts = notificationService.getAlerts();
-
-        assertThat(alerts).noneMatch(alert -> alert.getErrorCode().equals("status.issuer_service.key_missing"));
+        assertThat(alerts).contains(new AlertInfo("status.issuer_service.setup_required"));
         verifyNoInteractions(issuerKeyGuard);
     }
 
     @Test
-    void getAlertsIssuerServiceKeyMissingCheckThrowsProducesFallbackAlertNotException() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
-        when(issuerKeyGuard.signingKeySecretPresent()).thenThrow(new RuntimeException("vault unreachable"));
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+    void getAlertsIssuerServiceSetupCheckThrowsProducesFallbackAlertNotException() {
+        mockInitialized(true, true);
+        when(dataspaceIssuerDidService.findAll()).thenThrow(new RuntimeException("db unreachable"));
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-        assertThat(alerts).containsExactly(new AlertInfo("status.issuer_service.key_missing_check_failed"));
+        assertThat(alerts).contains(new AlertInfo("status.issuer_service.status_check_failed"));
     }
 
     @Test
-    void getAlertsIssuerServiceKeyMissingCheckMakesNoIssuerServiceCall() {
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
+    void getAlertsIssuerServiceKeyMissingWhenDidBoundAndSecretMissing() {
+        mockInitialized(true, true);
         when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(false);
-        when(signerProxyFacade.getTokens()).thenReturn(List.of());
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
 
-        notificationService.getAlerts();
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-        verifyNoInteractions(dataspaceIssuerProvisioningService);
+        assertThat(alerts).contains(new AlertInfo("status.issuer_service.key_missing"));
+    }
+
+    @Test
+    void getAlertsIssuerServiceKeyMissingCheckThrowsProducesFallbackAlertNotException() {
+        mockInitialized(true, true);
+        when(issuerKeyGuard.signingKeySecretPresent()).thenThrow(new RuntimeException("vault unreachable"));
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).contains(new AlertInfo("status.issuer_service.key_missing_check_failed"));
+    }
+
+    @Test
+    void getAlertsIssuerServiceAlertsNotComputedWhenNotInitialized() {
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).isEmpty();
+        verifyNoInteractions(dataspaceIssuerDidService, issuerKeyGuard);
     }
 
     private void mockInitialized(boolean tokenActive, boolean keyAvailable) {
@@ -397,7 +297,7 @@ class NotificationServiceImplTest {
                 .setAvailable(keyAvailable)
                 .setUsage(SIGNING)
                 .setFriendlyName("")
-                .setId("id")
+                .setId(SIGNING_KEY_ID)
                 .setLabel("")
                 .setPublicKey("")
                 .setSignMechanismName("")
@@ -419,6 +319,12 @@ class NotificationServiceImplTest {
         when(signerProxyFacade.getTokens()).thenReturn(List.of(tokenInfo));
         when(systemParameterService.getInstanceIdentifier()).thenReturn("CS");
         when(systemParameterService.getCentralServerAddress()).thenReturn("https://cs");
+    }
+
+    private static ConfigurationSigningKey signingKey(String keyIdentifier) {
+        ConfigurationSigningKey key = new ConfigurationSigningKey();
+        key.setKeyIdentifier(keyIdentifier);
+        return key;
     }
 
 }
