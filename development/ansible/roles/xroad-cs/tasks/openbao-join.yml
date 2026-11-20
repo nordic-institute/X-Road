@@ -1,15 +1,15 @@
 ---
-- name: install xroad-base for the join bundle import
+- name: install xroad-base for the cluster bundle import
   apt:
     name: xroad-base
     state: present
     lock_timeout: 120
-- name: check whether the join bundle is already imported
-  command: /usr/share/xroad/scripts/secret-store-join-bundle.sh check
+- name: check whether the cluster bundle is already imported
+  command: /usr/share/xroad/scripts/secret-store-cluster-bundle.sh check
   register: cs_openbao_bundle_check
   changed_when: false
   failed_when: false
-- name: import the join bundle exported by the first node
+- name: import the cluster bundle exported by the first node
   command:
     argv:
       - bash
@@ -20,10 +20,10 @@
         trap 'rm -f "$archive"' EXIT
         rm -f "$archive"
         (umask 077; base64 -d >"$archive")
-        /usr/share/xroad/scripts/secret-store-join-bundle.sh import "$archive"
-      - join-bundle-import
+        /usr/share/xroad/scripts/secret-store-cluster-bundle.sh import "$archive"
+      - cluster-bundle-import
       - "{{ xroad_cs_openbao_bundle_archive }}"
-    stdin: "{{ hostvars[xroad_cs_openbao_cluster_nodes | first].cs_openbao_join_bundle.stdout }}"
+    stdin: "{{ hostvars[xroad_cs_openbao_cluster_nodes | first].cs_openbao_cluster_bundle.stdout }}"
   no_log: true
   when: cs_openbao_bundle_check.rc != 0
 - name: debconf OpenBao join answers

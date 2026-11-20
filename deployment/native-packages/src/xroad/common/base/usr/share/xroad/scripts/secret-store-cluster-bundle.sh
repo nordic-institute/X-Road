@@ -4,9 +4,9 @@
 # the unseal keys file and the root token file. The archive holds secrets; keep it root-only
 # and delete it after the import.
 #
-# Usage: secret-store-join-bundle.sh export <file>
-#        secret-store-join-bundle.sh import <file>
-#        secret-store-join-bundle.sh check
+# Usage: secret-store-cluster-bundle.sh export <file>
+#        secret-store-cluster-bundle.sh import <file>
+#        secret-store-cluster-bundle.sh check
 set -euo pipefail
 umask 077
 
@@ -42,21 +42,21 @@ export_bundle() {
   tmp=$(mktemp "${target}.XXXXXX")
   if ! tar -cf "$tmp" -C "$BUNDLE_DIR" "${BUNDLE_NAMES[@]}"; then
     rm -f "$tmp"
-    die "Writing the join bundle failed"
+    die "Writing the cluster bundle failed"
   fi
   mv -f "$tmp" "$target"
-  echo "Wrote the join bundle ${target}; it holds secrets, delete it after the import"
+  echo "Wrote the cluster bundle ${target}; it holds secrets, delete it after the import"
 }
 
 import_bundle() {
   local source="$1" name existing=0 copy
-  [ -f "$source" ] || die "The join bundle ${source} does not exist"
+  [ -f "$source" ] || die "The cluster bundle ${source} does not exist"
   extract_dir=$(mktemp -d)
   trap 'rm -rf "$extract_dir"' EXIT
   copy="${extract_dir}/bundle.tar"
   cp -- "$source" "$copy"
   [ "$(tar -tf "$copy" | sort)" = "$(printf '%s\n' "${BUNDLE_NAMES[@]}" | sort)" ] ||
-    die "The join bundle ${source} must hold exactly: ${BUNDLE_NAMES[*]}"
+    die "The cluster bundle ${source} must hold exactly: ${BUNDLE_NAMES[*]}"
   for name in "${BUNDLE_NAMES[@]}"; do
     if [ -e "${BUNDLE_DIR}/${name}" ] || [ -L "${BUNDLE_DIR}/${name}" ]; then
       echo >&2 "Refusing to overwrite ${BUNDLE_DIR}/${name}"
@@ -69,7 +69,7 @@ import_bundle() {
   tar -xf "$copy" -C "${extract_dir}/files"
   for name in "${BUNDLE_NAMES[@]}"; do
     if [ ! -f "${extract_dir}/files/${name}" ] || [ -L "${extract_dir}/files/${name}" ] || [ ! -s "${extract_dir}/files/${name}" ]; then
-      die "The join bundle entry ${name} is not a regular, non-empty file; nothing was imported"
+      die "The cluster bundle entry ${name} is not a regular, non-empty file; nothing was imported"
     fi
   done
   [ -d "$BUNDLE_DIR" ] || install -d -m 0755 -o root -g root "$BUNDLE_DIR"
@@ -79,7 +79,7 @@ import_bundle() {
       die "Installing ${BUNDLE_DIR}/${name} failed; nothing was imported"
     fi
   done
-  echo "Imported the join bundle into ${BUNDLE_DIR}"
+  echo "Imported the cluster bundle into ${BUNDLE_DIR}"
 }
 
 case "${1:-}" in

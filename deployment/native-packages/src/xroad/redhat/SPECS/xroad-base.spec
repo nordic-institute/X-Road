@@ -95,7 +95,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/_migration_common.sh
 %attr(755,root,root) /usr/share/xroad/scripts/run_migrations.sh
 %attr(755,root,root) /usr/share/xroad/scripts/db_property.sh
-%attr(755,root,root) /usr/share/xroad/scripts/secret-store-join-bundle.sh
+%attr(755,root,root) /usr/share/xroad/scripts/secret-store-cluster-bundle.sh
 /usr/share/xroad/scripts/dsp_ports.sh
 %dir /usr/share/xroad/migrations
 /usr/share/xroad/migrations/*

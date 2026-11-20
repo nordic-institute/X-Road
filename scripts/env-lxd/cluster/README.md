@@ -1,6 +1,6 @@
 # LXD Central Server cluster
 
-A two-node Central Server cluster on LXD, built from the packages of this checkout. Both nodes use one PostgreSQL database and share one OpenBao cluster: node 1 creates it and node 2 joins it with the product scripts (`secret-store-cluster-config.sh`, `secret-store-join-bundle.sh`). Patroni runs PostgreSQL on two hosts (one leader, one streaming replica) and fails over automatically. A haproxy host gives the cluster one name and one database write address.
+A two-node Central Server cluster on LXD, built from the packages of this checkout. Both nodes use one PostgreSQL database and share one OpenBao cluster: node 1 creates it and node 2 joins it with the product scripts (`secret-store-cluster-config.sh`, `secret-store-cluster-bundle.sh`). Patroni runs PostgreSQL on two hosts (one leader, one streaming replica) and fails over automatically. A haproxy host gives the cluster one name and one database write address.
 
 | Host | Role |
 |---|---|

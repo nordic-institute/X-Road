@@ -1,7 +1,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.26
+Version: 1.27
 Doc. ID: IG-CSHA
 
 ---
@@ -39,6 +39,7 @@ Doc. ID: IG-CSHA
 | 16.11.2026 | 1.24    | Document that the secret store retry covers the Issuer Service                                                | Ričardas Bučiūnas  |
 | 17.11.2026 | 1.25    | Document joining the OpenBao cluster, the ports between the nodes and using an external OpenBao               | Ričardas Bučiūnas  |
 | 18.11.2026 | 1.26    | Correct the steps for joining a node to the OpenBao cluster and state the limits of the Red Hat packages  | Ričardas Bučiūnas  |
+| 20.11.2026 | 1.27    | Rename the bundle script to secret-store-cluster-bundle.sh                                                | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -218,7 +219,7 @@ In addition, it is necessary to configure a unique node name for each node parti
     centerui.database.admin_user=<admin_user>
     centerui.database.admin_password=<admin_password>
     ```
-    Without the admin credentials, the package configuration on the subsequent node cannot create the Issuer Service schema. Without the master password, the database setup of the package looks for a local PostgreSQL instead of the shared database. If the first node sets `postgres.connection.user` in `/etc/xroad.properties`, set the same value on the subsequent node. Every package upgrade runs the admin database migrations with these credentials, so they stay in the file on every node. The join bundle in section [4.3](#43-joining-the-openbao-cluster) does not hold them. Keep a copy in your own secret store for new nodes.
+    Without the admin credentials, the package configuration on the subsequent node cannot create the Issuer Service schema. Without the master password, the database setup of the package looks for a local PostgreSQL instead of the shared database. If the first node sets `postgres.connection.user` in `/etc/xroad.properties`, set the same value on the subsequent node. Every package upgrade runs the admin database migrations with these credentials, so they stay in the file on every node. The cluster bundle in section [4.3](#43-joining-the-openbao-cluster) does not hold them. Keep a copy in your own secret store for new nodes.
 
 **TLS certificate names.** The installation asks for the common name and the alternative names of the admin and management service TLS certificates ([IG-CS section 2.6](ig-cs_x-road_8_central_server_installation_guide.md#26-package-installation); preseed keys `xroad-common/admin-subject`, `xroad-common/admin-altsubject`, `xroad-common/service-subject` and `xroad-common/service-altsubject`). The installation detects the host name and the addresses of the node and suggests them. The suggested value is the value that the node uses now: its own row, else the shared row, else the preseeded answer, else the detected names. The answers are stored in the shared configuration database. An unchanged answer writes nothing. A changed answer is stored as a row of the node when the node has a node name, and as a shared row otherwise. Each node's certificates therefore get the names entered on that node.
 
@@ -372,10 +373,10 @@ To turn off standby reads, add `--disable-standby-reads` to the command. See the
 
 Do steps 2 to 4 for each new node, one node after the other.
 
-**2. Export the join bundle on node 1.** The join bundle is a file that holds what a new node needs to use the existing OpenBao: the OpenBao database connection (`xroad-openbao.env`), the unseal keys and the root token. It does not hold the database admin credentials and no client token. The target file must not exist, because the command refuses to overwrite it. Step 4 deletes the archive after the import. The directory `/run` is on a memory-backed file system, so the file is gone after a reboot:
+**2. Export the cluster bundle on node 1.** The cluster bundle is a file that holds what a new node needs to use the existing OpenBao: the OpenBao database connection (`xroad-openbao.env`), the unseal keys and the root token. It does not hold the database admin credentials and no client token. The target file must not exist, because the command refuses to overwrite it. Step 4 deletes the archive after the import. The directory `/run` is on a memory-backed file system, so the file is gone after a reboot:
 
 ```bash
-sudo /usr/share/xroad/scripts/secret-store-join-bundle.sh export /run/xroad-openbao-join.tar
+sudo /usr/share/xroad/scripts/secret-store-cluster-bundle.sh export /run/xroad-openbao-join.tar
 ```
 
 **3. Copy the bundle to the new node.** The archive holds secrets: treat it like the root token file. How you move the file is your choice, for example a secure file transfer tool or the `ssh` command below. The requirements are:
@@ -395,7 +396,7 @@ sudo cat /run/xroad-openbao-join.tar | ssh <admin>@<new-node> \
 
 **4. Prepare the new node and install the Central Server.** Do the items in this order. Install the Central Server last, because its installation reads the bundle and the answers.
 
-1.  Install the packages `xroad-base` and `xroad-database-remote`. The join bundle script is part of `xroad-base`. The package `xroad-database-remote` makes the node use the shared database: without it, the installation of the Central Server selects the local database package. The package repositories are those of section [2.5 of the X-Road 8 Central Server installation guide](ig-cs_x-road_8_central_server_installation_guide.md#25-setup-package-repositories):
+1.  Install the packages `xroad-base` and `xroad-database-remote`. The cluster bundle script is part of `xroad-base`. The package `xroad-database-remote` makes the node use the shared database: without it, the installation of the Central Server selects the local database package. The package repositories are those of section [2.5 of the X-Road 8 Central Server installation guide](ig-cs_x-road_8_central_server_installation_guide.md#25-setup-package-repositories):
     ```bash
     sudo apt install xroad-base xroad-database-remote
     ```
@@ -404,15 +405,15 @@ sudo cat /run/xroad-openbao-join.tar | ssh <admin>@<new-node> \
     sudo debconf-set-selections <<< 'xroad-center xroad-common/node-name string <node_name>'
     ```
     Do not use `node_0`: node 1 uses it. A node without a name gets `node_0`, and then the node-specific secrets of the two nodes collide.
-3.  Provide the database settings of the first node, as in item 4 of the list in section [4](#4-general-installation-of-ha-support). The join bundle does not hold them.
+3.  Provide the database settings of the first node, as in item 4 of the list in section [4](#4-general-installation-of-ha-support). The cluster bundle does not hold them.
 4.  Check whether the node already has the bundle files:
     ```bash
-    sudo /usr/share/xroad/scripts/secret-store-join-bundle.sh check
+    sudo /usr/share/xroad/scripts/secret-store-cluster-bundle.sh check
     ```
     On a new node the command lists all three files as missing or empty and exits with a non-zero code. This is the expected result: continue with the import. If it lists only some of the files, the node holds the other files, and the import refuses to run. On a node without an installed Central Server, delete the files that exist from `/etc/openbao` and continue. If the command succeeds, the node already has all three files and the import would refuse to overwrite them.
 5.  Import the bundle:
     ```bash
-    sudo /usr/share/xroad/scripts/secret-store-join-bundle.sh import /run/xroad-openbao-join.tar
+    sudo /usr/share/xroad/scripts/secret-store-cluster-bundle.sh import /run/xroad-openbao-join.tar
     ```
     The files `xroad-openbao.env`, `unseal-keys` and `root-token` go to `/etc/openbao`. The import refuses to overwrite any of these files; if one exists, it imports nothing.
 6.  Delete the archive. Run the command on the new node and on node 1:

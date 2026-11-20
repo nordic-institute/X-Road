@@ -131,7 +131,7 @@ fi
 if [ -n "$NODE_HOST" ]; then
   valid_host "$NODE_HOST" || die "--node-host must be a DNS name: ${NODE_HOST}"
 fi
-[ -s "$ENV_FILE" ] || die "The OpenBao database connection file ${ENV_FILE} is missing or empty. Create it by installing the Central Server or Security Server package, or import the join bundle of the cluster."
+[ -s "$ENV_FILE" ] || die "The OpenBao database connection file ${ENV_FILE} is missing or empty. Create it by installing the Central Server or Security Server package, or import the cluster bundle."
 needs_restart=false
 if write_if_changed "$CONFIG_FILE" 0640 openbao:xroad "$(server_config)"; then
   needs_restart=true

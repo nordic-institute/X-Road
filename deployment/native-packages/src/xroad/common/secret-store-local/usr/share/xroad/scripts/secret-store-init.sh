@@ -8,7 +8,7 @@ BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
 ROOT_TOKEN_FILE="/etc/openbao/root-token"
 UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
 
-# --join: this node joins an existing cluster. The join bundle files must be present, the store
+# --join: this node joins an existing cluster. The cluster bundle files must be present, the store
 # must already be initialized, and initialization is never attempted.
 JOIN=false
 case "${1:-}" in

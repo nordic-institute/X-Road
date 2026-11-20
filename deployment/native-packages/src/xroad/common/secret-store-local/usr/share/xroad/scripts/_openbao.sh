@@ -105,10 +105,10 @@ fail_join_not_initialized() {
   exit 1
 }
 
-# Join mode stops unless the join bundle files are present; the file list is owned by the bundle script.
+# Join mode stops unless the cluster bundle files are present; the file list is owned by the bundle script.
 require_join_files() {
-  /usr/share/xroad/scripts/secret-store-join-bundle.sh check || {
-    echo "Join mode: import the join bundle first (secret-store-join-bundle.sh import <file>)" >&2
+  /usr/share/xroad/scripts/secret-store-cluster-bundle.sh check || {
+    echo "Join mode: import the cluster bundle first (secret-store-cluster-bundle.sh import <file>)" >&2
     exit 1
   }
 }

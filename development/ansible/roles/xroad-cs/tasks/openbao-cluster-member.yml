@@ -21,7 +21,7 @@
     name: xroad-base
     state: restarted
   when: cs_openbao_invocation_after is changed
-- name: read the OpenBao join bundle
+- name: read the OpenBao cluster bundle
   command:
     argv:
       - bash
@@ -31,10 +31,10 @@
         archive="$1"
         trap 'rm -f "$archive"' EXIT
         rm -f "$archive"
-        /usr/share/xroad/scripts/secret-store-join-bundle.sh export "$archive" >/dev/null
+        /usr/share/xroad/scripts/secret-store-cluster-bundle.sh export "$archive" >/dev/null
         base64 -w0 "$archive"
-      - join-bundle-export
+      - cluster-bundle-export
       - "{{ xroad_cs_openbao_bundle_archive }}"
-  register: cs_openbao_join_bundle
+  register: cs_openbao_cluster_bundle
   changed_when: false
   no_log: true

@@ -31,7 +31,7 @@ xroad_cs_admin_password: secret123!
 # Inventory host names of the Central Server nodes that share one OpenBao cluster; the first one
 # creates it. Fewer than two names leave OpenBao standalone.
 xroad_cs_openbao_cluster_nodes: []
-# Temporary join bundle archive; kept on tmpfs and removed after each use.
+# Temporary cluster bundle archive; kept on tmpfs and removed after each use.
 xroad_cs_openbao_bundle_archive: /run/xroad-openbao-join.tar
 
 # DNS name for the Issuer Service TLS certificate. When set, a key is generated through

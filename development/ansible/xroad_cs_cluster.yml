@@ -210,7 +210,7 @@
       when: xroad_cs_dev_configuration | default(false) | bool
 
 # One node at a time in inventory order. The first node creates OpenBao and becomes a cluster member;
-# every other node imports its join bundle before the Central Server install.
+# every other node imports its cluster bundle before the Central Server install.
 - name: Install Central Server nodes
   hosts: cs_nodes
   become: true

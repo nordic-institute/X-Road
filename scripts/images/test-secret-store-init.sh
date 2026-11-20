@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Container test for the secret store scripts: init, config writer, unseal and join bundle.
+# Container test for the secret store scripts: init, config writer, unseal and cluster bundle.
 #
 # Runs the real scripts (mounted read-only from this checkout) against a real OpenBao started from the
 # dev OpenBao image, once per scenario, and checks the resulting OpenBao state. It also runs the supervisor
@@ -48,7 +48,7 @@ ROOT_TOKEN_FILE="/etc/openbao/root-token"
 UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 SETUP_SCRIPT="/usr/share/xroad/scripts/secret-store-init.sh"
-BUNDLE_SCRIPT="/usr/share/xroad/scripts/secret-store-join-bundle.sh"
+BUNDLE_SCRIPT="/usr/share/xroad/scripts/secret-store-cluster-bundle.sh"
 ENV_FILE="/etc/openbao/xroad-openbao.env"
 CONFIG_WRITER="/usr/share/xroad/scripts/secret-store-cluster-config.sh"
 TLS_SCRIPT="/usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh"
@@ -115,7 +115,7 @@ in_container() { docker exec "${CONTAINER}" "$@"; }
 
 stage_scripts() {
   mkdir -p "${SCRIPTS_DIR}"
-  cp -p "${SECRET_STORE_SCRIPTS_DIR}"/* "${BASE_SCRIPTS_DIR}/secret-store-join-bundle.sh" "${BASE_SCRIPTS_DIR}/_restore_xroad.sh" "${SCRIPTS_DIR}/"
+  cp -p "${SECRET_STORE_SCRIPTS_DIR}"/* "${BASE_SCRIPTS_DIR}/secret-store-cluster-bundle.sh" "${BASE_SCRIPTS_DIR}/_restore_xroad.sh" "${SCRIPTS_DIR}/"
 }
 write_shim() {
   cat >"${WORK_DIR}/curl-shim" <<'SHIM'
@@ -244,7 +244,7 @@ start_postgres() {
   exit 1
 }
 # run_node_container yes|no: starts the current container with the shims and the X-Road configuration.
-# "no" leaves the OpenBao environment file to the join bundle import.
+# "no" leaves the OpenBao environment file to the cluster bundle import.
 run_node_container() {
   docker rm -f "${CONTAINER}" >/dev/null 2>&1
   docker run -d --init --name "${CONTAINER}" --network "${NETWORK}" \
@@ -1066,14 +1066,14 @@ scenario_join_node() {
   first_mounts="$(mounts_snapshot)"
 
   log_info "Scenario: export on the first node"
-  run_bundle export /tmp/join-bundle.tar
+  run_bundle export /tmp/cluster-bundle.tar
   check "export: exit 0" test "${RC}" -eq 0
-  check_eq "export: archive mode" 600 "$(file_mode /tmp/join-bundle.tar)"
-  check_eq "export: archive owner" root:root "$(file_owner /tmp/join-bundle.tar)"
+  check_eq "export: archive mode" 600 "$(file_mode /tmp/cluster-bundle.tar)"
+  check_eq "export: archive owner" root:root "$(file_owner /tmp/cluster-bundle.tar)"
   check_eq "export: archive holds the three files and no client token" root-token,unseal-keys,xroad-openbao.env \
-    "$(in_container tar -tf /tmp/join-bundle.tar | sort | paste -sd, -)"
+    "$(in_container tar -tf /tmp/cluster-bundle.tar | sort | paste -sd, -)"
   check_no_issued_secrets_in_output "export"
-  run_bundle export /tmp/join-bundle.tar
+  run_bundle export /tmp/cluster-bundle.tar
   check "export over an existing archive: exit non-zero" test "${RC}" -ne 0
   check "export over an existing archive: stderr says it refuses" grep -qF "Refusing to overwrite" "${ERR_FILE}"
   in_container mv "${UNSEAL_KEYS_FILE}" "${UNSEAL_KEYS_FILE}.saved"
@@ -1090,7 +1090,7 @@ scenario_join_node() {
   wait_for_ready_file
   ip2="$(in_container hostname -i | awk '{print $1}')"
   CONTAINER="${NODE1_CONTAINER}"
-  copy_between_nodes /tmp/join-bundle.tar
+  copy_between_nodes /tmp/cluster-bundle.tar
   copy_between_nodes /tmp/bad-bundle.tar
   copy_between_nodes /tmp/old-bundle.tar
   CONTAINER="${NODE2_CONTAINER}"
@@ -1104,7 +1104,7 @@ scenario_join_node() {
   check "import of an old-format bundle: no upstream environment file is written" file_absent /etc/openbao/openbao.env
   check "import of an old-format bundle: the unseal keys file is not written" file_absent "${UNSEAL_KEYS_FILE}"
   in_container sh -c "printf 'keepme' > ${ROOT_TOKEN_FILE}"
-  run_bundle import /tmp/join-bundle.tar
+  run_bundle import /tmp/cluster-bundle.tar
   check "import over an existing file: exit non-zero" test "${RC}" -ne 0
   check "import over an existing file: stderr names it" grep -qF -- "${ROOT_TOKEN_FILE}" "${ERR_FILE}"
   check_eq "import over an existing file: the file is unchanged" keepme "$(in_container cat "${ROOT_TOKEN_FILE}")"
@@ -1113,13 +1113,13 @@ scenario_join_node() {
   in_container rm -f "${ROOT_TOKEN_FILE}"
   docker cp "${WORK_DIR}/install-shim" "${NODE2_CONTAINER}:/usr/local/bin/install" >/dev/null
   in_container chmod +x /usr/local/bin/install
-  run_bundle import /tmp/join-bundle.tar
+  run_bundle import /tmp/cluster-bundle.tar
   check "import with a failing install step: exit non-zero" test "${RC}" -ne 0
   check "import with a failing install step: the environment file is rolled back" file_absent "${ENV_FILE}"
   check "import with a failing install step: the unseal keys file is rolled back" file_absent "${UNSEAL_KEYS_FILE}"
   check "import with a failing install step: the root token file is not written" file_absent "${ROOT_TOKEN_FILE}"
   in_container rm -f /usr/local/bin/install
-  run_bundle import /tmp/join-bundle.tar
+  run_bundle import /tmp/cluster-bundle.tar
   check "import: exit 0" test "${RC}" -eq 0
   check_eq "import: the three files equal the first node's" "${first_hashes}" "$(bundle_hashes)"
   for file in "${ENV_FILE}" "${UNSEAL_KEYS_FILE}" "${ROOT_TOKEN_FILE}"; do
@@ -1127,7 +1127,7 @@ scenario_join_node() {
     check_eq "import: ${file} owner" root:root "$(file_owner "${file}")"
   done
   check_no_secret_in_output "import" "root token" "${ROOT_TOKEN}"
-  run_bundle import /tmp/join-bundle.tar
+  run_bundle import /tmp/cluster-bundle.tar
   check "second import: exit non-zero" test "${RC}" -ne 0
   check_eq "second import: files unchanged" "${first_hashes}" "$(bundle_hashes)"
 
@@ -1243,22 +1243,22 @@ scenario_import_base_only() {
   log_info "Scenario: import on a host that has only the xroad-base scripts"
   local file first_hashes
   CONTAINER="${NODE1_CONTAINER}"
-  if ! file_exists /tmp/join-bundle.tar; then
+  if ! file_exists /tmp/cluster-bundle.tar; then
     log_error "scenario_import_base_only imports the bundle that scenario_join_node exports on the first node; run scenario_join_node first"
     exit 1
   fi
   first_hashes="$(bundle_hashes)"
-  docker cp "${NODE1_CONTAINER}:/tmp/join-bundle.tar" "${WORK_DIR}/transfer" >/dev/null || exit 1
+  docker cp "${NODE1_CONTAINER}:/tmp/cluster-bundle.tar" "${WORK_DIR}/transfer" >/dev/null || exit 1
   docker rm -f "${BASE_ONLY_CONTAINER}" >/dev/null 2>&1
   docker run -d --init --name "${BASE_ONLY_CONTAINER}" \
     -v "${BASE_SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
     --entrypoint sh "${IMAGE}" -c 'exec tail -f /dev/null' >/dev/null || exit 1
-  docker cp "${WORK_DIR}/transfer" "${BASE_ONLY_CONTAINER}:/tmp/join-bundle.tar" >/dev/null || exit 1
+  docker cp "${WORK_DIR}/transfer" "${BASE_ONLY_CONTAINER}:/tmp/cluster-bundle.tar" >/dev/null || exit 1
   CONTAINER="${BASE_ONLY_CONTAINER}"
-  check_eq "base only: no other secret-store script is present" secret-store-join-bundle.sh \
+  check_eq "base only: no other secret-store script is present" secret-store-cluster-bundle.sh \
     "$(in_container ls /usr/share/xroad/scripts | grep -E 'secret-store|openbao' | paste -sd, -)"
   check "base only: no OpenBao directory yet" file_absent /etc/openbao
-  run_bundle import /tmp/join-bundle.tar
+  run_bundle import /tmp/cluster-bundle.tar
   check "base only: import exit 0" test "${RC}" -eq 0
   check_eq "base only: the three files equal the first node's" "${first_hashes}" "$(bundle_hashes)"
   for file in "${ENV_FILE}" "${UNSEAL_KEYS_FILE}" "${ROOT_TOKEN_FILE}"; do
@@ -1267,7 +1267,7 @@ scenario_import_base_only() {
   done
   run_bundle check
   check "base only: check exit 0" test "${RC}" -eq 0
-  run_bundle import /tmp/join-bundle.tar
+  run_bundle import /tmp/cluster-bundle.tar
   check "base only: a second import refuses" test "${RC}" -ne 0
   CONTAINER="${NODE1_CONTAINER}"
 }
