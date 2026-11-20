@@ -40,9 +40,19 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LogManagerNodeRoleTest {
@@ -101,7 +111,86 @@ class LogManagerNodeRoleTest {
         logManager.destroy();
     }
 
+    @Test
+    void failedWriteDoesNotBreakTheBatchJob() {
+        LogManager logManager = newPrimaryLogManager(60);
+
+        when(messageLogDatabaseCtx.doInTransaction(any())).thenThrow(new RuntimeException("write failed"));
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
+
+            assertDoesNotThrow(() ->
+                    logManager.setTimestampingStatus(new SetTimestampingStatusMessage(SetTimestampingStatusMessage.Status.SUCCESS)));
+            assertDoesNotThrow(() ->
+                    logManager.setTimestampingStatus(new SetTimestampingStatusMessage(SetTimestampingStatusMessage.Status.FAILURE)));
+        }
+
+        verify(messageLogDatabaseCtx, times(2)).doInTransaction(any());
+        logManager.destroy();
+    }
+
+    @Test
+    void readFailureRefusesMessage() {
+        when(serverConfProvider.getTspUrls()).thenReturn(List.of("http://tsa"));
+
+        LogManager logManager = newSecondaryLogManager(60);
+
+        when(messageLogDatabaseCtx.doInTransaction(any())).thenThrow(new RuntimeException("read failed"));
+
+        assertThrows(RuntimeException.class, () -> logManager.verifyCanLogMessage(false));
+
+        logManager.destroy();
+    }
+
+    @Test
+    void readsSharedStateOnEveryCheck() {
+        when(serverConfProvider.getTspUrls()).thenReturn(List.of("http://tsa"));
+
+        LogManager logManager = newSecondaryLogManager(60);
+
+        when(messageLogDatabaseCtx.doInTransaction(any())).thenReturn(null);
+
+        logManager.verifyCanLogMessage(false);
+        logManager.verifyCanLogMessage(false);
+        logManager.verifyCanLogMessage(false);
+
+        verify(messageLogDatabaseCtx, times(3)).doInTransaction(any());
+        logManager.destroy();
+    }
+
     private LogManager newLogManager() {
         return new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx, messageLogProperties);
+    }
+
+    private LogManager newSecondaryLogManager(int acceptableTimestampFailurePeriodSeconds) {
+        ProxyMessageLogProperties properties = newProperties(acceptableTimestampFailurePeriodSeconds);
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+            return new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx, properties);
+        }
+    }
+
+    private LogManager newPrimaryLogManager(int acceptableTimestampFailurePeriodSeconds) {
+        ProxyMessageLogProperties properties = newProperties(acceptableTimestampFailurePeriodSeconds);
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
+            return new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx, properties) {
+                @Override
+                protected Duration getTimestamperJobInitialDelay() {
+                    return Duration.ofHours(1);
+                }
+            };
+        }
+    }
+
+    private static ProxyMessageLogProperties newProperties(int acceptableTimestampFailurePeriodSeconds) {
+        return new ProxyMessageLogProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(Map.of("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period",
+                        String.valueOf(acceptableTimestampFailurePeriodSeconds)))
+                .build());
     }
 }

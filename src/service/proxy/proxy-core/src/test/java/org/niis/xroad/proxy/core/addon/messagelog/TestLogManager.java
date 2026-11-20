@@ -84,14 +84,6 @@ class TestLogManager extends LogManager {
         return new TestTaskQueue(timestamper, this, messageLogDatabaseCtx, messageLogProperties);
     }
 
-    /**
-     * This method is synchronized in the test class
-     */
-    @Override
-    synchronized void setTimestampSucceeded() {
-        super.setTimestampSucceeded();
-    }
-
     @Override
     protected TestTimestamper getTimestamperImpl() {
         return new TestTimestamper(globalConfProvider, serverConfProvider, logRecordManager, messageLogProperties);
