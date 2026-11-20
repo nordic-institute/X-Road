@@ -85,7 +85,7 @@
             </XrdCardTableRow>
             <XrdCardTableRow data-test="issuer-service-can-sign-row" label="issuerService.service">
               <template #value>
-                <XrdStatusChip :type="state.can_sign ? 'success' : 'error'" :text="canSignText" />
+                <XrdStatusChip :type="canSignChipType" :text="canSignText" />
               </template>
             </XrdCardTableRow>
             <XrdCardTableRow data-test="issuer-service-identity-row" label="issuerService.identity">
@@ -191,12 +191,14 @@ const initializeEnabled = computed(
 
 const identityDid = computed(() => state.value?.bound_did ?? state.value?.did_to_bind);
 
+const canSignChipType = computed(() => (state.value?.status === 'REMOVED' ? 'error' : state.value?.can_sign ? 'success' : 'error'));
+
 const canSignText = computed(() => {
-  if (state.value?.can_sign) {
-    return 'issuerService.serviceCanSign';
-  }
   if (state.value?.status === 'REMOVED') {
     return 'issuerService.serviceRemoved';
+  }
+  if (state.value?.can_sign) {
+    return 'issuerService.serviceCanSign';
   }
   const cause = state.value?.can_sign_cause;
   return (cause && CAN_SIGN_CAUSE_TEXT[cause]) || 'issuerService.serviceCannotSign';

@@ -905,4 +905,23 @@ describe('CS Issuer Service tab — removed status (Browser Mode)', () => {
 
     await expect.element(page.getByTestId('issuer-service-can-sign-row').getByText('Removed')).toBeVisible();
   });
+
+  it('shows the removed label and an error chip even while the Issuer Service can still sign', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: [statusHandler({ bound: true, can_sign: true, status: 'REMOVED' })],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-can-sign-row').getByText('Removed')).toBeVisible();
+    expect(chipClassOf('issuer-service-can-sign-row')).toMatch(/error-container/);
+  });
+
+  it('shows the removed label over a can-sign cause', async () => {
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: [statusHandler({ bound: true, can_sign: false, can_sign_cause: 'NO_ACTIVE_KEY', status: 'REMOVED' })],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-can-sign-row').getByText('Removed')).toBeVisible();
+  });
 });
