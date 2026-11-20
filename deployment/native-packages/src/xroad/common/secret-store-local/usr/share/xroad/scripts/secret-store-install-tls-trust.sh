@@ -2,9 +2,11 @@
 #
 # Installs the OpenBao TLS certificate into the system trust store and, on Debian-based
 # systems, into the Java trust store.
+#
+# Usage: secret-store-install-tls-trust.sh [<certificate file, default /opt/openbao/tls/tls.crt>]
 set -euo pipefail
 
-TLS_CERT_FILE=/opt/openbao/tls/tls.crt
+TLS_CERT_FILE="${1:-/opt/openbao/tls/tls.crt}"
 
 if command -v update-ca-certificates >/dev/null 2>&1; then
   install -m 644 "$TLS_CERT_FILE" /usr/local/share/ca-certificates/openbao.crt

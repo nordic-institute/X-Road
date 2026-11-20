@@ -61,6 +61,7 @@ DROP_IN_SOURCE="${PACKAGE_SOURCES}/secret-store-local/usr/lib/systemd/system/ope
 WRITER_DROP_IN_DIR="/etc/systemd/system/openbao.service.d"
 BAO_LOG="/var/log/bao.log"
 SHIM_CALLS_FILE="/var/log/shim-calls"
+SHIM_FAIL_PREFIX="/var/log/shim-fail-"
 READY_FILE="/run/test-entrypoint-ready"
 OPERATOR_STEP="Copy the root token file ${ROOT_TOKEN_FILE} from another node"
 SKIP_LOG="No root token on this node"
@@ -261,7 +262,7 @@ run_node_container() {
         chmod 640 '"${ENV_FILE}"'
       fi
       for tool in systemctl update-ca-certificates; do
-        printf "#!/bin/sh\necho \"\${0##*/} \$*\" >>'"${SHIM_CALLS_FILE}"'\nexit 0\n" > /usr/local/bin/$tool
+        printf "#!/bin/sh\necho \"\${0##*/} \$*\" >>'"${SHIM_CALLS_FILE}"'\n[ ! -e '"${SHIM_FAIL_PREFIX}"'\${0##*/} ] || { rm -f '"${SHIM_FAIL_PREFIX}"'\${0##*/}; exit 1; }\nexit 0\n" > /usr/local/bin/$tool
         chmod +x /usr/local/bin/$tool
       done
       if [ "$WRITE_ENV" = yes ] && [ ! -f '"${XROAD_CONFIG_FILE}"' ]; then
@@ -750,6 +751,11 @@ scenario_initializing_node() {
 }
 
 TLS_CERT_FILE="/opt/openbao/tls/tls.crt"
+STATE_DIR="/var/lib/xroad-secret-store"
+GENERATED_HASH_FILE="${STATE_DIR}/generated-certificate.sha256"
+TRUST_MARKER_FILE="${STATE_DIR}/trusted-certificate.sha256"
+OPENBAO_OWNED_MARKER_FILE="/opt/openbao/tls/trusted-certificate.sha256"
+TRUST_ANCHOR_FILE="/usr/local/share/ca-certificates/openbao.crt"
 run_writer() { run_in_container -- bash "${CONFIG_WRITER}" "$@"; }
 run_writer_unprivileged() { run_in_container -u openbao -- bash "${CONFIG_WRITER}" "$@"; }
 cert_names() {
@@ -757,6 +763,9 @@ cert_names() {
 }
 expected_names() { printf '%s\n' "$@" | sort | paste -sd, -; }
 cert_hash() { in_container sha256sum "${TLS_CERT_FILE}" | cut -d' ' -f1; }
+trust_anchor_hash() { in_container sha256sum "${TRUST_ANCHOR_FILE}" | cut -d' ' -f1; }
+marker_hash() { in_container cat "${TRUST_MARKER_FILE}" 2>/dev/null; }
+fail_next_call() { in_container touch "${SHIM_FAIL_PREFIX}$1"; }
 config_hash() { in_container sha256sum "${XROAD_CONFIG_FILE}" | cut -d' ' -f1; }
 clear_shim_calls() { in_container sh -c ": > ${SHIM_CALLS_FILE}"; }
 shim_calls() { in_container cat "${SHIM_CALLS_FILE}" 2>/dev/null; }
@@ -795,6 +804,7 @@ scenario_cluster_member() {
   check "single server: standby reads left at the default" config_lacks "disable_standby_reads"
   check_eq "single server: trust installed once" 1 "$(shim_call_count update-ca-certificates)"
   check_eq "single server: no daemon-reload" 0 "$(shim_call_count daemon-reload)"
+  check_eq "single server: trust marker holds the certificate hash" "$(cert_hash)" "$(marker_hash)"
   check_unchanged_run "single server rerun"
   local single_cert
   single_cert="$(cert_hash)"
@@ -847,6 +857,75 @@ scenario_cluster_member() {
   check_eq "stale certificate: names restored" "$(expected_names DNS:node-1.example.test "IPAddress:${node_ip}" IPAddress:127.0.0.1)" "$(cert_names)"
   check_eq "stale certificate: trust installed again" 1 "$(shim_call_count update-ca-certificates)"
   check_eq "stale certificate: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  restart_bao
+  local host_names="IP:127.0.0.1,IP:${node_ip},DNS:node-1.example.test"
+  log_info "Scenario: the trust update fails and the writer is run again"
+  in_container bash "${TLS_SCRIPT}" >/dev/null 2>&1
+  fail_next_call update-ca-certificates
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host node-1.example.test
+  check "failed trust: exit non-zero" test "${RC}" -ne 0
+  check_eq "failed trust: trust attempted once" 1 "$(shim_call_count update-ca-certificates)"
+  check_eq "failed trust: OpenBao not restarted" 0 "$(shim_call_count 'restart openbao.service')"
+  check_ne "failed trust: marker does not match the certificate" "$(cert_hash)" "$(marker_hash)"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host node-1.example.test
+  check "retried trust: exit 0" test "${RC}" -eq 0
+  check_eq "retried trust: trust installed once" 1 "$(shim_call_count update-ca-certificates)"
+  check_eq "retried trust: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  check_eq "retried trust: marker holds the certificate hash" "$(cert_hash)" "$(marker_hash)"
+  log_info "Scenario: certificate replaced with the same names while trust is missing"
+  in_container bash "${TLS_SCRIPT}" "${host_names}" >/dev/null 2>&1
+  check_eq "same names: names unchanged" "$(expected_names DNS:node-1.example.test "IPAddress:${node_ip}" IPAddress:127.0.0.1)" "$(cert_names)"
+  check_ne "same names: marker does not match the new certificate" "$(cert_hash)" "$(marker_hash)"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host node-1.example.test
+  check "same names: exit 0" test "${RC}" -eq 0
+  check_eq "same names: trust installed once" 1 "$(shim_call_count update-ca-certificates)"
+  check_eq "same names: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  check_eq "same names: marker holds the certificate hash" "$(cert_hash)" "$(marker_hash)"
+  log_info "Scenario: the openbao user replaces the certificate and writes a marker"
+  check_eq "generated record: holds the certificate hash" "$(cert_hash)" "$(in_container cat "${GENERATED_HASH_FILE}")"
+  check "generated record: not writable by the openbao user" in_container su -s /bin/sh -c "test ! -w ${GENERATED_HASH_FILE} && test ! -w ${STATE_DIR}" openbao
+  in_container rm -f "${TRUST_MARKER_FILE}"
+  docker exec -u openbao "${CONTAINER}" sh -c "openssl req -x509 -newkey rsa:2048 -nodes -keyout /tmp/forged.key -out ${TLS_CERT_FILE} \
+    -subj /CN=Forged -days 2 -addext 'subjectAltName = ${host_names}' -addext 'basicConstraints = critical,CA:TRUE' 2>/dev/null \
+    && sha256sum ${TLS_CERT_FILE} | cut -d' ' -f1 >${OPENBAO_OWNED_MARKER_FILE}"
+  check_ne "forged certificate: differs from the generated one" "$(in_container cat "${GENERATED_HASH_FILE}")" "$(cert_hash)"
+  local anchor_before
+  anchor_before="$(trust_anchor_hash)"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host node-1.example.test
+  check "forged certificate: exit non-zero" test "${RC}" -ne 0
+  check "forged certificate: message names the file" grep -q "${TLS_CERT_FILE}" "${ERR_FILE}"
+  check_eq "forged certificate: no trust install, daemon-reload or restart" "" "$(shim_calls)"
+  check_eq "forged certificate: trust anchor unchanged" "${anchor_before}" "$(trust_anchor_hash)"
+  check_eq "forged certificate: trust marker still missing" "" "$(marker_hash)"
+  in_container rm -f "${OPENBAO_OWNED_MARKER_FILE}"
+  in_container bash "${TLS_SCRIPT}" "${host_names}" >/dev/null 2>&1
+  run_writer --node-address "${node_ip}" --node-host node-1.example.test
+  check "forged certificate removed: exit 0" test "${RC}" -eq 0
+  log_info "Scenario: certificate and no generated record"
+  in_container rm -f "${GENERATED_HASH_FILE}"
+  local unrecorded_cert
+  unrecorded_cert="$(cert_hash)"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host node-1.example.test
+  check "no record: exit 0" test "${RC}" -eq 0
+  check_ne "no record: certificate regenerated" "${unrecorded_cert}" "$(cert_hash)"
+  check_eq "no record: record holds the certificate hash" "$(cert_hash)" "$(in_container cat "${GENERATED_HASH_FILE}")"
+  check_eq "no record: trust installed once" 1 "$(shim_call_count update-ca-certificates)"
+  check_eq "no record: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  check_eq "no record: marker holds the certificate hash" "$(cert_hash)" "$(marker_hash)"
+  log_info "Scenario: certificate without a trust marker"
+  in_container rm -f "${TRUST_MARKER_FILE}"
+  clear_shim_calls
+  run_writer --node-address "${node_ip}" --node-host node-1.example.test
+  check "no marker: exit 0" test "${RC}" -eq 0
+  check_eq "no marker: trust installed once" 1 "$(shim_call_count update-ca-certificates)"
+  check_eq "no marker: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
+  check_eq "no marker: marker holds the certificate hash" "$(cert_hash)" "$(marker_hash)"
+  check_unchanged_run "marked certificate rerun" --node-address "${node_ip}" --node-host node-1.example.test
   restart_bao
   log_info "Scenario: convert again with a new node host"
   clear_shim_calls

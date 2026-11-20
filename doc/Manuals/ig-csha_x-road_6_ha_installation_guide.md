@@ -358,15 +358,15 @@ Do not open these ports to Security Servers, clients or other networks. Each nod
 sudo /usr/share/xroad/scripts/secret-store-cluster-config.sh --node-address <node_address> --node-host <node_host>
 ```
 
-The script writes the OpenBao configuration file `/etc/openbao/xroad-openbao.hcl`. The systemd drop-in `/usr/lib/systemd/system/openbao.service.d/xroad.conf` is part of the `xroad-secret-store-local` package. OpenBao then listens on `127.0.0.1:8200` and on `<node_address>:8200`. It announces `https://<node_host>:8200` (API) and `https://<node_host>:8201` (cluster traffic) to the other nodes. Without `--node-host` it announces the address. The option `--node-host` needs `--node-address`. The script creates a new TLS certificate for OpenBao when the names in the certificate change, and restarts OpenBao if it is running. Running it again with the same options changes nothing.
+The script writes the OpenBao configuration file `/etc/openbao/xroad-openbao.hcl`. The systemd drop-in `/usr/lib/systemd/system/openbao.service.d/xroad.conf` is part of the `xroad-secret-store-local` package. OpenBao then listens on `127.0.0.1:8200` and on `<node_address>:8200`. It announces `https://<node_host>:8200` (API) and `https://<node_host>:8201` (cluster traffic) to the other nodes. Without `--node-host` it announces the address. The option `--node-host` needs `--node-address`. The script creates a new TLS certificate for OpenBao when the names in the certificate change, installs the certificate as trusted, and restarts OpenBao if it is running. If the installed certificate is not the one the script generated, the script stops with an error that names the file. Delete the file and run the script again. Running the script again with the same options and an unchanged certificate changes nothing.
 
-The script prints `Generating OpenBao TLS certificates for X-Road...` when it creates a new certificate. The X-Road services read the trusted certificates only when they start. After this line, restart the X-Road services of node 1:
+The script prints `Generating OpenBao TLS certificates for X-Road...` when it creates a new certificate, and `Updating OpenBao certificate trust...` when it installs the certificate as trusted. The X-Road services read the trusted certificates only when they start. After either line, restart the X-Road services of node 1:
 
 ```bash
 sudo systemctl restart xroad-base
 ```
 
-All X-Road services depend on `xroad-base`, so the restart stops all of them and starts them again. Node 1 does not serve requests in the meantime, so choose a quiet time. If the script prints no such line, the certificate did not change and no restart is needed.
+All X-Road services depend on `xroad-base`, so the restart stops all of them and starts them again. Node 1 does not serve requests in the meantime, so choose a quiet time. If the script prints neither line, the certificate and its trust did not change and no restart is needed.
 
 To turn off standby reads, add `--disable-standby-reads` to the command. See the paragraph "Standby reads" below. Use the same options every time you run the command: a run without `--disable-standby-reads` turns standby reads on again.
 
