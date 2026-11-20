@@ -1625,6 +1625,14 @@ SHIM
     check_name_refused "${mode}" BAO_PG_SCHEMA '$(touch /tmp/hostile-marker-substitution)'
   done
 
+  log_info "  local-DB mode, non-default port"
+  set_psql_mode local
+  write_psql_env_file openbao "Plain-pw-4c7e1" 127.0.0.1 5433 openbao openbao
+  clear_psql_shim_logs
+  run_in_container -- bash "${INIT_DB_SCRIPT}"
+  check "local mode, port 5433: exit non-zero, nothing listens there" test "${RC}" -ne 0
+  check "local mode, port 5433: the database creation call gets the configured port" cmdlines_contain "-qtA -p 5433 -v bao_db="
+
   stop_listener
 
   log_info "  restore path"

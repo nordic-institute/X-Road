@@ -94,7 +94,7 @@ setup_psql_functions() {
     die "Invalid database port ${port@Q}, expected a number from 1 to 65535"
   fi
 
-  local_psql() { su -l -c 'port=$1; shift; exec psql -qtA -p "$port" "$@"' postgres -- _ "$port" "$@"; }
+  local_psql() { su -l -c 'port=$1; shift; exec psql -qtA -p "$port" "$@"' postgres -- _ "${PGPORT:-$db_port}" "$@"; }
   remote_psql() { psql -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA "$@"; }
 
   psql_dbuser() {
