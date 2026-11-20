@@ -16,6 +16,7 @@ Doc. ID: IG-SS-8
 | 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets     |
 | 17.11.2026 | 1.3     | Documented country profile selection and precedence                  | Ričardas Bučiūnas |
 | 18.11.2026 | 1.4     | Added the DID and DSP port choice at installation                    | Justas Samuolis   |
+| 18.11.2026 | 1.5     | Name the OpenBao configuration files in Annex C                      | Ričardas Bučiūnas |
 
 ## License
 
@@ -445,7 +446,8 @@ The installer creates the database roles itself. If they already exist, on Postg
 
 Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
 Files:<br/>
-`openbao.hcl` - OpenBao main configuration file. Contains DB credentials and other options.<br/>
+`xroad-openbao.hcl` - OpenBao configuration file. Contains the listener and storage options.<br/>
+`xroad-openbao.env` - OpenBao database connection and credentials. Owner `openbao:xroad`, mode `640`.<br/>
 `root-token` - root OpenBao token.<br/>
 `unseal-keys` - OpenBao unseal keys.
 

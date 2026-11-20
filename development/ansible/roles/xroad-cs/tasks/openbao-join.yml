@@ -1,0 +1,40 @@
+---
+- name: install xroad-base for the cluster bundle import
+  apt:
+    name: xroad-base
+    state: present
+    lock_timeout: 120
+- name: check whether the cluster bundle is already imported
+  command: /usr/share/xroad/scripts/secret-store-cluster-bundle.sh check
+  register: cs_openbao_bundle_check
+  changed_when: false
+  failed_when: false
+- name: import the cluster bundle exported by the first node
+  command:
+    argv:
+      - bash
+      - -c
+      - |
+        set -e
+        archive="$1"
+        trap 'rm -f "$archive"' EXIT
+        rm -f "$archive"
+        (umask 077; base64 -d >"$archive")
+        /usr/share/xroad/scripts/secret-store-cluster-bundle.sh import "$archive"
+      - cluster-bundle-import
+      - "{{ xroad_cs_openbao_bundle_archive }}"
+    stdin: "{{ hostvars[xroad_cs_openbao_cluster_nodes | first].cs_openbao_cluster_bundle.stdout }}"
+  no_log: true
+  when: cs_openbao_bundle_check.rc != 0
+- name: debconf OpenBao join answers
+  debconf:
+    name: xroad-center
+    question: "{{ item.question }}"
+    vtype: "{{ item.vtype }}"
+    value: "{{ item.value }}"
+  loop:
+    - { question: "xroad-common/secret-store-join", vtype: "boolean", value: "true" }
+    - { question: "xroad-common/secret-store-node-address", vtype: "string", value: "{{ ansible_facts['default_ipv4']['address'] }}" }
+    - { question: "xroad-common/secret-store-node-host", vtype: "string", value: "{{ xroad_host_fqdn }}" }
+  loop_control:
+    label: "{{ item.question }}"
