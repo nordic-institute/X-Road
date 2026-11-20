@@ -100,6 +100,7 @@
           </XrdCardTable>
         </template>
       </XrdCard>
+      <TrustedIssuersCard v-if="canViewTrustedIssuers" class="mt-4" @removed="loadStatus" />
     </XrdSubView>
     <EditIssuerServiceHostDialog
       v-if="showEditHostDialog"
@@ -136,6 +137,7 @@ import {
 } from '@niis/shared-ui';
 import SettingsViewTabs from '@/views/Settings/SettingsViewTabs.vue';
 import EditIssuerServiceHostDialog from '@/views/Settings/IssuerService/EditIssuerServiceHostDialog.vue';
+import TrustedIssuersCard from '@/views/Settings/IssuerService/TrustedIssuersCard.vue';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useIssuerService } from '@/store/modules/issuer-service';
@@ -182,6 +184,7 @@ const polling = usePolling<IssuerServiceState>({
 const hasPermissionToViewDsTlsCertificate = computed(() => hasPermission(Permissions.VIEW_DS_TLS_CERT));
 const canEditHost = computed(() => hasPermission(Permissions.EDIT_ISSUER_SERVICE_HOST) && !state.value?.bound);
 const canInitialize = computed(() => hasPermission(Permissions.INITIALIZE_ISSUER_SERVICE));
+const canViewTrustedIssuers = computed(() => hasPermission(Permissions.VIEW_TRUSTED_ISSUERS));
 const initializeEnabled = computed(
   () => !state.value?.bound && !!state.value?.host_set && !!state.value?.certificate_ready && !state.value?.run_in_progress,
 );
@@ -191,6 +194,9 @@ const identityDid = computed(() => state.value?.bound_did ?? state.value?.did_to
 const canSignText = computed(() => {
   if (state.value?.can_sign) {
     return 'issuerService.serviceCanSign';
+  }
+  if (state.value?.status === 'REMOVED') {
+    return 'issuerService.serviceRemoved';
   }
   const cause = state.value?.can_sign_cause;
   return (cause && CAN_SIGN_CAUSE_TEXT[cause]) || 'issuerService.serviceCannotSign';

@@ -383,7 +383,19 @@
     "service": "Issuer Service",
     "serviceCanSign": "Can sign",
     "serviceCannotSign": "Cannot sign",
+    "serviceRemoved": "Removed",
     "setUp": "Set up",
+    "trustedIssuers": {
+      "createdAt": "Created",
+      "did": "DID",
+      "removeConfirm": {
+        "lastText": "{did} is the last trusted issuer. Every credential it signed becomes invalid on Security Servers within one global configuration refresh, and all Dataspace Protocol (DSP) traffic stops.",
+        "text": "Every credential {did} signed becomes invalid on Security Servers within one global configuration refresh.",
+        "title": "Remove trusted issuer?"
+      },
+      "removeSuccess": "Trusted issuer removed successfully",
+      "title": "Trusted issuers"
+    },
     "viewCertificate": "View certificate",
     "viewStatus": "View status"
   },
