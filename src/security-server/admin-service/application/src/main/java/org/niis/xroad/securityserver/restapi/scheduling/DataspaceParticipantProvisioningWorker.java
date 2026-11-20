@@ -276,7 +276,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * binding row are provisioned as usual. The hold does not apply while the registered address cannot carry
      * a DID, because re-identification would refuse and the hold would never end. The hold is read once per pass,
      * every pass, because the publication stage runs every pass. The start and the end of the hold, and the start of
-     * the address state, are logged once each.
+     * the state where the registered address cannot carry a DID, are logged once each.
      *
      * <p>The pass ends with {@link DataspacePublicationStage}, also when every context converged. It is
      * skipped while the owner is unknown, since the server has no identity to send under, and while the hold
@@ -587,7 +587,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
             var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
-            return DataspaceParticipantProvisioningTrigger.isActive(NodeProperties.isSecondaryNode(),
+            return DataspaceParticipantProvisioningTrigger.shouldBeActive(NodeProperties.isSecondaryNode(),
                     config.value(AdminServiceConfigKeys.DATASPACE_PROVISIONING_ENABLED));
         }
     }

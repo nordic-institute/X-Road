@@ -57,8 +57,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Data space API controller — participant context provisioning status and agreement token signing key
- * status and rotation endpoints.
+ * Data space API controller — participant context provisioning status, participant re-identification, and
+ * agreement token signing key status and rotation endpoints.
  */
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)

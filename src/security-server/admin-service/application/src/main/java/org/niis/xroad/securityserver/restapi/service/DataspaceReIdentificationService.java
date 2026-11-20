@@ -145,11 +145,15 @@ public class DataspaceReIdentificationService {
         for (var row : rowsToRetire) {
             var result = mint(row);
             if (result instanceof DidMintResult.Rejected(var reason, var detail, var _)) {
-                log.warn("Dataspace: re-identification refused, the DID of participant {} cannot be created: {} ({})",
-                        row.getCtxId(), reason, detail);
-                throw new ConflictException(RE_IDENTIFICATION_CANNOT_MINT.build());
+                throw cannotMint(row, reason + " (" + detail + ")");
             }
         }
+    }
+
+    private static ConflictException cannotMint(DsParticipantEntity row, String reason) {
+        log.warn("Dataspace: re-identification refused, the DID of participant {} cannot be created: {}",
+                row.getCtxId(), reason);
+        return new ConflictException(RE_IDENTIFICATION_CANNOT_MINT.build());
     }
 
     private DidMintResult mint(DsParticipantEntity row) {
@@ -159,9 +163,7 @@ public class DataspaceReIdentificationService {
                     : didAuthority.mintMemberDid(ClientId.Conf.ensure(row.getMemberIdentifier()));
         } catch (XrdRuntimeException e) {
             if (e.isCausedBy(VALIDATION_ERROR)) {
-                log.warn("Dataspace: re-identification refused, the DID of participant {} cannot be created: {}",
-                        row.getCtxId(), e.getMessage());
-                throw new ConflictException(RE_IDENTIFICATION_CANNOT_MINT.build());
+                throw cannotMint(row, e.getMessage());
             }
             if (e.isCausedBy(DSP_PROVISIONING_FAILED)) {
                 log.warn("Dataspace: re-identification refused, the registered address is gone: {}", e.getMessage());

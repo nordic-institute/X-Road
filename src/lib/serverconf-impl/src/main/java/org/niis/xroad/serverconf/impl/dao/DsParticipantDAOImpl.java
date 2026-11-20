@@ -28,6 +28,7 @@ package org.niis.xroad.serverconf.impl.dao;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.google.common.collect.Lists;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -47,7 +48,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 /**
  * Data access object implementation for bound dataspace participants.
@@ -156,7 +156,7 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
      */
     public int retireBindings(Session session, List<Long> ids) {
         int retired = 0;
-        for (var chunk : chunksOf(ids)) {
+        for (var chunk : Lists.partition(ids, ID_CHUNK_SIZE)) {
             retired += session.createMutationQuery("update DsParticipantEntity set state = :decommissioned "
                             + "where id in :ids and state = :active")
                     .setParameter("decommissioned", ParticipantState.DECOMMISSIONED)
@@ -213,12 +213,6 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
 
         return session.createQuery(query).list().stream()
                 .filter(row -> hostMatcher.isBindingHostDifferent(row.getSchemeVersion(), row.getDid()))
-                .toList();
-    }
-
-    private static List<List<Long>> chunksOf(List<Long> ids) {
-        return IntStream.range(0, (ids.size() + ID_CHUNK_SIZE - 1) / ID_CHUNK_SIZE)
-                .mapToObj(chunk -> ids.subList(chunk * ID_CHUNK_SIZE, Math.min(ids.size(), (chunk + 1) * ID_CHUNK_SIZE)))
                 .toList();
     }
 

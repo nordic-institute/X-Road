@@ -281,7 +281,7 @@ public class DataspaceProvisioningService {
 
     /**
      * Enumerates the bound participant rows awaiting teardown convergence: every {@code ds_participant}
-     * row currently marked {@link ParticipantState#DECOMMISSIONED}. A member with an entry here is
+     * row currently marked {@link ParticipantState#DECOMMISSIONED}. A participant with an entry here is
      * excluded from {@link #participantContexts()} until its row is gone.
      */
     @Transactional(readOnly = true)
@@ -480,36 +480,28 @@ public class DataspaceProvisioningService {
             contexts.add(system);
             return contexts;
         }
-        if (!isSystemTombstoned()) {
+        if (!isTombstoned(isDecommissioned(dsParticipantRepository.findSystemParticipant()), "context", "SYSTEM")) {
             contexts.add(system);
         }
 
         HostedMembers.of(clientRepository.getAllLocalClients()).stream()
-                .filter(member -> !isTombstoned(member))
+                .filter(member -> !isTombstoned(isDecommissioned(dsParticipantRepository.findByMemberIdentifier(member)),
+                        "member", member))
                 .forEach(member -> contexts.add(
                         new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member)));
 
         return contexts;
     }
 
-    private boolean isSystemTombstoned() {
-        boolean tombstoned = dsParticipantRepository.findSystemParticipant()
-                .map(row -> row.getState() == ParticipantState.DECOMMISSIONED)
-                .orElse(false);
-        if (tombstoned) {
-            log.debug("Data space provisioning: the SYSTEM context is blocked from provisioning by an unconverged tombstone");
-        }
-        return tombstoned;
+    private static boolean isDecommissioned(Optional<DsParticipantEntity> row) {
+        return row.map(bound -> bound.getState() == ParticipantState.DECOMMISSIONED).orElse(false);
     }
 
-    private boolean isTombstoned(ClientId member) {
-        boolean tombstoned = dsParticipantRepository.findByMemberIdentifier(member)
-                .map(row -> row.getState() == ParticipantState.DECOMMISSIONED)
-                .orElse(false);
-        if (tombstoned) {
-            log.debug("Data space provisioning: member {} blocked from provisioning by an unconverged tombstone", member);
+    private static boolean isTombstoned(boolean decommissioned, String kind, Object id) {
+        if (decommissioned) {
+            log.debug("Data space provisioning: {} {} blocked from provisioning by an unconverged tombstone", kind, id);
         }
-        return tombstoned;
+        return decommissioned;
     }
 
     /**
@@ -598,8 +590,7 @@ public class DataspaceProvisioningService {
      */
     @Transactional(readOnly = true)
     public BindingHold bindingHold() {
-        var differs = ownSecurityServerResolver.address().registeredAddress()
-                .map(RegisteredHostMatcher::of)
+        var differs = registeredHostMatcher()
                 .filter(dsParticipantRepository::hasDifferingBindings)
                 .isPresent();
         if (!differs) {
@@ -608,6 +599,10 @@ public class DataspaceProvisioningService {
         return didAuthority.mintSystemDid() instanceof Rejected
                 ? BindingHold.ADDRESS_CANNOT_CARRY_DID
                 : BindingHold.HELD;
+    }
+
+    private Optional<RegisteredHostMatcher> registeredHostMatcher() {
+        return ownSecurityServerResolver.address().registeredAddress().map(RegisteredHostMatcher::of);
     }
 
     private Did boundDidOf(ParticipantContext context) {

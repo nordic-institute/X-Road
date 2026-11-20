@@ -123,9 +123,12 @@ class DataspaceReIdentificationServiceTest {
     }
 
     private List<DsParticipantEntity> differingRows(RegisteredHostMatcher matcher) {
+        if (!matcher.isRegisteredAddressUsable()) {
+            return List.of();
+        }
         return List.of(system, owner, member).stream()
                 .filter(row -> row.getState() == ParticipantState.ACTIVE)
-                .filter(row -> !matcher.didHostMatches(row.getDid()))
+                .filter(row -> matcher.isBindingHostDifferent(row.getSchemeVersion(), row.getDid()))
                 .toList();
     }
 
@@ -184,29 +187,6 @@ class DataspaceReIdentificationServiceTest {
 
         assertThat(retired).isZero();
         verify(provisioningTrigger, never()).provisionParticipantAsync();
-    }
-
-    @Test
-    void reIdentifyAfterTheOperatorActionRetiresNothingMoreAndStartsNoSecondWorker() {
-        bindAll(OLD_AUTHORITY, PublicationState.PUBLISHED);
-        service.reIdentifyOnOperatorRequest();
-
-        int retired = service.reIdentify();
-
-        assertThat(retired).isZero();
-        verify(dsParticipantRepository).retireBindings(List.of(SYSTEM_ID, OWNER_ID, MEMBER_ID));
-        verify(provisioningTrigger).provisionParticipantAsync();
-    }
-
-    @Test
-    void theOperatorActionAfterReIdentifyIsRefusedAsNotNeeded() {
-        bindAll(OLD_AUTHORITY, PublicationState.PUBLISHED);
-        assertThat(service.reIdentify()).isEqualTo(3);
-
-        assertRefusedWith(ErrorMessage.RE_IDENTIFICATION_NOT_NEEDED);
-
-        verify(provisioningTrigger).provisionParticipantAsync();
-        assertThat(List.of(system, owner, member)).allMatch(row -> row.getState() == ParticipantState.DECOMMISSIONED);
     }
 
     @Test

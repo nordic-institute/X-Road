@@ -53,7 +53,7 @@ public sealed interface DataspaceParticipantProvisioningTrigger
      * when the node is not secondary and participant provisioning is switched on,
      * {@link NoopDataspaceParticipantProvisioningTrigger} under the exact negation.
      */
-    static boolean isActive(boolean secondary, boolean enabled) {
+    static boolean shouldBeActive(boolean secondary, boolean enabled) {
         return !secondary && enabled;
     }
 

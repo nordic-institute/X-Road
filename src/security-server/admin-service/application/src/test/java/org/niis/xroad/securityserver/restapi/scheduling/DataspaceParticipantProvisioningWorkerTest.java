@@ -1444,10 +1444,11 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(dataspaceProvisioningService.bindingHold()).thenReturn(BindingHold.HELD);
 
         worker.provisionParticipant();
+        worker.provisionParticipant();
 
-        verify(participantBindingService, never()).bindSystemIfAbsent(any());
-        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verifyNoInteractions(participantBindingService);
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
+        verify(dataspaceProvisioningService, never()).teardownParticipant(any());
         verify(publicationStage, never()).publish(any(), anyBoolean());
     }
 
@@ -1463,19 +1464,6 @@ class DataspaceParticipantProvisioningWorkerTest {
         verify(dataspaceProvisioningService).teardownParticipant(tombstone);
         verify(participantBindingService, never()).bindMembersIfAbsent(any());
         verify(publicationStage, never()).publish(any(), anyBoolean());
-    }
-
-    @Test
-    void aSecondPassWhileAnActiveBindingDiffersChangesNothing() {
-        stubUnboundSystemAndMemberAtNewHost();
-        when(dataspaceProvisioningService.bindingHold()).thenReturn(BindingHold.HELD);
-
-        worker.provisionParticipant();
-        worker.provisionParticipant();
-
-        verifyNoInteractions(participantBindingService, publicationStage);
-        verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
-        verify(dataspaceProvisioningService, never()).teardownParticipant(any());
     }
 
     @Test

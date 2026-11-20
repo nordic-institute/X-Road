@@ -562,7 +562,7 @@ public class DsParticipantDAOImplTest {
     }
 
     @Test
-    public void retireBindingsReturnsZeroAndLeavesEveryRowActiveWhenTheRegisteredAddressIsUnusable() {
+    public void findDifferingBindingsSelectsNoRowForRetirementWhenTheRegisteredAddressIsUnusable() {
         Session session = DATABASE_CTX.beginTransaction();
         try {
             clearParticipantRows(session);
@@ -583,7 +583,7 @@ public class DsParticipantDAOImplTest {
     }
 
     @Test
-    public void retireBindingsLeavesRowsWithAnUndecodableDidOrAnUnsupportedSchemeVersionActive() {
+    public void findDifferingBindingsSkipsRowsWithAnUndecodableDidOrAnUnsupportedSchemeVersion() {
         Session session = DATABASE_CTX.beginTransaction();
         try {
             clearParticipantRows(session);

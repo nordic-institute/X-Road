@@ -67,7 +67,7 @@ public final class NoopDataspaceParticipantProvisioningTrigger implements Datasp
             } else if (!enabled) {
                 log.info("Dataspace participant provisioning is switched off, dataspace participant provisioning is disabled");
             }
-            return !DataspaceParticipantProvisioningTrigger.isActive(secondary, enabled);
+            return !DataspaceParticipantProvisioningTrigger.shouldBeActive(secondary, enabled);
         }
     }
 }
