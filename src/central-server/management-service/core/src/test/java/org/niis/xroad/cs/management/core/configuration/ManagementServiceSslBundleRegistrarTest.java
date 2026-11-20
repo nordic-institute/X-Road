@@ -26,9 +26,13 @@
  */
 package org.niis.xroad.cs.management.core.configuration;
 
+import ee.ria.xroad.common.conf.InternalSSLKey;
+
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 
@@ -38,6 +42,7 @@ import java.security.cert.X509Certificate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,5 +71,23 @@ class ManagementServiceSslBundleRegistrarTest {
         verify(vaultClient).createManagementServiceTlsCredentials(any());
         verify(vaultClient, never()).createAdminServiceTlsCredentials(any());
         verify(vaultClient, never()).getAdminServiceTlsCredentials();
+    }
+
+    @Test
+    void shouldCreateTheManagementServiceKeyOnASecondaryNodeWhenTheStoreReportsItAbsent() throws Exception {
+        when(vaultClient.getManagementServicesTlsCredentials()).thenThrow(
+                XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
+        when(keyClient.provisionNewCerts()).thenReturn(new VaultKeyClient.VaultKeyData(
+                new X509Certificate[] {certificate}, privateKey, new X509Certificate[0]));
+
+        InternalSSLKey result;
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+
+            result = registrar.resolveTlsCredentials();
+        }
+
+        assertThat(result.getKey()).isSameAs(privateKey);
+        verify(vaultClient).createManagementServiceTlsCredentials(any());
     }
 }

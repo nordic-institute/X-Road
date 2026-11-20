@@ -41,12 +41,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.LogMessage;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.RestLogMessage;
 import org.niis.xroad.messagelog.SoapLogMessage;
 import org.niis.xroad.messagelog.TimestampRecord;
+import org.niis.xroad.messagelog.entity.TimestampingStatusEntity;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -60,6 +62,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -74,9 +77,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMPING_FAILED
 @Slf4j
 public class LogManager extends AbstractLogManager {
 
-    // Date at which a time-stamping first failed.
-    private Instant timestampFailed;
-
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
     protected final LogRecordManager logRecordManager;
@@ -84,7 +84,8 @@ public class LogManager extends AbstractLogManager {
     protected final ProxyMessageLogProperties messageLogProperties;
 
     private final Timestamper timestamper;
-    private final TimestamperJob timestamperJob;
+    // package private for testing
+    final TimestamperJob timestamperJob;
 
     // package private for testing
     final TaskQueue taskQueue;
@@ -101,11 +102,19 @@ public class LogManager extends AbstractLogManager {
         this.messageLogProperties = messageLogProperties;
         this.timestamper = getTimestamperImpl();
         this.taskQueue = getTaskQueueImpl(timestamper);
-        this.timestamperJob = createTimestamperJob(taskQueue);
+
+        if (NodeProperties.isSecondaryNode()) {
+            log.info("Periodic batch time-stamping is not started on a secondary cluster node.");
+            this.timestamperJob = null;
+        } else {
+            this.timestamperJob = createTimestamperJob(taskQueue);
+        }
     }
 
     public void destroy() {
-        timestamperJob.shutdown();
+        if (timestamperJob != null) {
+            timestamperJob.shutdown();
+        }
     }
 
     private TimestamperJob createTimestamperJob(TaskQueue taskQueueParam) {
@@ -157,10 +166,7 @@ public class LogManager extends AbstractLogManager {
                 return messageRecord.getTimestampRecord();
             } else {
                 TimestampRecord timestampRecord = timestampImmediately(messageRecord);
-                // Avoid blocking the message logging (in non-timestamp-immediately mode) in case the last periodical
-                // timestamping task failed and currently the task queue got empty, but no more messages are logged until
-                // the acceptable timestamp failure period is reached.
-                setTimestampSucceeded();
+                handleTimestampJob(true);
 
                 return timestampRecord;
             }
@@ -339,57 +345,104 @@ public class LogManager extends AbstractLogManager {
         return timestampRecord;
     }
 
-    boolean isTimestampFailed() {
-        return timestampFailed != null;
-    }
-
     void setTimestampingStatus(SetTimestampingStatusMessage statusMessage) {
-        if (statusMessage.getStatus() == SetTimestampingStatusMessage.Status.SUCCESS) {
-            setTimestampSucceeded();
-        } else {
-            setTimestampFailed(statusMessage.getAtTime());
+        boolean succeeded = statusMessage.getStatus() == SetTimestampingStatusMessage.Status.SUCCESS;
+
+        if (!NodeProperties.isSecondaryNode() && !messageLogProperties.timestamper().timestampImmediately()) {
+            recordBatchResult(succeeded, statusMessage.getAtTime());
         }
+
+        handleTimestampJob(succeeded);
     }
 
     /**
-     * Only externally use this method from tests. Otherwise, send message to this actor.
+     * Writes the primary's batch time-stamping result to the shared state row, based only on
+     * what the row itself holds, never on this node's own in-memory state, so a restarted
+     * primary or a new primary after failover still clears a failure an earlier run recorded.
+     * The row exists only while batch time-stamping fails. A success deletes the row. A failure
+     * inserts the row with the failure start time when it is missing, and keeps the first
+     * failure time when it is present. A failed write is logged: it must not break the batch job
+     * or message processing.
      */
-    void setTimestampSucceeded() {
-        if (timestampFailed != null) {
-            timestampFailed = null;
-            this.timestamperJob.onSuccess();
+    private void recordBatchResult(boolean succeeded, Instant at) {
+        try {
+            messageLogDatabaseCtx.doInTransaction(session -> {
+                TimestampingStatusEntity entity = session.find(TimestampingStatusEntity.class, TimestampingStatusEntity.SINGLETON_ID);
+
+                if (succeeded) {
+                    if (entity != null) {
+                        session.remove(entity);
+                    }
+                } else if (entity == null) {
+                    entity = new TimestampingStatusEntity();
+                    entity.setFailedSince(at);
+                    session.persist(entity);
+                }
+                return null;
+            });
+        } catch (Exception e) {
+            log.warn("Failed to write shared time-stamping state", e);
         }
     }
 
-    void setTimestampFailed(Instant atTime) {
-        if (timestampFailed == null) {
-            timestampFailed = atTime;
-            this.timestamperJob.onFailure();
+    private void handleTimestampJob(boolean succeeded) {
+        if (timestamperJob != null) {
+            if (succeeded) {
+                timestamperJob.onSuccess();
+            } else {
+                timestamperJob.onFailure();
+            }
         }
     }
 
-    private void verifyCanLogMessage(boolean shouldTimestampImmediately) {
+    // package private for testing
+    void verifyCanLogMessage(boolean shouldTimestampImmediately) {
         if (serverConfProvider.getTspUrls().isEmpty()) {
             throw XrdRuntimeException.systemException(NO_TIMESTAMPING_PROVIDER_FOUND)
                     .details("Cannot time-stamp messages: no timestamping services configured")
                     .build();
         }
 
-        if (!shouldTimestampImmediately) {
-            int period = messageLogProperties.timestamper().acceptableTimestampFailurePeriod();
-
-            if (period == 0) { // check disabled
-                return;
-            }
-
-            if (isTimestampFailed()) {
-                if (TimeUtils.now().minusSeconds(period).isAfter(timestampFailed)) {
-                    throw XrdRuntimeException.systemException(TIMESTAMPING_FAILED)
-                            .details("Cannot time-stamp messages")
-                            .build();
-                }
-            }
+        if (shouldTimestampImmediately) {
+            return;
         }
+
+        int period = messageLogProperties.timestamper().acceptableTimestampFailurePeriod();
+
+        if (period == 0) { // check disabled
+            return;
+        }
+
+        verifyTimestampingNotFailed(period);
+    }
+
+    /**
+     * Refuses when the shared batch time-stamping state records a failure that started earlier
+     * than the acceptable period. Every node, primary or secondary, decides from this shared
+     * state, read from the message log database on every check. A failed read throws, so the
+     * message is refused. A primary that is down (crashed, gone or stuck) records nothing, so this
+     * check does not detect it.
+     */
+    private void verifyTimestampingNotFailed(int period) {
+        Instant failedSince = readSharedFailedSince();
+
+        if (failedSince == null) {
+            return;
+        }
+
+        if (TimeUtils.now().minusSeconds(period).isAfter(failedSince)) {
+            throw XrdRuntimeException.systemException(TIMESTAMPING_FAILED)
+                    .details("Cannot time-stamp messages")
+                    .build();
+        }
+    }
+
+    private Instant readSharedFailedSince() {
+        return messageLogDatabaseCtx.doInTransaction(session -> {
+            TimestampingStatusEntity entity = session.find(TimestampingStatusEntity.class, TimestampingStatusEntity.SINGLETON_ID);
+
+            return entity == null ? null : entity.getFailedSince();
+        });
     }
 
     private String signatureHash(String signatureXml) throws IOException {
@@ -405,7 +458,7 @@ public class LogManager extends AbstractLogManager {
         private final int timestampRetryDelaySeconds;
 
         // Flag for indicating backoff retry state
-        private boolean retryMode = false;
+        private final AtomicBoolean retryMode = new AtomicBoolean(false);
 
         private final GlobalConfProvider globalConfProvider;
         private final ScheduledExecutorService taskScheduler;
@@ -414,28 +467,38 @@ public class LogManager extends AbstractLogManager {
 
         public TimestamperJob(GlobalConfProvider globalConfProvider, Duration initialDelay, TaskQueue taskQueue,
                               int timestampRetryDelaySeconds) {
+            this(globalConfProvider, initialDelay, taskQueue, timestampRetryDelaySeconds, Executors.newSingleThreadScheduledExecutor());
+        }
+
+        // package private for testing
+        TimestamperJob(GlobalConfProvider globalConfProvider, Duration initialDelay, TaskQueue taskQueue,
+                       int timestampRetryDelaySeconds, ScheduledExecutorService taskScheduler) {
             this.globalConfProvider = globalConfProvider;
             this.timestampRetryDelaySeconds = timestampRetryDelaySeconds;
             log.trace("Initializing TimestamperJob");
             this.taskQueue = taskQueue;
-            this.taskScheduler = Executors.newSingleThreadScheduledExecutor();
+            this.taskScheduler = taskScheduler;
             schedule(initialDelay, this::handleStartTimestamping);
         }
 
+        /**
+         * Leaves retry mode and runs a batch at once. Does nothing outside retry mode, so the
+         * success of the batch it starts does not start another one.
+         */
         void onSuccess() {
+            if (!retryMode.compareAndSet(true, false)) {
+                return;
+            }
             log.info("Batch time-stamping refresh cycle successfully completed, continuing with normal scheduling");
-            // Move back into normal state.
-            // Cancel next tick, run a batch immediately and schedule next one.
-            retryMode = false;
             this.taskQueue.handleStartTimestamping();
         }
 
         void onFailure() {
+            if (!retryMode.compareAndSet(false, true)) {
+                return;
+            }
             log.info("Batch time-stamping failed, switching to retry backoff schedule");
             log.info("Time-stamping retry delay value is: {}s", timestampRetryDelaySeconds);
-            // Move into recover-from-failed state.
-            // Cancel next tick and start backoff schedule.
-            retryMode = true;
         }
 
         private void handleStartTimestamping() {
@@ -457,7 +520,7 @@ public class LogManager extends AbstractLogManager {
         }
 
         private void scheduleNext() {
-            if (retryMode) {
+            if (retryMode.get()) {
                 schedule(getNextDelay(), this::handleStartTimestampingRetryMode);
             } else {
                 schedule(getNextDelay(), this::handleStartTimestamping);
@@ -477,7 +540,7 @@ public class LogManager extends AbstractLogManager {
 
         private Duration getNextDelay() {
             int actualInterval = MIN_INTERVAL_SECONDS;
-            log.debug("Use batch time-stamping retry backoff schedule: {}", retryMode);
+            log.debug("Use batch time-stamping retry backoff schedule: {}", retryMode.get());
 
             try {
                 actualInterval = globalConfProvider.getTimestampingIntervalSeconds();
@@ -485,7 +548,7 @@ public class LogManager extends AbstractLogManager {
                 log.error("Failed to get timestamping interval", e);
             }
 
-            if (retryMode) {
+            if (retryMode.get()) {
                 actualInterval = (timestampRetryDelaySeconds < actualInterval && timestampRetryDelaySeconds > 0)
                         ? timestampRetryDelaySeconds : actualInterval;
             }

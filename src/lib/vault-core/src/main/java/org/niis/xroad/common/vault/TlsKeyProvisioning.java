@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -44,9 +45,19 @@ import static java.util.Arrays.stream;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 /**
- * Reads a TLS key from the secret store and provisions a new one only when the store reports the key absent.
- * Any other failure, such as the store being unreachable, sealed or failing over, is passed on: it never leads
- * to a key being created or replaced.
+ * Single path for reading TLS material from the secret store and provisioning it when absent.
+ * <p>
+ * {@link #readOrProvision} provisions the material whenever the store reports it absent. It is for a service
+ * that runs as a single instance, and for material that belongs to one Central Server node and is stored under
+ * that node's own path. Central Server nodes have no primary or secondary role.
+ * <p>
+ * {@link #readOrProvisionOnPrimary} is for material shared by every node of a Security Server cluster: a
+ * primary or standalone node provisions it, while a secondary node never creates or replaces anything and
+ * instead reports the absent key to its caller, whose service restart retries the read once the primary
+ * has provisioned it.
+ * <p>
+ * In all cases, any read failure other than the store reporting the key absent, such as the store being
+ * unreachable, sealed or failing over, is passed on: it never leads to a key being created or replaced.
  */
 @Slf4j
 @UtilityClass
@@ -79,6 +90,36 @@ public class TlsKeyProvisioning {
             }
             log.warn("Unable to locate '{}' TLS credentials, attempting to create new ones", name);
         }
+        return provisionAndStore(name, writer, keyClient);
+    }
+
+    /**
+     * @param name      the key name, used in log messages
+     * @param reader    reads the existing key; reports an absent key with {@code MISSING_SECRET}
+     * @param writer    stores a newly provisioned key; never called on a secondary node
+     * @param keyClient provisions a new key and certificate chain; never called on a secondary node
+     * @return the existing key, or the newly provisioned and stored one
+     */
+    public static InternalSSLKey readOrProvisionOnPrimary(String name, KeyReader reader, KeyWriter writer,
+                                                          VaultKeyClient keyClient)
+            throws IOException, GeneralSecurityException {
+        try {
+            return reader.read();
+        } catch (XrdRuntimeException e) {
+            if (!e.isCausedBy(MISSING_SECRET)) {
+                throw e;
+            }
+            if (NodeProperties.isSecondaryNode()) {
+                log.warn("'{}' TLS credentials not found, the primary node creates them", name);
+                throw e;
+            }
+            log.warn("Unable to locate '{}' TLS credentials, attempting to create new ones", name);
+        }
+        return provisionAndStore(name, writer, keyClient);
+    }
+
+    private static InternalSSLKey provisionAndStore(String name, KeyWriter writer, VaultKeyClient keyClient)
+            throws IOException, GeneralSecurityException {
         var tlsKey = provision(keyClient);
         writer.write(tlsKey);
         log.info("Successfully created '{}' TLS credentials", name);

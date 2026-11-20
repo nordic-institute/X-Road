@@ -49,8 +49,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.messagelog.LogRecord;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.RestLogMessage;
@@ -61,6 +63,7 @@ import org.niis.xroad.messagelog.archiver.core.TestLogCleaner;
 import org.niis.xroad.messagelog.entity.AbstractLogRecordEntity;
 import org.niis.xroad.messagelog.entity.ArchiveDigestEntity;
 import org.niis.xroad.messagelog.entity.DigestEntryEmbeddable;
+import org.niis.xroad.messagelog.entity.TimestampingStatusEntity;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
 
@@ -75,6 +78,7 @@ import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -91,6 +95,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.assertTaskQueueSize;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.cleanUpDatabase;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createMessage;
@@ -311,6 +316,27 @@ class MessageLogTest extends AbstractMessageLogTest {
     }
 
     /**
+     * Timestamps message immediately on a secondary cluster node, where the periodic batch timestamper never starts.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void timestampImmediatelyOnSecondaryNode(boolean encrypted) throws Exception {
+        log.trace("timestampImmediatelyOnSecondaryNode(encrypted={})", encrypted);
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+            setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.timestamp-immediately", "true"), encrypted);
+        }
+
+        assertNull(logManager.timestamperJob);
+
+        log(createMessage(), createSignature());
+        assertTaskQueueSize(databaseCtx, 0);
+    }
+
+    /**
      * Logs messages, time-stamps them. Then archives the messages and cleans the database.
      *
      * @throws Exception in case of any unexpected errors
@@ -324,6 +350,48 @@ class MessageLogTest extends AbstractMessageLogTest {
     void logTimestampArchiveAndClean(boolean encrypted) throws Exception {
         setupTest(encrypted);
         log.trace("logTimestampArchiveAndClean(encrypted={})", encrypted);
+
+        assertTaskQueueSize(databaseCtx, 0);
+        log("01-09-2021 12:34:55.100", createMessage(), createSignature());
+        log("01-09-2021 12:34:57.200", createMessage(), createSignature());
+        log("01-09-2021 12:34:59.300", createMessage(), createSignature());
+        assertTaskQueueSize(databaseCtx, 3);
+
+        startTimestamping();
+        waitForTimestampSuccessful();
+        assertTrue(TestTaskQueue.waitForTimestampSaved());
+
+        assertTaskQueueSize(databaseCtx, 0);
+
+        startArchiving();
+        TestLogArchiver.waitForArchiveSuccessful();
+
+        assertEquals(4, getNumberOfRecords(true));
+
+        startCleaning();
+        TestLogCleaner.waitForCleanSuccessful();
+        assertEquals(0, getNumberOfRecords(true));
+
+        assertArchiveHashChain();
+    }
+
+    /**
+     * Logs messages the way a secondary cluster node would, with no record of which node wrote them, then
+     * time-stamps, archives and cleans them on a primary node.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void logTimestampArchiveAndCleanRecordsWithoutNodeAffinity(boolean encrypted) throws Exception {
+        log.trace("logTimestampArchiveAndCleanRecordsWithoutNodeAffinity(encrypted={})", encrypted);
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
+            setupTest(encrypted);
+        }
+
+        assertNotNull(logManager.timestamperJob);
 
         assertTaskQueueSize(databaseCtx, 0);
         log("01-09-2021 12:34:55.100", createMessage(), createSignature());
@@ -378,7 +446,8 @@ class MessageLogTest extends AbstractMessageLogTest {
     }
 
     /**
-     * Logs messages, time-stamping failed. After acceptable period no more messages are accepted.
+     * Logging refuses once the shared row's recorded failure is older than the acceptable period,
+     * and accepts again just inside it.
      *
      * @throws Exception in case of any unexpected errors
      */
@@ -387,20 +456,37 @@ class MessageLogTest extends AbstractMessageLogTest {
     void timestampingFailedStopLogging(boolean encrypted) throws Exception {
         log.trace("timestampingFailedStopLogging(encrypted={})", encrypted);
 
+        final int period = 10;
         // Reinitialize with short acceptable timestamp failure period
-        setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1"), encrypted);
+        setupTestWithConfig(Map.of(
+                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
 
-        TestTimestamperWorker.failNextTimestamping(true);
+        writeTimestampingStatusRow(TimeUtils.now().minusSeconds(period + 5));
+
+        SoapMessageImpl message = createMessage();
+        SignatureData signature = createSignature();
+        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(message, signature));
+        assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), xrdRuntimeException.getErrorCode());
+
+        writeTimestampingStatusRow(TimeUtils.now().minusSeconds(period - 5));
 
         log(createMessage(), createSignature());
-        log(createMessage(), createSignature());
-        log(createMessage(), createSignature());
-        assertTaskQueueSize(databaseCtx, 3);
+    }
 
-        logManager.setTimestampFailed(TimeUtils.now().minusSeconds(60));
+    /**
+     * A freshly started primary, as after a restart or a failover, refuses at once when the row
+     * left by an earlier run holds a failure older than the acceptable period.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void primaryRestartRefusesOnRowLeftByEarlierRun(boolean encrypted) throws Exception {
+        final int period = 10;
+        setupTestWithConfig(Map.of(
+                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
 
-        startTimestamping();
-        waitForMessageInTaskQueue();
+        writeTimestampingStatusRow(TimeUtils.now().minusSeconds(period + 5));
 
         XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
         assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), xrdRuntimeException.getErrorCode());
@@ -441,7 +527,7 @@ class MessageLogTest extends AbstractMessageLogTest {
 
         assertTrue(TestLogManager.waitForSetTimestampingStatus());
 
-        assertTrue(logManager.isTimestampFailed());
+        assertNotNull(getTimestampingStatusRow());
 
         log(createMessage(), createSignature());
         assertTaskQueueSize(databaseCtx, 4);
@@ -616,6 +702,222 @@ class MessageLogTest extends AbstractMessageLogTest {
             assertNotNull(msg2.getMessage());
             assertNotNull(msg3.getMessage());
         }
+    }
+
+    /**
+     * Logs no messages, so the batch run finds nothing to time-stamp. The success recorded for
+     * the empty queue must clear a failure that an earlier run left in the row, as a restarted
+     * primary or a new primary after failover finds it.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void primaryEmptyQueueClearsFailureLeftByEarlierRun(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+
+        writeTimestampingStatusRow(TimeUtils.now().minusSeconds(120));
+        assertTaskQueueSize(databaseCtx, 0);
+
+        startTimestamping();
+
+        assertNull(getTimestampingStatusRow());
+    }
+
+    /**
+     * Logs a message, time-stamping fails twice in a row. The row does not exist beforehand, so
+     * the first failure must insert it with the failure start time; the second failure must keep
+     * that time.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void primaryFailureSetsFailureStartAndKeepsItOnSecondFailure(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+
+        assertNull(getTimestampingStatusRow());
+
+        TestTimestamperWorker.failNextTimestamping(true);
+        log(createMessage(), createSignature());
+        assertTaskQueueSize(databaseCtx, 1);
+
+        startTimestamping();
+        waitForMessageInTaskQueue();
+
+        TimestampingStatusEntity firstFailure = getTimestampingStatusRow();
+        assertNotNull(firstFailure);
+        assertNotNull(firstFailure.getFailedSince());
+
+        TestTimestamperWorker.failNextTimestamping(true);
+        startTimestamping();
+        waitForMessageInTaskQueue();
+
+        TimestampingStatusEntity secondFailure = getTimestampingStatusRow();
+        assertEquals(firstFailure.getFailedSince(), secondFailure.getFailedSince());
+    }
+
+    /**
+     * Logs a message and time-stamps it successfully. The success must clear a previously
+     * recorded failure.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void primarySuccessClearsRecordedFailure(boolean encrypted) throws Exception {
+        setupTest(encrypted);
+
+        writeTimestampingStatusRow(TimeUtils.now().minusSeconds(120));
+
+        log(createMessage(), createSignature());
+        assertTaskQueueSize(databaseCtx, 1);
+
+        startTimestamping();
+        waitForTimestampSuccessful();
+        assertTrue(TestTaskQueue.waitForTimestampSaved());
+
+        assertNull(getTimestampingStatusRow());
+    }
+
+    /**
+     * Timestamp-immediately mode never writes the shared state row, even when the batch job's
+     * own periodic (empty-queue) run fires on the primary: a recorded failure is left as it is.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void primaryTimestampImmediatelyDoesNotWriteRow(boolean encrypted) throws Exception {
+        setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.timestamp-immediately", "true"), encrypted);
+        assertTaskQueueSize(databaseCtx, 0);
+        writeTimestampingStatusRow(TimeUtils.now().minusSeconds(120));
+        Instant recordedFailure = getTimestampingStatusRow().getFailedSince();
+        assertNotNull(recordedFailure);
+
+        startTimestamping();
+
+        assertEquals(recordedFailure, getTimestampingStatusRow().getFailedSince());
+    }
+
+    /**
+     * A SUCCESS whose own synchronous recovery batch ({@code TimestamperJob.onSuccess} ->
+     * {@code TaskQueue.handleStartTimestamping}) fails must still leave the failure recorded: the
+     * recovery batch's write happens after the outer success write and must not be overwritten
+     * by it.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void primarySuccessWithFailingRecoveryBatchLeavesFailureSet(boolean encrypted) throws Exception {
+        final int period = 10;
+        setupTestWithConfig(Map.of(
+                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
+
+        TestTimestamperWorker.failNextTimestamping(true);
+        log(createMessage(), createSignature());
+        assertTaskQueueSize(databaseCtx, 1);
+
+        startTimestamping();
+        waitForMessageInTaskQueue();
+
+        assertNotNull(getTimestampingStatusRow().getFailedSince());
+
+        TestTimestamperWorker.failNextTimestamping(true);
+        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(SetTimestampingStatusMessage.Status.SUCCESS));
+
+        Instant recordedFailure = getTimestampingStatusRow().getFailedSince();
+        assertNotNull(recordedFailure);
+
+        Clock previousClock = TimeUtils.getClock();
+        try {
+            TimeUtils.setClock(Clock.fixed(recordedFailure.plusSeconds(period + 5L), ZoneOffset.UTC));
+
+            SoapMessageImpl message = createMessage();
+            SignatureData signature = createSignature();
+            XrdRuntimeException xrdRuntimeException =
+                    assertThrows(XrdRuntimeException.class, () -> log(message, signature));
+            assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), xrdRuntimeException.getErrorCode());
+        } finally {
+            TimeUtils.setClock(previousClock);
+        }
+    }
+
+    /**
+     * A secondary node refuses once the shared failure start time is older than the acceptable
+     * period, and accepts again just inside it.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void secondaryRefusesWhenFailureStartOlderThanPeriod(boolean encrypted) throws Exception {
+        final int period = 1800;
+        setupTestWithConfig(Map.of(
+                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
+
+        writeTimestampingStatusRow(TimeUtils.now().minusSeconds(period + 10));
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+
+            XrdRuntimeException exception =
+                    assertThrows(XrdRuntimeException.class, () -> logManager.verifyCanLogMessage(false));
+            assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), exception.getErrorCode());
+        }
+
+        writeTimestampingStatusRow(TimeUtils.now().minusSeconds(period - 10));
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+
+            logManager.verifyCanLogMessage(false);
+        }
+    }
+
+    /**
+     * A secondary node accepts messages while the shared state row does not exist.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void secondaryAcceptsWhileStateRowIsMissing(boolean encrypted) throws Exception {
+        setupTestWithConfig(Map.of(
+                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1800"), encrypted);
+
+        deleteTimestampingStatusRow();
+
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
+
+            logManager.verifyCanLogMessage(false);
+        }
+    }
+
+    private TimestampingStatusEntity getTimestampingStatusRow() {
+        return databaseCtx.doInTransaction(session ->
+                session.find(TimestampingStatusEntity.class, TimestampingStatusEntity.SINGLETON_ID));
+    }
+
+    private void writeTimestampingStatusRow(Instant failedSince) {
+        databaseCtx.doInTransaction(session -> {
+            TimestampingStatusEntity entity = session.find(TimestampingStatusEntity.class, TimestampingStatusEntity.SINGLETON_ID);
+            if (entity == null) {
+                entity = new TimestampingStatusEntity();
+                entity.setFailedSince(failedSince);
+                session.persist(entity);
+            } else {
+                entity.setFailedSince(failedSince);
+            }
+            return null;
+        });
+    }
+
+    private void deleteTimestampingStatusRow() {
+        databaseCtx.doInTransaction(session ->
+                session.createMutationQuery("delete from " + TimestampingStatusEntity.class.getName()).executeUpdate());
     }
 
     // ------------------------------------------------------------------------

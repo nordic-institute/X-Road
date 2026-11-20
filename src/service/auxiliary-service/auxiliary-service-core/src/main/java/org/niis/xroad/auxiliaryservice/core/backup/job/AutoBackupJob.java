@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.auxiliaryservice.core.backup.FileSystemBackupHandler;
 import org.niis.xroad.auxiliaryservice.core.config.BackupProperties;
+import org.niis.xroad.common.properties.NodeProperties;
 
 @ApplicationScoped
 @Slf4j
@@ -53,9 +54,7 @@ public class AutoBackupJob {
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     public void init(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
-        if (StringUtils.isNoneBlank(backupProperties.autoBackupCronExpression(),
-                backupProperties.autoBackupScriptPath())
-                && !SchedulerUtils.isOff(backupProperties.autoBackupCronExpression())) {
+        if (isEnabled() && !NodeProperties.isSecondaryNode()) {
             log.info("Scheduling automatic backups with cron expression: '{}'",
                     backupProperties.autoBackupCronExpression());
             scheduler.newJob(getClass().getSimpleName())
@@ -65,8 +64,14 @@ public class AutoBackupJob {
                     .setSkipPredicate(applicationNotRunning)
                     .schedule();
         } else {
-            log.info("Automatic backups are disabled. No cron expression or script path provided.");
+            log.info("Automatic backup job is disabled or not scheduled on a secondary cluster node.");
         }
+    }
+
+    private boolean isEnabled() {
+        return StringUtils.isNoneBlank(backupProperties.autoBackupCronExpression(),
+                backupProperties.autoBackupScriptPath())
+                && !SchedulerUtils.isOff(backupProperties.autoBackupCronExpression());
     }
 
     private void execute(ScheduledExecution execution) {

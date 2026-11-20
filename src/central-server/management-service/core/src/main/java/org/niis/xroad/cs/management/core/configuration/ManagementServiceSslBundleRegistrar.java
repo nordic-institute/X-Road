@@ -28,23 +28,27 @@ package org.niis.xroad.cs.management.core.configuration;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.managementservice.AbstractManagementServiceSslBundleRegistrar;
 import org.niis.xroad.common.vault.TlsKeyProvisioning;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.spring.VaultSslBundleRegistrar;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-@RequiredArgsConstructor
-public class ManagementServiceSslBundleRegistrar extends AbstractManagementServiceSslBundleRegistrar {
+public class ManagementServiceSslBundleRegistrar extends VaultSslBundleRegistrar {
     private final VaultKeyClient vaultKeyClient;
     private final VaultClient vaultClient;
 
+    public ManagementServiceSslBundleRegistrar(VaultKeyClient vaultKeyClient, VaultClient vaultClient) {
+        super(MANAGEMENT_SERVICE_BUNDLE);
+        this.vaultKeyClient = vaultKeyClient;
+        this.vaultClient = vaultClient;
+    }
+
     @Override
     protected InternalSSLKey resolveTlsCredentials() throws IOException, GeneralSecurityException {
-        return TlsKeyProvisioning.readOrProvision(BUNDLE_NAME,
+        return TlsKeyProvisioning.readOrProvision(MANAGEMENT_SERVICE_BUNDLE,
                 vaultClient::getManagementServicesTlsCredentials,
                 vaultClient::createManagementServiceTlsCredentials,
                 vaultKeyClient);
