@@ -206,15 +206,16 @@ class ConsumerSideDspProcessorTest {
                 .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(DID_A, URL_A)), any(), any());
     }
 
-    @Test
-    void builtinServiceTargetsDerivedSystemDidAndUrlAndNegotiatesAsSenderMemberContext() {
-        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "getSecurityServerMetrics");
-        when(providerSecurityServerResolver.resolve(builtinServiceId, null))
+    @ParameterizedTest
+    @ValueSource(strings = {"getSecurityServerMetrics", "getSecurityServerOperationalData", "getSecurityServerHealthData"})
+    void monitoringServiceTargetsDerivedSystemDidAndUrlAndNegotiatesAsSenderMemberContext(String serviceCode) {
+        var monitoringServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, serviceCode);
+        when(providerSecurityServerResolver.resolve(monitoringServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
-        processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
+        processor.execute(new DspRequest(monitoringServiceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
                 .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(SYSTEM_DID_A, SYSTEM_URL_A)), any(), any());
@@ -699,6 +700,21 @@ class ConsumerSideDspProcessorTest {
                 .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(notBuiltin, SENDER, null, false));
+
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
+                any(), any(), eq(single(DID_A, URL_A)), any(), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"listMethods", "allowedMethods", "getWsdl", "getOpenAPI"})
+    void metaserviceCodeOnMemberUsesMemberTarget(String serviceCode) {
+        var metaservice = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, serviceCode);
+        when(providerSecurityServerResolver.resolve(metaservice, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        processor.execute(new DspRequest(metaservice, SENDER, null, false));
 
         verify(assetAccessAcquisitionService).acquireAssetAccess(
                 any(), any(), eq(single(DID_A, URL_A)), any(), any());
