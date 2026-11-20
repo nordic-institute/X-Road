@@ -44,7 +44,9 @@ UNSEAL_SCRIPT="/usr/share/xroad/scripts/secret-store-unseal.sh"
 LISTENER_SCRIPT="${ROOT_DIR}/development/docker/central-server/files/unseal-on-start-listener.sh"
 HA_GUIDE="${ROOT_DIR}/doc/Manuals/ig-csha_x-road_6_ha_installation_guide.md"
 XROAD_CONFIG_FILE="/etc/openbao/xroad-openbao.hcl"
-DROP_IN_FILE="/etc/systemd/system/openbao.service.d/xroad.conf"
+DROP_IN_FILE="/usr/lib/systemd/system/openbao.service.d/xroad.conf"
+DROP_IN_SOURCE="${PACKAGE_SOURCES}/secret-store-local/usr/lib/systemd/system/openbao.service.d/xroad.conf"
+WRITER_DROP_IN_DIR="/etc/systemd/system/openbao.service.d"
 BAO_LOG="/var/log/bao.log"
 SHIM_CALLS_FILE="/var/log/shim-calls"
 READY_FILE="/run/test-entrypoint-ready"
@@ -222,6 +224,7 @@ run_node_container() {
   docker rm -f "${CONTAINER}" >/dev/null 2>&1
   docker run -d --init --name "${CONTAINER}" --network "${NETWORK}" \
     -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
+    -v "${DROP_IN_SOURCE}:${DROP_IN_FILE}:ro" \
     -e "WRITE_ENV=$1" \
     -e "BAO_PG_CONNECTION_URL=postgres://postgres:${PG_PASSWORD}@${PG_CONTAINER}:5432/postgres?sslmode=disable" \
     --entrypoint sh "${IMAGE}" -c '
@@ -598,7 +601,7 @@ scenario_pki_setup_writes_policy() {
 }
 
 config_state() {
-  in_container sh -c "stat -c '%i %Y' ${XROAD_CONFIG_FILE} ${DROP_IN_FILE} && sha256sum ${XROAD_CONFIG_FILE} ${DROP_IN_FILE}"
+  in_container sh -c "stat -c '%i %Y' ${XROAD_CONFIG_FILE} && sha256sum ${XROAD_CONFIG_FILE}"
 }
 scenario_initializing_node() {
   log_info "Scenario: node writes the X-Road configuration, initialises and unseals a real OpenBao"
@@ -614,8 +617,9 @@ scenario_initializing_node() {
   check "drop-in: ExecStart is cleared first" in_container grep -qx 'ExecStart=' "${DROP_IN_FILE}"
   check "drop-in: only the X-Road file is read" in_container grep -qE "^ExecStart=/usr/bin/bao server -config=${XROAD_CONFIG_FILE}\$" "${DROP_IN_FILE}"
   check_eq "drop-in: ExecStartPost runs the unseal-only script" "${UNSEAL_SCRIPT}" "$(in_container sed -n 's/^ExecStartPost=[-+@!:]*//p' "${DROP_IN_FILE}")"
-  check "drop-in: OpenBao restarts on failure" in_container grep -qx 'Restart=on-failure' "${DROP_IN_FILE}"
-  check "drop-in: restart delay is set" in_container grep -qE '^RestartSec=[0-9]+$' "${DROP_IN_FILE}"
+  check "drop-in: the package file sets no restart policy" test "$(in_container grep -cE '^Restart(Sec)?=' "${DROP_IN_FILE}")" -eq 0
+  check "drop-in: the environment file keeps no optional prefix" in_container grep -qx "EnvironmentFile=${ENV_FILE}" "${DROP_IN_FILE}"
+  check "writer: wrote no drop-in" in_container test ! -e "${WRITER_DROP_IN_DIR}"
   check "OpenBao log: no unknown or unsupported field" test "$(in_container grep -c 'unknown or unsupported field' "${BAO_LOG}")" -eq 0
   local config_before
   config_before="$(config_state)"
@@ -751,7 +755,7 @@ check_unchanged_run() {
   clear_shim_calls
   run_writer "$@"
   check "${label}: exit 0" test "${RC}" -eq 0
-  check_eq "${label}: configuration and drop-in unchanged" "${config_before}" "$(config_state)"
+  check_eq "${label}: configuration unchanged" "${config_before}" "$(config_state)"
   check_eq "${label}: certificate unchanged" "${cert_before}" "$(cert_hash)"
   check_eq "${label}: no trust install, daemon-reload or restart" "" "$(shim_calls)"
 }
@@ -766,7 +770,7 @@ scenario_cluster_member() {
   check "single server: no cluster_addr" config_lacks "^cluster_addr"
   check "single server: standby reads left at the default" config_lacks "disable_standby_reads"
   check_eq "single server: trust installed once" 1 "$(shim_call_count update-ca-certificates)"
-  check_eq "single server: drop-in loaded once" 1 "$(shim_call_count daemon-reload)"
+  check_eq "single server: no daemon-reload" 0 "$(shim_call_count daemon-reload)"
   check_unchanged_run "single server rerun"
   local single_cert
   single_cert="$(cert_hash)"
@@ -781,7 +785,8 @@ scenario_cluster_member() {
   check_ne "convert: certificate regenerated" "${single_cert}" "$(cert_hash)"
   check_eq "convert: trust installed again" 1 "$(shim_call_count update-ca-certificates)"
   check_eq "convert: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
-  check_eq "convert: drop-in not reloaded" 0 "$(shim_call_count daemon-reload)"
+  check_eq "convert: no daemon-reload" 0 "$(shim_call_count daemon-reload)"
+  check "convert: wrote no drop-in" in_container test ! -e "${WRITER_DROP_IN_DIR}"
   restart_bao
   check "convert: serves on 127.0.0.1 with the certificate" serves_name 127.0.0.1 127.0.0.1
   check "convert: serves on the node address with the certificate" serves_name "${node_ip}" "${node_ip}"
@@ -870,13 +875,13 @@ scenario_cluster_member() {
   run_writer --node-address "${node_ip}" --node-host other.example.test --disable-standby-reads
   check "absent connection file: exit non-zero" test "${RC}" -ne 0
   check "absent connection file: stderr names the file" grep -qF -- "${ENV_FILE}" "${ERR_FILE}"
-  check_eq "absent connection file: configuration and drop-in unchanged" "${state_before_refusal}" "$(config_state)"
+  check_eq "absent connection file: configuration unchanged" "${state_before_refusal}" "$(config_state)"
   check_eq "absent connection file: no restart or trust install" "" "$(shim_calls)"
   in_container sh -c ": > ${ENV_FILE}"
   run_writer --node-address "${node_ip}" --node-host other.example.test --disable-standby-reads
   check "empty connection file: exit non-zero" test "${RC}" -ne 0
   check "empty connection file: stderr names the file" grep -qF -- "${ENV_FILE}" "${ERR_FILE}"
-  check_eq "empty connection file: configuration and drop-in unchanged" "${state_before_refusal}" "$(config_state)"
+  check_eq "empty connection file: configuration unchanged" "${state_before_refusal}" "$(config_state)"
   check_eq "empty connection file: no restart or trust install" "" "$(shim_calls)"
   in_container mv -f "${ENV_FILE}.saved" "${ENV_FILE}"
   log_info "Scenario: a failed write is reported"
@@ -884,14 +889,6 @@ scenario_cluster_member() {
   check "unwritable configuration: exit non-zero" test "${RC}" -ne 0
   check "unwritable configuration: stderr names the configuration file" grep -qF -- "${XROAD_CONFIG_FILE}" "${ERR_FILE}"
   check_eq "unwritable configuration: configuration unchanged" "${config_before_invalid}" "$(config_hash)"
-  in_container sh -c "echo '# stale' >> ${DROP_IN_FILE}"
-  run_writer_unprivileged --node-address "${node_ip}" --node-host other.example.test
-  check "unwritable drop-in: exit non-zero" test "${RC}" -ne 0
-  check "unwritable drop-in: stderr names the drop-in" grep -qF -- "${DROP_IN_FILE}" "${ERR_FILE}"
-  check "unwritable drop-in: the stale drop-in is still there" in_container grep -qx '# stale' "${DROP_IN_FILE}"
-  run_writer --node-address "${node_ip}" --node-host other.example.test
-  check "drop-in repaired: exit 0" test "${RC}" -eq 0
-  check_unchanged_run "drop-in repaired rerun" --node-address "${node_ip}" --node-host other.example.test
   log_info "Scenario: back to a single server"
   run_writer
   check "single again: exit 0" test "${RC}" -eq 0

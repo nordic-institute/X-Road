@@ -358,7 +358,7 @@ Do not open these ports to Security Servers, clients or other networks. Each nod
 sudo /usr/share/xroad/scripts/secret-store-cluster-config.sh --node-address <node_address> --node-host <node_host>
 ```
 
-The script writes the OpenBao configuration file `/etc/openbao/xroad-openbao.hcl` and the systemd drop-in `/etc/systemd/system/openbao.service.d/xroad.conf`. OpenBao then listens on `127.0.0.1:8200` and on `<node_address>:8200`. It announces `https://<node_host>:8200` (API) and `https://<node_host>:8201` (cluster traffic) to the other nodes. Without `--node-host` it announces the address. The option `--node-host` needs `--node-address`. The script creates a new TLS certificate for OpenBao when the names in the certificate change, and restarts OpenBao if it is running. Running it again with the same options changes nothing.
+The script writes the OpenBao configuration file `/etc/openbao/xroad-openbao.hcl`. The systemd drop-in `/usr/lib/systemd/system/openbao.service.d/xroad.conf` is part of the `xroad-secret-store-local` package. OpenBao then listens on `127.0.0.1:8200` and on `<node_address>:8200`. It announces `https://<node_host>:8200` (API) and `https://<node_host>:8201` (cluster traffic) to the other nodes. Without `--node-host` it announces the address. The option `--node-host` needs `--node-address`. The script creates a new TLS certificate for OpenBao when the names in the certificate change, and restarts OpenBao if it is running. Running it again with the same options changes nothing.
 
 The script prints `Generating OpenBao TLS certificates for X-Road...` when it creates a new certificate. The X-Road services read the trusted certificates only when they start. After this line, restart the X-Road services of node 1:
 

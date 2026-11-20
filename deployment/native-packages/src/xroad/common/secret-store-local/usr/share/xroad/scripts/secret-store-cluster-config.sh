@@ -2,11 +2,7 @@
 set -euo pipefail
 CONFIG_FILE=/etc/openbao/xroad-openbao.hcl
 ENV_FILE=/etc/openbao/xroad-openbao.env
-DROP_IN_DIR=/etc/systemd/system/openbao.service.d
-DROP_IN_FILE="${DROP_IN_DIR}/xroad.conf"
 SCRIPTS_DIR=/usr/share/xroad/scripts
-BAO_BINARY=/usr/bin/bao
-UNSEAL_SCRIPT="${SCRIPTS_DIR}/secret-store-unseal.sh"
 TLS_SCRIPT="${SCRIPTS_DIR}/secret-store-generate-tls-certificate.sh"
 TRUST_SCRIPT="${SCRIPTS_DIR}/secret-store-install-tls-trust.sh"
 TLS_CERT_FILE=/opt/openbao/tls/tls.crt
@@ -67,18 +63,6 @@ EOF
   else
     echo "api_addr = \"https://${LOCAL_ADDRESS}:${API_PORT}\""
   fi
-}
-drop_in() {
-  cat <<EOF
-[Service]
-EnvironmentFile=
-EnvironmentFile=${ENV_FILE}
-ExecStart=
-ExecStart=${BAO_BINARY} server -config=${CONFIG_FILE}
-ExecStartPost=-+${UNSEAL_SCRIPT}
-Restart=on-failure
-RestartSec=5
-EOF
 }
 wanted_cert_names() {
   {
@@ -142,11 +126,6 @@ fi
 needs_restart=false
 if write_if_changed "$CONFIG_FILE" 0640 openbao:xroad "$(server_config)"; then
   needs_restart=true
-fi
-if write_if_changed "$DROP_IN_FILE" 0644 root:root "$(drop_in)"; then
-  if [ -d /run/systemd/system ]; then
-    systemctl daemon-reload
-  fi
 fi
 if [ "$(wanted_cert_names)" != "$(current_cert_names)" ]; then
   "$TLS_SCRIPT" "$(wanted_cert_names | paste -sd, -)"

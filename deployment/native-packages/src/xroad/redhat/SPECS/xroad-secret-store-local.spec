@@ -25,13 +25,14 @@ rm -rf %{buildroot}
 %build
 
 %install
-mkdir -p %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}%{_unitdir}/openbao.service.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/usr/share/xroad/scripts/
 mkdir -p %{buildroot}/etc/xroad/services/
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 cp -p %{_sourcedir}/secret-store-local/xroad-secret-store-local.service %{buildroot}%{_unitdir}
+cp -p %{srcdir}/common/secret-store-local/usr/lib/systemd/system/openbao.service.d/xroad.conf %{buildroot}%{_unitdir}/openbao.service.d/
 cp -p %{srcdir}/common/secret-store-local/etc/xroad/services/secret-store-local.conf %{buildroot}/etc/xroad/services/
 cp -p %{srcdir}/common/secret-store-local/etc/xroad/backup.d/??_openbao %{buildroot}/etc/xroad/backup.d/
 cp -p %{srcdir}/common/secret-store-local/usr/share/xroad/scripts/* %{buildroot}/usr/share/xroad/scripts/
@@ -42,6 +43,8 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 %defattr(0640,xroad,xroad,0751)
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_openbao
 %attr(644,root,root) %{_unitdir}/xroad-secret-store-local.service
+%dir %attr(755,root,root) %{_unitdir}/openbao.service.d
+%attr(644,root,root) %{_unitdir}/openbao.service.d/xroad.conf
 %config /etc/xroad/services/secret-store-local.conf
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-install-tls-trust.sh
@@ -61,6 +64,8 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 
 
 %post
+systemctl daemon-reload
+
 if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
     /usr/share/xroad/scripts/secret-store-init-db.sh
 
@@ -85,3 +90,6 @@ else
     systemctl restart xroad-secret-store-local.service ||
         echo "OpenBao setup failed, see: systemctl status xroad-secret-store-local.service"
 fi
+
+%postun
+systemctl daemon-reload || :
