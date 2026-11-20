@@ -60,6 +60,12 @@ public class BuiltinServiceCodes {
             GET_WSDL,
             GET_OPENAPI);
 
+    /** The Security Server monitoring codes, served under the provider's SYSTEM participant context. */
+    public static final Set<String> MONITORING = Set.of(
+            GET_SECURITY_SERVER_METRICS,
+            GET_SECURITY_SERVER_OPERATIONAL_DATA,
+            GET_SECURITY_SERVER_HEALTH_DATA);
+
     /** The metaservice codes the SOAP metaservice handler serves. */
     public static final Set<String> SOAP_METASERVICES = Set.of(LIST_METHODS, ALLOWED_METHODS, GET_WSDL);
 

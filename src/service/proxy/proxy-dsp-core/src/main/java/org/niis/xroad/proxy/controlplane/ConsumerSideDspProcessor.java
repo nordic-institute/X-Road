@@ -76,7 +76,7 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  *       provider member's target; each {@code member@SS} is a distinct participant (XRDADR-41). A
  *       forced target narrows the candidates to that one server. A request for a service code
  *       SYSTEM actually publishes ({@link ManagementServiceCodes#DSP_NEGOTIATED}) addressed to the
- *       management subsystem, or a builtin-service request, derives the provider's SYSTEM-context
+ *       management subsystem, or a monitoring request, derives the provider's SYSTEM-context
  *       target instead — SYSTEM is a provider-side anchor, one per Security Server regardless of
  *       which members it serves.</li>
  *   <li>{@code participantContextId} — always the sender member's derived context
@@ -141,7 +141,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private DspAcquisition acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
-        var requestTargetsSystemCtx = isSystemEligibleManagementService(request, serviceId) || isBuiltinService(serviceId);
+        var requestTargetsSystemCtx = isSystemEligibleManagementService(request, serviceId) || isMonitoringService(serviceId);
 
         var providerAddresses = serviceAddressResolver.resolveCandidates(serviceId, request.targetSecurityServer());
         log.debug("processing DSP request for service {}, asset {}, management={}. Got {} possible targets",
@@ -200,7 +200,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     /**
      * The acquisition candidate of one serving security server: the provider's SYSTEM-context target
-     * for management and builtin-service requests, the provider member's target otherwise. Both are
+     * for management and monitoring requests, the provider member's target otherwise. Both are
      * derived, never looked up.
      */
     @Nonnull
@@ -233,10 +233,10 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 .build();
     }
 
-    private static boolean isBuiltinService(ServiceId serviceId) {
+    private static boolean isMonitoringService(ServiceId serviceId) {
         return serviceId != null
                 && serviceId.getSubsystemCode() == null
-                && BuiltinServiceCodes.ALL.contains(serviceId.getServiceCode());
+                && BuiltinServiceCodes.MONITORING.contains(serviceId.getServiceCode());
     }
 
     /**

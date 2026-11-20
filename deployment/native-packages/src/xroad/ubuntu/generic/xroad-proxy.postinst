@@ -2,6 +2,7 @@
 . /usr/share/debconf/confmodule
 
 . /usr/share/xroad/scripts/write_tls_config.sh
+. /usr/share/xroad/scripts/dsp_ports.sh
 
 abort() {
   local rc=$?
@@ -23,6 +24,19 @@ store_tls_identity() {
   altn="$RET"
   write_tls_identity_rows proxy "$subject" "$altn" "$mode" \
     || abort "Failed to store proxy TLS identity. ABORTING."
+}
+
+# First install only: stores the DID and DSP ports chosen at installation before any service reads them.
+store_dsp_ports() {
+  [[ "${1:-}" == "configure" && -z "${2:-}" ]] || return 0
+
+  local did_answer dsp_answer
+  db_get xroad-common/did-port
+  did_answer="$RET"
+  db_get xroad-common/dsp-port
+  dsp_answer="$RET"
+  write_dsp_port_rows "$did_answer" "$dsp_answer" \
+    || abort "Failed to store the DID and DSP ports. ABORTING."
 }
 
 recover_opmonitor() {
@@ -103,6 +117,7 @@ case "$1" in
   done
 
   store_tls_identity "$1"
+  store_dsp_ports "$1" "${2:-}"
 
   db_stop
 
