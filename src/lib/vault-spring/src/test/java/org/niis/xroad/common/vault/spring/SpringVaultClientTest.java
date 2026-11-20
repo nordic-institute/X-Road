@@ -76,13 +76,16 @@ class SpringVaultClientTest {
     @Mock
     private VaultKeyValueOperations vaultKeyValueOperations;
 
+    @Mock
+    private VaultKeyValueOperations dsIssuerServiceVaultKeyValueOperations;
+
     private final Map<String, Map<String, Object>> secretsByPath = new HashMap<>();
 
     private SpringVaultClient vaultClient;
 
     @BeforeEach
     void setUp() {
-        vaultClient = new SpringVaultClient(vaultKeyValueOperations, null, Duration.ZERO);
+        vaultClient = new SpringVaultClient(vaultKeyValueOperations, dsIssuerServiceVaultKeyValueOperations, null, Duration.ZERO);
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);
@@ -372,8 +375,10 @@ class SpringVaultClientTest {
 
     @Test
     void shouldKeepAdminAndManagementTlsKeysOfTwoNodesOnSeparatePaths() throws Exception {
-        var nodeA = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_a"), Duration.ZERO);
-        var nodeB = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_b"), Duration.ZERO);
+        var nodeA = new SpringVaultClient(vaultKeyValueOperations, dsIssuerServiceVaultKeyValueOperations,
+                NodeIdentity.resolve("node_a"), Duration.ZERO);
+        var nodeB = new SpringVaultClient(vaultKeyValueOperations, dsIssuerServiceVaultKeyValueOperations,
+                NodeIdentity.resolve("node_b"), Duration.ZERO);
         var keyA = tlsKey("CN=node-a");
         var keyB = tlsKey("CN=node-b");
         nodeA.createAdminServiceTlsCredentials(keyA);
@@ -396,6 +401,19 @@ class SpringVaultClientTest {
         vaultClient.createManagementServiceTlsCredentials(key);
         assertThat(secretsByPath).containsOnlyKeys("tls/admin-service", "tls/management-service");
         assertThat(vaultClient.getAdminServiceTlsCredentials().getKey()).isEqualTo(key.getKey());
+    }
+
+    @Test
+    void shouldReportDsIssuerServiceKeypairSecretExistsOnlyWhenTheSecretIsThere() {
+        var presentResponse = new VaultResponse();
+        presentResponse.setData(Map.of("private_key", "value"));
+        when(dsIssuerServiceVaultKeyValueOperations.get("ds/issuer-key")).thenReturn(presentResponse);
+        when(dsIssuerServiceVaultKeyValueOperations.get("ds/null-data-key")).thenReturn(new VaultResponse());
+        when(dsIssuerServiceVaultKeyValueOperations.get("ds/missing-key")).thenReturn(null);
+
+        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).isTrue();
+        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("null-data-key")).isFalse();
+        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("missing-key")).isFalse();
     }
 
     private static InternalSSLKey tlsKey(String subjectName) throws Exception {

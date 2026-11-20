@@ -183,4 +183,9 @@ public class NoopVaultClient implements VaultClient {
     public void deleteAgreementTokenSigningKey(String keyId) {
         throw new UnsupportedOperationException("Not supported");
     }
+
+    @Override
+    public boolean dsIssuerServiceKeypairSecretExists(String alias) {
+        throw new UnsupportedOperationException("Not supported");
+    }
 }

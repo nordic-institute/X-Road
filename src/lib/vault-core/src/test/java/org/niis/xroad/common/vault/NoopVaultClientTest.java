@@ -92,6 +92,12 @@ class NoopVaultClientTest {
     }
 
     @Test
+    void dsIssuerServiceKeypairSecretExistsShouldThrow() {
+        assertThatThrownBy(() -> vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key"))
+                .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
     void acmeAccountKeyPathShouldBeSanitizedAndCollisionFreePerAlias() {
         var pathOne = vaultClient.getAcmeAccountKeyPath("auth_CS:ORG:MEMBER1");
         var pathTwo = vaultClient.getAcmeAccountKeyPath("sign_CS:ORG:MEMBER1");

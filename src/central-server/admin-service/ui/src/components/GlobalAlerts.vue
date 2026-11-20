@@ -68,6 +68,13 @@
               @click="navigate(RouteName.ExternalConfiguration, 'open-login')"
             />
           </template>
+          <XrdBtn
+            v-if="isIssuerServiceAlert(item) && canOpenIssuerService"
+            variant="text"
+            prepend-icon="arrow_forward"
+            :text="issuerServiceAlertLabel(item)"
+            @click="router.push({ name: RouteName.IssuerService })"
+          />
         </template>
       </XrdBanner>
     </v-slide-y-transition>
@@ -81,7 +88,7 @@ import { useRouter } from 'vue-router';
 
 import { XrdBtn, XrdBanner, formatDateTime } from '@niis/shared-ui';
 
-import { RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import { useAlerts } from '@/store/modules/alerts';
 import { useSystem } from '@/store/modules/system';
 import { useUser } from '@/store/modules/user';
@@ -98,6 +105,9 @@ const sortedAlerts = computed(() => alertsStore.alerts.toSorted((item1, item2) =
 
 const internalCfg = computed(() => router.currentRoute.value.name === RouteName.InternalConfiguration);
 const externalCfg = computed(() => router.currentRoute.value.name === RouteName.ExternalConfiguration);
+const canOpenIssuerService = computed(
+  () => userStore.hasPermission(Permissions.VIEW_SYSTEM_SETTINGS) && router.currentRoute.value.name !== RouteName.IssuerService,
+);
 
 function isMissingInternalKey(item: ErrorCoded) {
   return item.errorCode === 'status.signing_key.internal.missing';
@@ -113,6 +123,22 @@ function isMissingExternalKey(item: ErrorCoded) {
 
 function isInactiveExternalToken(item: ErrorCoded) {
   return item.errorCode === 'status.signing_key.external.token_not_active';
+}
+
+function isIssuerServiceSetupRequired(item: ErrorCoded) {
+  return item.errorCode === 'status.issuer_service.setup_required';
+}
+
+function isIssuerServiceKeyAlert(item: ErrorCoded) {
+  return item.errorCode === 'status.issuer_service.key_missing' || item.errorCode === 'status.issuer_service.key_missing_check_failed';
+}
+
+function isIssuerServiceAlert(item: ErrorCoded) {
+  return isIssuerServiceSetupRequired(item) || isIssuerServiceKeyAlert(item);
+}
+
+function issuerServiceAlertLabel(item: ErrorCoded) {
+  return isIssuerServiceSetupRequired(item) ? 'issuerService.setUp' : 'issuerService.viewStatus';
 }
 
 function navigate(name: RouteName, action: string) {
