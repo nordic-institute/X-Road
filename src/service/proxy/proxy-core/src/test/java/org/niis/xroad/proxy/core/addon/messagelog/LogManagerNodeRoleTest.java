@@ -73,20 +73,7 @@ class LogManagerNodeRoleTest {
             new ProxyMessageLogProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).build());
 
     @Test
-    void startsTimestamperJobOnPrimaryNode() {
-        LogManager logManager;
-
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-            logManager = newLogManager();
-        }
-
-        assertNotNull(logManager.timestamperJob);
-        logManager.destroy();
-    }
-
-    @Test
-    void startsTimestamperJobOnStandaloneNode() {
+    void startsTimestamperJobOnPrimaryOrStandaloneNode() {
         LogManager logManager;
 
         try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {

@@ -61,10 +61,11 @@ class AutoBackupJobTest {
     @Mock
     private FileSystemBackupHandler fileSystemBackupHandler;
 
-    private final Scheduled.ApplicationNotRunning applicationNotRunning = mock(Scheduled.ApplicationNotRunning.class);
+    @Mock
+    private Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @Test
-    void registersJobOnPrimaryNode() {
+    void registersJobOnPrimaryOrStandaloneNode() {
         var scheduler = mock(Scheduler.class);
         var jobDefinition = mock(Scheduler.JobDefinition.class, RETURNS_SELF);
         when(scheduler.newJob(any())).thenReturn(jobDefinition);
@@ -79,24 +80,6 @@ class AutoBackupJobTest {
 
         verify(scheduler).newJob(any());
         verify(jobDefinition).setSkipPredicate(applicationNotRunning);
-        verify(jobDefinition).schedule();
-    }
-
-    @Test
-    void registersJobOnStandaloneNode() {
-        var scheduler = mock(Scheduler.class);
-        var jobDefinition = mock(Scheduler.JobDefinition.class, RETURNS_SELF);
-        when(scheduler.newJob(any())).thenReturn(jobDefinition);
-        when(backupProperties.autoBackupCronExpression()).thenReturn(CRON);
-        when(backupProperties.autoBackupScriptPath()).thenReturn(SCRIPT_PATH);
-
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-
-            new AutoBackupJob(scheduler, backupProperties, fileSystemBackupHandler, applicationNotRunning).init(new StartupEvent());
-        }
-
-        verify(scheduler).newJob(any());
         verify(jobDefinition).schedule();
     }
 

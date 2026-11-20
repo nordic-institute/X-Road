@@ -73,10 +73,11 @@ class MessageLogCleanupJobTest {
     @Mock
     private BlockingProcessRunner blockingProcessRunner;
 
-    private final Scheduled.ApplicationNotRunning applicationNotRunning = mock(Scheduled.ApplicationNotRunning.class);
+    @Mock
+    private Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @Test
-    void registersJobOnPrimaryNode() {
+    void registersJobOnPrimaryOrStandaloneNode() {
         var scheduler = mock(Scheduler.class);
         var jobDefinition = mock(Scheduler.JobDefinition.class, RETURNS_SELF);
         when(scheduler.newJob(any())).thenReturn(jobDefinition);
@@ -92,25 +93,6 @@ class MessageLogCleanupJobTest {
 
         verify(scheduler).newJob(any());
         verify(jobDefinition).setSkipPredicate(applicationNotRunning);
-        verify(jobDefinition).schedule();
-    }
-
-    @Test
-    void registersJobOnStandaloneNode() {
-        var scheduler = mock(Scheduler.class);
-        var jobDefinition = mock(Scheduler.JobDefinition.class, RETURNS_SELF);
-        when(scheduler.newJob(any())).thenReturn(jobDefinition);
-        when(messageLogEnabledProperties.isEnabled()).thenReturn(true);
-        when(properties.cleanupCron()).thenReturn(CRON);
-
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-
-            new MessageLogCleanupJob(scheduler, properties, messageLogEnabledProperties, blockingProcessRunner,
-                    applicationNotRunning).init(new StartupEvent());
-        }
-
-        verify(scheduler).newJob(any());
         verify(jobDefinition).schedule();
     }
 
@@ -170,24 +152,7 @@ class MessageLogCleanupJobTest {
     }
 
     @Test
-    void executeOnShutdownCleansUpOnPrimaryNodeWhenEnabled() throws Exception {
-        when(messageLogEnabledProperties.isEnabled()).thenReturn(true);
-        when(properties.cleanupCron()).thenReturn(CRON);
-        when(blockingProcessRunner.executeAndThrowOnFailure(any(), any()))
-                .thenReturn(new ExternalProcessRunner.ProcessResult("cleanup", 0, List.of("output")));
-
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-
-            new MessageLogCleanupJob(mock(Scheduler.class), properties, messageLogEnabledProperties, blockingProcessRunner,
-                    applicationNotRunning).executeOnShutdown();
-        }
-
-        verify(blockingProcessRunner).executeAndThrowOnFailure(any(), any());
-    }
-
-    @Test
-    void executeOnShutdownCleansUpOnStandaloneNodeWhenEnabled() throws Exception {
+    void executeOnShutdownCleansUpOnPrimaryOrStandaloneNodeWhenEnabled() throws Exception {
         when(messageLogEnabledProperties.isEnabled()).thenReturn(true);
         when(properties.cleanupCron()).thenReturn(CRON);
         when(blockingProcessRunner.executeAndThrowOnFailure(any(), any()))
@@ -227,16 +192,18 @@ class MessageLogCleanupJobTest {
         var records = new ArrayList<LogRecord>();
         var handler = new Handler() {
             @Override
-            public void publish(LogRecord record) {
-                records.add(record);
+            public void publish(LogRecord logRecord) {
+                records.add(logRecord);
             }
 
             @Override
             public void flush() {
+                // nothing to flush, records are captured synchronously
             }
 
             @Override
             public void close() {
+                // no resources to release
             }
         };
         logger.addHandler(handler);
