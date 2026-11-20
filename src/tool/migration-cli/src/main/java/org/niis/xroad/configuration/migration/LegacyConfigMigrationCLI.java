@@ -328,6 +328,8 @@ public class LegacyConfigMigrationCLI {
                     Arguments:
                       <input.ini>          Path to INI input file
                       <db.properties path> Path to database properties file
+                    Notes:
+                      - override-securityserver-*.ini (country package settings) is skipped
 
                 Properties to DB Migration:
                   migration-cli properties-to-db <input.properties> <db.properties path>

@@ -10,4 +10,7 @@ dependencies {
   api(libs.quarkus.arc)
   api(libs.quarkus.scheduler)
   api(libs.quarkus.extension.vault)
+
+  testImplementation(testFixtures(project(":lib:rpc-core")))
+  testImplementation(libs.assertj.core)
 }

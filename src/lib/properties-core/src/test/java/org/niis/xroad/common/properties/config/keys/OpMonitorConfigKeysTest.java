@@ -28,9 +28,12 @@
 package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.properties.config.ConfigCatalogue;
+import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,13 +50,23 @@ class OpMonitorConfigKeysTest {
             "xroad.common-rpc.channel.op-monitor.deadline-after",
             "xroad.common-rpc.channel.op-monitor.max-inbound-message-size");
 
-    private final List<String> catalogueKeys = ConfigCatalogue.from(ConfigKeyProviders.allProviders()).stream()
-            .map(ConfigCatalogue.Entry::key)
+    private final List<String> catalogueKeys = ConfigKeyProviders.allProviders().stream()
+            .flatMap(provider -> provider.keys().stream())
+            .map(ConfigKey::key)
             .toList();
 
     @Test
     void keptKeysAreInTheCatalogue() {
         assertThat(catalogueKeys).containsAll(KEPT_KEYS);
+    }
+
+    @Test
+    void identitySourceOutsideTheAllowedValuesIsRejected() {
+        var overrides = Map.of("xroad.op-monitor.rpc.identity-source", "keystore");
+
+        assertThatThrownBy(() -> config(overrides))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("xroad.op-monitor.rpc.identity-source");
     }
 
     @Test
@@ -73,5 +86,9 @@ class OpMonitorConfigKeysTest {
         assertThat(key.convert("  ")).isEmpty();
         assertThatThrownBy(() -> key.convert("proxy,,ui")).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> key.convert("*.example.org")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private static XRoadConfig config(Map<String, String> overrides) {
+        return XRoadConfigBuilder.create().register(OpMonitorConfigKeys.instance()).overrides(overrides).build();
     }
 }

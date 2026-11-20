@@ -27,23 +27,20 @@ You determine which servers are initialized by filling in the groups
 you can leave that group empty.
 
 **Note:** Study the structure of the example host files carefully and model the group hierarchies that you wish to implement in your own
-inventory files. For example, the group `[rhel_ss]` for RHEL-based security server LXD-containers is a child group to the security server group `[ss_servers]` and can be omitted entirely if you have no use for RHEL containers or are using the ee-variant.
+inventory files. For example, the group `[rhel_ss]` for RHEL-based security server LXD-containers is a child group to the security server group `[ss_servers]` and can be omitted entirely if you have no use for RHEL containers or are using a variant that has no RHEL package.
 #### Variant
 
 When installing security servers, the Ansible playbooks use the configuration variable `variant`
-to select one of the available security server variants for installation. If no additional configurations have been made, the playbooks will install the `vanilla` variant. The three currently supported variants are:
-- `vanilla` - the basic non-country-specific version of X-Road
-- `ee` - the Estonian country variant, no RHEL variant package available
-- `fi` - the Finnish country variant
+to select the security server package for installation. If no additional configurations have been made, the playbooks will install the `vanilla` variant, the basic non-country-specific version of X-Road.
+Any other value is the country code of an existing `xroad-securityserver-<variant>` package. Some variants have no RHEL package.
 
-Country variants provide country-specific configuration options and dependencies in order to suit the X-Road instances and policies of their host countries.
-The vanilla variant provides an operational X-Road installation without any country-specific configurations. Vanilla configurations can be considered the default X-Road configurations.
+The recommended place for defining a different variant is the inventory file. For example, a variant for one host:
+```
+[rhel_ss]
+xrd-ss0 ansible_connection=lxd variant=fo
+```
 
-The recommended place for defining a different variant is the inventory file. For example, the definition for the Finnish variant:
-```
-[ss_servers:vars]
-variant=fi
-```
+The hurl step always checks through the admin API that ss0 reports a parameter from the country profile of its variant, so ss0 must run a country variant. The playbook stops in its pre-flight checks when ss0 runs the `vanilla` variant. The inventories in `scripts/env-lxd/config/` set `variant=fo` on ss0.
 
 While it is possible to define different variants for different security servers, it is worth noting that upgrading from one variant to another is not supported.
 

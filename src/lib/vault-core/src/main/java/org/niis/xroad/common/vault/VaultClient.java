@@ -88,6 +88,9 @@ public interface VaultClient {
 
     String AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH = "agreement-token/signing-keys";
 
+    String DS_ISSUER_SERVICE_SECRET_MOUNT = "xrd-ds-secret";
+    String DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER = "ds";
+
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     InternalSSLKey getAdminServiceTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
@@ -233,6 +236,17 @@ public interface VaultClient {
      * @param keyId the id of the key to delete
      */
     void deleteAgreementTokenSigningKey(String keyId);
+
+    /**
+     * Checks whether a secret exists for the given alias in the Data Space secret store, the KV v2
+     * {@value #DS_ISSUER_SERVICE_SECRET_MOUNT} mount's {@value #DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER} folder
+     * where the Issuer Service keeps its key-pair secrets. Returns only whether the secret exists, never its
+     * content.
+     *
+     * @param alias the Issuer Service key's private key alias, used verbatim as the secret name
+     * @return {@code true} if a secret exists at that alias, {@code false} otherwise
+     */
+    boolean dsIssuerServiceKeypairSecretExists(String alias);
 
     /**
      * Returns a view of this client whose secret store calls are retried for the given time instead of the

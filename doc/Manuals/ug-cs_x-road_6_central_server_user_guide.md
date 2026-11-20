@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.57  
+Version: 2.58  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -83,6 +83,7 @@ Doc. ID: UG-CS
 | 11.11.2026 | 2.55    | Added a note that xroad-center must be restarted before re-creating the management service key after a change of the certificate names                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas    |
 | 12.11.2026 | 2.56    | Added Issuer Service issuance settings and statuslist capacity paragraph                                                                                                                                                                                                                                                                                                                                                                | Ričardas Bučiūnas    |
 | 12.11.2026 | 2.57    | Replaced the Issuer Service host section's automatic-binding note with the operator-started initialization step                                                                                                                                                                                                                                                                                                                         | Ovidijus Narkevicius |
+| 17.11.2026 | 2.58    | Documented the Issuer Service tab, its rows, the set-up order and both alerts; kept the REST API as an alternative                                                                                                                                                                                                                                                                                                                      | Ovidijus Narkevicius |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -113,7 +114,13 @@ Doc. ID: UG-CS
   - [4.4 Managing the TLS certificates](#44-managing-the-tls-certificates)
     - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
       - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
-  - [4.5 Configuring the Issuer Service Host](#45-configuring-the-issuer-service-host)
+  - [4.5 Setting Up the Issuer Service](#45-setting-up-the-issuer-service)
+    - [4.5.1 The Issuer Service Tab](#451-the-issuer-service-tab)
+    - [4.5.2 Setting the Issuer Host](#452-setting-the-issuer-host)
+    - [4.5.3 Getting a Connector TLS Certificate](#453-getting-a-connector-tls-certificate)
+    - [4.5.4 Initializing the Issuer Service](#454-initializing-the-issuer-service)
+    - [4.5.5 Issuer Service Alerts](#455-issuer-service-alerts)
+    - [4.5.6 Configuring the Issuer Service Host via the REST API](#456-configuring-the-issuer-service-host-via-the-rest-api)
   - [4.6 Issuer Service Issuance Settings and Statuslist Capacity](#46-issuer-service-issuance-settings-and-statuslist-capacity)
     - [4.6.1 Issuance Settings](#461-issuance-settings)
     - [4.6.2 Statuslist Capacity](#462-statuslist-capacity)
@@ -514,11 +521,55 @@ When the key and certificate are rotated, and mTLS is enabled between the manage
 - The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
 - The running management services keep serving the old certificate until they are restarted. Restart `xroad-center-management-service`, then `xroad-center-registration-service`, in this order. See [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2.
 
-### 4.5 Configuring the Issuer Service Host
+### 4.5 Setting Up the Issuer Service
 
 Access rights: Security Officer
 
-Every membership credential names the Issuer Service by this host, so the host becomes part of the Issuer Service's permanent identity once that identity is bound. Set it after installation through the Central Server's management REST API. The user interface has no view for it. The calls need an API key with the Security Officer role; see [Managing API Keys](#24-managing-api-keys).
+The Issuer Service gives Security Servers their membership credentials. Before it can do that, it must be set up in order: set the issuer host, get a connector TLS certificate for that host, then initialize the service. Every membership credential names the Issuer Service by its host, so the host becomes part of the Issuer Service's permanent identity once that identity is bound.
+
+Only the Security Officer role can view the Issuer Service tab, edit the host or initialize the service; a user without that role does not see the tab. Adding, editing or deleting the Connector TLS CA in the Trust Services tab needs the System Administrator role.
+
+#### 4.5.1 The Issuer Service Tab
+
+In the Navigation tabs, select Settings --> Issuer Service. The tab lists the set-up state as four rows, each green when its condition holds and red otherwise:
+
+- **Issuer host** — green once a host is set, red as "Not set" otherwise. An Edit button opens a dialog to set it, shown while the host is still editable.
+- **Connector TLS certificate** — green once a certificate for the host is present, unexpired and valid; red as "Not ready" otherwise. A View certificate button goes to the Dataspace TLS certificate page, where the certificate is requested by CSR or ACME.
+- **Issuer Service** — green as "Can sign" when the Issuer Service on this node can currently sign; red with the cause otherwise: no active issuer key is configured, the issuer key's secret could not be read, the issuer DID has not yet been published, the bound DID does not match this node's active signing key, the Issuer Service could not be reached, or it did not answer in time.
+- **Issuer identity** — the DID (decentralised identifier) that initializing will bind, or, once bound, the bound DID. Green once bound. Before that, the row is red: it shows the DID to be bound once a host is set, and "Not yet bound" while no host is set.
+
+#### 4.5.2 Setting the Issuer Host
+
+Click Edit next to the Issuer host row. The dialog explains the host's two constraints: a cluster needs the cluster DNS name; on a single server, use a dedicated DNS name instead of the node's own host name, because the host cannot change once the issuer identity is bound, and a dedicated name keeps a later move to a cluster possible.
+
+Only a valid DNS name is accepted: not an IP address, not `localhost` or a name ending in `.localhost`, and not a name ending in a dot. The host is stored in lower case. If the host is rejected, the dialog shows the error returned by the API, and nothing is stored. The Issuer host row stays editable until the issuer identity is bound; after that, it is read-only.
+
+**Recommendation:** use a separate cluster DNS name for the Issuer Service host, not the host name of a Central Server node, even on a single node. The host cannot change after binding. If you use the node's own host name and add a node later, the existing node needs a new address, and every Security Server needs a new configuration anchor. With more than one node, the host must be the cluster DNS name, never a node's own host name.
+
+#### 4.5.3 Getting a Connector TLS Certificate
+
+Once the host is set, click View certificate on the Connector TLS certificate row to open the Dataspace TLS certificate page, and request a certificate there by CSR or ACME for that host (wildcards included). The Connector TLS certificate row turns green once a matching, unexpired certificate is in place.
+
+#### 4.5.4 Initializing the Issuer Service
+
+Once the Issuer host and Connector TLS certificate rows are both green, no issuer identity is bound and no initialization is running, the Initialize button is enabled. Clicking it shows the DID to be bound and warns that the host and the DID cannot change afterwards; accepting starts the one-time initialization.
+
+The tab shows "Initialization in progress" and keeps refreshing until the run ends. If a run stopped before the identity was bound, for example after a restart, clicking Initialize again resumes it. Once the identity is bound, the button stays disabled, whether or not the Issuer Service can currently sign.
+
+#### 4.5.5 Issuer Service Alerts
+
+Four alerts about the Issuer Service can appear on every page until they are resolved:
+
+- **"Issuer Service not initialized"** — shown while no issuer identity is bound. Its action, "Set up", opens the tab. Set the host, get a certificate, and initialize, as above.
+- **"Issuer Service signing key missing"** — shown while an identity is bound but the issuer's signing key has no secret in the secret store (OpenBao). The Issuer Service cannot sign until the secret is restored. Its action, "View status", opens the tab.
+- **"Failed to check the Issuer Service signing key"** — shown when the Central Server cannot read whether the issuer's signing key has a secret. Its action, "View status", opens the tab.
+- **"Failed to check the Issuer Service set-up status"** — shown when the Central Server cannot read the Issuer Service's set-up state. This alert has no action.
+
+Only users who can see the Issuer Service tab get the "Set up" and "View status" actions. The alerts also appear on the Issuer Service tab, but without these actions.
+
+#### 4.5.6 Configuring the Issuer Service Host via the REST API
+
+The tab calls the same management REST API described here. The calls need an API key with the Security Officer role; see [Managing API Keys](#24-managing-api-keys).
 
 To read the current host, binding and initialization status, call:
 
@@ -537,7 +588,7 @@ curl --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:
 }
 ```
 
-`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run is in progress. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `status` summarizes these into one value:
+`host_set`, `certificate_ready` and `run_in_progress` are the host and certificate state and whether an initialization run is in progress. `did_to_bind` is the identifier the Issuer Service would bind on initialization; it is present once the host is set. `bound_did` is the identifier the Issuer Service bound; it is present once `bound` is `true`. `status` summarizes these into one value:
 
 - `NOT_CONFIGURED` — the host is not set yet.
 - `WAITING_FOR_CERTIFICATE` — the host is set, but the connector TLS certificate is not yet present, valid and unexpired.
@@ -554,9 +605,7 @@ To set the host, call:
 curl -X PUT --header "Authorization: X-Road-ApiKey token=<api key>" --header "Content-Type: application/json" --data '{"host": "issuer.example.org"}' "https://localhost:4000/api/v1/issuer-service/host" -k
 ```
 
-Only a valid DNS name is accepted: not an IP address, not `localhost` or a name ending in `.localhost`, and not a name ending in a dot. The host is stored in lower case. An invalid value is refused and nothing is stored.
-
-**Recommendation:** use a separate cluster DNS name for the Issuer Service host, not the host name of a Central Server node, even on a single node. The host cannot change after binding. If you use the node's own host name and add a node later, the existing node needs a new address, and every Security Server needs a new configuration anchor. With more than one node, the host must be the cluster DNS name, never a node's own host name.
+The accepted values and the host recommendation are the same as in [4.5.2 Setting the Issuer Host](#452-setting-the-issuer-host).
 
 Once the host is set and its connector TLS certificate is ready, start the one-time initialization:
 

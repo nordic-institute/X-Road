@@ -26,9 +26,11 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CsManagementServiceConfigKeys;
@@ -48,6 +50,7 @@ import java.util.List;
  * Central Server's system-parameters catalogue, and their category-to-scope mapping.
  */
 @Component
+@RequiredArgsConstructor
 public class CsConfigurablePropertySource implements ConfigurablePropertySource {
 
     private static final List<ConfigKeyProvider> CS_PROVIDERS = List.of(
@@ -60,6 +63,13 @@ public class CsConfigurablePropertySource implements ConfigurablePropertySource 
             DataspaceConfigKeys.instance(),
             SignerConfigKeys.instance(),
             SignerKeyConfigKeys.instance());
+
+    private final DeploymentMode deploymentMode;
+
+    @Override
+    public DeploymentMode deploymentMode() {
+        return deploymentMode;
+    }
 
     @Override
     public List<ConfigKeyProvider> getConfigKeyProviders() {

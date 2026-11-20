@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.31
+Version: 1.32
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -39,6 +39,7 @@ Doc. ID: UG-SS-SIDECAR
 | 14.09.2026 | 1.29    | Added health-check and external secret store network ports       | Eneli Reimets             |
 | 06.11.2026 | 1.30    | Link the operational monitoring connection trust settings        | Eneli Reimets             |
 | 12.11.2026 | 1.31    | Document the 7.8.3 to 8.0.0 migration                            | Marc David                |
+| 17.11.2026 | 1.32    | Document country profile selection and precedence                | Ričardas Bučiūnas         |
 
 ## License
 
@@ -67,6 +68,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [2.10 Secret Store](#210-secret-store)
   * [2.11 Health Checks](#211-health-checks)
   * [2.12 First-Boot Hook Scripts](#212-first-boot-hook-scripts)
+  * [2.13 Country Profile](#213-country-profile)
 * [3 Initial configuration](#3-initial-configuration)
   * [3.1 Enabling ACME Support](#31-enabling-acme-support)
   * [3.2 Configuring the memory allocation for the Proxy Service](#32-configuring-the-memory-allocation-for-the-proxy-service)
@@ -99,9 +101,9 @@ The Security Server Sidecar has several images with alternative configurations:
 | **Image**                                                | **Description**                                                                             |
 |-----------------------------------------------------------|-----------------------------------------------------------------------------------------------|
 | niis/xroad-security-server-sidecar:\<version>            | Image with message logging, environmental monitoring, operational monitoring and dataspace services. |
-| niis/xroad-security-server-sidecar:\<version>-\<variant> | Same image but with the NIIS member/partner country variant (ee,fi,fo,is) configuration settings included. |
+| niis/xroad-security-server-sidecar:\<version>-\<variant> | Same image but with the NIIS member/partner country variant (`<cc>`, the country code) configuration settings included. |
 
-All images can act as a provider or consumer Security Server. The images with a country code suffix (e.g., `-fi`) include NIIS member/partner -specific configuration.
+All images can act as a provider or consumer Security Server. The images with a country code suffix (`-<cc>`) include NIIS member/partner -specific configuration. See [2.13 Country Profile](#213-country-profile).
 
 The `slim` image, which didn't include message logging or environmental and operational monitoring, was removed in X-Road 8. Instead, the additional modules can now be enabled and disabled using the Security Server admin UI or the management REST API.
 
@@ -154,7 +156,7 @@ The table below lists the required connections between different components.
 | Connection | Source                      | Target                      | Target Ports     | Protocol | Note                    |
 |------------|-----------------------------|-----------------------------|------------------|----------|-------------------------|
 | Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                         |
-| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network |
+| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network, a country profile can change the ports, see [2.13 Country Profile](#213-country-profile) |
 | Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network |
 | Inbound    | Monitoring / orchestrator   | Sidecar                     | 5588             | http     | Health check, see [2.11 Health Checks](#211-health-checks) |
 | Inbound    | ACME Server                 | Sidecar                     | 80               | http     |                         |
@@ -498,6 +500,28 @@ services:
 
 with `./entrypoint.d/10-seed-config.sh` executable on the host and containing the script shown above.
 
+### 2.13 Country Profile
+
+The profiles are part of the image. For the definition of a country profile, the order of precedence and the **Source** column of the admin user interface, see section [2.6.2](../Manuals/ig-ss_x-road_v8_security_server_installation_guide.md#262-country-profile) of the Security Server Installation Guide. A value that you save as a system parameter always wins over the country profile.
+
+The profile files are in the X-Road source code, in the directory `src/lib/properties-core/src/main/resources/xroad-config/country-profile/`. There is one YAML file for each profile, named `<CC>.yaml`, where `<CC>` is the upper case country code.
+
+To choose a country profile, do one of the following:
+
+* Use the image of the country: `niis/xroad-security-server-sidecar:<version>-<variant>`, where `<variant>` is the lower case country code `<cc>`. The image sets `XROAD_COUNTRY_PROFILE` for you.
+* Use the image without a variant and set the variable when you start the container. The value is a country code `<CC>`, in upper or lower case:
+    ```bash
+      -e XROAD_COUNTRY_PROFILE=<CC> \
+    ```
+
+A value that is not a country code stops the start of the X-Road services. The log names the supported country codes. Without `XROAD_COUNTRY_PROFILE`, the Sidecar uses only the default values of X-Road.
+
+The country profile is not part of the configuration backup. To restore a backup, use the image of the same country, or start the container with the same `XROAD_COUNTRY_PROFILE`.
+
+Some country profiles have a Sidecar-specific file, named `<CC>-sidecar.yaml`. The Sidecar image sets `XROAD_DEPLOYMENT_VARIANT=sidecar`, and the Sidecar then uses this file instead of `<CC>.yaml`. A profile without a Sidecar-specific file uses `<CC>.yaml`. Do not change `XROAD_DEPLOYMENT_VARIANT`. When a country profile is selected, any value other than `sidecar` (in upper or lower case) stops the start of the X-Road services.
+
+The default ports of the Client Proxy for consumer information systems are 8080 (http) and 8443 (https). A country profile can change these ports. Publish the ports that the server uses. To see them, open **Settings > System Parameters** in the admin user interface.
+
 ## 3 Initial configuration
 
 To configure the X-Road Security Server Sidecar, open a browser to `https://127.0.0.1:<admin port>` (assuming the container admin port 4000 is published to localhost) and log in using the admin credentials.
@@ -580,7 +604,7 @@ Upgrading to a new image is supported, provided that:
 * A volume is used for `/etc/xroad`.
 * A remote database is used, or a volume is mapped to `/var/lib/postgresql/18/main`.
 * The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
-* The same variant (ee, fi, ...) is used for the new container.
+* The same variant (`<cc>`) is used for the new container.
 
 If the prerequisites are met, upgrading is straightforward:
 
@@ -683,7 +707,8 @@ Check that:
 * The Sidecar runs version 7.8.3. Migration mode refuses any other version, so upgrade an older Sidecar to 7.8.3 first.
 * The 7.8.3 Sidecar has a volume mounted at `/etc/xroad`.
 * You have the PIN of the software token.
-* You use the 8.0.0 image with the same country variant as the 7.8.3 image, or the image without a variant if the 7.8.3 image had none. X-Road 8 has no `slim` image: a `slim` 7.8.3 Sidecar image migrates to the 8.0.0 image without including message logging or environmental and operational monitoring.
+* You use the 8.0.0 image with the same country variant as the 7.8.3 image, or the image without a variant if the 7.8.3 image had none. If you use the image without a variant for a 7.8.3 image that had a country variant, pass `-e XROAD_COUNTRY_PROFILE=<CC>` with the country code of the 7.8.3 image in the migration command. X-Road 8 has no `slim` image: a `slim` 7.8.3 Sidecar image migrates to the 8.0.0 image without including message logging or environmental and operational monitoring.
+* You know that edits in the `override-securityserver-<cc>.ini` file of the 7.8.3 Sidecar are not migrated. After the migration, enter them again as system parameters, as in [2.13 Country Profile](#213-country-profile).
 
 In the commands below, `<7.8.3 config volume name>` and `<7.8.3 archive volume name>` are the volumes the 7.8.3 Sidecar mounted at `/etc/xroad` and `/var/lib/xroad`. If the 7.8.3 Sidecar had no volume at `/var/lib/xroad`, use a new volume instead. `<new config volume name>` and `<new database volume name>` are new volumes and must not exist yet.
 
@@ -716,7 +741,7 @@ Add these environment variables to the migration command to change what the migr
 | `XROAD_MIGRATION_MESSAGE_LOG_ENABLED`      | `true` or `false` | Message logging is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`          |
 | `XROAD_MIGRATION_ENV_MONITORING_ENABLED`   | `true` or `false` | Environmental monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim` |
 | `XROAD_MIGRATION_OP_MONITORING_ENABLED`    | `true` or `false` | Operational monitoring is enabled if the 7.8.3 Sidecar ran the full image, and disabled for `slim`   |
-| `XROAD_MIGRATION_BATCH_SIGNING_ENABLED`    | `true`            | Batch signing is disabled, the X-Road 8 default                                                      |
+| `XROAD_MIGRATION_BATCH_SIGNING_ENABLED`    | `true`            | Batch signing is disabled, the X-Road 8 default, unless the country profile enables it           |
 | `XROAD_MIGRATION_STRICT_IDENTIFIER_CHECKS` | `true`            | Strict identifier checks are disabled, the X-Road 7 behaviour                                        |
 
 #### Migrating with a local database
@@ -880,7 +905,7 @@ For each reason below, fix the cause, then retry as described in [Retrying a fai
 
 * `source configuration version is <version>, not 7.8.3: upgrade to 7.8.3 first`: upgrade the 7.8 Sidecar to 7.8.3, then migrate.
 * `7.8 configuration volume is not mounted: /mnt/migration-source/etc/xroad is missing or empty`: mount the 7.8.3 configuration volume as in the migration command.
-* `country variant mismatch`: use the 8.0.0 image with the variant of the 7.8.3 image.
+* `country mismatch`: use the 8.0.0 image with the country of the 7.8.3 image, or pass `-e XROAD_COUNTRY_PROFILE=<CC>` with that country code when you use the image without a variant.
 * `XROAD_MIGRATION_SOFTTOKEN_PIN is not set`: add the variable as in the migration command.
 * `migration CLI steps failed`, with `No ACME account keystore password found` earlier in the log: add `ACCOUNT_KEYSTORE_PASSWORD` as in [Migration command additions](#migration-command-additions).
 * `target volume /etc/xroad is not empty`: the volumes hold a previous attempt.

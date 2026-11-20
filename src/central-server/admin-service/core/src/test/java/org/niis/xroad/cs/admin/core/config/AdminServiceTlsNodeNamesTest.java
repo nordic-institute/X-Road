@@ -127,8 +127,8 @@ class AdminServiceTlsNodeNamesTest {
         var environment = new MockEnvironment()
                 .withProperty("spring.application.name", "admin-service");
         var configuration = new XRoadConfigBeanConfiguration();
-        return configuration.adminServiceTlsProperties(
-                configuration.xRoadConfig("admin-service", environment, XRoadConfigOverrides.none()));
+        return configuration.adminServiceTlsProperties(configuration.xRoadConfig(
+                "admin-service", configuration.deploymentMode(environment), XRoadConfigOverrides.none()));
     }
 
     private static void assertNames(CertificateProvisioningProperties provisioning, String commonName,

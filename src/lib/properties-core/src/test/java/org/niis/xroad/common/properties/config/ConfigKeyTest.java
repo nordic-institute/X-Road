@@ -77,7 +77,7 @@ class ConfigKeyTest {
     @Test
     void absentDefaultIsAllowedAndNotValidated() {
         var key = Prefix.of("xroad.common")
-                .string("instance-country")
+                .string("instance-label")
                 .withValidator(Validator.nonEmpty())
                 .build();
 

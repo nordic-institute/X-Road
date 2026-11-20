@@ -4584,6 +4584,11 @@ components:
           description: the issuer DID that initialization would bind, absent when the host is not set
           format: text
           type: string
+        bound_did:
+          description: the issuer DID bound by initialization, null until bound
+          format: text
+          nullable: true
+          type: string
         can_sign:
           description: whether the asking node's Issuer Service can currently sign for the bound (or to-be-bound) DID
           type: boolean

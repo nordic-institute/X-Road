@@ -6,8 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "$SCRIPT_DIR/../../lib/common.sh"
 
-STATE_FILE="/var/lib/xroad-upgrade/op-monitor.state"
-
 PROPERTY="xroad.proxy.addon.op-monitor.enabled"
 DB_PROPERTY_UTIL="/usr/share/xroad/scripts/db_property.sh"
 
@@ -19,8 +17,8 @@ main() {
 
   require_root
 
-  if [[ ! -f "$STATE_FILE" ]]; then
-    log_die "Operational monitoring state not found at $STATE_FILE. Run capture_op_monitor_state.sh first."
+  if [[ ! -f "$OP_MONITOR_STATE_FILE" ]]; then
+    log_die "Operational monitoring state not found at $OP_MONITOR_STATE_FILE. Run capture_op_monitor_state.sh first."
   fi
 
   if [[ ! -x "$DB_PROPERTY_UTIL" ]]; then
@@ -28,11 +26,11 @@ main() {
   fi
 
   local feature value
-  feature=$(sed -n 's/^feature=//p' "$STATE_FILE")
+  feature=$(read_state_value "$OP_MONITOR_STATE_FILE" feature)
   case "$feature" in
     enabled)  value="true" ;;
     disabled) value="false" ;;
-    *) log_die "Invalid feature value '$feature' in $STATE_FILE (expected enabled or disabled)" ;;
+    *) log_die "Invalid feature value '$feature' in $OP_MONITOR_STATE_FILE (expected enabled or disabled)" ;;
   esac
 
   log_message "Setting $PROPERTY = $value in the configuration database (an existing row is kept)"

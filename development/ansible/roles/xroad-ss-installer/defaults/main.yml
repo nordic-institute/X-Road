@@ -33,7 +33,6 @@ xroad_admin_username: xrd
 xroad_admin_password: secret123!
 xroad_db_type: local
 xroad_secret_store_type: local
-xroad_ss_package: xroad-securityserver
 xroad_tls_hostname: "{{ inventory_hostname }}"
 xroad_tls_alt_names: "IP:127.0.0.1,DNS:localhost,DNS:{{ inventory_hostname }}"
 xroad_proxy_mem_setting: "d"

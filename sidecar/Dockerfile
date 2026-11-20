@@ -59,6 +59,7 @@ FROM base AS repo-internal
 
 FROM repo-${PACKAGE_SOURCE} AS final
 ARG PACKAGE_SOURCE
+ENV XROAD_DEPLOYMENT_VARIANT=sidecar
 ARG XROAD_PACKAGES="\
     xroad-proxy \
     xroad-proxy-ui-api \

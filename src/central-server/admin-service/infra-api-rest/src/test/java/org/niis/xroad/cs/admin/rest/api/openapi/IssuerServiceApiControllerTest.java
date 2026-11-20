@@ -85,7 +85,7 @@ class IssuerServiceApiControllerTest {
     @Test
     void getIssuerServiceStateMapsEveryStatusField() {
         when(issuerServiceStatusService.getStatus()).thenReturn(new IssuerServiceStatus(
-                "cs.example.org", true, true, false, "did:example:to-bind", true, false,
+                "cs.example.org", true, true, false, "did:example:to-bind", true, "did:example:bound", false,
                 CanSignCause.DID_MISMATCH, IssuerServiceStatus.Overall.FAILED));
 
         var body = issuerServiceApiController.getIssuerServiceState().getBody();
@@ -97,6 +97,7 @@ class IssuerServiceApiControllerTest {
         assertThat(body.getCertificateReady()).isTrue();
         assertThat(body.getRunInProgress()).isFalse();
         assertThat(body.getDidToBind()).isEqualTo("did:example:to-bind");
+        assertThat(body.getBoundDid()).isEqualTo("did:example:bound");
         assertThat(body.getCanSign()).isFalse();
         assertThat(body.getCanSignCause()).isEqualTo(CanSignCauseDto.DID_MISMATCH);
         assertThat(body.getStatus()).isEqualTo(IssuerServiceOverallStatusDto.FAILED);
@@ -112,6 +113,7 @@ class IssuerServiceApiControllerTest {
         assertThat(body).isNotNull();
         assertThat(body.getHost()).isNull();
         assertThat(body.getDidToBind()).isNull();
+        assertThat(body.getBoundDid()).isNull();
         assertThat(body.getCanSignCause()).isNull();
         assertThat(body.getStatus()).isEqualTo(IssuerServiceOverallStatusDto.NOT_CONFIGURED);
     }
@@ -133,7 +135,8 @@ class IssuerServiceApiControllerTest {
     }
 
     private static IssuerServiceStatus notConfiguredStatus(String host) {
-        return new IssuerServiceStatus(host, false, false, false, null, false, false, null, IssuerServiceStatus.Overall.NOT_CONFIGURED);
+        return new IssuerServiceStatus(host, false, false, false, null, false, null, false, null,
+                IssuerServiceStatus.Overall.NOT_CONFIGURED);
     }
 
     @Test
@@ -155,7 +158,8 @@ class IssuerServiceApiControllerTest {
     void setIssuerServiceHostReturnsTheStatusAfterTheChange() {
         when(issuerHostService.setHost("cs.example.org")).thenReturn(new IssuerHostState("cs.example.org", false));
         when(issuerServiceStatusService.getStatus()).thenReturn(new IssuerServiceStatus("cs.example.org", true, false, false,
-                "did:web:cs.example.org%3A6183:issuer", false, false, null, IssuerServiceStatus.Overall.WAITING_FOR_CERTIFICATE));
+                "did:web:cs.example.org%3A6183:issuer", false, null, false, null,
+                IssuerServiceStatus.Overall.WAITING_FOR_CERTIFICATE));
 
         var response = issuerServiceApiController.setIssuerServiceHost(new IssuerServiceHostDto().host("cs.example.org"));
 

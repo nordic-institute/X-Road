@@ -25,9 +25,14 @@
  */
 package org.niis.xroad.opmonitor.test;
 
+import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
 
+import java.nio.file.Path;
+
 public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
+
+    private static final String IDENTITY_SCRIPT = "scripts/generate_opmonitor_rpc_identity.sh";
 
     public static void main(String[] args) {
         new ConsoleIntTestRunner().run();
@@ -37,10 +42,18 @@ public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
     protected String[] resourceFiles() {
         return new String[]{
                 "compose.intTest.yaml",
+                "compose.fileIdentity.intTest.yaml",
+                IDENTITY_SCRIPT,
                 "db-init.dockerfile",
                 ".env",
                 "test-data/"
         };
+    }
+
+    @Override
+    protected void onResourcesExtracted(ApiTestCoreProperties props) {
+        System.setProperty(FileIdentityMaterial.SCRIPT_PROPERTY,
+                Path.of(props.resourceDir()).toAbsolutePath().resolve(IDENTITY_SCRIPT).toString());
     }
 
     @Override
