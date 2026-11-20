@@ -31,8 +31,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 
@@ -85,8 +87,12 @@ class CsConfigurablePropertiesCatalogueTest {
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(auditDataHelper, repository, new CsConfigurablePropertySource());
+        service = serviceFor(DeploymentMode.NATIVE);
         when(repository.findAll()).thenReturn(List.of());
+    }
+
+    private ConfigurablePropertiesService serviceFor(DeploymentMode mode) {
+        return new ConfigurablePropertiesService(auditDataHelper, repository, new CsConfigurablePropertySource(mode));
     }
 
     @Test
@@ -102,6 +108,18 @@ class CsConfigurablePropertiesCatalogueTest {
                     assertThat(dto.getScope()).as("scope of %s", key).isEqualTo(expected.scope());
                     assertThat(dto.getDefaultValue()).as("default of %s", key).isEqualTo(expected.defaultValue());
                 });
+    }
+
+    @Test
+    void containerizedModeShowsTheContainerDefaultAsDefaultAndEffectiveValue() {
+        var dto = serviceFor(DeploymentMode.CONTAINERIZED).getConfigurationProperties().stream()
+                .filter(property -> "xroad.common-global-conf.source".equals(property.getPropertyName()))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(dto.getDefaultValue()).isEqualTo("REMOTE");
+        assertThat(dto.getEffectiveValue()).isEqualTo("REMOTE");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
     }
 
     @Test

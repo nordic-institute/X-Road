@@ -13,6 +13,7 @@ services:
       # resolution port (7183), which in the sidecar is served by this container under its own
       # ds-identity-hub network alias.
       - XROAD_DATASPACE_IDENTITY_HUB_URL=https://${SS_NAME:-ss0}-ds-identity-hub:7183
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
     volumes:
       - ./container-files/etc/xroad/entrypoint.d:/etc/xroad/entrypoint.d:ro
     deploy:

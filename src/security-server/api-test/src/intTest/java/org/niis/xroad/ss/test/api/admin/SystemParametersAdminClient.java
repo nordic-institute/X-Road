@@ -158,17 +158,14 @@ public class SystemParametersAdminClient {
     }
 
     /**
-     * Returns the effective value of the named configurable property — its current value when set,
-     * otherwise its default value. Returns {@code null} if the property is not found.
+     * Returns the value in effect for the named configurable property, as resolved by the server.
+     * Returns {@code null} if the property is not found.
      */
     public String getConfigurablePropertyEffectiveValue(String propertyName) {
         return listConfigurablePropertiesRaw().stream()
                 .filter(p -> propertyName.equals(p.get("property_name")))
                 .findFirst()
-                .map(p -> {
-                    var current = (String) p.get("current_value");
-                    return current != null ? current : (String) p.get("default_value");
-                })
+                .map(p -> (String) p.get("effective_value"))
                 .orElse(null);
     }
 

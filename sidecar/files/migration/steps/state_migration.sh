@@ -160,8 +160,8 @@ migration_state_set_addon_properties() {
 }
 
 # Batch signing and strict identifier checks: run_migration_cli.sh's
-# unattended mode leaves batch signing at the X-Road 8 default (disabled, no
-# property written) and writes strict identifier checks to false (the X-Road
+# unattended mode writes no batch signing property (the country profile or the
+# X-Road 8 default decides) and writes strict identifier checks to false (the X-Road
 # 7 behavior). An explicit "true" here overrides either; any other value
 # leaves what run_migration_cli.sh already wrote.
 migration_state_set_migration_cli_overrides() {

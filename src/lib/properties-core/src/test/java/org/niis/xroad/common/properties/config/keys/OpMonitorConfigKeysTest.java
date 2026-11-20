@@ -28,7 +28,7 @@
 package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.properties.config.ConfigCatalogue;
+import org.niis.xroad.common.properties.config.ConfigKey;
 
 import java.util.List;
 
@@ -47,8 +47,9 @@ class OpMonitorConfigKeysTest {
             "xroad.common-rpc.channel.op-monitor.deadline-after",
             "xroad.common-rpc.channel.op-monitor.max-inbound-message-size");
 
-    private final List<String> catalogueKeys = ConfigCatalogue.from(ConfigKeyProviders.allProviders()).stream()
-            .map(ConfigCatalogue.Entry::key)
+    private final List<String> catalogueKeys = ConfigKeyProviders.allProviders().stream()
+            .flatMap(provider -> provider.keys().stream())
+            .map(ConfigKey::key)
             .toList();
 
     @Test

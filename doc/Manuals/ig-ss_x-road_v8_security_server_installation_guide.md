@@ -9,12 +9,13 @@ Doc. ID: IG-SS-8
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                                          | Author          |
-|------------|---------|----------------------------------------------------------------------|-----------------|
-| 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis |
-| 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets   |
-| 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets   |
-| 18.11.2026 | 1.3     | Added the DID and DSP port choice at installation                    | Justas Samuolis |
+| Date       | Version | Description                                                          | Author            |
+|------------|---------|----------------------------------------------------------------------|-------------------|
+| 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis   |
+| 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets     |
+| 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets     |
+| 17.11.2026 | 1.3     | Documented country profile selection and precedence                  | Ričardas Bučiūnas |
+| 18.11.2026 | 1.4     | Added the DID and DSP port choice at installation                    | Justas Samuolis   |
 
 ## License
 
@@ -39,7 +40,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.5 Setup Package Repositories](#25-setup-package-repositories)
   - [2.6 Security Server Installation](#26-security-server-installation)
     - [2.6.1 Provisioning TLS certificates](#261-provisioning-tls-certificates) 
-    - [2.6.2 DID and DSP ports](#262-did-and-dsp-ports)
+    - [2.6.2 Country profile](#262-country-profile)
+    - [2.6.3 DID and DSP ports](#263-did-and-dsp-ports)
   - [2.7 Post-Installation Checks](#27-post-installation-checks)
   - [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
@@ -101,8 +103,8 @@ The software can be installed both on physical and virtualized hardware.
 | &nbsp;  | TCP 80                                                                                                               | Incoming ACME challenge requests from ACME servers                                                                                                                                                                                                                                         |
 | &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
 | &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
-| &nbsp;  | TCP 7183                                                                                                             | DID documents, fetched by the Central Server and by other Security Servers. Default; chosen at installation, see [2.6.2](#262-did-and-dsp-ports)                                                                                                                                           |
-| &nbsp;  | TCP 8183                                                                                                             | Dataspace Protocol messages from other Security Servers. Default; chosen at installation, see [2.6.2](#262-did-and-dsp-ports)                                                                                                                                                              |
+| &nbsp;  | TCP 7183                                                                                                             | DID documents, fetched by the Central Server and by other Security Servers. Default; chosen at installation, see [2.6.3](#263-did-and-dsp-ports)                                                                                                                                           |
+| &nbsp;  | TCP 8183                                                                                                             | Dataspace Protocol messages from other Security Servers. Default; chosen at installation, see [2.6.3](#263-did-and-dsp-ports)                                                                                                                                                              |
 | 1.6     | **Outbound ports to external network**                                                                               | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
 | &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
 | &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
@@ -142,8 +144,8 @@ The table below lists the required connections between different components.
 | Out                 | Security Server                                          | Mail server                                              | 587              | tcp          |                                                                                                                                                                                       |
 | In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                                                                                                                                                                       |
 | In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                                                                                                                                                                       |
-| In                  | Central Server                                           | Security Server                                          | 7183             | tcp          | DID port, chosen at installation (default shown), see [2.6.2](#262-did-and-dsp-ports)                                                                                                 |
-| In                  | Data Exchange Partner Security Server                    | Security Server                                          | 7183, 8183       | tcp          | DID port and DSP port, chosen at installation (defaults shown), see [2.6.2](#262-did-and-dsp-ports)                                                                                   |
+| In                  | Central Server                                           | Security Server                                          | 7183             | tcp          | DID port, chosen at installation (default shown), see [2.6.3](#263-did-and-dsp-ports)                                                                                                 |
+| In                  | Data Exchange Partner Security Server                    | Security Server                                          | 7183, 8183       | tcp          | DID port and DSP port, chosen at installation (defaults shown), see [2.6.3](#263-did-and-dsp-ports)                                                                                   |
 | In                  | ACME Server                                              | Security Server                                          | 80               | tcp          |                                                                                                                                                                                       | 
 | In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network                                                                                                                                                        |
 | In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network                                                                                                                                                        |
@@ -178,7 +180,7 @@ Requirements to software and settings:
 
 * an installed and configured 24.04 LTS x86-64 operating system;
 * if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.5; 1.6; 1.7; 1.8**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
-* the DID port (default 7183) and the DSP port (default 8183) are allowed for inbound connections (**reference data: 1.5**). The ports are chosen at installation, see [2.6.2 DID and DSP ports](#262-did-and-dsp-ports);
+* the DID port (default 7183) and the DSP port (default 8183) are allowed for inbound connections (**reference data: 1.5**). The ports are chosen at installation, see [2.6.3 DID and DSP ports](#263-did-and-dsp-ports);
 * if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.10**).
 
 ### 2.4 Preparing OS
@@ -233,6 +235,8 @@ Issue the following command to install the Security Server packages:
 sudo apt install xroad-securityserver
 ```
 
+To use a country profile, install a country package instead. See [2.6.2 Country profile](#262-country-profile).
+
 Upon the first installation of the packages, the system asks for the following information.
 
 * Account name for the user who will be granted the rights to perform all activities in the user interface (**reference data: 1.4**).
@@ -269,13 +273,51 @@ Upon the first installation of the packages, the system asks for the following i
 
             IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
 
-* The decentralized identifier (DID) port and the Dataspace Protocol (DSP) port, on the first installation only. The defaults are 7183 and 8183. See [2.6.2 DID and DSP ports](#262-did-and-dsp-ports).
+* The decentralized identifier (DID) port and the Dataspace Protocol (DSP) port, on the first installation only. The defaults are 7183 and 8183. See [2.6.3 DID and DSP ports](#263-did-and-dsp-ports).
 
 #### 2.6.1 Provisioning TLS certificates
 
 TLS certificates for the user interface, the information system access point and gRPC services are automatically provisioned at the application startup, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).  
 
-#### 2.6.2 DID and DSP ports
+#### 2.6.2 Country profile
+
+A country profile is a set of default values for system parameters that fit the rules of one country. The profiles are part of the product. A server without a country package uses only the default values of X-Road.
+
+The profile files are in the X-Road source code, in the directory `src/lib/properties-core/src/main/resources/xroad-config/country-profile/`. There is one YAML file for each profile, named `<CC>.yaml`, where `<CC>` is the upper case country code. The files define the values of the profiles.
+
+To use a country profile, install the country package `xroad-securityserver-<cc>` in place of the base package `xroad-securityserver`. Here `<cc>` is the lower case country code. To list the available country packages, run:
+
+```bash
+apt-cache search xroad-securityserver-
+```
+
+Then install the package of your country. For example:
+
+```bash
+sudo apt install xroad-securityserver-<cc>
+```
+
+A country package installs `xroad-securityserver` and `xroad-opmonitor`, so no other package is needed. The same command adds a country profile to a server that has only the base package. Only one country package can be installed on a server. On the first installation of a country package, the X-Road services are restarted so that they load the profile.
+
+If you remove a country package, the X-Road services keep the profile until their next restart.
+
+The country profile is not part of the configuration backup. To restore a backup on a server that must use a country profile, install the same country package on that server before the restore.
+
+The value of a system parameter comes from the first of these sources that has a value:
+
+1. The value that you saved for the system parameter in the admin user interface or in the configuration database. It always wins over the country profile.
+2. The value of the country profile.
+3. The default value of X-Road.
+
+To see where a value comes from, open **Settings > System Parameters** in the admin user interface. The **Current Value** column shows the value that the server uses after the restart that the user interface asks for when you save a change. The **Source** column shows its origin:
+
+| Source                 | Meaning                                                    |
+|------------------------|------------------------------------------------------------|
+| `Database`             | A value that an operator saved for the system parameter.   |
+| `Country profile <CC>` | The value of the profile of the installed country package. |
+| `Default`              | The default value of X-Road.                               |
+
+#### 2.6.3 DID and DSP ports
 
 The Security Server serves the documents of its decentralized identifiers (DIDs) on the DID port and the Dataspace Protocol (DSP) on the DSP port. The defaults are 7183 for the DID port and 8183 for the DSP port.
 

@@ -51,6 +51,11 @@ public interface XRoadConfig {
     <T> Optional<Value<T>> getOpt(ConfigKey<T> key);
 
     /**
+     * @return the country profile applied to this configuration, {@link ActiveCountryProfile#NONE} when none is active
+     */
+    ActiveCountryProfile countryProfile();
+
+    /**
      * Shorthand for {@code get(key).value()} when source attribution is not needed.
      * @param key key to resolve
      * @param <T> value type
@@ -69,7 +74,4 @@ public interface XRoadConfig {
     default <T> Optional<T> valueOpt(ConfigKey<T> key) {
         return getOpt(key).map(Value::value);
     }
-
-    /** @return active country overlay, empty when none selected */
-    Optional<Country> country();
 }

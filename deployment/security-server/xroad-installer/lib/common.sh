@@ -260,17 +260,76 @@ set_prop() {
 execute_by_os() {
 #  $1 function for debian-based systems
 #  $2 function for rhel-based systems
-  detect_os
-  log_info "Detected OS: $OS_NAME $OS_VERSION_ID"
+#  $3.. arguments passed to the chosen function
+  local debian_fn="$1" rhel_fn="$2"
+  shift 2
+
+  if [[ -z "${OS_FAMILY:-}" ]]; then
+    detect_os
+    log_info "Detected OS: $OS_NAME $OS_VERSION_ID"
+  fi
 
   local fn
   case "$OS_FAMILY" in
-    debian) fn="$1" ;;
-    rhel) fn="$2" ;;
+    debian) fn="$debian_fn" ;;
+    rhel) fn="$rhel_fn" ;;
     *) handle_os_not_supported "$OS_NAME" "$OS_VERSION_ID"; return $EXIT_ERROR ;;
   esac
 
-  "$fn"
+  "$fn" "$@"
+}
+
+# Security Server country packages. Mirrors the country profile files shipped in the product.
+COUNTRY_PACKAGES=(xroad-securityserver-ee xroad-securityserver-fi xroad-securityserver-is xroad-securityserver-fo)
+
+UPGRADE_STATE_DIR="/var/lib/xroad-upgrade"
+COUNTRY_PACKAGE_STATE_FILE="$UPGRADE_STATE_DIR/country-package.state"
+OP_MONITOR_STATE_FILE="$UPGRADE_STATE_DIR/op-monitor.state"
+
+package_installed_ubuntu() {
+  dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q '^install ok installed$'
+}
+
+package_installed_rhel() {
+  rpm -q --quiet "$1"
+}
+
+package_installed() {
+  execute_by_os package_installed_ubuntu package_installed_rhel "$1"
+}
+
+# Writes the key=value arguments atomically to the state file, creating its directory if needed.
+record_state() {
+  local state_file="$1"
+  shift
+  local state_dir
+  state_dir=$(dirname "$state_file")
+
+  if [[ ! -d "$state_dir" ]]; then
+    mkdir -p "$state_dir"
+    chmod 750 "$state_dir"
+    log_info "Created state directory: $state_dir"
+  fi
+
+  local tmp
+  tmp=$(mktemp "$state_file.XXXXXX")
+  printf '%s\n' "$@" > "$tmp"
+  mv "$tmp" "$state_file"
+}
+
+# Prints the value of a key in a state file, or nothing when the file or key is missing.
+read_state_value() {
+  local state_file="$1"
+  local key="$2"
+  [[ -f "$state_file" ]] || return 0
+  sed -n "s/^${key}=//p" "$state_file"
+}
+
+# Prints the country package recorded before the upgrade, or "none".
+captured_country_package() {
+  local country_pkg
+  country_pkg=$(read_state_value "$COUNTRY_PACKAGE_STATE_FILE" country_pkg)
+  echo "${country_pkg:-none}"
 }
 
 # X-Road units that must NOT auto-start during package upgrade. The two xroad-ds-*
