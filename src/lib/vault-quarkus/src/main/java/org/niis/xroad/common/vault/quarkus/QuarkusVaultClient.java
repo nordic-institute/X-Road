@@ -283,6 +283,11 @@ public class QuarkusVaultClient implements VaultClient {
         deleteSecret(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
     }
 
+    @Override
+    public boolean dsIssuerServiceKeypairSecretExists(String alias) {
+        throw new NotImplementedException();
+    }
+
     /**
      * A 404 on the base path means no agreement-token signing key has ever been written — a legitimate
      * first-boot state — and maps to an empty listing, exactly like {@link #readSecret(String)} maps a

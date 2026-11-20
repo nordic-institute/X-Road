@@ -414,6 +414,8 @@ The installation is successful if the system services are started and the user i
 
 -   Ensure that the Central Server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.9; 1.7**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.4**). While the user interface is still starting up, the Web browser may display the "502 Bad Gateway" error.
 
+-   Set up the Issuer Service before a Security Server needs membership credentials from it. See the [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#45-setting-up-the-issuer-service), section 4.5, "Setting Up the Issuer Service".
+
 ## 3 Initial Configuration
 
 Refer to X-Road 7. Central Server Installation Guide [IG-CS](#Ref_IG-CS), section "Initial Configuration".
@@ -435,9 +437,9 @@ skip_migrations=false
 ```
 ## Annex B Database Users
 
-| User           | Database            | Privileges                | Description                                                              |
-|----------------|---------------------|---------------------------|--------------------------------------------------------------------------|
-| centerui       | centerui_production | TEMPORARY,CONNECT         | The database user for application                                        |
+| User           | Database            | Privileges                                                                     | Description                                                              |
+|----------------|---------------------|---------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| centerui       | centerui_production | TEMPORARY,CONNECT; USAGE on schema `ds-issuer-service`; SELECT on `ds-issuer-service.keypair_resource` | The database user for application                                        |
 | centerui_admin | centerui_production | CREATE,TEMPORARY,CONNECT  | The database admin user to create/modify the schema                      |                            
 | openbao        | openbao             | CREATE,TEMPORARY,CONNECT  | The database user for local OpenBao (package `xroad-secret-store-local`) | 
 | postgres       | ALL                 | ALL                       | PostgreSQL database default superuser.                                   |
@@ -445,6 +447,13 @@ skip_migrations=false
 If a database role already exists and its password differs from the one stored in `db.properties`, the installation stops with the message "Logging in as database role '<role>' failed". Set the stored password in `db.properties` to match the role and rerun the installation.
 
 The installer creates the database roles itself. If they already exist, on PostgreSQL 16 and later the master user needs ADMIN OPTION on them.
+
+The grant on `ds-issuer-service.keypair_resource` lets the key-missing alert read the Issuer Service's key-pair table directly. `setup_ds_issuerservice_db.sh` makes it on every install and upgrade; a failure there only logs a warning and does not stop the install. When `XROAD_IGNORE_DATABASE_SETUP` is set, that script does not run, so make the grant by hand once the Issuer Service's own schema exists:
+
+```sql
+GRANT USAGE ON SCHEMA "ds-issuer-service" TO "centerui";
+GRANT SELECT ON "ds-issuer-service".keypair_resource TO "centerui";
+```
 
 ## Annex C `xroad-secret-store-local` default configuration
 

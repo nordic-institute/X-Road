@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.test-fixtures-conventions")
 }
 
 dependencies {
@@ -38,6 +39,14 @@ dependencies {
   testImplementation("org.liquibase:liquibase-core")
   testImplementation(libs.xmlunit.core)
   testImplementation(libs.xmlunit.assertj3)
+  testImplementation(project(":tool:liquibase-executor"))
+  testImplementation(project(":lib:vault-spring"))
+  testImplementation(libs.postgresql)
+  testImplementation(libs.hibernate.hikaricp)
+  testImplementation(libs.testcontainers.core)
+  testImplementation(libs.testcontainers.postgresql)
+
+  testFixturesImplementation(libs.liquibase.core)
 }
 
 sourceSets {

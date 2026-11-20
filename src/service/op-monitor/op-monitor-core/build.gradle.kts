@@ -83,3 +83,11 @@ tasks.compileJava {
   dependsOn(tasks.named("xjc"))
   dependsOn(tasks.processResources)
 }
+
+val identityScript = rootProject.file(
+  "../deployment/native-packages/src/xroad/common/op-monitor/usr/share/xroad/scripts/generate_opmonitor_rpc_identity.sh"
+)
+
+tasks.test {
+  inputs.file(identityScript).withPropertyName("identityScript")
+}

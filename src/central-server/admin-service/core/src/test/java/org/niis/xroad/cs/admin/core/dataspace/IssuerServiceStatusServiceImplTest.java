@@ -94,6 +94,7 @@ class IssuerServiceStatusServiceImplTest {
         assertThat(status.runInProgress()).isFalse();
         assertThat(status.didToBind()).isEqualTo(DID);
         assertThat(status.didBound()).isTrue();
+        assertThat(status.boundDid()).isEqualTo(DID);
         assertThat(status.canSign()).isTrue();
         assertThat(status.canSignCause()).isNull();
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY);
@@ -172,6 +173,7 @@ class IssuerServiceStatusServiceImplTest {
         assertThat(status.hostSet()).isFalse();
         assertThat(status.certificateReady()).isFalse();
         assertThat(status.didToBind()).isNull();
+        assertThat(status.boundDid()).isNull();
         assertThat(status.canSign()).isFalse();
         assertThat(status.canSignCause()).isNull();
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.NOT_CONFIGURED);

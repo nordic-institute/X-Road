@@ -38,26 +38,46 @@ import io.grpc.stub.ClientCalls;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.file.FileKeyProvider;
+import org.niis.xroad.common.rpc.test.PemFiles;
 import org.niis.xroad.common.rpc.test.TestCa;
 import org.niis.xroad.common.rpc.test.TestVaultKeyProvider;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ParameterizedClass(name = "{0}")
+@EnumSource(ServerClientNamesHandshakeTest.KeyProviderKind.class)
 class ServerClientNamesHandshakeTest {
     private static final String HOST = "localhost";
     private static final byte[] PAYLOAD = {1, 2, 3};
     private static final long DEADLINE_SECONDS = 10;
 
+    enum KeyProviderKind {
+        TEST_VAULT_KEY_PROVIDER,
+        FILE_KEY_PROVIDER
+    }
+
+    @Parameter
+    KeyProviderKind keyProviderKind;
+
+    @TempDir
+    Path dir;
+
     private TestCa securityServerCa;
     private TestCa otherCa;
-    private TestVaultKeyProvider serverKeyProvider;
+    private VaultKeyProvider serverKeyProvider;
     private Server server;
     private ManagedChannel channel;
 
@@ -65,8 +85,19 @@ class ServerClientNamesHandshakeTest {
     void setUp() throws Exception {
         securityServerCa = TestCa.selfSigned("Security Server CA");
         otherCa = TestCa.selfSigned("Other CA");
-        serverKeyProvider = new TestVaultKeyProvider(
-                securityServerCa.issueLeaf("op-monitor", List.of(HOST), List.of()), securityServerCa.certificate());
+        var serverIdentity = securityServerCa.issueLeaf("op-monitor", List.of(HOST), List.of());
+        serverKeyProvider = switch (keyProviderKind) {
+            case TEST_VAULT_KEY_PROVIDER -> new TestVaultKeyProvider(serverIdentity, securityServerCa.certificate());
+            case FILE_KEY_PROVIDER -> fileKeyProvider(serverIdentity);
+        };
+        serverKeyProvider.init();
+    }
+
+    private FileKeyProvider fileKeyProvider(TestCa.TestLeaf serverIdentity) throws Exception {
+        return new FileKeyProvider(new RpcProperties.FileIdentity(
+                PemFiles.writePrivateKey(dir.resolve("server.key"), serverIdentity.privateKey()),
+                PemFiles.writeCertificates(dir.resolve("server.crt"), serverIdentity.chain()[0]),
+                PemFiles.writeCertificates(dir.resolve("trusted-ca.crt"), securityServerCa.certificate())));
     }
 
     @AfterEach

@@ -56,8 +56,8 @@ import java.util.concurrent.CompletionStage;
 @Slf4j
 final class XRoadEdcVault implements Vault {
 
-    static final String MOUNT = "xrd-ds-secret";
-    static final String FOLDER = "ds";
+    static final String MOUNT = org.niis.xroad.common.vault.VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT;
+    static final String FOLDER = org.niis.xroad.common.vault.VaultClient.DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER;
     static final String CONTENT_FIELD = "content";
 
     private static final int HTTP_NOT_FOUND = 404;

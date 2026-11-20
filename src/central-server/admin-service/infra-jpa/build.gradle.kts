@@ -12,6 +12,7 @@ dependencies {
 
   testImplementation(libs.springBoot.starterTest)
   testImplementation(testFixtures(project(":central-server:admin-service:globalconf-generator")))
+  testImplementation(testFixtures(project(":central-server:admin-service:core")))
   testImplementation(project(":tool:liquibase-executor"))
   testImplementation(libs.liquibase.core)
   testImplementation(libs.picocli)

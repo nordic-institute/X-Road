@@ -108,6 +108,7 @@ public class IssuerServiceApiController implements IssuerServiceApi {
                 .certificateReady(status.certificateReady())
                 .runInProgress(status.runInProgress())
                 .didToBind(status.didToBind())
+                .boundDid(status.boundDid())
                 .canSign(status.canSign())
                 .canSignCause(status.canSignCause() == null ? null : CanSignCauseDto.valueOf(status.canSignCause().name()))
                 .status(IssuerServiceOverallStatusDto.valueOf(status.overall().name()));

@@ -15,6 +15,7 @@ Doc. ID: IG-SS-8-UPGRADE
 | 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables | Marc David         |
 | 19.10.2026 | 1.2     | Added the operational monitoring changes: settings migration, add-on flag, op-monitor package upgrade and TLS files | Eneli Reimets      |
 | 17.11.2026 | 1.3     | Country package settings edits, combined package upgrade command, batch signing prompt for country profiles | Ričardas Bučiūnas  |
+| 18.11.2026 | 1.4     | Added the DID and DSP port choice in the upgrade wizard                    | Justas Samuolis    |
 
 ## License
 
@@ -135,7 +136,7 @@ The wizard expects the bundled helper scripts under `lib/` and the migration tas
 
 ### Interactive mode
 
-Run the wizard as root. It prompts for confirmation at the version gate, before each migration CLI sub-step, for the soft token PIN, and for the two operator choices (batch signing, strict identifier checks). The wizard does not ask about batch signing when the country profile already enables it, see [Operator choices](#operator-choices).
+Run the wizard as root. It prompts for confirmation at the version gate, before each migration CLI sub-step, for the soft token PIN, for the two operator choices (batch signing, strict identifier checks), and for the DID and DSP ports. The wizard does not ask about batch signing when the country profile already enables it, see [Operator choices](#operator-choices).
 
 ```bash
 sudo bash /opt/xroad-installer/xroad-upgrade.sh
@@ -184,6 +185,10 @@ XROAD_SS_PACKAGE=xroad-securityserver
 # Delete obsolete V7 config files after a successful upgrade. Empty means "ask"
 # (interactive) or "yes" (unattended). Set to "no" to keep them for review.
 XROAD_DELETE_OBSOLETE_FILES=
+# DID port and DSP port, 1024-65535, different from each other. A port that is not set is asked
+# (interactive) or uses the default 7183 or 8183 (unattended). A port that is already stored is kept.
+#XROAD_DID_PORT=7183
+#XROAD_DSP_PORT=8183
 ```
 
 ```bash
@@ -200,7 +205,7 @@ sudo bash -c "$(curl -sSfL https://artifactory.niis.org/xroad-scripts/0.0.1-beta
 
 ### What the wizard does
 
-The wizard runs thirteen ordered steps and three sub-steps, 6a, 6b and 11a. Each step exits non-zero on failure; the wizard then halts and the services are left in whatever state the failing step produced (the per-step failure hint in the wizard log explains the precise state). The first seven steps and sub-steps 6a and 6b are all reversible without touching package state, so a preflight failure leaves the server unchanged.
+The wizard runs thirteen ordered steps and four sub-steps, 6a, 6b, 11a and 11b. Each step exits non-zero on failure; the wizard then halts and the services are left in whatever state the failing step produced (the per-step failure hint in the wizard log explains the precise state). The first seven steps and sub-steps 6a and 6b are all reversible without touching package state, so a preflight failure leaves the server unchanged.
 
 | #   | Step                                  | What it does                                                                                                                                                                                                                                                                                                          |
 |-----|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -218,7 +223,8 @@ The wizard runs thirteen ordered steps and three sub-steps, 6a, 6b and 11a. Each
 | 10  | **Migrate TLS to secret store**       | Reads `/etc/xroad/ssl/*.crt` and matching keys for `internal`, `proxy-ui-api`, `center-admin-service` and `management-service`, then writes them to OpenBao under `xrd-secret/tls/{internal,admin-service,management-service}`. Missing pairs are skipped. `opmonitor.crt` and its key are not migrated: op-monitor uses the shared internal gRPC identity. |
 | 11  | **Run migration CLI**                 | Runs the migration-CLI sub-steps (see [Migration-CLI sub-steps](#migration-cli-sub-steps)) with sentinel-based idempotency under `/var/lib/xroad-upgrade/`.                                                                                                                                                           |
 | 11a | **Write op-monitor flag**             | Writes `xroad.proxy.addon.op-monitor.enabled` as `true` or `false` from the state recorded in step 6a, only when the property has no value yet. See [Operational monitoring](#operational-monitoring).                                                                                                                |
-| 12  | **Start X-Road services**             | Starts `xroad-signer`, `xroad-proxy`, `xroad-opmonitor`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-auxiliary-service` in that order, waiting for each to reach active state. Services whose unit files are not installed (for example an absent op-monitor on a minimal installation) are skipped with a warning. |
+| 11b | **Store DID and DSP ports**          | Runs `write_dsp_ports.sh`: writes the ports chosen after the version gate (see [Operator choices](#operator-choices)) as `xroad.dsp.did-port` and `xroad.dsp.dsp-port`, before the services start. A port equal to its default is not written, an existing row is kept, and a secondary node is skipped. Step 9 keeps `xroad-ds-identity-hub` and `xroad-ds-control-plane` from starting until step 12.                                                                                  |
+| 12  | **Start X-Road services**             | Starts `xroad-signer`, `xroad-ds-identity-hub`, `xroad-ds-control-plane`, `xroad-proxy`, `xroad-opmonitor`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-auxiliary-service` in that order, waiting for each to reach active state. Services whose unit files are not installed (for example an absent op-monitor on a minimal installation) are skipped with a warning. |
 | 13  | **Clean up obsolete V7 config files** | Removes V7 configuration files no longer read by V8 (see [Manual upgrade procedure](#manual-upgrade-procedure) for the list). Interactive mode prompts; unattended deletes by default unless `XROAD_DELETE_OBSOLETE_FILES=no`.                                                                                        |
 
 On success the wizard prints `X-Road 8.0 upgrade completed successfully!` and the path of its log file.
@@ -312,7 +318,7 @@ The op-monitor TLS files are not migrated. X-Road 7.8 used `/etc/xroad/ssl/opmon
 
 ### Operator choices
 
-Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for each (interactive) or applies a documented default (unattended).
+Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for each (interactive) or applies a documented default (unattended). The wizard also asks for the DID and DSP ports, described last.
 
 **Batch signing** (`xroad.proxy.batch-signing-enabled`).
 
@@ -330,6 +336,17 @@ Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for ea
 - X-Road 8 default: enabled. Invalid characters cause the request to fail with `INVALID_CLIENT_IDENTIFIER`.
 - Interactive prompt default: keep disabled (preserve X-Road 7 behavior). Choose "No" to opt into the stricter X-Road 8 default.
 - Unattended default: keep disabled (preserve X-Road 7 behavior), so an automated upgrade does not silently break clients that were already sending identifiers that the V8 stricter rules would reject. Audit your traffic and flip the property to `true` once you have verified that no client identifiers contain disallowed characters.
+
+**DID and DSP ports** (`xroad.dsp.did-port`, `xroad.dsp.dsp-port`).
+
+- What they set: the port on which the server serves the documents of its decentralized identifiers (DIDs), and the port for the Dataspace Protocol (DSP).
+- Defaults: 7183 for the DID port and 8183 for the DSP port. Each port is a number from 1024 to 65535, and the two ports must be different.
+- Interactive prompt: the wizard asks for each port right after the version gate, before it changes anything, with the default filled in. An invalid answer is asked again, and cancelling the question keeps the default.
+- Pre-set values: `XROAD_DID_PORT` and `XROAD_DSP_PORT`, set in the `--config-file` (`xroad-upgrade.conf`, see `xroad-upgrade.conf.sample`). A port that is set is not asked. An invalid value stops the wizard before it changes anything.
+- Unattended default: with `XROAD_UPGRADE_UNATTENDED=true` the wizard does not ask, and a port that is not set uses its default.
+- Storage: step 11b writes the chosen ports to the configuration database before the services start. A port equal to its default is not written, because a missing row means the default. A port that already has a row keeps the existing value.
+- Secondary node: the wizard does not ask and writes nothing when `/etc/xroad/conf.d/node.ini` has the value `secondary` (the legacy value `slave` also counts) for `type` in the `[node]` section, or when `XROAD_IGNORE_DATABASE_SETUP` is set. The primary node owns the rows. See [2.6.3 DID and DSP ports](ig-ss_x-road_v8_security_server_installation_guide.md#263-did-and-dsp-ports) in the Security Server Installation Guide.
+- Choose the ports now. A port cannot change after its DID is bound, and the upgraded server is already registered, so its DIDs are bound soon after X-Road 8 starts.
 
 ### Secrets in unattended mode
 
@@ -490,6 +507,13 @@ rpm --import https://artifactory.niis.org/api/gpg/key/public
 yum makecache
 ```
 
+**8a. (Ubuntu) Keep the dataspace services stopped during the upgrade.** The Ubuntu package scripts start `xroad-ds-identity-hub` and `xroad-ds-control-plane` and restart `xroad-proxy-ui-api` during step 9, before step 11b can write the DID and DSP ports. Mask the three units so that they stay stopped until step 12. Masking works before `xroad-ds-identity-hub` and `xroad-ds-control-plane` exist on the X-Road 7 host. On RHEL the package scripts do not start services, so skip this step.
+
+```bash
+# Ubuntu
+systemctl mask xroad-ds-identity-hub.service xroad-ds-control-plane.service xroad-proxy-ui-api.service
+```
+
 **9. Upgrade the Security Server package.** If the `xroad-opmonitor` package is installed, upgrade it in the same command so that the proxy and the operational monitoring daemon are upgraded together. Do the same with the country package found in step 6b (shown below as `xroad-securityserver-<cc>`).
 
 ```bash
@@ -567,10 +591,28 @@ java -jar /var/tmp/migration-cli.jar set-property /etc/xroad/db.properties xroad
 /usr/share/xroad/scripts/db_property.sh set xroad.proxy.addon.op-monitor.enabled true --if-absent
 ```
 
-**12. Start X-Road services.**
+**11b. Write the DID and DSP ports.** Skip this step on a secondary node. Set the ports chosen for this server. A port equal to its default (7183 or 8183) needs no row, and `--if-absent` keeps an existing value. Each port is a number from 1024 to 65535, and the two ports must be different. The example uses 7190 and 8190:
 
 ```bash
-for s in xroad-signer xroad-proxy xroad-opmonitor xroad-monitor xroad-proxy-ui-api xroad-auxiliary-service; do
+/usr/share/xroad/scripts/db_property.sh set xroad.dsp.did-port 7190 --if-absent
+/usr/share/xroad/scripts/db_property.sh set xroad.dsp.dsp-port 8190 --if-absent
+```
+
+Write the ports before `xroad-ds-identity-hub`, `xroad-ds-control-plane` and `xroad-proxy-ui-api` start, which is in step 12 because step 8a keeps them masked on Ubuntu: a port cannot change after its DID is bound.
+
+**12. Start X-Road services.** On Ubuntu, first unmask the units masked in step 8a.
+
+```bash
+# Ubuntu
+systemctl unmask xroad-ds-identity-hub.service xroad-ds-control-plane.service xroad-proxy-ui-api.service
+systemctl daemon-reload
+systemctl preset xroad-ds-identity-hub.service xroad-ds-control-plane.service xroad-proxy-ui-api.service
+```
+
+Then start the services:
+
+```bash
+for s in xroad-signer xroad-ds-identity-hub xroad-ds-control-plane xroad-proxy xroad-opmonitor xroad-monitor xroad-proxy-ui-api xroad-auxiliary-service; do
   systemctl cat "$s" >/dev/null 2>&1 || { echo "skip $s (not installed)"; continue; }
   systemctl start "$s"
   for _ in {1..30}; do systemctl is-active --quiet "$s" && break; sleep 2; done
