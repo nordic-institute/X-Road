@@ -20,6 +20,10 @@ db_database=$(read_env_value "$env_file" BAO_PG_DATABASE)
 db_schema=$(read_env_value "$env_file" BAO_PG_SCHEMA)
 db_schema="${db_schema:-public}"
 
+require_env_name BAO_PG_USER "$db_conn_user"
+require_env_name BAO_PG_DATABASE "$db_database"
+require_env_name BAO_PG_SCHEMA "$db_schema"
+
 pg_options="-c client-min-messages=warning -c search_path=$db_schema"
 
 # Reading custom libpq ENV variables

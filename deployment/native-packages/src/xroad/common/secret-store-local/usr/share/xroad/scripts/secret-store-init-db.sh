@@ -36,6 +36,9 @@ load_or_generate_credentials() {
     BAO_PG_SCHEMA=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_SCHEMA)
 
     if [ -n "${BAO_PG_USER}" ] && [ -n "${BAO_PG_PASSWORD}" ] && [ -n "${BAO_PG_DATABASE}" ]; then
+      require_env_name BAO_PG_USER "${BAO_PG_USER}"
+      require_env_name BAO_PG_DATABASE "${BAO_PG_DATABASE}"
+      require_env_name BAO_PG_SCHEMA "${BAO_PG_SCHEMA}"
       echo "Successfully loaded credentials from /etc/openbao/xroad-openbao.env"
       db_conn_user="${BAO_PG_USER}"
       db_user=${db_conn_user%%@*}
@@ -108,6 +111,15 @@ setup_psql_functions() {
   fi
 }
 
+psql_set_literal() {
+  local name="$1"
+  local value="$2"
+
+  value=${value//\\/\\\\}
+  value=${value//\'/\\\'}
+  printf '\\set %s '"'"'%s'"'"'\n' "$name" "$value"
+}
+
 create_database_if_needed() {
   local db_host="$1"
 
@@ -116,8 +128,10 @@ create_database_if_needed() {
     return 0
   fi
 
-  if ! psql_master -v "bao_db=${db_database}" -v "bao_user=${db_user}" -v "bao_password=${db_password}" -v "bao_schema=${db_schema}" <<'EOF'
-\set ON_ERROR_STOP on
+  if ! {
+    printf '%s\n' '\set ON_ERROR_STOP on'
+    psql_set_literal bao_password "${db_password}"
+    cat <<'EOF'
 CREATE DATABASE :"bao_db" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE :"bao_db" FROM PUBLIC;
 SET xroad_init.role_name = :'bao_user';
@@ -136,7 +150,7 @@ CREATE SCHEMA :"bao_schema" AUTHORIZATION :"bao_user";
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public to :"bao_user";
 EOF
-  then
+  } | psql_master -v "bao_db=${db_database}" -v "bao_user=${db_user}" -v "bao_schema=${db_schema}"; then
     die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration"
   fi
 }

@@ -1202,7 +1202,7 @@ BAO_PG_PASSWORD=hostile-test-password
 BAO_PG_HOST=db; touch /tmp/hostile-marker-semicolon
 BAO_PG_PORT=5432
 BAO_PG_DATABASE=openbao
-BAO_PG_SCHEMA=$(touch /tmp/hostile-marker-substitution)
+BAO_PG_SCHEMA=openbao
 BAO_PG_CONNECTION_URL=`touch /tmp/hostile-marker-backtick`
 touch /tmp/hostile-marker-command
 HOSTILE
@@ -1297,6 +1297,19 @@ scenario_env_file_parsing() {
   check_eq "hostile file: restore runs no command from the file" "" "$(hostile_markers)"
   check_eq "hostile file: the config script takes the host as text" "db; touch /tmp/hostile-marker-semicolon:5432" "$(config_database_host_answer)"
   check_eq "hostile file: the config script runs no command from the file" "" "$(hostile_markers)"
+
+  local accepted refused long_name
+  long_name="$(printf 'a%.0s' $(seq 1 128))"
+  for accepted in openbao openbao@server.example-1 a.b-c_1 0db _x "${long_name}"; do
+    run_in_container -- bash -c '. "$1"; require_env_name BAO_PG_USER "$2"' _ "${ENV_HELPER_SCRIPT}" "${accepted}"
+    check_eq "name pattern: accepts ${accepted:0:40}" 0 "${RC}"
+  done
+  for refused in "" "a b" "a=b" "a'b" 'a"b' 'a\b' "a;b" "a|b" 'a$b' 'a`b' "-a" ".a" "@a" $'a\nb' "${long_name}a" \
+    "host=db port=5999 dbname=x" "openbao -c log_statement=all"; do
+    run_in_container -- bash -c '. "$1"; require_env_name BAO_PG_SCHEMA "$2"' _ "${ENV_HELPER_SCRIPT}" "${refused}"
+    check_eq "name pattern: refuses ${refused:0:40}" 1 "${RC}"
+    check "name pattern: the message names the key" grep -qF "Invalid BAO_PG_SCHEMA" "${ERR_FILE}"
+  done
   CONTAINER="${NODE1_CONTAINER}"
 }
 psql_admin() { docker exec -i -u postgres "${CONTAINER}" psql -qtA "$@"; }
@@ -1335,6 +1348,87 @@ write_psql_env_file() {
 env_file_value() {
   in_container bash -c '. '"${ENV_HELPER_SCRIPT}"'; read_env_value "$1" "$2"' _ "${ENV_FILE}" "$1"
 }
+PSQL_INVOCATIONS_FILE="/tmp/psql-invocations"
+PSQL_CMDLINES_FILE="/tmp/psql-cmdlines"
+LISTENER_RECEIVED_FILE="/tmp/listener-received"
+LISTENER_PID_FILE="/tmp/listener-pid"
+LISTENER_PORT=5999
+
+# install_psql_shim: puts a psql in front of the real one. It records that it started and the argument lists of
+# all processes (su and the init script included) before it runs the real psql.
+install_psql_shim() {
+  cat >"${WORK_DIR}/psql-shim" <<'SHIM'
+#!/bin/sh
+echo started >>/tmp/psql-invocations
+for cmdline in /proc/[0-9]*/cmdline; do
+  tr '\0' ' ' <"$cmdline" 2>/dev/null
+  echo
+done >>/tmp/psql-cmdlines
+exec /usr/bin/psql "$@"
+SHIM
+  docker cp "${WORK_DIR}/psql-shim" "${CONTAINER}:/usr/local/bin/psql" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/psql
+  in_container sh -c "touch ${PSQL_INVOCATIONS_FILE} ${PSQL_CMDLINES_FILE} ${LISTENER_RECEIVED_FILE} && chmod 666 ${PSQL_INVOCATIONS_FILE} ${PSQL_CMDLINES_FILE} ${LISTENER_RECEIVED_FILE}"
+}
+clear_psql_shim_logs() { in_container sh -c ": > ${PSQL_INVOCATIONS_FILE}; : > ${PSQL_CMDLINES_FILE}"; }
+psql_invocations() { in_container cat "${PSQL_INVOCATIONS_FILE}"; }
+cmdlines_contain() { in_container grep -qF -- "$1" "${PSQL_CMDLINES_FILE}"; }
+cmdlines_lack() { ! in_container grep -qF -- "$1" "${PSQL_CMDLINES_FILE}"; }
+
+# check_psql_password_not_in_arguments DESCRIPTION PASSWORD: the last init run sampled the argument lists of all
+# processes when psql started. The sample holds the psql arguments and never the password.
+check_psql_password_not_in_arguments() {
+  check "$1: the sampled argument lists include the psql run" cmdlines_contain "bao_db="
+  check "$1: no process argument list holds the role password" cmdlines_lack "$2"
+}
+
+start_listener() {
+  in_container sh -c ": > ${LISTENER_RECEIVED_FILE}; : > ${LISTENER_PID_FILE}"
+  docker exec -d "${CONTAINER}" perl -MIO::Socket::INET -e '
+    $server = IO::Socket::INET->new(Listen => 5, LocalAddr => "127.0.0.1", LocalPort => $ARGV[0], ReuseAddr => 1) or die;
+    open(PID, ">", $ARGV[1]); print PID $$; close(PID);
+    while ($client = $server->accept) {
+      $client->recv($data, 4096);
+      open(RX, ">>", $ARGV[2]); print RX "connection: $data\n"; close(RX);
+      close($client);
+    }' "${LISTENER_PORT}" "${LISTENER_PID_FILE}" "${LISTENER_RECEIVED_FILE}"
+  local i
+  for i in $(seq 1 50); do
+    if in_container test -s "${LISTENER_PID_FILE}"; then return 0; fi
+    sleep 0.1
+  done
+  return 1
+}
+stop_listener() { in_container sh -c "kill \$(cat ${LISTENER_PID_FILE}) 2>/dev/null; : > ${LISTENER_PID_FILE}"; }
+listener_received() { in_container cat "${LISTENER_RECEIVED_FILE}"; }
+
+text_absent_in_outputs() {
+  text_absent "${OUT_FILE}" "$1" && text_absent "${ERR_FILE}" "$1"
+}
+
+# check_name_refused MODE KEY VALUE: the init, backup and restore scripts stop on the value of KEY before they
+# start psql, name the key and print nothing of the password.
+check_name_refused() {
+  local mode="$1" key="$2" value="$3" user=openbao database=openbao schema=openbao script
+  local password="Refused-pw-8a3f6" label="${mode} mode, ${key}=${3:0:30}"
+  case "${key}" in
+    BAO_PG_USER) user="${value}" ;;
+    BAO_PG_DATABASE) database="${value}" ;;
+    BAO_PG_SCHEMA) schema="${value}" ;;
+  esac
+  write_psql_env_file "${user}" "${password}" 127.0.0.1 5432 "${database}" "${schema}"
+  clear_psql_shim_logs
+  clear_hostile_markers
+  for script in "${INIT_DB_SCRIPT}" "${BACKUP_DB_SCRIPT}" "${RESTORE_DB_SCRIPT}"; do
+    run_in_container -- bash "${script}" /tmp/refused-dump
+    check_eq "${label}, ${script##*/}: exit 1" 1 "${RC}"
+    check "${label}, ${script##*/}: the message names the key" grep -qF "Invalid ${key}" "${ERR_FILE}"
+    check "${label}, ${script##*/}: no output holds the password" text_absent_in_outputs "${password}"
+  done
+  check_eq "${label}: psql never started" "" "$(psql_invocations)"
+  check_eq "${label}: no command from the env file runs" "" "$(hostile_markers)"
+}
+
 # check_psql_hostile_case MODE LABEL USER PASSWORD PORT DATABASE SCHEMA EXPECTED_RC
 # Runs the init script with the given values in the env file. EXPECTED_RC is a number or "any".
 check_psql_hostile_case() {
@@ -1344,6 +1438,7 @@ check_psql_hostile_case() {
   clear_hostile_markers
   set_psql_mode "${mode}"
   write_psql_env_file "${user}" "${password}" 127.0.0.1 "${port}" "${database}" "${schema}"
+  clear_psql_shim_logs
   run_in_container -- bash "${INIT_DB_SCRIPT}"
   if [[ "${expected_rc}" == any ]]; then
     pass "${description}: exit ${RC}"
@@ -1356,11 +1451,13 @@ check_psql_hostile_case() {
     check_eq "${description}: the role is created under the literal name" 1 "$(psql_count role "${user}")"
     check_eq "${description}: the schema is created under the literal name" 1 "$(psql_count schema "${schema}" "${database}")"
     check_eq "${description}: the role logs in with its password" "${user}" "$(psql_login "${user}" "${password}" "${database}")"
+    check_psql_password_not_in_arguments "${description}" "${password}"
   fi
 }
 scenario_psql_values_not_executed() {
   log_info "Scenario: values from the OpenBao environment file reach a real psql only as data"
-  local mode marker user password dbname generated_user generated_password env_hash
+  local mode marker user password dbname generated_user generated_password env_hash key value
+  local meta_password='Pw:x :'"'"'y'"'"' ${x} $(id) \n \x41 `id` & ; 100%'
   local normal_password="Pw'\"\\\$x-with-quote-doublequote-backslash-dollar"
   CONTAINER="${PSQL_CONTAINER}"
   docker rm -f "${CONTAINER}" >/dev/null 2>&1
@@ -1379,20 +1476,29 @@ sed -n "s/^$4[[:space:]]*=[[:space:]]*//p" "$2" | { read -r value || exit 1; pri
 SHIM
   docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
   in_container chmod +x /usr/local/bin/crudini
+  install_psql_shim
 
   clear_hostile_markers
   psql_admin >/dev/null <<<'\! touch /tmp/hostile-marker-psql-baseline'
   check_ne "baseline: a psql shell escape in the SQL input runs a command" "" "$(hostile_markers)"
+
+  check "baseline: the listener starts" start_listener
+  in_container bash -c "exec 3<>/dev/tcp/127.0.0.1/${LISTENER_PORT}; printf 'probe' >&3"
+  sleep 0.5
+  check "baseline: the listener records a connection" grep -qF "connection: probe" <(listener_received)
+  in_container sh -c ": > ${LISTENER_RECEIVED_FILE}"
 
   for mode in local remote; do
     log_info "  ${mode}-DB mode"
     set_psql_mode "${mode}"
     psql_reset
     in_container rm -f "${ENV_FILE}"
+    clear_psql_shim_logs
     run_in_container -- bash "${INIT_DB_SCRIPT}"
     check "${mode} mode, fresh init: exit 0" test "${RC}" -eq 0
     generated_user="$(env_file_value BAO_PG_USER)"
     generated_password="$(env_file_value BAO_PG_PASSWORD)"
+    check_psql_password_not_in_arguments "${mode} mode, fresh init" "${generated_password}"
     check_eq "${mode} mode, fresh init: the database exists" 1 "$(psql_count database openbao)"
     check_eq "${mode} mode, fresh init: the role exists" 1 "$(psql_count role "${generated_user}")"
     check_eq "${mode} mode, fresh init: the schema belongs to the role" "${generated_user}" "$(psql_count schema_owner openbao openbao)"
@@ -1414,27 +1520,44 @@ SHIM
     check_psql_hostile_case "${mode}" password-quotes openbao "${normal_password}" 5432 openbao openbao 0
     marker="/tmp/hostile-marker-psql-${mode}-password"
     check_psql_hostile_case "${mode}" password-escape openbao "p' \\! id -un > ${marker} #" 5432 openbao openbao 0
+    check_psql_hostile_case "${mode}" password-meta openbao "${meta_password}" 5432 openbao openbao 0
+    check_psql_hostile_case "${mode}" unusual-names "x.y-z_1" "Plain-pw-4c7e1" 5432 "db-1.x" "sch_1" 0
     marker="/tmp/hostile-marker-psql-${mode}-database"
-    check_psql_hostile_case "${mode}" database openbao pw 5432 "openbao\" \\! id -un > ${marker} #" openbao 0
+    check_psql_hostile_case "${mode}" database openbao "Plain-pw-4c7e1" 5432 "openbao\" \\! id -un > ${marker} #" openbao 1
+    check "${mode} mode, database: the script names the key" grep -qF "Invalid BAO_PG_DATABASE" "${ERR_FILE}"
     marker="/tmp/hostile-marker-psql-${mode}-user"
-    check_psql_hostile_case "${mode}" user "x' \\! id -un > ${marker} #" pw 5432 openbao openbao 0
+    check_psql_hostile_case "${mode}" user "x' \\! id -un > ${marker} #" "Plain-pw-4c7e1" 5432 openbao openbao 1
+    check "${mode} mode, user: the script names the key" grep -qF "Invalid BAO_PG_USER" "${ERR_FILE}"
     marker="/tmp/hostile-marker-psql-${mode}-schema"
-    check_psql_hostile_case "${mode}" schema openbao pw 5432 openbao "sch\" \\! id -un > ${marker} #" any
+    check_psql_hostile_case "${mode}" schema openbao "Plain-pw-4c7e1" 5432 openbao "sch\" \\! id -un > ${marker} #" 1
+    check "${mode} mode, schema: the script names the key" grep -qF "Invalid BAO_PG_SCHEMA" "${ERR_FILE}"
     marker="/tmp/hostile-marker-psql-${mode}-port"
     check_psql_hostile_case "${mode}" port openbao pw "5432; id -un > ${marker}" openbao openbao 1
     check "${mode} mode, port: the script names the invalid port" grep -qF "Invalid database port" "${ERR_FILE}"
+    for key in BAO_PG_USER BAO_PG_DATABASE BAO_PG_SCHEMA; do
+      for value in "a b" "a=b" "a'b" 'a"b' 'a\b' "a;b" 'a$(id)'; do
+        check_name_refused "${mode}" "${key}" "${value}"
+      done
+    done
+    check_name_refused "${mode}" BAO_PG_DATABASE "host=127.0.0.1 port=${LISTENER_PORT} dbname=x"
+    check_eq "${mode} mode, database as connection string: the listener receives nothing" "" "$(listener_received)"
+    check_name_refused "${mode}" BAO_PG_SCHEMA "openbao -c log_statement=all"
+    check_name_refused "${mode}" BAO_PG_SCHEMA "openbao -c session_preload_libraries=/tmp/preload"
+    check_name_refused "${mode}" BAO_PG_SCHEMA '$(touch /tmp/hostile-marker-substitution)'
   done
+
+  stop_listener
 
   log_info "  restore path"
   set_psql_mode local
   psql_reset
   clear_hostile_markers
-  user="x' \\! id -un > /tmp/hostile-marker-psql-restore #"
-  password="pw"
+  user="x.y-z_1"
+  password="p' \\! id -un > /tmp/hostile-marker-psql-restore #"
   dbname=openbao
   write_psql_env_file "${user}" "${password}" 127.0.0.1 5432 "${dbname}" openbao
   run_in_container -- bash "${INIT_DB_SCRIPT}"
-  check "restore path: the init script creates the database with a hostile role name, exit 0" test "${RC}" -eq 0
+  check "restore path: the init script creates the database with a hostile password, exit 0" test "${RC}" -eq 0
   docker exec -i -e "PGUSER=${user}" -e "PGPASSWORD=${password}" "${CONTAINER}" psql -h 127.0.0.1 -d "${dbname}" -qtA >/dev/null \
     <<<"CREATE TABLE openbao.kv (v text); INSERT INTO openbao.kv VALUES ('kept')"
   run_in_container -- bash "${BACKUP_DB_SCRIPT}" /tmp/restore-dump
