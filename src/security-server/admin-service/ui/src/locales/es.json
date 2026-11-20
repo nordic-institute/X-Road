@@ -1344,6 +1344,26 @@
           },
           "common": {
             "temp-files-path": "Ruta absoluta al directorio donde se almacenan los archivos temporales."
+          },
+          "dsp": {
+            "issuer-data": {
+              "expiry-margin": "Durante una interrupción del Issuer Service, una copia almacenada que caduca dentro de este tiempo se considera inutilizable. Valores permitidos: 0 o más. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+              "download-wait": "El tiempo máximo que una comprobación espera una descarga nueva mientras el Issuer Service responde. Valores permitidos: de 0 a 10 segundos. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+              "retry-delay": {
+                "initial": "El retraso antes del primer reintento tras una actualización fallida. Valores permitidos: 0 o más. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+                "maximum": "El retraso máximo entre reintentos. Valores permitidos: 0 o más. Si es menor que el retraso inicial de reintento, ambos usan sus valores predeterminados y se registra una advertencia. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+                "maximum-doublings": "El máximo de veces que se duplica el retraso de reintento. Valores permitidos: números enteros de 1 o más. El retraso nunca supera el retraso máximo de reintento. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio."
+              },
+              "cache": {
+                "max-status-lists": "El máximo de status lists que se mantienen en memoria. Valores permitidos: números enteros de 0 o más. Con 0 no se mantiene ninguna copia en memoria, por lo que una copia almacenada no se usa durante una interrupción y cada comprobación descarga. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+                "max-issuer-dids": "El máximo de documentos DID de emisores que se mantienen en memoria. Valores permitidos: números enteros de 0 o más. Con 0 no se mantiene ninguna copia en memoria, por lo que una copia almacenada no se usa durante una interrupción y cada comprobación descarga. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+                "idle-expiry": "Cuánto tiempo puede pasar una status list o un documento DID de emisor sin una comprobación antes de eliminarse de la memoria. Valores permitidos: 0 o más. Con 0 no se mantiene ninguna copia en memoria, por lo que una copia almacenada no se usa durante una interrupción y cada comprobación descarga. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio."
+              },
+              "cleanup": {
+                "interval": "El tiempo entre ejecuciones de la limpieza de datos de emisores caducados. Valores permitidos: 5 minutos o más. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+                "enabled": "Cuando es false, la limpieza de datos de emisores caducados no se ejecuta. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio."
+              }
+            }
           }
         }
       }

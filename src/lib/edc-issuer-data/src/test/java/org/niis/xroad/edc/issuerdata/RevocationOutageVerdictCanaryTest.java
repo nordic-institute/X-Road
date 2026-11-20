@@ -86,6 +86,7 @@ import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VC_TOKEN_C
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.issuerdata.TestSettings.settings;
 
 /**
  * Drives a credential through the EDC chain that answers a protocol request: the protocol token validator, the DCP
@@ -102,7 +103,7 @@ class RevocationOutageVerdictCanaryTest {
     private static final String OTHER_ISSUER = "did:web:cs1.example.org%3A6183:issuer";
     private static final Instant START = Instant.parse("2026-11-18T10:00:00Z");
     private static final Duration CACHE_TIME = Duration.ofSeconds(60);
-    private static final Duration REFRESH_WAIT = Duration.ofSeconds(10);
+    private static final Duration DOWNLOAD_WAIT = Duration.ofSeconds(10);
     private static final Duration MAXIMUM_AGE = Duration.ofSeconds(120);
     private static final Duration PAST_THE_DEADLINE = Duration.ofMinutes(10);
     private static final long MAXIMUM_ENTRIES = 128;
@@ -209,7 +210,7 @@ class RevocationOutageVerdictCanaryTest {
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
         var source = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), refreshPool, CACHE_TIME,
-                MAXIMUM_ENTRIES, IDLE_EXPIRY, REFRESH_WAIT, () -> Result.success(MAXIMUM_AGE), store, mock(Monitor.class));
+                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), () -> Result.success(MAXIMUM_AGE), store, mock(Monitor.class));
 
         var revocationServices = new RevocationServiceRegistryImpl(mock(Monitor.class));
         revocationServices.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(

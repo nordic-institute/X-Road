@@ -68,6 +68,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.issuerdata.TestSettings.settings;
 
 class IdentityHubOutageRevocationTest {
 
@@ -102,7 +103,7 @@ class IdentityHubOutageRevocationTest {
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
         var source = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), refreshPool, CACHE_TIME,
-                MAXIMUM_ENTRIES, Duration.ofSeconds(120), Duration.ofSeconds(10),
+                settings(MAXIMUM_ENTRIES, Duration.ofSeconds(120), Duration.ofSeconds(10)),
                 () -> Result.success(Duration.ofSeconds(120)), store, mock(Monitor.class));
         var registry = new RevocationServiceRegistryImpl(mock(Monitor.class));
         registry.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(

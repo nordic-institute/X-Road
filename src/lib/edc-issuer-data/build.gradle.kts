@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-  implementation(platform(libs.quarkus.bom))
   implementation(platform(libs.jackson.bom))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:properties-core"))

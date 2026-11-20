@@ -37,6 +37,9 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.edc.issuerdata.IssuerDataExtension;
 import org.niis.xroad.edc.issuerdata.XRoadBitstringStatusListRevocationService;
 
@@ -54,6 +57,8 @@ class IssuerDataRegistrationTest {
     void bitstringStatusListIsServedByTheXRoadServiceAndStatusList2021StaysStock(ServiceExtensionContext context,
                                                                                 ObjectFactory factory) {
         context.registerService(TypeManager.class, new JacksonTypeManager());
+        context.registerService(XRoadConfig.class,
+                XRoadConfigBuilder.create().register(DspConfigKeys.instance()).build());
         var stockRegistry = factory.constructInstance(RevocationServiceRegistryExtension.class)
                 .createRevocationListService(context);
         var registry = spy(stockRegistry);

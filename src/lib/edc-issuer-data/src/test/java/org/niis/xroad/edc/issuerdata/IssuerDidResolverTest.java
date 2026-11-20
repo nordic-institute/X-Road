@@ -58,6 +58,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.issuerdata.TestSettings.settings;
 
 class IssuerDidResolverTest {
     private static final String INSTANCE = "DEV";
@@ -210,7 +211,7 @@ class IssuerDidResolverTest {
 
     private LastGoodSource<DidDocument> newSource(DidDocumentFetcher fetcher) {
         return new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(),
-                Runnable::run, Duration.ZERO, MAXIMUM_ENTRIES, IDLE_EXPIRY, LastGoodSource.REFRESH_WAIT,
+                Runnable::run, Duration.ZERO, settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, Duration.ofSeconds(2)),
                 () -> Result.success(MAXIMUM_AGE), store, mock(Monitor.class));
     }
 

@@ -54,6 +54,7 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bit
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.issuerdata.TestSettings.settings;
 
 class XRoadBitstringStatusListRevocationServiceTest {
 
@@ -62,7 +63,7 @@ class XRoadBitstringStatusListRevocationServiceTest {
     private static final Duration CACHE_TIME = Duration.ofSeconds(60);
     private static final int REVOKED_INDEX = 10;
     private static final int CLEAR_INDEX = 15;
-    private static final Duration REFRESH_WAIT = Duration.ofSeconds(10);
+    private static final Duration DOWNLOAD_WAIT = Duration.ofSeconds(10);
     private static final long MAXIMUM_ENTRIES = 128;
     private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
 
@@ -85,7 +86,7 @@ class XRoadBitstringStatusListRevocationServiceTest {
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
         var source = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), refreshPool,
-                CACHE_TIME, MAXIMUM_ENTRIES, IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get, store, mock(Monitor.class));
+                CACHE_TIME, settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get, store, mock(Monitor.class));
         service = new XRoadBitstringStatusListRevocationService(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver(), source);
     }

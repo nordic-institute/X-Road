@@ -1517,6 +1517,26 @@
           },
           "common": {
             "temp-files-path": "Absolute path to the directory where temporary files are stored."
+          },
+          "dsp": {
+            "issuer-data": {
+              "expiry-margin": "During an Issuer Service outage, a stored copy that expires within this time counts as unusable. Allowed values: 0 or more. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+              "download-wait": "The longest time a check waits for a fresh download while the Issuer Service answers. Allowed values: 0 to 10 seconds. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+              "retry-delay": {
+                "initial": "The delay before the first retry after a failed refresh. Allowed values: 0 or more. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+                "maximum": "The longest delay between retries. Allowed values: 0 or more. If it is lower than the initial retry delay, both use their default values and a warning is logged. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+                "maximum-doublings": "The most times the retry delay doubles. Allowed values: whole numbers of 1 or more. The delay never exceeds the maximum retry delay. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change."
+              },
+              "cache": {
+                "max-status-lists": "The most status lists kept in memory. Allowed values: whole numbers of 0 or more. With 0, no copy is kept in memory, so a stored copy is not used during an outage and every check downloads. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+                "max-issuer-dids": "The most issuer DID documents kept in memory. Allowed values: whole numbers of 0 or more. With 0, no copy is kept in memory, so a stored copy is not used during an outage and every check downloads. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+                "idle-expiry": "How long a status list or issuer DID document can go without a check before it is dropped from memory. Allowed values: 0 or more. With 0, no copy is kept in memory, so a stored copy is not used during an outage and every check downloads. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change."
+              },
+              "cleanup": {
+                "interval": "The time between runs of the cleanup of expired issuer data. Allowed values: 5 minutes or more. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+                "enabled": "When false, the cleanup of expired issuer data does not run. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change."
+              }
+            }
           }
         }
       }

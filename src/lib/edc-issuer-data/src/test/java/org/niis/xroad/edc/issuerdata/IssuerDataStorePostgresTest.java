@@ -74,6 +74,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.issuerdata.TestSettings.RETRY_DELAY;
+import static org.niis.xroad.edc.issuerdata.TestSettings.settings;
 
 /**
  * Runs the store and the last good source against a real Postgres with the real Liquibase changelogs of the control
@@ -89,7 +91,7 @@ class IssuerDataStorePostgresTest {
     private static final long MAXIMUM_ENTRIES = 128;
     private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
     private static final Duration MAXIMUM_AGE = Duration.ofSeconds(120);
-    private static final Duration REFRESH_WAIT = Duration.ofMillis(100);
+    private static final Duration DOWNLOAD_WAIT = Duration.ofMillis(100);
     private static final Duration DID_DEADLINE = MAXIMUM_AGE;
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
@@ -323,7 +325,7 @@ class IssuerDataStorePostgresTest {
             assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
 
             issuer.down(false);
-            clock.set(START.plus(CACHE_TIME).plus(LastGoodSource.MAXIMUM_BACKOFF));
+            clock.set(START.plus(CACHE_TIME).plus(RETRY_DELAY.maximum()));
             assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
             assertThat(controlPlane.store.read(IssuerDataKind.STATUSLIST, statusListUrl).getContent().fetchedAt())
                     .isEqualTo(clock.instant());
@@ -513,20 +515,20 @@ class IssuerDataStorePostgresTest {
 
     private LastGoodSource<String> sourceOnPool(SqlIssuerDataStore store) {
         return new LastGoodSource<>(new FakeFetcher(), clock, Ticker.disabledTicker(), refreshPool, CACHE_TIME,
-                MAXIMUM_ENTRIES, IDLE_EXPIRY, Duration.ofSeconds(10), maximumAge::get, store, monitor);
+                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, Duration.ofSeconds(10)), maximumAge::get, store, monitor);
     }
 
     private LastGoodSource<String> fakeSource(FakeFetcher fetcher, MutableClock sourceClock) {
-        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, MAXIMUM_ENTRIES,
-                IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get, controlPlane.store, monitor);
+        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME,
+                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get, controlPlane.store, monitor);
     }
 
     private LastGoodSource<BitstringStatusListCredential> realSource(MutableClock sourceClock) {
         var stack = EdcTestStack.create();
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), List.of("*/*"), stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME, MAXIMUM_ENTRIES,
-                IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get, controlPlane.store, monitor);
+        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME,
+                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get, controlPlane.store, monitor);
     }
 
     private Instance instanceOf(FakeIssuer issuer) {
@@ -537,14 +539,14 @@ class IssuerDataStorePostgresTest {
         var didSource = new AtomicReference<LastGoodSource<DidDocument>>();
         var stack = EdcTestStack.create((stockResolver, didFetcher) -> {
             didSource.set(new LastGoodSource<>(didFetcher, clock, Ticker.disabledTicker(),
-                    Runnable::run, Duration.ZERO, MAXIMUM_ENTRIES, IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get,
+                    Runnable::run, Duration.ZERO, settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get,
                     controlPlane.store, monitor));
             return new IssuerDidResolver(stockResolver, didSource.get(), globalConf);
         });
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), List.of("*/*"), stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
         var statusList = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME,
-                MAXIMUM_ENTRIES, IDLE_EXPIRY, REFRESH_WAIT, maximumAge::get, controlPlane.store, monitor);
+                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get, controlPlane.store, monitor);
         return new Instance(statusList, didSource.get());
     }
 

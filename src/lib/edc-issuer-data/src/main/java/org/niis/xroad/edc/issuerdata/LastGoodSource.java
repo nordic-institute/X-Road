@@ -55,66 +55,58 @@ import java.util.function.Supplier;
  * <p>
  * Each key has at most one refresh at a time, run on the executor with no lock held. While the last refresh of a key
  * succeeded, a check that finds the copy past the cache time starts or joins the refresh and waits for it at most the
- * refresh wait. After a failed refresh the key is in outage mode: checks never wait, they get the last good copy at
+ * download wait. After a failed refresh the key is in outage mode: checks never wait, they get the last good copy at
  * once, and the executor retries the download with a backoff that doubles up to a maximum. A success ends the outage
  * and resets the backoff.
  * <p>
  * Every successful download is also written to the {@link IssuerDataStore}. The store is read when a refresh fails
- * and when a key has no copy in memory and its refresh is not finished within the refresh wait: the later of the
+ * and when a key has no copy in memory and its refresh is not finished within the download wait: the later of the
  * memory copy and the stored copy is then the candidate. Data is verified when it is downloaded; a stored copy is read
  * back through {@link IssuerDataFetcher#parseStored} as stored. A stored copy with a non-retryable read-back failure is
  * ignored until the next successful download. Store calls run only on the executor, never on the thread of a check, so they never
  * join a transaction of the caller.
  * <p>
- * Memory holds at most a fixed number of keys, and a key with no check for the idle expiry is dropped. The idle expiry
+ * Memory holds at most the configured number of keys, and a key with no check for the idle expiry is dropped. The idle expiry
  * does not depend on the cache time, so a cache time of zero still keeps the copy and the retry delay of a key in
  * memory. A dropped key whose copy was stored falls back to its stored row with the same deadline: the next check
- * downloads, and when that fails or does not finish within the refresh wait, the stored copy is read. A key dropped
+ * downloads, and when that fails or does not finish within the download wait, the stored copy is read. A key dropped
  * while its refresh runs or its backoff is active costs at most one more download or one restarted backoff.
  *
  * @param <P> the parsed form of the data
  */
 public class LastGoodSource<P> {
 
-    static final Duration SERVE_MARGIN = Duration.ofSeconds(5);
-    static final Duration REFRESH_WAIT = Duration.ofSeconds(2);
-    static final Duration INITIAL_BACKOFF = Duration.ofSeconds(5);
-    static final Duration MAXIMUM_BACKOFF = Duration.ofSeconds(60);
-    private static final int MAXIMUM_BACKOFF_SHIFT = 16;
-
     private final IssuerDataFetcher<P> fetcher;
     private final Clock clock;
     private final Executor executor;
     private final Duration cacheTime;
-    private final Duration refreshWait;
+    private final LastGoodSettings settings;
     private final Supplier<Result<Duration>> maximumAge;
     private final IssuerDataStore store;
     private final Monitor monitor;
     private final Cache<String, KeyState<P>> entries;
 
     /**
-     * @param executor       runs the refreshes and every store call; it must not run tasks on the calling thread in
-     *                       production
-     * @param maximumEntries the most keys held in memory
-     * @param idleExpiry     how long a key may go without a check before it is dropped from memory; independent of the
-     *                       cache time and of the retry delay
+     * @param executor runs the refreshes and every store call; it must not run tasks on the calling thread in
+     *                 production
+     * @param settings the memory limit, the idle expiry, the download wait, the expiry margin and the retry delay
      */
     public LastGoodSource(IssuerDataFetcher<P> fetcher, Clock clock, Ticker ticker, Executor executor, Duration cacheTime,
-                          long maximumEntries, Duration idleExpiry, Duration refreshWait, Supplier<Result<Duration>> maximumAge,
-                          IssuerDataStore store, Monitor monitor) {
+                          LastGoodSettings settings, Supplier<Result<Duration>> maximumAge, IssuerDataStore store,
+                          Monitor monitor) {
         this.fetcher = fetcher;
         this.clock = clock;
         this.executor = executor;
         this.cacheTime = cacheTime;
-        this.refreshWait = refreshWait;
+        this.settings = settings;
         this.maximumAge = maximumAge;
         this.store = store;
         this.monitor = monitor;
         this.entries = Caffeine.newBuilder()
                 .ticker(ticker)
                 .executor(Runnable::run)
-                .maximumSize(maximumEntries)
-                .expireAfterAccess(idleExpiry)
+                .maximumSize(settings.maximumEntries())
+                .expireAfterAccess(settings.idleExpiry())
                 .build();
     }
 
@@ -193,7 +185,7 @@ public class LastGoodSource<P> {
     @Nullable
     private Result<LastGoodCopy<P>> awaitFinished(CompletableFuture<Result<LastGoodCopy<P>>> refresh) {
         try {
-            return refresh.get(refreshWait.toNanos(), TimeUnit.NANOSECONDS);
+            return refresh.get(settings.downloadWait().toNanos(), TimeUnit.NANOSECONDS);
         } catch (TimeoutException _) {
             return null;
         } catch (ExecutionException e) {
@@ -249,7 +241,7 @@ public class LastGoodSource<P> {
         var failedAt = clock.instant();
         entries.asMap().compute(key, (_, current) -> {
             var existing = KeyState.<P>orEmpty(current);
-            return existing.refresh() == refresh ? existing.withFailure(failedAt, failure) : existing;
+            return existing.refresh() == refresh ? existing.withFailure(failedAt, failure, settings.retryDelay()) : existing;
         });
     }
 
@@ -286,7 +278,8 @@ public class LastGoodSource<P> {
         monitor.warning("Issuer data of '%s' could not be refreshed: %s".formatted(key, failure.getFailureDetail()));
         adoptStoredCopy(key);
         var failedAt = clock.instant();
-        entries.asMap().compute(key, (_, current) -> KeyState.<P>orEmpty(current).withFailure(failedAt, failure));
+        var retryDelay = settings.retryDelay();
+        entries.asMap().compute(key, (_, current) -> KeyState.<P>orEmpty(current).withFailure(failedAt, failure, retryDelay));
     }
 
     private Duration maximumAgeOrZero(String key) {
@@ -332,7 +325,7 @@ public class LastGoodSource<P> {
     }
 
     private boolean isFresh(LastGoodCopy<P> copy, Instant now) {
-        return now.isBefore(copy.fetchedAt().plus(cacheTime)) && !pastOwnExpiry(copy, now);
+        return now.isBefore(copy.fetchedAt().plus(cacheTime)) && now.isBefore(copy.validUntil()) && !pastOwnExpiry(copy, now);
     }
 
     private boolean pastOwnExpiry(LastGoodCopy<P> copy, Instant now) {
@@ -347,18 +340,12 @@ public class LastGoodSource<P> {
         var now = clock.instant();
         var ageDeadline = copy.fetchedAt().plus(cacheTime).plus(age.getContent());
         var deadline = copy.validUntil().isBefore(ageDeadline) ? copy.validUntil() : ageDeadline;
-        var usable = now.plus(SERVE_MARGIN).isBefore(deadline) && !pastOwnExpiry(copy, now);
+        var usable = now.plus(settings.expiryMargin()).isBefore(deadline) && !pastOwnExpiry(copy, now);
         if (usable) {
             monitor.warning("Issuer data of '%s' not refreshed, serving the copy downloaded at %s"
                     .formatted(key, copy.fetchedAt()));
         }
         return usable;
-    }
-
-    static Duration backoff(int failures) {
-        var shift = Math.min(failures - 1, MAXIMUM_BACKOFF_SHIFT);
-        var backoff = INITIAL_BACKOFF.multipliedBy(1L << shift);
-        return backoff.compareTo(MAXIMUM_BACKOFF) > 0 ? MAXIMUM_BACKOFF : backoff;
     }
 
     /**
@@ -385,9 +372,10 @@ public class LastGoodSource<P> {
             return new KeyState<>(downloaded, false, null, null);
         }
 
-        KeyState<P> withFailure(Instant failedAt, Result<?> failure) {
+        KeyState<P> withFailure(Instant failedAt, Result<?> failure, RetryDelay retryDelay) {
             var failures = (outage == null ? 0 : outage.failures()) + 1;
-            return new KeyState<>(copy, storedCopyInvalid, new Outage(failures, failedAt.plus(backoff(failures)), failure), null);
+            var nextAttempt = failedAt.plus(retryDelay.after(failures));
+            return new KeyState<>(copy, storedCopyInvalid, new Outage(failures, nextAttempt, failure), null);
         }
 
         KeyState<P> withOutage(Outage entered) {

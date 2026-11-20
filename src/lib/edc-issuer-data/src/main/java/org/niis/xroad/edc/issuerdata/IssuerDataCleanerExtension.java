@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.issuerdata;
 
+import jakarta.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -40,10 +41,14 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.util.function.BooleanSupplier;
+
+import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_CLEANUP_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_CLEANUP_INTERVAL;
 
 /**
  * Runs the {@link IssuerDataCleaner} periodically on every node except a secondary cluster node. The rows are shared
@@ -55,7 +60,6 @@ import java.util.function.BooleanSupplier;
 public class IssuerDataCleanerExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Issuer Data Cleanup";
-    static final Duration DEFAULT_INTERVAL = Duration.ofMinutes(10);
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -72,9 +76,13 @@ public class IssuerDataCleanerExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
+    private XRoadConfig xRoadConfig;
+
     private BooleanSupplier secondaryNode = NodeProperties::isSecondaryNode;
 
-    private Duration interval = DEFAULT_INTERVAL;
+    @Nullable
+    private Duration interval;
 
     private IssuerDataCleaner cleaner;
 
@@ -90,6 +98,10 @@ public class IssuerDataCleanerExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
+        if (!xRoadConfig.value(ISSUER_DATA_CLEANUP_ENABLED)) {
+            monitor.info("Issuer data cleanup not scheduled: %s is false".formatted(ISSUER_DATA_CLEANUP_ENABLED.key()));
+            return;
+        }
         var store = new SqlIssuerDataStore(dataSourceRegistry, DataSourceRegistry.DEFAULT_DATASOURCE, transactionContext,
                 queryExecutor);
         cleaner = new IssuerDataCleaner(store, clock, monitor);
@@ -97,11 +109,18 @@ public class IssuerDataCleanerExtension implements ServiceExtension {
 
     @Override
     public void start() {
+        if (cleaner == null) {
+            return;
+        }
         if (secondaryNode.getAsBoolean()) {
             monitor.info("Issuer data cleanup not scheduled: this is a secondary cluster node");
             return;
         }
-        scheduler = IssuerDataCleanupScheduler.start(cleaner::run, interval, executorInstrumentation, monitor);
+        scheduler = IssuerDataCleanupScheduler.start(cleaner::run, interval(), executorInstrumentation, monitor);
+    }
+
+    private Duration interval() {
+        return interval != null ? interval : xRoadConfig.value(ISSUER_DATA_CLEANUP_INTERVAL);
     }
 
     @Override

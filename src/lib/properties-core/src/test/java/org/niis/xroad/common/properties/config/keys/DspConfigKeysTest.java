@@ -28,10 +28,31 @@
 package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DspConfigKeysTest {
+    private static final List<String> ISSUER_DATA_KEYS = List.of(
+            DspConfigKeys.ISSUER_DATA_EXPIRY_MARGIN.key(),
+            DspConfigKeys.ISSUER_DATA_DOWNLOAD_WAIT.key(),
+            DspConfigKeys.ISSUER_DATA_RETRY_DELAY_INITIAL.key(),
+            DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM.key(),
+            DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.key(),
+            DspConfigKeys.ISSUER_DATA_CACHE_MAX_STATUS_LISTS.key(),
+            DspConfigKeys.ISSUER_DATA_CACHE_MAX_ISSUER_DIDS.key(),
+            DspConfigKeys.ISSUER_DATA_CACHE_IDLE_EXPIRY.key(),
+            DspConfigKeys.ISSUER_DATA_CLEANUP_INTERVAL.key(),
+            DspConfigKeys.ISSUER_DATA_CLEANUP_ENABLED.key());
 
     @Test
     void didPortRejectsOutOfRangeAndAcceptsInRange() {
@@ -128,12 +149,79 @@ class DspConfigKeysTest {
     }
 
     @Test
-    void everyKeyIsPublishedToFrameworkAndHiddenFromUi() {
+    void everyKeyIsPublishedToFramework() {
         assertThat(DspConfigKeys.instance().keys())
-                .allSatisfy(key -> {
-                    assertThat(key.publishedToFramework()).as("%s must be published to framework", key.key()).isTrue();
-                    assertThat(key.exposedInUi()).as("%s must not be exposed in UI", key.key()).isFalse();
-                });
+                .allSatisfy(key -> assertThat(key.publishedToFramework())
+                        .as("%s must be published to framework", key.key()).isTrue());
+    }
+
+    @Test
+    void onlyTheIssuerDataKeysAreExposedInTheUi() {
+        assertThat(DspConfigKeys.instance().keys())
+                .filteredOn(key -> key.exposedInUi())
+                .extracting(key -> key.key())
+                .containsExactlyInAnyOrderElementsOf(ISSUER_DATA_KEYS);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("issuerDataKeysAndTaskPollWorkers")
+    void aBlankOrUnparsableStoredRowStopsTheConfigBuildNamingTheKey(String key) {
+        for (var stored : new String[] {"", "not-a-value"}) {
+            assertThatThrownBy(() -> config(key, stored))
+                    .as("%s=%s", key, stored)
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining(key);
+        }
+    }
+
+    @Test
+    void aTaskPollWorkersRowOfZeroStopsTheConfigBuild() {
+        assertThatThrownBy(() -> config("xroad.dsp.task-poll.workers", "0"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("xroad.dsp.task-poll.workers");
+    }
+
+    @Test
+    void cacheLimitsAcceptZeroAndRefuseNegative() {
+        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_MAX_STATUS_LISTS.validate(0).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_MAX_STATUS_LISTS.validate(-1).valid()).isFalse();
+        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_MAX_ISSUER_DIDS.validate(0).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_MAX_ISSUER_DIDS.validate(-1).valid()).isFalse();
+    }
+    @Test
+    void idleExpiryAcceptsZeroAndRefusesNegative() {
+        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_IDLE_EXPIRY.validate(Duration.ZERO).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_IDLE_EXPIRY.validate(Duration.ofSeconds(-1)).valid()).isFalse();
+    }
+    @Test
+    void aNegativeExpiryMarginIsRefused() {
+        assertThat(DspConfigKeys.ISSUER_DATA_EXPIRY_MARGIN.validate(Duration.ZERO).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_EXPIRY_MARGIN.validate(Duration.ofMillis(-1)).valid()).isFalse();
+    }
+
+    @Test
+    void downloadWaitAcceptsZeroUpToTenSecondsAndRefusesTheRest() {
+        assertThat(DspConfigKeys.ISSUER_DATA_DOWNLOAD_WAIT.validate(Duration.ZERO).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_DOWNLOAD_WAIT.validate(Duration.ofSeconds(10)).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_DOWNLOAD_WAIT.validate(Duration.ofMillis(10_001)).valid()).isFalse();
+        assertThat(DspConfigKeys.ISSUER_DATA_DOWNLOAD_WAIT.validate(Duration.ofMillis(-1)).valid()).isFalse();
+    }
+
+    @Test
+    void retryDelayMaximumDoublingsAcceptsOneAndRefusesZeroAndNegative() {
+        assertThat(DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.validate(0).valid()).isFalse();
+        assertThat(DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.validate(-1).valid()).isFalse();
+        assertThat(DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.validate(1).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.validate(16).valid()).isTrue();
+    }
+
+    @Test
+    void cleanupIntervalAcceptsFiveMinutesAndMoreAndRefusesLess() {
+        assertThat(DspConfigKeys.ISSUER_DATA_CLEANUP_INTERVAL.validate(Duration.ofMinutes(5)).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_CLEANUP_INTERVAL.validate(Duration.ofMinutes(10)).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_CLEANUP_INTERVAL.validate(Duration.parse("PT4M59S")).valid()).isFalse();
+        assertThat(DspConfigKeys.ISSUER_DATA_CLEANUP_INTERVAL.validate(Duration.ZERO).valid()).isFalse();
+        assertThat(DspConfigKeys.ISSUER_DATA_CLEANUP_INTERVAL.validate(Duration.ofSeconds(-1)).valid()).isFalse();
     }
 
     @Test
@@ -155,11 +243,32 @@ class DspConfigKeysTest {
                         "xroad.dsp.task-poll.workers",
                         "xroad.dsp.outbound-http.max-requests-per-host",
                         "xroad.dsp.control-plane.pool.max-total",
-                        "xroad.dsp.control-plane.pool.max-idle");
+                        "xroad.dsp.control-plane.pool.max-idle",
+                        "xroad.dsp.issuer-data.expiry-margin",
+                        "xroad.dsp.issuer-data.download-wait",
+                        "xroad.dsp.issuer-data.retry-delay.initial",
+                        "xroad.dsp.issuer-data.retry-delay.maximum",
+                        "xroad.dsp.issuer-data.retry-delay.maximum-doublings",
+                        "xroad.dsp.issuer-data.cache.max-status-lists",
+                        "xroad.dsp.issuer-data.cache.max-issuer-dids",
+                        "xroad.dsp.issuer-data.cache.idle-expiry",
+                        "xroad.dsp.issuer-data.cleanup.interval",
+                        "xroad.dsp.issuer-data.cleanup.enabled");
     }
 
     @Test
     void rootPathIsTheDspScope() {
         assertThat(DspConfigKeys.instance().rootPath()).isEqualTo("xroad.dsp");
+    }
+
+    private static Stream<String> issuerDataKeysAndTaskPollWorkers() {
+        return Stream.concat(ISSUER_DATA_KEYS.stream(), Stream.of("xroad.dsp.task-poll.workers"));
+    }
+
+    private static XRoadConfig config(String key, String stored) {
+        return XRoadConfigBuilder.create()
+                .register(DspConfigKeys.instance())
+                .overrides(Map.of(key, stored))
+                .build();
     }
 }

@@ -36,11 +36,14 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
@@ -50,6 +53,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_CLEANUP_ENABLED;
 
 class IssuerDataCleanerExtensionTest {
 
@@ -67,11 +71,6 @@ class IssuerDataCleanerExtensionTest {
         if (extension != null) {
             extension.shutdown();
         }
-    }
-
-    @Test
-    void shouldUseTenMinutesAsDefaultInterval() {
-        assertThat(IssuerDataCleanerExtension.DEFAULT_INTERVAL).isEqualTo(Duration.ofMinutes(10));
     }
 
     @Test
@@ -98,9 +97,28 @@ class IssuerDataCleanerExtensionTest {
         verify(transactionContext, timeout(5000).atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
+    @Test
+    void shouldScheduleNoJobAndTouchNeitherExecutorNorStoreWhenCleanupIsDisabled() {
+        extension = extensionOnNode(false, config(Map.of(ISSUER_DATA_CLEANUP_ENABLED.key(), "false")));
+        extension.initialize(context);
+        extension.start();
+        verify(monitor).info(contains(ISSUER_DATA_CLEANUP_ENABLED.key()));
+        verifyNoInteractions(executorInstrumentation, transactionContext);
+        assertThatCode(extension::shutdown).doesNotThrowAnyException();
+    }
+
     private IssuerDataCleanerExtension extensionOnNode(boolean secondary) {
+        return extensionOnNode(secondary, config(Map.of()));
+    }
+
+    private IssuerDataCleanerExtension extensionOnNode(boolean secondary, XRoadConfig xRoadConfig) {
         when(context.getMonitor()).thenReturn(monitor);
         return new IssuerDataCleanerExtension(mock(DataSourceRegistry.class), transactionContext, mock(QueryExecutor.class),
-                executorInstrumentation, new MutableClock(START), () -> secondary, SHORT_INTERVAL, null, null, null);
+                executorInstrumentation, new MutableClock(START), xRoadConfig, () -> secondary, SHORT_INTERVAL, null, null,
+                null);
+    }
+
+    private static XRoadConfig config(Map<String, String> stored) {
+        return XRoadConfigBuilder.create().register(DspConfigKeys.instance()).overrides(stored).build();
     }
 }

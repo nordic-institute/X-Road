@@ -1459,6 +1459,26 @@
           },
           "common": {
             "temp-files-path": "Absoluutne tee kaustani, kuhu ajutised failid salvestatakse."
+          },
+          "dsp": {
+            "issuer-data": {
+              "expiry-margin": "Issuer Service'i katkestuse ajal loetakse salvestatud koopia kasutuskõlbmatuks, kui see aegub selle aja jooksul. Lubatud väärtused: 0 või rohkem. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+              "download-wait": "Pikim aeg, mille jooksul kontroll ootab värsket allalaadimist, kui Issuer Service vastab. Lubatud väärtused: 0 kuni 10 sekundit. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+              "retry-delay": {
+                "initial": "Viivitus enne esimest taaskatset pärast ebaõnnestunud värskendust. Lubatud väärtused: 0 või rohkem. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+                "maximum": "Pikim viivitus taaskatsete vahel. Lubatud väärtused: 0 või rohkem. Kui see on väiksem kui taaskatse algviivitus, kasutavad mõlemad oma vaikeväärtusi ja logisse kirjutatakse hoiatus. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+                "maximum-doublings": "Mitu korda taaskatse viivitus kõige rohkem kahekordistub. Lubatud väärtused: täisarvud alates 1. Viivitus ei ületa kunagi taaskatse maksimaalset viivitust. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub."
+              },
+              "cache": {
+                "max-status-lists": "Mälus hoitavate status list'ide maksimaarv. Lubatud väärtused: täisarvud alates 0. Väärtuse 0 korral ei hoita mälus ühtegi koopiat, seega salvestatud koopiat katkestuse ajal ei kasutata ja iga kontroll laadib andmed alla. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+                "max-issuer-dids": "Mälus hoitavate väljaandjate DID dokumentide maksimaarv. Lubatud väärtused: täisarvud alates 0. Väärtuse 0 korral ei hoita mälus ühtegi koopiat, seega salvestatud koopiat katkestuse ajal ei kasutata ja iga kontroll laadib andmed alla. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+                "idle-expiry": "Kui kaua võib status list või väljaandja DID dokument olla kontrollimata, enne kui see mälust eemaldatakse. Lubatud väärtused: 0 või rohkem. Väärtuse 0 korral ei hoita mälus ühtegi koopiat, seega salvestatud koopiat katkestuse ajal ei kasutata ja iga kontroll laadib andmed alla. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub."
+              },
+              "cleanup": {
+                "interval": "Aegunud väljaandjate andmete puhastuse käivituste vaheline aeg. Lubatud väärtused: 5 minutit või rohkem. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+                "enabled": "Kui väärtus on false, aegunud väljaandjate andmete puhastust ei käivitata. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub."
+              }
+            }
           }
         }
       }
