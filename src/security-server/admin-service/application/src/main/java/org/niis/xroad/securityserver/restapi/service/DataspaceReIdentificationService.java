@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -39,14 +37,12 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
-import org.niis.xroad.serverconf.model.ParticipantType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.RE_IDENTIFICATION_ADDRESS_UNKNOWN;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.RE_IDENTIFICATION_CANNOT_BIND;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.RE_IDENTIFICATION_CANNOT_MINT;
@@ -142,34 +138,22 @@ public class DataspaceReIdentificationService {
     }
 
     private void failUnlessEveryDidCanBeMinted(List<DsParticipantEntity> rowsToRetire) {
-        for (var row : rowsToRetire) {
-            var result = mint(row);
-            if (result instanceof DidMintResult.Rejected(var reason, var detail, var _)) {
-                throw cannotMint(row, reason + " (" + detail + ")");
-            }
-        }
-    }
-
-    private static ConflictException cannotMint(DsParticipantEntity row, String reason) {
-        log.warn("Dataspace: re-identification refused, the DID of participant {} cannot be created: {}",
-                row.getCtxId(), reason);
-        return new ConflictException(RE_IDENTIFICATION_CANNOT_MINT.build());
-    }
-
-    private DidMintResult mint(DsParticipantEntity row) {
         try {
-            return row.getParticipantType() == ParticipantType.SYSTEM
-                    ? didAuthority.mintSystemDid()
-                    : didAuthority.mintMemberDid(ClientId.Conf.ensure(row.getMemberIdentifier()));
+            DataspaceDidMintRule.firstUnmintable(didAuthority, rowsToRetire).ifPresent(unmintable -> {
+                throw cannotMint(unmintable);
+            });
         } catch (XrdRuntimeException e) {
-            if (e.isCausedBy(VALIDATION_ERROR)) {
-                throw cannotMint(row, e.getMessage());
-            }
             if (e.isCausedBy(DSP_PROVISIONING_FAILED)) {
                 log.warn("Dataspace: re-identification refused, the registered address is gone: {}", e.getMessage());
                 throw new ConflictException(RE_IDENTIFICATION_ADDRESS_UNKNOWN.build());
             }
             throw e;
         }
+    }
+
+    private static ConflictException cannotMint(DataspaceDidMintRule.Unmintable unmintable) {
+        log.warn("Dataspace: re-identification refused, the DID of participant {} cannot be created: {}",
+                unmintable.row().getCtxId(), unmintable.reason());
+        return new ConflictException(RE_IDENTIFICATION_CANNOT_MINT.build());
     }
 }

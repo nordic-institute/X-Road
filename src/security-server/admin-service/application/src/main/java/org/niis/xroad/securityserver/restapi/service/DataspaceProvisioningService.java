@@ -577,26 +577,26 @@ public class DataspaceProvisioningService {
         NONE,
         /** An active binding differs: the worker binds and publishes nothing until the participants are re-identified. */
         HELD,
-        /** An active binding differs, but the SYSTEM DID cannot be created at the registered address. */
+        /** An active binding differs, but a participant's DID cannot be created at the registered address. */
         ADDRESS_CANNOT_CARRY_DID
     }
 
     /**
-     * Tells whether the worker holds binding and publication. The hold does not apply while the SYSTEM DID cannot be
-     * created at the registered address, because re-identification would refuse and the hold would never end. The DID
-     * check runs only when an active binding differs.
+     * Tells whether the worker holds binding and publication. The hold does not apply while the DID of a participant
+     * with a differing binding cannot be created at the registered address, because re-identification would refuse
+     * and the hold would never end. The DID check runs only when an active binding differs.
      *
      * @return the hold decision
      */
     @Transactional(readOnly = true)
     public BindingHold bindingHold() {
-        var differs = registeredHostMatcher()
-                .filter(dsParticipantRepository::hasDifferingBindings)
-                .isPresent();
-        if (!differs) {
+        var differing = registeredHostMatcher()
+                .map(dsParticipantRepository::findDifferingBindings)
+                .orElse(List.of());
+        if (differing.isEmpty()) {
             return BindingHold.NONE;
         }
-        return didAuthority.mintSystemDid() instanceof Rejected
+        return DataspaceDidMintRule.firstUnmintable(didAuthority, differing).isPresent()
                 ? BindingHold.ADDRESS_CANNOT_CARRY_DID
                 : BindingHold.HELD;
     }

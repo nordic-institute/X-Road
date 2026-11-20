@@ -1378,16 +1378,17 @@ class DataspaceProvisioningServiceTest {
     // --- bindingHold ---
 
     @Test
-    void bindingHoldIsHeldWhenABindingDiffersAndTheSystemDidCanBeMinted() {
-        when(dsParticipantRepository.hasDifferingBindings(argThat(matcher -> matcher.authorityHostMatches(SS_ADDRESS))))
-                .thenReturn(true);
+    void bindingHoldIsHeldWhenABindingDiffersAndEveryDifferingDidCanBeMinted() {
+        when(dsParticipantRepository.findDifferingBindings(argThat(matcher -> matcher.authorityHostMatches(SS_ADDRESS))))
+                .thenReturn(List.of(boundSystemParticipant("old.example.test:7183"),
+                        boundParticipant(MEMBER, "old.example.test:7183")));
 
         assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.HELD);
     }
 
     @Test
     void bindingHoldIsNoneWhenTheRepositoryFindsNoDifferingBinding() {
-        when(dsParticipantRepository.hasDifferingBindings(any())).thenReturn(false);
+        when(dsParticipantRepository.findDifferingBindings(any())).thenReturn(List.of());
 
         assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.NONE);
     }
@@ -1403,7 +1404,8 @@ class DataspaceProvisioningServiceTest {
     @Test
     void bindingHoldIsAddressCannotCarryDidWhenABindingDiffersAndTheSystemDidCannotBeMinted() {
         when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(SS_ADDRESS + ":8443");
-        when(dsParticipantRepository.hasDifferingBindings(any())).thenReturn(true);
+        when(dsParticipantRepository.findDifferingBindings(any()))
+                .thenReturn(List.of(boundSystemParticipant("old.example.test:7183")));
 
         assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.ADDRESS_CANNOT_CARRY_DID);
     }
@@ -1411,9 +1413,40 @@ class DataspaceProvisioningServiceTest {
     @Test
     void bindingHoldIsNoneWhenNoBindingDiffersEvenIfTheSystemDidCannotBeMinted() {
         when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(SS_ADDRESS + ":8443");
-        when(dsParticipantRepository.hasDifferingBindings(any())).thenReturn(false);
+        when(dsParticipantRepository.findDifferingBindings(any())).thenReturn(List.of());
 
         assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.NONE);
+    }
+
+    @Test
+    void bindingHoldIsAddressCannotCarryDidWhenTheSystemDidFitsButAMemberDidIsTooLong() {
+        var host = DidLengthTestHosts.hostForMemberDidLength(MEMBER, ParticipantIdentifierScheme.MAX_DID_LENGTH + 1);
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(host);
+        when(dsParticipantRepository.findDifferingBindings(any()))
+                .thenReturn(List.of(boundSystemParticipant("old.example.test:7183"),
+                        boundParticipant(MEMBER, "old.example.test:7183")));
+
+        assertThat(didAuthority().mintSystemDid()).isInstanceOf(DidMintResult.Minted.class);
+        assertThat(service.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.ADDRESS_CANNOT_CARRY_DID);
+    }
+
+    @Test
+    void bindingHoldIsAddressCannotCarryDidWhenAMemberIdentifierCannotBeEncoded() {
+        var didAuthority = mock(DataspaceDidAuthority.class);
+        when(didAuthority.mintSystemDid()).thenReturn(new DidMintResult.Minted(
+                ParticipantIdentifierScheme.systemDid(SS_HOST)));
+        when(didAuthority.mintMemberDid(MEMBER))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.VALIDATION_ERROR, "cannot be encoded"));
+        when(dsParticipantRepository.findDifferingBindings(any()))
+                .thenReturn(List.of(boundSystemParticipant("old.example.test:7183"),
+                        boundParticipant(MEMBER, "old.example.test:7183")));
+        var ownSecurityServerResolver = new OwnSecurityServerResolver(
+                new ServerConfRepositoryIdentitySource(serverConfRepository), globalConfProvider);
+        var holdService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient,
+                controlPlaneClient, clientRepository, ownSecurityServerResolver, dsParticipantRepository,
+                globalConfProvider, didAuthority);
+
+        assertThat(holdService.bindingHold()).isEqualTo(DataspaceProvisioningService.BindingHold.ADDRESS_CANNOT_CARRY_DID);
     }
 
     // --- decommissionedParticipants / teardownParticipant ---

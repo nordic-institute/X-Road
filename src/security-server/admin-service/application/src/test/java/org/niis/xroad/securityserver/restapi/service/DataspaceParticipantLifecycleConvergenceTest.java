@@ -39,12 +39,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
+import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
@@ -74,6 +76,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -102,6 +105,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "owner");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "member");
     private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "COM", "other");
+    private static final ClientId LONG_CODE_MEMBER = ClientId.Conf.create("TEST", "COM", "l".repeat(200));
     private static final String MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(MEMBER);
     private static final String OTHER_MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER);
     private static final String SYSTEM_CTX_ID = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
@@ -549,6 +553,33 @@ class DataspaceParticipantLifecycleConvergenceTest {
         assertThat(bindingTable.findDecommissioned()).isEmpty();
         assertThat(bindingTable.rowCount()).isEqualTo(3);
         assertThat(identityStatuses()).containsOnly(IdentityStatus.OK);
+    }
+
+    @Test
+    void aMemberDidThatCannotBeCreatedAtTheNewHostRefusesReIdentificationWithoutHoldingTheWorker() {
+        var newHost = DidLengthTestHosts.hostForMemberDidLength(
+                MEMBER, ParticipantIdentifierScheme.MAX_DID_LENGTH - 100);
+        bindingTable.seedSystem();
+        bindingTable.seedActive(MEMBER);
+        bindingTable.seedActive(LONG_CODE_MEMBER);
+        givenMembersHaveRegisteredClients(MEMBER, LONG_CODE_MEMBER, OTHER_MEMBER);
+        givenRegisteredAddress(newHost);
+
+        assertThat(provisioningService.bindingHold()).isEqualTo(BindingHold.ADDRESS_CANNOT_CARRY_DID);
+        assertThatThrownBy(() -> reIdentificationService.reIdentify())
+                .isInstanceOf(ConflictException.class)
+                .satisfies(thrown -> assertThat(((ConflictException) thrown).getErrorDeviation().code())
+                        .isEqualTo(ErrorMessage.RE_IDENTIFICATION_CANNOT_MINT.code()));
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.didOf(OTHER_MEMBER_CTX_ID))
+                .isEqualTo(ParticipantIdentifierScheme.memberDid(OTHER_MEMBER, newHost + ":7183").toString());
+        assertThat(bindingTable.didOf(MEMBER_CTX_ID))
+                .isEqualTo(ParticipantIdentifierScheme.memberDid(MEMBER, IDENTITY_HUB_HOST).toString());
+        assertThat(bindingTable.didOf(SYSTEM_CTX_ID))
+                .isEqualTo(ParticipantIdentifierScheme.systemDid(IDENTITY_HUB_HOST).toString());
+        assertThat(bindingTable.findDecommissioned()).isEmpty();
     }
 
     @Test
