@@ -74,7 +74,7 @@ class DataspaceDidMintRule {
 
     private Optional<Unmintable> unmintable(DataspaceDidAuthority didAuthority, DsParticipantEntity row) {
         try {
-            return mint(didAuthority, row) instanceof DidMintResult.Rejected(var reason, var detail, var _)
+            return mint(didAuthority, row) instanceof DidMintResult.Rejected(var reason, var detail, _)
                     ? Optional.of(new Unmintable(row, reason + " (" + detail + ")"))
                     : Optional.empty();
         } catch (XrdRuntimeException e) {

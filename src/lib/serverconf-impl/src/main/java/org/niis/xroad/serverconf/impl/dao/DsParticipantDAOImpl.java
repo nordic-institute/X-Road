@@ -55,6 +55,8 @@ import java.util.Set;
 public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
 
     private static final int ID_CHUNK_SIZE = 1000;
+    private static final String STATE = "state";
+    private static final String MEMBER_IDENTIFIER = "memberIdentifier";
 
     private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
 
@@ -112,7 +114,7 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
         final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
-        root.fetch("memberIdentifier");
+        root.fetch(MEMBER_IDENTIFIER);
 
         var publicationState = root.<PublicationState>get("publicationState");
         var matches = states.contains(PublicationState.NOT_SENT)
@@ -120,7 +122,7 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
                 : publicationState.in(states);
         query.select(root).where(
                 cb.equal(root.get("participantType"), ParticipantType.MEMBER),
-                cb.equal(root.get("state"), ParticipantState.ACTIVE),
+                cb.equal(root.get(STATE), ParticipantState.ACTIVE),
                 matches);
 
         return session.createQuery(query).list();
@@ -184,7 +186,7 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         final CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
         final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
         query.multiselect(root.get("schemeVersion"), root.get("did"))
-                .where(cb.equal(root.get("state"), ParticipantState.ACTIVE));
+                .where(cb.equal(root.get(STATE), ParticipantState.ACTIVE));
 
         try (var rows = session.createQuery(query).getResultStream()) {
             return rows.anyMatch(columns -> hostMatcher.isBindingHostDifferent((String) columns[0], (String) columns[1]));
@@ -208,8 +210,8 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
         final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
-        root.fetch("memberIdentifier", JoinType.LEFT);
-        query.select(root).where(cb.equal(root.get("state"), ParticipantState.ACTIVE));
+        root.fetch(MEMBER_IDENTIFIER, JoinType.LEFT);
+        query.select(root).where(cb.equal(root.get(STATE), ParticipantState.ACTIVE));
 
         return session.createQuery(query).list().stream()
                 .filter(row -> hostMatcher.isBindingHostDifferent(row.getSchemeVersion(), row.getDid()))
@@ -228,7 +230,7 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
         final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
 
-        query.select(root).where(cb.equal(root.get("state"), ParticipantState.DECOMMISSIONED));
+        query.select(root).where(cb.equal(root.get(STATE), ParticipantState.DECOMMISSIONED));
 
         return session.createQuery(query).list();
     }
@@ -282,7 +284,7 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
         final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
 
-        query.select(root).where(cb.equal(root.get("memberIdentifier"), identifier));
+        query.select(root).where(cb.equal(root.get(MEMBER_IDENTIFIER), identifier));
 
         return session.createQuery(query).uniqueResultOptional();
     }

@@ -51,8 +51,10 @@ public class PendingAddressChangeRepositoryIntegrationTest extends AbstractFacad
         jdbcTemplate.update("INSERT INTO pending_address_change (id, requested_address, requested_at)"
                 + " VALUES (1, ?, CURRENT_TIMESTAMP)", FIRST_ADDRESS);
 
+        var requestedAt = Instant.now();
+
         assertThrows(DataIntegrityViolationException.class,
-                () -> pendingAddressChangeRepository.save("second.example.org", Instant.now()));
+                () -> pendingAddressChangeRepository.save("second.example.org", requestedAt));
     }
 
     @Test

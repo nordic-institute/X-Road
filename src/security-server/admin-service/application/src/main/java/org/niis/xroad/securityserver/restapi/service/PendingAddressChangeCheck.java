@@ -43,28 +43,28 @@ import java.time.Instant;
 public class PendingAddressChangeCheck {
 
     /**
-     * @param record            the pending address change
+     * @param pending           the pending address change
      * @param registeredAddress the address globalconf shows for this Security Server, {@code null} when it is not
      *                          registered or globalconf is not readable
      * @param now               the current time
      * @param expiry            how long a request may wait for globalconf to show its address
      * @return the action to apply to the pending address change
      */
-    public static PendingAddressChangeAction decide(PendingAddressChangeEntity record,
+    public static PendingAddressChangeAction decide(PendingAddressChangeEntity pending,
             @Nullable String registeredAddress, Instant now, Duration expiry) {
-        if (record.getRequestedAddress().equals(registeredAddress)) {
+        if (pending.getRequestedAddress().equals(registeredAddress)) {
             return PendingAddressChangeAction.RE_IDENTIFY;
         }
-        return isExpired(record, now, expiry) ? PendingAddressChangeAction.EXPIRE : PendingAddressChangeAction.KEEP;
+        return isExpired(pending, now, expiry) ? PendingAddressChangeAction.EXPIRE : PendingAddressChangeAction.KEEP;
     }
 
     /**
-     * @param record the pending address change
+     * @param pending the pending address change
      * @param now    the current time
      * @param expiry how long a request may wait for globalconf to show its address
      * @return whether the request has waited for the whole expiry
      */
-    public static boolean isExpired(PendingAddressChangeEntity record, Instant now, Duration expiry) {
-        return Duration.between(record.getRequestedAt(), now).compareTo(expiry) >= 0;
+    public static boolean isExpired(PendingAddressChangeEntity pending, Instant now, Duration expiry) {
+        return Duration.between(pending.getRequestedAt(), now).compareTo(expiry) >= 0;
     }
 }

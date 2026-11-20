@@ -75,7 +75,7 @@ public class DataspaceReIdentificationService {
      */
     @Transactional
     public int reIdentifyOnOperatorRequest() {
-        int retired = reIdentify();
+        int retired = retireDifferingBindings();
         if (retired == 0) {
             throw new ConflictException(RE_IDENTIFICATION_NOT_NEEDED.build());
         }
@@ -95,6 +95,10 @@ public class DataspaceReIdentificationService {
      */
     @Transactional
     public int reIdentify() {
+        return retireDifferingBindings();
+    }
+
+    private int retireDifferingBindings() {
         if (!provisioningTrigger.isActive()) {
             throw new ConflictException(RE_IDENTIFICATION_PROVISIONING_INACTIVE.build());
         }

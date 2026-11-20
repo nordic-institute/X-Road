@@ -55,7 +55,7 @@ public class PendingAddressChangeRepository {
      */
     @Transactional(readOnly = true)
     public Optional<PendingAddressChangeEntity> find() {
-        return pendingAddressChangeDAO.find(persistenceUtils.getCurrentSession());
+        return findPendingAddressChange();
     }
 
     /**
@@ -65,7 +65,11 @@ public class PendingAddressChangeRepository {
      */
     @Transactional(readOnly = true)
     public Optional<String> findRequestedAddress() {
-        return find().map(PendingAddressChangeEntity::getRequestedAddress);
+        return findPendingAddressChange().map(PendingAddressChangeEntity::getRequestedAddress);
+    }
+
+    private Optional<PendingAddressChangeEntity> findPendingAddressChange() {
+        return pendingAddressChangeDAO.find(persistenceUtils.getCurrentSession());
     }
 
     /**
