@@ -71,10 +71,6 @@ public final class OcspClient {
     private final SignerProperties signerProperties;
 
     // TODO make it configurable
-    private static final int CONNECT_TIMEOUT_MS = 20000;
-    private static final int READ_TIMEOUT_MS = 60000;
-
-    // TODO make it configurable
     private static final DigestAlgorithm DIGEST_ALGORITHM_ID = DigestAlgorithm.SHA512;
     private static final SignMechanism SIGN_MECHANISM = SignMechanism.CKM_RSA_PKCS;
 
@@ -129,7 +125,7 @@ public final class OcspClient {
     OCSPResp fetchResponse(String responderURI, X509Certificate subject, X509Certificate issuer,
                            PrivateKey signerKey, X509Certificate signer, SignAlgorithm signAlgoId)
             throws IOException, OCSPException, CertificateEncodingException, OperatorCreationException {
-        HttpURLConnection connection = createConnection(responderURI);
+        HttpURLConnection connection = createConnection(new URL(responderURI));
 
         OCSPReq ocspRequest = createRequest(subject, issuer, signerKey, signer, signAlgoId);
 
@@ -191,17 +187,13 @@ public final class OcspClient {
         }
     }
 
-    private static HttpURLConnection createConnection(String destination) throws IOException {
-        return createConnection(new URL(destination));
-    }
-
-    private static HttpURLConnection createConnection(URL url) throws IOException {
+    HttpURLConnection createConnection(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.OCSP_REQUEST);
         connection.setRequestProperty("Accept", MimeTypes.OCSP_RESPONSE);
         connection.setDoOutput(true);
-        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        connection.setReadTimeout(READ_TIMEOUT_MS);
+        connection.setConnectTimeout(signerProperties.ocspClientConnectTimeout());
+        connection.setReadTimeout(signerProperties.ocspClientReadTimeout());
         connection.connect();
 
         return connection;
