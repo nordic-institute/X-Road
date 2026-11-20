@@ -29,8 +29,11 @@ package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -58,6 +61,15 @@ class OpMonitorConfigKeysTest {
     }
 
     @Test
+    void identitySourceOutsideTheAllowedValuesIsRejected() {
+        var overrides = Map.of("xroad.op-monitor.rpc.identity-source", "keystore");
+
+        assertThatThrownBy(() -> config(overrides))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("xroad.op-monitor.rpc.identity-source");
+    }
+
+    @Test
     void allowedClientNamesIsExposedInUiAndEmptyByDefault() {
         var key = OpMonitorConfigKeys.RPC_ALLOWED_CLIENT_NAMES;
 
@@ -74,5 +86,9 @@ class OpMonitorConfigKeysTest {
         assertThat(key.convert("  ")).isEmpty();
         assertThatThrownBy(() -> key.convert("proxy,,ui")).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> key.convert("*.example.org")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private static XRoadConfig config(Map<String, String> overrides) {
+        return XRoadConfigBuilder.create().register(OpMonitorConfigKeys.instance()).overrides(overrides).build();
     }
 }

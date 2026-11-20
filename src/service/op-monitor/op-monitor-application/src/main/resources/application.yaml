@@ -8,6 +8,11 @@ quarkus:
   scheduler:
     start-mode: forced
     enabled: true
+  vault:
+    authentication:
+      client-token: "${XROAD_SECRET_STORE_TOKEN:}"
+    health:
+      enabled: false
 
 xroad:
   db:
