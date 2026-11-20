@@ -463,7 +463,9 @@ class MessageLogTest extends AbstractMessageLogTest {
 
         writeTimestampingStatusRow(TimeUtils.now().minusSeconds(period + 5));
 
-        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
+        SoapMessageImpl message = createMessage();
+        SignatureData signature = createSignature();
+        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(message, signature));
         assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), xrdRuntimeException.getErrorCode());
 
         writeTimestampingStatusRow(TimeUtils.now().minusSeconds(period - 5));
@@ -832,8 +834,10 @@ class MessageLogTest extends AbstractMessageLogTest {
         try {
             TimeUtils.setClock(Clock.fixed(recordedFailure.plusSeconds(period + 5L), ZoneOffset.UTC));
 
+            SoapMessageImpl message = createMessage();
+            SignatureData signature = createSignature();
             XrdRuntimeException xrdRuntimeException =
-                    assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
+                    assertThrows(XrdRuntimeException.class, () -> log(message, signature));
             assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), xrdRuntimeException.getErrorCode());
         } finally {
             TimeUtils.setClock(previousClock);
