@@ -136,10 +136,14 @@ public class DefaultRestServiceHandlerImpl implements RestServiceHandler {
             case TRACE -> new HttpTrace(address);
         };
 
+        // A request config replaces the client's default config, so set every timeout here,
+        // the same way the SOAP sender does
         int timeout = TimeUtils.secondsToMillis(serverConfProvider
                 .getServiceTimeout(requestProxyMessage.getRest().getServiceId()));
         req.setConfig(RequestConfig
                 .custom()
+                .setConnectTimeout(timeout)
+                .setConnectionRequestTimeout(timeout)
                 .setSocketTimeout(timeout)
                 .build());
 
