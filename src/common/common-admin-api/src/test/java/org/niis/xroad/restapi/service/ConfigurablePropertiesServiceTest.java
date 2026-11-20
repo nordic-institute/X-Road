@@ -33,18 +33,22 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Prefix;
 import org.niis.xroad.common.properties.config.Validator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -72,6 +76,8 @@ class ConfigurablePropertiesServiceTest {
             .withDefaultValue(5566).exposedInUi().build();
     private static final ConfigKey<String> SCOPELESS_KEY = SCOPELESS.string("temp-files-path")
             .withValidator(Validator.nonEmpty()).exposedInUi().build();
+    private static final ConfigKey<String> CONTAINER_KEY = SCOPED.string("mode-aware")
+            .withDefaultValue("native-value").withContainerDefaultValue("container-value").exposedInUi().build();
     private static final ConfigKey<String> HIDDEN_KEY = SCOPED.string("hidden")
             .withDefaultValue("secret").build();
 
@@ -80,22 +86,41 @@ class ConfigurablePropertiesServiceTest {
             ConfigKeyProvider.forPrefix(OTHER_SCOPED),
             ConfigKeyProvider.forPrefix(SCOPELESS));
 
-    private static final ConfigurablePropertySource TEST_SOURCE = new ConfigurablePropertySource() {
-        @Override
-        public List<ConfigKeyProvider> getConfigKeyProviders() {
-            return PROVIDERS;
-        }
+    private static final ConfigurablePropertySource TEST_SOURCE = sourceWith(DeploymentMode.NATIVE,
+            ActiveCountryProfile.NONE);
 
-        @Override
-        public String categoryToScope(Category category) {
-            return switch (category) {
-                case PROXY -> "proxy";
-                case SIGNER -> "signer";
-                case COMMON -> null;
-                default -> throw new IllegalArgumentException("Unexpected category: " + category);
-            };
-        }
-    };
+    private static ConfigurablePropertySource sourceWith(DeploymentMode mode, ActiveCountryProfile profile) {
+        return new ConfigurablePropertySource() {
+            @Override
+            public List<ConfigKeyProvider> getConfigKeyProviders() {
+                return PROVIDERS;
+            }
+
+            @Override
+            public DeploymentMode deploymentMode() {
+                return mode;
+            }
+
+            @Override
+            public ActiveCountryProfile countryProfile() {
+                return profile;
+            }
+
+            @Override
+            public String categoryToScope(Category category) {
+                return switch (category) {
+                    case PROXY -> "proxy";
+                    case SIGNER -> "signer";
+                    case COMMON -> null;
+                    default -> throw new IllegalArgumentException("Unexpected category: " + category);
+                };
+            }
+        };
+    }
+
+    private static final String PROFILE_VALUE = "7";
+    private static final ActiveCountryProfile PROFILE_WITH_RETRY_COUNT =
+            new ActiveCountryProfile("XX", Map.of(EXPOSED_KEY.key(), PROFILE_VALUE));
 
     private static final String PROPERTY_NAME = EXPOSED_KEY.key();
     private static final String PROPERTY_VALUE = "10000";
@@ -209,6 +234,118 @@ class ConfigurablePropertiesServiceTest {
         Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
         assertNull(findProperty(systemParameters, SCOPELESS_PROPERTY_NAME).getScope());
+    }
+
+    @Test
+    void storedValueWinsOverProfileValueAndReportsDbSource() {
+        var profiledService = serviceWith(DeploymentMode.NATIVE, PROFILE_WITH_RETRY_COUNT);
+        when(repository.findAll()).thenReturn(List.of(row(PROPERTY_NAME, PROPERTY_VALUE_2)));
+
+        var parameter = findProperty(profiledService.getConfigurationProperties(), PROPERTY_NAME);
+
+        assertEquals(PROPERTY_VALUE_2, parameter.getEffectiveValue());
+        assertEquals(PROPERTY_VALUE_2, parameter.getCurrentValue());
+        assertEquals(ConfigurablePropertyValueSource.DB, parameter.getValueSource());
+        assertNull(parameter.getCountryProfile());
+    }
+
+    @Test
+    void profileValueWinsOverDefaultAndReportsProfileCode() {
+        var profiledService = serviceWith(DeploymentMode.NATIVE, PROFILE_WITH_RETRY_COUNT);
+        when(repository.findAll()).thenReturn(List.of());
+
+        var parameter = findProperty(profiledService.getConfigurationProperties(), PROPERTY_NAME);
+
+        assertEquals(PROFILE_VALUE, parameter.getEffectiveValue());
+        assertEquals(DEFAULT_VALUE, parameter.getDefaultValue());
+        assertNull(parameter.getCurrentValue());
+        assertEquals(ConfigurablePropertyValueSource.COUNTRY_PROFILE, parameter.getValueSource());
+        assertEquals("XX", parameter.getCountryProfile());
+    }
+
+    @Test
+    void keyWithoutStoredOrProfileValueReportsDefaultSource() {
+        var profiledService = serviceWith(DeploymentMode.NATIVE, PROFILE_WITH_RETRY_COUNT);
+        when(repository.findAll()).thenReturn(List.of());
+
+        var parameter = findProperty(profiledService.getConfigurationProperties(), CATALOGUE_PROPERTY_NAME);
+
+        assertEquals(CATALOGUE_DEFAULT_VALUE, parameter.getEffectiveValue());
+        assertEquals(ConfigurablePropertyValueSource.DEFAULT, parameter.getValueSource());
+        assertNull(parameter.getCountryProfile());
+    }
+
+    @Test
+    void containerizedModeReportsContainerDefaultAndNativeModeReportsNativeDefault() {
+        when(repository.findAll()).thenReturn(List.of());
+
+        var containerized = findProperty(
+                serviceWith(DeploymentMode.CONTAINERIZED, ActiveCountryProfile.NONE).getConfigurationProperties(),
+                CONTAINER_KEY.key());
+        var nativeMode = findProperty(
+                serviceWith(DeploymentMode.NATIVE, ActiveCountryProfile.NONE).getConfigurationProperties(),
+                CONTAINER_KEY.key());
+
+        assertEquals("container-value", containerized.getEffectiveValue());
+        assertEquals(ConfigurablePropertyValueSource.DEFAULT, containerized.getValueSource());
+        assertEquals("container-value", containerized.getDefaultValue());
+        assertEquals("native-value", nativeMode.getEffectiveValue());
+        assertEquals("native-value", nativeMode.getDefaultValue());
+    }
+
+    @Test
+    void containerizedModeFallsBackToDefaultForKeyWithoutContainerDefault() {
+        when(repository.findAll()).thenReturn(List.of());
+
+        var parameter = findProperty(
+                serviceWith(DeploymentMode.CONTAINERIZED, ActiveCountryProfile.NONE).getConfigurationProperties(),
+                PROPERTY_NAME);
+
+        assertEquals(DEFAULT_VALUE, parameter.getEffectiveValue());
+    }
+
+    @Test
+    void profileValueWinsOverContainerDefault() {
+        var profile = new ActiveCountryProfile("XX", Map.of(CONTAINER_KEY.key(), "profile-value"));
+        var profiledService = serviceWith(DeploymentMode.CONTAINERIZED, profile);
+        when(repository.findAll()).thenReturn(List.of());
+
+        var parameter = findProperty(profiledService.getConfigurationProperties(), CONTAINER_KEY.key());
+
+        assertEquals("profile-value", parameter.getEffectiveValue());
+        assertEquals(ConfigurablePropertyValueSource.COUNTRY_PROFILE, parameter.getValueSource());
+    }
+
+    @Test
+    void getEffectiveValueReturnsStoredValueOverProfileValue() {
+        var profiledService = serviceWith(DeploymentMode.NATIVE, PROFILE_WITH_RETRY_COUNT);
+        when(repository.findByPropertyKey(PROPERTY_NAME))
+                .thenReturn(Optional.of(row(PROPERTY_NAME, PROPERTY_VALUE_2)));
+
+        assertEquals(Optional.of(PROPERTY_VALUE_2), profiledService.getEffectiveValue(PROPERTY_NAME));
+    }
+
+    @Test
+    void getEffectiveValueReturnsProfileValueWhenNothingIsStored() {
+        var profiledService = serviceWith(DeploymentMode.NATIVE, PROFILE_WITH_RETRY_COUNT);
+        when(repository.findByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
+
+        assertEquals(Optional.of(PROFILE_VALUE), profiledService.getEffectiveValue(PROPERTY_NAME));
+    }
+
+    @Test
+    void getEffectiveValueReturnsModeAwareDefaultWhenNothingIsStoredOrProfiled() {
+        when(repository.findByPropertyKey(CONTAINER_KEY.key())).thenReturn(Optional.empty());
+
+        assertEquals(Optional.of("container-value"),
+                serviceWith(DeploymentMode.CONTAINERIZED, ActiveCountryProfile.NONE).getEffectiveValue(CONTAINER_KEY.key()));
+        assertEquals(Optional.of("native-value"),
+                serviceWith(DeploymentMode.NATIVE, ActiveCountryProfile.NONE).getEffectiveValue(CONTAINER_KEY.key()));
+    }
+
+    @Test
+    void getEffectiveValueIsEmptyForKeyThatIsNotExposed() {
+        assertEquals(Optional.empty(), service.getEffectiveValue(HIDDEN_KEY.key()));
     }
 
     @Test
@@ -338,6 +475,17 @@ class ConfigurablePropertiesServiceTest {
         service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, SCOPELESS_PROPERTY_VALUE);
 
         verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, "");
+    }
+
+    private ConfigurablePropertiesService serviceWith(DeploymentMode mode, ActiveCountryProfile profile) {
+        return new ConfigurablePropertiesService(auditDataHelper, repository, sourceWith(mode, profile));
+    }
+
+    private static ConfigurationPropertyEntity row(String key, String value) {
+        var entity = new ConfigurationPropertyEntity();
+        entity.setPropertyKey(key);
+        entity.setPropertyValue(value);
+        return entity;
     }
 
     private static ConfigurablePropertyDto findProperty(

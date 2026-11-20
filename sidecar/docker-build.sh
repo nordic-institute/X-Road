@@ -137,20 +137,9 @@ build() {
   docker build --progress=plain -f "$1" "${build_args[@]}" "${package_args[@]+"${package_args[@]}"}" "${MIRROR_BUILD_ARGS[@]}" "${SHARED_SCRIPT_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
 }
 
-copy_variant_conf() {
-  local variant=$1
-  local build_conf_dir="$dir/build/etc/xroad/conf.d"
-  rm -rf build
-  mkdir -p "$build_conf_dir"
-  cp "$dir/../deployment/native-packages/src/xroad/default-configuration/override-securityserver-$variant.ini" "$build_conf_dir"
-}
-
-
 build_variant() {
   echo "BUILDING variant $tag:$version$1-$2"
-  copy_variant_conf "$2"
   docker build --progress=plain -f "$dir/Dockerfile-variant" \
-    --build-arg "VERSION=$version" \
     --build-arg "FROM=$tag:$version$1" \
     --build-arg "VARIANT=$2" \
     -t "$tag:$version$1-$2" "$dir"

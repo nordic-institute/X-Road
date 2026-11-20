@@ -31,8 +31,8 @@ import java.util.Map;
 
 /**
  * Explicit override layer supplied to the Spring {@code XRoadConfig} wiring: dotted effective key to raw
- * value. Production supplies {@link #none()} so configuration comes from DB overrides and packaged defaults
- * only; test wiring supplies a populated instance so test configuration reaches the resolver.
+ * value. Production supplies {@link #none()} so configuration comes from DB overrides, the country profile
+ * and packaged defaults; test wiring supplies a populated instance so test configuration reaches the resolver.
  *
  * @param values effective key to raw override value
  */

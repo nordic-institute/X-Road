@@ -52,11 +52,6 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
 
     private static final CommonConfigKeys INSTANCE = new CommonConfigKeys();
 
-    /** {@code xroad.common.instance-country} — active country overlay flag; no default. */
-    public static final ConfigKey<String> INSTANCE_COUNTRY = COMMON
-            .string("instance-country")
-            .build();
-
     /** {@code xroad.common.temp-files-path} — base directory for temporary files. */
     public static final ConfigKey<String> TEMP_FILES_PATH = COMMON
             .string("temp-files-path")

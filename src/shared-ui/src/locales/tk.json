@@ -172,9 +172,15 @@
       "header": {
         "propertyName": "Häsiýetiň ady",
         "currentValue": "Häzirki baha",
+        "source": "Çeşme",
         "defaultValue": "Deslapky baha",
         "description": "Düşündiriş"
       }
+    },
+    "source": {
+      "default": "Deslapky",
+      "countryProfile": "Ýurt profili {country}",
+      "db": "Maglumatlar bazasy"
     }
   },
   "error_code": {

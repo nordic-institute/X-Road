@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.edc.extension.bridge;
 
-import ee.ria.xroad.common.TestPortUtils;
-
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsServer;
 import okhttp3.OkHttpClient;
@@ -45,7 +43,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -53,12 +52,19 @@ import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -70,12 +76,17 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -93,6 +104,13 @@ import static org.mockito.Mockito.when;
 class XRoadTlsOkHttpClientExtensionTest {
 
     private static final String INSTANCE_IDENTIFIER = "TEST";
+    private static final String CLUSTER_HOST = "cluster.cs.test";
+    private static final InetAddress DEAD_ADDRESS = InetAddress.ofLiteral("192.0.2.1");
+    private static final InetAddress LIVE_ADDRESS = InetAddress.ofLiteral("127.0.0.1");
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
+    private static final Duration FAST_SKIP_LIMIT = CONNECT_TIMEOUT.minusSeconds(1);
+    private static final String DEAD_CONNECT_CLOSED = "closed";
+    private static final String DEAD_CONNECT_TIMED_OUT = "timed out";
 
     @Mock
     private ServiceExtensionContext context;
@@ -216,15 +234,74 @@ class XRoadTlsOkHttpClientExtensionTest {
         var ca = selfSignedCa("Any CA");
         startHttpsServer(issueLeaf(ca, "any"));
         stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
-        lenient().when(context.getSetting(ArgumentMatchers.eq("edc.http.client.timeout.connect"), ArgumentMatchers.anyLong()))
-                .thenReturn(3L);
-        lenient().when(context.getSetting(ArgumentMatchers.eq("edc.http.client.timeout.read"), ArgumentMatchers.anyLong()))
+        stubConnectTimeout();
+        lenient().when(context.getSetting(eq("edc.http.client.timeout.read"), anyLong()))
                 .thenReturn(45L);
 
         var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
 
-        assertThat(client.connectTimeoutMillis()).isEqualTo(3_000);
+        assertThat(client.connectTimeoutMillis()).isEqualTo(CONNECT_TIMEOUT.toMillis());
         assertThat(client.readTimeoutMillis()).isEqualTo(45_000);
+    }
+
+    @ParameterizedTest(name = "dead address first: {0}")
+    @ValueSource(booleans = {true, false})
+    void aDeadAddressOfAMultiAddressHostIsSkippedWellBeforeTheConnectTimeout(boolean deadAddressFirst) throws Exception {
+        var ca = selfSignedCa("Any CA");
+        var liveServer = startHttpsServer(issueLeaf(ca, "any", new GeneralName(GeneralName.dNSName, CLUSTER_HOST)));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+        stubConnectTimeout();
+        var addresses = deadAddressFirst
+                ? List.of(DEAD_ADDRESS, LIVE_ADDRESS)
+                : List.of(LIVE_ADDRESS, DEAD_ADDRESS);
+        var factory = new HangingConnectSocketFactory();
+        var extension = new XRoadTlsOkHttpClientExtension();
+        try {
+            var client = extension.okHttpClient(context).newBuilder()
+                    .proxy(Proxy.NO_PROXY)
+                    .dns(_ -> addresses)
+                    .socketFactory(factory)
+                    .build();
+
+            var started = System.nanoTime();
+            var code = get(client, CLUSTER_HOST, liveServer);
+            var elapsed = Duration.ofNanos(System.nanoTime() - started);
+
+            assertThat(code).isEqualTo(200);
+            assertThat(elapsed).isLessThan(FAST_SKIP_LIMIT);
+            if (deadAddressFirst) {
+                assertThat(factory.deadOutcome).succeedsWithin(CONNECT_TIMEOUT).isEqualTo(DEAD_CONNECT_CLOSED);
+            } else {
+                assertThat(factory.deadOutcome).isNotDone();
+            }
+        } finally {
+            extension.shutdown();
+        }
+    }
+
+    @Test
+    void withNoConfiguredValueTheDispatcherUsesTheDefaultPerHostLimitAndMaxRequestsIsAtLeastThat() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.dispatcher().getMaxRequestsPerHost()).isEqualTo(8);
+        assertThat(client.dispatcher().getMaxRequests()).isGreaterThanOrEqualTo(8);
+    }
+
+    @Test
+    void aConfiguredValueReachesTheDispatcherAndMaxRequestsIsNeverBelowIt() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+        lenient().when(context.getSetting("xroad.dsp.outbound-http.max-requests-per-host", 8)).thenReturn(200);
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.dispatcher().getMaxRequestsPerHost()).isEqualTo(200);
+        assertThat(client.dispatcher().getMaxRequests()).isGreaterThanOrEqualTo(200);
     }
 
     @Test
@@ -250,12 +327,24 @@ class XRoadTlsOkHttpClientExtensionTest {
         // No setting configured in these tests: mirrors real behaviour (SettingResolver returns the
         // caller's own default) rather than Mockito's zero-value default, which would otherwise hand
         // PeriodicMaterialReloader.schedule a zero-second interval and blow up scheduleWithFixedDelay.
-        lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.anyLong()))
+        lenient().when(context.getSetting(anyString(), anyLong()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
+        // Same reasoning as the anyLong() stub above, for the int-typed per-host limit setting.
+        lenient().when(context.getSetting(anyString(), anyInt()))
                 .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
+    private void stubConnectTimeout() {
+        lenient().when(context.getSetting(eq("edc.http.client.timeout.connect"), anyLong()))
+                .thenReturn(CONNECT_TIMEOUT.toSeconds());
+    }
+
     private static int get(OkHttpClient client, HttpsServer server) throws Exception {
-        var request = new Request.Builder().url(URI.create("https://127.0.0.1:" + server.getAddress().getPort() + "/").toURL()).build();
+        return get(client, LIVE_ADDRESS.getHostAddress(), server);
+    }
+
+    private static int get(OkHttpClient client, String host, HttpsServer server) throws Exception {
+        var request = new Request.Builder().url(URI.create("https://" + host + ":" + server.getAddress().getPort() + "/").toURL()).build();
         try (var response = client.newCall(request).execute()) {
             return response.code();
         }
@@ -274,8 +363,7 @@ class XRoadTlsOkHttpClientExtensionTest {
         var sslContext = SSLContext.getInstance("TLS");
         sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
 
-        var port = TestPortUtils.findRandomPort();
-        var httpsServer = HttpsServer.create(new InetSocketAddress("127.0.0.1", port), 0);
+        var httpsServer = HttpsServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext));
         httpsServer.createContext("/", exchange -> {
             exchange.sendResponseHeaders(200, 0);
@@ -298,16 +386,18 @@ class XRoadTlsOkHttpClientExtensionTest {
     }
 
     private static TestLeaf issueLeaf(TestCa ca, String commonName) throws Exception {
+        return issueLeaf(ca, commonName, new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
+    }
+
+    private static TestLeaf issueLeaf(TestCa ca, String commonName, GeneralName subjectAlternativeName) throws Exception {
         var leafKeyPair = generateKeyPair();
         var issuer = new X500Name(ca.certificate().getSubjectX500Principal().getName());
         var subject = new X500Name("CN=" + commonName);
-        // OkHttp verifies the hostname independently of the trust manager under test here, against whatever
-        // address the client actually dials (127.0.0.1) — irrelevant to the trust decision, but still required
-        // for the real HTTPS request in this test to reach the trust manager check at all.
+        // OkHttp verifies the hostname independently of the trust manager under test. The SAN must match the host
+        // in the request URL: the IP address for 127.0.0.1, the DNS name for cluster.cs.test.
         var builder = new JcaX509v3CertificateBuilder(issuer, BigInteger.valueOf(System.nanoTime()), notBefore(), notAfter(), subject,
                 leafKeyPair.getPublic())
-                .addExtension(Extension.subjectAlternativeName, false,
-                        new GeneralNames(new GeneralName(GeneralName.iPAddress, "127.0.0.1")));
+                .addExtension(Extension.subjectAlternativeName, false, new GeneralNames(subjectAlternativeName));
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(ca.keyPair().getPrivate());
         var leafCertificate = new JcaX509CertificateConverter().getCertificate(builder.build(signer));
         return new TestLeaf(leafKeyPair.getPrivate(), new X509Certificate[] {leafCertificate, ca.certificate()});
@@ -325,6 +415,67 @@ class XRoadTlsOkHttpClientExtensionTest {
 
     private static Date notAfter() {
         return Date.from(Instant.now().plus(365, ChronoUnit.DAYS));
+    }
+
+    /**
+     * A connect to {@code DEAD_ADDRESS} hangs until the connect timeout or until the socket is closed, and the
+     * way it ends is recorded in {@code deadOutcome}. Connects to other addresses work normally.
+     */
+    private static final class HangingConnectSocketFactory extends SocketFactory {
+        private final SocketFactory delegate = SocketFactory.getDefault();
+        private final CompletableFuture<String> deadOutcome = new CompletableFuture<>();
+
+        @Override
+        public Socket createSocket() {
+            return new Socket() {
+                private final CountDownLatch closed = new CountDownLatch(1);
+
+                @Override
+                public void connect(SocketAddress endpoint, int timeoutMillis) throws IOException {
+                    if (!(endpoint instanceof InetSocketAddress address) || !DEAD_ADDRESS.equals(address.getAddress())) {
+                        super.connect(endpoint, timeoutMillis);
+                        return;
+                    }
+                    try {
+                        if (closed.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
+                            deadOutcome.complete(DEAD_CONNECT_CLOSED);
+                            throw new SocketException("Socket closed");
+                        }
+                    } catch (InterruptedException _) {
+                        Thread.currentThread().interrupt();
+                        throw new SocketException("Interrupted");
+                    }
+                    deadOutcome.complete(DEAD_CONNECT_TIMED_OUT);
+                    throw new SocketTimeoutException("connect timed out");
+                }
+
+                @Override
+                public void close() throws IOException {
+                    closed.countDown();
+                    super.close();
+                }
+            };
+        }
+
+        @Override
+        public Socket createSocket(String host, int port) throws IOException {
+            return delegate.createSocket(host, port);
+        }
+
+        @Override
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException {
+            return delegate.createSocket(host, port, localHost, localPort);
+        }
+
+        @Override
+        public Socket createSocket(InetAddress host, int port) throws IOException {
+            return delegate.createSocket(host, port);
+        }
+
+        @Override
+        public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) throws IOException {
+            return delegate.createSocket(address, port, localAddress, localPort);
+        }
     }
 
     private record TestCa(KeyPair keyPair, X509Certificate certificate) {

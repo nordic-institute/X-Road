@@ -174,9 +174,15 @@
       "header": {
         "propertyName": "Nombre de propiedad",
         "currentValue": "Valor actual",
+        "source": "Origen",
         "defaultValue": "Valor predeterminado",
         "description": "Descripción"
       }
+    },
+    "source": {
+      "default": "Predeterminado",
+      "countryProfile": "Perfil de país {country}",
+      "db": "Base de datos"
     }
   },
   "error_code": {

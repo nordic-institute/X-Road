@@ -8,6 +8,7 @@ dependencies {
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:edc-tls-reload"))
   implementation(project(":lib:edc-tls-trust"))
+  implementation(project(":lib:properties-core"))
 
   implementation(libs.edc.boot)
   implementation(libs.edc.lib.core)

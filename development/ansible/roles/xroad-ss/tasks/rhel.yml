@@ -60,7 +60,7 @@
 
 - name: install xroad packages and dependencies from set up repository
   yum:
-    name: "{{ vars['xroad_varpkg_' + variant] }}"
+    name: "{{ xroad_ss_package }}"
     state: latest
   tags:
     - install-xroad-ss-packages
