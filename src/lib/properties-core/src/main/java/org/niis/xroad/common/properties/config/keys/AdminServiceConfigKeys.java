@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
+import static org.niis.xroad.common.properties.config.Validator.durationAtLeast;
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 import static org.niis.xroad.common.properties.config.Validator.positiveInt;
 import static org.niis.xroad.common.properties.config.Validator.range;
@@ -58,6 +59,7 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     private static final Prefix TLS_CERT_PROVISIONING = ADMIN.subPrefix("tls").subPrefix("certificate-provisioning");
     private static final Prefix ROLE_MAPPINGS = ADMIN.subPrefix("complementary-user-role-mappings");
     private static final Prefix DATASPACE = ADMIN.subPrefix("dataspace");
+    private static final Prefix MANAGEMENT_REQUESTS = ADMIN.subPrefix("management-requests");
 
     // admin-service config that lives at the top-level xroad.* namespace (not under xroad.proxy-ui-api),
     // stored as a single YAML document per key and parsed by the consuming beans
@@ -544,6 +546,16 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .integer("publication-submitted-timeout-minutes")
             .withDefaultValue(60)
             .withValidator(range(5, 10080))
+            .build();
+
+    /**
+     * {@code xroad.proxy-ui-api.management-requests.address-change-expiry}. How long a requested address
+     * change waits for globalconf to show the new address before the request is dropped.
+     */
+    public static final ConfigKey<Duration> ADDRESS_CHANGE_EXPIRY = MANAGEMENT_REQUESTS
+            .keyDuration("address-change-expiry")
+            .withDefaultValue(Duration.ofMinutes(180))
+            .withValidator(durationAtLeast(Duration.ofMinutes(1)))
             .build();
 
     /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-contacts} */

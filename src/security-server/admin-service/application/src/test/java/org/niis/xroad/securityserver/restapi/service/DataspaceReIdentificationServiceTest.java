@@ -164,6 +164,40 @@ class DataspaceReIdentificationServiceTest {
     }
 
     @Test
+    void reIdentifyReturnsZeroAndStartsNoWorkerWhenNoBindingDiffersFromTheRegisteredAddress() {
+        bindAll(NEW_AUTHORITY, PublicationState.PUBLISHED);
+
+        int retired = service.reIdentify();
+
+        assertThat(retired).isZero();
+        verify(provisioningTrigger, never()).provisionParticipantAsync();
+        assertThat(List.of(system, owner, member)).allMatch(row -> row.getState() == ParticipantState.ACTIVE);
+    }
+
+    @Test
+    void reIdentifyAfterTheOperatorActionRetiresNothingMoreAndStartsNoSecondWorker() {
+        bindAll(OLD_AUTHORITY, PublicationState.PUBLISHED);
+        service.reIdentifyOnOperatorRequest();
+
+        int retired = service.reIdentify();
+
+        assertThat(retired).isZero();
+        verify(dsParticipantRepository).retireBindings(List.of(SYSTEM_ID, OWNER_ID, MEMBER_ID));
+        verify(provisioningTrigger).provisionParticipantAsync();
+    }
+
+    @Test
+    void theOperatorActionAfterReIdentifyIsRefusedAsNotNeeded() {
+        bindAll(OLD_AUTHORITY, PublicationState.PUBLISHED);
+        assertThat(service.reIdentify()).isEqualTo(3);
+
+        assertRefusedWith(ErrorMessage.RE_IDENTIFICATION_NOT_NEEDED);
+
+        verify(provisioningTrigger).provisionParticipantAsync();
+        assertThat(List.of(system, owner, member)).allMatch(row -> row.getState() == ParticipantState.DECOMMISSIONED);
+    }
+
+    @Test
     void isRefusedWithTheAddressUnknownCodeWhenTheServerHasNoRegisteredAddress() {
         bindAll(OLD_AUTHORITY, PublicationState.PUBLISHED);
         when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(SERVER));

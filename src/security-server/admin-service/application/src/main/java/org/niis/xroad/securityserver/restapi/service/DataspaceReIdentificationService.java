@@ -68,18 +68,34 @@ public class DataspaceReIdentificationService {
     private final DataspaceParticipantProvisioningTrigger provisioningTrigger;
 
     /**
-     * Re-identifies on the operator's request. Retires nothing unless the registered address is known, the
-     * provisioning worker is active and could bind again, and every DID it would bind can be created at the
-     * registered address. Retires exactly the bindings it checked. Starts the provisioning worker after the commit
-     * when it retired a binding.
+     * Re-identifies on the operator's request: as {@link #reIdentify()}, and refuses when no binding differs from
+     * the registered address.
      *
      * @return the number of bindings retired, always above 0
-     * @throws ConflictException when the registered address is not known, when the provisioning worker is not
-     *                           active, when the worker could not bind again, when a DID cannot be created at the
-     *                           registered address, or when no active binding differs from the registered address
+     * @throws ConflictException when {@link #reIdentify()} refuses, or when no active binding differs from the
+     *                           registered address
      */
     @Transactional
     public int reIdentifyOnOperatorRequest() {
+        int retired = reIdentify();
+        if (retired == 0) {
+            throw new ConflictException(RE_IDENTIFICATION_NOT_NEEDED.build());
+        }
+        return retired;
+    }
+
+    /**
+     * Retires nothing unless the registered address is known, the provisioning worker is active and could bind
+     * again, and every DID it would bind can be created at the registered address. Retires exactly the bindings it
+     * checked. Starts the provisioning worker after the commit when it retired a binding.
+     *
+     * @return the number of bindings retired, 0 when no active binding differs from the registered address
+     * @throws ConflictException when the registered address is not known, when the provisioning worker is not
+     *                           active, when the worker could not bind again, or when a DID cannot be created at
+     *                           the registered address
+     */
+    @Transactional
+    public int reIdentify() {
         var matcher = ownSecurityServerResolver.address().registeredAddress()
                 .map(RegisteredHostMatcher::of)
                 .filter(RegisteredHostMatcher::isRegisteredAddressUsable)
@@ -94,12 +110,11 @@ public class DataspaceReIdentificationService {
         var rowsToRetire = dsParticipantRepository.findDifferingBindings(matcher);
         failUnlessEveryDidCanBeMinted(rowsToRetire);
         int retired = dsParticipantRepository.retireBindings(rowsToRetire.stream().map(DsParticipantEntity::getId).toList());
-        if (retired == 0) {
-            throw new ConflictException(RE_IDENTIFICATION_NOT_NEEDED.build());
+        if (retired > 0) {
+            log.info("Dataspace: re-identification retired {} binding(s) whose DID host differs from the registered address",
+                    retired);
+            provisioningTrigger.provisionParticipantAsync();
         }
-        log.info("Dataspace: re-identification retired {} binding(s) whose DID host differs from the registered address",
-                retired);
-        provisioningTrigger.provisionParticipantAsync();
         return retired;
     }
 

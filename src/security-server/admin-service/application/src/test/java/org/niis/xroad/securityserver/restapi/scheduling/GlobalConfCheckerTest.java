@@ -37,18 +37,20 @@ import org.mockito.MockedStatic;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
-import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.PendingAddressChangeRepository;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
+import org.niis.xroad.securityserver.restapi.service.DataspaceReIdentificationService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
@@ -69,6 +71,7 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.niis.xroad.test.MutableClock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -82,7 +85,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -132,12 +138,14 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private OwnSecurityServerResolver ownSecurityServerResolver;
     @Autowired
     private PendingAddressChangeRepository pendingAddressChangeRepository;
-    @Autowired
-    private PersistenceUtils persistenceUtils;
     @MockitoBean
     private DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
     @MockitoBean
     private DataspaceDidAuthority dataspaceDidAuthority;
+    @MockitoBean
+    private DataspaceReIdentificationService reIdentificationService;
+    @Autowired
+    private PendingAddressChangeGlobalConfCheck pendingAddressChangeGlobalConfCheck;
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -148,6 +156,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private DsParticipantRepository dsParticipantRepository;
 
     private final Map<Long, String> clientStatusSnapshot = new HashMap<>();
+    private final MutableClock clock = new MutableClock(Instant.parse("2026-11-20T10:00:00Z"));
     private ParticipantRowTestUtils participantRows;
 
     private static final ClientId.Conf OWNER_MEMBER =
@@ -159,6 +168,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create(OWNER_MEMBER, "TEST-INMEM-SS");
     private static final SecurityServerId.Conf NEW_SS_ID = SecurityServerId.Conf.create(NEW_OWNER_MEMBER, "TEST-INMEM-SS");
     private static final String NEW_ADDRESS = "new.example.org";
+    private static final Duration EXPIRY = Duration.ofMinutes(180);
     private static final String KEY_OWNER_ID = "key-owner";
     private static final String CERT_OWNER_HASH = "cert-owner";
     private static final String KEY_NEW_OWNER_ID = "key-new-owner";
@@ -180,6 +190,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         jdbcTemplate.query("SELECT id, clientstatus FROM client",
                 (RowCallbackHandler) rs -> clientStatusSnapshot.put(rs.getLong("id"), rs.getString("clientstatus")));
         pendingAddressChangeRepository.delete();
+        doReturn(EXPIRY).when(adminServiceProperties).getAddressChangeExpiry();
+        pendingAddressChangeGlobalConfCheck.setClock(clock);
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
         doAnswer(answer -> null).when(globalConfProvider).reload();
 
@@ -474,79 +486,261 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
 
     @Test
-    public void registeredWithMatchingAddressClearsPendingAddressChange() {
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void registeredWithMatchingAddressReIdentifiesAndClearsPendingAddressChange() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
-        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
+        when(reIdentificationService.reIdentify()).thenReturn(3);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
+
         globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService).reIdentify();
         assertFalse(pendingAddress().isPresent());
     }
+
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void registeredWithMatchingAddressAfterTheExpiryStillReIdentifies() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, requestedAgo(EXPIRY.plusSeconds(1)));
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService).reIdentify();
+        assertFalse(pendingAddress().isPresent());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void expiredPendingAddressChangeIsDeletedWithoutReIdentifying() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn("old.example.org");
+        pendingAddressChangeRepository.save(NEW_ADDRESS, requestedAgo(EXPIRY));
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService, never()).reIdentify();
+        assertFalse(pendingAddress().isPresent());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void registeredWithDifferentAddressKeepsPendingAddressChange() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn("old.example.org");
-        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
+        pendingAddressChangeRepository.save(NEW_ADDRESS, requestedAgo(EXPIRY.minusSeconds(1)));
+
         globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService, never()).reIdentify();
         assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
     }
+
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void notRegisteredKeepsPendingAddressChangeAndSyncContinues() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(null);
-        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
+
         globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService, never()).reIdentify();
         assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
         verifySyncRan();
     }
+
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void globalConfUnavailableKeepsPendingAddressChangeAndSyncContinues() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID))
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable"));
-        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
+
         globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService, never()).reIdentify();
         assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
         verifySyncRan();
     }
+
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void aPendingAddressChangeReadAfterARestartStillLeadsToTheFlip() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        when(reIdentificationService.reIdentify()).thenReturn(3);
+        jdbcTemplate.update("INSERT INTO pending_address_change (id, requested_address, requested_at) VALUES (1, ?, ?)",
+                NEW_ADDRESS, LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC));
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService).reIdentify();
+        assertFalse(pendingAddress().isPresent());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void aSecondCheckAfterTheFlipChangesNothing() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        when(reIdentificationService.reIdentify()).thenReturn(3);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
+
+        globalConfChecker.checkGlobalConf();
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService, times(1)).reIdentify();
+        assertFalse(pendingAddress().isPresent());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void aRefusedReIdentificationStillDeletesThePendingAddressChange() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        when(reIdentificationService.reIdentify())
+                .thenThrow(new ConflictException(ErrorMessage.RE_IDENTIFICATION_CANNOT_BIND.build()));
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService, times(1)).reIdentify();
+        assertFalse(pendingAddress().isPresent());
+        verifySyncRan();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void anUnexpectedReIdentificationFailureKeepsThePendingAddressChangeForTheNextCheck() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        when(reIdentificationService.reIdentify())
+                .thenThrow(new IllegalStateException("boom"))
+                .thenReturn(3);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, requestedAgo(EXPIRY.minusSeconds(1)));
+
+        globalConfChecker.checkGlobalConf();
+
+        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
+        verifySyncRan();
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService, times(2)).reIdentify();
+        assertFalse(pendingAddress().isPresent());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void anUnexpectedReIdentificationFailureDropsThePendingAddressChangeOnceTheExpiryHasPassed() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        when(reIdentificationService.reIdentify()).thenThrow(new IllegalStateException("boom"));
+        pendingAddressChangeRepository.save(NEW_ADDRESS, requestedAgo(EXPIRY.minusSeconds(1)));
+
+        globalConfChecker.checkGlobalConf();
+
+        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
+
+        clock.advance(Duration.ofSeconds(1));
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService, times(2)).reIdentify();
+        assertFalse(pendingAddress().isPresent());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void anEarlierServerConfStepFailingStillLetsTheRegisteredAddressFlip() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        when(reIdentificationService.reIdentify()).thenReturn(3);
+        when(signerRpcClient.getTokens()).thenThrow(new IllegalStateException("signer unavailable"));
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService).reIdentify();
+        assertFalse(pendingAddress().isPresent());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void aRolledBackServerConfTransactionStillLetsTheRegisteredAddressFlip() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        when(reIdentificationService.reIdentify()).thenReturn(3);
+        when(signerRpcClient.getTokens()).thenAnswer(answer -> {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            throw new IllegalStateException("signer unavailable");
+        });
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService).reIdentify();
+        assertFalse(pendingAddress().isPresent());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void secondaryNodeLeavesThePendingAddressChangeAlone() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
+
+        try (MockedStatic<NodeProperties> nodePropertiesMock = mockStatic(NodeProperties.class)) {
+            nodePropertiesMock.when(NodeProperties::getServerNodeType).thenReturn(SECONDARY);
+            globalConfChecker.checkGlobalConf();
+        }
+
+        verify(reIdentificationService, never()).reIdentify();
+        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void secondCycleWhileNotRegisteredChangesNothingMore() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(null);
-        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
         globalConfChecker.checkGlobalConf();
-        var subsystemStatusAfterFirstCycle = clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus();
+        var subsystemStatusAfterFirstCycle = clientStatus(SUBSYSTEM);
         globalConfChecker.checkGlobalConf();
         assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
-        assertEquals(subsystemStatusAfterFirstCycle, clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus());
+        assertEquals(subsystemStatusAfterFirstCycle, clientStatus(SUBSYSTEM));
     }
+
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void ownerNotInitialisedSkipsServerConfUpdate() {
         doReturn(new OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
-        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
         globalConfChecker.checkGlobalConf();
         verifySyncSkipped();
     }
+
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void secondCycleWhileOwnerNotInitialisedChangesNothingMore() {
         doReturn(new OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
-        pendingAddressChangeRepository.save(NEW_ADDRESS, Instant.now());
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
         globalConfChecker.checkGlobalConf();
         globalConfChecker.checkGlobalConf();
         verifySyncSkipped();
     }
+
     private Optional<String> pendingAddress() {
-        persistenceUtils.flush();
-        persistenceUtils.getCurrentSession().clear();
         return pendingAddressChangeRepository.findRequestedAddress();
     }
 
+    private Instant requestedAgo(Duration age) {
+        return clock.instant().minus(age);
+    }
+
     private void verifySyncRan() {
-        assertEquals(Client.STATUS_GLOBALERR, clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus());
+        assertEquals(Client.STATUS_GLOBALERR, clientStatus(SUBSYSTEM));
         verify(signerRpcClient).getTokens();
         verify(globalConfProvider).getApprovedTsps(any());
     }
+
     private void verifySyncSkipped() {
         assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
-        assertEquals(Client.STATUS_REGISTERED, clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus());
+        assertEquals(Client.STATUS_REGISTERED, clientStatus(SUBSYSTEM));
         verify(ownSecurityServerResolver, never()).address(any(SecurityServerId.class));
         verify(signerRpcClient, never()).getTokens();
         verify(globalConfProvider, never()).getApprovedTsps(any());
         verify(globalConfProvider, never()).getServerOwner(any());
+        verify(reIdentificationService, never()).reIdentify();
     }
 
     @Test
@@ -715,6 +909,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         }
         participantRows.inNewTransaction(() -> {
             jdbcTemplate.update("DELETE FROM ds_participant WHERE id IN (?, ?)", SYSTEM_ROW_ID, MEMBER_ROW_ID);
+            jdbcTemplate.update("DELETE FROM pending_address_change");
             clientStatusSnapshot.forEach((id, status) ->
                     jdbcTemplate.update("UPDATE client SET clientstatus = ? WHERE id = ?", status, id));
         });
