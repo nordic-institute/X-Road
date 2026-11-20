@@ -31,7 +31,7 @@ package org.niis.xroad.securityserver.restapi.service;
  */
 public enum PendingAddressChangeAction {
     /** Globalconf shows the requested address: re-identify the participants, then drop the request. */
-    FLIP,
+    RE_IDENTIFY,
     /** The request waited too long: drop it without re-identifying. */
     EXPIRE,
     /** Leave the request as it is. */

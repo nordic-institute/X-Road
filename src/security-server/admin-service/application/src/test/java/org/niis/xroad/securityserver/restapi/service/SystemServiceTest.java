@@ -65,7 +65,9 @@ import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -264,6 +266,17 @@ public class SystemServiceTest {
         var storeThenSend = inOrder(pendingAddressChangeRepository, managementRequestSenderService);
         storeThenSend.verify(pendingAddressChangeRepository).save(eq(SERVER_ADDRESS), any(Instant.class));
         storeThenSend.verify(managementRequestSenderService).sendAddressChangeRequest(SERVER_ADDRESS);
+    }
+
+    @Test
+    public void changeSecurityServerAddressStoresTheTimeOfTheRequest() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(OWN_SERVER_ID, "ss.address"));
+        var requestedAt = Instant.parse("2026-11-20T10:15:30Z");
+        systemService.setClock(Clock.fixed(requestedAt, ZoneOffset.UTC));
+
+        systemService.changeSecurityServerAddress(SERVER_ADDRESS);
+
+        verify(pendingAddressChangeRepository).save(SERVER_ADDRESS, requestedAt);
     }
 
     @Test

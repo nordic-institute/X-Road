@@ -29,6 +29,10 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -72,6 +76,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.niis.xroad.test.MutableClock;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -157,6 +162,10 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     private final Map<Long, String> clientStatusSnapshot = new HashMap<>();
     private final MutableClock clock = new MutableClock(Instant.parse("2026-11-20T10:00:00Z"));
+    private final ListAppender<ILoggingEvent> pendingAddressChangeLog = new ListAppender<>();
+    private final Logger pendingAddressChangeLogger =
+            (Logger) LoggerFactory.getLogger(PendingAddressChangeGlobalConfCheck.class);
+    private Level pendingAddressChangeLoggerLevel;
     private ParticipantRowTestUtils participantRows;
 
     private static final ClientId.Conf OWNER_MEMBER =
@@ -168,7 +177,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create(OWNER_MEMBER, "TEST-INMEM-SS");
     private static final SecurityServerId.Conf NEW_SS_ID = SecurityServerId.Conf.create(NEW_OWNER_MEMBER, "TEST-INMEM-SS");
     private static final String NEW_ADDRESS = "new.example.org";
-    private static final Duration EXPIRY = Duration.ofMinutes(180);
+    private static final Duration EXPIRY = Duration.ofMinutes(7);
     private static final String KEY_OWNER_ID = "key-owner";
     private static final String CERT_OWNER_HASH = "cert-owner";
     private static final String KEY_NEW_OWNER_ID = "key-new-owner";
@@ -192,6 +201,10 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         pendingAddressChangeRepository.delete();
         doReturn(EXPIRY).when(adminServiceProperties).getAddressChangeExpiry();
         pendingAddressChangeGlobalConfCheck.setClock(clock);
+        pendingAddressChangeLog.start();
+        pendingAddressChangeLogger.addAppender(pendingAddressChangeLog);
+        pendingAddressChangeLoggerLevel = pendingAddressChangeLogger.getLevel();
+        pendingAddressChangeLogger.setLevel(Level.INFO);
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
         doAnswer(answer -> null).when(globalConfProvider).reload();
 
@@ -524,6 +537,17 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void theNormalExpiryIsLoggedAtInfo() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn("old.example.org");
+        pendingAddressChangeRepository.save(NEW_ADDRESS, requestedAgo(EXPIRY));
+
+        globalConfChecker.checkGlobalConf();
+
+        assertEquals(List.of(Level.INFO), droppedRequestLogLevels());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void registeredWithDifferentAddressKeepsPendingAddressChange() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn("old.example.org");
         pendingAddressChangeRepository.save(NEW_ADDRESS, requestedAgo(EXPIRY.minusSeconds(1)));
@@ -563,7 +587,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void aPendingAddressChangeReadAfterARestartStillLeadsToTheFlip() {
+    public void aPendingAddressChangeReadAfterARestartStillLeadsToTheReIdentification() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
         when(reIdentificationService.reIdentify()).thenReturn(3);
         jdbcTemplate.update("INSERT INTO pending_address_change (id, requested_address, requested_at) VALUES (1, ?, ?)",
@@ -577,7 +601,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void aSecondCheckAfterTheFlipChangesNothing() {
+    public void aSecondCheckAfterTheReIdentificationChangesNothing() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
         when(reIdentificationService.reIdentify()).thenReturn(3);
         pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
@@ -640,11 +664,12 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         verify(reIdentificationService, times(2)).reIdentify();
         assertFalse(pendingAddress().isPresent());
+        assertEquals(List.of(Level.WARN), droppedRequestLogLevels());
     }
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void anEarlierServerConfStepFailingStillLetsTheRegisteredAddressFlip() {
+    public void anEarlierServerConfStepFailingStillLetsTheRegisteredAddressReIdentify() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
         when(reIdentificationService.reIdentify()).thenReturn(3);
         when(signerRpcClient.getTokens()).thenThrow(new IllegalStateException("signer unavailable"));
@@ -658,7 +683,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void aRolledBackServerConfTransactionStillLetsTheRegisteredAddressFlip() {
+    public void aRolledBackServerConfTransactionStillLetsTheRegisteredAddressReIdentify() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
         when(reIdentificationService.reIdentify()).thenReturn(3);
         when(signerRpcClient.getTokens()).thenAnswer(answer -> {
@@ -717,6 +742,13 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         globalConfChecker.checkGlobalConf();
         globalConfChecker.checkGlobalConf();
         verifySyncSkipped();
+    }
+
+    private List<Level> droppedRequestLogLevels() {
+        return pendingAddressChangeLog.list.stream()
+                .filter(event -> event.getFormattedMessage().contains("request dropped"))
+                .map(ILoggingEvent::getLevel)
+                .toList();
     }
 
     private Optional<String> pendingAddress() {
@@ -903,6 +935,9 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @After
     public void deleteSystemRow() {
+        pendingAddressChangeLogger.detachAppender(pendingAddressChangeLog);
+        pendingAddressChangeLogger.setLevel(pendingAddressChangeLoggerLevel);
+        pendingAddressChangeLog.stop();
         if (TestTransaction.isActive()) {
             TestTransaction.flagForRollback();
             TestTransaction.end();

@@ -53,7 +53,7 @@ public class PendingAddressChangeCheck {
     public static PendingAddressChangeAction decide(PendingAddressChangeEntity record,
             @Nullable String registeredAddress, Instant now, Duration expiry) {
         if (record.getRequestedAddress().equals(registeredAddress)) {
-            return PendingAddressChangeAction.FLIP;
+            return PendingAddressChangeAction.RE_IDENTIFY;
         }
         return isExpired(record, now, expiry) ? PendingAddressChangeAction.EXPIRE : PendingAddressChangeAction.KEEP;
     }
@@ -65,6 +65,6 @@ public class PendingAddressChangeCheck {
      * @return whether the request has waited for the whole expiry
      */
     public static boolean isExpired(PendingAddressChangeEntity record, Instant now, Duration expiry) {
-        return !now.isBefore(record.getRequestedAt().plus(expiry));
+        return Duration.between(record.getRequestedAt(), now).compareTo(expiry) >= 0;
     }
 }

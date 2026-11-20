@@ -45,13 +45,13 @@ class PendingAddressChangeCheckTest {
     private static final Instant AT_EXPIRY = REQUESTED_AT.plus(EXPIRY);
 
     @Test
-    void flipsWhenTheRequestedAddressIsRegistered() {
-        assertThat(decide(NEW_ADDRESS, BEFORE_EXPIRY)).isEqualTo(PendingAddressChangeAction.FLIP);
+    void reIdentifiesWhenTheRequestedAddressIsRegistered() {
+        assertThat(decide(NEW_ADDRESS, BEFORE_EXPIRY)).isEqualTo(PendingAddressChangeAction.RE_IDENTIFY);
     }
 
     @Test
-    void flipsWhenTheRequestedAddressIsRegisteredAfterTheExpiry() {
-        assertThat(decide(NEW_ADDRESS, AT_EXPIRY.plusSeconds(1))).isEqualTo(PendingAddressChangeAction.FLIP);
+    void reIdentifiesWhenTheRequestedAddressIsRegisteredAfterTheExpiry() {
+        assertThat(decide(NEW_ADDRESS, AT_EXPIRY.plusSeconds(1))).isEqualTo(PendingAddressChangeAction.RE_IDENTIFY);
     }
 
     @Test
@@ -79,10 +79,20 @@ class PendingAddressChangeCheckTest {
         assertThat(decide(null, BEFORE_EXPIRY)).isEqualTo(PendingAddressChangeAction.KEEP);
     }
 
+    @Test
+    void keepsWithoutOverflowWhenTheExpiryIsTheLongestDuration() {
+        assertThat(decide(OLD_ADDRESS, AT_EXPIRY, Duration.ofSeconds(Long.MAX_VALUE)))
+                .isEqualTo(PendingAddressChangeAction.KEEP);
+    }
+
     private static PendingAddressChangeAction decide(String registeredAddress, Instant now) {
+        return decide(registeredAddress, now, EXPIRY);
+    }
+
+    private static PendingAddressChangeAction decide(String registeredAddress, Instant now, Duration expiry) {
         var pending = new PendingAddressChangeEntity();
         pending.setRequestedAddress(NEW_ADDRESS);
         pending.setRequestedAt(REQUESTED_AT);
-        return PendingAddressChangeCheck.decide(pending, registeredAddress, now, EXPIRY);
+        return PendingAddressChangeCheck.decide(pending, registeredAddress, now, expiry);
     }
 }

@@ -36,7 +36,9 @@ import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningTrigger;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.ParticipantType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,29 +87,30 @@ public class DataspaceReIdentificationService {
     }
 
     /**
-     * Retires nothing unless the registered address is known, the provisioning worker is active and could bind
-     * again, and every DID it would bind can be created at the registered address. Retires exactly the bindings it
+     * Retires nothing unless the provisioning worker is active and the registered address is known. Returns 0 when no
+     * active binding differs from the registered address. Otherwise it retires nothing unless the worker could bind
+     * again and every DID it would bind can be created at the registered address. Retires exactly the bindings it
      * checked. Starts the provisioning worker after the commit when it retired a binding.
      *
      * @return the number of bindings retired, 0 when no active binding differs from the registered address
-     * @throws ConflictException when the registered address is not known, when the provisioning worker is not
-     *                           active, when the worker could not bind again, or when a DID cannot be created at
+     * @throws ConflictException when the provisioning worker is not active, when the registered address is not
+     *                           known, when the worker could not bind again, or when a DID cannot be created at
      *                           the registered address
      */
     @Transactional
     public int reIdentify() {
-        var matcher = ownSecurityServerResolver.address().registeredAddress()
-                .map(RegisteredHostMatcher::of)
-                .filter(RegisteredHostMatcher::isRegisteredAddressUsable)
-                .orElseThrow(() -> new ConflictException(RE_IDENTIFICATION_ADDRESS_UNKNOWN.build()));
         if (!provisioningTrigger.isActive()) {
             throw new ConflictException(RE_IDENTIFICATION_PROVISIONING_INACTIVE.build());
+        }
+        var matcher = usableRegisteredAddressMatcher();
+        var rowsToRetire = dsParticipantRepository.findDifferingBindings(matcher);
+        if (rowsToRetire.isEmpty()) {
+            return 0;
         }
         if (!DataspaceReadinessPredicates.mayBind(
                 readinessPredicates.isDataspaceReady(), readinessPredicates.hasRegisteredAuthCert())) {
             throw new ConflictException(RE_IDENTIFICATION_CANNOT_BIND.build());
         }
-        var rowsToRetire = dsParticipantRepository.findDifferingBindings(matcher);
         failUnlessEveryDidCanBeMinted(rowsToRetire);
         int retired = dsParticipantRepository.retireBindings(rowsToRetire.stream().map(DsParticipantEntity::getId).toList());
         if (retired > 0) {
@@ -116,6 +119,26 @@ public class DataspaceReIdentificationService {
             provisioningTrigger.provisionParticipantAsync();
         }
         return retired;
+    }
+
+    private RegisteredHostMatcher usableRegisteredAddressMatcher() {
+        var matcher = switch (ownSecurityServerResolver.address()) {
+            case OwnAddress.Registered(_, var address) -> RegisteredHostMatcher.of(address);
+            case OwnAddress.NotRegistered _ -> throw addressUnknown("the server is not registered", null);
+            case OwnAddress.GlobalConfUnavailable(var cause) -> throw addressUnknown("globalconf is unavailable: " + cause, cause);
+            case OwnerNotInitialised _ -> throw addressUnknown("the server owner is not initialised", null);
+        };
+        if (!matcher.isRegisteredAddressUsable()) {
+            throw addressUnknown("the registered address is not a usable host", null);
+        }
+        return matcher;
+    }
+
+    private static ConflictException addressUnknown(String reason, Throwable cause) {
+        log.info("Dataspace: re-identification refused, the registered address is not known: {}", reason);
+        return cause == null
+                ? new ConflictException(RE_IDENTIFICATION_ADDRESS_UNKNOWN.build())
+                : new ConflictException(cause, RE_IDENTIFICATION_ADDRESS_UNKNOWN.build());
     }
 
     private void failUnlessEveryDidCanBeMinted(List<DsParticipantEntity> rowsToRetire) {

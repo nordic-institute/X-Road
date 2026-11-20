@@ -548,16 +548,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .withValidator(range(5, 10080))
             .build();
 
-    /**
-     * {@code xroad.proxy-ui-api.management-requests.address-change-expiry}. How long a requested address
-     * change waits for globalconf to show the new address before the request is dropped.
-     */
-    public static final ConfigKey<Duration> ADDRESS_CHANGE_EXPIRY = MANAGEMENT_REQUESTS
-            .keyDuration("address-change-expiry")
-            .withDefaultValue(Duration.ofMinutes(180))
-            .withValidator(durationAtLeast(Duration.ofMinutes(1)))
-            .build();
-
     /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-contacts} */
     public static final ConfigKey<String[]> DATASPACE_TLS_CERTIFICATE_CONTACTS = DATASPACE
             .stringArray("tls-certificate-contacts")
@@ -578,6 +568,16 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> DATASPACE_TLS_CERTIFICATE_RENEWAL_FAILURE_NOTIFICATION_ENABLED = DATASPACE
             .bool("tls-certificate-renewal-failure-notification-enabled")
             .withDefaultValue(true)
+            .build();
+
+    /**
+     * {@code xroad.proxy-ui-api.management-requests.address-change-expiry}. How long a requested address
+     * change waits for globalconf to show the new address before the request is dropped.
+     */
+    public static final ConfigKey<Duration> ADDRESS_CHANGE_EXPIRY = MANAGEMENT_REQUESTS
+            .keyDuration("address-change-expiry")
+            .withDefaultValue(Duration.ofMinutes(180))
+            .withValidator(durationAtLeast(Duration.ofMinutes(1)))
             .build();
 
     private AdminServiceConfigKeys() {

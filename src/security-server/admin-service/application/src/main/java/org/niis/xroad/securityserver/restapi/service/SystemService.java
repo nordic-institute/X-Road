@@ -28,7 +28,9 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.crypto.Digests;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
@@ -61,6 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -106,6 +109,9 @@ public class SystemService {
     private final GlobalConfProvider globalConfProvider;
     private final ProxyRpcClient proxyRpcClient;
     private final OwnSecurityServerResolver ownSecurityServerResolver;
+
+    @Setter(AccessLevel.PACKAGE)
+    private Clock clock = Clock.systemUTC();
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -314,7 +320,7 @@ public class SystemService {
             throw new ConflictException(SAME_ADDRESS_CHANGE_REQUEST.build());
         }
         try {
-            pendingAddressChangeRepository.save(newAddress, Instant.now());
+            pendingAddressChangeRepository.save(newAddress, Instant.now(clock));
         } catch (DataIntegrityViolationException e) {
             throw new ConflictException(e, DUPLICATE_ADDRESS_CHANGE_REQUEST.build());
         }

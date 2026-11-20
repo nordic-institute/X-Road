@@ -46,6 +46,7 @@ import org.niis.xroad.securityserver.restapi.scheduling.NoopDataspaceParticipant
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 
@@ -147,13 +148,13 @@ class DataspaceReIdentificationServiceTest {
 
         assertRefusedWith(ErrorMessage.RE_IDENTIFICATION_NOT_NEEDED);
 
-        verify(dsParticipantRepository).retireBindings(List.of());
+        verify(dsParticipantRepository, never()).retireBindings(anyList());
         verify(provisioningTrigger, never()).provisionParticipantAsync();
         assertThat(List.of(system, owner, member)).allMatch(row -> row.getState() == ParticipantState.ACTIVE);
     }
 
     @Test
-    void aSecondCallAfterTheFlipIsRefusedAsNotNeededAndStartsNoSecondWorker() {
+    void aSecondCallAfterTheReIdentificationIsRefusedAsNotNeededAndStartsNoSecondWorker() {
         bindAll(OLD_AUTHORITY, PublicationState.PUBLISHED);
         service.reIdentifyOnOperatorRequest();
 
@@ -172,6 +173,17 @@ class DataspaceReIdentificationServiceTest {
         assertThat(retired).isZero();
         verify(provisioningTrigger, never()).provisionParticipantAsync();
         assertThat(List.of(system, owner, member)).allMatch(row -> row.getState() == ParticipantState.ACTIVE);
+    }
+
+    @Test
+    void reIdentifyReturnsZeroWithoutRefusalWhenNoBindingDiffersAndTheDataspaceIsNotReady() {
+        bindAll(NEW_AUTHORITY, PublicationState.PUBLISHED);
+        when(globalConfProvider.getCredentialIssuerDids("DEV")).thenReturn(Set.of());
+
+        int retired = service.reIdentify();
+
+        assertThat(retired).isZero();
+        verify(provisioningTrigger, never()).provisionParticipantAsync();
     }
 
     @Test
@@ -206,10 +218,20 @@ class DataspaceReIdentificationServiceTest {
     }
 
     @Test
-    void isRefusedWithTheAddressUnknownCodeWhenGlobalConfIsUnavailable() {
+    void isRefusedWithTheAddressUnknownCodeAndTheOriginalCauseWhenGlobalConfIsUnavailable() {
         bindAll(OLD_AUTHORITY, PublicationState.PUBLISHED);
-        when(ownSecurityServerResolver.address())
-                .thenReturn(new OwnAddress.GlobalConfUnavailable(new IllegalStateException("no globalconf")));
+        var cause = new IllegalStateException("no globalconf");
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.GlobalConfUnavailable(cause));
+
+        assertRefusedWithNothingRetired(ErrorMessage.RE_IDENTIFICATION_ADDRESS_UNKNOWN);
+
+        assertThatThrownBy(service::reIdentifyOnOperatorRequest).hasCause(cause);
+    }
+
+    @Test
+    void isRefusedWithTheAddressUnknownCodeWhenTheServerOwnerIsNotInitialised() {
+        bindAll(OLD_AUTHORITY, PublicationState.PUBLISHED);
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnerNotInitialised());
 
         assertRefusedWithNothingRetired(ErrorMessage.RE_IDENTIFICATION_ADDRESS_UNKNOWN);
     }
@@ -247,17 +269,19 @@ class DataspaceReIdentificationServiceTest {
     }
 
     @Test
-    void isRefusedWithTheProvisioningInactiveCodeWhenOnlyTheNoOpTriggerIsWired() {
+    void isRefusedWithTheProvisioningInactiveCodeBeforeTheAddressIsCheckedWhenOnlyTheNoOpTriggerIsWired() {
         bindAll(OLD_AUTHORITY, PublicationState.PUBLISHED);
-        var inactiveTrigger = new NoopDataspaceParticipantProvisioningTrigger();
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(SERVER, "not a host name"));
         var inactiveService = new DataspaceReIdentificationService(
-                ownSecurityServerResolver, readinessPredicates, didAuthority, dsParticipantRepository, inactiveTrigger);
+                ownSecurityServerResolver, readinessPredicates, didAuthority, dsParticipantRepository,
+                new NoopDataspaceParticipantProvisioningTrigger());
 
         assertThatThrownBy(inactiveService::reIdentifyOnOperatorRequest)
                 .isInstanceOf(ConflictException.class)
                 .satisfies(thrown -> assertThat(((ConflictException) thrown).getErrorDeviation().code())
-                        .isEqualTo(ErrorMessage.RE_IDENTIFICATION_PROVISIONING_INACTIVE.build().code()));
+                        .isEqualTo(ErrorMessage.RE_IDENTIFICATION_PROVISIONING_INACTIVE.code()));
 
+        verify(dsParticipantRepository, never()).findDifferingBindings(any());
         verify(dsParticipantRepository, never()).retireBindings(anyList());
         assertThat(List.of(system, owner, member)).allMatch(row -> row.getState() == ParticipantState.ACTIVE);
     }

@@ -39,6 +39,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceReIdentificationSe
 import org.niis.xroad.securityserver.restapi.service.PendingAddressChangeAction;
 import org.niis.xroad.securityserver.restapi.service.PendingAddressChangeCheck;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.slf4j.event.Level;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -55,10 +56,11 @@ import java.time.Duration;
  * decides.
  *
  * <p>Runs after the transaction of the globalconf check has ended, which skips secondary nodes and backup
- * restores. The re-identification runs in its own transaction and the request is dropped in another, whatever the
- * re-identification outcome. A refused re-identification, for example while the authentication certificate is not
- * registered, is not retried: the operator re-identify action stays available. Never throws: an unexpected failure
- * of the re-identification is logged and keeps the request, and the next check retries until the request expires.
+ * restores. The re-identification runs in its own transaction and the request is dropped in another, after a
+ * successful or a refused re-identification. A refused re-identification, for example while the authentication
+ * certificate is not registered, is not retried: the operator re-identify action stays available. Never throws: an
+ * unexpected failure of the re-identification is logged and keeps the request, and the next check retries until the
+ * request expires.
  */
 @Slf4j
 @Component
@@ -92,8 +94,8 @@ public class PendingAddressChangeGlobalConfCheck {
      */
     public void check(SecurityServerId securityServerId) {
         try {
-            var action = newTransaction.execute(_ -> decide(securityServerId));
-            if (action == PendingAddressChangeAction.FLIP) {
+            var action = newTransaction.execute(_ -> readAndApply(securityServerId));
+            if (action == PendingAddressChangeAction.RE_IDENTIFY) {
                 reIdentifyAndDropRequest();
             }
         } catch (Exception e) {
@@ -101,13 +103,12 @@ public class PendingAddressChangeGlobalConfCheck {
         }
     }
 
-    private PendingAddressChangeAction decide(SecurityServerId securityServerId) {
+    private PendingAddressChangeAction readAndApply(SecurityServerId securityServerId) {
         return pendingAddressChangeRepository.find().map(pending -> {
             var registeredAddress = ownSecurityServerResolver.address(securityServerId).registeredAddress().orElse(null);
             var action = PendingAddressChangeCheck.decide(pending, registeredAddress, clock.instant(), expiry());
             if (action == PendingAddressChangeAction.EXPIRE) {
-                pendingAddressChangeRepository.delete();
-                log.info("Address change: globalconf did not show the requested address in time, request dropped");
+                dropExpiredRequest(Level.INFO, "globalconf did not show the requested address in time");
             } else if (action == PendingAddressChangeAction.KEEP) {
                 log.debug("Address change: globalconf does not show the requested address yet");
             }
@@ -131,8 +132,11 @@ public class PendingAddressChangeGlobalConfCheck {
     }
 
     private static void logRefusal(ConflictException e) {
-        if (ErrorMessage.RE_IDENTIFICATION_PROVISIONING_INACTIVE.build().code().equals(e.getErrorDeviation().code())) {
+        var code = e.getErrorDeviation().code();
+        if (ErrorMessage.RE_IDENTIFICATION_PROVISIONING_INACTIVE.code().equals(code)) {
             log.debug("Address change: the participants were not re-identified, dataspace provisioning is inactive");
+        } else if (ErrorMessage.RE_IDENTIFICATION_ADDRESS_UNKNOWN.code().equals(code)) {
+            log.debug("Address change: the participants were not re-identified, the registered address is not known");
         } else {
             log.info("Address change: the participants were not re-identified, use the re-identify action: {}",
                     e.getMessage());
@@ -142,10 +146,13 @@ public class PendingAddressChangeGlobalConfCheck {
     private void dropRequestIfExpired() {
         newTransaction.executeWithoutResult(_ -> pendingAddressChangeRepository.find()
                 .filter(pending -> PendingAddressChangeCheck.isExpired(pending, clock.instant(), expiry()))
-                .ifPresent(_ -> {
-                    pendingAddressChangeRepository.delete();
-                    log.warn("Address change: re-identification kept failing until the request expired, request dropped");
-                }));
+                .ifPresent(_ -> dropExpiredRequest(Level.WARN,
+                        "re-identification kept failing until the request expired")));
+    }
+
+    private void dropExpiredRequest(Level level, String reason) {
+        pendingAddressChangeRepository.delete();
+        log.atLevel(level).log("Address change: {}, request dropped", reason);
     }
 
     private Duration expiry() {
