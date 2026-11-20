@@ -41,7 +41,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
-import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
@@ -49,7 +48,6 @@ import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
@@ -88,20 +86,21 @@ public class GlobalConfChecker {
     private final ServerConfRepository serverConfRepository;
     private final GlobalConfProvider globalConfProvider;
     private final SignerRpcClient signerRpcClient;
-    private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final SubsystemNameStatus subsystemNameStatus;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final MailNotificationHelper mailNotificationHelper;
     private final AdminServiceProperties adminServiceProperties;
     private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final DataspaceParticipantProvisioningTrigger dataspaceParticipantProvisioningTrigger;
+    private final PendingAddressChangeGlobalConfCheck pendingAddressChangeGlobalConfCheck;
     private final DataspacePublicationGlobalConfCheck dataspacePublicationGlobalConfCheck;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses and
-     * server owner identity to the serverconf database, then, once that transaction commits, the publication
-     * state of the dataspace SYSTEM values and member DIDs, and finally the differences between the dataspace
-     * binding rows and what globalconf carries. The task is scheduled at a fixed rate which means
+     * server owner identity to the serverconf database. Once that transaction ends, committed or rolled back, it acts
+     * on the pending address change; once it commits, it checks the publication state of the dataspace SYSTEM values
+     * and member DIDs, and finally the differences between the dataspace binding rows and what globalconf carries.
+     * The task is scheduled at a fixed rate which means
      * that the task is run at a fixed interval (defined by FIXED_RATE_MS) regardless of the previous executions
      * of the task. However, scheduled tasks do not run in parallel by default. The next task won't be invoked
      * until the previous one is done. Set an initial delay before running the task for the first time after a
@@ -152,9 +151,7 @@ public class GlobalConfChecker {
     }
 
     private void updateServerConf(SecurityServerId securityServerId) {
-        addressChangeStatus.getAddressChangeRequest()
-                .ifPresent(requestedAddress -> clearAddressChangeIfRegistered(securityServerId, requestedAddress));
-
+        checkPendingAddressChangeAfterCompletion(securityServerId);
         switch (maintenanceModeStatus.getStatus()) {
             case MaintenanceModeStatus.DisableRequested ignore -> globalConfProvider.getMaintenanceMode(securityServerId)
                     .filter(not(SharedParameters.MaintenanceMode::enabled))
@@ -183,15 +180,6 @@ public class GlobalConfChecker {
             updateTimestampServices(serverConf);
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(e);
-        }
-    }
-
-    private void clearAddressChangeIfRegistered(SecurityServerId securityServerId, String requestedAddress) {
-        switch (ownSecurityServerResolver.address(securityServerId)) {
-            case OwnAddress.Registered(_, var address) when requestedAddress.equals(address) -> addressChangeStatus.clear();
-            case OwnAddress.Registered _ -> log.debug("Registered address differs - keeping address change request");
-            case OwnAddress.NotRegistered _ -> log.debug("Server not registered - keeping address change request");
-            case OwnAddress.GlobalConfUnavailable _ -> log.debug("Globalconf unavailable - keeping address change request");
         }
     }
 
@@ -353,6 +341,15 @@ public class GlobalConfChecker {
                         (oldName, newName) -> !StringUtils.equals(oldName, globalConfProvider.getSubsystemName(clientId)));
             }
         }
+    }
+
+    private void checkPendingAddressChangeAfterCompletion(SecurityServerId securityServerId) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                pendingAddressChangeGlobalConfCheck.check(securityServerId);
+            }
+        });
     }
 
     private void checkDataspacePublicationAfterCommit(SecurityServerId securityServerId) {

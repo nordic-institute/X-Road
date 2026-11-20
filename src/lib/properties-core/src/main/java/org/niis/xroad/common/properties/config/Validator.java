@@ -261,6 +261,26 @@ public interface Validator<T> {
         };
     }
 
+    /**
+     * @param min inclusive lower bound
+     * @return validator accepting durations of at least {@code min}
+     */
+    static Validator<Duration> durationAtLeast(Duration min) {
+        return new Validator<>() {
+            @Override
+            public Result validate(Duration value) {
+                return value != null && value.compareTo(min) >= 0
+                        ? Result.ok()
+                        : Result.error("must be at least %s".formatted(min));
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("at least %s".formatted(min));
+            }
+        };
+    }
+
     /** @return validator rejecting null, zero, and negative integers */
     static Validator<Integer> positiveInt() {
         return new Validator<>() {

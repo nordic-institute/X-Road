@@ -39,16 +39,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
+import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspacePublicationStage;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.BindingHold;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
@@ -72,10 +76,13 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -92,10 +99,13 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private static final String SS_ADDRESS = "ih.example.test";
     private static final String SERVER_CODE = "SS0";
     private static final String IDENTITY_HUB_HOST = SS_ADDRESS + ":7183";
+    private static final String NEW_SS_ADDRESS = "ss2.example.test";
+    private static final String NEW_IDENTITY_HUB_HOST = NEW_SS_ADDRESS + ":7183";
     private static final String INSTANCE_IDENTIFIER = "TEST";
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "owner");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "member");
     private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "COM", "other");
+    private static final ClientId LONG_CODE_MEMBER = ClientId.Conf.create("TEST", "COM", "l".repeat(200));
     private static final String MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(MEMBER);
     private static final String OTHER_MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER);
     private static final String SYSTEM_CTX_ID = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
@@ -123,6 +133,8 @@ class DataspaceParticipantLifecycleConvergenceTest {
 
     private DataspaceProvisioningService provisioningService;
     private DataspaceParticipantProvisioningWorker worker;
+    private DataspaceReIdentificationService reIdentificationService;
+    private DataspaceParticipantProvisioningWorker provisioningTrigger;
 
     @BeforeEach
     void setUp() {
@@ -152,6 +164,10 @@ class DataspaceParticipantLifecycleConvergenceTest {
         worker = new DataspaceParticipantProvisioningWorker(provisioningService, readinessPredicates,
                 new DataspaceParticipantBindingService(dsParticipantRepository, didAuthority), adminServiceProperties,
                 mock(DataspacePublicationStage.class));
+        provisioningTrigger = mock(DataspaceParticipantProvisioningWorker.class);
+        when(provisioningTrigger.isActive()).thenReturn(true);
+        reIdentificationService = new DataspaceReIdentificationService(ownSecurityServerResolver,
+                readinessPredicates, didAuthority, dsParticipantRepository, provisioningTrigger);
     }
 
     @Test
@@ -493,6 +509,80 @@ class DataspaceParticipantLifecycleConvergenceTest {
     }
 
     @Test
+    void reIdentifyingAfterTheRegisteredAddressChangedRebindsEveryParticipantAtTheNewHostUnderTheSameContextIds() {
+        givenMemberHasRegisteredClient(MEMBER);
+        worker.provisionParticipant();
+        var systemGeneration = identityHubClient.contextGeneration(SYSTEM_CTX_ID).orElseThrow();
+        var memberGeneration = identityHubClient.contextGeneration(MEMBER_CTX_ID).orElseThrow();
+        var dids = boundAndServedDids();
+        givenRegisteredAddress(NEW_SS_ADDRESS);
+        givenMembersHaveRegisteredClients(MEMBER, OTHER_MEMBER);
+
+        worker.provisionParticipant();
+
+        assertThat(provisioningService.bindingHold()).isEqualTo(BindingHold.HELD);
+        assertThat(bindingTable.hasRow(OTHER_MEMBER)).isFalse();
+        assertThat(identityHubClient.hasContext(OTHER_MEMBER_CTX_ID)).isFalse();
+        assertThat(boundAndServedDids()).isEqualTo(dids);
+
+        assertThat(reIdentificationService.reIdentify()).isEqualTo(2);
+        verify(provisioningTrigger).provisionParticipantAsync();
+        for (int pass = 0; pass < 3; pass++) {
+            worker.provisionParticipant();
+        }
+
+        assertThat(provisioningService.bindingHold()).isEqualTo(BindingHold.NONE);
+        assertThat(bindingTable.findByMember(MEMBER).orElseThrow().getCtxId()).isEqualTo(MEMBER_CTX_ID);
+        assertThat(bindingTable.systemRow().orElseThrow().getCtxId()).isEqualTo(SYSTEM_CTX_ID);
+        assertThat(bindingTable.didOf(SYSTEM_CTX_ID))
+                .isEqualTo(ParticipantIdentifierScheme.systemDid(NEW_IDENTITY_HUB_HOST).toString());
+        assertThat(bindingTable.didOf(MEMBER_CTX_ID))
+                .isEqualTo(ParticipantIdentifierScheme.memberDid(MEMBER, NEW_IDENTITY_HUB_HOST).toString());
+        assertThat(bindingTable.didOf(OTHER_MEMBER_CTX_ID))
+                .isEqualTo(ParticipantIdentifierScheme.memberDid(OTHER_MEMBER, NEW_IDENTITY_HUB_HOST).toString());
+        assertThat(identityHubClient.contextDid(SYSTEM_CTX_ID))
+                .contains(ParticipantIdentifierScheme.systemDid(NEW_IDENTITY_HUB_HOST));
+        assertThat(identityHubClient.contextDid(MEMBER_CTX_ID))
+                .contains(ParticipantIdentifierScheme.memberDid(MEMBER, NEW_IDENTITY_HUB_HOST));
+        assertThat(identityHubClient.contextGeneration(SYSTEM_CTX_ID)).hasValueSatisfying(
+                generation -> assertThat(generation).isGreaterThan(systemGeneration));
+        assertThat(identityHubClient.contextGeneration(MEMBER_CTX_ID)).hasValueSatisfying(
+                generation -> assertThat(generation).isGreaterThan(memberGeneration));
+        assertThat(controlPlaneClient.hasContext(SYSTEM_CTX_ID)).isTrue();
+        assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isTrue();
+        assertThat(bindingTable.findDecommissioned()).isEmpty();
+        assertThat(bindingTable.rowCount()).isEqualTo(3);
+        assertThat(identityStatuses()).containsOnly(IdentityStatus.OK);
+    }
+
+    @Test
+    void aMemberDidThatCannotBeCreatedAtTheNewHostRefusesReIdentificationWithoutHoldingTheWorker() {
+        var newHost = DidLengthTestHosts.hostForMemberDidLength(
+                MEMBER, ParticipantIdentifierScheme.MAX_DID_LENGTH - 100);
+        bindingTable.seedSystem();
+        bindingTable.seedActive(MEMBER);
+        bindingTable.seedActive(LONG_CODE_MEMBER);
+        givenMembersHaveRegisteredClients(MEMBER, LONG_CODE_MEMBER, OTHER_MEMBER);
+        givenRegisteredAddress(newHost);
+
+        assertThat(provisioningService.bindingHold()).isEqualTo(BindingHold.ADDRESS_CANNOT_CARRY_DID);
+        assertThatThrownBy(() -> reIdentificationService.reIdentify())
+                .isInstanceOf(ConflictException.class)
+                .satisfies(thrown -> assertThat(((ConflictException) thrown).getErrorDeviation().code())
+                        .isEqualTo(ErrorMessage.RE_IDENTIFICATION_CANNOT_MINT.code()));
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.didOf(OTHER_MEMBER_CTX_ID))
+                .isEqualTo(ParticipantIdentifierScheme.memberDid(OTHER_MEMBER, newHost + ":7183").toString());
+        assertThat(bindingTable.didOf(MEMBER_CTX_ID))
+                .isEqualTo(ParticipantIdentifierScheme.memberDid(MEMBER, IDENTITY_HUB_HOST).toString());
+        assertThat(bindingTable.didOf(SYSTEM_CTX_ID))
+                .isEqualTo(ParticipantIdentifierScheme.systemDid(IDENTITY_HUB_HOST).toString());
+        assertThat(bindingTable.findDecommissioned()).isEmpty();
+    }
+
+    @Test
     void aChangedDidPortLeavesEveryBoundDidUnchanged() {
         givenMemberHasRegisteredClient(MEMBER);
         worker.provisionParticipant();
@@ -734,6 +824,24 @@ class DataspaceParticipantLifecycleConvergenceTest {
             return rowsById.values().stream().filter(row -> row.getState() == ParticipantState.DECOMMISSIONED).toList();
         }
 
+        List<DsParticipantEntity> findDifferingBindings(RegisteredHostMatcher matcher) {
+            if (!matcher.isRegisteredAddressUsable()) {
+                return List.of();
+            }
+            return rowsById.values().stream()
+                    .filter(row -> row.getState() == ParticipantState.ACTIVE)
+                    .filter(row -> matcher.isBindingHostDifferent(row.getSchemeVersion(), row.getDid()))
+                    .toList();
+        }
+
+        int retireBindings(List<Long> ids) {
+            var retiring = rowsById.values().stream()
+                    .filter(row -> ids.contains(row.getId()) && row.getState() == ParticipantState.ACTIVE)
+                    .toList();
+            retiring.forEach(row -> row.setState(ParticipantState.DECOMMISSIONED));
+            return retiring.size();
+        }
+
         boolean hasRow(ClientId member) {
             return idByMember.containsKey(member);
         }
@@ -771,6 +879,10 @@ class DataspaceParticipantLifecycleConvergenceTest {
                 return bindSystem(invocation.getArgument(0), invocation.getArgument(1));
             });
             when(repository.decommissionMember(any())).thenAnswer(invocation -> decommission(invocation.getArgument(0)));
+            when(repository.findDifferingBindings(any())).thenAnswer(invocation -> findDifferingBindings(invocation.getArgument(0)));
+            when(repository.hasDifferingBindings(any()))
+                    .thenAnswer(invocation -> !findDifferingBindings(invocation.getArgument(0)).isEmpty());
+            when(repository.retireBindings(anyList())).thenAnswer(invocation -> retireBindings(invocation.getArgument(0)));
             when(repository.findDecommissioned()).thenAnswer(invocation -> findDecommissioned());
             when(repository.delete(anyLong())).thenAnswer(invocation -> delete(invocation.getArgument(0)));
         }

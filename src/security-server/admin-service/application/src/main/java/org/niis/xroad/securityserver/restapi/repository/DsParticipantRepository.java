@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.serverconf.impl.dao.DsParticipantDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
@@ -82,6 +83,40 @@ public class DsParticipantRepository {
      */
     public boolean decommissionMember(ClientId member) {
         return dsParticipantDAO.decommissionMember(persistenceUtils.getCurrentSession(), member);
+    }
+
+    /**
+     * Flips the rows with the given ids to decommissioned, in the caller's transaction. A row that is no longer
+     * active is left as it is.
+     *
+     * @param ids the ids of the rows to flip
+     * @return the number of rows flipped
+     */
+    public int retireBindings(List<Long> ids) {
+        return dsParticipantDAO.retireBindings(persistenceUtils.getCurrentSession(), ids);
+    }
+
+    /**
+     * Finds the active binding rows, SYSTEM and MEMBER, whose DID host is not the registered address.
+     *
+     * @param hostMatcher the matcher for the registered address
+     * @return the active rows whose DID host is not the registered address
+     */
+    @Transactional(readOnly = true)
+    public List<DsParticipantEntity> findDifferingBindings(RegisteredHostMatcher hostMatcher) {
+        return dsParticipantDAO.findDifferingBindings(persistenceUtils.getCurrentSession(), hostMatcher);
+    }
+
+    /**
+     * Tells whether any active binding row, SYSTEM or MEMBER, has a DID host that is not the registered address.
+     * It uses the rule that {@link #findDifferingBindings} uses to pick its rows.
+     *
+     * @param hostMatcher the matcher for the registered address
+     * @return {@code true} if at least one active row has a differing DID host
+     */
+    @Transactional(readOnly = true)
+    public boolean hasDifferingBindings(RegisteredHostMatcher hostMatcher) {
+        return dsParticipantDAO.hasDifferingBindings(persistenceUtils.getCurrentSession(), hostMatcher);
     }
 
     /**

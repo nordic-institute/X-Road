@@ -24,27 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.serverconf.impl.entity;
 
-package org.niis.xroad.securityserver.restapi.cache;
-
+import jakarta.persistence.Access;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
 import lombok.Setter;
-import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.time.Instant;
 
-@Component
-public class SecurityServerAddressChangeStatus {
+import static jakarta.persistence.AccessType.FIELD;
 
-    @Setter
-    private String address;
+/**
+ * The address change the administrator requested and the Central Server has not yet published. The table holds
+ * at most one row, shared by all nodes of the Security Server.
+ */
+@Getter
+@Setter
+@Entity
+@Table(name = PendingAddressChangeEntity.TABLE_NAME)
+@Access(FIELD)
+public class PendingAddressChangeEntity {
 
-    public Optional<String> getAddressChangeRequest() {
-        return Optional.ofNullable(address);
-    }
+    public static final String TABLE_NAME = "pending_address_change";
+    public static final long SINGLE_ROW_ID = 1L;
 
-    public void clear() {
-        this.address = null;
-    }
+    @Id
+    @Column(name = "id", nullable = false)
+    private Long id = SINGLE_ROW_ID;
 
+    @Column(name = "requested_address", nullable = false, length = 255)
+    private String requestedAddress;
+
+    @Column(name = "requested_at", nullable = false)
+    private Instant requestedAt;
 
 }

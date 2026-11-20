@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="serverconf/016-pending-address-change.xml">
+
+    <!--
+        The address change the administrator requested and global configuration does not yet show.
+        The table is shared by all nodes and holds at most one row.
+    -->
+    <changeSet author="niis" id="016-pending-address-change">
+        <createTable tableName="pending_address_change">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="requested_address" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="requested_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <sql splitStatements="false">
+            <![CDATA[
+            ALTER TABLE pending_address_change ADD CONSTRAINT single_pending_address_change CHECK (id = 1);
+
+            DROP TRIGGER IF EXISTS update_history ON pending_address_change;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON pending_address_change
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
