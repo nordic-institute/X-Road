@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. /usr/share/xroad/scripts/_openbao_env.sh
+
 die() {
   echo >&2 "$@"
   exit 1
@@ -26,7 +28,12 @@ load_or_generate_credentials() {
 
   if [ -f /etc/openbao/xroad-openbao.env ] && [ -s /etc/openbao/xroad-openbao.env ]; then
     echo "Found existing /etc/openbao/xroad-openbao.env, attempting to load credentials"
-    source /etc/openbao/xroad-openbao.env
+    BAO_PG_USER=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_USER)
+    BAO_PG_PASSWORD=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_PASSWORD)
+    BAO_PG_HOST=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_HOST)
+    BAO_PG_PORT=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_PORT)
+    BAO_PG_DATABASE=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_DATABASE)
+    BAO_PG_SCHEMA=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_SCHEMA)
 
     if [ -n "${BAO_PG_USER}" ] && [ -n "${BAO_PG_PASSWORD}" ] && [ -n "${BAO_PG_DATABASE}" ]; then
       echo "Successfully loaded credentials from /etc/openbao/xroad-openbao.env"
@@ -78,8 +85,13 @@ parse_database_host() {
 setup_psql_functions() {
   local root_properties="$1"
   local db_master_conn_user="$2"
+  local port="${PGPORT:-$db_port}"
 
-  local_psql() { su -l -c "psql -qtA -p ${PGPORT:-$db_port} $*" postgres; }
+  if [[ ! $port =~ ^[0-9]+$ ]] || ((10#$port < 1 || 10#$port > 65535)); then
+    die "Invalid database port ${port@Q}, expected a number from 1 to 65535"
+  fi
+
+  local_psql() { su -l -c 'port=$1; shift; exec psql -qtA -p "$port" "$@"' postgres -- _ "$port" "$@"; }
   remote_psql() { psql -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA "$@"; }
 
   psql_dbuser() {
@@ -104,32 +116,35 @@ create_database_if_needed() {
     return 0
   fi
 
-  {
-    cat <<EOF
+  if ! psql_master -v "bao_db=${db_database}" -v "bao_user=${db_user}" -v "bao_password=${db_password}" -v "bao_schema=${db_schema}" <<'EOF'
 \set ON_ERROR_STOP on
-CREATE DATABASE "${db_database}" ENCODING 'UTF8';
-REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
-DO \$\$
+CREATE DATABASE :"bao_db" ENCODING 'UTF8';
+REVOKE ALL ON DATABASE :"bao_db" FROM PUBLIC;
+SET xroad_init.role_name = :'bao_user';
+SET xroad_init.role_password = :'bao_password';
+DO $$
 BEGIN
-  CREATE ROLE "${db_user}" LOGIN PASSWORD '${db_password}';
-  GRANT "${db_user}" to postgres;
+  EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', current_setting('xroad_init.role_name'), current_setting('xroad_init.role_password'));
+  EXECUTE format('GRANT %I TO postgres', current_setting('xroad_init.role_name'));
   EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_user already exists';
+    RAISE NOTICE 'User % already exists', current_setting('xroad_init.role_name');
 END
-\$\$;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
-\c "${db_database}"
-CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_user}";
+$$;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE :"bao_db" TO :"bao_user";
+\c :"bao_db"
+CREATE SCHEMA :"bao_schema" AUTHORIZATION :"bao_user";
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to "${db_user}";
+GRANT USAGE ON SCHEMA public to :"bao_user";
 EOF
-  } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration"
+  then
+    die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration"
+  fi
 }
 
 # Group xroad read is required, not incidental: the backup driver runs as the
 # xroad user (xroad-auxiliary-service, which execs
 # backup_xroad_proxy_configuration.sh -> _backup_xroad.sh ->
-# backup_openbao_db.sh) and both sources this file for the pg_dump credentials
+# backup_openbao_db.sh) and both read this file for the pg_dump credentials
 # and archives /etc/openbao. No privileged path exists for that dump, so
 # narrowing this to root-only breaks backups. It grants raw OpenBao storage
 # access, not secret disclosure — the root token and unseal keys stay root-only.

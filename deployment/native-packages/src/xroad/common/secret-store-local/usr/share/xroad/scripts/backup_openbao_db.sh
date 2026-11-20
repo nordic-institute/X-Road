@@ -1,23 +1,24 @@
 #!/bin/bash
 
-dump_file="$1"
+. /usr/share/xroad/scripts/_openbao_env.sh
 
-# Source environment file to get database credentials
-if [[ -f /etc/openbao/xroad-openbao.env ]]; then
-  source /etc/openbao/xroad-openbao.env
-else
-  echo "Unable to find OpenBao environment file at /etc/openbao/xroad-openbao.env"
+dump_file="$1"
+env_file=/etc/openbao/xroad-openbao.env
+
+if [[ ! -f $env_file ]]; then
+  echo "Unable to find OpenBao environment file at $env_file"
   exit 1
 fi
 
-# Use individual variables from env file
-db_conn_user="${BAO_PG_USER}"
+# Read the database credentials from the env file as data
+db_conn_user=$(read_env_value "$env_file" BAO_PG_USER)
 db_user=${db_conn_user%%@*}
-db_password="${BAO_PG_PASSWORD}"
-db_addr="${BAO_PG_HOST}"
-db_port="${BAO_PG_PORT}"
-db_database="${BAO_PG_DATABASE}"
-db_schema="${BAO_PG_SCHEMA:-public}"
+db_password=$(read_env_value "$env_file" BAO_PG_PASSWORD)
+db_addr=$(read_env_value "$env_file" BAO_PG_HOST)
+db_port=$(read_env_value "$env_file" BAO_PG_PORT)
+db_database=$(read_env_value "$env_file" BAO_PG_DATABASE)
+db_schema=$(read_env_value "$env_file" BAO_PG_SCHEMA)
+db_schema="${db_schema:-public}"
 
 pg_options="-c client-min-messages=warning -c search_path=$db_schema"
 
@@ -31,4 +32,4 @@ if [[ ! -z $PGOPTIONS_EXTRA ]]; then
 fi
 
 PGOPTIONS="$pg_options${PGOPTIONS_EXTRA-}" PGPASSWORD="${db_password}" PGHOST="${PGHOST:-$db_addr}" PGPORT="${PGPORT:-$db_port}" \
-    pg_dump -n "$db_schema" -x -O -F c -U "$db_user" -f "$dump_file" "$db_database"
+    pg_dump -n "$db_schema" -x -O -F c -U "$db_user" -f "$dump_file" -d "$db_database"

@@ -26,10 +26,22 @@ CONTAINER="${NODE1_CONTAINER}"
 PG_CONTAINER="${NODE1_CONTAINER}-pg"
 NETWORK="${NODE1_CONTAINER}-net"
 PG_IMAGE="${PG_IMAGE:-postgres:18-alpine}"
+PSQL_IMAGE="${PSQL_IMAGE:-postgres:18}"
+PSQL_CONTAINER="${NODE1_CONTAINER}-psql"
 PG_PASSWORD="test-pg-$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
 WORK_DIR="$(mktemp -d)"
 SCRIPTS_DIR="${WORK_DIR}/scripts"
 BASE_ONLY_CONTAINER="${NODE1_CONTAINER}-base-only"
+ENV_PARSE_CONTAINER="${NODE1_CONTAINER}-env-parse"
+ANSIBLE_ENV_TEMPLATE="${ROOT_DIR}/development/ansible/roles/xroad-ss/templates/xroad-openbao.env.j2"
+CONFIG_SCRIPT_SOURCE="${ROOT_DIR}/deployment/native-packages/src/xroad/ubuntu/generic/xroad-secret-store-local.config"
+ENV_HELPER_SCRIPT="/usr/share/xroad/scripts/_openbao_env.sh"
+INIT_DB_SCRIPT="/usr/share/xroad/scripts/secret-store-init-db.sh"
+BACKUP_DB_SCRIPT="/usr/share/xroad/scripts/backup_openbao_db.sh"
+RESTORE_DB_SCRIPT="/usr/share/xroad/scripts/restore_openbao_db.sh"
+PG_CALLS_FILE="/var/log/pg-calls"
+DEBCONF_CALLS_FILE="/tmp/debconf-calls"
+ENV_KEYS=(BAO_PG_USER BAO_PG_PASSWORD BAO_PG_HOST BAO_PG_PORT BAO_PG_DATABASE BAO_PG_SCHEMA BAO_PG_CONNECTION_URL)
 
 ADDR="http://127.0.0.1:8200"
 ROOT_TOKEN_FILE="/etc/openbao/root-token"
@@ -73,7 +85,7 @@ dump_last_run() {
 cleanup() {
   local rc=$?
   if [[ ${rc} -ne 0 && ${FAILURES} -eq 0 ]]; then dump_last_run; fi
-  docker rm -f "${NODE1_CONTAINER}" "${NODE2_CONTAINER}" "${BASE_ONLY_CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
+  docker rm -f "${NODE1_CONTAINER}" "${NODE2_CONTAINER}" "${BASE_ONLY_CONTAINER}" "${ENV_PARSE_CONTAINER}" "${PSQL_CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
   docker network rm "${NETWORK}" >/dev/null 2>&1
   rm -rf "${WORK_DIR}"
 }
@@ -157,6 +169,18 @@ CONF_FILE_LIST=$(find /etc/openbao -not -path /etc/openbao/unseal-keys -not -pat
 for step in "$@"; do
   "${step}"
 done
+SHIM
+  cat >"${WORK_DIR}/pg-stub" <<'SHIM'
+#!/bin/sh
+cat >/dev/null
+echo "${0##*/} host=$PGHOST port=$PGPORT user=$PGUSER pass=$PGPASSWORD db=$PGDATABASE opts=$PGOPTIONS args=$*" >>/var/log/pg-calls
+SHIM
+  chmod +x "${WORK_DIR}/pg-stub"
+  cat >"${WORK_DIR}/config-confmodule" <<'SHIM'
+db_set() { echo "db_set $*" >>/tmp/debconf-calls; return 0; }
+db_input() { return 0; }
+db_go() { return 0; }
+db_stop() { :; }
 SHIM
   cat >"${WORK_DIR}/sleep-shim" <<'SHIM'
 #!/bin/sh
@@ -1168,6 +1192,264 @@ scenario_import_base_only() {
   check "base only: a second import refuses" test "${RC}" -ne 0
   CONTAINER="${NODE1_CONTAINER}"
 }
+put_env_file() {
+  docker exec -i "${CONTAINER}" sh -c "cat > ${ENV_FILE} && chown openbao:xroad ${ENV_FILE} && chmod 640 ${ENV_FILE}"
+}
+write_hostile_env_file() {
+  put_env_file <<'HOSTILE'
+BAO_PG_USER=openbao
+BAO_PG_PASSWORD=hostile-test-password
+BAO_PG_HOST=db; touch /tmp/hostile-marker-semicolon
+BAO_PG_PORT=5432
+BAO_PG_DATABASE=openbao
+BAO_PG_SCHEMA=$(touch /tmp/hostile-marker-substitution)
+BAO_PG_CONNECTION_URL=`touch /tmp/hostile-marker-backtick`
+touch /tmp/hostile-marker-command
+HOSTILE
+}
+env_by_source() {
+  in_container bash -c 'set -a; . "$1"; shift; for key in "$@"; do printf "%s=%s\n" "$key" "${!key}"; done' _ "${ENV_FILE}" "${ENV_KEYS[@]}"
+}
+env_by_parser() {
+  in_container bash -c '. '"${ENV_HELPER_SCRIPT}"'; file=$1; shift; for key in "$@"; do printf "%s=%s\n" "$key" "$(read_env_value "$file" "$key")"; done' _ "${ENV_FILE}" "${ENV_KEYS[@]}"
+}
+check_parser_matches_source() {
+  check_eq "$1: the parser returns the same values as sourcing the file" "$(env_by_source)" "$(env_by_parser)"
+}
+hostile_markers() { in_container sh -c 'ls /tmp/hostile-marker-* 2>/dev/null'; }
+clear_hostile_markers() { in_container sh -c 'rm -f /tmp/hostile-marker-*'; }
+clear_pg_calls() { in_container sh -c ": > ${PG_CALLS_FILE}"; }
+pg_calls() { in_container cat "${PG_CALLS_FILE}"; }
+# config_database_host_answer: runs the Debian config script and prints the database host it offers to debconf.
+config_database_host_answer() {
+  in_container sh -c ": > ${DEBCONF_CALLS_FILE}"
+  run_in_container -- bash /tmp/secret-store-local.config configure
+  in_container sed -n 's/^db_set xroad-common\/database-host //p' "${DEBCONF_CALLS_FILE}"
+}
+scenario_env_file_parsing() {
+  log_info "Scenario: root-run scripts read the OpenBao environment file as data"
+  local first_call env_hash password="Pw-with=equals_and-dash" expected
+  CONTAINER="${ENV_PARSE_CONTAINER}"
+  docker rm -f "${CONTAINER}" >/dev/null 2>&1
+  docker run -d --init --name "${CONTAINER}" \
+    -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
+    --entrypoint sh "${IMAGE}" -c 'exec tail -f /dev/null' >/dev/null || exit 1
+  in_container mkdir -p /etc/openbao /etc/xroad /usr/share/debconf /usr/local/bin
+  docker cp "${WORK_DIR}/pg-stub" "${CONTAINER}:/usr/local/bin/pg-stub" >/dev/null || exit 1
+  docker cp "${WORK_DIR}/config-confmodule" "${CONTAINER}:/usr/share/debconf/confmodule" >/dev/null || exit 1
+  docker cp "${CONFIG_SCRIPT_SOURCE}" "${CONTAINER}:/tmp/secret-store-local.config" >/dev/null || exit 1
+  in_container sh -c 'for tool in psql pg_dump pg_restore; do cp /usr/local/bin/pg-stub /usr/local/bin/$tool; done'
+
+  run_in_container -- bash "${INIT_DB_SCRIPT}"
+  check "init-db format: the script writes the file, exit 0" test "${RC}" -eq 0
+  check_eq "init-db format: owner and mode" openbao:xroad:640 "$(file_owner "${ENV_FILE}"):$(file_mode "${ENV_FILE}")"
+  check_parser_matches_source "init-db format"
+  check_eq "init-db format: the config script offers the host and port" "127.0.0.1:5432" "$(config_database_host_answer)"
+  first_call="$(pg_calls)"
+  env_hash="$(in_container sha256sum "${ENV_FILE}")"
+  check_ne "init-db format: the first run called psql" "" "${first_call}"
+  clear_pg_calls
+  run_in_container -- bash "${INIT_DB_SCRIPT}"
+  check "init-db format: a second run, exit 0" test "${RC}" -eq 0
+  check "init-db format: a second run loads the credentials" grep -qF "Successfully loaded credentials" "${OUT_FILE}"
+  check_eq "init-db format: the second run connects with the values the first run generated" "${first_call}" "$(pg_calls)"
+  check_eq "init-db format: the file is kept" "${env_hash}" "$(in_container sha256sum "${ENV_FILE}")"
+
+  sed -e "s|{{database_admin_password}}|${password}|" -e "s|{{database_host}}|db.example.test|" "${ANSIBLE_ENV_TEMPLATE}" | put_env_file
+  check_parser_matches_source "ansible template format"
+  check_eq "ansible template format: the config script offers the host and port" "db.example.test:5432" "$(config_database_host_answer)"
+  clear_pg_calls
+  run_in_container -- bash "${BACKUP_DB_SCRIPT}" /tmp/dump
+  check "ansible template format: backup exit 0" test "${RC}" -eq 0
+  check_eq "ansible template format: backup dumps with the file's values" \
+    "pg_dump host=db.example.test port=5432 user= pass=${password} db= opts=-c client-min-messages=warning -c search_path=openbao args=-n openbao -x -O -F c -U openbao -f /tmp/dump -d openbao" \
+    "$(pg_calls)"
+  clear_pg_calls
+  run_in_container -- bash "${RESTORE_DB_SCRIPT}" /tmp/dump
+  check "ansible template format: restore exit 0" test "${RC}" -eq 0
+  check "ansible template format: restore connects with the file's values" \
+    grep -qxF "psql host= port= user=openbao pass=${password} db=openbao opts=-c client-min-messages=warning -c search_path=openbao args=-v ON_ERROR_STOP=1 -h db.example.test -p 5432 -qtA -v bao_user=openbao -v bao_db=openbao" <(pg_calls)
+  check "ansible template format: restore runs pg_restore with the file's values" \
+    grep -qxF "pg_restore host=db.example.test port=5432 user=openbao pass=${password} db= opts= args=--no-owner --single-transaction --clean -d openbao --schema=openbao /tmp/dump" <(pg_calls)
+
+  printf 'BAO_PG_CONNECTION_URL=postgres://postgres:single-line-password@pg:5432/postgres?sslmode=disable\n' | put_env_file
+  check_parser_matches_source "single-line format"
+  check_eq "single-line format: the config script offers no host" "" "$(config_database_host_answer)"
+
+  printf 'BAO_PG_HOST=first\nBAO_PG_HOST=second\r\nBAO_PG_PORT=5432=x\nBAO_PG_USER=last-line-without-newline' | put_env_file
+  expected="$(printf '%s\n' BAO_PG_USER=last-line-without-newline BAO_PG_PASSWORD= BAO_PG_HOST=second BAO_PG_PORT=5432=x BAO_PG_DATABASE= BAO_PG_SCHEMA= BAO_PG_CONNECTION_URL=)"
+  check_eq "line rules: the last line of a key wins, a carriage return is dropped, the first = splits, a missing key is empty" "${expected}" "$(env_by_parser)"
+
+  write_hostile_env_file
+  clear_hostile_markers
+  in_container bash -c ". ${ENV_FILE}" >/dev/null 2>&1
+  check_ne "hostile file: sourcing it would run its commands" "" "$(hostile_markers)"
+  clear_hostile_markers
+  clear_pg_calls
+  run_in_container -- bash "${INIT_DB_SCRIPT}"
+  check "hostile file: init-db exit 0" test "${RC}" -eq 0
+  check_eq "hostile file: init-db runs no command from the file" "" "$(hostile_markers)"
+  run_in_container -- bash "${BACKUP_DB_SCRIPT}" /tmp/dump
+  check "hostile file: backup exit 0" test "${RC}" -eq 0
+  check_eq "hostile file: backup runs no command from the file" "" "$(hostile_markers)"
+  run_in_container -- bash "${RESTORE_DB_SCRIPT}" /tmp/dump
+  check "hostile file: restore exit 0" test "${RC}" -eq 0
+  check_eq "hostile file: restore runs no command from the file" "" "$(hostile_markers)"
+  check_eq "hostile file: the config script takes the host as text" "db; touch /tmp/hostile-marker-semicolon:5432" "$(config_database_host_answer)"
+  check_eq "hostile file: the config script runs no command from the file" "" "$(hostile_markers)"
+  CONTAINER="${NODE1_CONTAINER}"
+}
+psql_admin() { docker exec -i -u postgres "${CONTAINER}" psql -qtA "$@"; }
+psql_reset() {
+  psql_admin -v ON_ERROR_STOP=1 >/dev/null <<'SQL'
+SELECT format('DROP DATABASE %I WITH (FORCE)', datname) FROM pg_database WHERE datname NOT IN ('postgres', 'template0', 'template1') \gexec
+SELECT format('DROP ROLE %I', rolname) FROM pg_roles WHERE rolname <> 'postgres' AND rolname NOT LIKE 'pg\_%' \gexec
+SQL
+}
+# psql_count NAME VALUE [DATABASE]: counts the rows of the catalog query chosen by NAME that match VALUE.
+psql_count() {
+  local query
+  case "$1" in
+    database) query="SELECT count(*) FROM pg_database WHERE datname = :'v'" ;;
+    role) query="SELECT count(*) FROM pg_roles WHERE rolname = :'v'" ;;
+    schema) query="SELECT count(*) FROM information_schema.schemata WHERE schema_name = :'v'" ;;
+    schema_owner) query="SELECT schema_owner FROM information_schema.schemata WHERE schema_name = :'v'" ;;
+  esac
+  printf '%s\n' "${query}" | psql_admin -d "${3:-postgres}" -v "v=$2"
+}
+# psql_login USER PASSWORD DATABASE: prints the user name when the password is accepted over the network.
+psql_login() {
+  docker exec -e "PGPASSWORD=$2" "${CONTAINER}" bash -c 'psql -h "$(hostname -i)" -U "$1" -d "$2" -qtA -c "SELECT current_user"' _ "$1" "$3" 2>/dev/null
+}
+set_psql_mode() {
+  if [[ "$1" == remote ]]; then
+    printf 'postgres.connection.password=%s\n' "${PG_PASSWORD}" | docker exec -i "${CONTAINER}" sh -c 'cat > /etc/xroad.properties'
+  else
+    in_container rm -f /etc/xroad.properties
+  fi
+}
+# write_psql_env_file USER PASSWORD HOST PORT DATABASE SCHEMA
+write_psql_env_file() {
+  printf 'BAO_PG_USER=%s\nBAO_PG_PASSWORD=%s\nBAO_PG_HOST=%s\nBAO_PG_PORT=%s\nBAO_PG_DATABASE=%s\nBAO_PG_SCHEMA=%s\nBAO_PG_CONNECTION_URL=unused\n' "$@" | put_env_file
+}
+env_file_value() {
+  in_container bash -c '. '"${ENV_HELPER_SCRIPT}"'; read_env_value "$1" "$2"' _ "${ENV_FILE}" "$1"
+}
+# check_psql_hostile_case MODE LABEL USER PASSWORD PORT DATABASE SCHEMA EXPECTED_RC
+# Runs the init script with the given values in the env file. EXPECTED_RC is a number or "any".
+check_psql_hostile_case() {
+  local mode="$1" label="$2" user="$3" password="$4" port="$5" database="$6" schema="$7" expected_rc="$8"
+  local description="${mode} mode, ${label}"
+  psql_reset
+  clear_hostile_markers
+  set_psql_mode "${mode}"
+  write_psql_env_file "${user}" "${password}" 127.0.0.1 "${port}" "${database}" "${schema}"
+  run_in_container -- bash "${INIT_DB_SCRIPT}"
+  if [[ "${expected_rc}" == any ]]; then
+    pass "${description}: exit ${RC}"
+  else
+    check_eq "${description}: exit ${expected_rc}" "${expected_rc}" "${RC}"
+  fi
+  check_eq "${description}: no command from the env file runs" "" "$(hostile_markers)"
+  if [[ "${expected_rc}" == 0 ]]; then
+    check_eq "${description}: the database is created under the literal name" 1 "$(psql_count database "${database}")"
+    check_eq "${description}: the role is created under the literal name" 1 "$(psql_count role "${user}")"
+    check_eq "${description}: the schema is created under the literal name" 1 "$(psql_count schema "${schema}" "${database}")"
+    check_eq "${description}: the role logs in with its password" "${user}" "$(psql_login "${user}" "${password}" "${database}")"
+  fi
+}
+scenario_psql_values_not_executed() {
+  log_info "Scenario: values from the OpenBao environment file reach a real psql only as data"
+  local mode marker user password dbname generated_user generated_password env_hash
+  local normal_password="Pw'\"\\\$x-with-quote-doublequote-backslash-dollar"
+  CONTAINER="${PSQL_CONTAINER}"
+  docker rm -f "${CONTAINER}" >/dev/null 2>&1
+  docker run -d --name "${CONTAINER}" -e "POSTGRES_PASSWORD=${PG_PASSWORD}" \
+    -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" "${PSQL_IMAGE}" >/dev/null || exit 1
+  local i
+  for i in $(seq 1 60); do
+    if docker exec "${CONTAINER}" pg_isready -U postgres -h 127.0.0.1 >/dev/null 2>&1; then break; fi
+    sleep 1
+  done
+  in_container mkdir -p /etc/openbao /etc/xroad
+  in_container sh -c 'getent group xroad >/dev/null || groupadd xroad; id openbao >/dev/null 2>&1 || useradd -g xroad openbao'
+  cat >"${WORK_DIR}/crudini-shim" <<'SHIM'
+#!/bin/sh
+sed -n "s/^$4[[:space:]]*=[[:space:]]*//p" "$2" | { read -r value || exit 1; printf '%s' "${value}"; }
+SHIM
+  docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/crudini
+
+  clear_hostile_markers
+  psql_admin >/dev/null <<<'\! touch /tmp/hostile-marker-psql-baseline'
+  check_ne "baseline: a psql shell escape in the SQL input runs a command" "" "$(hostile_markers)"
+
+  for mode in local remote; do
+    log_info "  ${mode}-DB mode"
+    set_psql_mode "${mode}"
+    psql_reset
+    in_container rm -f "${ENV_FILE}"
+    run_in_container -- bash "${INIT_DB_SCRIPT}"
+    check "${mode} mode, fresh init: exit 0" test "${RC}" -eq 0
+    generated_user="$(env_file_value BAO_PG_USER)"
+    generated_password="$(env_file_value BAO_PG_PASSWORD)"
+    check_eq "${mode} mode, fresh init: the database exists" 1 "$(psql_count database openbao)"
+    check_eq "${mode} mode, fresh init: the role exists" 1 "$(psql_count role "${generated_user}")"
+    check_eq "${mode} mode, fresh init: the schema belongs to the role" "${generated_user}" "$(psql_count schema_owner openbao openbao)"
+    check_eq "${mode} mode, fresh init: the role logs in with the generated password" "${generated_user}" "$(psql_login "${generated_user}" "${generated_password}" openbao)"
+    check_eq "${mode} mode, fresh init: a wrong password is refused" "" "$(psql_login "${generated_user}" "wrong-${generated_password}" openbao)"
+    env_hash="$(in_container sha256sum "${ENV_FILE}")"
+    run_in_container -- bash "${INIT_DB_SCRIPT}"
+    check "${mode} mode, second run: exit 0" test "${RC}" -eq 0
+    check "${mode} mode, second run: the existing database and user are kept" grep -qF "Database and user exists" "${OUT_FILE}"
+    check_eq "${mode} mode, second run: the env file is kept" "${env_hash}" "$(in_container sha256sum "${ENV_FILE}")"
+
+    psql_reset
+    psql_admin >/dev/null <<<"CREATE ROLE ${generated_user} LOGIN PASSWORD 'unrelated'"
+    run_in_container -- bash "${INIT_DB_SCRIPT}"
+    check "${mode} mode, existing role: exit 0" test "${RC}" -eq 0
+    check_eq "${mode} mode, existing role: the database is created" 1 "$(psql_count database openbao)"
+    check_eq "${mode} mode, existing role: the schema is created" 1 "$(psql_count schema openbao openbao)"
+
+    check_psql_hostile_case "${mode}" password-quotes openbao "${normal_password}" 5432 openbao openbao 0
+    marker="/tmp/hostile-marker-psql-${mode}-password"
+    check_psql_hostile_case "${mode}" password-escape openbao "p' \\! id -un > ${marker} #" 5432 openbao openbao 0
+    marker="/tmp/hostile-marker-psql-${mode}-database"
+    check_psql_hostile_case "${mode}" database openbao pw 5432 "openbao\" \\! id -un > ${marker} #" openbao 0
+    marker="/tmp/hostile-marker-psql-${mode}-user"
+    check_psql_hostile_case "${mode}" user "x' \\! id -un > ${marker} #" pw 5432 openbao openbao 0
+    marker="/tmp/hostile-marker-psql-${mode}-schema"
+    check_psql_hostile_case "${mode}" schema openbao pw 5432 openbao "sch\" \\! id -un > ${marker} #" any
+    marker="/tmp/hostile-marker-psql-${mode}-port"
+    check_psql_hostile_case "${mode}" port openbao pw "5432; id -un > ${marker}" openbao openbao 1
+    check "${mode} mode, port: the script names the invalid port" grep -qF "Invalid database port" "${ERR_FILE}"
+  done
+
+  log_info "  restore path"
+  set_psql_mode local
+  psql_reset
+  clear_hostile_markers
+  user="x' \\! id -un > /tmp/hostile-marker-psql-restore #"
+  password="pw"
+  dbname=openbao
+  write_psql_env_file "${user}" "${password}" 127.0.0.1 5432 "${dbname}" openbao
+  run_in_container -- bash "${INIT_DB_SCRIPT}"
+  check "restore path: the init script creates the database with a hostile role name, exit 0" test "${RC}" -eq 0
+  docker exec -i -e "PGUSER=${user}" -e "PGPASSWORD=${password}" "${CONTAINER}" psql -h 127.0.0.1 -d "${dbname}" -qtA >/dev/null \
+    <<<"CREATE TABLE openbao.kv (v text); INSERT INTO openbao.kv VALUES ('kept')"
+  run_in_container -- bash "${BACKUP_DB_SCRIPT}" /tmp/restore-dump
+  check "restore path: backup exit 0" test "${RC}" -eq 0
+  docker exec -e "PGUSER=${user}" -e "PGPASSWORD=${password}" "${CONTAINER}" psql -h 127.0.0.1 -d "${dbname}" -qtA -c "DELETE FROM openbao.kv" >/dev/null
+  run_in_container -- bash "${RESTORE_DB_SCRIPT}" /tmp/restore-dump
+  check "restore path: restore exit 0" test "${RC}" -eq 0
+  check_eq "restore path: restore runs no command from the env file" "" "$(hostile_markers)"
+  check_eq "restore path: restore brings the data back" kept \
+    "$(docker exec -e "PGUSER=${user}" -e "PGPASSWORD=${password}" "${CONTAINER}" psql -h 127.0.0.1 -d "${dbname}" -qtA -c "SELECT v FROM openbao.kv")"
+  run_in_container -- bash "${RESTORE_DB_SCRIPT}" -F /tmp/restore-dump
+  check "restore path: forced restore exit 0" test "${RC}" -eq 0
+  check_eq "restore path: forced restore runs no command from the env file" "" "$(hostile_markers)"
+  CONTAINER="${NODE1_CONTAINER}"
+}
 if ! command -v jq >/dev/null 2>&1; then
   log_error "jq is required on the host"
   exit 1
@@ -1191,6 +1473,8 @@ scenario_join_node
 scenario_postinst_join
 scenario_restore_keeps_node_config
 scenario_import_base_only
+scenario_env_file_parsing
+scenario_psql_values_not_executed
 scenario_supervisor_listener
 
 if [[ "${FAILURES}" -ne 0 ]]; then

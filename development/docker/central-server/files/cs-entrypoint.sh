@@ -135,9 +135,9 @@ fi
 # Load OpenBao environment file
 if [ -f /etc/openbao/xroad-openbao.env ]; then
   log "Loading OpenBao environment variables"
-  set -a
-  . /etc/openbao/xroad-openbao.env
-  set +a
+  . /usr/share/xroad/scripts/_openbao_env.sh
+  BAO_PG_CONNECTION_URL=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_CONNECTION_URL)
+  export BAO_PG_CONNECTION_URL
 fi
 
 seed_configuration_properties
