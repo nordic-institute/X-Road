@@ -29,6 +29,7 @@ import { page } from 'vitest/browser';
 import { HttpResponse } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
+import { Permissions } from '@/global';
 
 describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
   it('a failing DS TLS ACME enrollment renders a distinct readable message, not the raw i18n key', async () => {
@@ -72,5 +73,116 @@ describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
 
     await expect.element(page.getByText('Dataspace TLS certificate ACME enrollment failing', { exact: false })).not.toBeInTheDocument();
     await expect.element(page.getByText('Dataspace TLS certificate ACME renewal failing', { exact: false })).not.toBeInTheDocument();
+  });
+});
+
+describe('CS Global Alerts — Issuer Service not initialized (Browser Mode)', () => {
+  const setupRequiredHandlers = [
+    specHttp.untyped.get('/api/v1/notifications/alerts', () =>
+      HttpResponse.json([{ errorCode: 'status.issuer_service.setup_required' }]),
+    ),
+    specHttp.get('/issuer-service', ({ response }) =>
+      response(200).json({
+        bound: false,
+        host_set: false,
+        certificate_ready: false,
+        run_in_progress: false,
+        can_sign: false,
+        status: 'NOT_CONFIGURED',
+      }),
+    ),
+  ];
+
+  it('the alert action routes to the Issuer Service tab', async () => {
+    await renderRoute('/members', {
+      permissions: [Permissions.VIEW_MEMBERS, Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: setupRequiredHandlers,
+    });
+
+    await expect.element(page.getByText('Issuer Service not initialized')).toBeVisible();
+
+    await page.getByText('Set up').click();
+
+    await expect.element(page.getByTestId('issuer-service-view')).toBeVisible();
+  });
+
+  it('shows no action without permission to view the Issuer Service tab', async () => {
+    await renderRoute('/members', {
+      permissions: [Permissions.VIEW_MEMBERS],
+      msw: setupRequiredHandlers,
+    });
+
+    await expect.element(page.getByText('Issuer Service not initialized')).toBeVisible();
+    await expect.element(page.getByText('Set up')).not.toBeInTheDocument();
+  });
+
+  it('shows no action while the Issuer Service tab is open', async () => {
+    await renderRoute('/settings/issuer-service', {
+      permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: setupRequiredHandlers,
+    });
+
+    await expect.element(page.getByTestId('issuer-service-view')).toBeVisible();
+    await expect.element(page.getByText('Issuer Service not initialized')).toBeVisible();
+    await expect.element(page.getByText('Set up')).not.toBeInTheDocument();
+  });
+});
+
+describe('CS Global Alerts — Issuer Service key missing (Browser Mode)', () => {
+  const keyMissingHandlers = [
+    specHttp.untyped.get('/api/v1/notifications/alerts', () =>
+      HttpResponse.json([{ errorCode: 'status.issuer_service.key_missing' }]),
+    ),
+    specHttp.get('/issuer-service', ({ response }) =>
+      response(200).json({
+        bound: true,
+        host_set: true,
+        certificate_ready: true,
+        run_in_progress: false,
+        can_sign: false,
+        can_sign_cause: 'KEY_SECRET_NOT_READABLE',
+        status: 'FAILED',
+      }),
+    ),
+  ];
+
+  it('the alert action routes to the Issuer Service tab', async () => {
+    await renderRoute('/members', {
+      permissions: [Permissions.VIEW_MEMBERS, Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: keyMissingHandlers,
+    });
+
+    await expect.element(page.getByText('Issuer Service signing key missing')).toBeVisible();
+
+    await page.getByText('View status').click();
+
+    await expect.element(page.getByTestId('issuer-service-view')).toBeVisible();
+  });
+
+  it('shows no action without permission to view the Issuer Service tab', async () => {
+    await renderRoute('/members', {
+      permissions: [Permissions.VIEW_MEMBERS],
+      msw: keyMissingHandlers,
+    });
+
+    await expect.element(page.getByText('Issuer Service signing key missing')).toBeVisible();
+    await expect.element(page.getByText('View status')).not.toBeInTheDocument();
+  });
+
+  it('the check-failure code renders its translated text', async () => {
+    await renderRoute('/members', {
+      permissions: [Permissions.VIEW_MEMBERS, Permissions.VIEW_SYSTEM_SETTINGS],
+      msw: [
+        specHttp.untyped.get('/api/v1/notifications/alerts', () =>
+          HttpResponse.json([{ errorCode: 'status.issuer_service.key_missing_check_failed' }]),
+        ),
+        keyMissingHandlers[1],
+      ],
+    });
+
+    await expect.element(page.getByText('Failed to check the Issuer Service signing key')).toBeVisible();
+
+    // The raw i18n key must never be what actually renders on screen.
+    await expect.element(page.getByText('status.issuer_service.key_missing_check_failed')).not.toBeInTheDocument();
   });
 });

@@ -43,6 +43,7 @@ import java.util.Objects;
  * @param didToBind        the issuer DID that set-up would bind, built from the host and DID port, or
  *                          {@code null} when the host is not set
  * @param didBound         whether the issuer identity is already bound
+ * @param boundDid         the issuer DID that is bound, or {@code null} until {@code didBound} is {@code true}
  * @param canSign          whether the asking node's Issuer Service can currently sign for the bound (or
  *                          to-be-bound) DID
  * @param canSignCause     why it cannot, or {@code null} when {@code canSign} is {@code true}
@@ -55,6 +56,7 @@ public record IssuerServiceStatus(
         boolean runInProgress,
         String didToBind,
         boolean didBound,
+        @Nullable String boundDid,
         boolean canSign,
         CanSignCause canSignCause,
         Overall overall) {
@@ -114,7 +116,7 @@ public record IssuerServiceStatus(
             overall = Overall.FAILED;
         }
 
-        return new IssuerServiceStatus(host, hostSet, certificateReady, runInProgress, didToBind, didBound, canSign, canSignCause,
-                overall);
+        return new IssuerServiceStatus(host, hostSet, certificateReady, runInProgress, didToBind, didBound, boundDid, canSign,
+                canSignCause, overall);
     }
 }

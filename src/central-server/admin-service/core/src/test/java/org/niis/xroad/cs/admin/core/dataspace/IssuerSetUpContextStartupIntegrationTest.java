@@ -106,7 +106,9 @@ import static org.mockito.Mockito.when;
                 DidBatchResolution.class,
                 ParticipantValueStoreImpl.class,
                 IssuerSetUpLeaseServiceImpl.class,
-                IssuerServiceStatusServiceImpl.class
+                IssuerServiceStatusServiceImpl.class,
+                IssuerKeyGuardImpl.class,
+                IssuerKeyPairReaderImpl.class
         }))
 @EnableScheduling
 @Execution(ExecutionMode.SAME_THREAD)

@@ -33,6 +33,20 @@
         - (variant is defined and variant == "ee")
         - ansible_facts['os_family'] == "RedHat"
 
+- name: Perform country profile check
+  hosts: hurl_servers
+  gather_facts: false
+  run_once: true
+  tasks:
+    - name: ss0 must run a country variant for verify-country-profile.hurl
+      fail:
+        msg: >-
+          The hurl step checks the country profile of xrd-ss0, but its variant is 'vanilla'.
+          Set variant=<country code> on xrd-ss0 in the inventory, or leave hurl_servers empty.
+      when:
+        - "'xrd-ss0' in hostvars"
+        - (hostvars['xrd-ss0'].variant | default('vanilla')) == 'vanilla'
+
 - name: Run compilation tasks
   hosts: compile_servers
   strategy: free

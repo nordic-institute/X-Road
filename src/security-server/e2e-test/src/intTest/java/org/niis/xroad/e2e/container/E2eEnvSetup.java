@@ -59,6 +59,8 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     private static final Pattern PROCESSED_FILES_PATTERN = Pattern.compile("Processed (\\d+) files\\.");
     private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
 
+    /** Country profile ss0 runs with in every stack shape. */
+    static final String SS0_COUNTRY_PROFILE = "FO";
     private static final String AUX_ENV = "aux";
     private static final String CA_ENV = "ca";
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
@@ -284,7 +286,8 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         return switch (coreProperties.ss0Stack()) {
             case DEFAULT -> new SsStackSetup(coreProperties, "ss0",
                     Set.of(SsStackSetup.Feature.BATCH_SIGNATURES, SsStackSetup.Feature.SOFTTOKEN_SIGNER,
-                            SsStackSetup.Feature.OP_MONITOR, SsStackSetup.Feature.AGREEMENT_TOKEN_KEY_PRUNING));
+                            SsStackSetup.Feature.OP_MONITOR, SsStackSetup.Feature.AGREEMENT_TOKEN_KEY_PRUNING,
+                            SsStackSetup.Feature.COUNTRY_PROFILE));
             case SIDECAR -> new SidecarSsStackSetup(coreProperties, "ss0");
         };
     }

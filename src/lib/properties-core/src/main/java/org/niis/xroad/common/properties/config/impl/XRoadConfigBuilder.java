@@ -28,9 +28,9 @@
 package org.niis.xroad.common.properties.config.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Country;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.Source;
 import org.niis.xroad.common.properties.config.Value;
@@ -145,7 +145,7 @@ public final class XRoadConfigBuilder {
         var dbSourceConfig = DbSourceConfig.loadValues(appName, nodeNameProvider);
         if (dbSourceConfig.getUrl() != null) {
             var dbProps = new CachedDbConfigSource(dbSourceConfig).getProperties();
-            var merged = new java.util.LinkedHashMap<>(overrides);
+            var merged = new LinkedHashMap<>(overrides);
             merged.putAll(dbProps);
             this.overrides = Map.copyOf(merged);
             var nodeName = dbSourceConfig.getNodeName();
@@ -157,11 +157,21 @@ public final class XRoadConfigBuilder {
         return this;
     }
 
-    /** @return resolved configuration with values cached at build time */
+    /**
+     * Builds the configuration. The country profile layer is selected by the
+     * {@value CountryProfileLoader#PROFILE_ENV_VARIABLE} environment variable; the
+     * {@value CountryProfileLoader#VARIANT_ENV_VARIABLE} environment variable selects the Sidecar file of the profile.
+     * @return resolved configuration with values cached at build time
+     */
     public XRoadConfig build() {
-        warnIgnoredEnvVars(System.getenv());
+        return build(System.getenv());
+    }
+
+    XRoadConfig build(Map<String, String> env) {
+        warnIgnoredEnvVars(env);
         warnUnknownFileKeys();
-        return new DefaultXRoadConfig(providers, overrides, fileOrigin, fileValues, deploymentMode);
+        var countryProfile = CountryProfileLoader.resolve(env).orElse(ActiveCountryProfile.NONE);
+        return new DefaultXRoadConfig(providers, overrides, fileOrigin, fileValues, countryProfile, deploymentMode);
     }
 
     void warnIgnoredEnvVars(Map<String, String> env) {
@@ -169,7 +179,9 @@ public final class XRoadConfigBuilder {
         if (ignored.isEmpty()) {
             return;
         }
-        var layers = fileOrigin == null ? "DB overrides" : "DB overrides, the settings file";
+        var layers = fileOrigin == null
+                ? "DB overrides, the country profile"
+                : "DB overrides, the settings file, the country profile";
         var advice = fileOrigin == null
                 ? "the configuration_properties table"
                 : "the configuration_properties table or the settings file";
@@ -203,20 +215,23 @@ public final class XRoadConfigBuilder {
 
     /**
      * Eager resolver. Resolves every registered key at construction (DB override &rarr;
-     * settings file &rarr; container or packaged default) and caches the resulting {@link Value}s; v1 does
-     * not reread until a new instance is built.
+     * settings file &rarr; country profile &rarr; container or packaged default) and caches the resulting
+     * {@link Value}s; v1 does not reread until a new instance is built.
      */
     @Slf4j
     private static final class DefaultXRoadConfig implements XRoadConfig {
 
         private final Map<ConfigKey<?>, Value<?>> resolved;
+        private final ActiveCountryProfile countryProfile;
 
         DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides, Path fileOrigin,
-                           Map<String, String> fileValues, DeploymentMode deploymentMode) {
+                           Map<String, String> fileValues, ActiveCountryProfile countryProfile,
+                           DeploymentMode deploymentMode) {
+            this.countryProfile = countryProfile;
             var map = new LinkedHashMap<ConfigKey<?>, Value<?>>();
             for (var provider : providers) {
                 for (var key : provider.keys()) {
-                    var value = resolve(key, overrides, fileValues, deploymentMode);
+                    var value = resolve(key, overrides, fileOrigin, fileValues, countryProfile, deploymentMode);
                     logSource(value, fileOrigin);
                     map.put(key, value);
                 }
@@ -225,6 +240,11 @@ public final class XRoadConfigBuilder {
                     map.size(),
                     map.keySet().stream().map(ConfigKey::key).collect(Collectors.joining("\n\t")));
             this.resolved = map;
+        }
+
+        @Override
+        public ActiveCountryProfile countryProfile() {
+            return countryProfile;
         }
 
         @Override
@@ -243,11 +263,6 @@ public final class XRoadConfigBuilder {
             return Optional.ofNullable((Value<T>) resolved.get(key));
         }
 
-        @Override
-        public Optional<Country> country() {
-            return Optional.empty();
-        }
-
         private static void logSource(Value<?> value, Path fileOrigin) {
             if (value.source() == Source.FILE) {
                 log.info("Config key {} resolved from source {} ({})", value.key().key(), value.source(), fileOrigin);
@@ -258,33 +273,42 @@ public final class XRoadConfigBuilder {
             }
         }
 
-        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides,
-                                            Map<String, String> fileValues, DeploymentMode mode) {
+        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides, Path fileOrigin,
+                                            Map<String, String> fileValues, ActiveCountryProfile countryProfile,
+                                            DeploymentMode mode) {
             var raw = overrides.get(key.key());
             if (raw != null) {
-                return new Value<>(key, converAndValidate(raw, key), Source.DB);
+                return new Value<>(key, converAndValidate(raw, key, ""), Source.DB);
             }
             var fileRaw = fileValues.get(key.key());
             if (fileRaw != null) {
-                return new Value<>(key, converAndValidate(fileRaw, key), Source.FILE);
+                var origin = " (from settings file %s)".formatted(fileOrigin);
+                return new Value<>(key, converAndValidate(fileRaw, key, origin), Source.FILE);
+            }
+            var countryRaw = countryProfile.values().get(key.key());
+            if (countryRaw != null) {
+                var origin = " (from country profile %s)".formatted(countryProfile.code());
+                return new Value<>(key, converAndValidate(countryRaw, key, origin), Source.COUNTRY);
             }
             var useContainerDefault = mode == DeploymentMode.CONTAINERIZED && key.containerDefaultValue() != null;
             var converted = useContainerDefault ? key.convertedContainerDefaultValue() : key.convertedDefaultValue();
             return new Value<>(key, converted, Source.DEFAULT);
         }
 
-        private static <T> T converAndValidate(String raw, ConfigKey<T> key) {
+        private static <T> T converAndValidate(String raw, ConfigKey<T> key, String origin) {
             T converted;
             try {
                 converted = key.convert(raw);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException(
-                        "Unparseable config value \"%s\" for %s: %s".formatted(raw, key.key(), e.getMessage()), e);
+                        "Unparseable config value \"%s\" for %s%s: %s"
+                                .formatted(raw, key.key(), origin, e.getMessage()), e);
             }
             var result = key.validate(converted);
             if (!result.valid()) {
                 throw new IllegalArgumentException(
-                        "Invalid config value \"%s\" for %s: %s".formatted(raw, key.key(), result.message()));
+                        "Invalid config value \"%s\" for %s%s: %s"
+                                .formatted(raw, key.key(), origin, result.message()));
             }
             return converted;
         }

@@ -46,11 +46,13 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * Op-monitor test stack for the file-based TLS identity: op-monitor with its databases, and no OpenBao service. A
- * trap listens at the OpenBao address and logs every connection. Three additional op-monitor services use
- * invalid identity files and are expected to fail during startup.
+ * trap listens at the OpenBao address and logs every connection. One additional op-monitor service holds an
+ * OpenBao token and has a trap of its own. Three further op-monitor services use invalid identity files and are
+ * expected to fail during startup.
  */
 public class OpMonitorFileIdentityContainerSetup extends BaseComposeSetup {
 
+    public static final String WITH_TOKEN = "op-monitor-with-token";
     public static final String MISMATCHED_KEY = "op-monitor-mismatched-key";
     public static final String MISSING_CERTIFICATE = "op-monitor-missing-certificate";
     public static final String TWO_TRUSTED_CAS = "op-monitor-two-trusted-cas";
@@ -59,6 +61,7 @@ public class OpMonitorFileIdentityContainerSetup extends BaseComposeSetup {
     private static final String COMPOSE_FILE = "compose.fileIdentity.intTest.yaml";
     private static final String OP_MONITOR = "op-monitor";
     private static final String OPENBAO_TRAP = "openbao-trap";
+    private static final String TOKEN_TRAP = "openbao-trap-token";
     private static final String OPENBAO_URL = "http://openbao:8200/";
     private static final String DB_OP_MONITOR = "db-opmonitor";
     private static final int DB_OP_MONITOR_PORT = 5432;
@@ -102,8 +105,30 @@ public class OpMonitorFileIdentityContainerSetup extends BaseComposeSetup {
      * Returns the liveness endpoint response body of op-monitor, read from inside its container.
      */
     public String livenessResponse() {
-        return execInContainer(OP_MONITOR, "curl", "-s", "--max-time", "2",
+        return livenessResponse(OP_MONITOR);
+    }
+
+    /**
+     * Returns the liveness endpoint response body of the given op-monitor service, read from inside its container.
+     */
+    public String livenessResponse(String service) {
+        return execInContainer(service, "curl", "-s", "--max-time", "2",
                 "http://127.0.0.1:" + QUARKUS_HEALTH_PORT + "/q/health/live").getStdout();
+    }
+
+    /**
+     * Returns the readiness endpoint response body of op-monitor, read from inside its container.
+     */
+    public String readinessResponse() {
+        return readinessResponse(OP_MONITOR);
+    }
+
+    /**
+     * Returns the readiness endpoint response body of the given op-monitor service, read from inside its container.
+     */
+    public String readinessResponse(String service) {
+        return execInContainer(service, "curl", "-s", "--max-time", "5",
+                "http://127.0.0.1:" + QUARKUS_HEALTH_PORT + "/q/health/ready").getStdout();
     }
 
     /**
@@ -119,6 +144,13 @@ public class OpMonitorFileIdentityContainerSetup extends BaseComposeSetup {
      */
     public String openBaoTrapLog() {
         return containerLog(containerId(OPENBAO_TRAP));
+    }
+
+    /**
+     * Returns the log of the trap at the OpenBao address of the op-monitor service that holds a token.
+     */
+    public String tokenTrapLog() {
+        return containerLog(containerId(TOKEN_TRAP));
     }
 
     /**

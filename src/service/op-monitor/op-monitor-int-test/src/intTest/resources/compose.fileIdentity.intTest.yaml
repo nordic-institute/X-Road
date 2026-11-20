@@ -19,6 +19,8 @@ x-op-monitor: &op-monitor
       condition: service_completed_successfully
     openbao-trap:
       condition: service_started
+    openbao-trap-token:
+      condition: service_started
   deploy:
     resources:
       reservations:
@@ -34,6 +36,20 @@ services:
       default:
         aliases:
           - openbao
+    deploy:
+      resources:
+        reservations:
+          memory: 8M
+        limits:
+          memory: 32M
+
+  openbao-trap-token:
+    image: alpine/socat:1.7.4.3-r0
+    command: [ "-d", "-d", "TCP-LISTEN:8200,fork,reuseaddr", "SYSTEM:true" ]
+    networks:
+      default:
+        aliases:
+          - openbao-token
     deploy:
       resources:
         reservations:
@@ -114,6 +130,24 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
+
+  op-monitor-with-token:
+    <<: *op-monitor
+    environment:
+      - XROAD_HOST=op-monitor-with-token
+      - XROAD_SECRET_STORE_HOST=openbao-token
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_SECRET_STORE_TOKEN=test-token
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME=opmonitor
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_PASSWORD=secret
+      - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+    restart: "no"
+    volumes:
+      - ${IDENTITY_DIR}:/identity:ro
 
   op-monitor-mismatched-key:
     <<: *op-monitor

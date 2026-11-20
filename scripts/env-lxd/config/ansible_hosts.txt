@@ -23,7 +23,7 @@ ubuntu_hsm_ss
 xrd-ss1 ansible_connection=lxd
 
 [rhel_ss]
-xrd-ss0 ansible_connection=lxd
+xrd-ss0 ansible_connection=lxd variant=fo
 
 [is_servers]
 xrd-is ansible_connection=lxd

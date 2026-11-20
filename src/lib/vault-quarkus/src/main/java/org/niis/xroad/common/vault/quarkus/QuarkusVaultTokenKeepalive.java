@@ -35,6 +35,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.interceptor.Interceptor;
+import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
@@ -43,34 +44,38 @@ import org.niis.xroad.common.vault.VaultTokenKeepalive;
 /**
  * Renews the secret store token shared by all services of a node at startup and every configured interval. The
  * bean is discovered through the library's Jandex index, and schedules the renewal only where the scheduler is
- * enabled ({@code quarkus.scheduler.enabled=false} switches it off).
+ * enabled ({@code quarkus.scheduler.enabled=false} switches it off) and a secret store token is set.
  */
 @ApplicationScoped
 class QuarkusVaultTokenKeepalive {
 
     private static final String JOB_ID = "vault-token-keepalive";
+    private static final String CLIENT_TOKEN = "quarkus.vault.authentication.client-token";
 
     private final Scheduler scheduler;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
     private final boolean schedulerEnabled;
     private final Instance<VaultClient> vaultClient;
     private final Instance<XRoadConfig> config;
+    private final Config quarkusConfig;
 
     QuarkusVaultTokenKeepalive(Scheduler scheduler,
                                Scheduled.ApplicationNotRunning applicationNotRunning,
                                @ConfigProperty(name = "quarkus.scheduler.enabled", defaultValue = "true")
                                boolean schedulerEnabled,
                                Instance<VaultClient> vaultClient,
-                               Instance<XRoadConfig> config) {
+                               Instance<XRoadConfig> config,
+                               Config quarkusConfig) {
         this.scheduler = scheduler;
         this.applicationNotRunning = applicationNotRunning;
         this.schedulerEnabled = schedulerEnabled;
         this.vaultClient = vaultClient;
         this.config = config;
+        this.quarkusConfig = quarkusConfig;
     }
 
     void schedule(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
-        if (!schedulerEnabled) {
+        if (!schedulerEnabled || !tokenPresent()) {
             return;
         }
         var xRoadConfig = config.get();
@@ -84,6 +89,10 @@ class QuarkusVaultTokenKeepalive {
                 .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
                 .setSkipPredicate(applicationNotRunning)
                 .schedule();
+    }
+
+    private boolean tokenPresent() {
+        return quarkusConfig.getOptionalValue(CLIENT_TOKEN, String.class).filter(token -> !token.isBlank()).isPresent();
     }
 
     private static void renewSelf(VaultClient vaultClient) {

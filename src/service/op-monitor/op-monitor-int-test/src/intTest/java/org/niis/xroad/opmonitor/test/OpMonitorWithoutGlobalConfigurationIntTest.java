@@ -46,6 +46,7 @@ class OpMonitorWithoutGlobalConfigurationIntTest {
 
     private static final String DATABASE_CHECK = "OP_MONITOR_DATABASE_READINESS_CHECK";
     private static final String CONFIGURATION_CLIENT_CHECK = "CONFCLIENT_CHANNEL_READINESS_CHECK";
+    private static final String SECRET_STORE_CHECK = "Vault connection health check";
     private static final String GLOBAL_CONFIGURATION_DIRECTORY = "/etc/xroad/globalconf";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(60);
@@ -61,14 +62,7 @@ class OpMonitorWithoutGlobalConfigurationIntTest {
     @Test
     @DisplayName("Readiness is UP and the configuration-client readiness check is not registered")
     void readinessIsUpWithoutConfigurationClientCheck(OpMonitorContainerSetup stack) {
-        var readiness = when("the op-monitor readiness endpoint is polled until UP",
-                () -> await()
-                        .pollDelay(Duration.ZERO)
-                        .pollInterval(POLL_INTERVAL)
-                        .atMost(POLL_TIMEOUT)
-                        .ignoreExceptions()
-                        .until(() -> JsonPath.from(stack.readinessResponse()),
-                                json -> "UP".equals(json.getString("status"))));
+        var readiness = when("the op-monitor readiness endpoint is polled until UP", () -> readinessWhenUp(stack));
         then("the overall status is UP and the database check is UP", () -> {
             assertThat(readiness.getString("status")).isEqualTo("UP");
             assertThat(readiness.getString("checks.find { it.name == '%s' }.status".formatted(DATABASE_CHECK)))
@@ -76,5 +70,26 @@ class OpMonitorWithoutGlobalConfigurationIntTest {
         });
         then("no configuration-client readiness check is registered", () ->
                 assertThat(readiness.getList("checks.name", String.class)).doesNotContain(CONFIGURATION_CLIENT_CHECK));
+    }
+
+    @Test
+    @DisplayName("With the OpenBao identity, readiness holds exactly one secret store check and it is UP")
+    void readinessHoldsOneSecretStoreCheck(OpMonitorContainerSetup stack) {
+        var readiness = when("the op-monitor readiness endpoint is polled until UP", () -> readinessWhenUp(stack));
+        then("exactly one secret store check is registered and it is UP", () -> {
+            assertThat(readiness.getList("checks.name", String.class))
+                    .filteredOn(SECRET_STORE_CHECK::equals).hasSize(1);
+            assertThat(readiness.getString("checks.find { it.name == '%s' }.status".formatted(SECRET_STORE_CHECK)))
+                    .isEqualTo("UP");
+        });
+    }
+
+    private static JsonPath readinessWhenUp(OpMonitorContainerSetup stack) {
+        return await()
+                .pollDelay(Duration.ZERO)
+                .pollInterval(POLL_INTERVAL)
+                .atMost(POLL_TIMEOUT)
+                .ignoreExceptions()
+                .until(() -> JsonPath.from(stack.readinessResponse()), json -> "UP".equals(json.getString("status")));
     }
 }

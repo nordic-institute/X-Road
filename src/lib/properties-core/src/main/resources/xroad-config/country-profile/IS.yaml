@@ -1,0 +1,8 @@
+metadata:
+  country: IS
+  description: Iceland Security Server settings
+
+xroad:
+  proxy:
+    message-log:
+      message-body-logging: false

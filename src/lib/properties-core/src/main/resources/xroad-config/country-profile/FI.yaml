@@ -1,0 +1,35 @@
+metadata:
+  country: FI
+  description: Finland Security Server settings
+
+xroad:
+  signer:
+    key-length: 3072
+    enforce-token-pin-policy: true
+    csr-signature-digest-algorithm: SHA-256
+  proxy:
+    client-proxy:
+      client-tls-protocols:
+        - TLSv1.2
+      client-tls-ciphers:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+        - TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+        - TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+      pool-enable-connection-reuse: true
+      use-fastest-connecting-ssl-socket-autoclose: true
+      client-use-idle-connection-monitor: true
+      client-timeout: 30000
+    server:
+      support-clients-pooled-connections: true
+      min-supported-client-version: "7.6.0"
+    message-log:
+      message-body-logging: false
+      timestamper:
+        acceptable-timestamp-failure-period: 172800
+  proxy-ui-api:
+    acme-challenge-port-enabled: true

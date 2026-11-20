@@ -32,6 +32,7 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.common.vault.ResilientVaultCall;
+import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -55,7 +56,10 @@ public class SpringVaultClientConfig {
                                         ObjectProvider<NodeIdentity> nodeIdentity,
                                         ObjectProvider<XRoadConfig> xRoadConfig) {
         var vaultKvClient = vaultTemplate.opsForKeyValue(rootPath, getKeyValueBackendVersion(version));
-        return new SpringVaultClient(vaultKvClient, nodeIdentity.getIfAvailable(), retryBudget(xRoadConfig));
+        var dsIssuerServiceVaultKvClient = vaultTemplate.opsForKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT,
+                VaultKeyValueOperationsSupport.KeyValueBackend.KV_2);
+        return new SpringVaultClient(vaultKvClient, dsIssuerServiceVaultKvClient, nodeIdentity.getIfAvailable(),
+                retryBudget(xRoadConfig));
     }
 
     @Bean

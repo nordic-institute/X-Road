@@ -1130,7 +1130,7 @@
             "acme-challenge-path": "Faili süsteemi tee, kust ACME HTTP-01 väljakutse tokeneid teenindatakse.",
             "allow-csr-for-key-with-certificate": "Määrab, kas uue CSR genereerimine on lubatud võtme jaoks, millel on olemasolev sertifikaat.",
             "auth-cert-reg-signature-digest-algorithm-id": "Allkirja räsialgoritm, mida kasutatakse autentimissertifikaadi registreerimistaotluse genereerimisel. Võimalikud väärtused on – SHA-256, SHA-384, SHA-512.",
-            "proxy-server-url": "Admin API poolt kasutatava turvaserveri puhverserveri URL.",
+            "proxy-server-url": "Admin API poolt kasutatava turvaserveri puhverserveri URL. Kui määramata: https://localhost:<kliendi HTTPS-port>.",
             "proxy-server-connect-timeout": "Millisekundid ootamiseks puhverserveriga ühenduse loomisel.",
             "proxy-server-socket-timeout": "Millisekundid puhverserveri soklist andmete ootamiseks (0 = aegumine puudub).",
             "proxy-server-enable-connection-reuse": "Kui lubatud, kasutatakse HTTP ühendusi puhverserveriga päringute vahel uuesti.",

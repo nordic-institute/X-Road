@@ -31,9 +31,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 
@@ -51,7 +55,8 @@ import static org.mockito.Mockito.when;
  * Guards the cross-module part of the system-parameters catalogue: the signer, environmental
  * monitoring, message log archiver and message log encryption keys reach the Security Server
  * catalogue from their own modules, with the scope names the {@code configuration_properties}
- * table and the UI expect.
+ * table and the UI expect. Also covers the effective value and source reported for the active country
+ * profile and the deployment mode.
  */
 @ExtendWith(MockitoExtension.class)
 class ConfigurablePropertiesCatalogueTest {
@@ -131,7 +136,8 @@ class ConfigurablePropertiesCatalogueTest {
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(auditDataHelper, repository, new SsConfigurablePropertySource());
+        service = new ConfigurablePropertiesService(auditDataHelper, repository,
+                new SsConfigurablePropertySource(DeploymentMode.NATIVE, ActiveCountryProfile.NONE));
         when(repository.findAll()).thenReturn(List.of());
     }
 
@@ -139,7 +145,7 @@ class ConfigurablePropertiesCatalogueTest {
     void catalogueIncludesCrossModuleKeysWithExpectedScopeAndDefault() {
         var actual = service.getConfigurationProperties().stream()
                 .collect(Collectors.toMap(ConfigurablePropertyDto::getPropertyName, dto -> dto,
-                        (first, second) -> first));
+                        (first, _) -> first));
 
         assertThat(expectedCrossModuleProperties())
                 .allSatisfy((key, expected) -> {
@@ -225,10 +231,108 @@ class ConfigurablePropertiesCatalogueTest {
                 });
     }
 
+    @Test
+    void keyWithoutProfileValueReportsDefaultSourceWhileProfileIsActive() {
+        var dto = propertiesWithProfile("fi").get("xroad.signer.rpc.port");
+
+        assertThat(dto.getEffectiveValue()).isEqualTo("5560");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
+        assertThat(dto.getCountryProfile()).isNull();
+        assertThat(dto.getCurrentValue()).isNull();
+    }
+
+    @Test
+    void keyFromActiveProfileReportsCountryProfileSourceWithCode() {
+        var dto = propertiesWithProfile("fi").get("xroad.signer.key-length");
+
+        assertThat(dto.getEffectiveValue()).isEqualTo("3072");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.COUNTRY_PROFILE);
+        assertThat(dto.getCountryProfile()).isEqualTo("FI");
+        assertThat(dto.getDefaultValue()).isEqualTo("2048");
+        assertThat(dto.getCurrentValue()).isNull();
+    }
+
+    @Test
+    void databaseRowOverProfileKeyReportsDbSourceAndDatabaseValue() {
+        when(repository.findAll()).thenReturn(List.of(row("xroad.signer.key-length", "4096")));
+
+        var dto = propertiesWithProfile("FI").get("xroad.signer.key-length");
+
+        assertThat(dto.getEffectiveValue()).isEqualTo("4096");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DB);
+        assertThat(dto.getCountryProfile()).isNull();
+        assertThat(dto.getCurrentValue()).isEqualTo("4096");
+    }
+
+    @Test
+    void withoutProfileEveryKeyReportsDefaultSource() {
+        var dto = service.getConfigurationProperties().stream()
+                .filter(property -> "xroad.signer.key-length".equals(property.getPropertyName()))
+                .findFirst().orElseThrow();
+
+        assertThat(dto.getEffectiveValue()).isEqualTo("2048");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
+        assertThat(dto.getCountryProfile()).isNull();
+    }
+
+    @Test
+    void sidecarVariantReportsSidecarProfileValues() {
+        var properties = propertiesWith(DeploymentMode.NATIVE, Map.of(
+                CountryProfileLoader.PROFILE_ENV_VARIABLE, "EE",
+                CountryProfileLoader.VARIANT_ENV_VARIABLE, CountryProfileLoader.SIDECAR_VARIANT));
+
+        var connectorHost = properties.get("xroad.proxy.client-proxy.connector-host");
+        assertThat(connectorHost.getEffectiveValue()).isEqualTo("0.0.0.0");
+        assertThat(connectorHost.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
+        assertThat(connectorHost.getCountryProfile()).isNull();
+        var keyLength = properties.get("xroad.signer.key-length");
+        assertThat(keyLength.getEffectiveValue()).isEqualTo("3072");
+        assertThat(keyLength.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.COUNTRY_PROFILE);
+        assertThat(keyLength.getCountryProfile()).isEqualTo("EE");
+    }
+
+    @Test
+    void containerizedModeReportsContainerDefaultForKeyThatDeclaresOne() {
+        var dto = propertiesWith(DeploymentMode.CONTAINERIZED, Map.of())
+                .get("xroad.proxy-ui-api.authentication-provider");
+
+        assertThat(dto.getEffectiveValue()).isEqualTo("DATABASE");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
+        assertThat(dto.getDefaultValue()).isEqualTo("DATABASE");
+    }
+
+    @Test
+    void nativeModeReportsNativeDefaultForKeyThatDeclaresContainerDefault() {
+        var dto = propertiesWith(DeploymentMode.NATIVE, Map.of())
+                .get("xroad.proxy-ui-api.authentication-provider");
+
+        assertThat(dto.getEffectiveValue()).isEqualTo("PAM");
+        assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
+    }
+
+    private Map<String, ConfigurablePropertyDto> propertiesWithProfile(String profileName) {
+        return propertiesWith(DeploymentMode.NATIVE,
+                Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profileName));
+    }
+
+    private Map<String, ConfigurablePropertyDto> propertiesWith(DeploymentMode mode, Map<String, String> env) {
+        var countryProfile = CountryProfileLoader.resolve(env)
+                .orElse(ActiveCountryProfile.NONE);
+        var profileService = new ConfigurablePropertiesService(auditDataHelper, repository,
+                new SsConfigurablePropertySource(mode, countryProfile));
+        return profileService.getConfigurationProperties().stream()
+                .collect(Collectors.toMap(ConfigurablePropertyDto::getPropertyName, dto -> dto,
+                        (first, _) -> first));
+    }
+
     private static ConfigurationPropertyEntity row() {
+        return row("xroad.op-monitor.rpc.port", "2091");
+    }
+
+    private static ConfigurationPropertyEntity row(String key, String value) {
         var entity = new ConfigurationPropertyEntity();
-        entity.setPropertyKey("xroad.op-monitor.rpc.port");
-        entity.setPropertyValue("2091");
+        entity.setPropertyKey(key);
+        entity.setPropertyValue(value);
         return entity;
     }
 

@@ -11,6 +11,8 @@ quarkus:
   vault:
     authentication:
       client-token: "${XROAD_SECRET_STORE_TOKEN:}"
+    health:
+      enabled: false
 
 xroad:
   db:

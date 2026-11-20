@@ -62,6 +62,7 @@ export enum RouteName {
   TlsCertificates = 'tls-certificates',
   DsTlsCertificate = 'ds-tls-certificate',
   DsTlsCertificateDetails = 'ds-tls-certificate-details',
+  IssuerService = 'issuer-service',
   CreateApiKey = 'create-api-key',
   GlobalConfiguration = 'global-configuration',
   InternalConfiguration = 'internal-configuration',
@@ -169,6 +170,8 @@ export enum Permissions {
   DELETE_ADMIN_USER = 'DELETE_ADMIN_USER',
   UPDATE_ADMIN_USER = 'UPDATE_ADMIN_USER',
   VIEW_ADMIN_USERS = 'VIEW_ADMIN_USERS',
+  EDIT_ISSUER_SERVICE_HOST = 'EDIT_ISSUER_SERVICE_HOST',
+  INITIALIZE_ISSUER_SERVICE = 'INITIALIZE_ISSUER_SERVICE',
 }
 
 // A single source of truth for roles

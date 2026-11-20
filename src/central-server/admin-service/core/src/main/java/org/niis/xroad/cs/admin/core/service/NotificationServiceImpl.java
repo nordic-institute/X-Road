@@ -37,7 +37,9 @@ import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
+import org.niis.xroad.cs.admin.api.service.IssuerKeyGuard;
 import org.niis.xroad.cs.admin.api.service.NotificationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
@@ -72,11 +74,18 @@ public class NotificationServiceImpl implements NotificationService {
     private final SignerProxyFacade signerProxyFacade;
     private final GlobalConfGenerationStatusService globalConfGenerationStatus;
     private final DsTlsCertificateService dsTlsCertificateService;
+    private final DataspaceIssuerDidService dataspaceIssuerDidService;
+    private final IssuerKeyGuard issuerKeyGuard;
 
     @Override
     public Set<AlertInfo> getAlerts() {
         final Set<AlertInfo> alerts = new HashSet<>();
         alerts.addAll(checkDsTlsAcmeEnrollment());
+
+        final boolean setUp = isSetUp();
+        if (setUp) {
+            alerts.addAll(checkIssuerServiceStatus());
+        }
 
         final List<TokenInfo> tokens;
         try {
@@ -115,10 +124,39 @@ public class NotificationServiceImpl implements NotificationService {
         return Set.of(new AlertInfo(errorCode, lastError));
     }
 
+    private Set<AlertInfo> checkIssuerServiceStatus() {
+        final List<String> boundDids;
+        try {
+            boundDids = dataspaceIssuerDidService.findAll();
+        } catch (Exception e) {
+            log.error("Failed to check the Issuer Service set-up state", e);
+            return Set.of(new AlertInfo("status.issuer_service.status_check_failed"));
+        }
+        if (boundDids.isEmpty()) {
+            return Set.of(new AlertInfo("status.issuer_service.setup_required"));
+        }
+        return checkIssuerServiceKeyMissing();
+    }
+
+    private Set<AlertInfo> checkIssuerServiceKeyMissing() {
+        try {
+            if (issuerKeyGuard.signingKeySecretPresent()) {
+                return Set.of();
+            }
+        } catch (Exception e) {
+            log.error("Failed to check the Issuer Service signing key secret", e);
+            return Set.of(new AlertInfo("status.issuer_service.key_missing_check_failed"));
+        }
+        return Set.of(new AlertInfo("status.issuer_service.key_missing"));
+    }
+
     private boolean isInitialized(List<TokenInfo> tokens) {
+        return isSetUp() && softwareTokenInitialized(tokens);
+    }
+
+    private boolean isSetUp() {
         return isNotBlank(systemParameterService.getInstanceIdentifier())
-                && isNotBlank(systemParameterService.getCentralServerAddress())
-                && softwareTokenInitialized(tokens);
+                && isNotBlank(systemParameterService.getCentralServerAddress());
     }
 
     private boolean softwareTokenInitialized(List<TokenInfo> tokens) {
