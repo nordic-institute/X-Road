@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 
 import java.util.Map;
 
@@ -45,7 +46,33 @@ class AdminServicePropertiesTest {
                 .isEqualTo(90);
     }
 
+    @Test
+    void theProxyUrlFollowsTheDefaultClientHttpsPortWhenNoUrlIsSet() {
+        assertThat(new AdminServiceProperties(config(Map.of())).getProxyServerUrl())
+                .isEqualTo("https://localhost:8443");
+    }
+
+    @Test
+    void theProxyUrlFollowsAnOverriddenClientHttpsPortWhenNoUrlIsSet() {
+        var config = config(Map.of("xroad.proxy.client-proxy.client-https-port", "443"));
+
+        assertThat(new AdminServiceProperties(config).getProxyServerUrl()).isEqualTo("https://localhost:443");
+    }
+
+    @Test
+    void aConfiguredProxyUrlWinsOverTheClientHttpsPort() {
+        var config = config(Map.of(
+                "xroad.proxy-ui-api.proxy-server-url", "https://proxy:8443",
+                "xroad.proxy.client-proxy.client-https-port", "443"));
+
+        assertThat(new AdminServiceProperties(config).getProxyServerUrl()).isEqualTo("https://proxy:8443");
+    }
+
     private static XRoadConfig config(Map<String, String> overrides) {
-        return XRoadConfigBuilder.create().register(AdminServiceConfigKeys.instance()).overrides(overrides).build();
+        return XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .register(AdminServiceConfigKeys.instance())
+                .overrides(overrides)
+                .build();
     }
 }

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
@@ -36,6 +37,7 @@ import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -62,12 +64,22 @@ public class XRoadConfigBeanConfiguration {
     }
 
     @Bean
-    XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName, Environment environment,
-                            XRoadConfigOverrides overrides) {
-        var deploymentMode = environment.matchesProfiles("containerized")
+    DeploymentMode deploymentMode(Environment environment) {
+        return environment.matchesProfiles("containerized")
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    @Bean
+    ActiveCountryProfile countryProfile(XRoadConfig xRoadConfig) {
+        return xRoadConfig.countryProfile();
+    }
+
+    @Bean
+    XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName, DeploymentMode deploymentMode,
+                            XRoadConfigOverrides overrides) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
+                .register(ProxyConfigKeys.instance())
                 .register(AdminServiceConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
                 .register(GlobalConfConfigKeys.instance())

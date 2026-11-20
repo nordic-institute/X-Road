@@ -43,3 +43,26 @@ Type: error
 Description: Error applying selected memory config, please fix issues
   output was:
   ${ERR}
+
+Template: xroad-common/did-port
+Type: string
+Default: 7183
+Description: Insert the DID port
+ The Security Server serves its dataspace identities (DIDs) on this port.
+ .
+ The port is stored at first installation and not asked again.
+ Allowed values: 1024-65535, different from the DSP port.
+
+Template: xroad-common/dsp-port
+Type: string
+Default: 8183
+Description: Insert the DSP port
+ The Security Server serves the Dataspace Protocol (DSP) on this port.
+ .
+ The port is stored at first installation and not asked again.
+ Allowed values: 1024-65535, different from the DID port.
+
+Template: xroad-common/dsp-ports-error
+Type: error
+Description: Invalid DID or DSP port, please fix issues
+  ${ERR}

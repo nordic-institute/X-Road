@@ -10,6 +10,7 @@ XROAD_INSTALLER_LOG_FILE="xroad-upgrade-${TIMESTAMP}.log"
 export XROAD_INSTALLER_LOG_FILE
 
 source "$SCRIPT_DIR/lib/common.sh"
+source "$SCRIPT_DIR/lib/dsp_port_prompt.sh"
 
 XROAD_UPGRADE_CONFIG_FILE="${XROAD_UPGRADE_CONFIG_FILE:-}"
 XROAD_UPGRADE_UNATTENDED="${XROAD_UPGRADE_UNATTENDED:-}"
@@ -29,6 +30,9 @@ OPENBAO_MIRROR_USER="${OPENBAO_MIRROR_USER:-}"
 XROAD_SS_PACKAGE="${XROAD_SS_PACKAGE:-}"
 
 XROAD_DELETE_OBSOLETE_FILES="${XROAD_DELETE_OBSOLETE_FILES:-}"
+
+XROAD_DID_PORT="${XROAD_DID_PORT:-}"
+XROAD_DSP_PORT="${XROAD_DSP_PORT:-}"
 
 parse_args() {
   while [[ $# -gt 0 ]]; do
@@ -62,6 +66,12 @@ OPTIONS:
                                 (see xroad-upgrade.conf.sample for available variables)
     -h, --help                  Show this help message
 
+CONFIG FILE VARIABLES (set with --config-file):
+    XROAD_DID_PORT              Port for the dataspace identity (DID) documents, 1024-65535 (default: $DSP_DEFAULT_DID_PORT)
+    XROAD_DSP_PORT              Port for the Dataspace Protocol (DSP), 1024-65535 (default: $DSP_DEFAULT_DSP_PORT)
+                                Asked interactively when not set; with XROAD_UPGRADE_UNATTENDED=true the defaults are used.
+                                Stored before the services start; a port that is already stored is kept.
+
 EXAMPLES:
     sudo ./xroad-upgrade.sh
     sudo ./xroad-upgrade.sh --config-file /path/to/xroad-upgrade.conf
@@ -92,9 +102,48 @@ run_step() {
     if [[ "${XROAD_UPGRADE_UNATTENDED:-}" == "true" ]]; then
       log_die "$failure_hint"
     else
-      whiptail --msgbox "$failure_hint" 12 78 --title "Upgrade Failed"
+      log_error "$failure_hint"
+      whiptail --msgbox "$failure_hint" 16 78 --title "Upgrade Failed"
       exit $EXIT_ERROR
     fi
+  fi
+  log_message ""
+}
+
+# Prints the recovery hint for a failed port write: the commands run from the wizard directory, in a
+# non-root shell, with the ports the wizard chose.
+dsp_ports_failure_hint() {
+  printf '%s\n' "Storing the DID and DSP ports failed. X-Road services are stopped." \
+    "Fix the cause (for example an unreachable database), then run in order:"
+  printf '  cd %q\n' "$SCRIPT_DIR"
+  printf '  sudo env XROAD_DID_PORT=%q XROAD_DSP_PORT=%q \\\n' \
+    "${XROAD_DID_PORT:-$DSP_DEFAULT_DID_PORT}" "${XROAD_DSP_PORT:-$DSP_DEFAULT_DSP_PORT}"
+  printf '    bash tasks/migration/write_dsp_ports.sh\n'
+  printf '  sudo bash tasks/migration/start_xroad_services.sh\n'
+  printf 'Do not re-run the wizard: it accepts only 7.8 installations.'
+}
+
+# Prints the recovery hint for a failed service start: the commands run from the wizard directory, in a
+# non-root shell.
+start_failure_hint() {
+  printf '%s\n' "Some X-Road services are not active. The upgrade is installed and the other services were started." \
+    "The obsolete V7 files were not removed." \
+    "Run: systemctl status <service> to diagnose. Fix the cause, then run:"
+  printf '  cd %q\n' "$SCRIPT_DIR"
+  printf '  sudo bash tasks/migration/start_xroad_services.sh\n'
+  printf 'Do not re-run the wizard: it accepts only 7.8 installations.'
+}
+
+# Chooses the DID and DSP ports. Unattended runs use the defaults for a missing port, interactive runs ask.
+# A secondary node asks for and stores no ports.
+select_upgrade_dsp_ports() {
+  local skip_reason
+  if skip_reason=$(dsp_port_rows_skip_reason); then
+    log_info "${skip_reason}, not asking for the DID and DSP ports"
+  elif [[ "${XROAD_UPGRADE_UNATTENDED:-}" == "true" ]]; then
+    select_dsp_ports --no-prompt
+  else
+    select_dsp_ports
   fi
   log_message ""
 }
@@ -143,6 +192,11 @@ main() {
   export OPENBAO_MIRROR_USER
   export XROAD_SS_PACKAGE
   export XROAD_DELETE_OBSOLETE_FILES
+  export XROAD_DID_PORT
+  export XROAD_DSP_PORT
+
+  # An invalid port stops the wizard before any change is made.
+  validate_dsp_port_config
 
  # Validate the source version before installing interactive prerequisites.
   bash "$SCRIPT_DIR/tasks/migration/check_version_gate.sh" --no-confirm
@@ -163,6 +217,9 @@ main() {
   run_step "check_version_gate.sh" \
     "Version gate passed" \
     "Pre-flight check failed. No changes made. Fix the issue and re-run the wizard."
+
+  # Step 1a: Choose the DID and DSP ports — asked before any change, stored in Step 12b before the services start.
+  select_upgrade_dsp_ports
 
   # Step 2: Download migration-CLI JAR — must exist before stopping services.
   run_step "download_migration_cli.sh" \
@@ -194,6 +251,11 @@ main() {
     "Operational monitoring state recorded" \
     "Recording the operational monitoring state failed. No services stopped yet. Fix the issue and re-run the wizard."
 
+  # Step 6b: Record the installed country package — must run before the package step so it is upgraded with the base package.
+  run_step "capture_country_package.sh" \
+    "Country package recorded" \
+    "Recording the country package failed. No services stopped yet. Fix the issue and re-run the wizard."
+
   # Step 7: Stop X-Road services — dynamic discovery, polling wait.
   run_step "stop_xroad_services.sh" \
     "X-Road services stopped" \
@@ -209,7 +271,7 @@ main() {
     "serverconf.identifier deduplication finished" \
     "serverconf.identifier deduplication failed. Fix the problematic rows manually and re-run the upgrade wizard."
 
-  # Step 10: Upgrade packages — apt-get install / yum update -y for xroad-securityserver, plus xroad-opmonitor when it was installed in 7.8.
+  # Step 10: Upgrade packages — apt-get install / yum update -y for xroad-securityserver, plus xroad-opmonitor and the country package when they were installed in 7.8.
   run_step "upgrade_packages.sh" \
     "Security Server packages upgraded to 8.0" \
     "Package upgrade failed. V8 repo is active. Check this step's log messages for the package that failed; xroad-securityserver may already be at 8.x. Investigate before retrying, because the wizard only accepts 7.8 installations."
@@ -229,10 +291,15 @@ main() {
     "Operational monitoring flag written" \
     "Writing the operational monitoring flag failed. X-Road services are stopped. Verify the configuration database is reachable and the state in /var/lib/xroad-upgrade/op-monitor.state is valid, then set xroad.proxy.addon.op-monitor.enabled with /usr/share/xroad/scripts/db_property.sh."
 
+  # Step 12b: Store the DID and DSP ports before the admin service starts and binds the DIDs; an existing row is kept.
+  run_step "write_dsp_ports.sh" \
+    "DID and DSP ports stored" \
+    "$(dsp_ports_failure_hint)"
+
   # Step 13: Start X-Road services, is-active polling.
   run_step "start_xroad_services.sh" \
     "X-Road services started" \
-    "Service start failed after successful upgrade. Run: systemctl status <service> to diagnose."
+    "$(start_failure_hint)"
 
   # Step 14: Remove obsolete V7 config files (operator-confirmed; unattended deletes by default — set XROAD_DELETE_OBSOLETE_FILES=no to keep).
   run_step "cleanup_obsolete_files.sh" \

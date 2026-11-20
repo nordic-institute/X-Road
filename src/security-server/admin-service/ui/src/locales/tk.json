@@ -998,7 +998,7 @@
             "acme-challenge-path": "ACME HTTP-01 challenge tokenleriniň hödürlenýän faýl ulgamy ýoly.",
             "allow-csr-for-key-with-certificate": "Bar bolan şahadatnamasy bolan açar üçin täze CSR döredilmegine rugsat edilip edilmeýändigini dolandyrýar.",
             "auth-cert-reg-signature-digest-algorithm-id": "Tassyklama şahadatnamasy hasaba alyş talaby döretmek üçin ulanylýan gol şifrlemesi algoritmi. Mümkin bahalar: SHA-256, SHA-384, SHA-512.",
-            "proxy-server-url": "Admin API tarapyndan ulanylýan Howpsuzlyk Serweri proksi URL-i.",
+            "proxy-server-url": "Admin API tarapyndan ulanylýan Howpsuzlyk Serweri proksi URL-i. Kesgitlenmedik bolsa: https://localhost:<müşderiniň HTTPS porty>.",
             "proxy-server-connect-timeout": "Proksi serwere birikme gurulýarka garaşmak üçin millisekuntlar.",
             "proxy-server-socket-timeout": "Proksi serwer soketinden maglumat üçin garaşmak üçin millisekuntlar (0 = möhletsiz).",
             "proxy-server-enable-connection-reuse": "Işe girizilende, proksi serwere HTTP birikmeleri soraglar boýunça täzeden ulanylýar.",

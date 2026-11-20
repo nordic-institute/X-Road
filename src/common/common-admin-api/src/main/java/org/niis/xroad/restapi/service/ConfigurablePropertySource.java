@@ -25,8 +25,10 @@
  */
 package org.niis.xroad.restapi.service;
 
+import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 
 import java.util.List;
 
@@ -47,4 +49,19 @@ public interface ConfigurablePropertySource {
      *         shared/common category
      */
     String categoryToScope(Category category);
+
+    /**
+     * @return the active country profile, {@link ActiveCountryProfile#NONE} when the product has none
+     */
+    default ActiveCountryProfile countryProfile() {
+        return ActiveCountryProfile.NONE;
+    }
+
+    /**
+     * @return the deployment mode the product runs under, which selects the default shown for a key that
+     *         declares a container default; {@link DeploymentMode#NATIVE} unless the product says otherwise
+     */
+    default DeploymentMode deploymentMode() {
+        return DeploymentMode.NATIVE;
+    }
 }

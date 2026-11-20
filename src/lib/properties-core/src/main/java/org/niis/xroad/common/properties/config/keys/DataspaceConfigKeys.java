@@ -123,7 +123,8 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.dataspace.identity-hub-provisioning.rpc.host}. */
     public static final ConfigKey<String> IDENTITY_HUB_PROVISIONING_RPC_HOST = IDENTITY_HUB_PROVISIONING_RPC
             .string("host")
-            .withDefaultValue("ds-identity-hub")
+            .withDefaultValue("127.0.0.1")
+            .withContainerDefaultValue("ds-identity-hub")
             .build();
 
     /** {@code xroad.dataspace.identity-hub-provisioning.rpc.port}. */

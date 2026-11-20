@@ -328,10 +328,12 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .build();
 
     // --- proxy server (management requests) ---
-    /** {@code xroad.proxy-ui-api.proxy-server-url}. */
+    /**
+     * {@code xroad.proxy-ui-api.proxy-server-url} — optional; when unset the URL is
+     * {@code https://localhost:<xroad.proxy.client-proxy.client-https-port>}.
+     */
     public static final ConfigKey<String> PROXY_SERVER_URL = ADMIN
             .string("proxy-server-url")
-            .withDefaultValue("https://localhost:8443")
             .exposedInUi()
             .build();
     /** {@code xroad.proxy-ui-api.proxy-server-connect-timeout}. */

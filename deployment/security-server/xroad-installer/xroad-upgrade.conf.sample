@@ -11,3 +11,8 @@ OPENBAO_MIRROR=
 OPENBAO_MIRROR_USER=
 XROAD_SS_PACKAGE=xroad-securityserver
 XROAD_DELETE_OBSOLETE_FILES=
+
+# DID port and DSP port, 1024-65535, different from each other. Stored before the services start.
+# A port that is not set uses the default (7183 and 8183); a port that is already stored is kept.
+#XROAD_DID_PORT=7183
+#XROAD_DSP_PORT=8183

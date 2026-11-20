@@ -172,9 +172,15 @@
       "header": {
         "propertyName": "Название свойства",
         "currentValue": "Текущее значение",
+        "source": "Источник",
         "defaultValue": "Значение по умолчанию",
         "description": "Описание"
       }
+    },
+    "source": {
+      "default": "По умолчанию",
+      "countryProfile": "Профиль страны {country}",
+      "db": "База данных"
     }
   },
   "error_code": {

@@ -36,6 +36,7 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.dbsource.InvalidNodeNameException;
+import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
 import org.springframework.scheduling.config.IntervalTask;
@@ -108,6 +109,21 @@ class SpringVaultClientConfigTest {
                                     e -> assertThat(e.isCausedBy(ErrorCode.SECRET_STORE_UNAVAILABLE)).isTrue());
                     verify(kvOperations, times(1)).get("tls/admin-service");
                 });
+    }
+
+    @Test
+    void shouldWireTheDsIssuerServiceSecretMountForTheKeypairExistsCheck() {
+        var dsIssuerServiceKvOperations = mock(VaultKeyValueOperations.class);
+        when(vaultTemplate.opsForKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT, KeyValueBackend.KV_2))
+                .thenReturn(dsIssuerServiceKvOperations);
+
+        contextRunner.withUserConfiguration(SpringVaultClientConfig.class).run(context -> {
+            var client = context.getBean(SpringVaultClient.class);
+
+            client.dsIssuerServiceKeypairSecretExists("issuer-key");
+
+            verify(dsIssuerServiceKvOperations).get(VaultClient.DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER + "/issuer-key");
+        });
     }
 
     @Test

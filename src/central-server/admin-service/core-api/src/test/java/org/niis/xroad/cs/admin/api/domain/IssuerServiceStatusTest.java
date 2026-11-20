@@ -66,6 +66,7 @@ class IssuerServiceStatusTest {
         var status = IssuerServiceStatus.derive(HOST, true, false, DID, null, CanSignResult.absent());
 
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY_TO_INITIALIZE);
+        assertThat(status.boundDid()).isNull();
     }
 
     @Test
@@ -99,6 +100,7 @@ class IssuerServiceStatusTest {
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY);
         assertThat(status.canSign()).isTrue();
         assertThat(status.canSignCause()).isNull();
+        assertThat(status.boundDid()).isEqualTo(DID);
     }
 
     @Test

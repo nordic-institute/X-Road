@@ -35,6 +35,7 @@ services:
     environment:
       - DEBUG=true
       - XROAD_HOST=softtoken-signer
+      - XROAD_COUNTRY_PROFILE=${COUNTRY_PROFILE:-}
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http

@@ -2,11 +2,12 @@
 # Default variant, used if none defined in group_vars/all/vars.yml or in other higher precedence configuration
 variant: vanilla
 
-#Defines the security server "variant package", a meta-package that delivers variant override configuration and
-#pulls other packages through dependencies. Variant denoted by the string after the last "_".
-xroad_varpkg_fi: xroad-securityserver-fi
-xroad_varpkg_ee: xroad-securityserver-ee
-xroad_varpkg_vanilla: xroad-securityserver
+# The security server "variant package", a meta-package that selects the country profile and
+# pulls other packages through dependencies. Keep in sync with the same default in the
+# xroad-ss-installer role.
+xroad_ss_package: >-
+  {{ 'xroad-securityserver' if (variant | default('vanilla')) == 'vanilla'
+     else 'xroad-securityserver-' + variant }}
 
 # Routable host name used for TLS certificate subjects/SANs and dataspace
 # runtime config (identity-hub URL, STS token URL). LXD dev containers only

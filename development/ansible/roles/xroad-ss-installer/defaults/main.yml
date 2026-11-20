@@ -1,4 +1,11 @@
 ---
+# The security server "variant package", a meta-package that selects the country profile and
+# pulls other packages through dependencies. Keep in sync with the same default in the
+# xroad-ss role.
+xroad_ss_package: >-
+  {{ 'xroad-securityserver' if (variant | default('vanilla')) == 'vanilla'
+     else 'xroad-securityserver-' + variant }}
+
 # When true: skip the bootstrapper/tarball entirely and run the installer
 # scripts from this checkout (synchronized to the target). Also flips
 # XROAD_TRUSTED_LOCAL_REPO=true so the installer treats
@@ -33,7 +40,6 @@ xroad_admin_username: xrd
 xroad_admin_password: secret123!
 xroad_db_type: local
 xroad_secret_store_type: local
-xroad_ss_package: xroad-securityserver
 xroad_tls_hostname: "{{ inventory_hostname }}"
 xroad_tls_alt_names: "IP:127.0.0.1,DNS:localhost,DNS:{{ inventory_hostname }}"
 xroad_proxy_mem_setting: "d"

@@ -54,6 +54,9 @@ const configurablePropertySchema = {
     property_name: { type: 'string' },
     current_value: { type: 'string' },
     default_value: { type: 'string' },
+    effective_value: { type: 'string' },
+    value_source: { type: 'string', enum: ['DEFAULT', 'COUNTRY_PROFILE', 'DB'] },
+    country_profile: { type: 'string' },
     scope: { type: 'string' },
   },
 };
@@ -83,19 +86,31 @@ const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
   {
     property_name: 'xroad.proxy-ui-api.rate-limit-requests-per-second',
     current_value: '20',
-    default_value: '20',
+    default_value: '10',
+    effective_value: '20',
+    value_source: 'DB',
     scope: 'proxy-ui-api',
   },
   {
     property_name: 'xroad.proxy-ui-api.rate-limit-delay-after-requests',
-    current_value: '10',
     default_value: '10',
+    effective_value: '15',
+    value_source: 'COUNTRY_PROFILE',
+    country_profile: 'FI',
+    scope: 'proxy-ui-api',
+  },
+  {
+    property_name: 'xroad.proxy-ui-api.empty-param',
+    default_value: '',
+    effective_value: '',
+    value_source: 'DEFAULT',
     scope: 'proxy-ui-api',
   },
   {
     property_name: 'xroad.common.some-other-param',
-    current_value: '5',
     default_value: '5',
+    effective_value: '5',
+    value_source: 'DEFAULT',
     scope: 'common',
   },
 ];
@@ -188,6 +203,46 @@ describe('System Parameters — panel expand shows rows (Browser Mode)', () => {
 
     const rows = page.getByTestId('configurable-properties-table-body-proxy-ui-api').getByTestId('configurable-property-row');
     await expect.element(rows.first()).toBeVisible();
+  });
+});
+
+describe('System Parameters — value and source columns (Browser Mode)', () => {
+  const rowOf = (scope: string, propertyName: string) =>
+    page
+      .getByTestId(`configurable-properties-table-body-${scope}`)
+      .getByTestId('configurable-property-row')
+      .filter({ hasText: propertyName });
+
+  it('shows the source of the database, country profile and default rows', async () => {
+    await renderRoute('/settings/system-parameters', {
+      permissions: systemParamPermissions,
+      msw: [maintenanceModeDisabledHandler, propertiesHandler],
+    });
+
+    await page.getByTestId('configurable-properties-panel-title-proxy-ui-api').click();
+    await page.getByTestId('configurable-properties-panel-title-common').click();
+
+    const dbRow = rowOf('proxy-ui-api', 'xroad.proxy-ui-api.rate-limit-requests-per-second');
+    await expect.element(dbRow.getByTestId('configurable-property-source')).toHaveTextContent('Database');
+
+    const profileRow = rowOf('proxy-ui-api', 'xroad.proxy-ui-api.rate-limit-delay-after-requests');
+    await expect.element(profileRow.getByTestId('configurable-property-source')).toHaveTextContent('Country profile FI');
+    await expect.element(profileRow).toMatchTextContent(/15/);
+
+    const defaultRow = rowOf('common', 'xroad.common.some-other-param');
+    await expect.element(defaultRow.getByTestId('configurable-property-source')).toHaveTextContent('Default');
+  });
+
+  it('shows a dash for an empty effective value', async () => {
+    await renderRoute('/settings/system-parameters', {
+      permissions: systemParamPermissions,
+      msw: [maintenanceModeDisabledHandler, propertiesHandler],
+    });
+
+    await page.getByTestId('configurable-properties-panel-title-proxy-ui-api').click();
+
+    const emptyRow = rowOf('proxy-ui-api', 'xroad.proxy-ui-api.empty-param');
+    await expect.element(emptyRow.getByTestId('configurable-property-value')).toHaveTextContent('-');
   });
 });
 

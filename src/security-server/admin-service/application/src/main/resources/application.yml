@@ -84,7 +84,6 @@ xroad:
     request-size-limit-binary-upload: 10MB
     authentication-key-algorithm: RSA
     signing-key-algorithm: RSA
-    proxy-server-url: https://localhost:8443
     proxy-server-connect-timeout: 30000
     proxy-server-socket-timeout: 0
     proxy-server-enable-connection-reuse: false

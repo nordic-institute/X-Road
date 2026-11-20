@@ -28,6 +28,8 @@
 package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,6 +59,17 @@ class DataspaceConfigKeysTest {
     }
 
     @Test
+    void identityHubProvisioningRpcHostResolvesToLocalhostOnNativeAndToTheContainerNameWhenContainerized() {
+        var nativeConfig = XRoadConfigBuilder.create().register(DataspaceConfigKeys.instance()).build();
+        var containerConfig = XRoadConfigBuilder.create().register(DataspaceConfigKeys.instance())
+                .deploymentMode(DeploymentMode.CONTAINERIZED)
+                .build();
+
+        assertThat(nativeConfig.value(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_HOST)).isEqualTo("127.0.0.1");
+        assertThat(containerConfig.value(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_HOST)).isEqualTo("ds-identity-hub");
+    }
+
+    @Test
     void otherKeysKeepTheirDefaultsAndStayOutOfTheFrameworkAndUi() {
         assertThat(DataspaceConfigKeys.ISSUER_DID_PORT.convertedDefaultValue()).isEqualTo(6183);
         assertThat(DataspaceConfigKeys.ISSUER_ISSUANCE_PORT.convertedDefaultValue()).isEqualTo(6185);
@@ -66,7 +79,7 @@ class DataspaceConfigKeysTest {
         assertThat(DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_HOST.convertedDefaultValue()).isEqualTo("127.0.0.1");
         assertThat(DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_PORT.convertedDefaultValue()).isEqualTo(5460);
         assertThat(DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_DEADLINE_AFTER.convertedDefaultValue()).isEqualTo(60000);
-        assertThat(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_HOST.convertedDefaultValue()).isEqualTo("ds-identity-hub");
+        assertThat(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_HOST.convertedDefaultValue()).isEqualTo("127.0.0.1");
         assertThat(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_PORT.convertedDefaultValue()).isEqualTo(5460);
         assertThat(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_DEADLINE_AFTER.convertedDefaultValue()).isEqualTo(60000);
 

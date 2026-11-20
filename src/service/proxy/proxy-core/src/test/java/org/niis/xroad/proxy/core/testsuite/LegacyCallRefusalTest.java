@@ -217,6 +217,7 @@ class LegacyCallRefusalTest {
         request.execute(ctx);
         assertThat(request.faultCode).isNull();
         assertTrue(request.served);
+        assertThat(request.aclChecks).hasValue(0);
         verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
     }
 
@@ -238,12 +239,9 @@ class LegacyCallRefusalTest {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
         stubMetaserviceBypass();
-        var request = new GetWSDLMessage() {
-            {
-                requestFileName = "getWsdl-subsystem.query";
-            }
-        };
+        var request = new CountingGetWsdl("getWsdl-subsystem.query");
         request.execute(ctx);
+        assertThat(request.aclChecks).hasValue(0);
         verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
     }
 
@@ -278,8 +276,9 @@ class LegacyCallRefusalTest {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
         stubMetaserviceBypass();
-        var request = new GetWSDLMessage();
+        var request = new CountingGetWsdl("getWsdl.query");
         request.execute(ctx);
+        assertThat(request.aclChecks).hasValue(0);
         verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
     }
 
@@ -334,6 +333,20 @@ class LegacyCallRefusalTest {
                 .register(ProxyConfigKeys.instance())
                 .overrides(overrides)
                 .build());
+    }
+
+    private static final class CountingGetWsdl extends GetWSDLMessage {
+        private final AtomicInteger aclChecks = new AtomicInteger();
+
+        private CountingGetWsdl(String requestFileName) {
+            this.requestFileName = requestFileName;
+        }
+
+        @Override
+        public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+            aclChecks.incrementAndGet();
+            return true;
+        }
     }
 
     private static final class Probe extends MessageTestCase {

@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.2
+Version: 1.3
 Doc. ID: IG-SS-8-UPGRADE
 
 ---
@@ -14,6 +14,8 @@ Doc. ID: IG-SS-8-UPGRADE
 | 19.05.2026 | 1.0     | Initial version                                                            | Egidijus Milierius |
 | 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables | Marc David         |
 | 19.10.2026 | 1.2     | Added the operational monitoring changes: settings migration, add-on flag, op-monitor package upgrade and TLS files | Eneli Reimets      |
+| 17.11.2026 | 1.3     | Country package settings edits, combined package upgrade command, batch signing prompt for country profiles | Ričardas Bučiūnas  |
+| 18.11.2026 | 1.4     | Added the DID and DSP port choice in the upgrade wizard                    | Justas Samuolis    |
 
 ## License
 
@@ -35,6 +37,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [Unattended mode (config file)](#unattended-mode-config-file)
   - [What the wizard does](#what-the-wizard-does)
   - [Migration-CLI sub-steps](#migration-cli-sub-steps)
+  - [Edits in the country package settings file](#edits-in-the-country-package-settings-file)
   - [Operational monitoring](#operational-monitoring)
   - [Operator choices](#operator-choices)
   - [Secrets in unattended mode](#secrets-in-unattended-mode)
@@ -133,7 +136,7 @@ The wizard expects the bundled helper scripts under `lib/` and the migration tas
 
 ### Interactive mode
 
-Run the wizard as root. It prompts for confirmation at the version gate, before each migration CLI sub-step, for the soft token PIN, and for the two operator choices (batch signing, strict identifier checks).
+Run the wizard as root. It prompts for confirmation at the version gate, before each migration CLI sub-step, for the soft token PIN, for the two operator choices (batch signing, strict identifier checks), and for the DID and DSP ports. The wizard does not ask about batch signing when the country profile already enables it, see [Operator choices](#operator-choices).
 
 ```bash
 sudo bash /opt/xroad-installer/xroad-upgrade.sh
@@ -182,6 +185,10 @@ XROAD_SS_PACKAGE=xroad-securityserver
 # Delete obsolete V7 config files after a successful upgrade. Empty means "ask"
 # (interactive) or "yes" (unattended). Set to "no" to keep them for review.
 XROAD_DELETE_OBSOLETE_FILES=
+# DID port and DSP port, 1024-65535, different from each other. A port that is not set is asked
+# (interactive) or uses the default 7183 or 8183 (unattended). A port that is already stored is kept.
+#XROAD_DID_PORT=7183
+#XROAD_DSP_PORT=8183
 ```
 
 ```bash
@@ -198,25 +205,27 @@ sudo bash -c "$(curl -sSfL https://artifactory.niis.org/xroad-scripts/0.0.1-beta
 
 ### What the wizard does
 
-The wizard runs thirteen ordered steps and two sub-steps, 6a and 11a. Each step exits non-zero on failure; the wizard then halts and the services are left in whatever state the failing step produced (the per-step failure hint in the wizard log explains the precise state). The first seven steps and sub-step 6a are all reversible without touching package state, so a preflight failure leaves the server unchanged.
+The wizard runs thirteen ordered steps and four sub-steps, 6a, 6b, 11a and 11b. Each step exits non-zero on failure; the wizard then halts and the services are left in whatever state the failing step produced (the per-step failure hint in the wizard log explains the precise state). The first seven steps and sub-steps 6a and 6b are all reversible without touching package state, so a preflight failure leaves the server unchanged.
 
-| #  | Step                                  | What it does                                                                                                                                                                                                                                                                                                          |
-|----|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1  | **Version gate**                      | Reads installed `xroad-proxy` version; aborts unless it matches `^7\.8\.`. In interactive mode it asks for confirmation; in unattended mode it relies on `XROAD_UPGRADE_CONFIRMED=yes`.                                                                                                                               |
-| 2  | **Download migration CLI**            | Fetches `migration-cli.jar` (and `migration-cli.jar.sha256`) from `XROAD_MIGRATION_CLI_URL`, verifies the SHA-256, writes the JAR to `/var/tmp/migration-cli.jar` (mode 600).                                                                                                                                         |
-| 3  | **Back up /etc/xroad**                | Snapshots `/etc/xroad` to `/etc/xroad/xroad-pre-v8-backup-<timestamp>.tar.gz` (mode 600). On a resumed run an existing snapshot is preserved.                                                                                                                                                                         |
-| 4  | **Migrate db.properties**             | Rewrites `/etc/xroad/db.properties` in place to the V8 `xroad.db.*` key prefix. Original is preserved at `/etc/xroad/db.properties.bak`.                                                                                                                                                                              |
-| 5  | **PostgreSQL pre-flight**             | Parses the migrated `db.properties`, connects to the `serverconf` database, verifies PostgreSQL major version ≥ 15.                                                                                                                                                                                                   |
-| 6  | **OpenBao repository setup**          | Adds the OpenBao apt/yum repository so the 8.0 packages can pull in OpenBao dependencies.                                                                                                                                                                                                                             |
-| 6a | **Record op-monitor state**           | Before the services stop, records once in `/var/lib/xroad-upgrade/op-monitor.state` whether the X-Road 7.8 operational monitoring add-on is enabled (its add-on configuration file is present) and whether the `xroad-opmonitor` package is installed. A resumed run reuses the stored state.                         |
-| 7  | **Stop X-Road services**              | Discovers all active `xroad-*` units via `systemctl` and stops each one, waiting up to 60 s per service to reach inactive state.                                                                                                                                                                                      |
-| 8  | **Switch to V8 repository**           | Backs up the existing X-Road sources file(s) with a `.v7.bak.<timestamp>` suffix, writes the V8 sources file, imports the V8 GPG key, refreshes package metadata.                                                                                                                                                     |
-| 9  | **Upgrade packages**                  | Runs `apt-get install -y` / `dnf install -y` for the package named by `XROAD_SS_PACKAGE` (default `xroad-securityserver`). When `xroad-opmonitor` was installed in 7.8, it is installed in the same command and the step fails unless it is at 8.x afterwards, so the proxy and op-monitor are upgraded together.     |
-| 10 | **Migrate TLS to secret store**       | Reads `/etc/xroad/ssl/*.crt` and matching keys for `internal`, `proxy-ui-api`, `center-admin-service` and `management-service`, then writes them to OpenBao under `xrd-secret/tls/{internal,admin-service,management-service}`. Missing pairs are skipped. `opmonitor.crt` and its key are not migrated: op-monitor uses the shared internal gRPC identity. |
-| 11 | **Run migration CLI**                 | Runs the migration-CLI sub-steps (see [Migration-CLI sub-steps](#migration-cli-sub-steps)) with sentinel-based idempotency under `/var/lib/xroad-upgrade/`.                                                                                                                                                           |
+| #   | Step                                  | What it does                                                                                                                                                                                                                                                                                                          |
+|-----|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1   | **Version gate**                      | Reads installed `xroad-proxy` version; aborts unless it matches `^7\.8\.`. In interactive mode it asks for confirmation; in unattended mode it relies on `XROAD_UPGRADE_CONFIRMED=yes`.                                                                                                                               |
+| 2   | **Download migration CLI**            | Fetches `migration-cli.jar` (and `migration-cli.jar.sha256`) from `XROAD_MIGRATION_CLI_URL`, verifies the SHA-256, writes the JAR to `/var/tmp/migration-cli.jar` (mode 600).                                                                                                                                         |
+| 3   | **Back up /etc/xroad**                | Snapshots `/etc/xroad` to `/etc/xroad/xroad-pre-v8-backup-<timestamp>.tar.gz` (mode 600). On a resumed run an existing snapshot is preserved.                                                                                                                                                                         |
+| 4   | **Migrate db.properties**             | Rewrites `/etc/xroad/db.properties` in place to the V8 `xroad.db.*` key prefix. Original is preserved at `/etc/xroad/db.properties.bak`.                                                                                                                                                                              |
+| 5   | **PostgreSQL pre-flight**             | Parses the migrated `db.properties`, connects to the `serverconf` database, verifies PostgreSQL major version ≥ 15.                                                                                                                                                                                                   |
+| 6   | **OpenBao repository setup**          | Adds the OpenBao apt/yum repository so the 8.0 packages can pull in OpenBao dependencies.                                                                                                                                                                                                                             |
+| 6a  | **Record op-monitor state**           | Before the services stop, records once in `/var/lib/xroad-upgrade/op-monitor.state` whether the X-Road 7.8 operational monitoring add-on is enabled (its add-on configuration file is present) and whether the `xroad-opmonitor` package is installed. A resumed run reuses the stored state.                         |
+| 6b  | **Record country package**            | Before the services stop, records once in `/var/lib/xroad-upgrade/country-package.state` which country package (`xroad-securityserver-<cc>`) is installed, or `none`. A resumed run reuses the stored state. The step stops when more than one country package is installed.                                                                                     |
+| 7   | **Stop X-Road services**              | Discovers all active `xroad-*` units via `systemctl` and stops each one, waiting up to 60 s per service to reach inactive state.                                                                                                                                                                                      |
+| 8   | **Switch to V8 repository**           | Backs up the existing X-Road sources file(s) with a `.v7.bak.<timestamp>` suffix, writes the V8 sources file, imports the V8 GPG key, refreshes package metadata.                                                                                                                                                     |
+| 9   | **Upgrade packages**                  | Runs `apt-get install -y` / `dnf install -y` for the package named by `XROAD_SS_PACKAGE` (default `xroad-securityserver`). When `xroad-opmonitor` was installed in 7.8, it is installed in the same command and the step fails unless it is at 8.x afterwards, so the proxy and op-monitor are upgraded together. The country package recorded in step 6b is handled the same way, so the server keeps its country profile.     |
+| 10  | **Migrate TLS to secret store**       | Reads `/etc/xroad/ssl/*.crt` and matching keys for `internal`, `proxy-ui-api`, `center-admin-service` and `management-service`, then writes them to OpenBao under `xrd-secret/tls/{internal,admin-service,management-service}`. Missing pairs are skipped. `opmonitor.crt` and its key are not migrated: op-monitor uses the shared internal gRPC identity. |
+| 11  | **Run migration CLI**                 | Runs the migration-CLI sub-steps (see [Migration-CLI sub-steps](#migration-cli-sub-steps)) with sentinel-based idempotency under `/var/lib/xroad-upgrade/`.                                                                                                                                                           |
 | 11a | **Write op-monitor flag**             | Writes `xroad.proxy.addon.op-monitor.enabled` as `true` or `false` from the state recorded in step 6a, only when the property has no value yet. See [Operational monitoring](#operational-monitoring).                                                                                                                |
-| 12 | **Start X-Road services**             | Starts `xroad-signer`, `xroad-proxy`, `xroad-opmonitor`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-auxiliary-service` in that order, waiting for each to reach active state. Services whose unit files are not installed (for example an absent op-monitor on a minimal installation) are skipped with a warning. |
-| 13 | **Clean up obsolete V7 config files** | Removes V7 configuration files no longer read by V8 (see [Manual upgrade procedure](#manual-upgrade-procedure) for the list). Interactive mode prompts; unattended deletes by default unless `XROAD_DELETE_OBSOLETE_FILES=no`.                                                                                        |
+| 11b | **Store DID and DSP ports**          | Runs `write_dsp_ports.sh`: writes the ports chosen after the version gate (see [Operator choices](#operator-choices)) as `xroad.dsp.did-port` and `xroad.dsp.dsp-port`, before the services start. A port equal to its default is not written, an existing row is kept, and a secondary node is skipped. Step 9 keeps `xroad-ds-identity-hub` and `xroad-ds-control-plane` from starting until step 12.                                                                                  |
+| 12  | **Start X-Road services**             | Starts `xroad-signer`, `xroad-ds-identity-hub`, `xroad-ds-control-plane`, `xroad-proxy`, `xroad-opmonitor`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-auxiliary-service` in that order, waiting for each to reach active state. Services whose unit files are not installed (for example an absent op-monitor on a minimal installation) are skipped with a warning. |
+| 13  | **Clean up obsolete V7 config files** | Removes V7 configuration files no longer read by V8 (see [Manual upgrade procedure](#manual-upgrade-procedure) for the list). Interactive mode prompts; unattended deletes by default unless `XROAD_DELETE_OBSOLETE_FILES=no`.                                                                                        |
 
 On success the wizard prints `X-Road 8.0 upgrade completed successfully!` and the path of its log file.
 
@@ -229,7 +238,7 @@ Step 11 invokes `migration-cli.jar` for the sub-commands listed below. Each sub-
 | `validate`                                | Read-only sanity check: prerequisites and configuration database connectivity. Nothing is written.                                                                                                                                           |
 | `configuration-anchor`                    | The configuration anchor XML (path from `local.ini` `proxy.configuration-anchor-file`, default `/etc/xroad/configuration-anchor.xml`) into the configuration database.                                                                       |
 | `signer-devices`                          | HSM / signer module declarations from `devices.ini` (path from `local.ini` `signer.device-configuration-file`, default `/etc/xroad/devices.ini`) into the configuration database under the signer scope.                                     |
-| `ini-to-db` (per file)                    | Each `override-*.ini` then `local.ini` from `/etc/xroad/conf.d/` into the configuration database.                                                                                                                                            |
+| `ini-to-db` (per file)                    | Each `override-*.ini` then `local.ini` from `/etc/xroad/conf.d/` into the configuration database. `override-securityserver-*.ini` (the X-Road 7 country package settings) is skipped: X-Road 8 ships the country values inside the product. Edits made in this file are not migrated, see [Edits in the country package settings file](#edits-in-the-country-package-settings-file).                                                                                                                                            |
 | `properties-to-db` (ssl)                  | The SSL properties file (path from `local.ini` `proxy-ui-api.ssl-properties`, default `/etc/xroad/ssl.properties`) under the proxy-ui-api scope.                                                                                             |
 | `keyconf`                                 | The signer keyconf (keys, certificates, soft token credentials) from `/etc/xroad/signer` into the configuration database. Prompts for the soft token PIN; in unattended mode `XROAD_MIGRATION_SOFTTOKEN_PIN` must be set.                    |
 | `signer-token-pins`                       | Soft token PINs from `xroad-autologin` fetch-pin scripts into the OpenBao secret store. Skipped if `xroad-autologin` is not installed.                                                                                                       |
@@ -239,12 +248,26 @@ Step 11 invokes `migration-cli.jar` for the sub-commands listed below. Each sub-
 | `pgp-keys`                                | Message-log archive PGP keys from the GPG home directory (per `message-log.archive-gpg-home-directory` in `local.ini`, default `/etc/xroad/gpghome`) into the OpenBao secret store.                                                          |
 | `messagelog-key-mappings`                 | The message-log archive encryption key mapping file (path from `local.ini` `message-log.archive-encryption-keys-config`; no default) into the configuration database.                                                                        |
 | `messagelog-db-encryption-keys`           | The X-Road 7 message-log database encryption key from a PKCS#12 keystore (settings from `local.ini` `[message-log]`: `messagelog-keystore`, `messagelog-keystore-password`, `messagelog-key-id`) into the OpenBao secret store.              |
-| `set-property` (batch signing)            | Sets `xroad.proxy.batch-signing-enabled=true` only if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices).                                                                                       |
+| `set-property` (batch signing)            | Sets `xroad.proxy.batch-signing-enabled=true` only if the operator chose to preserve the X-Road 7 behavior. The wizard does not ask about batch signing when the country profile already enables it. See [Operator choices](#operator-choices).                                                                                       |
 | `set-property` (strict identifier checks) | Sets `xroad.proxy.strict-identifier-checks=false` if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices).                                                                                        |
 
 `account-keystore-password` is not carried into the `xroad.acme` database value: X-Road 8 has no code path that reads it back out, so the wizard writes a scrubbed copy of `acme.yml` to the database and leaves the file on disk unchanged. If you inspect `xroad.acme` after migration and expect to see that field, this is why it's missing.
 
 Inspect the wizard log for any Java stack traces. Migration-CLI sub-commands sometimes return exit 0 even after an internal exception; the wizard scans the output and treats any line matching `Error `, `Caused by:`, `Exception in `, or `<Class>Exception:` as a failure.
+
+### Edits in the country package settings file
+
+An X-Road 7.8 country package keeps its settings in `/etc/xroad/conf.d/override-securityserver-<cc>.ini`. X-Road 8 takes these values from the country profile in the product. The wizard installs the country package that step 6b recorded, so the server keeps its country profile.
+
+The wizard does not migrate edits that you made in `override-securityserver-*.ini`. The wizard skips this file and writes an information message to the log. Step 13 can remove the file, and the `/etc/xroad` snapshot from step 3 keeps a copy.
+
+Enter each edited value again as a system parameter, in the admin UI (**Settings > System Parameters**) or from the command line:
+
+```bash
+/usr/share/xroad/scripts/db_property.sh set <system parameter name> <value>
+```
+
+A system parameter that you set takes precedence over the country profile. The **Source** column of the admin UI then shows `Database` for it. For the installation of a country package and the order of precedence, see section 2.6.2 of the [Security Server Installation Guide](ig-ss_x-road_v8_security_server_installation_guide.md#262-country-profile).
 
 ### Operational monitoring
 
@@ -295,7 +318,7 @@ The op-monitor TLS files are not migrated. X-Road 7.8 used `/etc/xroad/ssl/opmon
 
 ### Operator choices
 
-Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for each (interactive) or applies a documented default (unattended).
+Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for each (interactive) or applies a documented default (unattended). The wizard also asks for the DID and DSP ports, described last.
 
 **Batch signing** (`xroad.proxy.batch-signing-enabled`).
 
@@ -304,6 +327,7 @@ Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for ea
 - Interactive prompt default: disabled (X-Road 8 default).
 - Unattended default: disabled (X-Road 8 default).
 - Choose "Yes" only if you intentionally rely on the X-Road 7 batching behavior.
+- The wizard does not ask about batch signing when the country profile already enables it. It writes a log message and records the step as done. An unattended run needs no setting. To disable batch signing afterwards, set `xroad.proxy.batch-signing-enabled` to `false` as a system parameter.
 
 **Strict identifier checks** (`xroad.proxy.strict-identifier-checks`).
 
@@ -312,6 +336,17 @@ Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for ea
 - X-Road 8 default: enabled. Invalid characters cause the request to fail with `INVALID_CLIENT_IDENTIFIER`.
 - Interactive prompt default: keep disabled (preserve X-Road 7 behavior). Choose "No" to opt into the stricter X-Road 8 default.
 - Unattended default: keep disabled (preserve X-Road 7 behavior), so an automated upgrade does not silently break clients that were already sending identifiers that the V8 stricter rules would reject. Audit your traffic and flip the property to `true` once you have verified that no client identifiers contain disallowed characters.
+
+**DID and DSP ports** (`xroad.dsp.did-port`, `xroad.dsp.dsp-port`).
+
+- What they set: the port on which the server serves the documents of its decentralized identifiers (DIDs), and the port for the Dataspace Protocol (DSP).
+- Defaults: 7183 for the DID port and 8183 for the DSP port. Each port is a number from 1024 to 65535, and the two ports must be different.
+- Interactive prompt: the wizard asks for each port right after the version gate, before it changes anything, with the default filled in. An invalid answer is asked again, and cancelling the question keeps the default.
+- Pre-set values: `XROAD_DID_PORT` and `XROAD_DSP_PORT`, set in the `--config-file` (`xroad-upgrade.conf`, see `xroad-upgrade.conf.sample`). A port that is set is not asked. An invalid value stops the wizard before it changes anything.
+- Unattended default: with `XROAD_UPGRADE_UNATTENDED=true` the wizard does not ask, and a port that is not set uses its default.
+- Storage: step 11b writes the chosen ports to the configuration database before the services start. A port equal to its default is not written, because a missing row means the default. A port that already has a row keeps the existing value.
+- Secondary node: the wizard does not ask and writes nothing when `/etc/xroad/conf.d/node.ini` has the value `secondary` (the legacy value `slave` also counts) for `type` in the `[node]` section, or when `XROAD_IGNORE_DATABASE_SETUP` is set. The primary node owns the rows. See [2.6.3 DID and DSP ports](ig-ss_x-road_v8_security_server_installation_guide.md#263-did-and-dsp-ports) in the Security Server Installation Guide.
+- Choose the ports now. A port cannot change after its DID is bound, and the upgraded server is already registered, so its DIDs are bound soon after X-Road 8 starts.
 
 ### Secrets in unattended mode
 
@@ -343,7 +378,7 @@ To reset and rerun every sub-step (for example after a snapshot restore):
 sudo rm -rf /var/lib/xroad-upgrade
 ```
 
-The reset also removes the operational monitoring state recorded in step 6a. Reset only before step 9 has upgraded the packages, or after a snapshot restore. See [Operational monitoring](#operational-monitoring).
+The reset also removes the operational monitoring state recorded in step 6a and the country package recorded in step 6b. Reset only before step 9 has upgraded the packages, or after a snapshot restore. See [Operational monitoring](#operational-monitoring).
 
 ## Manual upgrade procedure
 
@@ -429,6 +464,15 @@ dpkg-query -W -f='${Status}\n' xroad-opmonitor
 rpm -q xroad-opmonitor
 ```
 
+**6b. Record the country package.** Before the services are stopped, note which country package, if any, is installed:
+
+```bash
+# Ubuntu
+dpkg-query -W -f='${Package} ${Status}\n' 'xroad-securityserver-*' | grep 'install ok installed'
+# RHEL
+rpm -qa 'xroad-securityserver-*'
+```
+
 **7. Stop all X-Road services.**
 
 ```bash
@@ -463,7 +507,14 @@ rpm --import https://artifactory.niis.org/api/gpg/key/public
 yum makecache
 ```
 
-**9. Upgrade the Security Server package.** If the `xroad-opmonitor` package is installed, upgrade it in the same command so that the proxy and the operational monitoring daemon are upgraded together.
+**8a. (Ubuntu) Keep the dataspace services stopped during the upgrade.** The Ubuntu package scripts start `xroad-ds-identity-hub` and `xroad-ds-control-plane` and restart `xroad-proxy-ui-api` during step 9, before step 11b can write the DID and DSP ports. Mask the three units so that they stay stopped until step 12. Masking works before `xroad-ds-identity-hub` and `xroad-ds-control-plane` exist on the X-Road 7 host. On RHEL the package scripts do not start services, so skip this step.
+
+```bash
+# Ubuntu
+systemctl mask xroad-ds-identity-hub.service xroad-ds-control-plane.service xroad-proxy-ui-api.service
+```
+
+**9. Upgrade the Security Server package.** If the `xroad-opmonitor` package is installed, upgrade it in the same command so that the proxy and the operational monitoring daemon are upgraded together. Do the same with the country package found in step 6b (shown below as `xroad-securityserver-<cc>`).
 
 ```bash
 # Ubuntu
@@ -474,6 +525,14 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-securityserver xroad-opm
 dnf install -y xroad-securityserver
 # RHEL, when xroad-opmonitor is installed
 dnf install -y xroad-securityserver xroad-opmonitor
+# Ubuntu, when a country package is installed
+DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-securityserver xroad-securityserver-<cc>
+# RHEL, when a country package is installed
+dnf install -y xroad-securityserver xroad-securityserver-<cc>
+# Ubuntu, when xroad-opmonitor and a country package are installed
+DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-securityserver xroad-opmonitor xroad-securityserver-<cc>
+# RHEL, when xroad-opmonitor and a country package are installed
+dnf install -y xroad-securityserver xroad-opmonitor xroad-securityserver-<cc>
 ```
 
 Verify the version actually changed:
@@ -532,10 +591,28 @@ java -jar /var/tmp/migration-cli.jar set-property /etc/xroad/db.properties xroad
 /usr/share/xroad/scripts/db_property.sh set xroad.proxy.addon.op-monitor.enabled true --if-absent
 ```
 
-**12. Start X-Road services.**
+**11b. Write the DID and DSP ports.** Skip this step on a secondary node. Set the ports chosen for this server. A port equal to its default (7183 or 8183) needs no row, and `--if-absent` keeps an existing value. Each port is a number from 1024 to 65535, and the two ports must be different. The example uses 7190 and 8190:
 
 ```bash
-for s in xroad-signer xroad-proxy xroad-opmonitor xroad-monitor xroad-proxy-ui-api xroad-auxiliary-service; do
+/usr/share/xroad/scripts/db_property.sh set xroad.dsp.did-port 7190 --if-absent
+/usr/share/xroad/scripts/db_property.sh set xroad.dsp.dsp-port 8190 --if-absent
+```
+
+Write the ports before `xroad-ds-identity-hub`, `xroad-ds-control-plane` and `xroad-proxy-ui-api` start, which is in step 12 because step 8a keeps them masked on Ubuntu: a port cannot change after its DID is bound.
+
+**12. Start X-Road services.** On Ubuntu, first unmask the units masked in step 8a.
+
+```bash
+# Ubuntu
+systemctl unmask xroad-ds-identity-hub.service xroad-ds-control-plane.service xroad-proxy-ui-api.service
+systemctl daemon-reload
+systemctl preset xroad-ds-identity-hub.service xroad-ds-control-plane.service xroad-proxy-ui-api.service
+```
+
+Then start the services:
+
+```bash
+for s in xroad-signer xroad-ds-identity-hub xroad-ds-control-plane xroad-proxy xroad-opmonitor xroad-monitor xroad-proxy-ui-api xroad-auxiliary-service; do
   systemctl cat "$s" >/dev/null 2>&1 || { echo "skip $s (not installed)"; continue; }
   systemctl start "$s"
   for _ in {1..30}; do systemctl is-active --quiet "$s" && break; sleep 2; done
@@ -597,7 +674,7 @@ lxc start <container>
 
 **Restore `/etc/xroad` and the databases from backup.** If no snapshot is available, restore the pre-upgrade Security Server backup (configuration, databases, signer keys) on top of a freshly-reinstalled X-Road 7.8 host, then downgrade or reinstall the V7 packages from a known-good 7.8.x repository. The wizard's automatic `/etc/xroad/xroad-pre-v8-backup-*.tar.gz` covers `/etc/xroad` only — the databases and message log must come from your own backup.
 
-**The wizard halts before destructive change when preflight fails.** Steps 1–7 (version gate, migration-CLI download, /etc/xroad backup, db.properties migration, PostgreSQL preflight, OpenBao repo setup, op-monitor state recording, service stop) all run before the V8 repository switch and package upgrade. If any of them fails, the host can be returned to its pre-upgrade state without a rollback procedure:
+**The wizard halts before destructive change when preflight fails.** Steps 1–7 (version gate, migration-CLI download, /etc/xroad backup, db.properties migration, PostgreSQL preflight, OpenBao repo setup, op-monitor state and country package recording, service stop) all run before the V8 repository switch and package upgrade. If any of them fails, the host can be returned to its pre-upgrade state without a rollback procedure:
 
 - Restore `/etc/xroad/db.properties.bak` over `/etc/xroad/db.properties` if step 4 succeeded but a later step failed.
 - Remove the OpenBao sources file added in step 6 if you want to undo the repo change.

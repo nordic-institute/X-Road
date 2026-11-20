@@ -34,6 +34,7 @@ import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.restapi.auth.AllowListConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
@@ -286,8 +287,12 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         return config.value(AdminServiceConfigKeys.AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID);
     }
 
+    /**
+     * @return the configured proxy URL; when none is set, {@code https://localhost:<client HTTPS port in effect>}
+     */
     public String getProxyServerUrl() {
-        return config.value(AdminServiceConfigKeys.PROXY_SERVER_URL);
+        return config.valueOpt(AdminServiceConfigKeys.PROXY_SERVER_URL)
+                .orElseGet(() -> "https://localhost:" + config.value(ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTPS_PORT));
     }
 
     public int getProxyServerConnectTimeout() {

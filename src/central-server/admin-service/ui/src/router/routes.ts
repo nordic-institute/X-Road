@@ -70,6 +70,7 @@ import SystemParametersView from '@/views/Settings/SystemParameters/SystemParame
 import SystemSettingsView from '@/views/Settings/SystemSettings/SystemSettingsView.vue';
 import DsTlsCertificate from '@/views/Settings/TlsCertificates/DsTlsCertificate.vue';
 import DsTlsCertificateView from '@/views/Settings/TlsCertificates/DsTlsCertificateView.vue';
+import IssuerServiceView from '@/views/Settings/IssuerService/IssuerServiceView.vue';
 import ManagementServiceCertificate from '@/views/Settings/TlsCertificates/ManagementServiceCertificate.vue';
 import ManagementServiceTlsCertificateView from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificateView.vue';
 import CertificationServiceCertificate from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
@@ -202,6 +203,15 @@ const routes = [
             props: true,
             meta: {
               permissions: [Permissions.VIEW_DS_TLS_CERT],
+            },
+          },
+          {
+            name: RouteName.IssuerService,
+            path: 'issuer-service',
+            component: IssuerServiceView,
+            props: true,
+            meta: {
+              permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
             },
           },
         ],
