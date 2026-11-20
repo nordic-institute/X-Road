@@ -548,6 +548,95 @@ describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
   });
 });
 
+describe('CS Issuer Service tab — host save restarts polling (Browser Mode)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  type HostSavePhase = 'notSet' | 'running' | 'done';
+
+  function bodyForHostSavePhase(phase: HostSavePhase) {
+    if (phase === 'notSet') {
+      return { host: null, bound: false, host_set: false, certificate_ready: false, run_in_progress: false, can_sign: false, status: 'NOT_CONFIGURED' };
+    }
+    if (phase === 'running') {
+      return {
+        host: 'issuer.example.org',
+        bound: false,
+        host_set: true,
+        certificate_ready: false,
+        run_in_progress: true,
+        can_sign: false,
+        status: 'INITIALIZING',
+      };
+    }
+    return {
+      host: 'issuer.example.org',
+      bound: false,
+      host_set: true,
+      certificate_ready: true,
+      run_in_progress: false,
+      can_sign: false,
+      status: 'WAITING_FOR_CERTIFICATE',
+    };
+  }
+
+  async function saveHost() {
+    await page.getByTestId('issuer-service-host-edit-button').click();
+    await page.getByTestId('issuer-service-host-edit-field').getByRole('textbox').fill('issuer.example.org');
+    await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
+    submitDialogForm();
+    await expect.element(page.getByTestId('issuer-service-host-edit-dialog')).not.toBeInTheDocument();
+  }
+
+  it('resumes polling after a host save reports a run already in progress, and clears the banner once the run ends', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    let phase: HostSavePhase = 'notSet';
+
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: EDIT_HOST_PERMISSIONS,
+      msw: [
+        specHttp.untyped.get('/api/v1/issuer-service', () => HttpResponse.json(bodyForHostSavePhase(phase))),
+        specHttp.untyped.put('/api/v1/issuer-service/host', () => {
+          phase = 'running';
+          return HttpResponse.json(bodyForHostSavePhase(phase));
+        }),
+      ],
+    });
+
+    await saveHost();
+    await expect.element(page.getByTestId('issuer-service-run-in-progress')).toBeVisible();
+
+    phase = 'done';
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    await expect.poll(() => page.getByTestId('issuer-service-run-in-progress').query()).toBeNull();
+  });
+
+  it('starts no polling after a host save reports no run in progress', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    let reads = 0;
+
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: EDIT_HOST_PERMISSIONS,
+      msw: [
+        specHttp.untyped.get('/api/v1/issuer-service', () => {
+          reads++;
+          return HttpResponse.json(bodyForHostSavePhase('notSet'));
+        }),
+        specHttp.untyped.put('/api/v1/issuer-service/host', () => HttpResponse.json(bodyForHostSavePhase('done'))),
+      ],
+    });
+
+    await saveHost();
+    const readsAfterSave = reads;
+
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(reads).toBe(readsAfterSave);
+  });
+});
+
 describe('CS Issuer Service tab — initialize refusal re-reads status (Browser Mode)', () => {
   it('re-reads the status after a refused initialize', async () => {
     let bound = false;

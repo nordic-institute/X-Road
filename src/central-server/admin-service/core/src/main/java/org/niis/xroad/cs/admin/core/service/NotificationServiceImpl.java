@@ -82,6 +82,11 @@ public class NotificationServiceImpl implements NotificationService {
         final Set<AlertInfo> alerts = new HashSet<>();
         alerts.addAll(checkDsTlsAcmeEnrollment());
 
+        final boolean setUp = isSetUp();
+        if (setUp) {
+            alerts.addAll(checkIssuerServiceStatus());
+        }
+
         final List<TokenInfo> tokens;
         try {
             tokens = signerProxyFacade.getTokens();
@@ -92,7 +97,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         if (isInitialized(tokens)) {
-            alerts.addAll(checkIssuerServiceStatus());
             alerts.addAll(checkGlobalConfGenerationStatus());
             alerts.addAll(checkConfigurationSigningKey(SOURCE_TYPE_INTERNAL, tokens));
             if (adminServiceProperties.isTrustedAnchorsAllowed()) {
@@ -147,9 +151,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private boolean isInitialized(List<TokenInfo> tokens) {
+        return isSetUp() && softwareTokenInitialized(tokens);
+    }
+
+    private boolean isSetUp() {
         return isNotBlank(systemParameterService.getInstanceIdentifier())
-                && isNotBlank(systemParameterService.getCentralServerAddress())
-                && softwareTokenInitialized(tokens);
+                && isNotBlank(systemParameterService.getCentralServerAddress());
     }
 
     private boolean softwareTokenInitialized(List<TokenInfo> tokens) {

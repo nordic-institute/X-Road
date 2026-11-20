@@ -292,6 +292,20 @@ class NotificationServiceImplTest {
         verifyNoInteractions(dataspaceIssuerDidService, issuerKeyGuard);
     }
 
+    @Test
+    void getAlertsIssuerServiceAlertsSurviveSignerOutage() {
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("CS");
+        when(systemParameterService.getCentralServerAddress()).thenReturn("https://cs");
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(signerProxyFacade.getTokens()).thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build());
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).hasSize(2)
+                .contains(new AlertInfo("status.signer_error"))
+                .contains(new AlertInfo("status.issuer_service.setup_required"));
+    }
+
     private void mockInitialized(boolean tokenActive, boolean keyAvailable) {
         KeyInfoProto keyinfo = KeyInfoProto.newBuilder()
                 .setAvailable(keyAvailable)

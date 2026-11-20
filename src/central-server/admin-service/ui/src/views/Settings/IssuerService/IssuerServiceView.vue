@@ -206,6 +206,7 @@ function onHostSaved(result?: IssuerServiceState) {
   showEditHostDialog.value = false;
   if (result) {
     state.value = result;
+    polling.syncSchedule(result);
     checkAlerts();
   } else {
     loadStatus();

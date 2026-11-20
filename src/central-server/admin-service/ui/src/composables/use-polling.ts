@@ -41,6 +41,7 @@ export type PollingOptions<T> = {
  * interval, so a read that fails before any result ever arrived still gets retried.
  *
  * Call `refresh()` for the first read and after any action that may change whether polling should continue.
+ * Call `syncSchedule()` instead when the caller already holds a result from such an action, so no extra request is made.
  */
 export function usePolling<T>(options: PollingOptions<T>) {
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -89,10 +90,14 @@ export function usePolling<T>(options: PollingOptions<T>) {
     return tracked;
   }
 
+  function syncSchedule(result: T): void {
+    updateSchedule(options.shouldContinue(result));
+  }
+
   onBeforeUnmount(() => {
     unmounted = true;
     stop();
   });
 
-  return { refresh };
+  return { refresh, syncSchedule };
 }
