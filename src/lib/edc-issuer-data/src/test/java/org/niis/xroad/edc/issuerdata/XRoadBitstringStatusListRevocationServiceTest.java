@@ -32,7 +32,6 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,9 +51,7 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bit
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_INDEX;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_PURPOSE;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_SIZE;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.edc.issuerdata.TestSettings.settings;
 
 class XRoadBitstringStatusListRevocationServiceTest {
@@ -65,7 +63,6 @@ class XRoadBitstringStatusListRevocationServiceTest {
     private static final int CLEAR_INDEX = 15;
     private static final Duration DOWNLOAD_WAIT = Duration.ofSeconds(10);
     private static final long MAXIMUM_ENTRIES = 128;
-    private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
 
     private final MutableClock clock = new MutableClock(START);
     private final AtomicReference<Result<Duration>> maximumAge = new AtomicReference<>();
@@ -80,13 +77,12 @@ class XRoadBitstringStatusListRevocationServiceTest {
         maximumAge.set(Result.success(Duration.ofSeconds(120)));
         var stack = EdcTestStack.create();
         var contentTypes = List.of("*/*");
-        var store = mock(IssuerDataStore.class);
-        when(store.write(any(), any(), any())).thenReturn(StoreResult.success());
-        when(store.read(any(), any())).thenReturn(StoreResult.notFound("no row"));
+        var store = new InMemoryIssuerDataStore();
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        var source = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), refreshPool,
-                CACHE_TIME, settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get, store, mock(Monitor.class));
+        var source = new LastGoodSource<>(new ClockStampingFetcher<>(fetcher, clock), clock, Ticker.disabledTicker(),
+                refreshPool, mock(ScheduledExecutorService.class), CACHE_TIME, settings(MAXIMUM_ENTRIES, DOWNLOAD_WAIT),
+                maximumAge::get, store, mock(Monitor.class));
         service = new XRoadBitstringStatusListRevocationService(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver(), source);
     }
@@ -105,7 +101,7 @@ class XRoadBitstringStatusListRevocationServiceTest {
         clock.set(START.plus(CACHE_TIME).plusSeconds(100));
         assertThat(service.checkValidity(status(CLEAR_INDEX)).succeeded()).isTrue();
 
-        clock.set(START.plus(CACHE_TIME).plusSeconds(116));
+        clock.set(START.plus(CACHE_TIME).plusSeconds(120));
         assertThat(service.checkValidity(status(CLEAR_INDEX)).failed()).isTrue();
     }
 
@@ -115,7 +111,7 @@ class XRoadBitstringStatusListRevocationServiceTest {
         issuer.statusListRefused(true);
         clock.set(START.plus(CACHE_TIME).plusSeconds(100));
         assertThat(service.checkValidity(status(CLEAR_INDEX)).succeeded()).isTrue();
-        clock.set(START.plus(CACHE_TIME).plusSeconds(116));
+        clock.set(START.plus(CACHE_TIME).plusSeconds(120));
         assertThat(service.checkValidity(status(CLEAR_INDEX)).failed()).isTrue();
     }
 

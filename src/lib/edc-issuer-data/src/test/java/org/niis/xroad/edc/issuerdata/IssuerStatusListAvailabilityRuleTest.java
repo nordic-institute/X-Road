@@ -33,7 +33,6 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstrings
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,10 +45,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_CREDENTIAL;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -64,7 +65,6 @@ class IssuerStatusListAvailabilityRuleTest {
     private static final Duration CACHE_TIME = Duration.ofSeconds(60);
     private static final Duration DOWNLOAD_WAIT = Duration.ofSeconds(10);
     private static final long MAXIMUM_ENTRIES = 128;
-    private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
 
     private final MutableClock clock = new MutableClock(START);
     private final GlobalConfProvider globalConf = mock(GlobalConfProvider.class);
@@ -79,14 +79,12 @@ class IssuerStatusListAvailabilityRuleTest {
         when(globalConf.getInstanceIdentifier()).thenReturn(INSTANCE);
         when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
         var stack = EdcTestStack.create();
-        var store = mock(IssuerDataStore.class);
-        when(store.write(any(), any(), any())).thenReturn(StoreResult.success());
-        when(store.read(any(), any())).thenReturn(StoreResult.notFound("no row"));
+        var store = new InMemoryIssuerDataStore();
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), List.of("*/*"), stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        var source = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), refreshPool, CACHE_TIME,
-                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), () -> Result.success(Duration.ofSeconds(120)), store,
-                mock(Monitor.class));
+        var source = new LastGoodSource<>(new ClockStampingFetcher<>(fetcher, clock), clock, Ticker.disabledTicker(),
+                refreshPool, mock(ScheduledExecutorService.class), CACHE_TIME, settings(MAXIMUM_ENTRIES, DOWNLOAD_WAIT),
+                () -> Result.success(Duration.ofSeconds(120)), store, mock(Monitor.class));
         rule = new IssuerStatusListAvailabilityRule(globalConf, source);
     }
 
@@ -137,8 +135,8 @@ class IssuerStatusListAvailabilityRuleTest {
     @Test
     void shouldFailForGoodWhenOneOfSeveralStatusListsIsInvalidAndAnotherUnavailable() {
         var source = mockSource();
-        when(source.lookup(issuer.statusListUrl())).thenReturn(Result.retryableFailure("issuer down"));
-        when(source.lookup(OTHER_STATUS_LIST)).thenReturn(Result.failure("not a status list"));
+        when(source.lookup(eq(issuer.statusListUrl()), any(Duration.class))).thenReturn(Result.retryableFailure("issuer down"));
+        when(source.lookup(eq(OTHER_STATUS_LIST), any(Duration.class))).thenReturn(Result.failure("not a status list"));
         var token = credentialToken(issuer.did(), List.of(statusEntry(issuer.statusListUrl()), statusEntry(OTHER_STATUS_LIST)));
 
         var result = new IssuerStatusListAvailabilityRule(globalConf, source).checkRule(token, Map.of());

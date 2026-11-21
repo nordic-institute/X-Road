@@ -60,12 +60,11 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -73,6 +72,7 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bit
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_INDEX;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_PURPOSE;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_SIZE;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -80,7 +80,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_CACHE_MAX_STATUS_LISTS;
 
 class IssuerDataExtensionTest {
 
@@ -91,6 +90,7 @@ class IssuerDataExtensionTest {
     private static final Duration FRESHNESS = Duration.ofSeconds(60);
     private static final long DID_CACHE_EXPIRY_MILLIS = 60_000;
     private static final long NEGATIVE_CACHE_VALIDITY_MILLIS = -FRESHNESS.toMillis();
+    private static final Duration SEND_TIME_TOLERANCE = Duration.ofSeconds(5);
 
     private final RevocationServiceRegistryImpl registry = new RevocationServiceRegistryImpl(mock(Monitor.class));
     private final RevocationListService statusList2021Service = mock(RevocationListService.class);
@@ -98,6 +98,7 @@ class IssuerDataExtensionTest {
     private final DataSourceRegistry dataSourceRegistry = mock(DataSourceRegistry.class);
     private final DidResolverRegistry didResolvers = mock(DidResolverRegistry.class);
     private final List<IssuerDataExtension> extensions = new ArrayList<>();
+    private final InMemoryIssuerDataStore store = new InMemoryIssuerDataStore();
     private FakeIssuer issuer;
 
     @BeforeEach
@@ -160,6 +161,7 @@ class IssuerDataExtensionTest {
         when(context.getSetting(eq(IssuerDataExtension.CACHE_VALIDITY_SETTING), anyLong())).thenReturn(0L);
         when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
                 .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
+        when(context.getSetting(eq(IssuerDataExtension.DID_CACHE_SIZE_SETTING), anyInt())).thenReturn(50);
         issuer.down(true);
         var fresh = newExtension(freshRegistry, typeManager, stack, mock(DidResolverRegistry.class), freshGlobalConf,
                 freshDataSources, Clock.systemUTC(), Ticker.systemTicker());
@@ -182,19 +184,26 @@ class IssuerDataExtensionTest {
     }
 
     @Test
-    void shouldServeCopyFromMemoryWhenIssuerGoesDownAfterTwentyNineIdleMinutes() {
-        var idleRegistry = new RevocationServiceRegistryImpl(mock(Monitor.class));
-        var clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
-        var nanos = new AtomicLong();
-        initializeExtension(idleRegistry, EdcTestStack.create(), 1000, clock, nanos::get);
+    void shouldDownloadOnEveryCheckAndServeStoredRowsDuringOutageWhenBothCacheLimitsAreZero() {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        var statusListServices = new RevocationServiceRegistryImpl(mock(Monitor.class));
+        var realDidResolvers = new DidResolverRegistryImpl(Clock.systemUTC(), 0);
+        initializeWithCacheLimitsAtZero(statusListServices, realDidResolvers);
         var credential = credentialWith(bitstringStatus());
-        assertThat(idleRegistry.checkValidity(credential).succeeded()).isTrue();
-        nanos.addAndGet(Duration.ofMinutes(29).toNanos());
+
+        assertThat(statusListServices.checkValidity(credential).succeeded()).isTrue();
+        var statusListRequestsAfterFirstCheck = issuer.statusListRequests();
+        assertThat(statusListServices.checkValidity(credential).succeeded()).isTrue();
+        assertThat(issuer.statusListRequests()).isGreaterThan(statusListRequestsAfterFirstCheck);
+        assertThat(realDidResolvers.resolve(issuer.did()).succeeded()).isTrue();
+        var didRequestsAfterFirstResolve = issuer.didDocumentRequests();
+        assertThat(realDidResolvers.resolve(issuer.did()).succeeded()).isTrue();
+        assertThat(issuer.didDocumentRequests()).isGreaterThan(didRequestsAfterFirstResolve);
+
         issuer.down(true);
 
-        var result = idleRegistry.checkValidity(credential);
-
-        assertThat(result.succeeded()).isTrue();
+        assertThat(statusListServices.checkValidity(credential).succeeded()).isTrue();
+        assertThat(realDidResolvers.resolve(issuer.did()).succeeded()).isTrue();
     }
 
     @Test
@@ -209,6 +218,7 @@ class IssuerDataExtensionTest {
         when(context.getSetting(eq(IssuerDataExtension.CACHE_VALIDITY_SETTING), anyLong())).thenReturn(0L);
         when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
                 .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
+        when(context.getSetting(eq(IssuerDataExtension.DID_CACHE_SIZE_SETTING), anyInt())).thenReturn(50);
         var extension = newExtension(new RevocationServiceRegistryImpl(mock(Monitor.class)), typeManager, stack,
                 realDidResolvers, globalConf, dataSourceRegistry, Clock.systemUTC(), Ticker.systemTicker());
         extensions.add(extension);
@@ -228,12 +238,13 @@ class IssuerDataExtensionTest {
     void shouldGiveIssuerDidSourceTheConfiguredDidCacheTime() {
         var clock = new MutableClock(Instant.parse("2026-11-18T10:00:00Z"));
         var resolvers = initializeWithDidCacheExpiry(clock, DID_CACHE_EXPIRY_MILLIS);
+        clock.set(Instant.now());
         assertThat(resolvers.resolve(issuer.did()).succeeded()).isTrue();
         var requestsAfterFirstCheck = issuer.didDocumentRequests();
-        clock.advance(Duration.ofMillis(DID_CACHE_EXPIRY_MILLIS).minusSeconds(1));
+        clock.advance(Duration.ofMillis(DID_CACHE_EXPIRY_MILLIS).minus(SEND_TIME_TOLERANCE));
         assertThat(resolvers.resolve(issuer.did()).succeeded()).isTrue();
         assertThat(issuer.didDocumentRequests()).isEqualTo(requestsAfterFirstCheck);
-        clock.advance(Duration.ofSeconds(2));
+        clock.advance(SEND_TIME_TOLERANCE.multipliedBy(2));
         assertThat(resolvers.resolve(issuer.did()).succeeded()).isTrue();
         assertThat(issuer.didDocumentRequests()).isGreaterThan(requestsAfterFirstCheck);
     }
@@ -242,48 +253,21 @@ class IssuerDataExtensionTest {
     void shouldServeIssuerDidCopyDuringOutageUntilDownloadTimePlusDidCacheTimePlusMaximumAge() {
         var clock = new MutableClock(Instant.parse("2026-11-18T10:00:00Z"));
         var resolvers = initializeWithDidCacheExpiry(clock, IssuerDataExtension.DEFAULT_DID_CACHE_EXPIRY_MILLIS);
+        clock.set(Instant.now());
         assertThat(resolvers.resolve(issuer.did()).succeeded()).isTrue();
         issuer.down(true);
         var requestsBeforeOutage = issuer.didDocumentRequests();
         var lastServedAge = Duration.ofMillis(IssuerDataExtension.DEFAULT_DID_CACHE_EXPIRY_MILLIS).plus(FRESHNESS)
-                .minus(TestSettings.EXPIRY_MARGIN).minusSeconds(1);
+                .minus(SEND_TIME_TOLERANCE);
         clock.advance(lastServedAge);
         var beforeDeadline = resolvers.resolve(issuer.did());
         assertThat(beforeDeadline.succeeded()).isTrue();
         assertThat(beforeDeadline.getContent().getId()).isEqualTo(issuer.did());
         assertThat(issuer.didDocumentRequests()).isGreaterThan(requestsBeforeOutage);
-        clock.advance(Duration.ofSeconds(1));
+        clock.advance(SEND_TIME_TOLERANCE.multipliedBy(2));
         var atDeadline = resolvers.resolve(issuer.did());
         assertThat(atDeadline.failed()).isTrue();
         assertThat(atDeadline.isRetryable()).isTrue();
-    }
-
-    @Test
-    void shouldGiveNoOutageToleranceForStatusListsButKeepIssuerDidCopyWhenMaximumStatusListsIsZero() {
-        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
-        var statusListRegistry = new RevocationServiceRegistryImpl(mock(Monitor.class));
-        var realDidResolvers = new DidResolverRegistryImpl(Clock.systemUTC(), 0);
-        var stack = EdcTestStack.create();
-        var typeManager = mock(TypeManager.class);
-        when(typeManager.getMapper()).thenReturn(stack.mapper());
-        var context = mock(ServiceExtensionContext.class);
-        when(context.getMonitor()).thenReturn(mock(Monitor.class));
-        when(context.getSetting(eq(IssuerDataExtension.CACHE_VALIDITY_SETTING), anyLong())).thenReturn(0L);
-        when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
-                .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
-        var extension = newExtension(statusListRegistry, typeManager, stack, realDidResolvers, globalConf,
-                dataSourceRegistry, Clock.systemUTC(), Ticker.systemTicker(),
-                config(Map.of(ISSUER_DATA_CACHE_MAX_STATUS_LISTS.key(), "0")));
-        extensions.add(extension);
-        extension.initialize(context);
-        var statusListCredential = credentialWith(bitstringStatus());
-        assertThat(statusListRegistry.checkValidity(statusListCredential).succeeded()).isTrue();
-        assertThat(realDidResolvers.resolve(issuer.did()).succeeded()).isTrue();
-        issuer.down(true);
-        var statusListDuringOutage = statusListRegistry.checkValidity(statusListCredential);
-        var didDuringOutage = realDidResolvers.resolve(issuer.did());
-        assertThat(statusListDuringOutage.failed()).isTrue();
-        assertThat(didDuringOutage.succeeded()).isTrue();
     }
 
     @Test
@@ -335,11 +319,32 @@ class IssuerDataExtensionTest {
                 .thenReturn(didCacheExpiryMillis);
         when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
                 .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
+        when(context.getSetting(eq(IssuerDataExtension.DID_CACHE_SIZE_SETTING), anyInt())).thenReturn(50);
         var extension = newExtension(new RevocationServiceRegistryImpl(mock(Monitor.class)), typeManager, stack,
                 realDidResolvers, globalConf, dataSourceRegistry, clock, Ticker.systemTicker());
         extensions.add(extension);
         extension.initialize(context);
         return realDidResolvers;
+    }
+
+    private void initializeWithCacheLimitsAtZero(RevocationServiceRegistry statusListServices,
+                                                 DidResolverRegistry targetDidResolvers) {
+        var stack = EdcTestStack.create();
+        var typeManager = mock(TypeManager.class);
+        when(typeManager.getMapper()).thenReturn(stack.mapper());
+        var context = mock(ServiceExtensionContext.class);
+        when(context.getMonitor()).thenReturn(mock(Monitor.class));
+        when(context.getSetting(eq(IssuerDataExtension.CACHE_VALIDITY_SETTING), anyLong()))
+                .thenReturn(CACHE_VALIDITY_MILLIS);
+        when(context.getSetting(eq(IssuerDataExtension.DID_CACHE_EXPIRY_SETTING), anyLong()))
+                .thenReturn(DID_CACHE_EXPIRY_MILLIS);
+        when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
+                .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
+        var zeroLimits = config(Map.of(DspConfigKeys.ISSUER_DATA_CACHE_STATUSLIST_SIZE.key(), "0"));
+        var extension = newExtension(statusListServices, typeManager, stack, targetDidResolvers, globalConf,
+                dataSourceRegistry, Clock.systemUTC(), Ticker.systemTicker(), zeroLimits);
+        extensions.add(extension);
+        extension.initialize(context);
     }
 
     private void initializeExtension() {
@@ -365,6 +370,7 @@ class IssuerDataExtensionTest {
                 .thenReturn(cacheValidityMillis);
         when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
                 .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
+        when(context.getSetting(eq(IssuerDataExtension.DID_CACHE_SIZE_SETTING), anyInt())).thenReturn(50);
 
         var extension = newExtension(target, typeManager, stack, didResolvers, globalConf, dataSourceRegistry, clock,
                 ticker);
@@ -372,25 +378,25 @@ class IssuerDataExtensionTest {
         extension.initialize(context);
     }
 
-    private static IssuerDataExtension newExtension(RevocationServiceRegistry revocationServiceRegistry,
-                                                    TypeManager typeManager, EdcTestStack stack,
-                                                    DidResolverRegistry didResolvers,
-                                                    GlobalConfProvider globalConfProvider,
-                                                    DataSourceRegistry dataSources, Clock clock, Ticker ticker) {
-        return newExtension(revocationServiceRegistry, typeManager, stack, didResolvers, globalConfProvider, dataSources, clock,
+    private IssuerDataExtension newExtension(RevocationServiceRegistry revocationServiceRegistry,
+                                             TypeManager typeManager, EdcTestStack stack,
+                                             DidResolverRegistry didResolverRegistry,
+                                             GlobalConfProvider globalConfProvider,
+                                             DataSourceRegistry dataSources, Clock clock, Ticker ticker) {
+        return newExtension(revocationServiceRegistry, typeManager, stack, didResolverRegistry, globalConfProvider, dataSources, clock,
                 ticker, defaultConfig());
     }
 
-    private static IssuerDataExtension newExtension(RevocationServiceRegistry revocationServiceRegistry,
-                                                    TypeManager typeManager, EdcTestStack stack,
-                                                    DidResolverRegistry didResolvers,
-                                                    GlobalConfProvider globalConfProvider,
-                                                    DataSourceRegistry dataSources, Clock clock, Ticker ticker,
-                                                    XRoadConfig xRoadConfig) {
+    private IssuerDataExtension newExtension(RevocationServiceRegistry revocationServiceRegistry,
+                                             TypeManager typeManager, EdcTestStack stack,
+                                             DidResolverRegistry didResolverRegistry,
+                                             GlobalConfProvider globalConfProvider,
+                                             DataSourceRegistry dataSources, Clock clock, Ticker ticker,
+                                             XRoadConfig xRoadConfig) {
         return new IssuerDataExtension(revocationServiceRegistry, typeManager, stack.httpClient(),
-                stack.tokenValidationService(), stack.didPublicKeyResolver(), didResolvers, globalConfProvider,
+                stack.tokenValidationService(), stack.didPublicKeyResolver(), didResolverRegistry, globalConfProvider,
                 dataSources, new NoopTransactionContext(), mock(QueryExecutor.class), ExecutorInstrumentation.noop(),
-                xRoadConfig, null, null, clock, ticker);
+                xRoadConfig, null, mock(ScheduledExecutorService.class), store, null, clock, ticker);
     }
 
     private static XRoadConfig defaultConfig() {

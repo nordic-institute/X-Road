@@ -38,8 +38,8 @@ import java.util.Set;
 import static org.niis.xroad.common.properties.config.Validator.durationAtLeast;
 import static org.niis.xroad.common.properties.config.Validator.durationBetween;
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
-import static org.niis.xroad.common.properties.config.Validator.nonNegative;
-import static org.niis.xroad.common.properties.config.Validator.positiveInt;
+import static org.niis.xroad.common.properties.config.Validator.positive;
+import static org.niis.xroad.common.properties.config.Validator.positiveInts;
 import static org.niis.xroad.common.properties.config.Validator.positiveLong;
 import static org.niis.xroad.common.properties.config.Validator.range;
 
@@ -72,8 +72,9 @@ public final class DspConfigKeys implements ConfigKeyProvider {
     private static final Prefix OUTBOUND_HTTP = DSP.subPrefix("outbound-http");
     private static final Prefix CONTROL_PLANE_POOL = DSP.subPrefix("control-plane").subPrefix("pool");
     private static final Prefix ISSUER_DATA = DSP.subPrefix("issuer-data");
-    private static final Prefix ISSUER_DATA_RETRY_DELAY = ISSUER_DATA.subPrefix("retry-delay");
+    private static final Prefix ISSUER_DATA_DOWNLOAD_RETRY = ISSUER_DATA.subPrefix("download-retry");
     private static final Prefix ISSUER_DATA_CACHE = ISSUER_DATA.subPrefix("cache");
+    private static final Prefix ISSUER_DATA_CACHE_STATUSLIST = ISSUER_DATA_CACHE.subPrefix("statuslist");
     private static final Prefix ISSUER_DATA_CLEANUP = ISSUER_DATA.subPrefix("cleanup");
 
     private static final DspConfigKeys INSTANCE = new DspConfigKeys();
@@ -195,18 +196,6 @@ public final class DspConfigKeys implements ConfigKeyProvider {
             .build();
 
     /**
-     * {@code xroad.dsp.issuer-data.expiry-margin}: a copy that expires within this margin counts as unusable
-     * during an outage.
-     */
-    public static final ConfigKey<Duration> ISSUER_DATA_EXPIRY_MARGIN = ISSUER_DATA
-            .keyDuration("expiry-margin")
-            .withDefaultValue(Duration.ofSeconds(5))
-            .withValidator(nonNegative())
-            .exposedInUi()
-            .publishedToFramework()
-            .build();
-
-    /**
      * {@code xroad.dsp.issuer-data.download-wait}: the longest wait of a check for a fresh download while the
      * issuer answers.
      */
@@ -218,65 +207,38 @@ public final class DspConfigKeys implements ConfigKeyProvider {
             .publishedToFramework()
             .build();
 
-    /** {@code xroad.dsp.issuer-data.retry-delay.initial}: the delay before the first retry after a failed refresh. */
-    public static final ConfigKey<Duration> ISSUER_DATA_RETRY_DELAY_INITIAL = ISSUER_DATA_RETRY_DELAY
-            .keyDuration("initial")
-            .withDefaultValue(Duration.ofSeconds(5))
-            .withValidator(nonNegative())
-            .exposedInUi()
-            .publishedToFramework()
-            .build();
-
-    /** {@code xroad.dsp.issuer-data.retry-delay.maximum}: the cap of the doubling retry delay. */
-    public static final ConfigKey<Duration> ISSUER_DATA_RETRY_DELAY_MAXIMUM = ISSUER_DATA_RETRY_DELAY
-            .keyDuration("maximum")
-            .withDefaultValue(Duration.ofSeconds(60))
-            .withValidator(nonNegative())
-            .exposedInUi()
-            .publishedToFramework()
-            .build();
-
-    /** {@code xroad.dsp.issuer-data.retry-delay.maximum-doublings}: the most times the retry delay doubles. */
-    public static final ConfigKey<Integer> ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS = ISSUER_DATA_RETRY_DELAY
-            .integer("maximum-doublings")
-            .withDefaultValue(16)
-            .withValidator(positiveInt())
+    /**
+     * {@code xroad.dsp.issuer-data.download-retry.delays-seconds}: the wait in seconds before the next download after
+     * a failed one. Entry n is the wait after failure n, and the last entry repeats.
+     */
+    public static final ConfigKey<String[]> ISSUER_DATA_DOWNLOAD_RETRY_DELAYS_SECONDS = ISSUER_DATA_DOWNLOAD_RETRY
+            .stringArray("delays-seconds")
+            .withDefaultValue("5,10,15,20,30,60")
+            .withValidator(positiveInts())
             .exposedInUi()
             .publishedToFramework()
             .build();
 
     /**
-     * {@code xroad.dsp.issuer-data.cache.max-status-lists}: the most status lists kept in memory. Value 0 keeps no
-     * copy in memory, so a stored copy is not used during an outage.
+     * {@code xroad.dsp.issuer-data.download-retry.reset-after}: after this time a failed or unanswered download is
+     * forgotten, and the retry delay starts again from the first entry.
      */
-    public static final ConfigKey<Integer> ISSUER_DATA_CACHE_MAX_STATUS_LISTS = ISSUER_DATA_CACHE
-            .integer("max-status-lists")
-            .withDefaultValue(128)
+    public static final ConfigKey<Duration> ISSUER_DATA_DOWNLOAD_RETRY_RESET_AFTER = ISSUER_DATA_DOWNLOAD_RETRY
+            .keyDuration("reset-after")
+            .withDefaultValue(Duration.ofMinutes(10))
+            .withValidator(positive())
+            .exposedInUi()
+            .publishedToFramework()
+            .build();
+
+    /**
+     * {@code xroad.dsp.issuer-data.cache.statuslist.size}: the most statuslists kept in memory. Value 0 keeps no
+     * copy in memory; the data then comes from the shared download, or from the stored copy during an outage.
+     */
+    public static final ConfigKey<Integer> ISSUER_DATA_CACHE_STATUSLIST_SIZE = ISSUER_DATA_CACHE_STATUSLIST
+            .integer("size")
+            .withDefaultValue(1000)
             .withValidator(range(0, Integer.MAX_VALUE))
-            .exposedInUi()
-            .publishedToFramework()
-            .build();
-
-    /**
-     * {@code xroad.dsp.issuer-data.cache.max-issuer-dids}: the most issuer DID documents kept in memory. Value 0
-     * keeps no copy in memory, so a stored copy is not used during an outage.
-     */
-    public static final ConfigKey<Integer> ISSUER_DATA_CACHE_MAX_ISSUER_DIDS = ISSUER_DATA_CACHE
-            .integer("max-issuer-dids")
-            .withDefaultValue(32)
-            .withValidator(range(0, Integer.MAX_VALUE))
-            .exposedInUi()
-            .publishedToFramework()
-            .build();
-
-    /**
-     * {@code xroad.dsp.issuer-data.cache.idle-expiry}: how long a key may go without a check before it is dropped
-     * from memory. Value 0 keeps no copy in memory, so a stored copy is not used during an outage.
-     */
-    public static final ConfigKey<Duration> ISSUER_DATA_CACHE_IDLE_EXPIRY = ISSUER_DATA_CACHE
-            .keyDuration("idle-expiry")
-            .withDefaultValue(Duration.ofMinutes(30))
-            .withValidator(nonNegative())
             .exposedInUi()
             .publishedToFramework()
             .build();

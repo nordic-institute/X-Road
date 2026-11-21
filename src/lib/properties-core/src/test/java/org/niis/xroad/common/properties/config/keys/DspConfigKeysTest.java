@@ -43,14 +43,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DspConfigKeysTest {
     private static final List<String> ISSUER_DATA_KEYS = List.of(
-            DspConfigKeys.ISSUER_DATA_EXPIRY_MARGIN.key(),
             DspConfigKeys.ISSUER_DATA_DOWNLOAD_WAIT.key(),
-            DspConfigKeys.ISSUER_DATA_RETRY_DELAY_INITIAL.key(),
-            DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM.key(),
-            DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.key(),
-            DspConfigKeys.ISSUER_DATA_CACHE_MAX_STATUS_LISTS.key(),
-            DspConfigKeys.ISSUER_DATA_CACHE_MAX_ISSUER_DIDS.key(),
-            DspConfigKeys.ISSUER_DATA_CACHE_IDLE_EXPIRY.key(),
+            DspConfigKeys.ISSUER_DATA_DOWNLOAD_RETRY_DELAYS_SECONDS.key(),
+            DspConfigKeys.ISSUER_DATA_DOWNLOAD_RETRY_RESET_AFTER.key(),
+            DspConfigKeys.ISSUER_DATA_CACHE_STATUSLIST_SIZE.key(),
             DspConfigKeys.ISSUER_DATA_CLEANUP_INTERVAL.key(),
             DspConfigKeys.ISSUER_DATA_CLEANUP_ENABLED.key());
 
@@ -182,21 +178,9 @@ class DspConfigKeysTest {
     }
 
     @Test
-    void cacheLimitsAcceptZeroAndRefuseNegative() {
-        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_MAX_STATUS_LISTS.validate(0).valid()).isTrue();
-        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_MAX_STATUS_LISTS.validate(-1).valid()).isFalse();
-        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_MAX_ISSUER_DIDS.validate(0).valid()).isTrue();
-        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_MAX_ISSUER_DIDS.validate(-1).valid()).isFalse();
-    }
-    @Test
-    void idleExpiryAcceptsZeroAndRefusesNegative() {
-        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_IDLE_EXPIRY.validate(Duration.ZERO).valid()).isTrue();
-        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_IDLE_EXPIRY.validate(Duration.ofSeconds(-1)).valid()).isFalse();
-    }
-    @Test
-    void aNegativeExpiryMarginIsRefused() {
-        assertThat(DspConfigKeys.ISSUER_DATA_EXPIRY_MARGIN.validate(Duration.ZERO).valid()).isTrue();
-        assertThat(DspConfigKeys.ISSUER_DATA_EXPIRY_MARGIN.validate(Duration.ofMillis(-1)).valid()).isFalse();
+    void statuslistCacheSizeAcceptsZeroAndRefusesNegative() {
+        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_STATUSLIST_SIZE.validate(0).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_CACHE_STATUSLIST_SIZE.validate(-1).valid()).isFalse();
     }
 
     @Test
@@ -208,11 +192,20 @@ class DspConfigKeysTest {
     }
 
     @Test
-    void retryDelayMaximumDoublingsAcceptsOneAndRefusesZeroAndNegative() {
-        assertThat(DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.validate(0).valid()).isFalse();
-        assertThat(DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.validate(-1).valid()).isFalse();
-        assertThat(DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.validate(1).valid()).isTrue();
-        assertThat(DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.validate(16).valid()).isTrue();
+    void downloadRetryDelaysAcceptPositiveWholeNumbersAndRefuseTheRest() {
+        var delays = DspConfigKeys.ISSUER_DATA_DOWNLOAD_RETRY_DELAYS_SECONDS;
+        assertThat(delays.validate(new String[] {"5", "5", "10"}).valid()).isTrue();
+        assertThat(delays.validate(new String[] {"0"}).valid()).isFalse();
+        assertThat(delays.validate(new String[] {"-5"}).valid()).isFalse();
+        assertThat(delays.validate(new String[] {"3000000000"}).valid()).isFalse();
+        assertThat(delays.validate(new String[] {"5", "0", "10"}).valid()).isFalse();
+        assertThat(delays.validate(new String[] {"10", "-5"}).valid()).isFalse();
+    }
+
+    @Test
+    void downloadRetryResetAfterRefusesZero() {
+        assertThat(DspConfigKeys.ISSUER_DATA_DOWNLOAD_RETRY_RESET_AFTER.validate(Duration.ofMinutes(10)).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_DATA_DOWNLOAD_RETRY_RESET_AFTER.validate(Duration.ZERO).valid()).isFalse();
     }
 
     @Test
@@ -244,14 +237,10 @@ class DspConfigKeysTest {
                         "xroad.dsp.outbound-http.max-requests-per-host",
                         "xroad.dsp.control-plane.pool.max-total",
                         "xroad.dsp.control-plane.pool.max-idle",
-                        "xroad.dsp.issuer-data.expiry-margin",
                         "xroad.dsp.issuer-data.download-wait",
-                        "xroad.dsp.issuer-data.retry-delay.initial",
-                        "xroad.dsp.issuer-data.retry-delay.maximum",
-                        "xroad.dsp.issuer-data.retry-delay.maximum-doublings",
-                        "xroad.dsp.issuer-data.cache.max-status-lists",
-                        "xroad.dsp.issuer-data.cache.max-issuer-dids",
-                        "xroad.dsp.issuer-data.cache.idle-expiry",
+                        "xroad.dsp.issuer-data.download-retry.delays-seconds",
+                        "xroad.dsp.issuer-data.download-retry.reset-after",
+                        "xroad.dsp.issuer-data.cache.statuslist.size",
                         "xroad.dsp.issuer-data.cleanup.interval",
                         "xroad.dsp.issuer-data.cleanup.enabled");
     }

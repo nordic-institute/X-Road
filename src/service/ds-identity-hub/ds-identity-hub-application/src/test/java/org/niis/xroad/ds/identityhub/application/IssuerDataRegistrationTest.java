@@ -33,6 +33,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstrings
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,7 @@ class IssuerDataRegistrationTest {
     @Test
     void bitstringStatusListIsServedByTheXRoadServiceAndStatusList2021StaysStock(ServiceExtensionContext context,
                                                                                 ObjectFactory factory) {
+        context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
         context.registerService(TypeManager.class, new JacksonTypeManager());
         context.registerService(XRoadConfig.class,
                 XRoadConfigBuilder.create().register(DspConfigKeys.instance()).build());

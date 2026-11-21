@@ -29,6 +29,8 @@ package org.niis.xroad.edc.issuerdata;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Expiry;
+import com.github.benmanes.caffeine.cache.Scheduler;
 import com.github.benmanes.caffeine.cache.Ticker;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
@@ -39,38 +41,41 @@ import org.eclipse.edc.spi.result.StoreFailure;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 /**
- * Serves issuer data from a copy for the cache time, refreshes it in the background after that, and falls back to the
- * last good copy while the issuer does not answer, up to a deadline set by the maximum age.
+ * Serves issuer data from a copy for the cache time, downloads it again after that, and serves the stored copy while
+ * the issuer does not answer, up to a deadline set by the maximum age.
  * <p>
- * The deadline of a copy is the earlier of its stored {@code validUntil} and its download time plus the cache time
- * plus the maximum age read at the moment of the check. A copy is never served past the expiry the data states itself.
+ * The deadline of a copy is the earlier of its stored {@code validUntil} and its send time plus the cache time plus
+ * the maximum age read at the moment of the check. A copy is never served past the expiry the data states itself.
  * <p>
- * Each key has at most one refresh at a time, run on the executor with no lock held. While the last refresh of a key
- * succeeded, a check that finds the copy past the cache time starts or joins the refresh and waits for it at most the
- * download wait. After a failed refresh the key is in outage mode: checks never wait, they get the last good copy at
- * once, and the executor retries the download with a backoff that doubles up to a maximum. A success ends the outage
- * and resets the backoff.
+ * Copies in memory and running downloads are kept apart. A copy stays in memory for the cache time from its send time,
+ * at most the configured number of keys; with the limit 0 no copy stays. Whether a copy is fresh is decided by the
+ * clock, not by the memory expiry.
  * <p>
- * Every successful download is also written to the {@link IssuerDataStore}. The store is read when a refresh fails
- * and when a key has no copy in memory and its refresh is not finished within the download wait: the later of the
- * memory copy and the stored copy is then the candidate. Data is verified when it is downloaded; a stored copy is read
- * back through {@link IssuerDataFetcher#parseStored} as stored. A stored copy with a non-retryable read-back failure is
- * ignored until the next successful download. Store calls run only on the executor, never on the thread of a check, so they never
- * join a transaction of the caller.
+ * A check that finds no fresh copy starts or joins the one download of its key, at limit 0 too, and waits for it at
+ * most the download wait. A successful download is put in memory and written to the {@link IssuerDataStore}; a
+ * failed write only logs. After a failed or unfinished download the key is in outage mode: checks read the stored row
+ * each time and serve it while it is fresh or usable after a failure, and a retry starts only on a check after the
+ * next attempt time, with the delay of {@link DownloadRetry}. A row read back is never put in memory. A check with no
+ * usable row waits for the running download of its key with no time limit, or, when none runs, gets the failure of
+ * the last download. A failed or thrown read of the row gives a retriable failure.
  * <p>
- * Memory holds at most the configured number of keys, and a key with no check for the idle expiry is dropped. The idle expiry
- * does not depend on the cache time, so a cache time of zero still keeps the copy and the retry delay of a key in
- * memory. A dropped key whose copy was stored falls back to its stored row with the same deadline: the next check
- * downloads, and when that fails or does not finish within the download wait, the stored copy is read. A key dropped
- * while its refresh runs or its backoff is active costs at most one more download or one restarted backoff.
+ * A download and its failure state live in a tracker entry that Caffeine removes by the entry's own state: at once
+ * when it holds neither, and at the latest the reset time after it was created. A success ends the entry at once.
+ * <p>
+ * Data is verified when it is downloaded; a stored copy is read back through {@link IssuerDataFetcher#parseStored} as
+ * stored. A stored row that fails to parse for good is skipped until another row, with another send time, replaces
+ * it. Store calls run only on the executor, never on the thread of a check, so they never join a transaction of the
+ * caller.
  *
  * @param <P> the parsed form of the data
  */
@@ -80,20 +85,22 @@ public class LastGoodSource<P> {
     private final Clock clock;
     private final Executor executor;
     private final Duration cacheTime;
-    private final LastGoodSettings settings;
+    private final IssuerDataSettings settings;
     private final Supplier<Result<Duration>> maximumAge;
     private final IssuerDataStore store;
     private final Monitor monitor;
-    private final Cache<String, KeyState<P>> entries;
+    private final Cache<String, LastGoodCopy<P>> copies;
+    private final Cache<String, Tracking<P>> trackers;
 
     /**
-     * @param executor runs the refreshes and every store call; it must not run tasks on the calling thread in
-     *                 production
-     * @param settings the memory limit, the idle expiry, the download wait, the expiry margin and the retry delay
+     * @param executor  runs the downloads and every store call; it must not run tasks on the calling thread in
+     *                  production
+     * @param scheduler removes expired entries of both caches in good time
+     * @param settings  the memory limit, the download wait, the retry delay and the reset time
      */
-    public LastGoodSource(IssuerDataFetcher<P> fetcher, Clock clock, Ticker ticker, Executor executor, Duration cacheTime,
-                          LastGoodSettings settings, Supplier<Result<Duration>> maximumAge, IssuerDataStore store,
-                          Monitor monitor) {
+    public LastGoodSource(IssuerDataFetcher<P> fetcher, Clock clock, Ticker ticker, Executor executor,
+                          ScheduledExecutorService scheduler, Duration cacheTime, IssuerDataSettings settings,
+                          Supplier<Result<Duration>> maximumAge, IssuerDataStore store, Monitor monitor) {
         this.fetcher = fetcher;
         this.clock = clock;
         this.executor = executor;
@@ -102,84 +109,94 @@ public class LastGoodSource<P> {
         this.maximumAge = maximumAge;
         this.store = store;
         this.monitor = monitor;
-        this.entries = Caffeine.newBuilder()
+        this.copies = Caffeine.newBuilder()
                 .ticker(ticker)
                 .executor(Runnable::run)
                 .maximumSize(settings.maximumEntries())
-                .expireAfterAccess(settings.idleExpiry())
+                .scheduler(Scheduler.forScheduledExecutorService(scheduler))
+                .expireAfter(Expiry.writing((String _, LastGoodCopy<P> copy) -> memoryLifetime(copy)))
+                .build();
+        this.trackers = Caffeine.newBuilder()
+                .ticker(ticker)
+                .executor(Runnable::run)
+                .scheduler(Scheduler.forScheduledExecutorService(scheduler))
+                .expireAfter(Expiry.writing((String _, Tracking<P> tracking) -> lifetime(tracking)))
                 .build();
     }
 
     long cachedKeys() {
-        return entries.estimatedSize();
+        return copies.estimatedSize();
+    }
+
+    long trackedKeys() {
+        trackers.cleanUp();
+        return trackers.estimatedSize();
+    }
+
+    /**
+     * Same as {@link #lookup(String, Duration)} with no margin.
+     */
+    @Nonnull
+    public Result<LastGoodCopy<P>> lookup(String key) {
+        return lookup(key, Duration.ZERO);
     }
 
     /**
      * Never throws. A failure carries the download or parse failure when no usable copy exists.
+     *
+     * @param margin a stored copy that expires within this margin does not count as usable during an outage
      */
     @Nonnull
-    public Result<LastGoodCopy<P>> lookup(String key) {
-        var current = KeyState.<P>orEmpty(entries.getIfPresent(key));
-        if (current.copy() != null && isFresh(current.copy())) {
-            return Result.success(current.copy());
-        }
-        var state = startRefreshIfDue(key);
-        if (state.refresh() == null && state.outage() == null) {
-            return Result.success(state.copy());
-        }
-        return state.outage() == null ? checkInNormalMode(key, state) : checkInOutage(key, state);
-    }
-
-    private KeyState<P> startRefreshIfDue(String key) {
-        var created = new CompletableFuture<Result<LastGoodCopy<P>>>();
-        var now = clock.instant();
-        var state = entries.asMap().compute(key, (_, current) -> {
-            var existing = KeyState.<P>orEmpty(current);
-            return refreshDue(existing, now) ? existing.withRefresh(created) : existing;
-        });
-        if (state.refresh() == created) {
-            executor.execute(() -> runRefresh(key, created));
-        }
-        return state;
-    }
-
-    private boolean refreshDue(KeyState<P> state, Instant now) {
-        if (state.refresh() != null || state.copy() != null && isFresh(state.copy(), now)) {
-            return false;
-        }
-        return state.outage() == null || !now.isBefore(state.outage().nextAttempt());
-    }
-
-    private Result<LastGoodCopy<P>> checkInNormalMode(String key, KeyState<P> state) {
-        var finished = awaitFinished(state.refresh());
-        if (finished != null) {
-            return resolve(key, finished);
-        }
-        if (state.copy() == null) {
-            enterOutage(key);
-            runOnExecutor(() -> adoptStoredCopy(key));
-        }
-        var copy = servableCopy(key);
-        return copy != null ? Result.success(copy) : resolve(key, state.refresh().join());
-    }
-
-    private Result<LastGoodCopy<P>> checkInOutage(String key, KeyState<P> state) {
-        var copy = servableCopy(key);
-        if (copy != null) {
+    public Result<LastGoodCopy<P>> lookup(String key, Duration margin) {
+        var copy = copies.getIfPresent(key);
+        if (copy != null && isFresh(copy)) {
             return Result.success(copy);
         }
-        if (state.refresh() != null) {
-            return resolve(key, state.refresh().join());
-        }
-        return state.outage().failure().mapFailure();
+        var tracking = startRefreshIfDue(key);
+        return tracking.outage() == null ? checkInNormalMode(key, margin, tracking.refresh())
+                : checkInOutage(key, margin, tracking);
     }
 
-    private Result<LastGoodCopy<P>> resolve(String key, Result<LastGoodCopy<P>> outcome) {
-        if (outcome.succeeded()) {
-            return outcome;
+    private Tracking<P> startRefreshIfDue(String key) {
+        var created = new CompletableFuture<Result<LastGoodCopy<P>>>();
+        var now = clock.instant();
+        var tracking = trackers.asMap().compute(key, (_, current) -> {
+            if (current == null) {
+                return Tracking.<P>created(now).withRefresh(created);
+            }
+            return refreshDue(current, now) ? current.withRefresh(created) : current;
+        });
+        if (tracking.refresh() == created) {
+            executor.execute(() -> runRefresh(key, created));
         }
-        var copy = servableCopy(key);
-        return copy != null ? Result.success(copy) : outcome;
+        return tracking;
+    }
+
+    private boolean refreshDue(Tracking<P> tracking, Instant now) {
+        return tracking.refresh() == null && (tracking.outage() == null || !now.isBefore(tracking.outage().nextAttempt()));
+    }
+
+    private Result<LastGoodCopy<P>> checkInNormalMode(String key, Duration margin,
+                                                      CompletableFuture<Result<LastGoodCopy<P>>> refresh) {
+        var finished = awaitFinished(refresh);
+        if (finished == null) {
+            enterOutage(key);
+            return rowOr(key, margin, refresh::join);
+        }
+        return finished.succeeded() ? finished : rowOr(key, margin, () -> finished);
+    }
+
+    private Result<LastGoodCopy<P>> checkInOutage(String key, Duration margin, Tracking<P> tracking) {
+        var refresh = tracking.refresh();
+        return rowOr(key, margin, refresh != null ? refresh::join : () -> tracking.outage().failure().mapFailure());
+    }
+
+    private Result<LastGoodCopy<P>> rowOr(String key, Duration margin, Supplier<Result<LastGoodCopy<P>>> otherwise) {
+        var row = CompletableFuture.supplyAsync(() -> servableRow(key, margin), executor).join();
+        if (row.failed()) {
+            return row.mapFailure();
+        }
+        return row.getContent().map(Result::success).orElseGet(otherwise);
     }
 
     @Nullable
@@ -196,59 +213,81 @@ public class LastGoodSource<P> {
         }
     }
 
-    private void runOnExecutor(Runnable task) {
-        CompletableFuture.runAsync(task, executor).join();
-    }
-
     private void enterOutage(String key) {
         var now = clock.instant();
-        entries.asMap().compute(key, (_, current) -> {
-            var existing = KeyState.<P>orEmpty(current);
-            if (existing.outage() != null || existing.refresh() == null) {
-                return existing;
+        trackers.asMap().computeIfPresent(key, (_, current) -> {
+            if (current.outage() != null || current.refresh() == null) {
+                return current;
             }
-            return existing.withOutage(new Outage(0, now, Result.retryableFailure("Issuer data refresh is still running")));
+            return current.withOutage(new Outage(0, now, Result.retryableFailure("Issuer data refresh is still running")));
         });
     }
 
-    @Nullable
-    private LastGoodCopy<P> servableCopy(String key) {
-        var copy = KeyState.<P>orEmpty(entries.getIfPresent(key)).copy();
-        if (copy == null) {
-            return null;
+    private Result<Optional<LastGoodCopy<P>>> servableRow(String key, Duration margin) {
+        try {
+            var row = store.read(fetcher.kind(), key);
+            if (row.failed()) {
+                return rowReadFailed(key, row.getFailure().getReason(), row.getFailureDetail());
+            }
+            return Result.success(servable(key, row.getContent(), margin));
+        } catch (RuntimeException e) {
+            monitor.warning("Stored issuer data of '%s' could not be read".formatted(key), e);
+            return Result.retryableFailure("Stored issuer data could not be read");
         }
-        return isFresh(copy) || usableAfterFailure(key, copy) ? copy : null;
+    }
+
+    private Result<Optional<LastGoodCopy<P>>> rowReadFailed(String key, StoreFailure.Reason reason, String detail) {
+        if (reason == StoreFailure.Reason.NOT_FOUND) {
+            return Result.success(Optional.empty());
+        }
+        monitor.warning("Stored issuer data of '%s' could not be read: %s".formatted(key, detail));
+        return Result.retryableFailure("Stored issuer data could not be read");
+    }
+
+    private Optional<LastGoodCopy<P>> servable(String key, StoredIssuerData stored, Duration margin) {
+        var tracking = trackers.getIfPresent(key);
+        if (tracking != null && tracking.storedRow().rejects(stored)) {
+            return Optional.empty();
+        }
+        var parsed = attempt(key, () -> fetcher.parseStored(key, stored.payload()));
+        if (parsed.failed()) {
+            monitor.warning("Stored issuer data of '%s' is not usable: %s".formatted(key, parsed.getFailureDetail()));
+            if (!parsed.isRetryable()) {
+                markUnparsable(key, stored.fetchedAt());
+            }
+            return Optional.empty();
+        }
+        var copy = new LastGoodCopy<>(stored.payload(), parsed.getContent(), stored.fetchedAt(), stored.validUntil());
+        return isFresh(copy) || usableAfterFailure(key, copy, margin) ? Optional.of(copy) : Optional.empty();
+    }
+
+    private void markUnparsable(String key, Instant fetchedAt) {
+        trackers.asMap().computeIfPresent(key, (_, current) -> current.withStoredRow(new StoredRowState.Unparsable(fetchedAt)));
     }
 
     private void runRefresh(String key, CompletableFuture<Result<LastGoodCopy<P>>> refresh) {
-        var outcome = download(key);
+        Result<LastGoodCopy<P>> outcome = Result.failure("Issuer data refresh did not finish");
         try {
+            outcome = download(key);
             if (outcome.succeeded()) {
-                recordSuccess(key, outcome.getContent());
+                recordSuccess(key, refresh, outcome.getContent());
             } else {
-                recordFailure(key, outcome);
+                monitor.warning("Issuer data of '%s' could not be refreshed: %s".formatted(key, outcome.getFailureDetail()));
+                recordFailure(key, refresh, outcome);
             }
         } catch (RuntimeException e) {
-            monitor.warning("Issuer data of '%s' could not be recorded after the refresh".formatted(key), e);
+            monitor.warning("Issuer data of '%s' could not be refreshed".formatted(key), e);
             outcome = Result.failure("Unexpected " + e.getClass().getSimpleName());
-            endRefreshWithFailure(key, refresh, outcome);
+            recordFailure(key, refresh, outcome);
         } finally {
             refresh.complete(outcome);
         }
     }
 
-    private void endRefreshWithFailure(String key, CompletableFuture<Result<LastGoodCopy<P>>> refresh, Result<?> failure) {
-        var failedAt = clock.instant();
-        entries.asMap().compute(key, (_, current) -> {
-            var existing = KeyState.<P>orEmpty(current);
-            return existing.refresh() == refresh ? existing.withFailure(failedAt, failure, settings.retryDelay()) : existing;
-        });
-    }
-
     private Result<LastGoodCopy<P>> download(String key) {
         return attempt(key, () -> fetcher.download(key))
-                .compose(payload -> attempt(key, () -> fetcher.parse(key, payload))
-                        .map(parsed -> newCopy(key, payload, parsed)));
+                .compose(download -> attempt(key, () -> fetcher.parse(key, download.payload()))
+                        .map(parsed -> newCopy(key, download, parsed)));
     }
 
     private <T> Result<T> attempt(String key, Supplier<Result<T>> step) {
@@ -260,26 +299,34 @@ public class LastGoodSource<P> {
         }
     }
 
-    private LastGoodCopy<P> newCopy(String key, String payload, P parsed) {
-        var fetchedAt = clock.instant();
+    private LastGoodCopy<P> newCopy(String key, IssuerDataFetcher.Download download, P parsed) {
+        var fetchedAt = download.requestSentAt();
         var validUntil = fetchedAt.plus(cacheTime).plus(maximumAgeOrZero(key));
-        return new LastGoodCopy<>(payload, parsed, fetchedAt, validUntil);
+        return new LastGoodCopy<>(download.payload(), parsed, fetchedAt, validUntil);
     }
 
-    private void recordSuccess(String key, LastGoodCopy<P> copy) {
-        entries.asMap().compute(key, (_, current) -> KeyState.<P>orEmpty(current).withDownloaded(copy));
-        var written = store.write(fetcher.kind(), key, new StoredIssuerData(copy.payload(), copy.fetchedAt(), copy.validUntil()));
-        if (written.failed()) {
-            monitor.warning("Issuer data of '%s' could not be stored: %s".formatted(key, written.getFailureDetail()));
+    private void recordSuccess(String key, CompletableFuture<Result<LastGoodCopy<P>>> refresh, LastGoodCopy<P> copy) {
+        copies.put(key, copy);
+        writeRow(key, copy);
+        trackers.asMap().computeIfPresent(key, (_, current) -> current.refresh() == refresh ? null : current);
+    }
+
+    private void writeRow(String key, LastGoodCopy<P> copy) {
+        try {
+            var written = store.write(fetcher.kind(), key, new StoredIssuerData(copy.payload(), copy.fetchedAt(), copy.validUntil()));
+            if (written.failed()) {
+                monitor.warning("Issuer data of '%s' could not be stored: %s".formatted(key, written.getFailureDetail()));
+            }
+        } catch (RuntimeException e) {
+            monitor.warning("Issuer data of '%s' could not be stored".formatted(key), e);
         }
     }
 
-    private void recordFailure(String key, Result<LastGoodCopy<P>> failure) {
-        monitor.warning("Issuer data of '%s' could not be refreshed: %s".formatted(key, failure.getFailureDetail()));
-        adoptStoredCopy(key);
+    private void recordFailure(String key, CompletableFuture<Result<LastGoodCopy<P>>> refresh, Result<?> failure) {
         var failedAt = clock.instant();
-        var retryDelay = settings.retryDelay();
-        entries.asMap().compute(key, (_, current) -> KeyState.<P>orEmpty(current).withFailure(failedAt, failure, retryDelay));
+        var downloadRetry = settings.downloadRetry();
+        trackers.asMap().computeIfPresent(key, (_, current) ->
+                current.refresh() == refresh ? current.withFailure(failedAt, failure, downloadRetry) : current);
     }
 
     private Duration maximumAgeOrZero(String key) {
@@ -292,39 +339,20 @@ public class LastGoodSource<P> {
         return age.getContent();
     }
 
-    private void adoptStoredCopy(String key) {
-        var state = KeyState.<P>orEmpty(entries.getIfPresent(key));
-        if (state.storedCopyInvalid()) {
-            return;
+    private Duration memoryLifetime(LastGoodCopy<P> copy) {
+        return cacheTime.minus(Duration.between(copy.fetchedAt(), clock.instant()));
+    }
+
+    private Duration lifetime(Tracking<P> tracking) {
+        if (tracking.refresh() == null && tracking.outage() == null) {
+            return Duration.ZERO;
         }
-        var row = store.read(fetcher.kind(), key);
-        if (row.failed()) {
-            if (row.getFailure().getReason() != StoreFailure.Reason.NOT_FOUND) {
-                monitor.warning("Stored issuer data of '%s' could not be read: %s".formatted(key, row.getFailureDetail()));
-            }
-            return;
-        }
-        var stored = row.getContent();
-        if (state.copy() != null && !stored.fetchedAt().isAfter(state.copy().fetchedAt())) {
-            return;
-        }
-        var parsed = attempt(key, () -> fetcher.parseStored(key, stored.payload()));
-        if (parsed.failed()) {
-            monitor.warning("Stored issuer data of '%s' is not usable: %s".formatted(key, parsed.getFailureDetail()));
-            if (!parsed.isRetryable()) {
-                entries.asMap().compute(key, (_, current) -> KeyState.<P>orEmpty(current).withStoredCopyInvalid());
-            }
-            return;
-        }
-        var adopted = new LastGoodCopy<>(stored.payload(), parsed.getContent(), stored.fetchedAt(), stored.validUntil());
-        entries.asMap().compute(key, (_, current) -> KeyState.<P>orEmpty(current).withNewerCopy(adopted));
+        var age = Duration.between(tracking.createdAt(), clock.instant());
+        return age.isNegative() ? settings.resetAfter() : settings.resetAfter().minus(age);
     }
 
     private boolean isFresh(LastGoodCopy<P> copy) {
-        return isFresh(copy, clock.instant());
-    }
-
-    private boolean isFresh(LastGoodCopy<P> copy, Instant now) {
+        var now = clock.instant();
         return now.isBefore(copy.fetchedAt().plus(cacheTime)) && now.isBefore(copy.validUntil()) && !pastOwnExpiry(copy, now);
     }
 
@@ -332,7 +360,7 @@ public class LastGoodSource<P> {
         return fetcher.ownExpiry(copy.parsed()).map(expiry -> !now.isBefore(expiry)).orElse(false);
     }
 
-    private boolean usableAfterFailure(String key, LastGoodCopy<P> copy) {
+    private boolean usableAfterFailure(String key, LastGoodCopy<P> copy, Duration margin) {
         var age = maximumAge.get();
         if (age.failed()) {
             return false;
@@ -340,7 +368,7 @@ public class LastGoodSource<P> {
         var now = clock.instant();
         var ageDeadline = copy.fetchedAt().plus(cacheTime).plus(age.getContent());
         var deadline = copy.validUntil().isBefore(ageDeadline) ? copy.validUntil() : ageDeadline;
-        var usable = now.plus(settings.expiryMargin()).isBefore(deadline) && !pastOwnExpiry(copy, now);
+        var usable = now.plus(margin).isBefore(deadline) && !pastOwnExpiry(copy, now);
         if (usable) {
             monitor.warning("Issuer data of '%s' not refreshed, serving the copy downloaded at %s"
                     .formatted(key, copy.fetchedAt()));
@@ -349,56 +377,71 @@ public class LastGoodSource<P> {
     }
 
     /**
-     * What is known about one key. Changed only through {@code compute} on the cache, with no I/O in the function.
+     * What is known about the download of one key. Changed only through {@code compute} and {@code computeIfPresent}
+     * on the tracker cache, with no I/O in the function.
      *
-     * @param copy              the last good download held in memory, if any
-     * @param storedCopyInvalid true when the stored copy failed to parse; it stays ignored until the next successful
-     *                          download
-     * @param outage            set after a failed refresh, until a refresh succeeds
-     * @param refresh           the refresh in flight, if any
+     * @param refresh   the download in flight, if any
+     * @param outage    set after a failed or unfinished download, until a download succeeds
+     * @param storedRow what is known about the stored row of the key
+     * @param createdAt when the entry was created; the entry never outlives it by more than the reset time
      */
-    private record KeyState<P>(@Nullable LastGoodCopy<P> copy, boolean storedCopyInvalid, @Nullable Outage outage,
-                               @Nullable CompletableFuture<Result<LastGoodCopy<P>>> refresh) {
+    private record Tracking<P>(@Nullable CompletableFuture<Result<LastGoodCopy<P>>> refresh, @Nullable Outage outage,
+                               StoredRowState storedRow, Instant createdAt) {
 
-        static <P> KeyState<P> orEmpty(@Nullable KeyState<P> state) {
-            return state != null ? state : new KeyState<>(null, false, null, null);
+        static <P> Tracking<P> created(Instant now) {
+            return new Tracking<>(null, null, StoredRowState.Unchecked.INSTANCE, now);
         }
 
-        KeyState<P> withRefresh(CompletableFuture<Result<LastGoodCopy<P>>> started) {
-            return new KeyState<>(copy, storedCopyInvalid, outage, started);
+        Tracking<P> withRefresh(CompletableFuture<Result<LastGoodCopy<P>>> started) {
+            return new Tracking<>(started, outage, storedRow, createdAt);
         }
 
-        KeyState<P> withDownloaded(LastGoodCopy<P> downloaded) {
-            return new KeyState<>(downloaded, false, null, null);
-        }
-
-        KeyState<P> withFailure(Instant failedAt, Result<?> failure, RetryDelay retryDelay) {
+        Tracking<P> withFailure(Instant failedAt, Result<?> failure, DownloadRetry downloadRetry) {
             var failures = (outage == null ? 0 : outage.failures()) + 1;
-            var nextAttempt = failedAt.plus(retryDelay.after(failures));
-            return new KeyState<>(copy, storedCopyInvalid, new Outage(failures, nextAttempt, failure), null);
+            var nextAttempt = failedAt.plus(downloadRetry.after(failures));
+            return new Tracking<>(null, new Outage(failures, nextAttempt, failure), storedRow, createdAt);
         }
 
-        KeyState<P> withOutage(Outage entered) {
-            return new KeyState<>(copy, storedCopyInvalid, entered, refresh);
+        Tracking<P> withOutage(Outage entered) {
+            return new Tracking<>(refresh, entered, storedRow, createdAt);
         }
 
-        KeyState<P> withNewerCopy(LastGoodCopy<P> candidate) {
-            if (copy != null && !candidate.fetchedAt().isAfter(copy.fetchedAt())) {
-                return this;
-            }
-            return new KeyState<>(candidate, storedCopyInvalid, outage, refresh);
-        }
-
-        KeyState<P> withStoredCopyInvalid() {
-            return new KeyState<>(copy, true, outage, refresh);
+        Tracking<P> withStoredRow(StoredRowState state) {
+            return new Tracking<>(refresh, outage, state, createdAt);
         }
     }
 
     /**
-     * @param failures    the failed refreshes in a row
-     * @param nextAttempt the earliest time of the next background refresh
-     * @param failure     the last failed refresh, returned while no copy is usable and the backoff runs
+     * @param failures    the failed downloads in a row
+     * @param nextAttempt the earliest time of the next download
+     * @param failure     the last failed download, returned while no copy is usable and the backoff runs
      */
     private record Outage(int failures, Instant nextAttempt, Result<?> failure) {
+    }
+
+    private sealed interface StoredRowState {
+
+        boolean rejects(StoredIssuerData stored);
+
+        record Unchecked() implements StoredRowState {
+
+            static final Unchecked INSTANCE = new Unchecked();
+
+            @Override
+            public boolean rejects(StoredIssuerData stored) {
+                return false;
+            }
+        }
+
+        /**
+         * A stored row with this send time did not parse and is skipped.
+         */
+        record Unparsable(Instant fetchedAt) implements StoredRowState {
+
+            @Override
+            public boolean rejects(StoredIssuerData stored) {
+                return stored.fetchedAt().equals(fetchedAt);
+            }
+        }
     }
 }

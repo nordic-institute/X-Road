@@ -27,18 +27,47 @@
 
 package org.niis.xroad.edc.issuerdata;
 
-import java.time.Duration;
+import lombok.RequiredArgsConstructor;
+import org.eclipse.edc.spi.result.Result;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.util.Optional;
 
 /**
- * The operator settings of one {@link LastGoodSource}.
+ * Wraps a real fetcher in a test that uses real HTTP and a test clock, and replaces the send time of each download
+ * with the time of the clock. It holds no check logic.
  *
- * @param maximumEntries the most keys held in memory; 0 holds none, so no copy is served during an outage
- * @param idleExpiry     how long a key may go without a check before it is dropped from memory; independent of the
- *                       cache time and of the retry delay; 0 drops a key at once
- * @param downloadWait   the longest wait of a check for a fresh download while the issuer answers
- * @param expiryMargin   a copy that expires within this margin counts as unusable during an outage
- * @param retryDelay     the delay before the next download after a failed refresh
+ * @param <P> the parsed form of the data
  */
-public record LastGoodSettings(long maximumEntries, Duration idleExpiry, Duration downloadWait, Duration expiryMargin,
-                               RetryDelay retryDelay) {
+@RequiredArgsConstructor
+final class ClockStampingFetcher<P> implements IssuerDataFetcher<P> {
+
+    private final IssuerDataFetcher<P> delegate;
+    private final Clock clock;
+
+    @Override
+    public IssuerDataKind kind() {
+        return delegate.kind();
+    }
+
+    @Override
+    public Result<Download> download(String key) {
+        return delegate.download(key).map(download -> new Download(download.payload(), clock.instant()));
+    }
+
+    @Override
+    public Result<P> parse(String key, String payload) {
+        return delegate.parse(key, payload);
+    }
+
+    @Override
+    public Result<P> parseStored(String key, String payload) {
+        return delegate.parseStored(key, payload);
+    }
+
+    @Override
+    public Optional<Instant> ownExpiry(P parsed) {
+        return delegate.ownExpiry(parsed);
+    }
 }

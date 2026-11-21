@@ -49,7 +49,6 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
@@ -58,13 +57,13 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.function.Supplier;
 
-import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_CACHE_IDLE_EXPIRY;
-import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_CACHE_MAX_ISSUER_DIDS;
-import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_CACHE_MAX_STATUS_LISTS;
+import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_CACHE_STATUSLIST_SIZE;
+import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_DOWNLOAD_RETRY_RESET_AFTER;
 import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_DOWNLOAD_WAIT;
-import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_EXPIRY_MARGIN;
 import static org.niis.xroad.edc.issuerdata.IssuerDataExtension.NAME;
 
 /**
@@ -84,10 +83,13 @@ public class IssuerDataExtension implements ServiceExtension {
     static final long DEFAULT_CACHE_VALIDITY_MILLIS = 15 * 60 * 1000L;
     static final String DID_CACHE_EXPIRY_SETTING = "edc.did.resolver.cache.expiry";
     static final long DEFAULT_DID_CACHE_EXPIRY_MILLIS = 5 * 60 * 1000L;
+    static final String DID_CACHE_SIZE_SETTING = "edc.did.resolver.cache.size";
+    static final int DEFAULT_DID_CACHE_SIZE = 50;
     static final String DEFAULT_CONTENT_TYPES = "*/*";
     static final String WEB_DID_HTTPS_SETTING = "edc.iam.did.web.use.https";
     static final String WEB_DID_DOH_SETTING = "edc.webdid.doh.url";
     static final String REFRESH_THREAD_PREFIX = "xroad-issuer-data-refresh-";
+    static final String SCHEDULER_THREAD_NAME = "xroad-issuer-data-scheduler";
 
     @Inject
     private RevocationServiceRegistry revocationServiceRegistry;
@@ -126,6 +128,8 @@ public class IssuerDataExtension implements ServiceExtension {
     private XRoadConfig xRoadConfig;
 
     private ExecutorService refreshExecutor;
+    private ScheduledExecutorService scheduler;
+    private IssuerDataStore issuerDataStore;
 
     private IssuerStatusListAvailabilityRule availabilityRule;
 
@@ -147,13 +151,16 @@ public class IssuerDataExtension implements ServiceExtension {
 
         var fetcher = new BitstringStatusListFetcher(mapper, contentTypes, httpClient, tokenValidationService,
                 didPublicKeyResolver);
-        var store = new SqlIssuerDataStore(dataSourceRegistry, DataSourceRegistry.DEFAULT_DATASOURCE, transactionContext,
-                queryExecutor);
+        var store = issuerDataStore != null ? issuerDataStore
+                : new SqlIssuerDataStore(dataSourceRegistry, DataSourceRegistry.DEFAULT_DATASOURCE, transactionContext,
+                        queryExecutor);
         refreshExecutor = executorInstrumentation.instrument(
                 Executors.newCachedThreadPool(Thread.ofPlatform().name(REFRESH_THREAD_PREFIX, 0).daemon().factory()), NAME);
-        var retryDelay = RetryDelay.from(xRoadConfig, monitor);
-        var source = new LastGoodSource<>(fetcher, clock, ticker, refreshExecutor, cacheTime,
-                settings(ISSUER_DATA_CACHE_MAX_STATUS_LISTS, retryDelay), maximumAge(globalConfProvider), store, monitor);
+        scheduler = newScheduler();
+        var downloadRetry = DownloadRetry.from(xRoadConfig);
+        var source = new LastGoodSource<>(fetcher, clock, ticker, refreshExecutor, scheduler, cacheTime,
+                settings(xRoadConfig.value(ISSUER_DATA_CACHE_STATUSLIST_SIZE), downloadRetry), maximumAge(globalConfProvider),
+                store, monitor);
         revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(
                 mapper, contentTypes, httpClient, tokenValidationService, didPublicKeyResolver, source));
         availabilityRule = new IssuerStatusListAvailabilityRule(globalConfProvider, source);
@@ -164,8 +171,9 @@ public class IssuerDataExtension implements ServiceExtension {
         var didFetcher = new DidDocumentFetcher(didHttpClient, new DidWebUrl(useHttps), mapper);
         var didCacheTime = Duration.ofMillis(Math.max(0, context.getSetting(DID_CACHE_EXPIRY_SETTING,
                 DEFAULT_DID_CACHE_EXPIRY_MILLIS)));
-        var didSource = new LastGoodSource<>(didFetcher, clock, ticker, refreshExecutor, didCacheTime,
-                settings(ISSUER_DATA_CACHE_MAX_ISSUER_DIDS, retryDelay), maximumAge(globalConfProvider), store, monitor);
+        var didCacheSize = Math.max(0, context.getSetting(DID_CACHE_SIZE_SETTING, DEFAULT_DID_CACHE_SIZE));
+        var didSource = new LastGoodSource<>(didFetcher, clock, ticker, refreshExecutor, scheduler, didCacheTime,
+                settings(didCacheSize, downloadRetry), maximumAge(globalConfProvider), store, monitor);
         didResolverRegistry.register(new IssuerDidResolver(stockResolver, didSource, globalConfProvider));
     }
 
@@ -176,14 +184,23 @@ public class IssuerDataExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
+        if (scheduler != null) {
+            scheduler.shutdown();
+        }
         if (refreshExecutor != null) {
             refreshExecutor.shutdownNow();
         }
     }
 
-    private LastGoodSettings settings(ConfigKey<Integer> maximumEntriesKey, RetryDelay retryDelay) {
-        return new LastGoodSettings(xRoadConfig.value(maximumEntriesKey), xRoadConfig.value(ISSUER_DATA_CACHE_IDLE_EXPIRY),
-                xRoadConfig.value(ISSUER_DATA_DOWNLOAD_WAIT), xRoadConfig.value(ISSUER_DATA_EXPIRY_MARGIN), retryDelay);
+    private ScheduledExecutorService newScheduler() {
+        var pool = new ScheduledThreadPoolExecutor(1, Thread.ofPlatform().name(SCHEDULER_THREAD_NAME).daemon().factory());
+        pool.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+        return executorInstrumentation.instrument(pool, SCHEDULER_THREAD_NAME);
+    }
+
+    private IssuerDataSettings settings(long maximumEntries, DownloadRetry downloadRetry) {
+        return new IssuerDataSettings(maximumEntries, xRoadConfig.value(ISSUER_DATA_DOWNLOAD_WAIT), downloadRetry,
+                xRoadConfig.value(ISSUER_DATA_DOWNLOAD_RETRY_RESET_AFTER));
     }
 
     private EdcHttpClient didHttpClient(ServiceExtensionContext context) {

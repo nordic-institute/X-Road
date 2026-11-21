@@ -114,14 +114,10 @@ class ConfigurablePropertiesCatalogueTest {
             xroad.message-log-encryption.archive.grouping-strategy||NONE
             xroad.message-log-encryption.db.encryption-enabled||false
             xroad.message-log-encryption.db.key-id||default
-            xroad.dsp.issuer-data.expiry-margin||PT5S
             xroad.dsp.issuer-data.download-wait||PT2S
-            xroad.dsp.issuer-data.retry-delay.initial||PT5S
-            xroad.dsp.issuer-data.retry-delay.maximum||PT1M
-            xroad.dsp.issuer-data.retry-delay.maximum-doublings||16
-            xroad.dsp.issuer-data.cache.max-status-lists||128
-            xroad.dsp.issuer-data.cache.max-issuer-dids||32
-            xroad.dsp.issuer-data.cache.idle-expiry||PT30M
+            xroad.dsp.issuer-data.download-retry.delays-seconds||5,10,15,20,30,60
+            xroad.dsp.issuer-data.download-retry.reset-after||PT10M
+            xroad.dsp.issuer-data.cache.statuslist.size||1000
             xroad.dsp.issuer-data.cleanup.interval||PT10M
             xroad.dsp.issuer-data.cleanup.enabled||true
             """;

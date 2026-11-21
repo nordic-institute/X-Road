@@ -32,6 +32,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
@@ -70,7 +73,7 @@ class BitstringStatusListFetcherTest {
 
     @Test
     void shouldRejectSignedListWithKeyMissingFromDidDocumentOnParseAndAcceptItOnParseStored() {
-        var payload = fetcher.download(issuer.statusListUrl()).getContent();
+        var payload = fetcher.download(issuer.statusListUrl()).getContent().payload();
         issuer.publishDidDocumentWithOnlyKey("key-2");
         assertThat(fetcher.parse(issuer.statusListUrl(), payload).failed()).isTrue();
         var stored = fetcher.parseStored(issuer.statusListUrl(), payload);
@@ -80,7 +83,7 @@ class BitstringStatusListFetcherTest {
 
     @Test
     void shouldReadStoredListWhileIssuerIsDown() {
-        var payload = fetcher.download(issuer.statusListUrl()).getContent();
+        var payload = fetcher.download(issuer.statusListUrl()).getContent().payload();
         issuer.down(true);
         assertThat(fetcher.parseStored(issuer.statusListUrl(), payload).succeeded()).isTrue();
     }
@@ -101,6 +104,19 @@ class BitstringStatusListFetcherTest {
                 "{\"vc\":%s}".formatted(vc));
         var result = fetcher.parseStored(issuer.statusListUrl(), payload);
         assertThat(result.failed()).isTrue();
+    }
+
+    @Test
+    void shouldStampDownloadWithTheTimeTheRequestWasSentNotTheTimeTheAnswerArrived() {
+        var answerDelay = Duration.ofMillis(200);
+        issuer.answerAfter(answerDelay);
+        var before = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+
+        var result = fetcher.download(issuer.statusListUrl());
+
+        var after = Instant.now();
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().requestSentAt()).isBetween(before, after.minus(answerDelay));
     }
 
     private static String unsignedJws(String header, String claims) {

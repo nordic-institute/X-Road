@@ -29,41 +29,31 @@ package org.niis.xroad.edc.issuerdata;
 
 import com.github.benmanes.caffeine.cache.Ticker;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.niis.xroad.edc.issuerdata.TestSettings.EXPIRY_MARGIN;
-import static org.niis.xroad.edc.issuerdata.TestSettings.RETRY_DELAY;
+import static org.niis.xroad.edc.issuerdata.TestSettings.DELAYS;
+import static org.niis.xroad.edc.issuerdata.TestSettings.RESET_AFTER;
 import static org.niis.xroad.edc.issuerdata.TestSettings.settings;
 
 class LastGoodSourceTest {
@@ -76,23 +66,23 @@ class LastGoodSourceTest {
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
     private static final String ISSUER_PATH = "https://ss0.example.org:7183/v1/DEV/COM/222/statuslist/";
     private static final long MAXIMUM_ENTRIES = 32;
-    private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
+    private static final Duration FIRST_DELAY = DELAYS.getFirst();
 
     private final MutableClock clock = new MutableClock(START);
     private final Ticker ticker = () -> Duration.between(START, clock.instant()).toNanos();
-    private final FakeFetcher fetcher = new FakeFetcher();
-    private final IssuerDataStore store = mock(IssuerDataStore.class);
+    private final FakeFetcher fetcher = new FakeFetcher(clock);
+    private final InMemoryIssuerDataStore store = new InMemoryIssuerDataStore();
+    private final ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
     private final AtomicReference<Result<Duration>> maximumAge = new AtomicReference<>();
     private final AtomicInteger maximumAgeReads = new AtomicInteger();
     private final RecordingMonitor monitor = new RecordingMonitor();
     private final ExecutorService pool = Executors.newCachedThreadPool();
+    private volatile boolean maximumAgeThrows;
     private LastGoodSource<String> source;
 
     @BeforeEach
     void setUp() {
         maximumAge.set(Result.success(Duration.ofSeconds(60)));
-        when(store.write(any(), any(), any())).thenReturn(StoreResult.success());
-        when(store.read(any(), any())).thenReturn(StoreResult.notFound("no row"));
         source = newSource(Runnable::run, SHORT_WAIT);
     }
 
@@ -107,16 +97,22 @@ class LastGoodSourceTest {
     }
 
     private LastGoodSource<String> newSource(Executor executor, Duration downloadWait, long maximumEntries) {
-        return newSource(executor, downloadWait, maximumEntries, CACHE_TIME, IDLE_EXPIRY);
+        return newSource(executor, downloadWait, maximumEntries, CACHE_TIME);
     }
 
     private LastGoodSource<String> newSource(Executor executor, Duration downloadWait, long maximumEntries,
-                                             Duration cacheTime, Duration idleExpiry) {
-        return new LastGoodSource<>(fetcher, clock, ticker, executor, cacheTime,
-                settings(maximumEntries, idleExpiry, downloadWait), () -> {
-                    maximumAgeReads.incrementAndGet();
-                    return maximumAge.get();
-                }, store, monitor);
+                                             Duration cacheTime) {
+        return newSource(executor, cacheTime, settings(maximumEntries, downloadWait));
+    }
+
+    private LastGoodSource<String> newSource(Executor executor, Duration cacheTime, IssuerDataSettings settings) {
+        return new LastGoodSource<>(fetcher, clock, ticker, executor, scheduler, cacheTime, settings, () -> {
+            maximumAgeReads.incrementAndGet();
+            if (maximumAgeThrows) {
+                throw new IllegalStateException("globalconf broke");
+            }
+            return maximumAge.get();
+        }, store, monitor);
     }
 
     @Test
@@ -144,24 +140,34 @@ class LastGoodSourceTest {
     }
 
     @Test
-    void shouldServeLastGoodCopyBeforeDeadlineMarginWhenIssuerIsDown() {
+    void shouldServeStoredRowUntilItsDeadlineWhenIssuerIsDown() {
         source.lookup(KEY);
         fetcher.down = true;
-        clock.set(START.plus(CACHE_TIME).plus(Duration.ofSeconds(54)));
+        var deadline = START.plus(CACHE_TIME).plusSeconds(60);
 
-        var result = source.lookup(KEY);
+        clock.set(deadline.minusSeconds(1));
+        var beforeDeadline = source.lookup(KEY);
+        clock.set(deadline);
+        var atDeadline = source.lookup(KEY);
 
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent().payload()).isEqualTo("payload-1");
+        assertThat(beforeDeadline.getContent().payload()).isEqualTo("payload-1");
+        assertThat(atDeadline.failed()).isTrue();
     }
 
     @Test
-    void shouldRefuseLastGoodCopyWithinMarginOfDeadline() {
+    void shouldRefuseStoredRowWithinTheGivenMarginOfItsDeadline() {
         source.lookup(KEY);
         fetcher.down = true;
-        clock.set(START.plus(CACHE_TIME).plus(Duration.ofSeconds(55)));
+        var margin = Duration.ofSeconds(5);
+        var deadline = START.plus(CACHE_TIME).plusSeconds(60);
 
-        assertThat(source.lookup(KEY).failed()).isTrue();
+        clock.set(deadline.minus(margin).minusSeconds(1));
+        var beforeMargin = source.lookup(KEY, margin);
+        clock.set(deadline.minus(margin));
+        var withinMargin = source.lookup(KEY, margin);
+
+        assertThat(beforeMargin.getContent().payload()).isEqualTo("payload-1");
+        assertThat(withinMargin.failed()).isTrue();
     }
 
     @Test
@@ -283,7 +289,7 @@ class LastGoodSourceTest {
         var result = source.lookup(KEY);
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().payload()).isEqualTo("payload-1");
-        verify(store, times(1)).write(any(), any(), any());
+        assertThat(store.writes.get()).isEqualTo(1);
         assertThat(monitor.warnings()).anyMatch(warning -> warning.contains("could not be refreshed"));
     }
 
@@ -295,7 +301,7 @@ class LastGoodSourceTest {
         var result = source.lookup(KEY);
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().payload()).isEqualTo("payload-1");
-        verify(store, times(1)).write(any(), any(), any());
+        assertThat(store.writes.get()).isEqualTo(1);
         assertThat(monitor.warnings()).anyMatch(warning -> warning.contains("could not be refreshed"));
     }
 
@@ -303,7 +309,7 @@ class LastGoodSourceTest {
     void shouldRefuseForGoodWhenIssuerRefusesPastDeadline() {
         source.lookup(KEY);
         fetcher.refused = true;
-        clock.set(START.plus(CACHE_TIME).plus(Duration.ofSeconds(55)));
+        clock.set(START.plus(CACHE_TIME).plusSeconds(60));
         var result = source.lookup(KEY);
         assertThat(result.failed()).isTrue();
         assertThat(result.isRetryable()).isFalse();
@@ -313,7 +319,7 @@ class LastGoodSourceTest {
     void shouldRefuseForGoodWhenIssuerAnswersInvalidListPastDeadline() {
         source.lookup(KEY);
         fetcher.corruptAnswer = true;
-        clock.set(START.plus(CACHE_TIME).plus(Duration.ofSeconds(55)));
+        clock.set(START.plus(CACHE_TIME).plusSeconds(60));
         var result = source.lookup(KEY);
         assertThat(result.failed()).isTrue();
         assertThat(result.isRetryable()).isFalse();
@@ -322,8 +328,9 @@ class LastGoodSourceTest {
     @Test
     void shouldWriteEachDownloadWithItsFetchedAtAndValidUntil() {
         source.lookup(KEY);
-        verify(store).write(IssuerDataKind.STATUSLIST, KEY,
-                new StoredIssuerData("payload-1", START, START.plus(CACHE_TIME).plusSeconds(60)));
+
+        assertThat(store.row(IssuerDataKind.STATUSLIST, KEY))
+                .isEqualTo(new StoredIssuerData("payload-1", START, START.plus(CACHE_TIME).plusSeconds(60)));
     }
 
     @Test
@@ -331,7 +338,7 @@ class LastGoodSourceTest {
         source.lookup(KEY);
         clock.advance(CACHE_TIME.minusSeconds(1));
         source.lookup(KEY);
-        verify(store, never()).read(any(), any());
+        assertThat(store.reads.get()).isZero();
     }
 
     @Test
@@ -339,7 +346,7 @@ class LastGoodSourceTest {
         storedRow("stored-1", START.minusSeconds(10), START.plusSeconds(100));
         var result = source.lookup(KEY);
         assertThat(result.getContent().payload()).isEqualTo("payload-1");
-        verify(store, never()).read(any(), any());
+        assertThat(store.reads.get()).isZero();
     }
 
     @Test
@@ -375,77 +382,97 @@ class LastGoodSourceTest {
     }
 
     @Test
-    void shouldServeStoredCopyWhenItIsNewerThanMemoryCopy() {
+    void shouldReadStoredRowOnEveryOutageCheckAndServeANewerRowFromAnotherNode() {
         source.lookup(KEY);
+        fetcher.down = true;
+        clock.set(START.plus(CACHE_TIME).plusSeconds(10));
+        assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
+        assertThat(store.reads.get()).isEqualTo(1);
+
         storedRow("stored-2", START.plusSeconds(30), START.plusSeconds(500));
-        fetcher.down = true;
-        clock.set(START.plus(CACHE_TIME).plusSeconds(10));
+
         assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("stored-2");
+        assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("stored-2");
+        assertThat(store.reads.get()).isEqualTo(3);
     }
 
     @Test
-    void shouldServeMemoryCopyWhenStoredCopyIsOlder() {
+    void shouldFailRetryablyWhenStoreReadFailsAfterCopyLeftMemory() {
         source.lookup(KEY);
-        storedRow("stored-0", START.minusSeconds(30), START.plusSeconds(500));
+        store.failingReads = true;
         fetcher.down = true;
         clock.set(START.plus(CACHE_TIME).plusSeconds(10));
-        assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
+
+        var result = source.lookup(KEY);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isTrue();
     }
 
     @Test
-    void shouldServeMemoryCopyWhenStoreReadFails() {
+    void shouldFailRetryablyWithoutThrowingWhenStoreReadThrowsAfterCopyLeftMemory() {
         source.lookup(KEY);
-        when(store.read(any(), any())).thenReturn(StoreResult.generalError("database down"));
+        store.throwingReads = true;
         fetcher.down = true;
         clock.set(START.plus(CACHE_TIME).plusSeconds(10));
-        assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
+
+        var result = source.lookup(KEY);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isTrue();
     }
 
     @Test
     void shouldFailWithoutThrowingWhenStoreReadFailsAndMemoryIsEmpty() {
-        when(store.read(any(), any())).thenReturn(StoreResult.generalError("database down"));
+        store.failingReads = true;
         fetcher.down = true;
         var result = source.lookup(KEY);
         assertThat(result.failed()).isTrue();
         assertThat(result.isRetryable()).isTrue();
     }
 
-    @Test
-    void shouldServeFreshCopyWhenStoreWriteFails() {
-        when(store.write(any(), any(), any())).thenReturn(StoreResult.generalError("database down"));
+    @ParameterizedTest(name = "throwing {0}")
+    @ValueSource(booleans = {false, true})
+    void shouldServeFreshCopyWhenStoreWriteFailsOrThrows(boolean throwing) {
+        store.failingWrites = !throwing;
+        store.throwingWrites = throwing;
         var result = source.lookup(KEY);
         clock.advance(CACHE_TIME.minusSeconds(1));
         assertThat(result.getContent().payload()).isEqualTo("payload-1");
         assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
+        assertThat(fetcher.downloads.get()).isEqualTo(1);
     }
 
     @Test
-    void shouldIgnoreCorruptStoredCopyAndStopReadingItUntilNextDownload() {
+    void shouldNeverServeUnparsableStoredRowWarnOnceAndServeLaterRowFromAnotherNode() {
         storedRow(FakeFetcher.CORRUPT, START, START.plusSeconds(500));
         fetcher.down = true;
         clock.set(START.plusSeconds(10));
-        assertThat(source.lookup(KEY).failed()).isTrue();
-        assertThat(source.lookup(KEY).failed()).isTrue();
-        verify(store, times(1)).read(any(), any());
-        fetcher.down = false;
-        clock.advance(RETRY_DELAY.maximum());
-        assertThat(source.lookup(KEY).succeeded()).isTrue();
-        fetcher.down = true;
-        clock.advance(CACHE_TIME);
-        source.lookup(KEY);
-        verify(store, times(2)).read(any(), any());
+
+        var first = source.lookup(KEY);
+        var second = source.lookup(KEY);
+
+        assertThat(first.failed()).isTrue();
+        assertThat(first.getFailureDetail()).contains("issuer down");
+        assertThat(second.failed()).isTrue();
+        assertThat(unusableRowWarnings()).isEqualTo(1);
+        assertThat(store.reads.get()).isEqualTo(2);
+
+        storedRow("stored-good", START.plusSeconds(5), START.plusSeconds(500));
+
+        assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("stored-good");
     }
 
     @Test
-    void shouldReadStoredCopyAgainAfterRetryableParseFailure() {
+    void shouldReadAndWarnAgainOnEveryCheckWhenStoredRowFailsRetryably() {
         storedRow(FakeFetcher.CORRUPT, START, START.plusSeconds(500));
         fetcher.parseRetryable = true;
         fetcher.down = true;
         clock.set(START.plusSeconds(10));
         assertThat(source.lookup(KEY).failed()).isTrue();
-        clock.advance(RETRY_DELAY.maximum());
+        clock.advance(FIRST_DELAY);
         assertThat(source.lookup(KEY).failed()).isTrue();
-        verify(store, times(2)).read(any(), any());
+        assertThat(unusableRowWarnings()).isEqualTo(2);
     }
 
     @Test
@@ -462,22 +489,22 @@ class LastGoodSourceTest {
         }
         assertThat(fetcher.attempts.get()).isEqualTo(2);
 
-        clock.advance(RETRY_DELAY.maximum());
+        clock.advance(DELAYS.get(0));
         source.lookup(KEY);
         assertThat(fetcher.attempts.get()).isEqualTo(3);
-        clock.advance(RETRY_DELAY.maximum());
+        clock.advance(DELAYS.get(1));
         source.lookup(KEY);
         assertThat(fetcher.attempts.get()).isEqualTo(4);
 
         fetcher.down = false;
-        clock.advance(RETRY_DELAY.maximum());
+        clock.advance(DELAYS.get(2));
         assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-2");
 
         fetcher.down = true;
         clock.advance(CACHE_TIME);
         source.lookup(KEY);
         assertThat(fetcher.attempts.get()).isEqualTo(6);
-        clock.advance(RETRY_DELAY.initial());
+        clock.advance(DELAYS.get(0));
         source.lookup(KEY);
         assertThat(fetcher.attempts.get()).isEqualTo(7);
     }
@@ -486,20 +513,20 @@ class LastGoodSourceTest {
     void shouldFollowCopyStoredRowAndModeThroughOutageAndRecovery() {
         maximumAge.set(Result.success(Duration.ofSeconds(600)));
         assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
-        verify(store, times(1)).write(any(), any(), any());
+        assertThat(store.writes.get()).isEqualTo(1);
 
         fetcher.down = true;
         clock.advance(CACHE_TIME);
         assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
         assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
         assertThat(fetcher.attempts.get()).isEqualTo(2);
-        verify(store, times(1)).write(any(), any(), any());
+        assertThat(store.writes.get()).isEqualTo(1);
 
         fetcher.down = false;
-        clock.advance(RETRY_DELAY.maximum());
+        clock.advance(FIRST_DELAY);
         assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-2");
-        verify(store).write(IssuerDataKind.STATUSLIST, KEY, new StoredIssuerData("payload-2", clock.instant(),
-                clock.instant().plus(CACHE_TIME).plusSeconds(600)));
+        assertThat(store.row(IssuerDataKind.STATUSLIST, KEY)).isEqualTo(new StoredIssuerData("payload-2",
+                clock.instant(), clock.instant().plus(CACHE_TIME).plusSeconds(600)));
 
         assertThat(source.lookup(KEY).getContent().payload()).isEqualTo("payload-2");
         assertThat(fetcher.attempts.get()).isEqualTo(3);
@@ -518,24 +545,24 @@ class LastGoodSourceTest {
         assertThat(result.failed()).isTrue();
         source.lookup(KEY);
         assertThat(fetcher.attempts.get()).isEqualTo(1);
-        clock.advance(RETRY_DELAY.maximum());
+        clock.advance(FIRST_DELAY);
         source.lookup(KEY);
         assertThat(fetcher.attempts.get()).isEqualTo(2);
     }
 
     @Test
-    void shouldFailAndRefreshAgainAfterBackoffWhenStoreReadThrowsAfterFailedDownload() {
+    void shouldFailAndRefreshAgainAfterBackoffWhenStoreReadThrowsDuringOutage() {
         var concurrent = newSource(pool, TIMEOUT.multipliedBy(6));
         fetcher.down = true;
-        when(store.read(any(), any())).thenThrow(new IllegalStateException("database broke"));
+        store.throwingReads = true;
         var failed = assertTimeoutPreemptively(TIMEOUT, () -> concurrent.lookup(KEY));
         assertThat(failed.failed()).isTrue();
         var withinBackoff = assertTimeoutPreemptively(TIMEOUT, () -> concurrent.lookup(KEY));
         assertThat(withinBackoff.failed()).isTrue();
         assertThat(fetcher.attempts.get()).isEqualTo(1);
         fetcher.down = false;
-        doReturn(StoreResult.notFound("no row")).when(store).read(any(), any());
-        clock.advance(RETRY_DELAY.maximum());
+        store.throwingReads = false;
+        clock.advance(FIRST_DELAY);
         var recovered = assertTimeoutPreemptively(TIMEOUT, () -> concurrent.lookup(KEY));
         assertThat(recovered.getContent().payload()).isEqualTo("payload-1");
         assertThat(fetcher.attempts.get()).isEqualTo(2);
@@ -555,9 +582,10 @@ class LastGoodSourceTest {
         assertThat(slow.result().join().succeeded()).isTrue();
     }
 
-    @Test
-    void shouldDownloadOnceForConcurrentChecksOfOneKey() {
-        var concurrent = newSource(pool, SHORT_WAIT);
+    @ParameterizedTest(name = "limit {0}")
+    @ValueSource(longs = {MAXIMUM_ENTRIES, 0})
+    void shouldDownloadOnceForConcurrentChecksOfOneKey(long maximumEntries) {
+        var concurrent = newSource(pool, SHORT_WAIT, maximumEntries);
         fetcher.gates.put(KEY, new CountDownLatch(1));
         var checks = List.of(startCheck(concurrent, KEY), startCheck(concurrent, KEY), startCheck(concurrent, KEY));
         await().atMost(TIMEOUT).until(() -> checks.stream().allMatch(check -> isBlocked(check.thread())));
@@ -577,7 +605,7 @@ class LastGoodSourceTest {
         clock.advance(CACHE_TIME);
         concurrent.lookup(KEY);
         fetcher.down = false;
-        clock.advance(RETRY_DELAY.maximum());
+        clock.advance(FIRST_DELAY);
         fetcher.gates.put(KEY, new CountDownLatch(1));
 
         var result = assertTimeoutPreemptively(TIMEOUT, () -> concurrent.lookup(KEY));
@@ -607,11 +635,7 @@ class LastGoodSourceTest {
     @Test
     void shouldServeStoredRowAfterDownloadWaitWhenMemoryIsEmptyAndRefreshIsSlow() {
         maximumAge.set(Result.success(Duration.ofSeconds(600)));
-        var readers = new CopyOnWriteArrayList<Thread>();
-        when(store.read(IssuerDataKind.STATUSLIST, KEY)).thenAnswer(_ -> {
-            readers.add(Thread.currentThread());
-            return StoreResult.success(new StoredIssuerData("stored-1", START.minusSeconds(100), START.plusSeconds(200)));
-        });
+        storedRow("stored-1", START.minusSeconds(100), START.plusSeconds(200));
         var concurrent = newSource(pool, SHORT_WAIT);
         fetcher.gates.put(KEY, new CountDownLatch(1));
         var checkThread = new AtomicReference<Thread>();
@@ -622,10 +646,10 @@ class LastGoodSourceTest {
         });
 
         assertThat(result.getContent().payload()).isEqualTo("stored-1");
-        assertThat(readers).isNotEmpty().doesNotContain(checkThread.get());
-        verify(store, never()).write(any(), any(), any());
+        assertThat(store.readThreads).isNotEmpty().doesNotContain(checkThread.get());
+        assertThat(store.writes.get()).isZero();
         fetcher.gates.get(KEY).countDown();
-        verify(store, timeout(5000)).write(eq(IssuerDataKind.STATUSLIST), eq(KEY), any());
+        await().atMost(TIMEOUT).until(() -> store.writes.get() == 1);
         assertThat(concurrent.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
     }
 
@@ -649,45 +673,12 @@ class LastGoodSourceTest {
         }
 
         assertThat(fetcher.downloads.get()).isEqualTo(10_000);
-    }
-
-    @Test
-    void shouldKeepCopyUntilIdleExpiryAndNotLonger() {
-        maximumAge.set(Result.success(Duration.ofSeconds(3600)));
-        source.lookup(KEY);
-        storedRow("stored-0", START.minusSeconds(30), START.plusSeconds(1000));
-        fetcher.down = true;
-        clock.set(START.plus(IDLE_EXPIRY).minusMillis(1));
-
-        var beforeExpiry = source.lookup(KEY);
-        clock.advance(IDLE_EXPIRY);
-        var afterExpiry = source.lookup(KEY);
-
-        assertThat(beforeExpiry.getContent().payload()).isEqualTo("payload-1");
-        assertThat(afterExpiry.getContent().payload()).isEqualTo("stored-0");
-    }
-
-    @Test
-    void shouldFollowPassedIdleExpiryAndNotTheCacheTime() {
-        var longIdle = Duration.ofSeconds(300);
-        var idleSource = newSource(Runnable::run, SHORT_WAIT, MAXIMUM_ENTRIES, CACHE_TIME, longIdle);
-        maximumAge.set(Result.success(Duration.ofSeconds(3600)));
-        idleSource.lookup(KEY);
-        storedRow("stored-0", START.minusSeconds(30), START.plusSeconds(1000));
-        fetcher.down = true;
-        clock.set(START.plus(longIdle).minusMillis(1));
-
-        var beforeExpiry = idleSource.lookup(KEY);
-        clock.advance(longIdle);
-        var afterExpiry = idleSource.lookup(KEY);
-
-        assertThat(beforeExpiry.getContent().payload()).isEqualTo("payload-1");
-        assertThat(afterExpiry.getContent().payload()).isEqualTo("stored-0");
+        assertThat(source.trackedKeys()).isZero();
     }
 
     @Test
     void shouldServeLastGoodCopyAndHoldRetryDelayDuringOutageWhenCacheTimeIsZero() {
-        var noCache = newSource(Runnable::run, SHORT_WAIT, MAXIMUM_ENTRIES, Duration.ZERO, IDLE_EXPIRY);
+        var noCache = newSource(Runnable::run, SHORT_WAIT, MAXIMUM_ENTRIES, Duration.ZERO);
         maximumAge.set(Result.success(Duration.ofSeconds(60)));
         assertThat(noCache.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
         fetcher.down = true;
@@ -702,86 +693,40 @@ class LastGoodSourceTest {
     }
 
     @Test
-    void shouldRestartIdleExpiryWithEachLookup() {
-        maximumAge.set(Result.success(Duration.ofSeconds(3600)));
-        source.lookup(KEY);
-        storedRow("stored-0", START.minusSeconds(30), START.plusSeconds(1000));
-        fetcher.down = true;
-        clock.advance(IDLE_EXPIRY.minusSeconds(1));
-        source.lookup(KEY);
-        clock.advance(IDLE_EXPIRY.minusSeconds(1));
+    void shouldGiveAValueFromEveryCheckWhenLimitIsZeroAndIssuerIsUp() {
+        var uncached = newSource(Runnable::run, SHORT_WAIT, 0);
 
-        var result = source.lookup(KEY);
-
-        assertThat(result.getContent().payload()).isEqualTo("payload-1");
-    }
-
-    @ParameterizedTest(name = "limit {0}, idle expiry {1}")
-    @CsvSource({"0, PT120S", "32, PT0S"})
-    void shouldDownloadOnEveryCheckAndGiveNoUsableCopyDuringOutageWhenLimitOrIdleExpiryIsZero(
-            long maximumEntries, Duration idleExpiry) {
-        var uncached = newSource(Runnable::run, SHORT_WAIT, maximumEntries, CACHE_TIME, idleExpiry);
-        maximumAge.set(Result.success(Duration.ofSeconds(3600)));
         var first = uncached.lookup(KEY);
         var second = uncached.lookup(KEY);
+
         assertThat(first.getContent().payload()).isEqualTo("payload-1");
         assertThat(second.getContent().payload()).isEqualTo("payload-2");
-        verify(store, times(2)).write(eq(IssuerDataKind.STATUSLIST), eq(KEY), any());
-        storedRow("payload-2", START, START.plusSeconds(3660));
+        assertThat(store.writes.get()).isEqualTo(2);
+    }
+
+    @Test
+    void shouldServeStoredRowAndHitIssuerOncePerRetryDelayWhenLimitIsZeroAndIssuerIsDown() {
+        var uncached = newSource(Runnable::run, SHORT_WAIT, 0);
+        maximumAge.set(Result.success(Duration.ofSeconds(3600)));
+        assertThat(uncached.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
         fetcher.down = true;
         clock.advance(Duration.ofSeconds(10));
-        var firstDuringOutage = uncached.lookup(KEY);
-        var secondDuringOutage = uncached.lookup(KEY);
-        assertThat(firstDuringOutage.failed()).isTrue();
-        assertThat(secondDuringOutage.failed()).isTrue();
-        assertThat(fetcher.attempts.get()).isEqualTo(4);
-    }
-    @Test
-    void shouldFallBackToRowWithSameDeadlineWhenKeyIsDroppedDuringOutage() {
-        maximumAge.set(Result.success(Duration.ofSeconds(600)));
-        var validUntil = START.plus(CACHE_TIME).plusSeconds(600);
-        assertThat(source.lookup(KEY).getContent().validUntil()).isEqualTo(validUntil);
-        fetcher.down = true;
-        clock.set(START.plus(CACHE_TIME));
-        assertThat(source.lookup(KEY).succeeded()).isTrue();
-        storedRow("stored-1", START, validUntil);
-        clearInvocations(store);
-        clock.set(START.plus(CACHE_TIME).plus(IDLE_EXPIRY).plusSeconds(10));
 
-        var afterDrop = source.lookup(KEY);
-
-        assertThat(afterDrop.getContent().payload()).isEqualTo("stored-1");
-        assertThat(afterDrop.getContent().fetchedAt()).isEqualTo(START);
-        assertThat(afterDrop.getContent().validUntil()).isEqualTo(validUntil);
-        verify(store, times(1)).read(IssuerDataKind.STATUSLIST, KEY);
-
-        clock.set(validUntil.minus(EXPIRY_MARGIN).minusSeconds(1));
-        assertThat(source.lookup(KEY).succeeded()).isTrue();
-        clock.set(validUntil.minus(EXPIRY_MARGIN));
-        assertThat(source.lookup(KEY).failed()).isTrue();
-    }
-
-    @Test
-    void shouldStartAtMostOneMoreDownloadWhenKeyIsDroppedWithRefreshInFlight() {
-        var concurrent = newSource(pool, TIMEOUT.multipliedBy(6));
-        fetcher.gates.put(KEY, new CountDownLatch(1));
-        var first = startCheck(concurrent, KEY);
-        await().atMost(TIMEOUT).until(() -> fetcher.attempts.get() == 1 && isBlocked(first.thread()));
-        clock.advance(IDLE_EXPIRY);
-        var afterDrop = List.of(startCheck(concurrent, KEY), startCheck(concurrent, KEY), startCheck(concurrent, KEY));
-        await().atMost(TIMEOUT).until(() -> fetcher.attempts.get() == 2
-                && afterDrop.stream().allMatch(check -> isBlocked(check.thread())));
-
-        fetcher.gates.get(KEY).countDown();
-
-        assertThat(first.result().join().succeeded()).isTrue();
-        afterDrop.forEach(check -> assertThat(check.result().join().succeeded()).isTrue());
-        assertThat(concurrent.lookup(KEY).succeeded()).isTrue();
+        assertThat(uncached.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
+        assertThat(uncached.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
         assertThat(fetcher.attempts.get()).isEqualTo(2);
+
+        clock.advance(FIRST_DELAY.minusSeconds(1));
+        assertThat(uncached.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
+        assertThat(fetcher.attempts.get()).isEqualTo(2);
+
+        clock.advance(Duration.ofSeconds(1));
+        assertThat(uncached.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
+        assertThat(fetcher.attempts.get()).isEqualTo(3);
     }
 
     @Test
-    void shouldKeepHotFailingKeyWhileColdKeysFloodTheCache() {
+    void shouldKeepRetryStateOfFailingKeyWhileColdKeysFloodTheCopyStore() {
         var small = newSource(Runnable::run, SHORT_WAIT, 8);
         maximumAge.set(Result.success(Duration.ofSeconds(3600)));
         small.lookup(KEY);
@@ -793,12 +738,148 @@ class LastGoodSourceTest {
             assertThat(small.lookup(KEY).getContent().payload()).isEqualTo("payload-1");
         }
 
-        verify(store, times(1)).read(IssuerDataKind.STATUSLIST, KEY);
         assertThat(fetcher.attempts.get()).isEqualTo(1 + 500 + 1);
+    }
+
+    @Test
+    void shouldWaitTheListedDelayAfterEachFailureAndKeepTheLastOneWhenACheckComesLate() {
+        var retrying = newSource(Runnable::run, CACHE_TIME, settings(MAXIMUM_ENTRIES, SHORT_WAIT,
+                new DownloadRetry(List.of(Duration.ofSeconds(5), Duration.ofSeconds(10), Duration.ofSeconds(15))),
+                RESET_AFTER));
+        fetcher.down = true;
+        retrying.lookup(KEY);
+        var expectedAttempts = 1;
+
+        for (var waitSeconds : List.of(5, 10, 15, 15)) {
+            assertThat(attemptsAfterCheckIn(retrying, Duration.ofSeconds(waitSeconds - 1))).isEqualTo(expectedAttempts);
+            expectedAttempts++;
+            assertThat(attemptsAfterCheckIn(retrying, Duration.ofSeconds(1))).isEqualTo(expectedAttempts);
+        }
+
+        assertThat(attemptsAfterCheckIn(retrying, Duration.ofSeconds(20))).isEqualTo(6);
+        assertThat(attemptsAfterCheckIn(retrying, Duration.ofSeconds(14))).isEqualTo(6);
+        assertThat(attemptsAfterCheckIn(retrying, Duration.ofSeconds(1))).isEqualTo(7);
+    }
+
+    @Test
+    void shouldForgetFailuresAtResetTimeEvenWhenChecksKeepArriving() {
+        var retrying = newSource(Runnable::run, CACHE_TIME, settings(MAXIMUM_ENTRIES, SHORT_WAIT,
+                new DownloadRetry(List.of(Duration.ofSeconds(10), Duration.ofSeconds(20), Duration.ofSeconds(100))),
+                Duration.ofSeconds(50)));
+        fetcher.down = true;
+
+        assertThat(attemptsAfterCheckAt(retrying, 0)).isEqualTo(1);
+        assertThat(attemptsAfterCheckAt(retrying, 5)).isEqualTo(1);
+        assertThat(attemptsAfterCheckAt(retrying, 10)).isEqualTo(2);
+        assertThat(attemptsAfterCheckAt(retrying, 15)).isEqualTo(2);
+        assertThat(attemptsAfterCheckAt(retrying, 29)).isEqualTo(2);
+        assertThat(attemptsAfterCheckAt(retrying, 30)).isEqualTo(3);
+        assertThat(attemptsAfterCheckAt(retrying, 35)).isEqualTo(3);
+        assertThat(attemptsAfterCheckAt(retrying, 49)).isEqualTo(3);
+
+        assertThat(attemptsAfterCheckAt(retrying, 51)).isEqualTo(4);
+        assertThat(attemptsAfterCheckAt(retrying, 60)).isEqualTo(4);
+        assertThat(attemptsAfterCheckAt(retrying, 61)).isEqualTo(5);
+    }
+
+    @Test
+    void shouldKeepTrackerEntryOfRunningDownloadUntilItsOwnDownloadEnds() {
+        maximumAge.set(Result.success(Duration.ofSeconds(3600)));
+        storedRow("stored-1", START.minusSeconds(100), START.plusSeconds(10_000));
+        var concurrent = newSource(pool, SHORT_WAIT, MAXIMUM_ENTRIES);
+        var firstGate = new CountDownLatch(1);
+        fetcher.gates.put(KEY, firstGate);
+        assertThat(assertTimeoutPreemptively(TIMEOUT, () -> concurrent.lookup(KEY)).getContent().payload())
+                .isEqualTo("stored-1");
+        assertThat(fetcher.attempts.get()).isEqualTo(1);
+
+        clock.set(START.plus(RESET_AFTER).minusSeconds(1));
+        assertThat(assertTimeoutPreemptively(TIMEOUT, () -> concurrent.lookup(KEY)).getContent().payload())
+                .isEqualTo("stored-1");
+        assertThat(fetcher.attempts.get()).isEqualTo(1);
+
+        var secondGate = new CountDownLatch(1);
+        fetcher.gates.put(KEY, secondGate);
+        clock.set(START.plus(RESET_AFTER).plusSeconds(1));
+        assertThat(assertTimeoutPreemptively(TIMEOUT, () -> concurrent.lookup(KEY)).getContent().payload())
+                .isEqualTo("stored-1");
+        assertThat(fetcher.attempts.get()).isEqualTo(2);
+
+        firstGate.countDown();
+        await().atMost(TIMEOUT).until(() -> store.writes.get() == 1);
+        await().during(SHORT_WAIT.multipliedBy(3)).atMost(TIMEOUT).untilAsserted(
+                () -> assertThat(concurrent.trackedKeys()).isEqualTo(1));
+
+        secondGate.countDown();
+        await().atMost(TIMEOUT).untilAsserted(() -> assertThat(concurrent.trackedKeys()).isZero());
+    }
+
+    @Test
+    void shouldFailWithoutHangingAndRetryWhenMaximumAgeSupplierThrowsAfterDownload() {
+        var concurrent = newSource(pool, TIMEOUT.multipliedBy(6));
+        maximumAgeThrows = true;
+
+        var failed = assertTimeoutPreemptively(TIMEOUT, () -> concurrent.lookup(KEY));
+
+        assertThat(failed.failed()).isTrue();
+        maximumAgeThrows = false;
+        clock.advance(FIRST_DELAY);
+        var recovered = assertTimeoutPreemptively(TIMEOUT, () -> concurrent.lookup(KEY));
+        assertThat(recovered.succeeded()).isTrue();
+        assertThat(fetcher.attempts.get()).isEqualTo(2);
+    }
+
+    @Test
+    void shouldStampCopyAndRowWithTheSendTimeOfTheDownload() {
+        fetcher.sendTime = START.minusSeconds(20);
+
+        var first = source.lookup(KEY);
+
+        assertThat(first.getContent().fetchedAt()).isEqualTo(START.minusSeconds(20));
+        assertThat(first.getContent().validUntil()).isEqualTo(START.plusSeconds(100));
+        assertThat(store.row(IssuerDataKind.STATUSLIST, KEY))
+                .isEqualTo(new StoredIssuerData("payload-1", START.minusSeconds(20), START.plusSeconds(100)));
+        clock.set(START.plusSeconds(39));
+        source.lookup(KEY);
+        assertThat(fetcher.downloads.get()).isEqualTo(1);
+        clock.set(START.plusSeconds(40));
+        source.lookup(KEY);
+        assertThat(fetcher.downloads.get()).isEqualTo(2);
+    }
+
+    @Test
+    void shouldCountDeadlineOfStoredRowFromTheSendTimeWhenIssuerIsDown() {
+        fetcher.sendTime = START.minusSeconds(20);
+        source.lookup(KEY);
+        fetcher.down = true;
+
+        clock.set(START.plusSeconds(99));
+        var beforeDeadline = source.lookup(KEY);
+        clock.set(START.plusSeconds(100));
+        var atDeadline = source.lookup(KEY);
+
+        assertThat(beforeDeadline.getContent().payload()).isEqualTo("payload-1");
+        assertThat(atDeadline.failed()).isTrue();
+    }
+
+    private int attemptsAfterCheckIn(LastGoodSource<String> checked, Duration after) {
+        clock.advance(after);
+        checked.lookup(KEY);
+        return fetcher.attempts.get();
+    }
+
+    private int attemptsAfterCheckAt(LastGoodSource<String> checked, int secondsFromStart) {
+        clock.set(START.plusSeconds(secondsFromStart));
+        checked.lookup(KEY);
+        return fetcher.attempts.get();
     }
 
     private static String statusListKey(int index) {
         return ISSUER_PATH + index;
+    }
+
+    private long unusableRowWarnings() {
+        return monitor.warnings().stream().filter(warning -> warning.contains("is not usable")).count();
     }
 
     private record Check(Thread thread, CompletableFuture<Result<LastGoodCopy<String>>> result) {
@@ -815,7 +896,6 @@ class LastGoodSourceTest {
     }
 
     private void storedRow(String payload, Instant fetchedAt, Instant validUntil) {
-        when(store.read(IssuerDataKind.STATUSLIST, KEY))
-                .thenReturn(StoreResult.success(new StoredIssuerData(payload, fetchedAt, validUntil)));
+        store.put(IssuerDataKind.STATUSLIST, KEY, new StoredIssuerData(payload, fetchedAt, validUntil));
     }
 }

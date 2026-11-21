@@ -67,6 +67,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -74,7 +75,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.edc.issuerdata.TestSettings.RETRY_DELAY;
 import static org.niis.xroad.edc.issuerdata.TestSettings.settings;
 
 /**
@@ -89,7 +89,6 @@ class IssuerDataStorePostgresTest {
     private static final Instant START = Instant.parse("2026-11-18T10:00:00Z");
     private static final Duration CACHE_TIME = Duration.ofSeconds(60);
     private static final long MAXIMUM_ENTRIES = 128;
-    private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
     private static final Duration MAXIMUM_AGE = Duration.ofSeconds(120);
     private static final Duration DOWNLOAD_WAIT = Duration.ofMillis(100);
     private static final Duration DID_DEADLINE = MAXIMUM_AGE;
@@ -238,7 +237,7 @@ class IssuerDataStorePostgresTest {
 
     @Test
     void shouldReplaceStoredCopyAfterEachSuccessfulRefresh() {
-        var fetcher = new FakeFetcher();
+        var fetcher = new FakeFetcher(clock);
         var source = fakeSource(fetcher, clock);
         source.lookup(key);
         assertThat(controlPlane.store.read(IssuerDataKind.STATUSLIST, key).getContent())
@@ -264,7 +263,7 @@ class IssuerDataStorePostgresTest {
             clock.set(deadline.minusSeconds(10));
             assertThat(restarted.lookup(statusListUrl).succeeded()).isTrue();
 
-            clock.set(deadline.minusSeconds(4));
+            clock.set(deadline);
             assertThat(restarted.lookup(statusListUrl).failed()).isTrue();
 
             maximumAge.set(Result.success(Duration.ofHours(1)));
@@ -286,7 +285,7 @@ class IssuerDataStorePostgresTest {
             assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
             assertThat(restarted.did().lookup(issuer.did()).succeeded()).isTrue();
 
-            clock.set(START.plus(DID_DEADLINE).minusSeconds(4));
+            clock.set(START.plus(DID_DEADLINE));
             var expired = restarted.did().lookup(issuer.did());
             assertThat(expired.failed()).isTrue();
             assertThat(expired.isRetryable()).isTrue();
@@ -306,7 +305,7 @@ class IssuerDataStorePostgresTest {
             assertThat(did.failed()).isTrue();
             assertThat(did.isRetryable()).isTrue();
             assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
-            clock.set(START.plus(CACHE_TIME).plus(MAXIMUM_AGE).minusSeconds(4));
+            clock.set(START.plus(CACHE_TIME).plus(MAXIMUM_AGE));
             assertThat(restarted.statusList().lookup(statusListUrl).failed()).isTrue();
         }
     }
@@ -325,7 +324,7 @@ class IssuerDataStorePostgresTest {
             assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
 
             issuer.down(false);
-            clock.set(START.plus(CACHE_TIME).plus(RETRY_DELAY.maximum()));
+            clock.set(START.plus(CACHE_TIME).plus(TestSettings.LONGEST_DELAY));
             assertThat(restarted.statusList().lookup(statusListUrl).succeeded()).isTrue();
             assertThat(controlPlane.store.read(IssuerDataKind.STATUSLIST, statusListUrl).getContent().fetchedAt())
                     .isEqualTo(clock.instant());
@@ -335,9 +334,9 @@ class IssuerDataStorePostgresTest {
 
     @Test
     void shouldTreatCorruptRowAsNoCopyAndReplaceItWithNextSuccessfulFetch() throws SQLException {
-        fakeSource(new FakeFetcher(), clock).lookup(key);
+        fakeSource(new FakeFetcher(clock), clock).lookup(key);
         controlPlane.execute("UPDATE xroad_issuer_data SET payload = ? WHERE key = ?", FakeFetcher.CORRUPT, key);
-        var fetcher = new FakeFetcher();
+        var fetcher = new FakeFetcher(clock);
         fetcher.down = true;
         var restarted = fakeSource(fetcher, clock);
         clock.set(START.plusSeconds(30));
@@ -360,11 +359,11 @@ class IssuerDataStorePostgresTest {
     @Test
     void shouldSkipWriteAfterNewerWriteOfOtherReplicaAndServeItsRowAtFirstFailedRefresh() {
         var clockA = new MutableClock(START.plusSeconds(20));
-        var fetcherA = new FakeFetcher();
+        var fetcherA = new FakeFetcher(clockA);
         fetcherA.downloads.set(9);
         fakeSource(fetcherA, clockA).lookup(key);
 
-        var fetcherB = new FakeFetcher();
+        var fetcherB = new FakeFetcher(clock);
         var replicaB = fakeSource(fetcherB, clock);
         replicaB.lookup(key);
 
@@ -514,21 +513,24 @@ class IssuerDataStorePostgresTest {
     }
 
     private LastGoodSource<String> sourceOnPool(SqlIssuerDataStore store) {
-        return new LastGoodSource<>(new FakeFetcher(), clock, Ticker.disabledTicker(), refreshPool, CACHE_TIME,
-                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, Duration.ofSeconds(10)), maximumAge::get, store, monitor);
+        return new LastGoodSource<>(new FakeFetcher(clock), clock, Ticker.disabledTicker(), refreshPool,
+                mock(ScheduledExecutorService.class), CACHE_TIME, settings(MAXIMUM_ENTRIES, Duration.ofSeconds(10)),
+                maximumAge::get, store, monitor);
     }
 
     private LastGoodSource<String> fakeSource(FakeFetcher fetcher, MutableClock sourceClock) {
-        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME,
-                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get, controlPlane.store, monitor);
+        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run,
+                mock(ScheduledExecutorService.class), CACHE_TIME, settings(MAXIMUM_ENTRIES, DOWNLOAD_WAIT),
+                maximumAge::get, controlPlane.store, monitor);
     }
 
     private LastGoodSource<BitstringStatusListCredential> realSource(MutableClock sourceClock) {
         var stack = EdcTestStack.create();
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), List.of("*/*"), stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        return new LastGoodSource<>(fetcher, sourceClock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME,
-                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get, controlPlane.store, monitor);
+        return new LastGoodSource<>(new ClockStampingFetcher<>(fetcher, sourceClock), sourceClock,
+                Ticker.disabledTicker(), Runnable::run, mock(ScheduledExecutorService.class), CACHE_TIME,
+                settings(MAXIMUM_ENTRIES, DOWNLOAD_WAIT), maximumAge::get, controlPlane.store, monitor);
     }
 
     private Instance instanceOf(FakeIssuer issuer) {
@@ -538,15 +540,16 @@ class IssuerDataStorePostgresTest {
 
         var didSource = new AtomicReference<LastGoodSource<DidDocument>>();
         var stack = EdcTestStack.create((stockResolver, didFetcher) -> {
-            didSource.set(new LastGoodSource<>(didFetcher, clock, Ticker.disabledTicker(),
-                    Runnable::run, Duration.ZERO, settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get,
-                    controlPlane.store, monitor));
+            didSource.set(new LastGoodSource<>(new ClockStampingFetcher<>(didFetcher, clock), clock,
+                    Ticker.disabledTicker(), Runnable::run, mock(ScheduledExecutorService.class), Duration.ZERO,
+                    settings(MAXIMUM_ENTRIES, DOWNLOAD_WAIT), maximumAge::get, controlPlane.store, monitor));
             return new IssuerDidResolver(stockResolver, didSource.get(), globalConf);
         });
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), List.of("*/*"), stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        var statusList = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), Runnable::run, CACHE_TIME,
-                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), maximumAge::get, controlPlane.store, monitor);
+        var statusList = new LastGoodSource<>(new ClockStampingFetcher<>(fetcher, clock), clock,
+                Ticker.disabledTicker(), Runnable::run, mock(ScheduledExecutorService.class), CACHE_TIME,
+                settings(MAXIMUM_ENTRIES, DOWNLOAD_WAIT), maximumAge::get, controlPlane.store, monitor);
         return new Instance(statusList, didSource.get());
     }
 

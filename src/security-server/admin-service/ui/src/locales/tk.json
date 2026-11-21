@@ -1325,17 +1325,15 @@
           },
           "dsp": {
             "issuer-data": {
-              "expiry-margin": "Issuer Service elýeterli bolmadyk wagty, şu wagtyň dowamynda möhleti gutarýan saklanan nusga ulanyp bolmaýan hasaplanýar. Rugsat berilýän bahalar: 0 ýa-da ondan köp. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
               "download-wait": "Issuer Service jogap berýän wagty barlagyň täze ýüklemä garaşýan iň uzak wagty. Rugsat berilýän bahalar: 0-dan 10 sekunda çenli. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
-              "retry-delay": {
-                "initial": "Şowsuz täzelemeden soň ilkinji gaýtadan synanyşykdan öňki gijikdirme. Rugsat berilýän bahalar: 0 ýa-da ondan köp. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
-                "maximum": "Gaýtadan synanyşyklaryň arasyndaky iň uzak gijikdirme. Rugsat berilýän bahalar: 0 ýa-da ondan köp. Ol başlangyç gijikdirmeden kiçi bolsa, ikisi hem deslapky bahalaryny ulanýar we duýduryş ýazylýar. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
-                "maximum-doublings": "Gaýtadan synanyşygyň gijikdirmesiniň iň köp iki esse artýan sany. Rugsat berilýän bahalar: 1 ýa-da ondan uly bitin sanlar. Gijikdirme hiç haçan iň uly gijikdirmeden geçmeýär. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň."
+              "download-retry": {
+                "delays-seconds": "Şowsuz ýüklemeden soň indiki ýüklemeden öňki garaşma wagty, sekuntda. Otur bilen aýrylan sanawyň n-nji ýazgysy n-nji şowsuzlykdan soňky garaşma wagtydyr, soňky ýazgy gaýtalanýar. Her ýazgy položitel bitin sandyr. Täzeden başlama wagtyndan uzyn ýazgynyň täsiri ýok. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
+                "reset-after": "Bu wagt geçenden soň şowsuz ýa-da jogapsyz ýükleme ýatdan çykarylýar. Maglumata mätäç indiki barlag täze ýükleme başlaýar we gaýtadan synanyşygyň gijikdirmesi ýene-de birinji ýazgydan başlaýar. Bu bahadan uzyn gaýtadan synanyşyk gijikdirmesiniň täsiri ýok. Rugsat berilýän bahalar: 0-dan uly. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň."
               },
               "cache": {
-                "max-status-lists": "Ýadyda saklanylýan status list-leriň iň köp sany. Rugsat berilýän bahalar: 0 ýa-da ondan uly bitin sanlar. 0 bolanda, ýadyda nusga saklanylmaýar, şonuň üçin saklanan nusga elýeterli bolmadyk wagty ulanylmaýar we her barlag ýükleýär. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
-                "max-issuer-dids": "Ýadyda saklanylýan issuer DID resminamalarynyň iň köp sany. Rugsat berilýän bahalar: 0 ýa-da ondan uly bitin sanlar. 0 bolanda, ýadyda nusga saklanylmaýar, şonuň üçin saklanan nusga elýeterli bolmadyk wagty ulanylmaýar we her barlag ýükleýär. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
-                "idle-expiry": "Status list ýa-da issuer DID resminamasy barlagsyz näçe wagt galyp biler, ondan soň ol ýadyndan aýrylýar. Rugsat berilýän bahalar: 0 ýa-da ondan köp. 0 bolanda, ýadyda nusga saklanylmaýar, şonuň üçin saklanan nusga elýeterli bolmadyk wagty ulanylmaýar we her barlag ýükleýär. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň."
+                "statuslist": {
+                  "size": "Ýadyda saklanylýan statuslist-leriň iň köp sany. Rugsat berilýän bahalar: 0 ýa-da ondan uly bitin sanlar. 0 bolanda, ýadyda nusga saklanylmaýar, bir wagtda işleýän barlaglar henizem bir ýüklemäni paýlaşýar we saklanan nusga elýeterli bolmadyk wagty henizem ulanylýar. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň."
+                }
               },
               "cleanup": {
                 "interval": "Möhleti geçen issuer maglumatlaryny arassalamagyň işleriniň arasyndaky wagt. Rugsat berilýän bahalar: 5 minut ýa-da ondan köp. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",

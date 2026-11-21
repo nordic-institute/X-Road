@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_CREDENTIAL;
@@ -78,7 +79,7 @@ class IdentityHubOutageRevocationTest {
     private static final Instant START = Instant.parse("2026-11-18T10:00:00Z");
     private static final Duration CACHE_TIME = Duration.ofSeconds(60);
     private static final Duration WITHIN_DEADLINE = CACHE_TIME.plusSeconds(100);
-    private static final Duration AFTER_DEADLINE = CACHE_TIME.plusSeconds(116);
+    private static final Duration AFTER_DEADLINE = CACHE_TIME.plusSeconds(120);
     private static final int CLEAR_INDEX = 15;
     private static final long MAXIMUM_ENTRIES = 128;
 
@@ -97,13 +98,12 @@ class IdentityHubOutageRevocationTest {
         issuer.publishStatusList(Set.of(), null);
         var stack = EdcTestStack.create();
         var contentTypes = List.of("*/*");
-        var store = mock(IssuerDataStore.class);
-        when(store.write(any(), any(), any())).thenReturn(StoreResult.success());
-        when(store.read(any(), any())).thenReturn(StoreResult.notFound("no row"));
+        var store = new InMemoryIssuerDataStore();
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        var source = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), refreshPool, CACHE_TIME,
-                settings(MAXIMUM_ENTRIES, Duration.ofSeconds(120), Duration.ofSeconds(10)),
+        var source = new LastGoodSource<>(new ClockStampingFetcher<>(fetcher, clock), clock, Ticker.disabledTicker(),
+                refreshPool, mock(ScheduledExecutorService.class), CACHE_TIME,
+                settings(MAXIMUM_ENTRIES, Duration.ofSeconds(10)),
                 () -> Result.success(Duration.ofSeconds(120)), store, mock(Monitor.class));
         var registry = new RevocationServiceRegistryImpl(mock(Monitor.class));
         registry.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(

@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,6 +64,7 @@ public class IssuerStatusListAvailabilityRule implements TokenValidationRule {
     private static final String CREDENTIAL_STATUS = "credentialStatus";
     private static final String TYPE = "type";
     private static final String ID = "@id";
+    private static final Duration EXPIRY_MARGIN = Duration.ofSeconds(5);
 
     private final GlobalConfProvider globalConf;
     private final LastGoodSource<BitstringStatusListCredential> source;
@@ -94,7 +96,7 @@ public class IssuerStatusListAvailabilityRule implements TokenValidationRule {
     }
 
     private Result<Void> lookUp(String statusListUrl) {
-        return source.lookup(statusListUrl).mapEmpty();
+        return source.lookup(statusListUrl, EXPIRY_MARGIN).mapEmpty();
     }
 
     private static Stream<String> statusListUrls(ClaimToken token) {

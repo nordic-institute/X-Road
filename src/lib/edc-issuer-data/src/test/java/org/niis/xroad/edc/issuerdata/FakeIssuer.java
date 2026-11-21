@@ -44,6 +44,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
@@ -76,6 +77,7 @@ class FakeIssuer implements AutoCloseable {
     private final AtomicReference<String> didDocument = new AtomicReference<>();
     private final AtomicInteger didDocumentRequests = new AtomicInteger();
     private final AtomicBoolean didDocumentRefused = new AtomicBoolean();
+    private volatile Duration answerDelay = Duration.ZERO;
 
     FakeIssuer() {
         try {
@@ -147,6 +149,13 @@ class FakeIssuer implements AutoCloseable {
         } catch (JOSEException e) {
             throw new IllegalStateException("Fake issuer could not create a key", e);
         }
+    }
+
+    /**
+     * Holds every answer back for this long after the request arrived.
+     */
+    void answerAfter(Duration delay) {
+        answerDelay = delay;
     }
 
     void down(boolean value) {
@@ -243,6 +252,7 @@ class FakeIssuer implements AutoCloseable {
 
     private void answer(HttpExchange exchange, String body, boolean countsAsStatusListRequest) throws IOException {
         try (exchange) {
+            pause();
             if (countsAsStatusListRequest) {
                 statusListRequests.incrementAndGet();
             }
@@ -254,6 +264,14 @@ class FakeIssuer implements AutoCloseable {
             var bytes = (unavailable ? ERROR_BODY : body).getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(unavailable ? 503 : 200, bytes.length);
             exchange.getResponseBody().write(bytes);
+        }
+    }
+
+    private void pause() {
+        try {
+            Thread.sleep(answerDelay);
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
         }
     }
 

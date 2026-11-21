@@ -64,7 +64,7 @@ public class DidDocumentFetcher implements IssuerDataFetcher<DidDocument> {
 
     @Override
     @Nonnull
-    public Result<String> download(String did) {
+    public Result<Download> download(String did) {
         Request request;
         try {
             request = new Request.Builder().url(didUrlResolver.apply(did)).get().build();
@@ -97,12 +97,13 @@ public class DidDocumentFetcher implements IssuerDataFetcher<DidDocument> {
         return Optional.empty();
     }
 
-    private Result<String> readBody(String did, Response response) {
+    private Result<Download> readBody(String did, Response response) {
         if (!response.isSuccessful()) {
             return Result.failure("Failed to download DID document of %s: HTTP %d".formatted(did, response.code()));
         }
         try {
-            return Result.success(response.body().string());
+            var payload = response.body().string();
+            return Result.success(new Download(payload, Instant.ofEpochMilli(response.sentRequestAtMillis())));
         } catch (IOException e) {
             return Result.failure("Failed to read the DID document response of %s: %s".formatted(did, e.getMessage()));
         }

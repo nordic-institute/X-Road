@@ -83,7 +83,7 @@ public class BitstringStatusListFetcher implements IssuerDataFetcher<BitstringSt
 
     @Override
     @Nonnull
-    public Result<String> download(String key) {
+    public Result<Download> download(String key) {
         Request request;
         try {
             request = new Request.Builder().url(key).header("Accept", acceptHeader).get().build();
@@ -135,12 +135,13 @@ public class BitstringStatusListFetcher implements IssuerDataFetcher<BitstringSt
         return Optional.ofNullable(parsed.validUntil());
     }
 
-    private Result<String> readBody(String key, Response response) {
+    private Result<Download> readBody(String key, Response response) {
         if (!response.isSuccessful()) {
             return Result.failure("Failed to download status list credential from %s: HTTP %d".formatted(key, response.code()));
         }
         try {
-            return Result.success(response.body().string());
+            var payload = response.body().string();
+            return Result.success(new Download(payload, Instant.ofEpochMilli(response.sentRequestAtMillis())));
         } catch (IOException e) {
             return Result.failure("Failed to read the status list credential response from %s: %s"
                     .formatted(key, e.getMessage()));

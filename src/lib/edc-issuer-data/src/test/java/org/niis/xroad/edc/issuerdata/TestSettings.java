@@ -31,26 +31,26 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.time.Duration;
-
-import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_EXPIRY_MARGIN;
-import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_RETRY_DELAY_INITIAL;
-import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM;
-import static org.niis.xroad.common.properties.config.keys.DspConfigKeys.ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS;
+import java.util.List;
 
 /**
- * Operator settings for tests that build a {@link LastGoodSource} directly: the production defaults, except the
- * limit, the idle expiry and the download wait that each test chooses.
+ * Operator settings for tests that build a {@link LastGoodSource} directly: a fixed retry delay list and reset time,
+ * and the limit and download wait that each test chooses.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class TestSettings {
 
-    static final Duration EXPIRY_MARGIN = ISSUER_DATA_EXPIRY_MARGIN.convertedDefaultValue();
-    static final RetryDelay RETRY_DELAY = new RetryDelay(
-            ISSUER_DATA_RETRY_DELAY_INITIAL.convertedDefaultValue(),
-            ISSUER_DATA_RETRY_DELAY_MAXIMUM.convertedDefaultValue(),
-            ISSUER_DATA_RETRY_DELAY_MAXIMUM_DOUBLINGS.convertedDefaultValue());
+    static final List<Duration> DELAYS = List.of(Duration.ofSeconds(5), Duration.ofSeconds(10), Duration.ofSeconds(15),
+            Duration.ofSeconds(20), Duration.ofSeconds(30), Duration.ofSeconds(60));
+    static final Duration LONGEST_DELAY = Duration.ofSeconds(60);
+    static final Duration RESET_AFTER = Duration.ofMinutes(10);
 
-    static LastGoodSettings settings(long maximumEntries, Duration idleExpiry, Duration downloadWait) {
-        return new LastGoodSettings(maximumEntries, idleExpiry, downloadWait, EXPIRY_MARGIN, RETRY_DELAY);
+    static IssuerDataSettings settings(long maximumEntries, Duration downloadWait) {
+        return settings(maximumEntries, downloadWait, new DownloadRetry(DELAYS), RESET_AFTER);
+    }
+
+    static IssuerDataSettings settings(long maximumEntries, Duration downloadWait, DownloadRetry downloadRetry,
+                                       Duration resetAfter) {
+        return new IssuerDataSettings(maximumEntries, downloadWait, downloadRetry, resetAfter);
     }
 }

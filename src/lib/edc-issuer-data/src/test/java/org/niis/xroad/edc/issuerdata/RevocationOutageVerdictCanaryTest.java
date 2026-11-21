@@ -60,7 +60,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.junit.jupiter.api.AfterEach;
@@ -75,6 +74,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -107,7 +107,6 @@ class RevocationOutageVerdictCanaryTest {
     private static final Duration MAXIMUM_AGE = Duration.ofSeconds(120);
     private static final Duration PAST_THE_DEADLINE = Duration.ofMinutes(10);
     private static final long MAXIMUM_ENTRIES = 128;
-    private static final Duration IDLE_EXPIRY = Duration.ofSeconds(120);
     private static final int REVOKED_INDEX = 10;
     private static final int CLEAR_INDEX = 15;
 
@@ -153,6 +152,31 @@ class RevocationOutageVerdictCanaryTest {
 
         assertThat(verdict.failed()).isTrue();
         assertThat(verdict.getFailure().getReason()).isEqualTo(ServiceFailure.Reason.UNAVAILABLE);
+    }
+
+    @Test
+    void shouldAnswerUnavailableWhenStatusListIsDownAndTheLastGoodCopyEndsWithinTheExpiryMargin() {
+        var validator = validatorTrusting(issuer.did());
+        assertThat(verify(validator, presentation(CLEAR_INDEX)).succeeded()).isTrue();
+        issuer.statusListDown(true);
+        clock.set(START.plus(CACHE_TIME).plus(MAXIMUM_AGE).minusSeconds(4));
+
+        var verdict = verify(validator, presentation(CLEAR_INDEX));
+
+        assertThat(verdict.failed()).isTrue();
+        assertThat(verdict.getFailure().getReason()).isEqualTo(ServiceFailure.Reason.UNAVAILABLE);
+    }
+
+    @Test
+    void shouldAcceptClearCredentialWhenStatusListIsDownAndTheLastGoodCopyEndsBeyondTheExpiryMargin() {
+        var validator = validatorTrusting(issuer.did());
+        assertThat(verify(validator, presentation(CLEAR_INDEX)).succeeded()).isTrue();
+        issuer.statusListDown(true);
+        clock.set(START.plus(CACHE_TIME).plus(MAXIMUM_AGE).minusSeconds(6));
+
+        var verdict = verify(validator, presentation(CLEAR_INDEX));
+
+        assertThat(verdict.succeeded()).isTrue();
     }
 
     @Test
@@ -204,13 +228,12 @@ class RevocationOutageVerdictCanaryTest {
     private ProtocolTokenValidatorImpl validatorTrusting(String trustedIssuerDid) {
         var stack = EdcTestStack.create();
         var contentTypes = List.of("*/*");
-        var store = mock(IssuerDataStore.class);
-        when(store.write(any(), any(), any())).thenReturn(StoreResult.success());
-        when(store.read(any(), any())).thenReturn(StoreResult.notFound("no row"));
+        var store = new InMemoryIssuerDataStore();
         var fetcher = new BitstringStatusListFetcher(stack.mapper(), contentTypes, stack.httpClient(),
                 stack.tokenValidationService(), stack.didPublicKeyResolver());
-        var source = new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(), refreshPool, CACHE_TIME,
-                settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, DOWNLOAD_WAIT), () -> Result.success(MAXIMUM_AGE), store, mock(Monitor.class));
+        var source = new LastGoodSource<>(new ClockStampingFetcher<>(fetcher, clock), clock, Ticker.disabledTicker(),
+                refreshPool, mock(ScheduledExecutorService.class), CACHE_TIME, settings(MAXIMUM_ENTRIES, DOWNLOAD_WAIT),
+                () -> Result.success(MAXIMUM_AGE), store, mock(Monitor.class));
 
         var revocationServices = new RevocationServiceRegistryImpl(mock(Monitor.class));
         revocationServices.addService(BitstringStatusListStatus.TYPE, new XRoadBitstringStatusListRevocationService(

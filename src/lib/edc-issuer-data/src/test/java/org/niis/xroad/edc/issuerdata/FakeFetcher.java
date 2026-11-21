@@ -27,8 +27,10 @@
 
 package org.niis.xroad.edc.issuerdata;
 
+import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.spi.result.Result;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -40,8 +42,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A fetcher whose downloads the test switches on and off, makes refuse with a final failure or answer with a payload
  * that cannot be parsed, holds back per key and makes throw. Payloads are numbered, and the payload {@link #CORRUPT}
- * cannot be parsed.
+ * cannot be parsed. The send time of a download is the time of the clock when the download starts, unless
+ * {@link #sendTime} is set.
  */
+@RequiredArgsConstructor
 final class FakeFetcher implements IssuerDataFetcher<String> {
 
     static final String CORRUPT = "corrupt";
@@ -55,6 +59,8 @@ final class FakeFetcher implements IssuerDataFetcher<String> {
     volatile boolean throwing;
     volatile boolean parseRetryable;
     volatile Optional<Instant> ownExpiry = Optional.empty();
+    volatile Instant sendTime;
+    private final Clock clock;
 
     @Override
     public IssuerDataKind kind() {
@@ -62,8 +68,9 @@ final class FakeFetcher implements IssuerDataFetcher<String> {
     }
 
     @Override
-    public Result<String> download(String key) {
+    public Result<Download> download(String key) {
         attempts.incrementAndGet();
+        var sentAt = sendTime != null ? sendTime : clock.instant();
         awaitGate(key);
         if (throwing) {
             throw new IllegalStateException("fetcher broke");
@@ -75,9 +82,9 @@ final class FakeFetcher implements IssuerDataFetcher<String> {
             return Result.failure("issuer refused the request");
         }
         if (corruptAnswer) {
-            return Result.success(CORRUPT);
+            return Result.success(new Download(CORRUPT, sentAt));
         }
-        return Result.success("payload-" + downloads.incrementAndGet());
+        return Result.success(new Download("payload-" + downloads.incrementAndGet(), sentAt));
     }
 
     private void awaitGate(String key) {

@@ -35,11 +35,9 @@ import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.security.interfaces.ECPublicKey;
@@ -47,16 +45,13 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.edc.issuerdata.TestSettings.settings;
 
@@ -65,12 +60,11 @@ class IssuerDidResolverTest {
     private static final String PARTICIPANT_DID = "did:web:ss0.example.org%3A7183:v1:DEV:COM:222";
     private static final Duration MAXIMUM_AGE = Duration.ofSeconds(60);
     private static final Duration WITHIN_DEADLINE = Duration.ofSeconds(30);
-    private static final Duration PAST_DEADLINE = Duration.ofSeconds(56);
+    private static final Duration PAST_DEADLINE = Duration.ofSeconds(61);
     private static final long MAXIMUM_ENTRIES = 32;
-    private static final Duration IDLE_EXPIRY = Duration.ofMinutes(30);
 
     private final MutableClock clock = new MutableClock(Instant.parse("2026-11-18T10:00:00Z"));
-    private final IssuerDataStore store = mock(IssuerDataStore.class);
+    private final InMemoryIssuerDataStore store = new InMemoryIssuerDataStore();
     private final GlobalConfProvider globalConf = mock(GlobalConfProvider.class);
     private final AtomicReference<IssuerDidResolver> issuerDidResolver = new AtomicReference<>();
     private FakeIssuer issuer;
@@ -79,8 +73,6 @@ class IssuerDidResolverTest {
     @BeforeEach
     void setUp() {
         issuer = new FakeIssuer();
-        when(store.write(any(), any(), any())).thenReturn(StoreResult.success());
-        when(store.read(any(), any())).thenReturn(StoreResult.notFound("no row"));
         when(globalConf.getInstanceIdentifier()).thenReturn(INSTANCE);
         when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
         stack = EdcTestStack.create((stockResolver, fetcher) -> {
@@ -142,7 +134,8 @@ class IssuerDidResolverTest {
         assertThat(second.isRetryable()).isTrue();
         verify(stockResolver, times(2)).resolve(PARTICIPANT_DID);
         assertThat(didSource.cachedKeys()).isZero();
-        verifyNoInteractions(store);
+        assertThat(store.reads.get()).isZero();
+        assertThat(store.writes.get()).isZero();
     }
 
     @Test
@@ -156,7 +149,8 @@ class IssuerDidResolverTest {
         var result = resolver.resolve(issuer.did());
 
         assertThat(result.getContent()).isSameAs(document);
-        verifyNoInteractions(store);
+        assertThat(store.reads.get()).isZero();
+        assertThat(store.writes.get()).isZero();
     }
 
     @Test
@@ -200,9 +194,7 @@ class IssuerDidResolverTest {
     }
 
     private String storedDidPayload() {
-        var written = ArgumentCaptor.forClass(StoredIssuerData.class);
-        verify(store, atLeastOnce()).write(eq(IssuerDataKind.DID), eq(issuer.did()), written.capture());
-        return written.getAllValues().getFirst().payload();
+        return store.row(IssuerDataKind.DID, issuer.did()).payload();
     }
 
     private Result<DidDocument> resolveIssuerDid() {
@@ -210,9 +202,10 @@ class IssuerDidResolverTest {
     }
 
     private LastGoodSource<DidDocument> newSource(DidDocumentFetcher fetcher) {
-        return new LastGoodSource<>(fetcher, clock, Ticker.disabledTicker(),
-                Runnable::run, Duration.ZERO, settings(MAXIMUM_ENTRIES, IDLE_EXPIRY, Duration.ofSeconds(2)),
-                () -> Result.success(MAXIMUM_AGE), store, mock(Monitor.class));
+        return new LastGoodSource<>(new ClockStampingFetcher<>(fetcher, clock), clock, Ticker.disabledTicker(),
+                Runnable::run, mock(ScheduledExecutorService.class), Duration.ZERO,
+                settings(MAXIMUM_ENTRIES, Duration.ofSeconds(2)), () -> Result.success(MAXIMUM_AGE), store,
+                mock(Monitor.class));
     }
 
     private static boolean signatureVerifies(String jwt, ECPublicKey key) throws ParseException, JOSEException {

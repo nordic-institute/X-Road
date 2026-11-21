@@ -47,7 +47,7 @@ public interface IssuerDataFetcher<P> {
     /**
      * Downloads the raw data. A retryable failure means the issuer did not answer.
      */
-    Result<String> download(String key);
+    Result<Download> download(String key);
 
     /**
      * Reads downloaded data and verifies it, including its signature when it has one. Verification happens only here,
@@ -68,4 +68,13 @@ public interface IssuerDataFetcher<P> {
      * @return the time the data itself says it stops being valid, when it says so.
      */
     Optional<Instant> ownExpiry(P parsed);
+
+    /**
+     * Raw downloaded data.
+     *
+     * @param payload       the response body
+     * @param requestSentAt the time the successful HTTP request was sent
+     */
+    record Download(String payload, Instant requestSentAt) {
+    }
 }
