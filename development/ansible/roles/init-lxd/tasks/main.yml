@@ -263,7 +263,7 @@
       mode: pull
       server: https://images.lxd.canonical.com
       protocol: simplestreams
-      alias: "rockylinux/{{ rhel_releasever }}"
+      alias: "rockylinux/{{ rhel_releasever }}/{{ arch[ansible_architecture] }}"
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     devices: "{{ hostvars[item].container_ports | default({}) }}"
