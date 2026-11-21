@@ -251,7 +251,7 @@
   delegate_to: "{{ item }}"
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
 
-- name: Ready all Rocky Linux {{rhel_releasever}} containers
+- name: Ready all Oracle Linux {{rhel_releasever}} containers
   become: "{{ onMacOs | default(true) }}"
   with_inventory_hostnames: rhel_ss
   community.general.lxd_container:
@@ -263,7 +263,7 @@
       mode: pull
       server: https://images.lxd.canonical.com
       protocol: simplestreams
-      alias: "rockylinux/{{ rhel_releasever }}/{{ arch[ansible_architecture] }}"
+      alias: "oracle/{{ rhel_releasever }}/{{ arch[ansible_architecture] }}"
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     devices: "{{ hostvars[item].container_ports | default({}) }}"
@@ -275,7 +275,7 @@
       aarch64: arm64
       x86_64: amd64
 
-- name: Configure package mirror (Rocky Linux)
+- name: Configure package mirror (RedHat family)
   include_tasks: package-mirror.yml
   when: package_mirror_url is defined and package_mirror_user is defined and package_mirror_token is defined
   with_inventory_hostnames: rhel_ss
