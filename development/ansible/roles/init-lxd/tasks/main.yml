@@ -275,6 +275,17 @@
       aarch64: arm64
       x86_64: amd64
 
+- name: Configure Oracle Linux {{ rhel_releasever }} repositories and en_US locale
+  raw: |
+    set -e
+    dnf -y install oraclelinux-release-el{{ rhel_releasever }} glibc-langpack-en
+    rm -f /etc/yum.repos.d/base.repo /etc/yum.repos.d/base_latest.repo
+    dnf clean all
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: rhel_ss
+  tags:
+    - rhel-container-init
+
 - name: Configure package mirror (RedHat family)
   include_tasks: package-mirror.yml
   when: package_mirror_url is defined and package_mirror_user is defined and package_mirror_token is defined
