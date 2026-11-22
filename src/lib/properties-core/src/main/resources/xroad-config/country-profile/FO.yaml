@@ -6,3 +6,7 @@ xroad:
   signer:
     key-length: 3072
     enforce-token-pin-policy: true
+  proxy:
+    addon:
+      op-monitor:
+        enabled: true

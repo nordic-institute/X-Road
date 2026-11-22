@@ -31,5 +31,8 @@ xroad:
       message-body-logging: false
       timestamper:
         acceptable-timestamp-failure-period: 172800
+    addon:
+      op-monitor:
+        enabled: true
   proxy-ui-api:
     acme-challenge-port-enabled: true

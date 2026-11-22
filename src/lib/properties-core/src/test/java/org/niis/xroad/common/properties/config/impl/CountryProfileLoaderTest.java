@@ -59,6 +59,8 @@ class CountryProfileLoaderTest {
     private static final String SIDECAR_SUFFIX = "-sidecar.yaml";
     private static final String CONNECTOR_HOST_KEY = "xroad.proxy.client-proxy.connector-host";
 
+    private static final String OP_MONITOR_ENABLED_KEY = "xroad.proxy.addon.op-monitor.enabled";
+
     private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
     private final Logger logger = (Logger) LoggerFactory.getLogger(CountryProfileLoader.class);
 
@@ -137,6 +139,12 @@ class CountryProfileLoaderTest {
     void blankSelectorSelectsNoProfile(String selector) {
         assertThat(CountryProfileLoader.resolve(Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, selector))).isEmpty();
         assertThat(CountryProfileLoader.resolve(Map.of())).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("supportedCountries")
+    void everyProfileSwitchesOnOpMonitorAddon(String code) {
+        assertThat(resolve(code, null)).containsEntry(OP_MONITOR_ENABLED_KEY, "true");
     }
 
     @Test
