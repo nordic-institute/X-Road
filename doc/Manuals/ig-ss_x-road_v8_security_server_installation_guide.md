@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.3
+Version: 1.5
 Doc. ID: IG-SS-8
 
 ---
@@ -16,6 +16,7 @@ Doc. ID: IG-SS-8
 | 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets     |
 | 17.11.2026 | 1.3     | Documented country profile selection and precedence                  | Ričardas Bučiūnas |
 | 18.11.2026 | 1.4     | Added the DID and DSP port choice at installation                    | Justas Samuolis   |
+| 23.11.2026 | 1.5     | Added section 2.9 about intalling an external operational monitoring | Eneli Reimets     |
 
 ## License
 
@@ -44,6 +45,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
     - [2.6.3 DID and DSP ports](#263-did-and-dsp-ports)
   - [2.7 Post-Installation Checks](#27-post-installation-checks)
   - [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
+  - [2.9 Installing an External Operational Monitoring Daemon](#29-installing-an-external-operational-monitoring-daemon)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
 - [4 Installation Error handling](#4-installation-error-handling)
 - [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
@@ -72,7 +74,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 1. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 2. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md)
-3. <a id="Ref_UG-SS" class="anchor"></a>\[IG-SS] Security Server Installation Guide for Ubuntu. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
+3. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS] Security Server Installation Guide for Ubuntu. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
 
 ## 2 Installation
 
@@ -297,7 +299,7 @@ Then install the package of your country. For example:
 sudo apt install xroad-securityserver-<cc>
 ```
 
-A country package installs `xroad-securityserver` and `xroad-opmonitor`, so no other package is needed. The same command adds a country profile to a server that has only the base package. Only one country package can be installed on a server. On the first installation of a country package, the X-Road services are restarted so that they load the profile.
+A country package installs `xroad-securityserver` and `xroad-opmonitor`, so no other package is needed. The country profile switches operational monitoring on. The same command adds a country profile to a server that has only the base package. Only one country package can be installed on a server. On the first installation of a country package, the X-Road services are restarted so that they load the profile.
 
 If you remove a country package, the X-Road services keep the profile until their next restart.
 
@@ -393,6 +395,40 @@ The installation is successful if system services are started and the user inter
 
 The support for environmental monitoring functionality on a Security Server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
 
+### 2.9 Installing an External Operational Monitoring Daemon
+
+A standalone operational monitoring daemon runs on a host that is not the Security Server. This section describes how to install it on Ubuntu. For RHEL, see section 2.12 of the [Security Server Installation Guide for RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md#212-installing-an-external-operational-monitoring-daemon). The configuration of the daemon is in section [15.3.1](ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon) of the Security Server User Guide \[[UG-SS](#Ref_UG-SS)\]. This section does not repeat it.
+
+**Prerequisites**
+
+* The host runs Ubuntu Server 24.04 LTS on a x86-64 platform (see [2.1](#21-prerequisites-to-installation)).
+* The host has the locale settings of section [2.4](#24-preparing-os) and the X-Road package repository of section [2.5](#25-setup-package-repositories). The host needs no X-Road administrator user. Do not add the OpenBao package repository: the host needs no OpenBao and no secret store.
+* The database of the daemon is a local PostgreSQL 15 or later. The package `xroad-database-local` installs it.
+* The host has the same X-Road version as the Security Server that it serves.
+
+**Installation**
+
+Run the following command to install the packages:
+
+```bash
+sudo apt install xroad-opmonitor xroad-database-local
+```
+
+The installation creates the database `op-monitor` and its database roles in the local PostgreSQL server on 127.0.0.1 and writes the connection properties to `/etc/xroad/db.properties` (see [Annex A](#annex-a-security-server-default-database-properties)). A remote database is not covered by this guide.
+
+The daemon cannot run before the host is configured, so its first start after the installation fails. Continue with section [15.3.1](ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon) of the Security Server User Guide.
+
+**Verification**
+
+* Ensure that the package is installed and that the database properties of the daemon exist. The command prints the property names only:
+
+  ```bash
+  dpkg -s xroad-opmonitor | grep '^Status'
+  sudo grep -E '^xroad\.db\.op-monitor\.hibernate\.' /etc/xroad/db.properties | cut -d= -f1
+  ```
+
+  The first command must print `Status: install ok installed`. The second command must list six property names, as in [Annex A](#annex-a-security-server-default-database-properties).
+
 ## 3 Security Server Initial Configuration
 
 Refer to X-Road 7. Security Server Installation Guide for Ubuntu [IG-SS](#Ref_IG-SS), section "Security Server Initial Configuration".
@@ -408,23 +444,32 @@ Refer to X-Road 7. Security Server Installation Guide for Ubuntu [IG-SS](#Ref_IG
 ```properties
 # connection.url format: jdbc:postgresql://<hostname>:<port>/<database name>
 
-serverconf.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/serverconf
-serverconf.hibernate.connection.username = serverconf
-serverconf.hibernate.connection.password = <randomly generated password>
-serverconf.hibernate.connection.driver_class = org.postgresql.Driver
-serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
-serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
-serverconf.hibernate.jdbc.use_streams_for_binary = true
+xroad.db.serverconf.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/serverconf
+xroad.db.serverconf.hibernate.connection.username = serverconf
+xroad.db.serverconf.hibernate.connection.password = <randomly generated password>
+xroad.db.serverconf.hibernate.connection.driver_class = org.postgresql.Driver
+xroad.db.serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+xroad.db.serverconf.hibernate.jdbc.use_streams_for_binary = true
 
-messagelog.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/messagelog
-messagelog.hibernate.connection.username = messagelog
-messagelog.hibernate.connection.password = <randomly generated password>
-messagelog.hibernate.connection.driver_class = org.postgresql.Driver
-messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
-messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
-messagelog.hibernate.jdbc.use_streams_for_binary = true
+xroad.db.messagelog.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/messagelog
+xroad.db.messagelog.hibernate.connection.username = messagelog
+xroad.db.messagelog.hibernate.connection.password = <randomly generated password>
+xroad.db.messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+xroad.db.messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+xroad.db.messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
+xroad.db.messagelog.hibernate.jdbc.use_streams_for_binary = true
+
+xroad.db.op-monitor.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/op-monitor
+xroad.db.op-monitor.hibernate.connection.username = opmonitor
+xroad.db.op-monitor.hibernate.connection.password = <randomly generated password>
+xroad.db.op-monitor.hibernate.connection.driver_class = org.postgresql.Driver
+xroad.db.op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
+xroad.db.op-monitor.hibernate.jdbc.use_streams_for_binary = true
 
 ```
+
+The installation of the package `xroad-opmonitor` writes the operational monitoring block.
 
 ## Annex B Default Database Users
 

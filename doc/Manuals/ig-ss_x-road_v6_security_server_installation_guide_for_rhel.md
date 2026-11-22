@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.39
+Version: 1.40
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -52,6 +52,7 @@ Doc. ID: IG-SS-RHEL
 | 25.02.2026 | 1.37    | Update PostgreSQL to version 15 on RHEL                                                                                                                                                                              | Ričardas Bučiūnas        |
 | 23.03.2026 | 1.38    | Update java 21 references to java 25                                                                                                                                                                                 | Ričardas Bučiūnas        |
 | 22.04.2026 | 1.39    | Remove RHEL 8 and add RHEL 10 support                                                                                                                                                                                | Eneli Reimets            |
+| 23.11.2026 | 1.40    | Added section 2.12 about installing an external operational monitoring daemon                                                                                                                                        | Eneli Reimets            |
 
 ## License
 
@@ -85,6 +86,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.9 Post-Installation Checks](#29-post-installation-checks)
   - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
   - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
+  - [2.12 Installing an External Operational Monitoring Daemon](#212-installing-an-external-operational-monitoring-daemon)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
@@ -495,6 +497,46 @@ Hardware security tokens (smartcard, USB token, Hardware Security Module) have n
 ### 2.11 Installing the Support for Environmental Monitoring
 
 The support for environmental monitoring functionality on a Security Server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
+
+### 2.12 Installing an External Operational Monitoring Daemon
+
+An external operational monitoring daemon runs on a host that is not the Security Server. This section describes how to install it on RHEL. The configuration of the daemon is in section [15.3.1](ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon) of the Security Server User Guide \[[UG-SS](#Ref_UG-SS)\]. This section does not repeat it.
+
+**Prerequisites**
+
+* The host runs RHEL 9.3 or newer, or RHEL 10.0 or newer, on a x86-64 platform (see [2.3](#23-requirements-for-the-security-server)). The packages install Java 25 as a dependency. If the host has another default Java version, set Java 25 as the default (see [2.3.1](#231-installing-java-25)).
+* The host has the settings of section [2.4](#24-preparing-os) and the X-Road package repository and the EPEL repository of section [2.5](#25-setup-package-repository). The host needs no X-Road administrator user. Do not add the OpenBao package repository: the host needs no OpenBao and no secret store.
+* The database of the daemon is a local PostgreSQL 15 or later. The package `xroad-database-local` installs it.
+* The host has the same X-Road version as the Security Server that it serves.
+
+**Installation**
+
+1. On RHEL 9, enable the PostgreSQL 15 module stream. On RHEL 10, DNF module streams are no longer used, so skip this step:
+
+   ```bash
+   sudo dnf module enable postgresql:15
+   ```
+
+2. Install the packages:
+
+   ```bash
+   sudo dnf install xroad-opmonitor xroad-database-local
+   ```
+
+The installation creates the database `op-monitor` and its database roles in the local PostgreSQL server on 127.0.0.1 and writes the connection properties to `/etc/xroad/db.properties`. A remote database is not covered by this guide.
+
+The installation enables the service `xroad-opmonitor` but does not start it. The daemon cannot run before the host is configured, so its first start fails. Continue with section [15.3.1](ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon) of the Security Server User Guide.
+
+**Verification**
+
+* Ensure that the package is installed and that the database properties of the daemon exist. The command prints the property names only:
+
+  ```bash
+  rpm -q xroad-opmonitor
+  sudo grep -E '^xroad\.db\.op-monitor\.hibernate\.' /etc/xroad/db.properties | cut -d= -f1
+  ```
+
+  The first command must print the package name and version. The second command must list six property names.
 
 ## 3 Security Server Initial Configuration
 

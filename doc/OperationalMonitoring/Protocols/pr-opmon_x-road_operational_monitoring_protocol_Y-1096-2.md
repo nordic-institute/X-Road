@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.7  
+Version: 1.8  
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -21,6 +21,7 @@ Doc. ID: PR-OPMON
 | 09.01.2025 | 1.5     | Restructure heading levels for the documentation platform            | Raido Kaju       |
 | 19.03.2025 | 1.6     | Added new optional field: xRoadVersion                               | Eneli Reimets    |
 | 26.03.2025 | 1.7     | Syntax and styling                                                   | Pauline Dimmek   |
+| 23.11.2026 | 1.8     | Stated that the time window uses the clock of the operational monitoring daemon | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -88,8 +89,8 @@ The *service* SOAP header MUST contain the identifier of the target service prov
 
 The body of the request MUST contain an XML element *getSecurityServerOperationalData* which contains the following XML elements.
 * *searchCriteria* (mandatory) -- Determines the search criteria of the requested monitoring data records. This element contains the following XML elements.
- * *recordsFrom* (mandatory) -- Unix timestamp in seconds to determine the beginning of the time period of the monitoring data records. The beginning timestamp MUST be less than the system value of *current time - configured offset seconds* (all of the operational data before that system timestamp SHOULD be committed. By default 60 seconds are used for the offset).
- * *recordsTo* (mandatory) -- Unix timestamp in seconds to determine the end (inclusively) of the time period of the monitoring data records. If the end timestamp is bigger or equal to the system value of *current time - configured offset seconds* then *recordsTo* value is shifted to the value of *current time - configured offset seconds - 1* (it is allowed to subtract a bigger time buffer to ensure that all the operational data of the specified time period are committed. By default 60 seconds are used for the offset).  
+ * *recordsFrom* (mandatory) -- Unix timestamp in seconds to determine the beginning of the time period of the monitoring data records. The beginning timestamp MUST be less than the current time of the operational monitoring daemon minus the configured offset seconds (all of the operational data before that system timestamp SHOULD be committed. By default 60 seconds are used for the offset).
+ * *recordsTo* (mandatory) -- Unix timestamp in seconds to determine the end (inclusively) of the time period of the monitoring data records. If the end timestamp is bigger or equal to the current time of the operational monitoring daemon minus the configured offset seconds then *recordsTo* value is shifted to the current time of the operational monitoring daemon minus the configured offset seconds minus 1 (it is allowed to subtract a bigger time buffer to ensure that all the operational data of the specified time period are committed. By default 60 seconds are used for the offset).  
  * *client* (optional) -- Determines the client identifier of the service provider in the monitoring data records.  
 * *outputSpec* (optional) -- A sequence of optional *outputField* elements that determines the set of the requested operational data record fields in the response payload. If omitted or empty sequence, all record fields MUST be included into the response payload. The possible output field values are the following:
 
