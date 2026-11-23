@@ -51,7 +51,8 @@ class SettingsFileReaderTest {
     private Path tempDir;
 
     @ParameterizedTest
-    @ValueSource(strings = {"0.10", "007", "1e3", "0x1F", "yes", "on", "true", "2026-11-14", "0.0.0.0"})
+    @ValueSource(strings = {"0.10", "007", "1e3", "0x1F", "yes", "on", "true", "2026-11-14", "0.0.0.0",
+            "~", "null", "Null", "NULL"})
     void scalarsAreReadAsWrittenWithoutYamlTypeConversion(String written) throws IOException {
         var file = Files.writeString(tempDir.resolve("settings.yaml"), KEY + ": " + written + "\n");
 
@@ -132,14 +133,6 @@ class SettingsFileReaderTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(file.toString())
                 .hasMessageContaining(KEY);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"~", "null", "Null", "NULL"})
-    void yamlNullSpellingsAreReadAsWrittenText(String written) throws IOException {
-        var file = Files.writeString(tempDir.resolve("settings.yaml"), KEY + ": " + written + "\n");
-
-        assertThat(SettingsFileReader.read(file)).containsExactly(entry(written));
     }
 
     @ParameterizedTest

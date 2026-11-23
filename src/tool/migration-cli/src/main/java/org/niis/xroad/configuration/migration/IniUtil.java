@@ -188,14 +188,12 @@ public class IniUtil {
     }
 
     /**
-     * The rows are derived only for a file that sets {@code [op-monitor] host}. The host value used is the one
-     * that wins when the operator files are applied in order: {@code override-*.ini} alphabetically, then
-     * {@code local.ini}.
+     * The host value used is the one that wins when the operator files are applied in order:
+     * {@code override-*.ini} alphabetically, then {@code local.ini}. Whether the host is remote is decided for
+     * every file of the chain. The rows and the warning are produced only for a file that sets
+     * {@code [op-monitor] host}.
      */
     private OpMonitorHostRule.Result deriveOpMonitorHostRows(String filePath) {
-        if (readOpMonitorHost(load(filePath)) == null) {
-            return new OpMonitorHostRule.Result(Map.of(), null, false);
-        }
         String effectiveHost = null;
         for (Path file : operatorIniChain(Paths.get(filePath))) {
             var host = readOpMonitorHost(load(file.toString()));
@@ -203,7 +201,13 @@ public class IniUtil {
                 effectiveHost = host;
             }
         }
+        if (effectiveHost == null) {
+            return new OpMonitorHostRule.Result(Map.of(), null, false);
+        }
         var result = opMonitorHostRule.derive(effectiveHost);
+        if (readOpMonitorHost(load(filePath)) == null) {
+            return new OpMonitorHostRule.Result(Map.of(), null, result.remote());
+        }
         if (result.warning() != null) {
             log.warn(result.warning());
         }

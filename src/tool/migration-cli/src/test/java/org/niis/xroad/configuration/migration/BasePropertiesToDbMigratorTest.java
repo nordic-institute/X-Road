@@ -150,9 +150,9 @@ class BasePropertiesToDbMigratorTest {
         }
 
         var lines = output.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
-        assertThat(lines).noneMatch(line -> line.contains(LOWER_VALUE) || line.contains(MIXED_VALUE)
-                || line.contains(UPPER_VALUE));
         assertThat(lines)
+                .noneMatch(line -> line.contains(LOWER_VALUE) || line.contains(MIXED_VALUE)
+                        || line.contains(UPPER_VALUE))
                 .contains("xroad.test.db-password=" + BasePropertiesToDbMigrator.REDACTED,
                         "xroad.test.keystorePassword=" + BasePropertiesToDbMigrator.REDACTED,
                         "xroad.test.KEYSTORE-PASSWORD-FILE=" + BasePropertiesToDbMigrator.REDACTED,
@@ -166,7 +166,7 @@ class BasePropertiesToDbMigratorTest {
         var migrator = new TestMigrator(Map.of("xroad.test.plain", PLAIN_VALUE))
                 .withEnv(BasePropertiesToDbMigrator.AUTO_CONFIRM_ENV, "true");
 
-        try (MockedConstruction<DbRepository> ignored = Mockito.mockConstruction(DbRepository.class)) {
+        try (MockedConstruction<DbRepository> _ = Mockito.mockConstruction(DbRepository.class)) {
             migrator.migrate("input", "db.props");
         }
 

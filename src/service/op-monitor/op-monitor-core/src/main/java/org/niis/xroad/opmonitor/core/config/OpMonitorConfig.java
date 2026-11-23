@@ -94,7 +94,7 @@ public class OpMonitorConfig {
     static void requireIdentityConfigured(XRoadConfig config, DeploymentMode deploymentMode,
                                           boolean configurationDatabaseConfigured, Optional<String> openBaoToken) {
         if (deploymentMode != DeploymentMode.NATIVE || configurationDatabaseConfigured
-                || !config.value(CommonRpcConfigKeys.USE_TLS)
+                || Boolean.FALSE.equals(config.value(CommonRpcConfigKeys.USE_TLS))
                 || !OPENBAO.equalsIgnoreCase(config.value(OpMonitorConfigKeys.RPC_IDENTITY_SOURCE))
                 || openBaoToken.filter(token -> !token.isBlank()).isPresent()) {
             return;

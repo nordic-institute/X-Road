@@ -7,7 +7,8 @@ xroad_opmon_channel_host: "{{ inventory_hostname }}.lxd"
 # Address op-monitor listens on: an address of this host that Security Servers can reach.
 xroad_opmon_listen_address: "{{ ansible_facts['default_ipv4']['address'] }}"
 
-# Default of xroad.op-monitor.rpc.port; the settings file leaves it unset.
+# Value of xroad.op-monitor.rpc.port in the settings file. The Security Servers' row
+# xroad.common-rpc.channel.op-monitor.port must hold the same value.
 xroad_opmon_rpc_port: 2081
 
 # Security Server whose RPC CA op-monitor trusts, and from which the channel host is resolved.

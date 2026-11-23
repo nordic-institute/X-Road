@@ -101,7 +101,7 @@ class OpMonitorConfigTest {
 
     @Test
     void settingsFileIsReadFromTheOpMonitorSettingsPath() {
-        assertThat(OpMonitorConfig.SETTINGS_FILE).isEqualTo(Path.of("/etc/xroad/conf.d/op-monitor-settings.yaml"));
+        assertThat(OpMonitorConfig.SETTINGS_FILE).hasToString("/etc/xroad/conf.d/op-monitor-settings.yaml");
     }
 
     @Test

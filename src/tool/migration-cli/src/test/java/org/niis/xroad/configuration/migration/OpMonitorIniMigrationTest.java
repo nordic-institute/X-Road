@@ -98,6 +98,17 @@ class OpMonitorIniMigrationTest {
             connection-timeout-seconds=30
             """;
 
+    private static final String DAEMON_SETTINGS_INI = """
+            [op-monitor]
+            grpc-port=2181
+            grpc-client-timeout=45000
+            keep-records-for-days=7
+            """;
+
+    private static final Map<String, String> CHANNEL_PORT_AND_DEADLINE_ROWS = Map.of(
+            "xroad.common-rpc.channel.op-monitor.port", "2181",
+            "xroad.common-rpc.channel.op-monitor.deadline-after", "45000");
+
     private static final String COMMON_INI_WITH_GRPC_INTERNAL = """
             [common]
             configuration-path=/var/lib/xroad
@@ -416,6 +427,39 @@ class OpMonitorIniMigrationTest {
         var file = write("local.ini", "[op-monitor]\nhost=" + REMOTE_NAME + "\n");
 
         assertThat(migrateToDb(file)).isEqualTo(Map.of(CHANNEL_HOST_KEY, REMOTE_NAME));
+        assertThat(outputLines()).isEmpty();
+    }
+
+    @Test
+    void remoteHostInLocalIniSkipsDaemonSettingsOfAnOverrideFileWithoutHost() throws IOException {
+        var override = write("override-monitoring.ini", DAEMON_SETTINGS_INI);
+        write("local.ini", "[op-monitor]\nhost=" + REMOTE_NAME + "\n");
+
+        assertThat(migrateToDb(override)).isEqualTo(CHANNEL_PORT_AND_DEADLINE_ROWS);
+        assertThat(outputLines()).singleElement().satisfies(line -> assertThat(line)
+                .contains("xroad.op-monitor.rpc.port", "xroad.op-monitor.keep-records-for-days"));
+    }
+
+    @Test
+    void remoteHostInOverrideFileSkipsDaemonSettingsOfLocalIniWithoutHost() throws IOException {
+        write("override-a.ini", "[op-monitor]\nhost=" + REMOTE_NAME + "\n");
+        var local = write("local.ini", DAEMON_SETTINGS_INI);
+
+        assertThat(migrateToDb(local)).isEqualTo(CHANNEL_PORT_AND_DEADLINE_ROWS);
+        assertThat(outputLines()).singleElement().satisfies(line -> assertThat(line)
+                .contains("xroad.op-monitor.rpc.port", "xroad.op-monitor.keep-records-for-days"));
+    }
+
+    @Test
+    void localHostInLocalIniKeepsDaemonSettingsOfAnOverrideFileWithoutHost() throws IOException {
+        var override = write("override-monitoring.ini", DAEMON_SETTINGS_INI);
+        write("local.ini", "[op-monitor]\nhost=" + LOCAL_NAME + "\n");
+
+        assertThat(migrateToDb(override)).isEqualTo(Map.of(
+                "xroad.common-rpc.channel.op-monitor.port", "2181",
+                "xroad.common-rpc.channel.op-monitor.deadline-after", "45000",
+                "xroad.op-monitor.rpc.port", "2181",
+                "xroad.op-monitor.keep-records-for-days", "7"));
         assertThat(outputLines()).isEmpty();
     }
 
