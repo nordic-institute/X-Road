@@ -56,3 +56,33 @@ docker login artifactory.niis.org -u <your-username> -p <your-artifactory-token>
 - **Gradle:** remove or comment out the properties from `~/.gradle/gradle.properties`
 - **Docker builds:** pass the `--no-mirror` flag
 - **Temporarily:** unset individual env vars, e.g. `unset XROAD_MIRROR_MAVEN_URL`
+
+## GitHub Actions
+
+CI jobs use the same mirrors. The `setup-mirrors` action (`.github/actions/setup-mirrors/`) sets the `XROAD_MIRROR_*` variables for the rest of the job.
+
+### Repository secrets
+
+Set these repository secrets. They have the same names and meaning as the variables in `~/.gradle/gradle.properties`:
+
+- `XROAD_MIRROR_TOKEN`
+- `XROAD_MIRROR_USERNAME`
+- `XROAD_MIRROR_MAVEN_URL`
+- `XROAD_MIRROR_PLUGINS_URL`
+- `XROAD_MIRROR_NPM_URL`
+- `XROAD_MIRROR_UBUNTU_URL`
+- `XROAD_MIRROR_DOCKER_URL`
+- `XROAD_MIRROR_GITHUB_URL`
+- `XROAD_MIRROR_K8S_URL`
+
+The mirrors are off for a job when `XROAD_MIRROR_TOKEN` is empty.
+
+### Off switch
+
+To turn the mirrors off for all CI jobs, set the repository variable `XROAD_MIRRORS_DISABLED` to `true`. Jobs then use the public sources. The check ignores letter case and surrounding spaces. Delete the variable or set it to `false` to turn the mirrors on again.
+
+### Fork and Dependabot builds
+
+GitHub gives no repository secrets to pull requests from forks. Dependabot runs get only Dependabot secrets. These builds have no mirror token, so they use public sources.
+
+The weekly dependency audit does not use the mirrors. It can audit older branches that do not have the mirror setup.
