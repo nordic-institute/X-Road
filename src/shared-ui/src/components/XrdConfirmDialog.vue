@@ -58,6 +58,7 @@
           variant="text"
           :text="acceptButtonText"
           :loading="loading"
+          :disabled="loading"
           :autofocus="focusOnAccept"
           @click="accept"
         />

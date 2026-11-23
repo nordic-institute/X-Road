@@ -85,7 +85,7 @@
             </XrdCardTableRow>
             <XrdCardTableRow data-test="issuer-service-can-sign-row" label="issuerService.service">
               <template #value>
-                <XrdStatusChip :type="canSignChipType" :text="canSignText" />
+                <XrdStatusChip :type="canSignStatus.type" :text="canSignStatus.text" />
               </template>
             </XrdCardTableRow>
             <XrdCardTableRow data-test="issuer-service-identity-row" label="issuerService.identity">
@@ -100,7 +100,7 @@
           </XrdCardTable>
         </template>
       </XrdCard>
-      <TrustedIssuersCard v-if="canViewTrustedIssuers" class="mt-4" @removed="loadStatus" />
+      <TrustedIssuersCard v-if="canViewTrustedIssuers" class="mt-4" @removed="refreshStatus" />
     </XrdSubView>
     <EditIssuerServiceHostDialog
       v-if="showEditHostDialog"
@@ -191,23 +191,25 @@ const initializeEnabled = computed(
 
 const identityDid = computed(() => state.value?.bound_did ?? state.value?.did_to_bind);
 
-const canSignChipType = computed(() => (state.value?.status === 'REMOVED' ? 'error' : state.value?.can_sign ? 'success' : 'error'));
-
-const canSignText = computed(() => {
+const canSignStatus = computed(() => {
   if (state.value?.status === 'REMOVED') {
-    return 'issuerService.serviceRemoved';
+    return { type: 'error' as const, text: 'issuerService.serviceRemoved' };
   }
   if (state.value?.can_sign) {
-    return 'issuerService.serviceCanSign';
+    return { type: 'success' as const, text: 'issuerService.serviceCanSign' };
   }
   const cause = state.value?.can_sign_cause;
-  return (cause && CAN_SIGN_CAUSE_TEXT[cause]) || 'issuerService.serviceCannotSign';
+  return { type: 'error' as const, text: (cause && CAN_SIGN_CAUSE_TEXT[cause]) || 'issuerService.serviceCannotSign' };
 });
 
 function loadStatus() {
   loading.value = true;
   loadFailed.value = false;
   return polling.refresh().finally(() => (loading.value = false));
+}
+
+function refreshStatus() {
+  return polling.refresh();
 }
 
 function onHostSaved(result?: IssuerServiceState) {

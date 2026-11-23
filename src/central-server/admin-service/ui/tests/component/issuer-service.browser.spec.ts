@@ -845,6 +845,28 @@ describe('CS Issuer Service tab — Trusted issuer remove confirmation (Browser 
     await expect.element(dialog).toMatchTextContent('Every credential it signed becomes invalid');
     await expect.element(dialog).toMatchTextContent('all Dataspace Protocol (DSP) traffic stops');
   });
+
+  it('shows the last-entry warning when another operator removed an issuer after the page loaded', async () => {
+    let anotherOperatorRemoved = false;
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: DELETE_TRUSTED_ISSUER_PERMISSIONS,
+      msw: [
+        statusHandler({}),
+        specHttp.get('/trusted-issuers', ({ response }) =>
+          response(200).json(anotherOperatorRemoved ? [ISSUER_ONE] : [ISSUER_ONE, ISSUER_TWO]),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByTestId('trusted-issuers-table').getByText(ISSUER_TWO.did)).toBeVisible();
+    anotherOperatorRemoved = true;
+
+    await page.getByTestId('delete-trusted-issuer').first().click();
+
+    const dialog = page.getByTestId('dialog-simple');
+    await expect.element(dialog).toMatchTextContent(`${ISSUER_ONE.did} is the last trusted issuer`);
+    await expect.element(dialog).toMatchTextContent('all Dataspace Protocol (DSP) traffic stops');
+  });
 });
 
 describe('CS Issuer Service tab — remove trusted issuer (Browser Mode)', () => {
@@ -893,6 +915,106 @@ describe('CS Issuer Service tab — remove trusted issuer (Browser Mode)', () =>
 
     await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
     await expect.element(table.getByText(ISSUER_ONE.did)).toBeVisible();
+  });
+
+  it('disables the accept button while the DELETE is pending and sends no second request', async () => {
+    const deleteSpy = vi.fn();
+    let releaseDelete: () => void = () => {};
+    const deleteGate = new Promise<void>((resolve) => {
+      releaseDelete = resolve;
+    });
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: DELETE_TRUSTED_ISSUER_PERMISSIONS,
+      msw: [
+        statusHandler({}),
+        trustedIssuersHandler([ISSUER_ONE]),
+        specHttp.delete('/trusted-issuers/{trusted_issuer_id}', async ({ response }) => {
+          deleteSpy();
+          await deleteGate;
+          return response(204).empty();
+        }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('trusted-issuers-table').getByText(ISSUER_ONE.did)).toBeVisible();
+    await page.getByTestId('delete-trusted-issuer').click();
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.poll(() => deleteSpy.mock.calls.length).toBe(1);
+    await expect.element(page.getByTestId('dialog-save-button')).toBeDisabled();
+
+    await page.getByTestId('dialog-save-button').click({ force: true });
+    releaseDelete();
+
+    await expect.element(page.getByText('Trusted issuer removed successfully')).toBeVisible();
+    expect(deleteSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('CS Issuer Service tab — trusted issuer removal reloads only the status (Browser Mode)', () => {
+  it('refreshes the Issuer Service status without the page-wide loading state', async () => {
+    let removed = false;
+    let releaseStatus: () => void = () => {};
+    const statusGate = new Promise<void>((resolve) => {
+      releaseStatus = resolve;
+    });
+
+    function progressBarActive(): string | null | undefined {
+      return page.getByTestId('issuer-service-view').element().querySelector('.v-progress-linear')?.getAttribute('aria-hidden');
+    }
+
+    await renderRoute(ISSUER_SERVICE_PATH, {
+      permissions: DELETE_TRUSTED_ISSUER_PERMISSIONS,
+      msw: [
+        specHttp.get('/issuer-service', async ({ response }) => {
+          if (removed) {
+            await statusGate;
+          }
+          return response(200).json(
+            removed
+              ? {
+                  host: 'issuer.example.org',
+                  bound: true,
+                  host_set: true,
+                  certificate_ready: true,
+                  run_in_progress: false,
+                  can_sign: true,
+                  status: 'READY',
+                }
+              : {
+                  host: 'issuer.example.org',
+                  bound: true,
+                  host_set: true,
+                  certificate_ready: true,
+                  run_in_progress: false,
+                  can_sign: false,
+                  can_sign_cause: 'NO_ACTIVE_KEY',
+                  status: 'FAILED',
+                },
+          );
+        }),
+        trustedIssuersHandler([ISSUER_ONE]),
+        specHttp.delete('/trusted-issuers/{trusted_issuer_id}', ({ response }) => {
+          removed = true;
+          return response(204).empty();
+        }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('issuer-service-can-sign-row').getByText('No active issuer key is configured')).toBeVisible();
+
+    await page.getByTestId('delete-trusted-issuer').click();
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.element(page.getByText('Trusted issuer removed successfully')).toBeVisible();
+
+    await expect.element(page.getByTestId('issuer-service-can-sign-row').getByText('No active issuer key is configured')).toBeVisible();
+    expect(progressBarActive()).toBe('true');
+
+    releaseStatus();
+
+    await expect.element(page.getByTestId('issuer-service-can-sign-row').getByText('Can sign')).toBeVisible();
+    expect(progressBarActive()).toBe('true');
   });
 });
 

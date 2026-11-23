@@ -122,8 +122,13 @@ function fetchIssuers() {
     .finally(() => (loading.value = false));
 }
 
-function openRemoveConfirm(issuer: TrustedIssuer): void {
-  issuerToRemove.value = issuer;
+function openRemoveConfirm(issuer: TrustedIssuer): Promise<void> {
+  return listTrustedIssuers()
+    .then((result) => {
+      issuers.value = result;
+    })
+    .catch((error) => addError(error))
+    .finally(() => (issuerToRemove.value = issuer));
 }
 
 function confirmRemove(): void {
