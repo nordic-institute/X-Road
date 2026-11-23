@@ -685,7 +685,8 @@ Federation.
 
 ### Local access right group
 
-An access right group administered in one Connector and usable only there.
+An access right group administered in one Connector and usable only for services belonging to one
+Connector client.
 
 ## 9 Protocols
 
@@ -736,7 +737,8 @@ The protocol through which Participants discover available services and download
 
 ### Audit log
 
-A log of user actions that change the state or configuration of a system.
+A log of user attempts to change the state or configuration of a system, regardless of success or
+failure.
 
 ### Message log
 
@@ -948,6 +950,7 @@ Connector, Registry, Registry Proxy, Information System and Issuer Service are n
 | Configuration proxy | Registry Proxy |
 | Dataservice | Dataset |
 | Dataservice provider / client | Provider / Consumer |
+| End user of dataservice | End user |
 | Authentication certificate of security server | Authentication certificate |
 | Signature certificate of a member | Signing certificate |
 | Affiliation of membership | Registration of a Participant |
