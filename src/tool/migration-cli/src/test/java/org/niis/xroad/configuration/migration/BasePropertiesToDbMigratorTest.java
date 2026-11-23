@@ -166,7 +166,7 @@ class BasePropertiesToDbMigratorTest {
         var migrator = new TestMigrator(Map.of("xroad.test.plain", PLAIN_VALUE))
                 .withEnv(BasePropertiesToDbMigrator.AUTO_CONFIRM_ENV, "true");
 
-        try (MockedConstruction<DbRepository> _ = Mockito.mockConstruction(DbRepository.class)) {
+        try (var _ = Mockito.mockConstruction(DbRepository.class)) {
             migrator.migrate("input", "db.props");
         }
 
