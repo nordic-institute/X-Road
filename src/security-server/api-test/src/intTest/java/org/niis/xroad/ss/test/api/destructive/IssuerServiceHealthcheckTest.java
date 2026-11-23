@@ -31,6 +31,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
+import org.niis.xroad.ss.test.api.admin.AdminApiSession;
+import org.niis.xroad.ss.test.api.admin.DsTlsCertificateAdminClient;
+import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
@@ -40,21 +43,26 @@ import static org.awaitility.Awaitility.await;
 import static org.niis.xroad.ss.test.api.destructive.ProxyHealthcheckSupport.assertHealthcheckNoErrors;
 import static org.niis.xroad.ss.test.api.destructive.ProxyHealthcheckSupport.assertHealthcheckStatus;
 import static org.niis.xroad.ss.test.api.destructive.ProxyHealthcheckSupport.healthUrl;
+import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
- * Verifies that the Issuer Service readiness reports the database as the cause when its database is stopped
- * and recovers after the database is started again.
+ * Verifies the Issuer Service health endpoint: readiness names the database as the cause while its database is
+ * stopped, and names connector TLS as the cause while the shared connector TLS slot holds no certificate. Each
+ * case recovers once the dependency is back.
  */
-@DisplayName("Issuer Service healthcheck: database-down scenario")
+@DisplayName("Issuer Service healthcheck: database-down and no-certificate scenarios")
 @SuppressWarnings("checkstyle:magicnumber")
 class IssuerServiceHealthcheckTest extends SsSharedStackDestructiveTest {
 
     private static final String READINESS_PATH = "/q/health/ready";
+    private static final String LIVENESS_PATH = "/q/health/live";
     private static final String CHECK_NAME = "EDC_READINESS_CHECK";
     private static final String DATABASE_COMPONENT = "database";
+    private static final String CONNECTOR_TLS_COMPONENT = "connector-tls";
+    private static final String CONNECTOR_TLS_CAUSE = "Connector TLS is not served";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(120);
 
@@ -83,6 +91,45 @@ class IssuerServiceHealthcheckTest extends SsSharedStackDestructiveTest {
                 assertHealthcheckNoErrors(url, POLL_INTERVAL, POLL_TIMEOUT));
     }
 
+    @Test
+    @DisplayName("a restarted Issuer Service is live but not ready without the connector TLS certificate "
+            + "and turns ready once the certificate is seeded")
+    void livenessIsUpAndReadinessNamesConnectorTlsWhileTheCertificateIsMissing(SsApiTestContainerSetup stack) {
+        var readinessUrl = healthUrl(stack, SsApiTestContainerSetup.DS_ISSUER_SERVICE, Port.QUARKUS_HEALTH, READINESS_PATH);
+        var livenessUrl = healthUrl(stack, SsApiTestContainerSetup.DS_ISSUER_SERVICE, Port.QUARKUS_HEALTH, LIVENESS_PATH);
+        var seeder = new SsBaselineSeeder(stack);
+        given("the Issuer Service readiness is UP initially", () ->
+                assertHealthcheckNoErrors(readinessUrl, POLL_INTERVAL, POLL_TIMEOUT));
+        try {
+            when("the connector TLS key is regenerated, leaving the slot without a certificate", () ->
+                    new DsTlsCertificateAdminClient(adminSession(stack)).generateKey().statusCode(201));
+            and("the Issuer Service is restarted", () ->
+                    stack.restartService(SsApiTestContainerSetup.DS_ISSUER_SERVICE));
+            then("liveness is UP", () ->
+                    assertHealthcheckNoErrors(livenessUrl, POLL_INTERVAL, POLL_TIMEOUT));
+            and("readiness is DOWN with the connector TLS cause", () ->
+                    await()
+                            .pollDelay(Duration.ZERO)
+                            .pollInterval(POLL_INTERVAL)
+                            .atMost(POLL_TIMEOUT)
+                            .ignoreExceptions()
+                            .untilAsserted(() -> assertConnectorTlsNotServed(readinessUrl)));
+        } finally {
+            and("the connector TLS certificate is seeded again", seeder::ensureBaseline);
+        }
+        then("readiness is UP once the certificate is served", () ->
+                assertHealthcheckNoErrors(readinessUrl, POLL_INTERVAL, POLL_TIMEOUT));
+    }
+    private static AdminApiSession adminSession(SsApiTestContainerSetup stack) {
+        var uiMapping = stack.getContainerMapping(SsApiTestContainerSetup.UI, Port.UI);
+        return new AdminApiSession("https://%s:%d".formatted(uiMapping.host(), uiMapping.port()));
+    }
+    private static void assertConnectorTlsNotServed(String url) {
+        assertHealthcheckStatus(url, CHECK_NAME, "DOWN");
+        var cause = RestAssuredFactory.given().get(url).jsonPath()
+                .getString("checks.find { it.name == '%s' }.data['%s']".formatted(CHECK_NAME, CONNECTOR_TLS_COMPONENT));
+        assertThat(cause).as("cause of the connector TLS component").contains(CONNECTOR_TLS_CAUSE);
+    }
     private static void assertDatabaseDown(String url) {
         assertHealthcheckStatus(url, CHECK_NAME, "DOWN");
         var response = RestAssuredFactory.given().get(url);
