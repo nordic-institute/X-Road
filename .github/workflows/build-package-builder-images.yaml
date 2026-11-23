@@ -34,6 +34,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup mirrors
+        id: mirrors
+        uses: ./.github/actions/setup-mirrors
+        with:
+          token: ${{ secrets.XROAD_MIRROR_TOKEN }}
+          username: ${{ secrets.XROAD_MIRROR_USERNAME }}
+          maven-url: ${{ secrets.XROAD_MIRROR_MAVEN_URL }}
+          plugins-url: ${{ secrets.XROAD_MIRROR_PLUGINS_URL }}
+          npm-url: ${{ secrets.XROAD_MIRROR_NPM_URL }}
+          ubuntu-url: ${{ secrets.XROAD_MIRROR_UBUNTU_URL }}
+          docker-url: ${{ secrets.XROAD_MIRROR_DOCKER_URL }}
+          github-url: ${{ secrets.XROAD_MIRROR_GITHUB_URL }}
+          k8s-url: ${{ secrets.XROAD_MIRROR_K8S_URL }}
+          disabled: ${{ vars.XROAD_MIRRORS_DISABLED }}
+
       - name: Read version from gradle.properties
         id: version
         working-directory: ./src
@@ -51,7 +66,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push AMD64 builder images
+      - name: Build AMD64 builder images
         working-directory: ./scripts/images
         env:
           IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
@@ -59,7 +74,32 @@ jobs:
           BUILD_PLATFORMS: linux/amd64
         run: |
           export IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
-          ./build-builder.sh all
+          ./build-builder.sh --no-push all
+
+      - name: Scan builder images for mirror credentials
+        if: steps.mirrors.outputs.enabled == 'true'
+        working-directory: ./scripts/images
+        env:
+          IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
+          IMAGE_TAG: ${{ steps.version.outputs.tag }}-amd64
+        run: |
+          IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
+          ./test-mirror-layer-leak-control.sh
+          ./test-mirror-layer-leak.sh \
+            "${IMAGE_REGISTRY}/package-builder-deb-noble:${IMAGE_TAG}" \
+            "${IMAGE_REGISTRY}/package-builder-deb-resolute:${IMAGE_TAG}" \
+            "${IMAGE_REGISTRY}/package-builder-rpm-el9:${IMAGE_TAG}" \
+            "${IMAGE_REGISTRY}/package-builder-rpm-el10:${IMAGE_TAG}"
+
+      - name: Push AMD64 builder images
+        env:
+          IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
+          IMAGE_TAG: ${{ steps.version.outputs.tag }}-amd64
+        run: |
+          IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
+          for release in deb-noble deb-resolute rpm-el9 rpm-el10; do
+            docker push "${IMAGE_REGISTRY}/package-builder-${release}:${IMAGE_TAG}"
+          done
 
   build-arm64:
     name: Build ARM64 images
@@ -69,6 +109,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup mirrors
+        id: mirrors
+        uses: ./.github/actions/setup-mirrors
+        with:
+          token: ${{ secrets.XROAD_MIRROR_TOKEN }}
+          username: ${{ secrets.XROAD_MIRROR_USERNAME }}
+          maven-url: ${{ secrets.XROAD_MIRROR_MAVEN_URL }}
+          plugins-url: ${{ secrets.XROAD_MIRROR_PLUGINS_URL }}
+          npm-url: ${{ secrets.XROAD_MIRROR_NPM_URL }}
+          ubuntu-url: ${{ secrets.XROAD_MIRROR_UBUNTU_URL }}
+          docker-url: ${{ secrets.XROAD_MIRROR_DOCKER_URL }}
+          github-url: ${{ secrets.XROAD_MIRROR_GITHUB_URL }}
+          k8s-url: ${{ secrets.XROAD_MIRROR_K8S_URL }}
+          disabled: ${{ vars.XROAD_MIRRORS_DISABLED }}
+
       - name: Read version from gradle.properties
         id: version
         working-directory: ./src
@@ -86,7 +141,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push ARM64 builder images
+      - name: Build ARM64 builder images
         working-directory: ./scripts/images
         env:
           IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
@@ -94,7 +149,32 @@ jobs:
           BUILD_PLATFORMS: linux/arm64
         run: |
           export IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
-          ./build-builder.sh all
+          ./build-builder.sh --no-push all
+
+      - name: Scan builder images for mirror credentials
+        if: steps.mirrors.outputs.enabled == 'true'
+        working-directory: ./scripts/images
+        env:
+          IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
+          IMAGE_TAG: ${{ steps.version.outputs.tag }}-arm64
+        run: |
+          IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
+          ./test-mirror-layer-leak-control.sh
+          ./test-mirror-layer-leak.sh \
+            "${IMAGE_REGISTRY}/package-builder-deb-noble:${IMAGE_TAG}" \
+            "${IMAGE_REGISTRY}/package-builder-deb-resolute:${IMAGE_TAG}" \
+            "${IMAGE_REGISTRY}/package-builder-rpm-el9:${IMAGE_TAG}" \
+            "${IMAGE_REGISTRY}/package-builder-rpm-el10:${IMAGE_TAG}"
+
+      - name: Push ARM64 builder images
+        env:
+          IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
+          IMAGE_TAG: ${{ steps.version.outputs.tag }}-arm64
+        run: |
+          IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
+          for release in deb-noble deb-resolute rpm-el9 rpm-el10; do
+            docker push "${IMAGE_REGISTRY}/package-builder-${release}:${IMAGE_TAG}"
+          done
 
   create-manifests:
     name: Create multi-arch manifests

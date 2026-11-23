@@ -10,6 +10,7 @@ on:
 env:
   REGISTRY: ghcr.io
   XROAD_HOME: ${{ github.workspace }}
+  TESTCA_IMAGE: ghcr.io/nordic-institute/xrddev-testca:latest
 jobs:
   PublishCA:
     name: Publish test CA image
@@ -19,6 +20,20 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup mirrors
+        id: mirrors
+        uses: ./.github/actions/setup-mirrors
+        with:
+          token: ${{ secrets.XROAD_MIRROR_TOKEN }}
+          username: ${{ secrets.XROAD_MIRROR_USERNAME }}
+          maven-url: ${{ secrets.XROAD_MIRROR_MAVEN_URL }}
+          plugins-url: ${{ secrets.XROAD_MIRROR_PLUGINS_URL }}
+          npm-url: ${{ secrets.XROAD_MIRROR_NPM_URL }}
+          ubuntu-url: ${{ secrets.XROAD_MIRROR_UBUNTU_URL }}
+          docker-url: ${{ secrets.XROAD_MIRROR_DOCKER_URL }}
+          github-url: ${{ secrets.XROAD_MIRROR_GITHUB_URL }}
+          k8s-url: ${{ secrets.XROAD_MIRROR_K8S_URL }}
+          disabled: ${{ vars.XROAD_MIRRORS_DISABLED }}
       - name: Initialize docker setup
         working-directory: ./development/docker/testca
         run: ./init_context.sh
@@ -28,12 +43,22 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Docker image
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: ${{ github.workspace }}/development/docker/testca
-          push: true
-          tags: ghcr.io/nordic-institute/xrddev-testca:latest
+      - name: Build Docker image
+        run: |
+          source scripts/lib/base-script.sh
+          build_mirror_args "${XROAD_HOME}" "false"
+          docker buildx build --progress=plain \
+            "${MIRROR_BUILD_ARGS[@]}" \
+            --tag "${TESTCA_IMAGE}" \
+            --load \
+            development/docker/testca
+      - name: Scan image for mirror credentials
+        if: steps.mirrors.outputs.enabled == 'true'
+        run: |
+          ./scripts/images/test-mirror-layer-leak-control.sh
+          ./scripts/images/test-mirror-layer-leak.sh "${TESTCA_IMAGE}"
+      - name: Push Docker image
+        run: docker push "${TESTCA_IMAGE}"
       - name: Clean old CA images
         uses: snok/container-retention-policy@d3bdcf5ce9b05f685154e4a16c39233b245e3d53 # v3.1.0
         with:

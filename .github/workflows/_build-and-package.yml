@@ -46,6 +46,7 @@ jobs:
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Setup mirrors
+        id: mirrors
         uses: ./.github/actions/setup-mirrors
         with:
           token: ${{ secrets.XROAD_MIRROR_TOKEN }}
@@ -353,6 +354,23 @@ jobs:
           IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} \
           IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
             ./build-dev-infra.sh --push
+
+      - name: Scan images for mirror credentials
+        if: steps.mirrors.outputs.enabled == 'true'
+        working-directory: ./scripts/images
+        run: |
+          images=(
+            "${IMAGE_REGISTRY}/base-images/ss-baseline-runtime:${SERVICE_IMAGE_TAG}"
+            "${IMAGE_REGISTRY}/base-images/ss-baseline-auxiliary-service-runtime:${SERVICE_IMAGE_TAG}"
+            "${IMAGE_REGISTRY}/base-images/ss-baseline-message-log-archiver-runtime:${SERVICE_IMAGE_TAG}"
+            "${IMAGE_REGISTRY}/central-server-dev:${SERVICE_IMAGE_TAG}"
+            "${IMAGE_REGISTRY}/testca-dev:${SERVICE_IMAGE_TAG}"
+          )
+          for image in "${images[@]}"; do
+            docker pull "${image}"
+          done
+          ./test-mirror-layer-leak-control.sh
+          ./test-mirror-layer-leak.sh "${images[@]}"
 
       - name: Write images-ready marker
         run: |

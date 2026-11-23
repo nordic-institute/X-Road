@@ -23,6 +23,7 @@ ALL_RELEASES=(deb-resolute deb-noble rpm-el9 rpm-el10)
 # Parse arguments
 FORCE_BUILD=false
 NO_CACHE=false
+NO_PUSH=false
 RELEASE=""
 
 while [[ $# -gt 0 ]]; do
@@ -33,6 +34,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-cache)
       NO_CACHE=true
+      shift
+      ;;
+    --no-push)
+      NO_PUSH=true
       shift
       ;;
     -*)
@@ -84,6 +89,7 @@ if [[ -z "$RELEASE" ]]; then
   echo "Options:" >&2
   echo "  -f, --force     Force build without checking registry" >&2
   echo "  --no-cache      Build without using cache" >&2
+  echo "  --no-push       Build single-platform images locally and skip the push" >&2
   echo "" >&2
   echo "Examples:" >&2
   echo "  $0 deb-resolute              # Prepare single image (pull or build)" >&2
@@ -92,6 +98,11 @@ if [[ -z "$RELEASE" ]]; then
   echo "  $0 -f --no-cache rpm-el9  # Force rebuild without cache" >&2
   echo "" >&2
   echo "Available releases: ${ALL_RELEASES[*]}" >&2
+  exit 1
+fi
+
+if [[ "$NO_PUSH" == "true" ]] && [[ "$BUILD_PLATFORMS" == *","* ]]; then
+  echo "--no-push supports single-platform builds only" >&2
   exit 1
 fi
 
@@ -183,6 +194,13 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
     fi
 
     if docker build --progress=plain -t "$IMAGE_NAME" "${CACHE_FLAG[@]}" "${MIRROR_BUILD_ARGS[@]}" "$BUILDER_DOCKER_DIR/$release/"; then
+      if [[ "$NO_PUSH" == "true" ]]; then
+        BUILD_END=$(date +%s)
+        DURATION=$((BUILD_END - BUILD_START))
+        log_success "Built ${release} (${DURATION}s), push skipped"
+        echo
+        continue
+      fi
       log_info "  Pushing to registry..."
       if docker push "$IMAGE_NAME" >/dev/null 2>&1; then
         BUILD_END=$(date +%s)
