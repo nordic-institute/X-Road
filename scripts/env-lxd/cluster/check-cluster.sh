@@ -12,7 +12,8 @@
 #  - OpenBao runs on every node of the inventory; each such node reports HA enabled, exactly one of them is active and
 #    the others are standby;
 #  - on every node whose OpenBao runs, the openbao unit has only the packaged drop-in
-#    /usr/lib/systemd/system/openbao.service.d/xroad.conf and /etc/systemd/system/openbao.service.d does not exist;
+#    /usr/lib/systemd/system/openbao.service.d/xroad.conf, the unit loads no environment file
+#    and /etc/systemd/system/openbao.service.d does not exist;
 #  - on every node whose OpenBao runs, the OpenBao certificate on the node address names the node address and the
 #    host name, the root token and unseal keys files are identical on all such nodes, the client token files
 #    differ, the node's own client token reads the first node's admin service TLS key and the issuer-key of the
@@ -97,8 +98,8 @@ EOF
 # "xroad-center <state>". While openbao is active: HA state of the node from the leader endpoint (ha-enabled, is-self),
 # SHA-256 hashes of the root token, unseal keys and client token files, the size and md5 of the upstream OpenBao
 # environment file with its packaged md5, the number of dpkg leftovers in /etc/openbao, the drop-in files of the
-# openbao unit and whether /etc/systemd/system/openbao.service.d exists, the owner, group and mode of
-# the X-Road OpenBao environment file, and HTTP status codes of reads made with the
+# openbao unit, the environment files of the unit, whether /etc/systemd/system/openbao.service.d exists, the owner,
+# group and mode of the X-Road OpenBao environment file, and HTTP status codes of reads made with the
 # node's own client token. While xroad-center is active: the HTTP status of the node's own and the shared TLS secret
 # of each service as "<secret path> <HTTP status>". The services' client token is sent from standard input to curl,
 # so it appears in no argument list, and no response body is printed.
@@ -130,6 +131,7 @@ if systemctl is-active --quiet openbao; then
   echo "dpkg-leftovers $(find /etc/openbao -maxdepth 1 \( -name '*.dpkg-dist' -o -name '*.dpkg-old' -o -name '*.dpkg-new' \) | wc -l)"
   echo "xroad-env-owner-mode $(stat -c '%U:%G:%a' /etc/openbao/xroad-openbao.env)"
   echo "unit-drop-ins $(systemctl cat openbao | sed -n 's/^# \(\/.*\.conf\)$/\1/p' | paste -sd, -)"
+  echo "unit-env-files $(systemctl show openbao -p EnvironmentFiles --value || echo unreadable)"
   echo "etc-drop-in-dir $([ -e /etc/systemd/system/openbao.service.d ] && echo present || echo absent)"
   echo "pins $(status_of "xrd-secret/signer/token-pins/$1/?list=true")"
   echo "first-node-tls-key $(status_of "xrd-secret/tls/admin-service/$2")"
@@ -324,6 +326,12 @@ check_openbao_node() {
     pass "$node openbao unit has only the packaged drop-in /usr/lib/systemd/system/openbao.service.d/xroad.conf"
   else
     fail "$node openbao unit drop-ins are '$value', expected only /usr/lib/systemd/system/openbao.service.d/xroad.conf"
+  fi
+  value=$(status_field "$status" unit-env-files)
+  if [[ -z "$value" ]]; then
+    pass "$node openbao unit loads no environment file"
+  else
+    fail "$node openbao unit loads the environment file '$value', expected none"
   fi
   value=$(status_field "$status" etc-drop-in-dir)
   if [[ "$value" == "absent" ]]; then

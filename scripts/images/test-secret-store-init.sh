@@ -283,13 +283,23 @@ start_bao() {
     sleep 1
   done
   docker exec -d "${CONTAINER}" sh -c '
-    config=$(sed -n "s/^ExecStart=.* server -config=//p" '"${DROP_IN_FILE}"' | tail -n 1)
-    exec su -s /bin/sh -c "set -a; . ${ENV_FILE}; exec bao server -config=${config}" openbao >'"${BAO_LOG}"' 2>&1'
+    wrapper=$(sed -n "s/^ExecStart=\(.\)/\1/p" '"${DROP_IN_FILE}"' | tail -n 1)
+    exec su -s /bin/sh -c "${wrapper}" openbao >'"${BAO_LOG}"' 2>&1'
+}
+# run_wrapper_without_env_file; runs the drop-in's ExecStart as the openbao user while the environment file is moved aside.
+run_wrapper_without_env_file() {
+  run_in_container -- sh -c '
+    mv '"${ENV_FILE}"' '"${ENV_FILE}"'.aside
+    wrapper=$(sed -n "s/^ExecStart=\(.\)/\1/p" '"${DROP_IN_FILE}"' | tail -n 1)
+    timeout 20 su -s /bin/sh -c "${wrapper}" openbao
+    rc=$?
+    mv '"${ENV_FILE}"'.aside '"${ENV_FILE}"'
+    exit $rc'
 }
 stop_bao() {
-  in_container pkill -x bao
+  in_container pkill -f '(^|/)bao server'
   for _ in $(seq 1 30); do
-    if ! in_container pgrep -x bao >/dev/null; then return 0; fi
+    if ! in_container pgrep -f '(^|/)bao server' >/dev/null; then return 0; fi
     sleep 1
   done
   log_error "OpenBao did not stop in the test container"
@@ -640,10 +650,18 @@ scenario_initializing_node() {
   check "configuration: api_addr is the local address" in_container grep -q '^api_addr = "https://127.0.0.1:8200"$' "${XROAD_CONFIG_FILE}"
   check_eq "drop-in: one -config argument" 1 "$(in_container grep -o -- '-config=' "${DROP_IN_FILE}" | wc -l | tr -d ' ')"
   check "drop-in: ExecStart is cleared first" in_container grep -qx 'ExecStart=' "${DROP_IN_FILE}"
-  check "drop-in: only the X-Road file is read" in_container grep -qE "^ExecStart=/usr/bin/bao server -config=${XROAD_CONFIG_FILE}\$" "${DROP_IN_FILE}"
+  check_eq "drop-in: ExecStart sources the environment file and execs bao on the X-Road file only" \
+    "/bin/bash -c 'set -ae; . ${ENV_FILE}; exec /usr/bin/bao server -config=${XROAD_CONFIG_FILE}'" \
+    "$(in_container sed -n 's/^ExecStart=\(.\)/\1/p' "${DROP_IN_FILE}")"
+  check "drop-in: the ExecStart wrapper has no systemd specifier or variable" test "$(in_container grep -E '^ExecStart=.' "${DROP_IN_FILE}" | grep -c '[$%]')" -eq 0
+  check "drop-in: the unit loads no environment file" test "$(in_container grep -cE '^EnvironmentFile=.+' "${DROP_IN_FILE}")" -eq 0
+  check "drop-in: the upstream environment file is reset" in_container grep -qx 'EnvironmentFile=' "${DROP_IN_FILE}"
   check_eq "drop-in: ExecStartPost runs the unseal-only script" "${UNSEAL_SCRIPT}" "$(in_container sed -n 's/^ExecStartPost=[-+@!:]*//p' "${DROP_IN_FILE}")"
   check "drop-in: the package file sets no restart policy" test "$(in_container grep -cE '^Restart(Sec)?=' "${DROP_IN_FILE}")" -eq 0
-  check "drop-in: the environment file keeps no optional prefix" in_container grep -qx "EnvironmentFile=${ENV_FILE}" "${DROP_IN_FILE}"
+  run_wrapper_without_env_file
+  check "drop-in: without the environment file the wrapper fails" test "${RC}" -ne 0
+  check "drop-in: without the environment file the message names the file" grep -qF "${ENV_FILE}" "${ERR_FILE}"
+  check "drop-in: the environment file is back in place" in_container test -f "${ENV_FILE}"
   check "writer: wrote no drop-in" in_container test ! -e "${WRITER_DROP_IN_DIR}"
   check "OpenBao log: no unknown or unsupported field" test "$(in_container grep -c 'unknown or unsupported field' "${BAO_LOG}")" -eq 0
   local config_before
