@@ -9,7 +9,10 @@ RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=
     --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
-RUN export DEBIAN_FRONTEND=noninteractive; \
+RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
+    --mount=type=secret,id=mirror_token \
+    . /tmp/mirror-apt-auth.sh && \
+    export DEBIAN_FRONTEND=noninteractive; \
     apt-get -qq update && \
     apt-get -qq install \
     software-properties-common git curl wget debhelper devscripts

@@ -17,7 +17,10 @@ ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ORGANIZATION_NAME=Test
 
-RUN apt-get -qq update \
+RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
+    --mount=type=secret,id=mirror_token \
+    . /tmp/mirror-apt-auth.sh && \
+    apt-get -qq update \
   && apt-get -qq install --no-install-recommends  \
     python3 nginx supervisor bash openssl curl python3-pip uwsgi uwsgi-plugin-python3 \
   && apt -y install --no-install-recommends /tmp/acme2certifier_${A2C_VER}-${A2C_DEB_RELEASE}_all.deb \

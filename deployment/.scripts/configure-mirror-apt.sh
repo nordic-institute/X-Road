@@ -14,7 +14,8 @@
 #   URL      - Mirror URL (e.g., https://artifactory.example.org/artifactory/mirror-ubuntu)
 #   USER     - Username for authentication
 #
-# Token is read from /run/secrets/mirror_token (Docker) or XROAD_MIRROR_TOKEN env var (Ansible)
+# Token is read from /run/secrets/mirror_token (Docker) or XROAD_MIRROR_TOKEN env var (Ansible).
+# With the Docker secret, no auth file is written; see mirror-apt-auth.sh.
 
 setup_mirror() {
     echo "Starting Mirror APT Configuration..."
@@ -42,9 +43,13 @@ setup_mirror() {
 
     # 2. Configure Authentication (Machine Login)
     # -------------------------------------------------------------------------
-    mkdir -p /etc/apt/auth.conf.d
-    echo "machine $MIRROR_HOST login $MIRROR_USER password $MIRROR_TOKEN" > /etc/apt/auth.conf.d/mirror.conf
-    chmod 600 /etc/apt/auth.conf.d/mirror.conf
+    # With a Docker secret the credential must not enter an image layer: every RUN that
+    # runs apt sources mirror-apt-auth.sh instead. Outside Docker the file is permanent.
+    if [ ! -f /run/secrets/mirror_token ]; then
+        mkdir -p /etc/apt/auth.conf.d
+        echo "machine $MIRROR_HOST login $MIRROR_USER password $MIRROR_TOKEN" > /etc/apt/auth.conf.d/mirror.conf
+        chmod 600 /etc/apt/auth.conf.d/mirror.conf
+    fi
 
     # 3. Disable TLS verification for mirror (GPG signature verification still protects packages)
     # -------------------------------------------------------------------------

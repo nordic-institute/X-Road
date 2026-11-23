@@ -10,7 +10,10 @@ RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=
     --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
-RUN apt-get -qq update \
+RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
+    --mount=type=secret,id=mirror_token \
+    . /tmp/mirror-apt-auth.sh && \
+    apt-get -qq update \
     && apt-get -qq install openssh-server rsync
 
 RUN adduser --system --shell /bin/bash --home /home/xroad-slave --ingroup xroad xroad-slave \

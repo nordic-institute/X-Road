@@ -15,7 +15,10 @@ RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=
     --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
-RUN apt-get -qq update \
+RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
+    --mount=type=secret,id=mirror_token \
+    . /tmp/mirror-apt-auth.sh && \
+    apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install \
     sudo ca-certificates gnupg supervisor net-tools iproute2 locales \
@@ -59,6 +62,8 @@ FROM base AS repo-internal
 
 FROM repo-${PACKAGE_SOURCE} AS final
 ARG PACKAGE_SOURCE
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
 ENV XROAD_DEPLOYMENT_VARIANT=sidecar
 ARG XROAD_PACKAGES="\
     xroad-proxy \
@@ -75,7 +80,10 @@ ARG XROAD_PACKAGES="\
 
 RUN --mount=type=bind,source=files/xroad-internal-repo.sh,target=/tmp/xroad-internal-repo.sh \
     --mount=type=bind,from=packages,target=/tmp/packages \
-    /bin/bash /tmp/xroad-internal-repo.sh provision "$PACKAGE_SOURCE" \
+    --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
+    --mount=type=secret,id=mirror_token \
+    . /tmp/mirror-apt-auth.sh \
+  && /bin/bash /tmp/xroad-internal-repo.sh provision "$PACKAGE_SOURCE" \
   && apt-get -qq update \
   && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install $XROAD_PACKAGES \
   && /bin/bash /tmp/xroad-internal-repo.sh cleanup "$PACKAGE_SOURCE" \
