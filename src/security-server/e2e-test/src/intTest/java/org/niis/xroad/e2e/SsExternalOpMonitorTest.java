@@ -30,6 +30,7 @@ import lombok.SneakyThrows;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
@@ -70,14 +71,19 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 /**
  * ss1 stores operational data in the external op-monitor on {@code xrd-opmon} over mutual TLS: an untrusted
  * CA and a channel host absent from the server certificate's SAN list are rejected, and with the right CA
- * and host the records reach the external database and the Diagnostics Traffic view. Runs only where a bare
- * op-monitor host exists (LXD).
+ * and host the records reach the external database and the Diagnostics Traffic view. All three tests use
+ * the same short deadline, so the trusted flow shows that the deadline alone does not cause a rejection.
+ * Runs only where a bare op-monitor host exists (LXD).
+ *
+ * <p>Runs after every other op-monitor class: it restarts the proxy and changes the channel rows and the
+ * stored op-monitor CA.
  *
  * <p>Each test saves the op-monitor channel rows and the stored op-monitor CA before changing ss1, and
  * restores and verifies them in a {@code finally} block. The rows are seeded by provisioning; the tests
  * only update their values.
  */
 @DisplayName("SS external op-monitor - mutual TLS channel to the bare op-monitor host")
+@Order(600)
 @ResourceLock(value = "op-monitor-ca", mode = READ_WRITE)
 @ResourceLock(value = "configurable-property", mode = READ_WRITE)
 @SuppressWarnings("checkstyle:magicnumber")
@@ -130,8 +136,8 @@ class SsExternalOpMonitorTest extends E2eTest {
         var fx = prepare(env);
 
         runWithRestore(fx, () -> {
-            given("ss1 points at xrd-opmon and trusts its CA", () ->
-                    configure(fx, fx.opmonHost(), fx.savedRows().get(DEADLINE_ROW), fx.opmonCaPem()));
+            given("ss1 points at xrd-opmon with a short deadline and trusts its CA", () ->
+                    configure(fx, fx.opmonHost(), SHORT_DEADLINE, fx.opmonCaPem()));
 
             var from = Instant.now().minus(Duration.ofMinutes(5));
             var count = rowCount(fx);
@@ -247,14 +253,13 @@ class SsExternalOpMonitorTest extends E2eTest {
     private static void restore(Fixture fx, Throwable testFailure) {
         var failures = new ArrayList<Throwable>();
         attempt(failures, () -> awaitAdminService(fx));
+        fx.savedRows().forEach((row, value) -> attempt(failures, () ->
+                assertThat(patchConfigurableProperty(fx.baseUrl(), session(fx), row, value).getStatusCode()).isEqualTo(204)));
         attempt(failures, () -> {
-            var session = session(fx);
-            fx.savedRows().forEach((row, value) ->
-                    assertThat(patchConfigurableProperty(fx.baseUrl(), session, row, value).getStatusCode()).isEqualTo(204));
             if (fx.savedCaHash().isPresent()) {
-                assertThat(uploadOpMonitorCa(fx.baseUrl(), session, fx.opmonCaPem()).getStatusCode()).isEqualTo(200);
+                assertThat(uploadOpMonitorCa(fx.baseUrl(), session(fx), fx.opmonCaPem()).getStatusCode()).isEqualTo(200);
             } else {
-                assertThat(deleteOpMonitorCa(fx.baseUrl(), session).getStatusCode()).isEqualTo(204);
+                assertThat(deleteOpMonitorCa(fx.baseUrl(), session(fx)).getStatusCode()).isEqualTo(204);
             }
         });
         attempt(failures, () -> restartProxyAndAdminService(fx));

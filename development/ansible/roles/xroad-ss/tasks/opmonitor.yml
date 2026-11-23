@@ -12,9 +12,8 @@
     name: xroad-opmonitor
     state: present
 
-# The proxy-side addon flag is seeded by msglog-encryption.yml, gated on the same
-# xroad_install_opmonitoring. Config goes into configuration_properties: the
-# XRoadConfig DSL resolves DB overrides and packaged defaults only, never conf.d yaml.
+# The op-monitor timestamp offset is stored in configuration_properties.
+# The local daemon on this Security Server gets this setting from the database.
 - name: seed op-monitor addon config
   become: true
   command:
@@ -26,8 +25,8 @@
       - --yes
   notify: restart xroad-proxy
 
-# The three op-monitor channel rows hold the values the Security Server already uses
-# when no row exists, so the LXD e2e tests can update them on xrd-ss1 without creating rows.
+# The three op-monitor channel rows hold the values the Security Server uses when no row exists.
+# The dev environment seeds them on xrd-ss1 so the LXD e2e tests start from stored rows.
 - name: seed op-monitor channel rows
   become: true
   when: inventory_hostname == 'xrd-ss1'

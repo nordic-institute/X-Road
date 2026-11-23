@@ -58,7 +58,7 @@
 - name: Place the Security Server RPC CA
   ansible.builtin.copy:
     content: "{{ opmon_ss_rpc_ca.content }}"
-    dest: "{{ xroad_opmon_identity_dir }}/trusted-ca.crt"
+    dest: "{{ xroad_opmon_trusted_ca_path }}"
     owner: root
     group: root
     mode: "0644"

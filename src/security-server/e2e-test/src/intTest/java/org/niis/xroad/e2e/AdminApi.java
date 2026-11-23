@@ -491,7 +491,7 @@ class AdminApi {
         return result;
     }
 
-    /** Updates the value of an existing configurable-property row; the API answers 204. */
+    /** Updates the value of a configurable property and answers 204; the dev environment seeds the rows the tests update. */
     static Response patchConfigurableProperty(String baseUrl, AdminSession session, String name, String value) {
         return sendJson(session, Method.PATCH, baseUrl + "/api/v1/system/property",
                 "{\"property_name\":\"%s\",\"property_value\":\"%s\"}".formatted(name, value));

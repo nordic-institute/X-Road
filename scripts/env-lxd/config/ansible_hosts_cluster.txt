@@ -30,9 +30,6 @@ xrd-ss0 ansible_connection=lxd variant=fo
 [is_servers]
 xrd-is ansible_connection=lxd
 
-[opmon_servers]
-xrd-opmon ansible_connection=lxd
-
 [lxd_servers]
 lima-xroad-lxd ansible_ssh_args="-F {{ lookup('env','HOME') }}/.lima/xroad-lxd/ssh.config"
 

@@ -17,6 +17,10 @@ xroad_opmon_ss_host: "{{ groups['ubuntu_ss'] | first }}"
 xroad_opmon_ss_admin_url: "https://localhost:4000"
 
 xroad_opmon_identity_dir: /etc/xroad-opmonitor/ssl
+
+# Security Server RPC CA file, at the path the Security Server User Guide documents.
+xroad_opmon_trusted_ca_path: /etc/xroad-opmonitor/external-rpc-ca.pem
+
 xroad_opmon_settings_file: /etc/xroad/conf.d/op-monitor-settings.yaml
 xroad_opmon_records_available_offset_seconds: 1
 

@@ -36,7 +36,8 @@
 - name: Wait for the file-based RPC identity to be loaded
   ansible.builtin.shell: |
     set -o pipefail
-    journalctl --unit xroad-opmonitor --output cat --no-pager | grep -c 'Loaded the file-based RPC identity'
+    invocation=$(systemctl show --property=InvocationID --value xroad-opmonitor)
+    journalctl "_SYSTEMD_INVOCATION_ID=$invocation" --output cat --no-pager | grep -c 'Loaded the file-based RPC identity'
   args:
     executable: /bin/bash
   register: opmon_identity_loaded
