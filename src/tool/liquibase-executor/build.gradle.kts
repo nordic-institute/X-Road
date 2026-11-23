@@ -21,11 +21,17 @@ dependencies {
 
 val bootstrapSqlDir = rootProject.layout.projectDirectory.dir("../deployment/native-packages/src/xroad/common/base/usr/share/xroad/db")
 
+val baseScriptsDir = rootProject.layout.projectDirectory.dir("../deployment/native-packages/src/xroad/common/base/usr/share/xroad/scripts")
+
 tasks.test {
   inputs.files(fileTree(bootstrapSqlDir) { include("bootstrap-*.sql") })
     .withPropertyName("bootstrapSql")
     .withPathSensitivity(PathSensitivity.RELATIVE)
+  inputs.files(fileTree(baseScriptsDir) { include("_setup_db.sh") })
+    .withPropertyName("setupDbScript")
+    .withPathSensitivity(PathSensitivity.RELATIVE)
   systemProperty("bootstrap.sql.dir", bootstrapSqlDir.asFile.absolutePath)
+  systemProperty("base.scripts.dir", baseScriptsDir.asFile.absolutePath)
 }
 
 tasks.shadowJar {

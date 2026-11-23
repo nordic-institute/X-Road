@@ -108,7 +108,17 @@ setup_database() {
 
     local db_plain_user=${db_user%%@*}
 
+    local check_psql=psql_master
+    local runtime_login=false
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+        runtime_login=true
+        check_psql=psql_dbuser
+    fi
+
+    check_pg_version "$check_psql"
+    check_db_writable "$check_psql" "$db_host"
+
+    if [[ "$runtime_login" == true ]]; then
         log "Database and user exists, skipping database creation."
     else
 
