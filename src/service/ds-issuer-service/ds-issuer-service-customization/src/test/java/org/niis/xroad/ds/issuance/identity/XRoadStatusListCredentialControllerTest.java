@@ -64,16 +64,20 @@ class XRoadStatusListCredentialControllerTest {
         var bound = new BoundIssuerIdentity("DID-SERVE", "issuer.example", 7183, "https://issuer.example/issuance", BOUND_BASE_URL);
         var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL, CHECK_INTERVAL);
         holder.start();
-        var credentialId = BOUND_BASE_URL + "/credential-1";
-        when(store.query(any())).thenReturn(StoreResult.success(List.of(statusListCredential(credentialId))));
-        var controller = new XRoadStatusListCredentialController(store, monitor, () -> JsonMapper.builder().build(), holder);
+        try {
+            var credentialId = BOUND_BASE_URL + "/credential-1";
+            when(store.query(any())).thenReturn(StoreResult.success(List.of(statusListCredential(credentialId))));
+            var controller = new XRoadStatusListCredentialController(store, monitor, () -> JsonMapper.builder().build(), holder);
 
-        var response = controller.resolveStatusListCredential(MediaType.WILDCARD, requestContext(CALLBACK_ADDRESS + "/credential-1"));
+            var response = controller.resolveStatusListCredential(MediaType.WILDCARD, requestContext(CALLBACK_ADDRESS + "/credential-1"));
 
-        assertThat(response.getStatus()).isEqualTo(200);
-        var query = capturedQuery();
-        assertThat(query.getFilterExpression())
-                .anySatisfy(criterion -> assertThat(criterion.getOperandRight()).isEqualTo(credentialId));
+            assertThat(response.getStatus()).isEqualTo(200);
+            var query = capturedQuery();
+            assertThat(query.getFilterExpression())
+                    .anySatisfy(criterion -> assertThat(criterion.getOperandRight()).isEqualTo(credentialId));
+        } finally {
+            holder.close();
+        }
     }
 
     @Test
