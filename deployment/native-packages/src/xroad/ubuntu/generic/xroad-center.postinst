@@ -51,8 +51,12 @@ setup_database() {
 
     local db_url=$(get_prop ${db_properties} 'spring.datasource.url')
     if [[ -z "$db_url" ]]; then
+      check_db_host_answer "$db_host" fresh
       db_url="jdbc:postgresql://$db_host/$db_database"
       crudini --set "${db_properties}" '' spring.datasource.url "${db_url}"
+    else
+      local url_hosts_pat='^jdbc:postgresql://([^/?]*)'
+      [[ "$db_url" =~ $url_hosts_pat ]] && check_db_host_answer "${BASH_REMATCH[1]}" existing
     fi
     pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
     if [[ "$db_url" =~ $pat ]]; then

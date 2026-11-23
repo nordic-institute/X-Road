@@ -56,6 +56,21 @@ check_db_writable() {
   log "Database at '$address' accepts writes"
 }
 
+# Refuses a host list in a new database address. OpenBao and the setup steps use only the first host, so they miss a failover.
+# An existing configuration with a host list only gets a warning.
+# Arguments: $1 - the host part of the address, host[:port][,host[:port]], $2 - fresh or existing
+check_db_host_answer() {
+  local -r hosts="$1" state="$2"
+
+  [[ "$hosts" == *,* ]] || return 0
+
+  if [[ "$state" == fresh ]]; then
+    die "The database address '$hosts' is a host list. Give one write address: a virtual IP, a connection pooler, a managed endpoint or a Kubernetes read-write service."
+  fi
+
+  log "Warning: the database address '$hosts' is a host list. OpenBao uses only the first host, so it does not follow a failover. Use one write address instead."
+}
+
 get_prop() {
   crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
 }

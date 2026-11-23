@@ -58,6 +58,7 @@ class CsDatabasePreflightTest {
     private static final String HELPER_IN_CONTAINER = "/tmp/_setup_db.sh";
     private static final String UNSUPPORTED_IMAGE = "postgres:14";
     private static final String ADDRESS = "db-write.example.test:5432";
+    private static final String HOST_LIST = "db1.example.test:5432,db2.example.test:5432";
     private static final String RUNTIME_PASSWORD = "runtime-pw";
     private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
@@ -128,6 +129,47 @@ class CsDatabasePreflightTest {
 
         assertThat(result.getExitCode()).isNotZero();
         assertThat(result.getStderr()).contains(ADDRESS);
+    }
+
+    @Test
+    void hostListIsRefusedOnFreshInstall() throws Exception {
+        assumeHostRuleRunsOnce();
+
+        var result = runHelper("check_db_host_answer '%s' fresh".formatted(HOST_LIST));
+
+        assertThat(result.getExitCode()).as(result.getStderr()).isNotZero();
+        assertThat(result.getStderr()).isNotBlank();
+    }
+
+    @Test
+    void hostListOnExistingInstallWarnsAndPasses() throws Exception {
+        assumeHostRuleRunsOnce();
+
+        var result = runHelper("check_db_host_answer '%s' existing".formatted(HOST_LIST));
+
+        assertThat(result.getExitCode()).as(result.getStderr()).isZero();
+        assertThat(result.getStderr()).isNotBlank();
+    }
+
+    @Test
+    void singleHostPassesSilentlyForFreshAndExisting() throws Exception {
+        assumeHostRuleRunsOnce();
+
+        var fresh = runHelper("check_db_host_answer '%s' fresh".formatted(ADDRESS));
+        var existing = runHelper("check_db_host_answer '%s' existing".formatted(ADDRESS));
+
+        assertThat(fresh.getExitCode()).as(fresh.getStderr()).isZero();
+        assertThat(fresh.getStdout() + fresh.getStderr()).isEmpty();
+        assertThat(existing.getExitCode()).as(existing.getStderr()).isZero();
+        assertThat(existing.getStdout() + existing.getStderr()).isEmpty();
+    }
+
+    private void assumeHostRuleRunsOnce() {
+        assumeTrue(!UNSUPPORTED_IMAGE.equals(image), "The host rule does not use the database, so it runs for one image only");
+    }
+
+    private static ExecResult runHelper(String call) throws IOException, InterruptedException {
+        return postgres.execInContainer("bash", "-c", ". %s\n%s".formatted(HELPER_IN_CONTAINER, call));
     }
 
     private static ExecResult checkWritable(Database database, Access access) throws IOException, InterruptedException {
