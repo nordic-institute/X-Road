@@ -47,8 +47,8 @@ allprojects {
     resolutionStrategy {
       eachDependency {
         if (requested.group == "org.eclipse.jetty.ee10" && requested.name == "jetty-ee10-servlet") {
-          useVersion(libs.jetty.ee10.servlet.get().version ?: "12.1.9")
-          because("XRDDEV-3176: EDC ds-* modules pull jetty-ee10-servlet 12.1.6 via transitive (CVE-2026-2332, CVE-2026-5795); align with rest of Jetty pinned at 12.1.9.")
+          useVersion(libs.versions.jetty.get())
+          because("EDC ds-* modules pull an older jetty-ee10-servlet via transitive (CVE-2026-2332, CVE-2026-5795); align with the rest of Jetty pinned in libs.versions.toml.")
         }
         if (requested.group == "org.apache.httpcomponents.client5" && requested.name == "httpclient5") {
           useVersion(libs.apache.httpclient5.get().version ?: "5.6.1")
