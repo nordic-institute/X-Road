@@ -2898,13 +2898,11 @@ An external operational monitoring daemon reads its parameters from a settings f
 
 In the following sections, some parameters are described which may be required to be changed more likely.
 
-
 #### 15.2.1 Configuring the Health Statistics Period
 
 By default, health statistics are provided for a period of 600 seconds (10 minutes). This means that if no request exchange has taken place for 10 minutes, all the statistical metrics are reset. Please refer to \[[PR-OPMON](#Ref_PR-OPMON)\] for a detailed overview of the health metrics available.
 
 To change the health statistics period, set the parameter `xroad.op-monitor.health-statistics-period-seconds` as described in section [15.2](#152-operational-monitoring-daemon).
-
 
 #### 15.2.2 Configuring the Parameters Related to Database Cleanup
 
@@ -2913,7 +2911,6 @@ Depending on the load and resources of the system, it may be necessary to change
 The parameter `xroad.op-monitor.keep-records-for-days` should be edited, for instance if the disk fills up before cleanup occurs, or alternatively, if the default period of 7 days is too short. The parameter `xroad.op-monitor.clean-interval` (a Cron expression \[[CRON](#Ref_CRON)\]) defines how often the system checks whether cleanup should be done. If the default period of 12 hours is too long or short it should be edited according to your needs.
 
 Set the parameters as described in section [15.2](#152-operational-monitoring-daemon).
-
 
 #### 15.2.3 Connection and Trust Between the Security Server and the Operational Monitoring Daemon
 
@@ -3027,7 +3024,7 @@ To make a Security Server use an external operational monitoring daemon, follow 
 
    The proxy restart loses the operational monitoring records that are buffered in its memory and not yet stored (see the note in section [15.3.3](#1533-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon)).
 
-8. On the Security Server host, stop the local operational monitoring daemon and keep it from starting again, also after a reboot:
+8. If the package `xroad-opmonitor` is installed on the Security Server host, stop the local operational monitoring daemon and keep it from starting again, also after a reboot:
 
    ```bash
    systemctl disable --now xroad-opmonitor
@@ -3093,6 +3090,7 @@ A standalone external host has no X-Road backup tool. Include the following in t
 
 - the settings file `/etc/xroad/conf.d/op-monitor-settings.yaml`;
 - `/etc/xroad/db.properties`;
+- the file with the database administrator credentials, `/etc/xroad.properties` (or `/etc/xroad/xroad.properties` if that file exists);
 - `/etc/xroad-opmonitor/ssl`;
 - the Security Server RPC CA file that `xroad.op-monitor.rpc.file-identity.trusted-ca-path` names;
 - the operational monitoring database.
@@ -3105,7 +3103,7 @@ The daemon uses the clock of its own host for the time windows of the queries. K
 
 **Upgrading the Security Server with the upgrade wizard**
 
-When the upgrade wizard upgrades a Security Server that uses an external daemon, the wizard may unmask, preset and start the local service `xroad-opmonitor`. After the upgrade, stop and disable the local service again:
+When the upgrade wizard upgrades a Security Server that uses an external daemon, the wizard may unmask, preset and start the local service `xroad-opmonitor`. After the upgrade, if the package `xroad-opmonitor` is installed on the Security Server, stop and disable the local service again:
 
 ```bash
 systemctl disable --now xroad-opmonitor

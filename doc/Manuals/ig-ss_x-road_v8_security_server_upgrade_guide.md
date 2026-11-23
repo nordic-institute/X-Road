@@ -309,7 +309,7 @@ The effective 7.8 `host` value is the last one set in the `override-*.ini` files
 | A name that resolves only to remote addresses                                                                    | Only the channel host is set. The listener address keeps its default and no certificate SAN setting is written.                                                                                           |
 | A name that cannot be resolved                                                                                   | Ambiguous. Only the channel host is set and a warning is logged. The listener address keeps its default and no certificate SAN setting is written.                                                      |
 
-For an ambiguous `host` value the wizard log has a line that starts with `WARNING: op-monitor host '<name>'` and gives the reason: the name cannot be resolved, it resolves to this server and to another host, or it resolves to a loopback address and to another host. The channel host keeps the name, and no listener address or certificate name is written. If the operational monitoring daemon runs on this Security Server, set the channel host to the loopback address and restart the proxy and the admin-service:
+For an ambiguous `host` value the wizard log file has a line of the form `[<timestamp>] [WARN] op-monitor host '<name>' …` and gives the reason: the name cannot be resolved, it resolves to this server and to another host, or it resolves to a loopback address and to another host. The channel host keeps the name, and no listener address or certificate name is written. If the operational monitoring daemon runs on this Security Server, set the channel host to the loopback address and restart the proxy and the admin-service:
 
 ```bash
 /usr/share/xroad/scripts/db_property.sh set xroad.common-rpc.channel.op-monitor.host 127.0.0.1 --yes
@@ -323,7 +323,7 @@ The certificate SAN settings are configuration rows. The migration writes only t
 
 Operational monitoring on and off:
 
-- In X-Road 7.8 the add-on package `xroad-addon-opmonitoring` turns the monitoring on. In X-Road 8 the property `xroad.proxy.addon.op-monitor.enabled` (default `false`) does. Step 6a records the 7.8 state and step 11a writes the property: `true` when the add-on was enabled, otherwise `false`. A value that already exists is kept.
+- In X-Road 7.8 the add-on package `xroad-addon-opmonitoring` turns the monitoring on. In X-Road 8 the property `xroad.proxy.addon.op-monitor.enabled` (default `false`; the EE, FI, IS and FO country profiles set it to `true`) does. Step 6a records the 7.8 state and step 11a writes the property: `true` when the add-on was enabled, otherwise `false`. A value that already exists is kept.
 - Resetting `/var/lib/xroad-upgrade` removes the recorded state. A rerun then records the state again from the already upgraded server, where the 7.8 add-on is gone, so monitoring that was enabled in 7.8 is recorded as disabled. If the property was not written yet, set it by hand as in the [manual procedure](#manual-upgrade-procedure), step 11a.
 
 The op-monitor TLS files are not migrated. X-Road 7.8 used `/etc/xroad/ssl/opmonitor.crt` and its key for the HTTPS connection to the daemon. A daemon on the Security Server host uses the shared internal gRPC identity of the Security Server, so step 10 does not copy them to the secret store. An external daemon uses its own file identity, see [Upgrading External Operational Monitoring Daemon Host](#upgrading-external-operational-monitoring-daemon-host).
@@ -708,6 +708,7 @@ The monitoring gap starts in step 1 and ends in step 4. A Security Server that h
 **Prerequisites**
 
 - The external host gets the same X-Road 8 version as the Security Server.
+- Java 25 is the default Java on the external host. The daemon starts `java` from the `PATH`.
 - The external host has PostgreSQL 15 or later on 127.0.0.1.
 - You have saved the effective `[op-monitor]` values of the X-Road 7 daemon. Take them from `/etc/xroad/conf.d/local.ini` and, if you edited it, from `/etc/xroad/conf.d/op-monitor.ini`. If a package manager backup copy of `op-monitor.ini` exists, for example `op-monitor.ini.rpmsave`, include its values. The package upgrade does not keep an edited `op-monitor.ini` in use.
 
@@ -726,7 +727,7 @@ The monitoring gap starts in step 1 and ends in step 4. A Security Server that h
    /usr/share/xroad/scripts/db_property.sh get xroad.common-rpc.channel.op-monitor.port
    ```
 
-   A command that exits with status 1 has no row: the default value (`127.0.0.1` or `2081`) applies. If the wizard log has a `WARNING: op-monitor host` line, see [Operational monitoring](#operational-monitoring). The channel host must be an address that the external daemon listens on, and the channel port must be the listening port of the daemon.
+   A command that exits with status 1 has no row: the default value (`127.0.0.1` or `2081`) applies. If the wizard log file has a `[WARN] op-monitor host` line, see [Operational monitoring](#operational-monitoring). The channel host must be an address that the external daemon listens on, and the channel port must be the listening port of the daemon.
 
 3. **External host.** Do these actions in this order:
 
@@ -739,7 +740,7 @@ The monitoring gap starts in step 1 and ends in step 4. A Security Server that h
       sed -E -i 's/^([[:space:]]*)op-monitor\.hibernate\./\1xroad.db.op-monitor.hibernate./' /etc/xroad/db.properties
       ```
 
-      Do this before the package upgrade. If you skip it, the `xroad-opmonitor` package upgrade does not complete. The copy `/root/db.properties.x7` is for a rollback to X-Road 7: restore it over `/etc/xroad/db.properties`.
+      Do this before the package upgrade. If you skip it, the upgrade of the `xroad-opmonitor` package on Ubuntu stops with an error. On RHEL the upgrade finishes, but the daemon has a wrong database password. The copy `/root/db.properties.x7` is for a rollback to X-Road 7: restore it over `/etc/xroad/db.properties`.
 
    3. Upgrade the packages in one transaction that also removes the X-Road 7 `xroad-confclient`. The external host needs no configuration client. On Ubuntu:
 

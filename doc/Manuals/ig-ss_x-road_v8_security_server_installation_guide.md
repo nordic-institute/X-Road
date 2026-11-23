@@ -16,7 +16,7 @@ Doc. ID: IG-SS-8
 | 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets     |
 | 17.11.2026 | 1.3     | Documented country profile selection and precedence                  | Ričardas Bučiūnas |
 | 18.11.2026 | 1.4     | Added the DID and DSP port choice at installation                    | Justas Samuolis   |
-| 23.11.2026 | 1.5     | Added section 2.9 about intalling an external operational monitoring | Eneli Reimets     |
+| 23.11.2026 | 1.5     | Added section 2.9 about installing an external operational monitoring | Eneli Reimets     |
 
 ## License
 
@@ -479,6 +479,8 @@ The installation of the package `xroad-opmonitor` writes the operational monitor
 | serverconf_admin | serverconf | CREATE,TEMPORARY,CONNECT | The database user used to create/update the serverconf schema.                           |
 | messagelog       | messagelog | TEMPORARY,CONNECT        | The database user used to read/write the messagelog database during application runtime. |
 | messagelog_admin | messagelog | CREATE,TEMPORARY,CONNECT | The database user used to create/update the messagelog schema.                           |
+| opmonitor        | op-monitor | TEMPORARY,CONNECT        | The database user used to read/write the op-monitor database during application runtime. |
+| opmonitor_admin  | op-monitor | CREATE,TEMPORARY,CONNECT | The database user used to create/update the op-monitor schema.                           |
 | openbao          | openbao    | CREATE,TEMPORARY,CONNECT | The database user for local OpenBao (package `xroad-secret-store`)                       |
 | postgres         | ALL        | ALL                      | PostgreSQL database default superuser.                                                   |
 

@@ -505,19 +505,29 @@ An external operational monitoring daemon runs on a host that is not the Securit
 **Prerequisites**
 
 * The host runs RHEL 9.3 or newer, or RHEL 10.0 or newer, on a x86-64 platform (see [2.3](#23-requirements-for-the-security-server)). The packages install Java 25 as a dependency. If the host has another default Java version, set Java 25 as the default (see [2.3.1](#231-installing-java-25)).
-* The host has the settings of section [2.4](#24-preparing-os) and the X-Road package repository and the EPEL repository of section [2.5](#25-setup-package-repository). The host needs no X-Road administrator user. Do not add the OpenBao package repository: the host needs no OpenBao and no secret store.
+* The host has the settings of section [2.4](#24-preparing-os). The host needs no X-Road administrator user, no OpenBao and no secret store.
 * The database of the daemon is a local PostgreSQL 15 or later. The package `xroad-database-local` installs it.
 * The host has the same X-Road version as the Security Server that it serves.
 
 **Installation**
 
-1. On RHEL 9, enable the PostgreSQL 15 module stream. On RHEL 10, DNF module streams are no longer used, so skip this step:
+1. Add the X-Road 8 package repository and the Extra Packages for Enterprise Linux (EPEL) repository, and import the signing key of the X-Road repository. EPEL provides `crudini`:
+
+   ```bash
+   RHEL_MAJOR_VERSION=$(source /etc/os-release; echo ${VERSION_ID%.*})
+   sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${RHEL_MAJOR_VERSION}.noarch.rpm
+   sudo dnf config-manager --add-repo https://artifactory.niis.org/xroad8-snapshot-rpm
+   sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
+   sudo dnf makecache
+   ```
+
+2. On RHEL 9, enable the PostgreSQL 15 module stream. On RHEL 10, DNF module streams are no longer used, so skip this step:
 
    ```bash
    sudo dnf module enable postgresql:15
    ```
 
-2. Install the packages:
+3. Install the packages:
 
    ```bash
    sudo dnf install xroad-opmonitor xroad-database-local
@@ -536,7 +546,16 @@ The installation enables the service `xroad-opmonitor` but does not start it. Th
   sudo grep -E '^xroad\.db\.op-monitor\.hibernate\.' /etc/xroad/db.properties | cut -d= -f1
   ```
 
-  The first command must print the package name and version. The second command must list six property names.
+  The first command must print the package name and version. The second command must list these six property names:
+
+  ```text
+  xroad.db.op-monitor.hibernate.jdbc.use_streams_for_binary
+  xroad.db.op-monitor.hibernate.connection.driver_class
+  xroad.db.op-monitor.hibernate.connection.url
+  xroad.db.op-monitor.hibernate.hikari.dataSource.currentSchema
+  xroad.db.op-monitor.hibernate.connection.username
+  xroad.db.op-monitor.hibernate.connection.password
+  ```
 
 ## 3 Security Server Initial Configuration
 
