@@ -203,7 +203,7 @@ detect_os() {
       ubuntu|debian)
         OS_FAMILY="debian"
         ;;
-      rhel|rocky|almalinux)
+      rhel|rocky|almalinux|ol)
         OS_FAMILY="rhel"
         ;;
       *)

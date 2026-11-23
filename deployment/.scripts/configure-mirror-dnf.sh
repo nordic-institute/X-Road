@@ -39,24 +39,18 @@ setup_mirror() {
 
     echo "Configuring package mirror: $MIRROR_BASE_URL"
 
-    # 2. Detect Rocky Linux Version and Architecture
+    # 2. Detect Distribution, Version and Architecture
     # -------------------------------------------------------------------------
     VERSION=""
     ARCH=$(uname -m)
 
     if [ -f /etc/os-release ]; then
         . /etc/os-release
-        if [ "$ID" != "rocky" ]; then
-            echo "Unsupported distribution: $ID. Only Rocky Linux is supported. Skipping mirror setup."
-            return 0
-        fi
         VERSION="${VERSION_ID%%.*}"  # Major version only (9 or 10)
     else
         echo "/etc/os-release not found. Cannot detect distribution."
         return 1
     fi
-
-    echo "Detected: Rocky Linux $VERSION ($ARCH)"
 
     # 3. Build Repository URLs
     # -------------------------------------------------------------------------
@@ -64,14 +58,37 @@ setup_mirror() {
 
     # Mirrors the full upstream path structure:
     # mirror-rocky -> https://dl.rockylinux.org/pub/rocky/
+    # mirror-oracle -> https://yum.oracle.com/
     # mirror-epel -> https://dl.fedoraproject.org/pub/epel/
-    BASEOS_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/BaseOS/${ARCH}/os/"
-    APPSTREAM_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/AppStream/${ARCH}/os/"
-    EXTRAS_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/extras/${ARCH}/os/"
+    case "$ID" in
+        rocky)
+            DISTRO_NAME="Rocky Linux"
+            BASEOS_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/BaseOS/${ARCH}/os/"
+            APPSTREAM_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/AppStream/${ARCH}/os/"
+            EXTRAS_URL="${MIRROR_BASE_URL}/mirror-rocky/${VERSION}/extras/${ARCH}/os/"
+            DISTRO_GPG_KEY_FILE="RPM-GPG-KEY-Rocky-${VERSION}"
+            DISTRO_GPG_KEY_URL="${MIRROR_BASE_URL}/mirror-rocky/RPM-GPG-KEY-Rocky-${VERSION}"
+            ;;
+        ol)
+            DISTRO_NAME="Oracle Linux"
+            BASEOS_URL="${MIRROR_BASE_URL}/mirror-oracle/repo/OracleLinux/OL${VERSION}/baseos/latest/${ARCH}/"
+            APPSTREAM_URL="${MIRROR_BASE_URL}/mirror-oracle/repo/OracleLinux/OL${VERSION}/appstream/${ARCH}/"
+            EXTRAS_URL=""
+            DISTRO_GPG_KEY_FILE="RPM-GPG-KEY-oracle"
+            DISTRO_GPG_KEY_URL="${MIRROR_BASE_URL}/mirror-oracle/RPM-GPG-KEY-oracle-ol${VERSION}"
+            ;;
+        *)
+            echo "Unsupported distribution: $ID. Only Rocky Linux and Oracle Linux are supported. Skipping mirror setup."
+            return 0
+            ;;
+    esac
+
+    echo "Detected: $DISTRO_NAME $VERSION ($ARCH)"
+
     EPEL_URL="${MIRROR_BASE_URL}/mirror-epel/${VERSION}/Everything/${ARCH}/"
 
     # GPG key paths
-    ROCKY_GPG_KEY="file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${VERSION}"
+    DISTRO_GPG_KEY="file:///etc/pki/rpm-gpg/${DISTRO_GPG_KEY_FILE}"
     EPEL_GPG_KEY="file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-${VERSION}"
 
     # 4. Configure Authentication
@@ -87,14 +104,13 @@ EOF
     # -------------------------------------------------------------------------
     mkdir -p /etc/pki/rpm-gpg
 
-    # Rocky Linux GPG key
-    if [ ! -f "/etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${VERSION}" ]; then
-        ROCKY_KEY_URL="${MIRROR_BASE_URL}/mirror-rocky/RPM-GPG-KEY-Rocky-${VERSION}"
-        echo "Importing Rocky Linux GPG key from mirror..."
-        if curl -fsSL --netrc -o "/etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${VERSION}" "$ROCKY_KEY_URL"; then
-            rpm --import "/etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${VERSION}"
+    # Distribution GPG key
+    if [ ! -f "/etc/pki/rpm-gpg/${DISTRO_GPG_KEY_FILE}" ]; then
+        echo "Importing $DISTRO_NAME GPG key from mirror..."
+        if curl -fsSL --netrc -o "/etc/pki/rpm-gpg/${DISTRO_GPG_KEY_FILE}" "$DISTRO_GPG_KEY_URL"; then
+            rpm --import "/etc/pki/rpm-gpg/${DISTRO_GPG_KEY_FILE}"
         else
-            echo "Warning: Failed to fetch Rocky Linux GPG key. Package installation may fail."
+            echo "Warning: Failed to fetch $DISTRO_NAME GPG key. Package installation may fail."
         fi
     fi
 
@@ -116,11 +132,11 @@ EOF
     # Use "00-" prefix so it sorts first alphabetically
     cat > /etc/yum.repos.d/00-mirror-baseos.repo <<EOF
 [mirror-baseos]
-name=Mirror - Rocky Linux $VERSION - BaseOS
+name=Mirror - $DISTRO_NAME $VERSION - BaseOS
 baseurl=${BASEOS_URL}
 enabled=1
 gpgcheck=1
-gpgkey=${ROCKY_GPG_KEY}
+gpgkey=${DISTRO_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
@@ -129,29 +145,31 @@ EOF
 
     cat > /etc/yum.repos.d/00-mirror-appstream.repo <<EOF
 [mirror-appstream]
-name=Mirror - Rocky Linux $VERSION - AppStream
+name=Mirror - $DISTRO_NAME $VERSION - AppStream
 baseurl=${APPSTREAM_URL}
 enabled=1
 gpgcheck=1
-gpgkey=${ROCKY_GPG_KEY}
+gpgkey=${DISTRO_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
 password=$MIRROR_TOKEN
 EOF
 
-    cat > /etc/yum.repos.d/00-mirror-extras.repo <<EOF
+    if [ -n "$EXTRAS_URL" ]; then
+        cat > /etc/yum.repos.d/00-mirror-extras.repo <<EOF
 [mirror-extras]
-name=Mirror - Rocky Linux $VERSION - Extras
+name=Mirror - $DISTRO_NAME $VERSION - Extras
 baseurl=${EXTRAS_URL}
 enabled=1
 gpgcheck=1
-gpgkey=${ROCKY_GPG_KEY}
+gpgkey=${DISTRO_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
 password=$MIRROR_TOKEN
 EOF
+    fi
 
     cat > /etc/yum.repos.d/00-mirror-epel.repo <<EOF
 [mirror-epel]

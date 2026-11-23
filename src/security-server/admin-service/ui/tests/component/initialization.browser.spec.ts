@@ -27,12 +27,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
-import { delay } from 'msw';
+import { delay, type RequestHandler } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
 import { Permissions, RouteName } from '@/global';
 import type { InitializationStatus, SecurityServer } from '@/openapi-types';
 import { TokenInitStatus } from '@/openapi-types';
+import { useUser } from '@/store/modules/user';
 
 // ── JSON Schema definitions (inlined from OpenAPI components/schemas) ────────
 
@@ -144,6 +145,19 @@ const currentServerHandler = specHttp.get('/security-servers', ({ response }) =>
 
 const initPermissions = [Permissions.INIT_CONFIG, Permissions.UPLOAD_ANCHOR, Permissions.VIEW_CLIENTS];
 
+/**
+ * Opens the wizard with `status` already in the store, as after login. Rendered
+ * straight away, the owner fields mount disabled from renderRoute's default status
+ * and Vuetify's one-shot autofocus is lost if it fires before the status fetch
+ * enables them.
+ */
+async function renderWizardWithStatus(status: InitializationStatus, msw: RequestHandler[]) {
+  const { router } = await renderRoute('/forbidden', { permissions: initPermissions, msw });
+  useUser().$patch({ initializationStatus: status });
+  await router.push('/initial-configuration');
+  return { router };
+}
+
 // ── Specs ──────────────────────────────────────────────────────────────────────
 
 describe('0100 — Security Server initialisation wizard (Browser Mode)', () => {
@@ -161,10 +175,11 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
   });
 
   it('Owner-member validation blocks Continue until required fields are filled', async () => {
-    await renderRoute('/initial-configuration', {
-      permissions: initPermissions,
-      msw: [anchorImportedStatusHandler, memberClassesHandler, memberNamesHandler],
-    });
+    await renderWizardWithStatus(anchorImportedStatusFixture, [
+      anchorImportedStatusHandler,
+      memberClassesHandler,
+      memberNamesHandler,
+    ]);
 
     await expect.element(page.getByTestId('member-class-input')).toBeVisible();
     await expect.element(page.getByTestId('member-code-input')).toBeVisible();
@@ -269,10 +284,13 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
   });
 
   it('PIN step shows token-policy alert; matching PINs enable Submit and POST 201 navigates to Clients', async () => {
-    const { router } = await renderRoute('/initial-configuration', {
-      permissions: initPermissions,
-      msw: [anchorImportedStatusHandler, memberClassesHandler, memberNamesHandler, initServerHandler, currentServerHandler],
-    });
+    const { router } = await renderWizardWithStatus(anchorImportedStatusFixture, [
+      anchorImportedStatusHandler,
+      memberClassesHandler,
+      memberNamesHandler,
+      initServerHandler,
+      currentServerHandler,
+    ]);
 
     await expect.element(page.getByTestId('member-class-input')).toBeVisible();
 
@@ -302,10 +320,11 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
   });
 
   it('PIN confirmation mismatch disables Submit', async () => {
-    await renderRoute('/initial-configuration', {
-      permissions: initPermissions,
-      msw: [anchorImportedStatusHandler, memberClassesHandler, memberNamesHandler],
-    });
+    await renderWizardWithStatus(anchorImportedStatusFixture, [
+      anchorImportedStatusHandler,
+      memberClassesHandler,
+      memberNamesHandler,
+    ]);
 
     await expect.element(page.getByTestId('member-class-input')).toBeVisible();
 
