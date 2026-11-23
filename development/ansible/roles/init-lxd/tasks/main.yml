@@ -275,6 +275,11 @@
       aarch64: arm64
       x86_64: amd64
 
+- name: Configure package mirror (RedHat family)
+  include_tasks: package-mirror.yml
+  when: package_mirror_url is defined and package_mirror_user is defined and package_mirror_token is defined
+  with_inventory_hostnames: rhel_ss
+
 - name: Configure Oracle Linux {{ rhel_releasever }} repositories and en_US locale
   raw: |
     set -e
@@ -285,8 +290,3 @@
   with_inventory_hostnames: rhel_ss
   tags:
     - rhel-container-init
-
-- name: Configure package mirror (RedHat family)
-  include_tasks: package-mirror.yml
-  when: package_mirror_url is defined and package_mirror_user is defined and package_mirror_token is defined
-  with_inventory_hostnames: rhel_ss
