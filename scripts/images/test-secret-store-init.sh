@@ -53,6 +53,7 @@ ENV_FILE="/etc/openbao/xroad-openbao.env"
 CONFIG_WRITER="/usr/share/xroad/scripts/secret-store-cluster-config.sh"
 TLS_SCRIPT="/usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh"
 UNSEAL_SCRIPT="/usr/share/xroad/scripts/secret-store-unseal.sh"
+SERVER_SCRIPT="/usr/share/xroad/scripts/secret-store-server.sh"
 LISTENER_SCRIPT="${ROOT_DIR}/development/docker/central-server/files/unseal-on-start-listener.sh"
 HA_GUIDE="${ROOT_DIR}/doc/Manuals/ig-csha_x-road_6_ha_installation_guide.md"
 XROAD_CONFIG_FILE="/etc/openbao/xroad-openbao.hcl"
@@ -648,13 +649,14 @@ scenario_initializing_node() {
   check "configuration: listener binds 127.0.0.1:8200 only" in_container grep -q '^  address *= "127.0.0.1:8200"$' "${XROAD_CONFIG_FILE}"
   check "configuration: PostgreSQL storage" in_container grep -q '^storage "postgresql" {' "${XROAD_CONFIG_FILE}"
   check "configuration: api_addr is the local address" in_container grep -q '^api_addr = "https://127.0.0.1:8200"$' "${XROAD_CONFIG_FILE}"
-  check_eq "drop-in: one -config argument" 1 "$(in_container grep -o -- '-config=' "${DROP_IN_FILE}" | wc -l | tr -d ' ')"
   check "drop-in: ExecStart is cleared first" in_container grep -qx 'ExecStart=' "${DROP_IN_FILE}"
-  check_eq "drop-in: ExecStart sources the environment file and execs bao on the X-Road file only" \
-    "/bin/bash -c 'set -ae; . ${ENV_FILE}; exec /usr/bin/bao server -config=${XROAD_CONFIG_FILE}'" \
-    "$(in_container sed -n 's/^ExecStart=\(.\)/\1/p' "${DROP_IN_FILE}")"
-  check "drop-in: the ExecStart wrapper has no systemd specifier or variable" test "$(in_container grep -E '^ExecStart=.' "${DROP_IN_FILE}" | grep -c '[$%]')" -eq 0
+  check_eq "drop-in: ExecStart is the start script" "${SERVER_SCRIPT}" "$(in_container sed -n 's/^ExecStart=\(.\)/\1/p' "${DROP_IN_FILE}")"
   check "drop-in: the unit loads no environment file" test "$(in_container grep -cE '^EnvironmentFile=.+' "${DROP_IN_FILE}")" -eq 0
+  check "drop-in: no ExecStart line runs the environment file through a shell" test "$(in_container grep -cE '^ExecStart=.*(bash|sh) -c' "${DROP_IN_FILE}")" -eq 0
+  check_eq "start script: one -config argument" 1 "$(in_container grep -o -- '-config=' "${SERVER_SCRIPT}" | wc -l | tr -d ' ')"
+  check_eq "start script: execs bao on the X-Road file only" "exec /usr/bin/bao server -config=${XROAD_CONFIG_FILE}" \
+    "$(in_container grep -E '^exec ' "${SERVER_SCRIPT}")"
+  check "start script: never sources the environment file" test "$(in_container grep -cE '(^|[;&|[:space:]])(\.|source)[[:space:]]+[^[:space:]]*(xroad-openbao\.env|\$env_file)' "${SERVER_SCRIPT}")" -eq 0
   check "drop-in: the upstream environment file is reset" in_container grep -qx 'EnvironmentFile=' "${DROP_IN_FILE}"
   check_eq "drop-in: ExecStartPost runs the unseal-only script" "${UNSEAL_SCRIPT}" "$(in_container sed -n 's/^ExecStartPost=[-+@!:]*//p' "${DROP_IN_FILE}")"
   check "drop-in: the package file sets no restart policy" test "$(in_container grep -cE '^Restart(Sec)?=' "${DROP_IN_FILE}")" -eq 0
@@ -809,6 +811,60 @@ check_unchanged_run() {
   check_eq "${label}: configuration unchanged" "${config_before}" "$(config_state)"
   check_eq "${label}: certificate unchanged" "${cert_before}" "$(cert_hash)"
   check_eq "${label}: no trust install, daemon-reload or restart" "" "$(shim_calls)"
+}
+# run_start_script_with_env_content CONTENT; runs the drop-in's ExecStart as the openbao user with CONTENT as the environment file.
+run_start_script_with_env_content() {
+  printf '%s' "$1" | docker exec -i "${CONTAINER}" sh -c 'cat > '"${ENV_FILE}"
+  run_in_container -- sh -c '
+    wrapper=$(sed -n "s/^ExecStart=\(.\)/\1/p" '"${DROP_IN_FILE}"' | tail -n 1)
+    timeout 20 su -s /bin/sh -c "${wrapper}" openbao'
+}
+pg_exec() { docker exec -i -u postgres "${PG_CONTAINER}" psql -U postgres -qtA "$@"; }
+# check_start_with_url LABEL ROLE PASSWORD URL: starts bao through the drop-in with URL as the connection setting
+# and checks that it connects to PostgreSQL as ROLE. The server accepts only the exact PASSWORD.
+check_start_with_url() {
+  local label="$1" role="$2" password="$3" url="$4" i tables=0
+  pg_exec -v ON_ERROR_STOP=1 -v "role=${role}" -v "pw=${password}" >/dev/null <<'SQL'
+SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'role', :'pw') \gexec
+SELECT format('CREATE DATABASE %I OWNER %I', :'role', :'role') \gexec
+SQL
+  docker exec -i "${CONTAINER}" sh -c 'cat > '"${ENV_FILE}" < <(printf 'BAO_PG_CONNECTION_URL=%s\n' "${url}")
+  start_bao
+  for i in $(seq 1 30); do
+    tables="$(pg_exec -d "${role}" -c "SELECT count(*) FROM pg_tables WHERE tableowner = '${role}'")"
+    if [[ "${tables}" -gt 0 ]]; then break; fi
+    sleep 1
+  done
+  check "${label}: bao connected to PostgreSQL as the role" test "${tables}" -gt 0
+  check "${label}: no process argument list holds the password" test "$(docker exec -u root "${CONTAINER}" sh -c 'cat /proc/[0-9]*/cmdline 2>/dev/null' | grep -acF -- "${password}")" -eq 0
+  stop_bao
+}
+scenario_start_script_reads_env_as_data() {
+  log_info "Scenario: the OpenBao start script reads the environment file as data"
+  ADDR="https://127.0.0.1:8200"
+  start_postgres
+  run_node_container yes
+  for _ in $(seq 1 60); do
+    if in_container test -e "${READY_FILE}" 2>/dev/null; then break; fi
+    sleep 1
+  done
+  check "start script: not owned by the OpenBao user" test "$(in_container stat -c '%U' "${SERVER_SCRIPT}")" != openbao
+  check "start script: the OpenBao user can run it" in_container su -s /bin/sh -c "test -x ${SERVER_SCRIPT}" openbao
+  run_start_script_with_env_content $'BAO_PG_USER=x\n'
+  check "missing key: exit non-zero" test "${RC}" -ne 0
+  check "missing key: the message names the key" grep -qF "BAO_PG_CONNECTION_URL" "${ERR_FILE}"
+  check "missing key: the message names the file" grep -qF "${ENV_FILE}" "${ERR_FILE}"
+  run_start_script_with_env_content $'BAO_PG_CONNECTION_URL=\n'
+  check "empty key: exit non-zero" test "${RC}" -ne 0
+  check "empty key: the message names the key" grep -qF "BAO_PG_CONNECTION_URL" "${ERR_FILE}"
+  local password='Pw$x'"'"'q'"'"' "d" ;`b` e'
+  local dsn_password=${password//\'/\\\'}
+  check_start_with_url "key-value connection string" hostile_dsn "${password}" \
+    "host=${PG_CONTAINER} port=5432 user=hostile_dsn password='${dsn_password}' dbname=hostile_dsn sslmode=disable"
+  local url_password='Pw$x'"'"'q'"'"';z!*(),='
+  check_start_with_url "connection URL" hostile_url "${url_password}" \
+    "postgres://hostile_url:${url_password}@${PG_CONTAINER}:5432/hostile_url?sslmode=disable"
+  CONTAINER="${NODE1_CONTAINER}"
 }
 scenario_cluster_member() {
   log_info "Scenario: single server, then convert to a cluster member"
@@ -1695,6 +1751,7 @@ scenario_bao_token_env
 scenario_no_root_token
 scenario_pki_setup_writes_policy
 scenario_initializing_node
+scenario_start_script_reads_env_as_data
 scenario_cluster_member
 scenario_join_guards
 scenario_join_node
