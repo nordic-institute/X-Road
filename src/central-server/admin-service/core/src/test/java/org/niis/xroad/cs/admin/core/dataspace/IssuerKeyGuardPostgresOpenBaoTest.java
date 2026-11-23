@@ -293,7 +293,7 @@ class IssuerKeyGuardPostgresOpenBaoTest {
 
         @Override
         public List<BoundIssuer> findAllBound() {
-            throw new UnsupportedOperationException();
+            return List.of(new BoundIssuer("did:xrd:test", false));
         }
 
         @Override

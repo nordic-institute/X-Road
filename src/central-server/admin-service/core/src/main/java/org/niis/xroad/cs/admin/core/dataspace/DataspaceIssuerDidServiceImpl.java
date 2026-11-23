@@ -33,7 +33,6 @@ import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.dto.TrustedIssuer;
 import org.niis.xroad.cs.admin.api.dto.TrustedIssuerRemoval;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
-import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
 import org.springframework.stereotype.Service;
 
@@ -56,8 +55,8 @@ public class DataspaceIssuerDidServiceImpl implements DataspaceIssuerDidService 
 
     @Override
     public List<String> findAll() {
-        return issuerDidRepository.findAll().stream()
-                .map(IssuerDidEntity::getDid)
+        return findAllBound().stream()
+                .map(BoundIssuer::did)
                 .sorted(Comparator.naturalOrder())
                 .toList();
     }
@@ -80,15 +79,13 @@ public class DataspaceIssuerDidServiceImpl implements DataspaceIssuerDidService 
     @Override
     public TrustedIssuerRemoval remove(int id) {
         List<TrustedIssuer> trusted = findAllTrusted();
-        boolean isTrusted = trusted.stream().anyMatch(issuer -> issuer.id() == id);
-        if (!isTrusted || !issuerDidRepository.markRemoved(id)) {
+        TrustedIssuer issuer = trusted.stream()
+                .filter(candidate -> candidate.id() == id)
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ISSUER_NOT_FOUND.build()));
+        if (!issuerDidRepository.markRemoved(id)) {
             throw new NotFoundException(TRUSTED_ISSUER_NOT_FOUND.build());
         }
-        String did = trusted.stream()
-                .filter(issuer -> issuer.id() == id)
-                .findFirst()
-                .orElseThrow()
-                .did();
-        return new TrustedIssuerRemoval(did, trusted.size() == 1);
+        return new TrustedIssuerRemoval(issuer.did(), trusted.size() == 1);
     }
 }

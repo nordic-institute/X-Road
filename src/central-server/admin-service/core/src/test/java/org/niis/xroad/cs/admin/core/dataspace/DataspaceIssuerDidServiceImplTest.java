@@ -162,4 +162,17 @@ class DataspaceIssuerDidServiceImplTest {
         verify(issuerDidRepository, never()).markRemoved(anyInt());
     }
 
+    @Test
+    void removeThrowsNotFoundWhenMarkRemovedUpdatesNoRowWhileTheIdIsStillTrusted() {
+        var entity = mock(IssuerDidEntity.class);
+        when(entity.getId()).thenReturn(ID);
+        when(entity.getDid()).thenReturn(DID_1);
+        when(issuerDidRepository.findAllTrusted()).thenReturn(List.of(entity));
+        when(issuerDidRepository.markRemoved(ID)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.remove(ID)).isInstanceOf(NotFoundException.class);
+
+        verify(issuerDidRepository).markRemoved(ID);
+    }
+
 }

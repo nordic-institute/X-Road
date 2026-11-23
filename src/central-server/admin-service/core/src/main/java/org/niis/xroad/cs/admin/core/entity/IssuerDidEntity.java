@@ -41,7 +41,8 @@ import java.time.Instant;
 /**
  * The Central Server's data space credential Issuer identity binding (globalconf
  * {@code credentialIssuer/did} entry): the Issuer's DID and the full URLs a verifier needs to reach
- * it. Bound once, at data space issuer provisioning time, and never changed afterwards.
+ * it. Bound once, at data space issuer provisioning time; removal only sets {@code removedAt} and
+ * leaves the rest of the row unchanged.
  */
 @Entity
 @Table(name = IssuerDidEntity.TABLE_NAME)

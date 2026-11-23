@@ -184,7 +184,7 @@ public enum RestApiAuditProperty {
     DID_ENTRY_STATUS,
     DID_ENTRY_REASON,
 
-    DID,
+    ISSUER_DID,
     LAST_TRUSTED_ISSUER,
     TRUSTED_ISSUER_ID;
 

@@ -560,9 +560,10 @@ The tab shows "Initialization in progress" and keeps refreshing until the run en
 
 #### 4.5.5 Issuer Service Alerts
 
-Four alerts about the Issuer Service can appear on every page until they are resolved:
+Five alerts about the Issuer Service can appear on every page until they are resolved:
 
 - **"Issuer Service not initialized"** — shown while no issuer identity is bound. Its action, "Set up", opens the tab. Set the host, get a certificate, and initialize, as above.
+- **"Issuer Service identity removed"** — shown once every bound issuer has been removed (see [4.5.7 Trusted Issuers](#457-trusted-issuers)). Dataspace Protocol (DSP) traffic has stopped, because no Security Server has a trusted issuer left. This alert has no action.
 - **"Issuer Service signing key missing"** — shown while an identity is bound but the issuer's signing key has no secret in the secret store (OpenBao). The Issuer Service cannot sign until the secret is restored. Its action, "View status", opens the tab.
 - **"Failed to check the Issuer Service signing key"** — shown when the Central Server cannot read whether the issuer's signing key has a secret. Its action, "View status", opens the tab.
 - **"Failed to check the Issuer Service set-up status"** — shown when the Central Server cannot read the Issuer Service's set-up state. This alert has no action.
@@ -636,6 +637,8 @@ Confirming the removal takes the issuer off the list at once. Security Servers r
 - the Issuer Service row on this tab (see [4.5.1 The Issuer Service Tab](#451-the-issuer-service-tab)) shows "Removed" instead of "Can sign" or a cause.
 
 Restoring a configuration backup taken before the removal (see [12. Configuration Backup and Restore](#12-configuration-backup-and-restore)) brings the issuer back as trusted: the restored database row carries no removal, so the next global configuration lists the issuer again. If the issuer must still be removed, repeat the removal after such a restore.
+
+Once every bound issuer has been removed, the "Issuer Service identity removed" alert (see [4.5.5 Issuer Service Alerts](#455-issuer-service-alerts)) appears on every page until a configuration backup taken before the removal is restored (see [12. Configuration Backup and Restore](#12-configuration-backup-and-restore)).
 
 ### 4.6 Issuer Service Issuance Settings and Statuslist Capacity
 

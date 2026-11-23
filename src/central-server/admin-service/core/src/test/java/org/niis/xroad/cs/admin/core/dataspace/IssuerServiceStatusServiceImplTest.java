@@ -232,7 +232,7 @@ class IssuerServiceStatusServiceImplTest {
 
         var status = issuerServiceStatusService.getStatus();
 
-        assertThat(status.overall()).isNotEqualTo(IssuerServiceStatus.Overall.REMOVED);
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
     }
 
     @Test

@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ISSUER_NOT_FOUND;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ISSUER_DID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.LAST_TRUSTED_ISSUER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TRUSTED_ISSUER_ID;
 
@@ -67,7 +67,7 @@ class TrustedIssuersControllerTest {
 
         assertThat(response.getStatusCode().value()).isEqualTo(204);
         verify(auditDataHelper).put(TRUSTED_ISSUER_ID, ID);
-        verify(auditDataHelper).put(DID, DID_VALUE);
+        verify(auditDataHelper).put(ISSUER_DID, DID_VALUE);
         verify(auditDataHelper).put(LAST_TRUSTED_ISSUER, true);
         verifyNoMoreInteractions(auditDataHelper);
     }

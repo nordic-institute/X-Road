@@ -351,9 +351,10 @@ class IssuerServiceApiTest extends CsApiTest {
     /**
      * Runs in the destructive phase: binds the issuer identity if it is not already bound or removed
      * (idempotent, see {@link #aHostChangeIsRefusedOnceTheIssuerIdentityIsBound} for why), then removes
-     * it through the trusted-issuers admin API. A removed issuer stays removed: the trusted-issuers list
-     * no longer holds its DID, the issuer service state reports bound and {@code REMOVED}, a host change
-     * is refused with the already-bound cause, and initialization is refused with the removed cause.
+     * it through the trusted-issuers admin API, unless an earlier destructive test already removed it.
+     * A removed issuer stays removed: the trusted-issuers list no longer holds its DID, the issuer
+     * service state reports bound and {@code REMOVED}, a host change is refused with the already-bound
+     * cause, and initialization is refused with the removed cause.
      */
     @Test
     @Tag("destructive")
@@ -362,19 +363,13 @@ class IssuerServiceApiTest extends CsApiTest {
         var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
         var trustedIssuers = new TrustedIssuersAdminClient(seeder.newSecurityOfficerSession());
 
-        var statusBeforeRemoval = given("the current issuer service status", () ->
-                issuerService.getIssuerServiceState()
-                        .statusCode(200)
-                        .extract().jsonPath().getString("status"));
+        given("the bound issuer identity is seeded", seeder::bindIssuerIdentity);
 
-        if (!"REMOVED".equals(statusBeforeRemoval)) {
-            seeder.bindIssuerIdentity();
+        var trustedIssuerList = when("the trusted-issuers list is read", () ->
+                trustedIssuers.list().statusCode(200).extract().jsonPath());
 
-            var boundId = when("the bound issuer is found in the trusted-issuers list", () ->
-                    trustedIssuers.list()
-                            .statusCode(200)
-                            .extract().jsonPath()
-                            .getInt("find { it.did == '" + CsBaselineSeeder.BOUND_ISSUER_DID + "' }.id"));
+        if (trustedIssuerList.getList("did", String.class).contains(CsBaselineSeeder.BOUND_ISSUER_DID)) {
+            var boundId = trustedIssuerList.getInt("find { it.did == '" + CsBaselineSeeder.BOUND_ISSUER_DID + "' }.id");
 
             and("the bound issuer is removed", () ->
                     trustedIssuers.delete(boundId).statusCode(204));

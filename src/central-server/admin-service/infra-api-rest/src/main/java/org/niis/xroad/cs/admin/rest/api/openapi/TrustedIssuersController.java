@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TRUSTED_ISSUER;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ISSUER_DID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.LAST_TRUSTED_ISSUER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TRUSTED_ISSUER_ID;
 import static org.springframework.http.ResponseEntity.noContent;
@@ -72,7 +72,7 @@ public class TrustedIssuersController implements TrustedIssuersApi {
     public ResponseEntity<Void> deleteTrustedIssuer(Integer trustedIssuerId) {
         auditDataHelper.put(TRUSTED_ISSUER_ID, trustedIssuerId);
         TrustedIssuerRemoval removal = dataspaceIssuerDidService.remove(trustedIssuerId);
-        auditDataHelper.put(DID, removal.did());
+        auditDataHelper.put(ISSUER_DID, removal.did());
         auditDataHelper.put(LAST_TRUSTED_ISSUER, removal.lastTrustedIssuer());
         return noContent().build();
     }

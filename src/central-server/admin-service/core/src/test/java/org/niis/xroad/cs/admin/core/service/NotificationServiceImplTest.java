@@ -40,6 +40,7 @@ import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
@@ -100,7 +101,7 @@ class NotificationServiceImplTest {
     @BeforeEach
     void setUp() {
         lenient().when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, null));
-        lenient().when(dataspaceIssuerDidService.findAll()).thenReturn(List.of("did:xrd:test"));
+        lenient().when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer("did:xrd:test", false)));
         lenient().when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(true);
         lenient().when(signerProxyFacade.getTokens()).thenReturn(List.of());
         lenient().when(systemParameterService.getInstanceIdentifier()).thenReturn("");
@@ -246,7 +247,7 @@ class NotificationServiceImplTest {
     @Test
     void getAlertsIssuerServiceSetupRequiredWhenNoDidBound() {
         mockInitialized(true, true);
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of());
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -255,9 +256,32 @@ class NotificationServiceImplTest {
     }
 
     @Test
+    void getAlertsIssuerServiceRemovedWhenEveryBoundRowIsRemoved() {
+        mockInitialized(true, true);
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer("did:xrd:test", true)));
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).contains(new AlertInfo("status.issuer_service.removed"));
+        verifyNoInteractions(issuerKeyGuard);
+    }
+
+    @Test
+    void getAlertsIssuerServiceKeyMissingCheckRunsWhenALiveBoundRowExistsAmongRemovedOnes() {
+        mockInitialized(true, true);
+        when(dataspaceIssuerDidService.findAllBound())
+                .thenReturn(List.of(new BoundIssuer("did:xrd:removed", true), new BoundIssuer("did:xrd:live", false)));
+        when(issuerKeyGuard.signingKeySecretPresent()).thenReturn(false);
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).contains(new AlertInfo("status.issuer_service.key_missing"));
+    }
+
+    @Test
     void getAlertsIssuerServiceSetupCheckThrowsProducesFallbackAlertNotException() {
         mockInitialized(true, true);
-        when(dataspaceIssuerDidService.findAll()).thenThrow(new RuntimeException("db unreachable"));
+        when(dataspaceIssuerDidService.findAllBound()).thenThrow(new RuntimeException("db unreachable"));
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -296,7 +320,7 @@ class NotificationServiceImplTest {
     void getAlertsIssuerServiceAlertsSurviveSignerOutage() {
         when(systemParameterService.getInstanceIdentifier()).thenReturn("CS");
         when(systemParameterService.getCentralServerAddress()).thenReturn("https://cs");
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of());
         when(signerProxyFacade.getTokens()).thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build());
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
