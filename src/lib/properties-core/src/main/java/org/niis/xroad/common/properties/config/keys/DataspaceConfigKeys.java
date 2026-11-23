@@ -86,6 +86,21 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
             .build();
 
     /**
+     * {@code xroad.dataspace.issuer.health-check-listen-address} — the interface the Issuer Service's plain-HTTP
+     * health endpoint binds to; the default listens on the loopback interface only.
+     */
+    public static final ConfigKey<String> ISSUER_HEALTH_CHECK_LISTEN_ADDRESS = ISSUER
+            .string("health-check-listen-address")
+            .withDefaultValue("127.0.0.1")
+            .publishedToFramework()
+            .build();
+    /** {@code xroad.dataspace.issuer.health-check-port} — the port of the Issuer Service's plain-HTTP health endpoint. */
+    public static final ConfigKey<Integer> ISSUER_HEALTH_CHECK_PORT = ISSUER
+            .integer("health-check-port")
+            .withDefaultValue(6189)
+            .publishedToFramework()
+            .build();
+    /**
      * {@code xroad.dataspace.issuer.acme-renewal-active} — the Central Server's own explicit kill-switch for
      * the co-located Issuer Service's DS TLS certificate ACME renewal scheduler: {@code xroad-ds-issuer-service}
      * is an unconditional dependency of the Central Server package, not an opt-in feature.

@@ -15,9 +15,23 @@ quarkus:
     category:
       "EDC-MONITOR":
         level: TRACE
+  http:
+    host: ${xroad.dataspace.issuer.health-check-listen-address}
+    host-enabled: true
+    port: ${xroad.dataspace.issuer.health-check-port}
   arc:
     unremovable-types:
       - org.niis.xroad.globalconf.GlobalConfProvider
+    # lib:health-check-core supplies helper classes only; its CDI beans add liveness and gRPC client checks
+    exclude-types:
+      - org.niis.xroad.common.healthcheck.*
+
+"%containerized":
+  quarkus:
+    http:
+      host: 0.0.0.0
+      host-enabled: true
+      port: 4099
 
 "%native":
   quarkus:
