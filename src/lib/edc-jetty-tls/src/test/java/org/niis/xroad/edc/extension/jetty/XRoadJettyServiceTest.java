@@ -51,7 +51,9 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -69,6 +71,8 @@ import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.keyStoreOf;
 
 class XRoadJettyServiceTest {
+
+    private static final int CONNECT_PROBE_TIMEOUT_MILLIS = 1000;
 
     private static final Monitor MONITOR = new Monitor() {
     };
@@ -226,7 +230,7 @@ class XRoadJettyServiceTest {
     @Test
     void theDefaultContextAcceptsOnLoopbackAndRefusesOnANonLoopbackAddress() throws Exception {
         var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        assumeTrue(nonLoopback.isPresent(), "no non-loopback address accepts local connections");
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping(XRoadJettyService.DEFAULT_CONTEXT_NAME, port, "/api"));
@@ -243,7 +247,7 @@ class XRoadJettyServiceTest {
     @Test
     void aNamedContextWithAConfiguredHostBindsOnlyToThatAddress() throws Exception {
         var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        assumeTrue(nonLoopback.isPresent(), "no non-loopback address accepts local connections");
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("named", port, "/api"));
@@ -261,7 +265,7 @@ class XRoadJettyServiceTest {
     @Test
     void aNamedContextWithoutAConfiguredHostBindsToEveryInterface() throws Exception {
         var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        assumeTrue(nonLoopback.isPresent(), "no non-loopback address accepts local connections");
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("named", port, "/api"));
@@ -278,7 +282,7 @@ class XRoadJettyServiceTest {
     @Test
     void aNamedContextWithABlankConfiguredHostBindsToEveryInterface() throws Exception {
         var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        assumeTrue(nonLoopback.isPresent(), "no non-loopback address accepts local connections");
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("named", port, "/api"));
@@ -295,7 +299,7 @@ class XRoadJettyServiceTest {
     @Test
     void aHostSettingForTheDefaultContextHasNoEffect() throws Exception {
         var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        assumeTrue(nonLoopback.isPresent(), "no non-loopback address accepts local connections");
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping(XRoadJettyService.DEFAULT_CONTEXT_NAME, port, "/api"));
@@ -310,8 +314,10 @@ class XRoadJettyServiceTest {
     }
 
     /**
-     * The first address of a non-loopback, up network interface on the test host, used to prove a connector
-     * refuses or accepts connections from outside loopback. Some hosts (a sandboxed CI runner) have none.
+     * The first IPv4 address of a non-loopback, up network interface on the test host that accepts local
+     * connections, used to prove a connector refuses or accepts connections from outside loopback. Some
+     * hosts (a sandboxed CI runner) have none, and others list addresses of stale bridges that refuse every
+     * connection.
      */
     private static Optional<InetAddress> nonLoopbackTestAddress() throws Exception {
         for (var networkInterface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
@@ -319,12 +325,22 @@ class XRoadJettyServiceTest {
                 continue;
             }
             for (var address : Collections.list(networkInterface.getInetAddresses())) {
-                if (address instanceof Inet4Address && !address.isLoopbackAddress()) {
+                if (address instanceof Inet4Address && !address.isLoopbackAddress()
+                        && acceptsLocalConnections(address)) {
                     return Optional.of(address);
                 }
             }
         }
         return Optional.empty();
+    }
+
+    private static boolean acceptsLocalConnections(InetAddress address) {
+        try (var server = new ServerSocket(0, 1, address); var client = new Socket()) {
+            client.connect(new InetSocketAddress(address, server.getLocalPort()), CONNECT_PROBE_TIMEOUT_MILLIS);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     /**
