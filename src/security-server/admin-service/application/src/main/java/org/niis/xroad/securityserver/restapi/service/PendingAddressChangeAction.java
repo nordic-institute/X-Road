@@ -30,7 +30,7 @@ package org.niis.xroad.securityserver.restapi.service;
  * What one globalconf check does with the pending address change.
  */
 public enum PendingAddressChangeAction {
-    /** Globalconf shows the requested address: re-identify the participants, then drop the request. */
+    /** Globalconf shows the requested address: drop the request, then re-identify the participants. */
     RE_IDENTIFY,
     /** The request waited too long: drop it without re-identifying. */
     EXPIRE,

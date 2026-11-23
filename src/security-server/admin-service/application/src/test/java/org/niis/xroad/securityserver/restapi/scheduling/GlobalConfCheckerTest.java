@@ -102,6 +102,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -630,41 +631,37 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void anUnexpectedReIdentificationFailureKeepsThePendingAddressChangeForTheNextCheck() {
-        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
-        when(reIdentificationService.reIdentify())
-                .thenThrow(new IllegalStateException("boom"))
-                .thenReturn(3);
-        pendingAddressChangeRepository.save(NEW_ADDRESS, requestedAgo(EXPIRY.minusSeconds(1)));
-
-        globalConfChecker.checkGlobalConf();
-
-        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
-        verifySyncRan();
-
-        globalConfChecker.checkGlobalConf();
-
-        verify(reIdentificationService, times(2)).reIdentify();
-        assertFalse(pendingAddress().isPresent());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void anUnexpectedReIdentificationFailureDropsThePendingAddressChangeOnceTheExpiryHasPassed() {
+    public void anUnexpectedReIdentificationFailureDeletesThePendingAddressChangeAndIsNotRetried() {
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
         when(reIdentificationService.reIdentify()).thenThrow(new IllegalStateException("boom"));
         pendingAddressChangeRepository.save(NEW_ADDRESS, requestedAgo(EXPIRY.minusSeconds(1)));
 
         globalConfChecker.checkGlobalConf();
 
-        assertEquals(Optional.of(NEW_ADDRESS), pendingAddress());
+        assertFalse(pendingAddress().isPresent());
+        assertEquals(List.of(Level.ERROR), reIdentificationFailureLogLevels());
+        verifySyncRan();
 
-        clock.advance(Duration.ofSeconds(1));
         globalConfChecker.checkGlobalConf();
 
-        verify(reIdentificationService, times(2)).reIdentify();
-        assertFalse(pendingAddress().isPresent());
-        assertEquals(List.of(Level.WARN), droppedRequestLogLevels());
+        verify(reIdentificationService, times(1)).reIdentify();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void thePendingAddressChangeIsGoneWhenTheReIdentificationRuns() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        var rowPresentDuringReIdentification = new AtomicBoolean(true);
+        when(reIdentificationService.reIdentify()).thenAnswer(answer -> {
+            rowPresentDuringReIdentification.set(pendingAddress().isPresent());
+            throw new IllegalStateException("boom");
+        });
+        pendingAddressChangeRepository.save(NEW_ADDRESS, clock.instant());
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(reIdentificationService).reIdentify();
+        assertFalse(rowPresentDuringReIdentification.get());
     }
 
     @Test
@@ -742,6 +739,13 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         globalConfChecker.checkGlobalConf();
         globalConfChecker.checkGlobalConf();
         verifySyncSkipped();
+    }
+
+    private List<Level> reIdentificationFailureLogLevels() {
+        return pendingAddressChangeLog.list.stream()
+                .filter(event -> event.getFormattedMessage().contains("re-identification failed"))
+                .map(ILoggingEvent::getLevel)
+                .toList();
     }
 
     private List<Level> droppedRequestLogLevels() {

@@ -97,8 +97,9 @@ public class GlobalConfChecker {
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses and
-     * server owner identity to the serverconf database. Once that transaction ends, committed or rolled back, it acts
-     * on the pending address change; once it commits, it checks the publication state of the dataspace SYSTEM values
+     * server owner identity to the serverconf database. Once that transaction ends, committed or rolled back, it drops
+     * the pending address change when globalconf shows its address or its expiry has passed, and re-identifies the
+     * participants in the first case; once it commits, it checks the publication state of the dataspace SYSTEM values
      * and member DIDs, and finally the differences between the dataspace binding rows and what globalconf carries.
      * The task is scheduled at a fixed rate which means
      * that the task is run at a fixed interval (defined by FIXED_RATE_MS) regardless of the previous executions

@@ -535,7 +535,7 @@ The proxy and the control plane must run in the same time zone, because `updated
 
 The table stores the Security Server address change that the administrator requested and global configuration does not yet show. It holds at most one row, with the fixed `id` 1, and all nodes of a clustered Security Server share it.
 
-The row is stored before the address change request is sent to the Central Server, and is removed again if the request cannot be sent. While the row exists, a new address change request is refused. The primary or standalone node deletes the row in three cases: when global configuration shows the requested address, when re-identification of the participants was refused after global configuration showed the requested address, and when the request has waited for the configured expiry. The expiry is measured from `requested_at`.
+The row is stored before the address change request is sent to the Central Server, and is removed again if the request cannot be sent. While the row exists, a new address change request is refused. The primary or standalone node deletes the row in two cases: when global configuration shows the requested address, and when the request has waited for the configured expiry. In the first case the node deletes the row before it re-identifies the participants once. The result of the re-identification does not keep the row. The expiry is measured from `requested_at`.
 
 #### 2.20.1 Indexes
 

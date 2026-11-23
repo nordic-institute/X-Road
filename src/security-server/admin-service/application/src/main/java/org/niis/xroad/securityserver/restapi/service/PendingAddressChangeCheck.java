@@ -36,8 +36,9 @@ import java.time.Instant;
 /**
  * Decides what one globalconf check does with the pending address change. Pure: no clock, no storage.
  *
- * <p>An address that globalconf shows as the requested one wins over the expiry. Any other registered address, and
- * an address that is not registered or not readable, leaves the request in place until it expires.
+ * <p>An address that globalconf shows as the requested one wins over the expiry: the request is dropped and the
+ * participants are re-identified. Any other registered address, and an address that is not registered or not
+ * readable, leaves the request in place until it expires.
  */
 @UtilityClass
 public class PendingAddressChangeCheck {
@@ -64,7 +65,7 @@ public class PendingAddressChangeCheck {
      * @param expiry how long a request may wait for globalconf to show its address
      * @return whether the request has waited for the whole expiry
      */
-    public static boolean isExpired(PendingAddressChangeEntity pending, Instant now, Duration expiry) {
+    private static boolean isExpired(PendingAddressChangeEntity pending, Instant now, Duration expiry) {
         return Duration.between(pending.getRequestedAt(), now).compareTo(expiry) >= 0;
     }
 }
