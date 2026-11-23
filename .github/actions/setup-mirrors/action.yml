@@ -1,0 +1,66 @@
+name: 'Setup Mirrors'
+description: 'Use the Artifactory mirrors for the rest of the job when the mirror token is present and the off switch is not set'
+inputs:
+  token:
+    description: 'Mirror access token (XROAD_MIRROR_TOKEN secret)'
+    required: false
+    default: ''
+  username:
+    description: 'Mirror user name (XROAD_MIRROR_USERNAME secret)'
+    required: false
+    default: ''
+  maven-url:
+    description: 'Maven mirror URL'
+    required: false
+    default: ''
+  plugins-url:
+    description: 'Gradle plugins mirror URL'
+    required: false
+    default: ''
+  npm-url:
+    description: 'npm mirror URL'
+    required: false
+    default: ''
+  ubuntu-url:
+    description: 'Ubuntu package mirror URL'
+    required: false
+    default: ''
+  docker-url:
+    description: 'Docker mirror URL, host and repository key without scheme'
+    required: false
+    default: ''
+  github-url:
+    description: 'GitHub releases mirror URL'
+    required: false
+    default: ''
+  k8s-url:
+    description: 'Kubernetes downloads mirror URL'
+    required: false
+    default: ''
+  disabled:
+    description: 'Value of the repository variable XROAD_MIRRORS_DISABLED; "true" turns the mirrors off'
+    required: false
+    default: ''
+outputs:
+  enabled:
+    description: '"true" when the mirrors are enabled for the job, otherwise "false"'
+    value: ${{ steps.setup.outputs.enabled }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup mirrors
+      id: setup
+      shell: bash
+      env:
+        MIRROR_TOKEN: ${{ inputs.token }}
+        MIRROR_USERNAME: ${{ inputs.username }}
+        MIRROR_MAVEN_URL: ${{ inputs.maven-url }}
+        MIRROR_PLUGINS_URL: ${{ inputs.plugins-url }}
+        MIRROR_NPM_URL: ${{ inputs.npm-url }}
+        MIRROR_UBUNTU_URL: ${{ inputs.ubuntu-url }}
+        MIRROR_DOCKER_URL: ${{ inputs.docker-url }}
+        MIRROR_GITHUB_URL: ${{ inputs.github-url }}
+        MIRROR_K8S_URL: ${{ inputs.k8s-url }}
+        MIRRORS_DISABLED: ${{ inputs.disabled }}
+      run: bash "${{ github.action_path }}/setup-mirrors.sh"
