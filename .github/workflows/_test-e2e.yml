@@ -89,6 +89,22 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
+      - name: Setup mirrors
+        id: mirrors
+        if: inputs.variant == 'lxd' || inputs.variant == 'sidecar'
+        uses: ./.github/actions/setup-mirrors
+        with:
+          token: ${{ secrets.XROAD_MIRROR_TOKEN }}
+          username: ${{ secrets.XROAD_MIRROR_USERNAME }}
+          maven-url: ${{ secrets.XROAD_MIRROR_MAVEN_URL }}
+          plugins-url: ${{ secrets.XROAD_MIRROR_PLUGINS_URL }}
+          npm-url: ${{ secrets.XROAD_MIRROR_NPM_URL }}
+          ubuntu-url: ${{ secrets.XROAD_MIRROR_UBUNTU_URL }}
+          docker-url: ${{ secrets.XROAD_MIRROR_DOCKER_URL }}
+          github-url: ${{ secrets.XROAD_MIRROR_GITHUB_URL }}
+          k8s-url: ${{ secrets.XROAD_MIRROR_K8S_URL }}
+          disabled: ${{ vars.XROAD_MIRRORS_DISABLED }}
+
       # ---------------------------------------------------------------- lxd setup
 
       - name: Install Ansible and LXD tooling
@@ -157,9 +173,15 @@ jobs:
       - name: Pre-provision supporting containers
         if: inputs.variant == 'lxd'
         working-directory: ./scripts/env-lxd
+        env:
+          MIRRORS_ENABLED: ${{ steps.mirrors.outputs.enabled }}
         run: |
+          mirror_args=""
+          if [[ "$MIRRORS_ENABLED" == "true" ]]; then
+            mirror_args="-e \"package_mirror_url=\$XROAD_MIRROR_UBUNTU_URL\" -e \"package_mirror_user=\$XROAD_MIRROR_USERNAME\" -e \"package_mirror_token=\$XROAD_MIRROR_TOKEN\""
+          fi
           start=$(date +%s)
-          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_cache_images.yml --forks 2 -e onMacOs=no -e cache_targets=xroad-is,xroad-ca,xroad-repo"
+          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_cache_images.yml --forks 2 -e onMacOs=no -e cache_targets=xroad-is,xroad-ca,xroad-repo${mirror_args:+ $mirror_args}"
           echo "CACHE_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       # ---------------------------------------------------------------- k8s setup
@@ -306,9 +328,15 @@ jobs:
       - name: Provision containers
         if: inputs.variant == 'lxd'
         working-directory: ./scripts/env-lxd
+        env:
+          MIRRORS_ENABLED: ${{ steps.mirrors.outputs.enabled }}
         run: |
+          mirror_args=""
+          if [[ "$MIRRORS_ENABLED" == "true" ]]; then
+            mirror_args="-e \"package_mirror_url=\$XROAD_MIRROR_UBUNTU_URL\" -e \"package_mirror_user=\$XROAD_MIRROR_USERNAME\" -e \"package_mirror_token=\$XROAD_MIRROR_TOKEN\""
+          fi
           start=$(date +%s)
-          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_dev.yml --forks 5 --skip-tags compile,build-packages -e onMacOs=no -e enable_netdata=false"
+          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_dev.yml --forks 5 --skip-tags compile,build-packages -e onMacOs=no -e enable_netdata=false${mirror_args:+ $mirror_args}"
           echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Initialize X-Road (hurl)

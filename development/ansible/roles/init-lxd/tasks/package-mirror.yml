@@ -12,6 +12,7 @@
       '{{ package_mirror_user }}'
   environment:
     XROAD_MIRROR_TOKEN: "{{ package_mirror_token }}"
+  no_log: true
   delegate_to: "{{ item }}"
   when: hostvars[item]['ansible_facts']['os_family'] == "Debian"
 
@@ -23,5 +24,6 @@
       '{{ package_mirror_user }}'
   environment:
     XROAD_MIRROR_TOKEN: "{{ package_mirror_token }}"
+  no_log: true
   delegate_to: "{{ item }}"
   when: hostvars[item]['ansible_facts']['os_family'] == "RedHat"
