@@ -1,6 +1,6 @@
 # X-Road 8: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 1.2
+Version: 1.3
 Doc. ID: IG-CS-8
 
 ---
@@ -11,6 +11,7 @@ Doc. ID: IG-CS-8
 | 07.10.2025 | 1.0     | Initial version                                                                                      | Justas Samuolis |
 | 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check, the default node name, the shared rows of a standalone server and the signer rows | Ričardas Bučiūnas |
 | 12.11.2026 | 1.2     | Describe the root token file that every node of a cluster keeps                                      | Ričardas Bučiūnas |
+| 23.11.2026 | 1.3     | Document the Issuer Service health endpoint and correct the description of port 6181                 | Ričardas Bučiūnas |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -132,7 +133,8 @@ The table below lists the open ports for Central Server components utilizing the
 |----------------------|-----------|--------------|-----------------------------------------------|
 | Registration Service | 8084      | tcp          | For incoming requests to Registration Service |
 | Management Service   | 8085      | tcp          | For incoming requests to Management Service   |
-| Issuer Service       | 6181      | tcp          | EDC default API and health check              |
+| Issuer Service       | 6181      | tcp          | EDC default API (HTTPS). It is closed while no certificate is served. Do not use it as a load balancer probe |
+| Issuer Service       | 6189      | tcp          | Health endpoint (plain HTTP), loopback by default |
 | Issuer Service       | 5460      | tcp          | gRPC from the Central Server admin service     |
 | PostgreSQL database  | 5432      | tcp          | Default PostgreSQL database port              |
 | Signer               | 5560      | tcp          | Signer gRPC port                              |
@@ -167,6 +169,63 @@ loopback too, because the service then listens only on the interface named, and 
 haproxy backend that reaches these ports on loopback. The property has no validator: a mistyped
 address does not fail the command that sets it, and shows up only as a bind failure when the
 Issuer Service next starts.
+
+#### Issuer Service health endpoint
+
+Each Issuer Service serves a read-only health endpoint in plain HTTP, without authentication.
+It listens on the interface set by the `xroad.dataspace.issuer.health-check-listen-address`
+property (default `127.0.0.1`) and on the port set by the `xroad.dataspace.issuer.health-check-port`
+property (default `6189`). With the defaults the endpoint is reachable only from the node
+itself. To let a load balancer probe the node, set the address to one that the load balancer
+can reach, and allow the load balancer to connect to the port in the firewall.
+
+Set a shared value, used by every node without its own value, with:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.dataspace.issuer.health-check-listen-address <address>
+sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.dataspace.issuer.health-check-port <port>
+```
+
+Set a value for one node of a cluster instead with:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set --yes --node <node> -- xroad.dataspace.issuer.health-check-listen-address <address>
+sudo /usr/share/xroad/scripts/db_property.sh set --yes --node <node> -- xroad.dataspace.issuer.health-check-port <port>
+```
+
+The Issuer Service reads both properties once at startup, so restart it after a change:
+
+```bash
+sudo systemctl restart xroad-ds-issuer-service
+```
+
+**Caution:** the properties have no validator. A mistyped address, an address that is not on
+the node, or a port that another process uses does not fail the command that sets it. It shows
+up as a bind failure when the Issuer Service next starts, and then the whole Issuer Service
+stops, including the DID document and the credential issuance.
+
+The endpoint has two paths:
+
+| **Path**          | **Use**             | **Answers UP when**                                                                                        |
+|-------------------|---------------------|------------------------------------------------------------------------------------------------------------|
+| `/q/health/ready` | Load balancer probe | The configuration database is reachable, and the public ports serve a TLS certificate that has not expired |
+| `/q/health/live`  | Process check       | The Issuer Service process responds                                                                        |
+
+When `/q/health/ready` answers DOWN, the response body names the cause. The secret store
+(OpenBao) is not part of the readiness check, so a short OpenBao outage keeps the nodes in
+rotation. A database outage or an OpenBao outage never makes `/q/health/live` answer DOWN.
+
+The port refuses connections while the Issuer Service starts, and when it fails to start. A load
+balancer reads this as down, which is correct.
+
+To take a node out of rotation, disable it at the load balancer, or stop the service:
+
+```bash
+sudo systemctl stop xroad-ds-issuer-service
+```
+
+The Issuer Service has no maintenance mode. If the Java process runs out of memory, it exits
+and systemd restarts it.
 
 ### 2.3 Requirements to the Central Server
 
