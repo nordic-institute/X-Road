@@ -297,7 +297,7 @@ select_ss_package() {
   fi
 
   local selection
-  if [[ "$os_type" == "rhel" ]] || [[ "$os_type" == "rocky" ]] || [[ "$os_type" == "almalinux" ]]; then
+  if [[ "$os_type" == "rhel" ]] || [[ "$os_type" == "rocky" ]] || [[ "$os_type" == "almalinux" ]] || [[ "$os_type" == "ol" ]]; then
       # RHEL options (no EE)
       selection=$(whiptail --title "X-Road Package Selection (RHEL)" \
         --menu "Choose the Security Server version to install:" 15 60 4 \
