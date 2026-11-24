@@ -43,7 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogEnabledProperties;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
-import org.niis.xroad.common.properties.NodeProperties;
 
 @ApplicationScoped
 @Slf4j
@@ -57,7 +56,7 @@ public class MessageLogCleanupJob {
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     public void init(@Observes @Priority(Interceptor.Priority.LIBRARY_AFTER) StartupEvent event) {
-        if (isEnabled() && !NodeProperties.isSecondaryNode()) {
+        if (isEnabled()) {
             log.info("Scheduling message log cleanup with cron expression: '{}'", properties.cleanupCron());
             scheduler.newJob(getClass().getSimpleName())
                     .setCron(properties.cleanupCron())
@@ -66,15 +65,15 @@ public class MessageLogCleanupJob {
                     .setSkipPredicate(applicationNotRunning)
                     .schedule();
         } else {
-            log.info("Message log cleanup job is disabled or not scheduled on a secondary cluster node.");
+            log.info("Message log cleanup job is disabled.");
         }
     }
 
     void executeOnShutdown() {
-        if (isEnabled() && !NodeProperties.isSecondaryNode()) {
+        if (isEnabled()) {
             execute();
         } else {
-            log.info("Message log cleanup job is disabled or running on secondary node, skipping cleanup on shutdown.");
+            log.info("Message log cleanup is disabled, skipping cleanup on shutdown.");
         }
     }
 

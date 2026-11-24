@@ -184,7 +184,15 @@ abstract class AbstractMessageLogTest {
     }
 
     void initLogManager() {
-        logManager.setTimestampingStatus(true);
+        signalTimestampingStatus(SetTimestampingStatusMessage.Status.SUCCESS);
+    }
+
+    /**
+     * Sends time stamping status message to LogManager
+     * @param status status message
+     */
+    private void signalTimestampingStatus(SetTimestampingStatusMessage.Status status) {
+        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(status));
     }
 
     protected void log(SoapMessageImpl message, SignatureData signature) {

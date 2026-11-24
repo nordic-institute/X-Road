@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,13 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog;
+package org.niis.xroad.proxy.core.addon.messagelog;
 
-/**
- * One message record still waiting for a time-stamp.
- *
- * @param id             the message record id
- * @param signatureHash  the message record's signature hash
- */
-public record TimestampTask(Long id, String signatureHash) {
+import ee.ria.xroad.common.util.TimeUtils;
+
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
+import java.time.Instant;
+
+@Data
+@RequiredArgsConstructor
+class SetTimestampingStatusMessage {
+    /**
+     * Status
+     */
+    public enum Status {
+        SUCCESS,
+        FAILURE
+    }
+
+    private final Status status;
+    /**
+     * Time when the status was achieved
+     */
+    private final Instant atTime;
+
+    /**
+     * Constructor that sets status change timestamp to current time.
+     *
+     * @param status
+     */
+    SetTimestampingStatusMessage(Status status) {
+        this.status = status;
+        this.atTime = TimeUtils.now();
+    }
 }
+
+

@@ -49,10 +49,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.MockedStatic;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.messagelog.LogRecord;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.RestLogMessage;
@@ -76,7 +74,6 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -94,7 +91,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mockStatic;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.assertTaskQueueSize;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.cleanUpDatabase;
 import static org.niis.xroad.proxy.core.addon.messagelog.ProxyTestUtil.createMessage;
@@ -315,27 +311,6 @@ class MessageLogTest extends AbstractMessageLogTest {
     }
 
     /**
-     * Timestamps message immediately on a secondary cluster node, where the periodic batch timestamper never starts.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void timestampImmediatelyOnSecondaryNode(boolean encrypted) throws Exception {
-        log.trace("timestampImmediatelyOnSecondaryNode(encrypted={})", encrypted);
-
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
-            setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.timestamp-immediately", "true"), encrypted);
-        }
-
-        assertNull(logManager.timestamperJob);
-
-        log(createMessage(), createSignature());
-        assertTaskQueueSize(databaseCtx, 0);
-    }
-
-    /**
      * Logs messages, time-stamps them. Then archives the messages and cleans the database.
      *
      * @throws Exception in case of any unexpected errors
@@ -349,48 +324,6 @@ class MessageLogTest extends AbstractMessageLogTest {
     void logTimestampArchiveAndClean(boolean encrypted) throws Exception {
         setupTest(encrypted);
         log.trace("logTimestampArchiveAndClean(encrypted={})", encrypted);
-
-        assertTaskQueueSize(databaseCtx, 0);
-        log("01-09-2021 12:34:55.100", createMessage(), createSignature());
-        log("01-09-2021 12:34:57.200", createMessage(), createSignature());
-        log("01-09-2021 12:34:59.300", createMessage(), createSignature());
-        assertTaskQueueSize(databaseCtx, 3);
-
-        startTimestamping();
-        waitForTimestampSuccessful();
-        assertTrue(TestTaskQueue.waitForTimestampSaved());
-
-        assertTaskQueueSize(databaseCtx, 0);
-
-        startArchiving();
-        TestLogArchiver.waitForArchiveSuccessful();
-
-        assertEquals(4, getNumberOfRecords(true));
-
-        startCleaning();
-        TestLogCleaner.waitForCleanSuccessful();
-        assertEquals(0, getNumberOfRecords(true));
-
-        assertArchiveHashChain();
-    }
-
-    /**
-     * Logs messages the way a secondary cluster node would, with no record of which node wrote them, then
-     * time-stamps, archives and cleans them on a primary node.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void logTimestampArchiveAndCleanRecordsWithoutNodeAffinity(boolean encrypted) throws Exception {
-        log.trace("logTimestampArchiveAndCleanRecordsWithoutNodeAffinity(encrypted={})", encrypted);
-
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-            setupTest(encrypted);
-        }
-
-        assertNotNull(logManager.timestamperJob);
 
         assertTaskQueueSize(databaseCtx, 0);
         log("01-09-2021 12:34:55.100", createMessage(), createSignature());
@@ -445,8 +378,7 @@ class MessageLogTest extends AbstractMessageLogTest {
     }
 
     /**
-     * Logging refuses once the oldest message waiting for a time-stamp is older than the
-     * acceptable period.
+     * Logs messages, time-stamping failed. After acceptable period no more messages are accepted.
      *
      * @throws Exception in case of any unexpected errors
      */
@@ -455,100 +387,23 @@ class MessageLogTest extends AbstractMessageLogTest {
     void timestampingFailedStopLogging(boolean encrypted) throws Exception {
         log.trace("timestampingFailedStopLogging(encrypted={})", encrypted);
 
-        final int period = 10;
         // Reinitialize with short acceptable timestamp failure period
-        setupTestWithConfig(Map.of(
-                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
+        setupTestWithConfig(Map.of("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1"), encrypted);
 
-        logMessageAt(TimeUtils.now().minusSeconds(period + 5));
-
-        SoapMessageImpl message = createMessage();
-        SignatureData signature = createSignature();
-        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(message, signature));
-        assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), xrdRuntimeException.getErrorCode());
-    }
-
-    /**
-     * Logging accepts while the oldest message waiting for a time-stamp is inside the acceptable
-     * period.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void pendingMessageInsideAllowedWaitDoesNotStopLogging(boolean encrypted) throws Exception {
-        final int period = 10;
-        setupTestWithConfig(Map.of(
-                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
-
-        logMessageAt(TimeUtils.now().minusSeconds(period - 5));
+        TestTimestamperWorker.failNextTimestamping(true);
 
         log(createMessage(), createSignature());
-        assertTaskQueueSize(databaseCtx, 2);
-    }
+        log(createMessage(), createSignature());
+        log(createMessage(), createSignature());
+        assertTaskQueueSize(databaseCtx, 3);
 
-    /**
-     * Two messages are pending, the older one outside the acceptable period and the newer one
-     * inside it. Logging refuses: the oldest pending message decides, not the newest.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void oldestPendingMessageDecidesRefusal(boolean encrypted) throws Exception {
-        final int period = 10;
-        setupTestWithConfig(Map.of(
-                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
+        logManager.setTimestampFailed(TimeUtils.now().minusSeconds(60));
 
-        Instant now = TimeUtils.now();
-        Clock previousClock = TimeUtils.getClock();
-        try {
-            TimeUtils.setClock(Clock.offset(previousClock, Duration.ofMinutes(-5)));
+        startTimestamping();
+        waitForMessageInTaskQueue();
 
-            logMessageAt(now.minusSeconds(period + 5));
-            logMessageAt(now.minusSeconds(period - 5));
-        } finally {
-            TimeUtils.setClock(previousClock);
-        }
-
-        SoapMessageImpl message = createMessage();
-        SignatureData signature = createSignature();
-        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(message, signature));
+        XrdRuntimeException xrdRuntimeException = assertThrows(XrdRuntimeException.class, () -> log(createMessage(), createSignature()));
         assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), xrdRuntimeException.getErrorCode());
-    }
-
-    /**
-     * Timestamp-immediately mode skips the refusal check, so an old pending message does not
-     * block it.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void immediateModeAcceptsDespiteOldPendingMessage(boolean encrypted) throws Exception {
-        final int period = 10;
-        setupTestWithConfig(Map.of(
-                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
-
-        logMessageAt(TimeUtils.now().minusSeconds(period + 5));
-
-        logManager.verifyCanLogMessage(true);
-    }
-
-    /**
-     * Period 0 disables the refusal check entirely, so an old pending message does not block
-     * logging.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void periodZeroAcceptsDespiteOldPendingMessage(boolean encrypted) throws Exception {
-        setupTest(encrypted);
-
-        logMessageAt(TimeUtils.now().minusSeconds(100_000));
-
-        logManager.verifyCanLogMessage(false);
     }
 
     /**
@@ -585,6 +440,8 @@ class MessageLogTest extends AbstractMessageLogTest {
         log.info("TestLogManager.waitForSetTimestampingStatus()");
 
         assertTrue(TestLogManager.waitForSetTimestampingStatus());
+
+        assertTrue(logManager.isTimestampFailed());
 
         log(createMessage(), createSignature());
         assertTaskQueueSize(databaseCtx, 4);
@@ -761,77 +618,6 @@ class MessageLogTest extends AbstractMessageLogTest {
         }
     }
 
-    /**
-     * Logging refuses while old messages wait for a time-stamp, and accepts again once the batch
-     * job has time-stamped them.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void timestampedBacklogResumesLogging(boolean encrypted) throws Exception {
-        final int period = 10;
-        setupTestWithConfig(Map.of(
-                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
-
-        logMessageAt(TimeUtils.now().minusSeconds(period + 5));
-
-        SoapMessageImpl message = createMessage();
-        SignatureData signature = createSignature();
-        assertThrows(XrdRuntimeException.class, () -> log(message, signature));
-
-        startTimestamping();
-        waitForTimestampSuccessful();
-        assertTrue(TestTaskQueue.waitForTimestampSaved());
-        assertTaskQueueSize(databaseCtx, 0);
-
-        log(createMessage(), createSignature());
-        assertTaskQueueSize(databaseCtx, 1);
-    }
-
-    /**
-     * A secondary node runs no batch time-stamping. It refuses once a message waits too long in
-     * the shared message log database, as when the primary is down.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void secondaryRefusesWhenPendingMessageIsTooOld(boolean encrypted) throws Exception {
-        final int period = 1800;
-        setupTestWithConfig(Map.of(
-                "xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", String.valueOf(period)), encrypted);
-
-        LogManager secondaryLogManager;
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
-            secondaryLogManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, databaseCtx,
-                    messageLogProperties);
-        }
-
-        try {
-            secondaryLogManager.verifyCanLogMessage(false);
-
-            logMessageAt(TimeUtils.now().minusSeconds(period + 10));
-
-            XrdRuntimeException exception =
-                    assertThrows(XrdRuntimeException.class, () -> secondaryLogManager.verifyCanLogMessage(false));
-            assertEquals(ErrorCode.TIMESTAMPING_FAILED.code(), exception.getErrorCode());
-        } finally {
-            secondaryLogManager.destroy();
-        }
-    }
-
-    private void logMessageAt(Instant time) throws Exception {
-        logRecordTime = Date.from(time);
-
-        try {
-            log(createMessage(), createSignature());
-        } finally {
-            logRecordTime = null;
-        }
-    }
-
     // ------------------------------------------------------------------------
 
     /**
@@ -844,8 +630,7 @@ class MessageLogTest extends AbstractMessageLogTest {
         // Initialize with test-specific configuration
         Map<String, String> config = new java.util.HashMap<>();
         config.put("xroad.proxy.message-log.timestamper.timestamp-immediately", "false");
-        // Backdated test messages would otherwise look like a time-stamping outage and be refused.
-        config.put("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "0");
+        config.put("xroad.proxy.message-log.timestamper.acceptable-timestamp-failure-period", "1800");
 
         config.put("xroad.message-log-archiver.archive-path", "build/archive");
         config.put("xroad.message-log-archiver.clean-keep-records-for", "0");

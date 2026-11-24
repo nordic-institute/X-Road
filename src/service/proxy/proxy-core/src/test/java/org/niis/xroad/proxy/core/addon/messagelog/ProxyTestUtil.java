@@ -41,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.message.BasicHeader;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
@@ -54,6 +53,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @Slf4j
 @UtilityClass
@@ -158,8 +158,16 @@ final class ProxyTestUtil {
         return new SignatureData(signature, null, null);
     }
 
-    static void assertTaskQueueSize(MessageLogDatabaseCtx databaseCtx, long expectedSize) {
-        assertEquals(expectedSize, databaseCtx.countTimestampTasks());
+    static List<Task> getTaskQueue(DatabaseCtx databaseCtx) {
+        return databaseCtx.doInTransaction(session -> session.createQuery(
+                TaskQueue.getTaskQueueQuery(), Task.class).list());
     }
+
+    static void assertTaskQueueSize(DatabaseCtx databaseCtx, int expectedSize) {
+        List<Task> taskQueue = getTaskQueue(databaseCtx);
+        assertNotNull(taskQueue);
+        assertEquals(expectedSize, taskQueue.size());
+    }
+
 
 }
