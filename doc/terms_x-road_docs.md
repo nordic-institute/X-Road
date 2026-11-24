@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.0
+Version: 1.0  
 Doc. ID:  TA-TERMS
 
 ## Version history
