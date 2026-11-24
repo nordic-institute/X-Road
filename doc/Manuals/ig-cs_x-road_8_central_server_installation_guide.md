@@ -458,10 +458,11 @@ GRANT SELECT ON "ds-issuer-service".keypair_resource TO "centerui";
 
 ## Annex C `xroad-secret-store-local` default configuration
 
-Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`, except the systemd drop-in.<br/>
+Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`, except the OpenBao configuration files and the systemd drop-in.<br/>
 Files:<br/>
-`xroad-openbao.hcl` - OpenBao configuration file that X-Road writes with `/usr/share/xroad/scripts/secret-store-cluster-config.sh`. It holds the listeners, the storage settings and the addresses that a node announces to the other nodes of a cluster. Owner `openbao:xroad`, mode `640`. The `openbao.hcl` file of the OpenBao package is not used.<br/>
-`/usr/lib/systemd/system/openbao.service.d/xroad.conf` - systemd drop-in, owned by the package, that starts OpenBao with the file above only and unseals OpenBao after every start. The OpenBao unit restarts OpenBao after a failure.<br/>
+`/usr/share/xroad/openbao/xroad-openbao.hcl` - base OpenBao configuration file, shipped by the package. It holds the loopback listener `127.0.0.1:8200` with its TLS certificate, the PostgreSQL storage settings and the loopback API address. Owner `root:root`, mode `644`, in a directory with owner `root:root` and mode `755`. Do not edit it. The `openbao.hcl` file of the OpenBao package is not used.<br/>
+`/etc/xroad-secret-store/node.hcl` - node configuration file that X-Road writes with `/usr/share/xroad/scripts/secret-store-cluster-config.sh`, only on a cluster node. It holds the listener on the node address and the addresses that the node announces to the other nodes of the cluster. The file does not hold secrets. Owner `root:root`, mode `644`, in a directory with owner `root:root` and mode `755`. Do not edit it. To make the node a single node again, run the script with `--single-node`: the script removes the file.<br/>
+`/usr/lib/systemd/system/openbao.service.d/xroad.conf` - systemd drop-in, owned by the package, that starts OpenBao with the base file and, when it exists, the node file, and unseals OpenBao after every start. The OpenBao unit restarts OpenBao after a failure.<br/>
 `xroad-openbao.env` - the database connection of OpenBao, including the credentials of the database role `openbao`. Owner `openbao:xroad`, mode `640`. A node that joins a cluster gets the file from the cluster bundle.<br/>
 `root-token` - root OpenBao token. Owner `root:root`, mode `600`. In a cluster, every node keeps the same file, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#42-root-token-file-and-unseal-keys-on-every-node).<br/>
 `unseal-keys` - OpenBao unseal keys. Owner `root:root`, mode `600`. In a cluster, every node keeps the same file.<br/>

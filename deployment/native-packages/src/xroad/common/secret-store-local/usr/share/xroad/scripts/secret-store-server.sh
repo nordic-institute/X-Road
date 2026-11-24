@@ -6,6 +6,8 @@
 . /usr/share/xroad/scripts/_openbao_env.sh
 
 env_file=/etc/openbao/xroad-openbao.env
+base_config=/usr/share/xroad/openbao/xroad-openbao.hcl
+node_config=/etc/xroad-secret-store/node.hcl
 
 if [[ ! -f $env_file ]]; then
   echo >&2 "Unable to find OpenBao environment file at $env_file"
@@ -21,4 +23,9 @@ fi
 
 export BAO_PG_CONNECTION_URL
 
-exec /usr/bin/bao server -config=/etc/openbao/xroad-openbao.hcl
+config_args=(-config="$base_config")
+if [[ -f $node_config ]]; then
+  config_args+=(-config="$node_config")
+fi
+
+exec /usr/bin/bao server "${config_args[@]}"

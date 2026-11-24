@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
-CONFIG_FILE=/etc/openbao/xroad-openbao.hcl
+NODE_CONFIG_DIR=/etc/xroad-secret-store
+NODE_CONFIG_FILE="${NODE_CONFIG_DIR}/node.hcl"
 ENV_FILE=/etc/openbao/xroad-openbao.env
 SCRIPTS_DIR=/usr/share/xroad/scripts
 TLS_SCRIPT="${SCRIPTS_DIR}/secret-store-generate-tls-certificate.sh"
@@ -16,6 +17,7 @@ CLUSTER_PORT=8201
 NODE_ADDRESS=""
 NODE_HOST=""
 DISABLE_STANDBY_READS=false
+SINGLE_NODE=false
 die() {
   echo >&2 "$@"
   exit 1
@@ -28,7 +30,7 @@ write_if_changed() {
   if [ -f "$file" ] && [ "$(cat "$file")" = "$content" ]; then
     return 1
   fi
-  mkdir -p "$(dirname "$file")" || die "Cannot write ${file}"
+  install -d -m 0755 -o root -g root "$(dirname "$file")" || die "Cannot write ${file}"
   tmp=$(mktemp "${file}.XXXXXX") || die "Cannot write ${file}"
   if ! { printf '%s\n' "$content" >"$tmp" && chown "$owner" "$tmp" && chmod "$mode" "$tmp" && mv -f "$tmp" "$file"; }; then
     rm -f "$tmp"
@@ -45,27 +47,14 @@ listener "tcp" {
 }
 EOF
 }
-server_config() {
+node_config() {
   local announce="${NODE_HOST:-$NODE_ADDRESS}"
-  echo 'ui = true'
-  listener_block "$LOCAL_ADDRESS"
-  if [ -n "$NODE_ADDRESS" ]; then
-    listener_block "$NODE_ADDRESS"
-  fi
-  cat <<EOF
-storage "postgresql" {
-  ha_enabled = "true"
-}
-EOF
+  listener_block "$NODE_ADDRESS"
   if [ "$DISABLE_STANDBY_READS" = true ]; then
     echo 'disable_standby_reads = true'
   fi
-  if [ -n "$NODE_ADDRESS" ]; then
-    echo "api_addr = \"https://${announce}:${API_PORT}\""
-    echo "cluster_addr = \"https://${announce}:${CLUSTER_PORT}\""
-  else
-    echo "api_addr = \"https://${LOCAL_ADDRESS}:${API_PORT}\""
-  fi
+  echo "api_addr = \"https://${announce}:${API_PORT}\""
+  echo "cluster_addr = \"https://${announce}:${CLUSTER_PORT}\""
 }
 wanted_cert_names() {
   {
@@ -99,7 +88,7 @@ valid_host() {
   [ "${#1}" -le 253 ] && [[ "$1" =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]]
 }
 usage() {
-  die "Usage: $0 [--node-address <ipv4>] [--node-host <dns>] [--disable-standby-reads]"
+  die "Usage: $0 [--node-address <ipv4> [--node-host <dns>] [--disable-standby-reads] | --single-node]"
 }
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -117,23 +106,40 @@ while [ $# -gt 0 ]; do
       DISABLE_STANDBY_READS=true
       shift
       ;;
+    --single-node)
+      SINGLE_NODE=true
+      shift
+      ;;
     *)
       usage
       ;;
   esac
 done
+if [ "$SINGLE_NODE" = true ] && { [ -n "$NODE_ADDRESS" ] || [ -n "$NODE_HOST" ]; }; then
+  usage
+fi
 if [ -n "$NODE_ADDRESS" ]; then
   valid_ipv4 "$NODE_ADDRESS" || die "--node-address must be an IPv4 address: ${NODE_ADDRESS}"
   host_has_address "$NODE_ADDRESS" || die "--node-address is not an IPv4 address of this host: ${NODE_ADDRESS}"
 elif [ -n "$NODE_HOST" ]; then
   die "--node-host requires --node-address"
+elif [ "$DISABLE_STANDBY_READS" = true ]; then
+  die "--disable-standby-reads requires --node-address"
 fi
 if [ -n "$NODE_HOST" ]; then
   valid_host "$NODE_HOST" || die "--node-host must be a DNS name: ${NODE_HOST}"
 fi
 [ -s "$ENV_FILE" ] || die "The OpenBao database connection file ${ENV_FILE} is missing or empty. Create it by installing the Central Server or Security Server package, or import the cluster bundle."
+if [ -z "$NODE_ADDRESS" ] && [ "$SINGLE_NODE" = false ] && [ -e "$NODE_CONFIG_FILE" ]; then
+  die "${NODE_CONFIG_FILE} makes this host a cluster node. Run this script with the same --node-address and --node-host options as before, or with --single-node to make this host a single node."
+fi
 needs_restart=false
-if write_if_changed "$CONFIG_FILE" 0640 openbao:xroad "$(server_config)"; then
+if [ -n "$NODE_ADDRESS" ]; then
+  if write_if_changed "$NODE_CONFIG_FILE" 0644 root:root "$(node_config)"; then
+    needs_restart=true
+  fi
+elif [ -e "$NODE_CONFIG_FILE" ]; then
+  rm -f "$NODE_CONFIG_FILE" || die "Cannot remove ${NODE_CONFIG_FILE}"
   needs_restart=true
 fi
 if [ "$(wanted_cert_names)" != "$(current_cert_names)" ] || [ ! -f "$GENERATED_HASH_FILE" ]; then

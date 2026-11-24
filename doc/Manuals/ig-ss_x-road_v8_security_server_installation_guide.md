@@ -444,9 +444,9 @@ The installer creates the database roles itself. If they already exist, on Postg
 
 ## Annex C `xroad-secret-store-local` default configuration
 
-Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
+Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`, except the OpenBao configuration file.<br/>
 Files:<br/>
-`xroad-openbao.hcl` - OpenBao configuration file. Contains the listener and storage options.<br/>
+`/usr/share/xroad/openbao/xroad-openbao.hcl` - OpenBao configuration file, shipped by the package. Contains the loopback listener and the storage options. Owner `root:root`, mode `644`, in a directory with owner `root:root` and mode `755`. Do not edit it. A Security Server is a single node and has no node configuration file. `/usr/share/xroad/scripts/secret-store-cluster-config.sh --single-node` removes `/etc/xroad-secret-store/node.hcl` if it exists.<br/>
 `xroad-openbao.env` - OpenBao database connection and credentials. Owner `openbao:xroad`, mode `640`.<br/>
 `root-token` - root OpenBao token.<br/>
 `unseal-keys` - OpenBao unseal keys.

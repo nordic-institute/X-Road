@@ -18,6 +18,7 @@ source "${ROOT_DIR}/scripts/lib/base-script.sh"
 IMAGE="${1:-${IMAGE_REGISTRY:-localhost:5555}/openbao-dev:${IMAGE_TAG:-latest}}"
 PACKAGE_SOURCES="${ROOT_DIR}/deployment/native-packages/src/xroad/common"
 POSTINST_FILE="${ROOT_DIR}/deployment/native-packages/src/xroad/ubuntu/generic/xroad-secret-store-local.postinst"
+POSTRM_FILE="${ROOT_DIR}/deployment/native-packages/src/xroad/ubuntu/generic/xroad-secret-store-local.postrm"
 SECRET_STORE_SCRIPTS_DIR="${PACKAGE_SOURCES}/secret-store-local/usr/share/xroad/scripts"
 BASE_SCRIPTS_DIR="${PACKAGE_SOURCES}/base/usr/share/xroad/scripts"
 NODE1_CONTAINER="secret-store-init-test-$$"
@@ -56,7 +57,11 @@ UNSEAL_SCRIPT="/usr/share/xroad/scripts/secret-store-unseal.sh"
 SERVER_SCRIPT="/usr/share/xroad/scripts/secret-store-server.sh"
 LISTENER_SCRIPT="${ROOT_DIR}/development/docker/central-server/files/unseal-on-start-listener.sh"
 HA_GUIDE="${ROOT_DIR}/doc/Manuals/ig-csha_x-road_6_ha_installation_guide.md"
-XROAD_CONFIG_FILE="/etc/openbao/xroad-openbao.hcl"
+BASE_CONFIG_FILE="/usr/share/xroad/openbao/xroad-openbao.hcl"
+BASE_CONFIG_SOURCE="${PACKAGE_SOURCES}/secret-store-local/usr/share/xroad/openbao/xroad-openbao.hcl"
+NODE_CONFIG_DIR="/etc/xroad-secret-store"
+NODE_CONFIG_FILE="${NODE_CONFIG_DIR}/node.hcl"
+OLD_CONFIG_FILE="/etc/openbao/xroad-openbao.hcl"
 DROP_IN_FILE="/usr/lib/systemd/system/openbao.service.d/xroad.conf"
 DROP_IN_SOURCE="${PACKAGE_SOURCES}/secret-store-local/usr/lib/systemd/system/openbao.service.d/xroad.conf"
 WRITER_DROP_IN_DIR="/etc/systemd/system/openbao.service.d"
@@ -251,6 +256,7 @@ run_node_container() {
   docker run -d --init --name "${CONTAINER}" --network "${NETWORK}" \
     -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
     -v "${DROP_IN_SOURCE}:${DROP_IN_FILE}:ro" \
+    -v "${BASE_CONFIG_SOURCE}:${BASE_CONFIG_FILE}:ro" \
     -e "WRITE_ENV=$1" \
     -e "BAO_PG_CONNECTION_URL=postgres://postgres:${PG_PASSWORD}@${PG_CONTAINER}:5432/postgres?sslmode=disable" \
     --entrypoint sh "${IMAGE}" -c '
@@ -266,7 +272,7 @@ run_node_container() {
         printf "#!/bin/sh\necho \"\${0##*/} \$*\" >>'"${SHIM_CALLS_FILE}"'\n[ ! -e '"${SHIM_FAIL_PREFIX}"'\${0##*/} ] || { rm -f '"${SHIM_FAIL_PREFIX}"'\${0##*/}; exit 1; }\nexit 0\n" > /usr/local/bin/$tool
         chmod +x /usr/local/bin/$tool
       done
-      if [ "$WRITE_ENV" = yes ] && [ ! -f '"${XROAD_CONFIG_FILE}"' ]; then
+      if [ "$WRITE_ENV" = yes ] && [ ! -f '"${GENERATED_HASH_FILE}"' ]; then
         bash '"${CONFIG_WRITER}"' || exit 1
       fi
       touch '"${READY_FILE}"'
@@ -637,24 +643,27 @@ scenario_pki_setup_writes_policy() {
 }
 
 config_state() {
-  in_container sh -c "stat -c '%i %Y' ${XROAD_CONFIG_FILE} && sha256sum ${XROAD_CONFIG_FILE}"
+  in_container sh -c "if [ -e ${NODE_CONFIG_FILE} ]; then stat -c '%U:%G %a %i %Y' ${NODE_CONFIG_FILE} && sha256sum ${NODE_CONFIG_FILE}; else echo no-node-file; fi"
 }
 scenario_initializing_node() {
   log_info "Scenario: node writes the X-Road configuration, initialises and unseals a real OpenBao"
   ADDR="https://127.0.0.1:8200"
   start_real_server
   local listeners
-  listeners="$(in_container grep -c '^listener ' "${XROAD_CONFIG_FILE}")"
-  check_eq "configuration: one listener" 1 "${listeners}"
-  check "configuration: listener binds 127.0.0.1:8200 only" in_container grep -q '^  address *= "127.0.0.1:8200"$' "${XROAD_CONFIG_FILE}"
-  check "configuration: PostgreSQL storage" in_container grep -q '^storage "postgresql" {' "${XROAD_CONFIG_FILE}"
-  check "configuration: api_addr is the local address" in_container grep -q '^api_addr = "https://127.0.0.1:8200"$' "${XROAD_CONFIG_FILE}"
+  listeners="$(in_container grep -c '^listener ' "${BASE_CONFIG_FILE}")"
+  check_eq "base configuration: one listener" 1 "${listeners}"
+  check "base configuration: listener binds 127.0.0.1:8200 only" in_container grep -q '^  address *= "127.0.0.1:8200"$' "${BASE_CONFIG_FILE}"
+  check "base configuration: PostgreSQL storage with high availability" in_container grep -q '^  ha_enabled = "true"$' "${BASE_CONFIG_FILE}"
+  check "base configuration: api_addr is the local address" in_container grep -q '^api_addr = "https://127.0.0.1:8200"$' "${BASE_CONFIG_FILE}"
+  check "single node: the writer wrote no node file" file_absent "${NODE_CONFIG_FILE}"
+  check "single node: the writer wrote no file in /etc/openbao" file_absent "${OLD_CONFIG_FILE}"
   check "drop-in: ExecStart is cleared first" in_container grep -qx 'ExecStart=' "${DROP_IN_FILE}"
   check_eq "drop-in: ExecStart is the start script" "${SERVER_SCRIPT}" "$(in_container sed -n 's/^ExecStart=\(.\)/\1/p' "${DROP_IN_FILE}")"
   check "drop-in: the unit loads no environment file" test "$(in_container grep -cE '^EnvironmentFile=.+' "${DROP_IN_FILE}")" -eq 0
   check "drop-in: no ExecStart line runs the environment file through a shell" test "$(in_container grep -cE '^ExecStart=.*(bash|sh) -c' "${DROP_IN_FILE}")" -eq 0
-  check_eq "start script: one -config argument" 1 "$(in_container grep -o -- '-config=' "${SERVER_SCRIPT}" | wc -l | tr -d ' ')"
-  check_eq "start script: execs bao on the X-Road file only" "exec /usr/bin/bao server -config=${XROAD_CONFIG_FILE}" \
+  check_eq "start script: base file first, then the node file" "-config=\"\$base_config\")-config=\"\$node_config\")" \
+    "$(in_container grep -o -- '-config="[^"]*")' "${SERVER_SCRIPT}" | tr -d '\n')"
+  check_eq "start script: execs bao with the collected -config arguments" 'exec /usr/bin/bao server "${config_args[@]}"' \
     "$(in_container grep -E '^exec ' "${SERVER_SCRIPT}")"
   check "start script: never sources the environment file" test "$(in_container grep -cE '(^|[;&|[:space:]])(\.|source)[[:space:]]+[^[:space:]]*(xroad-openbao\.env|\$env_file)' "${SERVER_SCRIPT}")" -eq 0
   check "drop-in: the upstream environment file is reset" in_container grep -qx 'EnvironmentFile=' "${DROP_IN_FILE}"
@@ -678,6 +687,7 @@ scenario_initializing_node() {
   check_no_issued_secrets_in_output "initialising node"
   check_eq "initialising node: high availability enabled" true "$(bao_get sys/leader | jq -r '.ha_enabled')"
   check_eq "initialising node: PostgreSQL storage" postgresql "$(bao_get sys/seal-status | jq -r '.storage_type')"
+  check_eq "initialising node: advertised address is the loopback address" "https://127.0.0.1:8200" "$(leader_address)"
   local before after files_before
   files_before="$(secret_files_state)"
   before="$(state_snapshot)"
@@ -786,15 +796,16 @@ cert_hash() { in_container sha256sum "${TLS_CERT_FILE}" | cut -d' ' -f1; }
 trust_anchor_hash() { in_container sha256sum "${TRUST_ANCHOR_FILE}" | cut -d' ' -f1; }
 marker_hash() { in_container cat "${TRUST_MARKER_FILE}" 2>/dev/null; }
 fail_next_call() { in_container touch "${SHIM_FAIL_PREFIX}$1"; }
-config_hash() { in_container sha256sum "${XROAD_CONFIG_FILE}" | cut -d' ' -f1; }
+config_hash() { in_container sh -c "sha256sum ${NODE_CONFIG_FILE} 2>/dev/null || echo no-node-file" | cut -d' ' -f1; }
+leader_address() { in_container curl -sk "${ADDR}/v1/sys/leader" | jq -r '.leader_address'; }
 clear_shim_calls() { in_container sh -c ": > ${SHIM_CALLS_FILE}"; }
 shim_calls() { in_container cat "${SHIM_CALLS_FILE}" 2>/dev/null; }
 shim_call_count() { shim_calls | grep -c -- "$1" || true; }
 listener_addresses() {
-  in_container sed -n 's/^  address *= "\(.*\)"$/\1/p' "${XROAD_CONFIG_FILE}" | paste -sd, -
+  in_container sh -c "cat ${BASE_CONFIG_FILE} ${NODE_CONFIG_FILE} 2>/dev/null" | sed -n 's/^  address *= "\(.*\)"$/\1/p' | paste -sd, -
 }
-config_line() { in_container grep -x -- "$1" "${XROAD_CONFIG_FILE}" >/dev/null; }
-config_lacks() { ! in_container grep -q -- "$1" "${XROAD_CONFIG_FILE}"; }
+config_line() { in_container grep -x -- "$1" "${NODE_CONFIG_FILE}" >/dev/null; }
+config_lacks() { ! in_container grep -q -- "$1" "${NODE_CONFIG_FILE}"; }
 serves_name() {
   [[ "$(in_container curl -s -o /dev/null -w '%{http_code}' --cacert "${TLS_CERT_FILE}" \
     --resolve "$1:8200:$2" "https://$1:8200/v1/sys/seal-status")" == 200 ]]
@@ -874,8 +885,8 @@ scenario_cluster_member() {
   node_ip="$(in_container hostname -i | awk '{print $1}')"
   check_eq "single server: certificate names only 127.0.0.1" "IPAddress:127.0.0.1" "$(cert_names)"
   check_eq "single server: one listener on 127.0.0.1" "127.0.0.1:8200" "$(listener_addresses)"
-  check "single server: no cluster_addr" config_lacks "^cluster_addr"
-  check "single server: standby reads left at the default" config_lacks "disable_standby_reads"
+  check "single server: no node file" file_absent "${NODE_CONFIG_FILE}"
+  check "single server: no file in /etc/openbao" file_absent "${OLD_CONFIG_FILE}"
   check_eq "single server: trust installed once" 1 "$(shim_call_count update-ca-certificates)"
   check_eq "single server: no daemon-reload" 0 "$(shim_call_count daemon-reload)"
   check_eq "single server: trust marker holds the certificate hash" "$(cert_hash)" "$(marker_hash)"
@@ -886,6 +897,9 @@ scenario_cluster_member() {
   run_writer --node-address "${node_ip}"
   check "convert: exit 0" test "${RC}" -eq 0
   check_eq "convert: listeners on 127.0.0.1 and the node address, same port" "127.0.0.1:8200,${node_ip}:8200" "$(listener_addresses)"
+  check_eq "convert: node file owner and mode" root:root:644 "$(file_owner "${NODE_CONFIG_FILE}"):$(file_mode "${NODE_CONFIG_FILE}")"
+  check_eq "convert: node file directory owner and mode" root:root:755 "$(file_owner "${NODE_CONFIG_DIR}"):$(file_mode "${NODE_CONFIG_DIR}")"
+  check_eq "convert: no file in /etc/openbao" absent "$(file_absent "${OLD_CONFIG_FILE}" && echo absent)"
   check "convert: api_addr is the node address" config_line "api_addr = \"https://${node_ip}:8200\""
   check "convert: cluster_addr is the node address on the cluster port" config_line "cluster_addr = \"https://${node_ip}:8201\""
   check "convert: no standby reads key" config_lacks "disable_standby_reads"
@@ -920,6 +934,9 @@ scenario_cluster_member() {
   check_eq "node host: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
   restart_bao
   check "node host: serves the host name" serves_name node-1.example.test "${node_ip}"
+  run_unseal
+  wait_for_active
+  check_eq "node host: advertised address is the host" "https://node-1.example.test:8200" "$(leader_address)"
   check "node host: still serves 127.0.0.1" serves_name 127.0.0.1 127.0.0.1
   check_unchanged_run "node host rerun" --node-address "${node_ip}" --node-host node-1.example.test
   log_info "Scenario: certificate replaced while the configuration stays the same"
@@ -1062,19 +1079,57 @@ scenario_cluster_member() {
   check_eq "empty connection file: no restart or trust install" "" "$(shim_calls)"
   in_container mv -f "${ENV_FILE}.saved" "${ENV_FILE}"
   log_info "Scenario: a failed write is reported"
-  run_writer_unprivileged
+  run_writer_unprivileged --node-address "${node_ip}" --node-host unwritable.example.test
   check "unwritable configuration: exit non-zero" test "${RC}" -ne 0
-  check "unwritable configuration: stderr names the configuration file" grep -qF -- "${XROAD_CONFIG_FILE}" "${ERR_FILE}"
+  check "unwritable configuration: stderr names the node file" grep -qF -- "${NODE_CONFIG_FILE}" "${ERR_FILE}"
   check_eq "unwritable configuration: configuration unchanged" "${config_before_invalid}" "$(config_hash)"
-  log_info "Scenario: back to a single server"
+  log_info "Scenario: the single-node options are checked"
+  run_writer --single-node --node-address "${node_ip}"
+  check "single node with an address: exit non-zero" test "${RC}" -ne 0
+  run_writer --single-node --node-host other.example.test
+  check "single node with a host: exit non-zero" test "${RC}" -ne 0
+  run_writer --disable-standby-reads
+  check "standby reads without an address: exit non-zero" test "${RC}" -ne 0
+  check_eq "single-node options: node file unchanged" "${config_before_invalid}" "$(config_hash)"
+  check_eq "single-node options: no restart or trust install" "" "$(shim_calls)"
+  log_info "Scenario: a node file and no options"
+  local state_before_guard
+  state_before_guard="$(config_state)"
+  clear_shim_calls
   run_writer
+  check "node file without options: exit non-zero" test "${RC}" -ne 0
+  check "node file without options: stderr names the node file" grep -qF -- "${NODE_CONFIG_FILE}" "${ERR_FILE}"
+  check "node file without options: stderr names --single-node" grep -qF -- "--single-node" "${ERR_FILE}"
+  check_eq "node file without options: node file unchanged" "${state_before_guard}" "$(config_state)"
+  check_eq "node file without options: no restart or trust install" "" "$(shim_calls)"
+  local cluster_names
+  cluster_names="$(cert_names)"
+  log_info "Scenario: back to a single server"
+  clear_shim_calls
+  run_writer --single-node
   check "single again: exit 0" test "${RC}" -eq 0
+  check "single again: node file removed" file_absent "${NODE_CONFIG_FILE}"
   check_eq "single again: one listener on 127.0.0.1" "127.0.0.1:8200" "$(listener_addresses)"
   check_eq "single again: certificate names only 127.0.0.1" "IPAddress:127.0.0.1" "$(cert_names)"
-  check "single again: no cluster_addr" config_lacks "^cluster_addr"
+  check_eq "single again: OpenBao restarted once" 1 "$(shim_call_count 'restart openbao.service')"
   restart_bao
   check "single again: serves 127.0.0.1" serves_name 127.0.0.1 127.0.0.1
   check "single again: node address no longer served" not_listening "${node_ip}"
+  run_unseal
+  wait_for_active
+  check_eq "single again: advertised address is the loopback address" "https://127.0.0.1:8200" "$(leader_address)"
+  check_unchanged_run "single again rerun" --single-node
+  log_info "Scenario: single, cluster, single, cluster ends as a direct cluster run"
+  run_writer --node-address "${node_ip}" --node-host other.example.test
+  check "cluster again: exit 0" test "${RC}" -eq 0
+  check_eq "cluster again: node file equals the direct cluster run" "${config_before_invalid}" "$(config_hash)"
+  check_eq "cluster again: node file owner and mode" root:root:644 "$(file_owner "${NODE_CONFIG_FILE}"):$(file_mode "${NODE_CONFIG_FILE}")"
+  check_eq "cluster again: certificate names equal the direct cluster run" "${cluster_names}" "$(cert_names)"
+  restart_bao
+  run_unseal
+  wait_for_active
+  check_eq "cluster again: advertised address is the host" "https://other.example.test:8200" "$(leader_address)"
+  check "cluster again: serves the node address" serves_name other.example.test "${node_ip}"
 }
 run_join() { run_in_container -e "BAO_ADDR=${ADDR}" -- bash "${SETUP_SCRIPT}" --join; }
 run_bundle() { run_in_container -- bash "${BUNDLE_SCRIPT}" "$@"; }
@@ -1264,13 +1319,12 @@ scenario_postinst_join() {
   check_eq "join with a node address: the environment file mode" 640 "$(file_mode "${ENV_FILE}")"
 }
 scenario_restore_keeps_node_config() {
-  log_info "Scenario: restore keeps the node's OpenBao configuration and unseals OpenBao"
+  log_info "Scenario: restore leaves the node file alone and unseals OpenBao"
   CONTAINER="${NODE2_CONTAINER}"
   ADDR="https://127.0.0.1:8200"
   local config_before env_before
   in_container sh -c 'mkdir -p /etc/xroad/backup.d /var/lib/xroad /tmp/node-a/etc/openbao /tmp/node-a/etc/xroad /tmp/node-a/var/lib/xroad &&
     : > /etc/xroad/backup.d/10_openbao &&
-    printf "# node A configuration\n" > /tmp/node-a/etc/openbao/xroad-openbao.hcl &&
     printf "BAO_PG_CONNECTION_URL=archive\n" > /tmp/node-a/etc/openbao/xroad-openbao.env &&
     printf x > /tmp/node-a/etc/xroad/archive-marker &&
     printf dump > /tmp/node-a/var/lib/xroad/openbao_dbdump.dat &&
@@ -1283,9 +1337,9 @@ scenario_restore_keeps_node_config() {
   run_restore_driver setup_tmp_restore_dir extract_to_tmp_restore_dir remove_old_existing_files restore_openbao restart_services
   check "restore: exit 0" test "${RC}" -eq 0
   check_eq "restore: the node's OpenBao configuration is kept" "${config_before}" "$(config_hash)"
-  check_eq "restore: the configuration owner" openbao:xroad "$(file_owner "${XROAD_CONFIG_FILE}")"
-  check_eq "restore: the configuration mode" 640 "$(file_mode "${XROAD_CONFIG_FILE}")"
-  check_eq "restore: the archive's configuration is kept beside it" "# node A configuration" "$(in_container cat "${XROAD_CONFIG_FILE}.restored")"
+  check_eq "restore: the node file owner and mode" root:root:644 "$(file_owner "${NODE_CONFIG_FILE}"):$(file_mode "${NODE_CONFIG_FILE}")"
+  check "restore: no copy is made beside the node file" file_absent "${NODE_CONFIG_FILE}.restored"
+  check "restore: the script no longer handles the OpenBao configuration file" test "$(grep -c 'xroad-openbao.hcl' "${BASE_SCRIPTS_DIR}/_restore_xroad.sh")" -eq 0
   check_eq "restore: the node's OpenBao environment file is kept" "${env_before}" "$(in_container sha256sum "${ENV_FILE}")"
   check_eq "restore: OpenBao is unsealed" false "$(seal_status_field sealed)"
   restart_bao
@@ -1296,6 +1350,26 @@ scenario_restore_keeps_node_config() {
   check_eq "restore without usable unseal keys: OpenBao stays sealed" true "$(seal_status_field sealed)"
   in_container mv "${UNSEAL_KEYS_FILE}.saved" "${UNSEAL_KEYS_FILE}"
   CONTAINER="${NODE1_CONTAINER}"
+}
+run_postrm() { run_in_container -- bash /tmp/postrm "$1"; }
+scenario_postrm_purge() {
+  log_info "Scenario: Debian postrm removes the node file on purge only"
+  CONTAINER="${NODE2_CONTAINER}"
+  docker cp "${POSTRM_FILE}" "${CONTAINER}:/tmp/postrm" >/dev/null || exit 1
+  in_container cp -p "${NODE_CONFIG_FILE}" /tmp/node.hcl.saved
+  run_postrm remove
+  check "postrm remove: exit 0" test "${RC}" -eq 0
+  check "postrm remove: the node file is kept" in_container test -f "${NODE_CONFIG_FILE}"
+  in_container touch "${NODE_CONFIG_DIR}/other"
+  run_postrm purge
+  check "postrm purge: exit 0" test "${RC}" -eq 0
+  check "postrm purge: the node file is removed" file_absent "${NODE_CONFIG_FILE}"
+  check "postrm purge: a directory that is not empty is kept" in_container test -d "${NODE_CONFIG_DIR}"
+  in_container rm "${NODE_CONFIG_DIR}/other"
+  run_postrm purge
+  check "postrm purge of an empty directory: exit 0" test "${RC}" -eq 0
+  check "postrm purge of an empty directory: the directory is removed" file_absent "${NODE_CONFIG_DIR}"
+  in_container sh -c "mkdir -p ${NODE_CONFIG_DIR} && cp -p /tmp/node.hcl.saved ${NODE_CONFIG_FILE}"
 }
 run_restore_driver() { run_in_container -- bash /tmp/restore-driver "$@"; }
 driver_field() { sed -n "s/^$1=//p" "${OUT_FILE}"; }
@@ -1757,6 +1831,7 @@ scenario_join_guards
 scenario_join_node
 scenario_postinst_join
 scenario_restore_keeps_node_config
+scenario_postrm_purge
 scenario_import_base_only
 scenario_env_file_parsing
 scenario_psql_values_not_executed

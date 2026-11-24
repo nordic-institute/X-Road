@@ -28,6 +28,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_unitdir}/openbao.service.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/usr/share/xroad/scripts/
+mkdir -p %{buildroot}/usr/share/xroad/openbao/
 mkdir -p %{buildroot}/etc/xroad/services/
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
@@ -36,6 +37,7 @@ cp -p %{srcdir}/common/secret-store-local/usr/lib/systemd/system/openbao.service
 cp -p %{srcdir}/common/secret-store-local/etc/xroad/services/secret-store-local.conf %{buildroot}/etc/xroad/services/
 cp -p %{srcdir}/common/secret-store-local/etc/xroad/backup.d/??_openbao %{buildroot}/etc/xroad/backup.d/
 cp -p %{srcdir}/common/secret-store-local/usr/share/xroad/scripts/* %{buildroot}/usr/share/xroad/scripts/
+cp -p %{srcdir}/common/secret-store-local/usr/share/xroad/openbao/xroad-openbao.hcl %{buildroot}/usr/share/xroad/openbao/
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
@@ -57,6 +59,8 @@ cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-cluster-config.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/backup_openbao_db.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/restore_openbao_db.sh
+%dir %attr(755,root,root) /usr/share/xroad/openbao
+%attr(644,root,root) /usr/share/xroad/openbao/xroad-openbao.hcl
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
@@ -95,3 +99,7 @@ fi
 
 %postun
 systemctl daemon-reload || :
+if [ $1 -eq 0 ]; then
+    rm -f /etc/xroad-secret-store/node.hcl
+    rmdir --ignore-fail-on-non-empty /etc/xroad-secret-store || :
+fi

@@ -271,16 +271,6 @@ extract_to_tmp_restore_dir () {
 
     chown openbao:xroad ${RESTORE_DIR}/etc/openbao/xroad-openbao.env
     chmod 640 ${RESTORE_DIR}/etc/openbao/xroad-openbao.env
-
-    # keep the node's own OpenBao configuration (node address, certificate)
-    if [[ -f /etc/openbao/xroad-openbao.hcl ]]; then
-        if [[ -f ${RESTORE_DIR}/etc/openbao/xroad-openbao.hcl ]]; then
-            mv ${RESTORE_DIR}/etc/openbao/xroad-openbao.hcl ${RESTORE_DIR}/etc/openbao/xroad-openbao.hcl.restored
-        fi
-        cp /etc/openbao/xroad-openbao.hcl ${RESTORE_DIR}/etc/openbao/xroad-openbao.hcl
-        chown openbao:xroad ${RESTORE_DIR}/etc/openbao/xroad-openbao.hcl
-        chmod 640 ${RESTORE_DIR}/etc/openbao/xroad-openbao.hcl
-    fi
   fi
 
   # reset permissions of all files to fixed, "safe" values
