@@ -27,7 +27,6 @@ quarkus:
   quarkus:
     http:
       host: 0.0.0.0
-      host-enabled: true
       port: 4099
 
 "%native":

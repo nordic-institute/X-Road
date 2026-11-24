@@ -68,6 +68,7 @@ public class DatabaseReadinessExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         healthCheckService.addReadinessProvider(new DatabaseReadinessProvider(
-                () -> dataSourceRegistry.resolve(DEFAULT_DATASOURCE), transactionContext, CHECK_TIMEOUT, CACHE_TIME));
+                () -> dataSourceRegistry.resolve(DEFAULT_DATASOURCE), transactionContext,
+                context.getMonitor(), CHECK_TIMEOUT, CACHE_TIME));
     }
 }

@@ -27,11 +27,18 @@
 
 package org.niis.xroad.ds.issuance.health;
 
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transaction.local.DataSourceResource;
+import org.eclipse.edc.transaction.local.LocalTransactionContext;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import javax.sql.DataSource;
 
+import java.net.ConnectException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,7 +49,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +59,7 @@ class DatabaseReadinessProviderTest {
 
     private static final Duration TIMEOUT = Duration.ofMillis(300);
     private static final Duration CACHE_TIME = Duration.ofMillis(1);
+    private final Monitor monitor = mock(Monitor.class);
 
     @Test
     void reportsReadyWhenTheQuerySucceeds() throws SQLException {
@@ -65,15 +75,37 @@ class DatabaseReadinessProviderTest {
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getComponent()).isEqualTo("database");
+        verify(statement).executeQuery("SELECT 1");
         verify(connection).close();
+    }
+    @Test
+    void releasesThePooledConnectionAfterASuccessfulCheck() throws SQLException {
+        var connection = mock(Connection.class);
+        var statement = mock(Statement.class);
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery("SELECT 1")).thenReturn(mock(ResultSet.class));
+        var result = pooledProvider(connection).get();
+        assertThat(result.succeeded()).isTrue();
+        verify(connection, times(1)).close();
+    }
+    @Test
+    void releasesThePooledConnectionAfterAFailedCheck() throws SQLException {
+        var connection = mock(Connection.class);
+        var statement = mock(Statement.class);
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery("SELECT 1")).thenThrow(new SQLException("terminating connection", "57P01"));
+        var result = pooledProvider(connection).get();
+        assertThat(result.succeeded()).isFalse();
+        verify(connection, times(1)).close();
     }
 
     @Test
     void reportsOnlyTheSanitisedPhraseWhenTheConnectionFails() throws SQLException {
         var dataSource = mock(DataSource.class);
-        when(dataSource.getConnection()).thenThrow(new SQLException(
+        var failure = new SQLException(
                 "Connection to db.internal.example:5432 refused for user issuer, jdbc:postgresql://db.internal.example:5432/center",
-                "08001"));
+                "08001");
+        when(dataSource.getConnection()).thenThrow(failure);
 
         var result = provider(() -> dataSource).get();
 
@@ -81,6 +113,22 @@ class DatabaseReadinessProviderTest {
         assertThat(result.getFailureMessages()).containsExactly("connection refused");
         assertThat(String.join(" ", result.getFailureMessages()))
                 .doesNotContain("jdbc:", "db.internal.example", "issuer");
+        var logged = ArgumentCaptor.forClass(Throwable.class);
+        verify(monitor).warning(anyString(), logged.capture());
+        assertThat(logged.getValue()).hasCause(failure);
+    }
+
+    @Test
+    void mapsAnEdcExceptionWrappingAConnectExceptionWithoutTheHostText() throws SQLException {
+        var dataSource = mock(DataSource.class);
+        when(dataSource.getConnection()).thenThrow(new EdcException(
+                "Connection to db.internal.example:5432 failed for user issuer",
+                new ConnectException("Connection refused")));
+
+        var result = provider(() -> dataSource).get();
+
+        assertThat(result.getFailureMessages()).containsExactly("connection refused");
+        assertThat(String.join(" ", result.getFailureMessages())).doesNotContain("db.internal.example", "issuer");
     }
 
     @Test
@@ -121,7 +169,18 @@ class DatabaseReadinessProviderTest {
         assertThat(elapsed).isLessThan(Duration.ofSeconds(5));
     }
 
-    private static DatabaseReadinessProvider provider(Supplier<DataSource> dataSource) {
-        return new DatabaseReadinessProvider(dataSource, new NoopTransactionContext(), TIMEOUT, CACHE_TIME);
+    private DatabaseReadinessProvider provider(Supplier<DataSource> dataSource) {
+        return provider(dataSource, new NoopTransactionContext());
+    }
+    private DatabaseReadinessProvider pooledProvider(Connection connection) throws SQLException {
+        var pool = mock(DataSource.class);
+        when(pool.getConnection()).thenReturn(connection);
+        var resource = new DataSourceResource(pool);
+        var transactionContext = new LocalTransactionContext(monitor);
+        transactionContext.registerResource(resource);
+        return provider(() -> resource, transactionContext);
+    }
+    private DatabaseReadinessProvider provider(Supplier<DataSource> dataSource, TransactionContext transactionContext) {
+        return new DatabaseReadinessProvider(dataSource, transactionContext, monitor, TIMEOUT, CACHE_TIME);
     }
 }

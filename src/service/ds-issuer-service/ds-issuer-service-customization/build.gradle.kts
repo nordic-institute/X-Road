@@ -29,6 +29,7 @@ dependencies {
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.core)
   testImplementation(libs.awaitility)
+  testImplementation(libs.edc.transaction.local)
   testImplementation(project(":tool:liquibase-executor"))
   testImplementation(libs.liquibase.core)
   testImplementation(libs.postgresql)

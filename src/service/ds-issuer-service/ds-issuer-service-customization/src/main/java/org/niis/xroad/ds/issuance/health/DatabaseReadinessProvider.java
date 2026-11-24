@@ -27,6 +27,7 @@
 
 package org.niis.xroad.ds.issuance.health;
 
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
@@ -74,12 +75,13 @@ public final class DatabaseReadinessProvider implements ReadinessProvider {
     /**
      * @param dataSource resolves the datasource on each check, as the pool registers it after this provider
      * @param transactionContext runs the query inside a transaction so the pooled connection is released
+     * @param monitor receives the full cause of a failed check, which the response body leaves out
      * @param timeout longest wait for one check before it counts as failed
      * @param cacheTime how long a result, ready or failed, is reused
      */
     public DatabaseReadinessProvider(Supplier<DataSource> dataSource, TransactionContext transactionContext,
-                                     Duration timeout, Duration cacheTime) {
-        var query = new SelectOneCheck(dataSource, transactionContext);
+                                     Monitor monitor, Duration timeout, Duration cacheTime) {
+        var query = new SelectOneCheck(dataSource, transactionContext, monitor);
         this.check = new CachingHealthCheck(new TimedHealthCheck(query, timeout, COMPONENT),
                 cacheTime, cacheTime, MAX_ERROR_TTL, ERROR_BACKOFF_MULTIPLIER);
     }
@@ -126,8 +128,8 @@ public final class DatabaseReadinessProvider implements ReadinessProvider {
         return UNAVAILABLE;
     }
 
-    private record SelectOneCheck(Supplier<DataSource> dataSource, TransactionContext transactionContext)
-            implements HealthCheck {
+    private record SelectOneCheck(Supplier<DataSource> dataSource, TransactionContext transactionContext,
+                                  Monitor monitor) implements HealthCheck {
 
         @Override
         public HealthCheckResponse call() {
@@ -140,6 +142,7 @@ public final class DatabaseReadinessProvider implements ReadinessProvider {
                 transactionContext.execute(() -> selectOne(source));
                 return builder.up().build();
             } catch (Exception e) {
+                monitor.warning("Database readiness check failed", e);
                 return builder.down().withData(ERROR, sanitise(e)).build();
             }
         }
