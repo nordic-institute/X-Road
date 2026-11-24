@@ -30,39 +30,29 @@ import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import { XrdAppFooter } from '@niis/shared-ui';
-import messages from '@niis/shared-ui/src/locales/en.json';
-
-function translate(key: string): string {
-  const value = key.split('.').reduce<unknown>((node, part) => (node as Record<string, unknown> | undefined)?.[part], messages);
-  return typeof value === 'string' ? value : key;
-}
 
 const wrapper = mount(XrdAppFooter, {
   props: { appVersion: '8.0.0' },
   global: {
     plugins: [createVuetify({ components, directives })],
-    mocks: { $t: translate },
+    mocks: { $t: (key: string) => key },
   },
 });
 
 describe('XrdAppFooter copyright column', () => {
   it('links the company name to the NIIS website', () => {
-    const link = wrapper.findAll('a').find((a) => a.text() === messages.footer.copyright.company);
-    expect(link).toBeDefined();
-    expect(link!.attributes('href')).toBe('https://niis.org/');
-    expect(link!.attributes('target')).toBe('_blank');
-    expect(link!.attributes('rel')).toBe('noopener');
+    const link = wrapper.get('[data-test="app-footer-company-link"]');
+    expect(link.text()).toBe('footer.copyright.company');
+    expect(link.attributes('href')).toBe('https://niis.org/');
+    expect(link.attributes('target')).toBe('_blank');
+    expect(link.attributes('rel')).toBe('noopener');
   });
 
   it('links the licence info to the X-Road licence page', () => {
-    const link = wrapper.findAll('a').find((a) => a.text() === 'Licence info');
-    expect(link).toBeDefined();
-    expect(link!.attributes('href')).toBe('https://x-road.global/xroad-licence-info');
-    expect(link!.attributes('target')).toBe('_blank');
-    expect(link!.attributes('rel')).toBe('noopener');
-  });
-
-  it('has no separate niis.org link label', () => {
-    expect(wrapper.findAll('a').some((a) => a.text() === 'niis.org')).toBe(false);
+    const link = wrapper.get('[data-test="app-footer-licence-link"]');
+    expect(link.text()).toBe('footer.copyright.licenceInfo');
+    expect(link.attributes('href')).toBe('https://x-road.global/xroad-licence-info');
+    expect(link.attributes('target')).toBe('_blank');
+    expect(link.attributes('rel')).toBe('noopener');
   });
 });

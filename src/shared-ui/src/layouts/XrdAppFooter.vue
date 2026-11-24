@@ -73,6 +73,7 @@
         <v-row density="compact">
           <v-col class="py-0">
             <a
+              data-test="app-footer-company-link"
               rel="noopener"
               class="basic-link body-regular font-weight-medium text-accent text-decoration-none"
               href="https://niis.org/"
@@ -85,6 +86,7 @@
         <v-row density="compact">
           <v-col>
             <a
+              data-test="app-footer-licence-link"
               rel="noopener"
               class="basic-link body-regular font-weight-medium text-accent text-decoration-none"
               href="https://x-road.global/xroad-licence-info"
