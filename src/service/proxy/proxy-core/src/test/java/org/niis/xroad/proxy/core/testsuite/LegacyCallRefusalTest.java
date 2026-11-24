@@ -134,6 +134,7 @@ class LegacyCallRefusalTest {
     @AfterEach
     void tearDown() {
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.clear();
+        PROXY_TEST_SUITE_HELPER.dspValuesPublished = false;
         if (ctx != null) {
             ctx.destroy();
         }
@@ -196,6 +197,7 @@ class LegacyCallRefusalTest {
 
     @Test
     void shouldServeRequestWithAValidTokenWhenTheInstanceRefuses() throws Exception {
+        PROXY_TEST_SUITE_HELPER.dspValuesPublished = true;
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
         stubAssetAccess(CONSUMER, GET_STATE);

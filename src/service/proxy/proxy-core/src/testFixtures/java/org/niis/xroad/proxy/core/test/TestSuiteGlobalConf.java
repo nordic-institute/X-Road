@@ -36,12 +36,15 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
@@ -86,6 +89,28 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
         } else {
             return singleton(addr);
         }
+    }
+
+    @Override
+    public Set<SecurityServerId> getClientSecurityServers(ClientId clientId) {
+        return proxyTestSuiteHelper.dspValuesPublished ? PublishedDspValues.serversOf(clientId) : emptySet();
+    }
+
+    @Override
+    public String getSecurityServerAddress(SecurityServerId serverId) {
+        return proxyTestSuiteHelper.dspValuesPublished
+                ? getProviderAddress(serverId.getOwner()).stream().findFirst().orElse(null)
+                : null;
+    }
+
+    @Override
+    public Optional<ServerSystemValues> getServerSystemValues(SecurityServerId serverId) {
+        return proxyTestSuiteHelper.dspValuesPublished ? PublishedDspValues.systemValues() : Optional.empty();
+    }
+
+    @Override
+    public Optional<String> getMemberDid(ClientId memberId, SecurityServerId serverId) {
+        return proxyTestSuiteHelper.dspValuesPublished ? PublishedDspValues.memberDid(memberId) : Optional.empty();
     }
 
     @Override

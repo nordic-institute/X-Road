@@ -70,6 +70,7 @@ import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.CallModeSelector;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
@@ -266,7 +267,11 @@ public abstract class AbstractProxyIntegrationTest {
                 CONSUMER_SIDE_DSP_PROCESSOR, identifierValidationService,
                 new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF),
                 new DspFailover(CONSUMER_SIDE_DSP_PROCESSOR, httpSenderProviderClient,
-                        new DspSendFailureHandler(CONSUMER_SIDE_DSP_PROCESSOR)));
+                        new DspSendFailureHandler(CONSUMER_SIDE_DSP_PROCESSOR)),
+                new CallModeSelector(TEST_GLOBAL_CONF,
+                        new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties,
+                                new ProviderSecurityServerResolver(TEST_GLOBAL_CONF)),
+                        proxyProperties, CONSUMER_SIDE_DSP_PROCESSOR));
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),

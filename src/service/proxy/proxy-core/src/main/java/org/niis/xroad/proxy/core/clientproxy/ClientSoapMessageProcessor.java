@@ -56,6 +56,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.CallModeSelector;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -131,6 +132,7 @@ public class ClientSoapMessageProcessor {
     private final IdentifierValidationService identifierValidationService;
     private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
     private final DspFailover dspFailover;
+    private final CallModeSelector callModeSelector;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
@@ -286,8 +288,9 @@ public class ClientSoapMessageProcessor {
      */
     SentRequest send(DspRequest dspRequest, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                      String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
-        if (proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)) {
-            return sendWithDspFailover(dspRequest, ctx, decoder, xRequestId, opMonitoringData);
+        var dspCall = callModeSelector.overDsp(dspRequest);
+        if (dspCall.isPresent()) {
+            return sendWithDspFailover(dspCall.get(), ctx, decoder, xRequestId, opMonitoringData);
         }
         return new SentRequest(executeWithRetry(ctx, decoder, xRequestId, opMonitoringData), null);
     }

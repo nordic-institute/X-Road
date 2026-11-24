@@ -115,11 +115,13 @@ class AgreementTokenAclSkipTest {
 
     @BeforeEach
     void setUp() {
+        PROXY_TEST_SUITE_HELPER.dspValuesPublished = true;
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
     }
 
     @AfterEach
     void tearDown() {
+        PROXY_TEST_SUITE_HELPER.dspValuesPublished = false;
         ctx.destroy();
     }
 

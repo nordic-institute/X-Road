@@ -24,27 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.controlplane;
+package org.niis.xroad.proxy.core.dsp;
 
-import com.apicatalog.did.Did;
+import java.util.List;
 
 /**
- * Provider DSP endpoint metadata used by the consumer-side asset-access flow.
- *
- * <p>{@code counterPartyId} is the URL-encoded {@code did:web} of the provider's
- * EDC participant identity (see EDC DR {@code 2023-12-19-token-handling-refactor}:
- * {@code IdentityAndTrustService} maps {@code counterPartyId} → DID → JWT audience).
- * The {@code %3A} in place of {@code :} between host and port is required by
- * {@code did:web} resolution semantics.
- *
- * <p>{@code counterPartyAddress} is the whole DSP base URL of the provider's Control Plane.
- * EDC appends the protocol version path and per-message subpath at dispatch time.
- *
- * <p>Both member and SYSTEM targets are derived from GlobalConf data and ecosystem-wide DSP
- * conventions; no map lookup is involved.
- *
- * @param counterPartyId      URL-encoded participant DID (e.g. {@code did:web:xrd-ss0%3A7183:v1:system})
- * @param counterPartyAddress full DSP base URL (e.g. {@code https://xrd-ss0:8183/api/dsp/system/http-dsp-profile-2025-1})
+ * How a call reaches its provider: over the Dataspace Protocol to the servers that published the called DID, or
+ * unnegotiated.
  */
-public record CounterPartyTarget(Did counterPartyId, String counterPartyAddress) {
+public sealed interface CallMode {
+
+    /**
+     * The call goes through DSP.
+     *
+     * @param candidates the provider servers that published the called DID, each with its DSP target; never empty
+     */
+    record Dsp(List<AcquisitionCandidate> candidates) implements CallMode {
+        public Dsp {
+            candidates = List.copyOf(candidates);
+        }
+    }
+
+    /**
+     * No candidate server published the called DID.
+     */
+    record Unnegotiated() implements CallMode {
+    }
 }

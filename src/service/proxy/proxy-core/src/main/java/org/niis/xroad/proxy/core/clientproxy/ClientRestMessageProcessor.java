@@ -62,6 +62,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.CallModeSelector;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -127,6 +128,7 @@ public class ClientRestMessageProcessor {
     private final IdentifierValidationService identifierValidationService;
     private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
     private final DspFailover dspFailover;
+    private final CallModeSelector callModeSelector;
 
     /**
      * Processes a REST message exchange described by the given request context.
@@ -233,8 +235,9 @@ public class ClientRestMessageProcessor {
             throws Exception {
         var dspRequest = new DspRequest(requestServiceId, restRequest.getClientId(),
                 restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId));
-        if (proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)) {
-            return sendWithDspFailover(dspRequest, jRequest, opMonitoringData, restRequest, senderId,
+        var dspCall = callModeSelector.overDsp(dspRequest);
+        if (dspCall.isPresent()) {
+            return sendWithDspFailover(dspCall.get(), jRequest, opMonitoringData, restRequest, senderId,
                     requestServiceId, xRequestId, ctx);
         }
         return sendWithHandshakeRetry(jRequest, opMonitoringData, restRequest, senderId, requestServiceId, xRequestId, ctx);

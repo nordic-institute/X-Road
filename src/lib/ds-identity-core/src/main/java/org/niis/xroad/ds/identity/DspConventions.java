@@ -184,6 +184,24 @@ public class DspConventions {
         return participantContextId.replace("%", "%25");
     }
 
+    /**
+     * The counter-party address of a participant that published its DSP base URL: the published base URL, the
+     * participant's context segment taken from its DID, and the DSP profile.
+     *
+     * @param dspBaseUrl     the published DSP base URL of the participant's control plane; a trailing {@code /} is dropped
+     * @param participantDid the participant's published DID, member or SYSTEM, in wire form
+     * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1}
+     * @throws XrdRuntimeException if the DID is not a valid participant DID
+     */
+    public static String dspTarget(String dspBaseUrl, String participantDid) {
+        var contextId = switch (ParticipantIdentifierScheme.decodeDid(participantDid)) {
+            case MemberParticipant member -> ParticipantIdentifierScheme.memberCtxId(member.member());
+            case SystemParticipant _ -> ParticipantIdentifierScheme.SYSTEM_SEGMENT;
+        };
+        var baseUrl = dspBaseUrl.endsWith("/") ? dspBaseUrl.substring(0, dspBaseUrl.length() - 1) : dspBaseUrl;
+        return "%s/%s/%s".formatted(baseUrl, participantPathSegment(contextId), DSP_PROFILE_ID);
+    }
+
     private static String counterPartyAddress(String participantContextId, String ssAddress) {
         return "%s/%s/%s".formatted(dspBaseUrl(ssAddress, DSP_PORT), participantPathSegment(participantContextId), DSP_PROFILE_ID);
     }

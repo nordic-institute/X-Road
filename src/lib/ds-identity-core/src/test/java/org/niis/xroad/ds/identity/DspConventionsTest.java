@@ -242,4 +242,40 @@ class DspConventionsTest {
         assertThatThrownBy(() -> DspConventions.dspBaseUrl(ssAddress, 8183))
                 .isInstanceOf(XrdRuntimeException.class);
     }
+
+    @Test
+    void shouldBuildDspTargetFromPublishedBaseUrlAndMemberDid() {
+        assertThat(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp",
+                DspConventions.memberCounterPartyId(MEMBER, "ss0.example.org").toString()))
+                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void shouldEscapePercentSignInDspTargetContextSegment() {
+        var member = ClientId.Conf.create("DEV", "COM", "A+B");
+
+        assertThat(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp",
+                DspConventions.memberCounterPartyId(member, "ss0.example.org").toString()))
+                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:A%252BB/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void shouldBuildDspTargetFromPublishedSystemDid() {
+        assertThat(DspConventions.dspTarget("https://ss0.example.org:9183/custom",
+                DspConventions.systemCounterPartyId("ss0.example.org").toString()))
+                .isEqualTo("https://ss0.example.org:9183/custom/system/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void shouldStripTrailingSlashOfPublishedBaseUrlFromDspTarget() {
+        assertThat(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp/",
+                DspConventions.memberCounterPartyId(MEMBER, "ss0.example.org").toString()))
+                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void shouldRefuseDspTargetOfMalformedDid() {
+        assertThatThrownBy(() -> DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp", "not-a-did"))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
 }

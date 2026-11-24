@@ -26,6 +26,7 @@
 package org.niis.xroad.proxy.core;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 
@@ -37,15 +38,18 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.agreementtoken.AgreementTokenGrant;
 import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.test.InMemoryAgreementTokenKeyProvider;
+import org.niis.xroad.proxy.core.test.PublishedDspValues;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
@@ -94,7 +98,7 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
     @Test
     void shouldServeRequestWithAValidTokenWhenTheInstanceRefuses() {
-        refuseLegacyCallsOnTheInstance();
+        refuseLegacyCallsOnTheInstanceWhileTheProviderPublishesDspValues();
         stubAssetAccess(mintToken());
 
         postEcho()
@@ -114,6 +118,35 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
             @Override
             public boolean isLegacyProtocolDisabled(String instanceIdentifier) {
                 return true;
+            }
+        });
+    }
+
+    private void refuseLegacyCallsOnTheInstanceWhileTheProviderPublishesDspValues() {
+        TEST_GLOBAL_CONF.setGlobalConfProvider(new TestGlobalConf() {
+            @Override
+            public boolean isLegacyProtocolDisabled(String instanceIdentifier) {
+                return true;
+            }
+
+            @Override
+            public Set<SecurityServerId> getClientSecurityServers(ClientId clientId) {
+                return PublishedDspValues.serversOf(clientId);
+            }
+
+            @Override
+            public String getSecurityServerAddress(SecurityServerId serverId) {
+                return getProviderAddress(serverId.getOwner()).iterator().next();
+            }
+
+            @Override
+            public Optional<ServerSystemValues> getServerSystemValues(SecurityServerId serverId) {
+                return PublishedDspValues.systemValues();
+            }
+
+            @Override
+            public Optional<String> getMemberDid(ClientId memberId, SecurityServerId serverId) {
+                return PublishedDspValues.memberDid(memberId);
             }
         });
     }

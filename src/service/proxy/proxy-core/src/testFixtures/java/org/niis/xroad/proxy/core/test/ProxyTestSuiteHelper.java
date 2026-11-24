@@ -49,6 +49,12 @@ public class ProxyTestSuiteHelper {
      */
     public final Map<String, Boolean> legacyProtocolDisabledByInstance = new ConcurrentHashMap<>();
 
+    /**
+     * Whether the test global configuration publishes DSP values for the called provider. When {@code false} no
+     * server published the called DID and the client proxy makes the unnegotiated call.
+     */
+    public volatile boolean dspValuesPublished;
+
     public volatile MessageTestCase currentTestCase;
     public ProxyProperties proxyProperties;
     public CommonProperties commonProperties;

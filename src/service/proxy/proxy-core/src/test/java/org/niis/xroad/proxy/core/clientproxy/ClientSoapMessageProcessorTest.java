@@ -50,22 +50,27 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor.ReplaySoapProxyMessageEntity;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor.SentRequest;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.CallModeSelector;
 import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
 import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
@@ -88,6 +93,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Handler;
@@ -184,6 +190,8 @@ class ClientSoapMessageProcessorTest {
     private static final String SS_A_TOKEN = "token-issued-by-ss-a";
     private static final String SS_B_TOKEN = "token-issued-by-ss-b";
     private static final String SS_C_TOKEN = "token-issued-by-ss-c";
+    private static final String SS_A_HOST = "ss-a.example";
+    private static final SecurityServerId SS_A_SERVER = SecurityServerId.Conf.create("DEV", "COM", "222", "ss-a");
     private static final AssetAccessResponse WON_BY_SS_A =
             new AssetAccessResponse("https://ss-a.example:8183/data", SS_A_TOKEN, new AcquisitionCandidate(SS_A_ID, SS_A_ADDRESS));
     private static final AssetAccessResponse WON_BY_SS_B =
@@ -445,6 +453,34 @@ class ClientSoapMessageProcessorTest {
         verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), any(InputStream.class), eq((long) CHUNKED_LENGTH),
                 nullable(String.class));
         verifyNoInteractions(harness.legacyCallRefusalPolicy());
+    }
+
+    @Test
+    void sendWithDspEnabledTakesTheLegacyPathWhenNoServerPublishedTheCalledDid() throws Exception {
+        var harness = createRefusalHarness(true, false);
+        when(harness.globalConfProvider().getMemberDid(any(), any())).thenReturn(Optional.empty());
+        var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
+
+        var sent = send(harness, newUnfinishedRequest());
+
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
+        assertThat(sent.assetAccess()).isNull();
+        assertThat(sent.httpSender()).isSameAs(httpSender);
+    }
+
+    @Test
+    void sendNegotiatesWithTheServersThatPublishedTheCalledDid() throws Exception {
+        var harness = createRefusalHarness(true, false);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
+        stubSenders(harness, mock(HttpSender.class));
+
+        send(harness, newUnfinishedRequest());
+
+        var dspRequest = ArgumentCaptor.forClass(DspRequest.class);
+        verify(harness.consumerSideDspProcessor()).execute(dspRequest.capture());
+        assertThat(dspRequest.getValue().candidates())
+                .containsExactly(new AcquisitionCandidate(SS_A_ID, SS_A_ADDRESS));
     }
 
     @Test
@@ -1219,6 +1255,10 @@ class ClientSoapMessageProcessorTest {
         }
         var legacyCallRefusalPolicy = spy(new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        var serviceAddressResolver = mock(DefaultServiceAddressResolver.class);
+        when(serviceAddressResolver.resolveCandidates(any(), any()))
+                .thenReturn(List.of(new ProviderAddress(null, SS_A_HOST)));
+        publishServer(globalConfProvider, SS_A_SERVER, SS_A_HOST, SS_A_ID);
         var dspSendFailureHandler = spy(new DspSendFailureHandler(consumerSideDspProcessor));
         var httpSenderProvider = mock(HttpSenderProvider.class);
         var processor = new ClientSoapMessageProcessor(
@@ -1234,7 +1274,8 @@ class ClientSoapMessageProcessorTest {
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
                 legacyCallRefusalPolicy,
-                new DspFailover(consumerSideDspProcessor, httpSenderProvider, dspSendFailureHandler));
+                new DspFailover(consumerSideDspProcessor, httpSenderProvider, dspSendFailureHandler),
+                new CallModeSelector(globalConfProvider, serviceAddressResolver, proxyProperties, consumerSideDspProcessor));
         return new RefusalHarness(processor, clientRequestPreparationService, globalConfProvider, legacyCallRefusalPolicy,
                 consumerSideDspProcessor, dspSendFailureHandler, httpSenderProvider);
     }
@@ -1267,24 +1308,39 @@ class ClientSoapMessageProcessorTest {
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
                 mock(LegacyCallRefusalPolicy.class),
-                mock(DspFailover.class));
+                mock(DspFailover.class),
+                new CallModeSelector(mock(GlobalConfProvider.class), mock(DefaultServiceAddressResolver.class), proxyProperties,
+                        consumerSideDspProcessor));
     }
 
     private ClientSoapMessageProcessor createProcessor(GlobalConfProvider globalConfProvider,
                                                        ClientRequestPreparationService clientRequestPreparationService) {
+        var proxyProperties = mock(ProxyProperties.class);
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
         return new ClientSoapMessageProcessor(
                 mock(MessageSigningService.class),
                 mock(HttpSenderProvider.class),
                 mock(ClientVerificationService.class),
                 mock(OpMonitoringDataHelper.class),
                 globalConfProvider,
-                mock(ProxyProperties.class),
+                proxyProperties,
                 new XRoadConfigCommonProperties(XRoadConfigBuilder.create().build()),
                 mock(OcspVerifierFactory.class),
                 clientRequestPreparationService,
-                mock(DspRequestProcessor.class),
+                consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
                 mock(LegacyCallRefusalPolicy.class),
-                mock(DspFailover.class));
+                mock(DspFailover.class),
+                new CallModeSelector(globalConfProvider, mock(DefaultServiceAddressResolver.class), proxyProperties,
+                        consumerSideDspProcessor));
+    }
+
+    private static void publishServer(GlobalConfProvider globalConfProvider, SecurityServerId serverId, String host, String did) {
+        when(globalConfProvider.getClientSecurityServers(any())).thenReturn(Set.of(serverId));
+        when(globalConfProvider.getSecurityServerAddress(serverId)).thenReturn(host);
+        when(globalConfProvider.getMemberDid(any(), eq(serverId))).thenReturn(Optional.of(did));
+        when(globalConfProvider.getServerSystemValues(serverId))
+                .thenReturn(Optional.of(new ServerSystemValues(DspConventions.systemCounterPartyId(host).toString(),
+                        "https://" + host + ":8183/api/dsp")));
     }
 }

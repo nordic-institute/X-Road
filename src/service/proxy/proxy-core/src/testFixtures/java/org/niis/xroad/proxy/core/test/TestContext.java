@@ -54,6 +54,7 @@ import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.CallModeSelector;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
@@ -218,7 +219,11 @@ public class TestContext {
                     ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService,
                     new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider),
                     new DspFailover(consumerSideDspProcessor, httpSenderProvider,
-                            new DspSendFailureHandler(consumerSideDspProcessor)));
+                            new DspSendFailureHandler(consumerSideDspProcessor)),
+                    new CallModeSelector(globalConfProvider,
+                            new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
+                                    new ProviderSecurityServerResolver(globalConfProvider)),
+                            proxyProperties, consumerSideDspProcessor));
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);
