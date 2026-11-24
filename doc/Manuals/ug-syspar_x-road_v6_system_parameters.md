@@ -277,18 +277,10 @@ This chapter describes the system parameters used by the components of the X-Roa
 
 ### 3.1 Common parameters : `[common]`
 
-The parameters `grpc-internal-*` are for X-Road 7 only. X-Road 8 does not read them. For the TLS of the internal gRPC connections in X-Road 8, see section [3.1.1](#311-internal-grpc-connections-xroadcommon-rpc).
-
 | **Parameter**                     | **Default value**                               | **Description**                                                      |
 |-----------------------------------|-------------------------------------------------|----------------------------------------------------------------------|
 | configuration-path                | /etc/xroad/globalconf/                          | Absolute path to the directory where global configuration is stored. |
 | temp-files-path                   | /var/tmp/xroad/                                 | Absolute path to the directory where temporary files are stored.     |
-| grpc-internal-host                | 127.0.0.1                                       | Bind gRPC servers to a specific host.                                |
-| grpc-internal-tls-enabled         | true                                            | Enables mTLS for gRPC services                                       |
-| grpc-internal-keystore            | /var/run/xroad/xroad-grpc-internal-keystore.p12 | gRPC keystore for mTLS configuration.                                |
-| grpc-internal-keystore-password   | \<generated-value>                               | gRPC keystore password.                                              |
-| grpc-internal-truststore          | /var/run/xroad/xroad-grpc-internal-keystore.p12 | gRPC truststore for mTLS configuration.                              |
-| grpc-internal-truststore-password | \<generated-value>                               | gRPC truststore password.                                            |
 
 The time limit for retrying calls to the secret store is the X-Road 8 configuration property `xroad.common.vault-retry.budget`. It has the same default value of 30 s on the Security Server and on the Central Server. The interval between renewals of the secret store token is the property `xroad.common.vault-token-renewal.interval`. See section [4.1.1.2](#4112-secret-store-retry-xroadcommonvault-retry).
 

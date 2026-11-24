@@ -3103,7 +3103,7 @@ The daemon uses the clock of its own host for the time windows of the queries. K
 
 **Upgrading the Security Server with the upgrade wizard**
 
-When the upgrade wizard upgrades a Security Server that uses an external daemon, the wizard may unmask, preset and start the local service `xroad-opmonitor`. After the upgrade, if the package `xroad-opmonitor` is installed on the Security Server, stop and disable the local service again:
+The upgrade wizard does not install `xroad-opmonitor`. If the package was installed in X-Road 7.8, the wizard upgrades it. In the last step, the wizard unmasks the service `xroad-opmonitor`, applies the preset, and starts it. This also happens when the Security Server uses an external daemon. After the wizard, stop and disable the local service:
 
 ```bash
 systemctl disable --now xroad-opmonitor

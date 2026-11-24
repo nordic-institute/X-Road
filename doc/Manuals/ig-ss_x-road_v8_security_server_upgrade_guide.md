@@ -830,16 +830,6 @@ After the verify step, the X-Road 7 files in this list are no longer used. Remov
 
 Never remove `/etc/xroad/db.properties`, the settings file `/etc/xroad/conf.d/op-monitor-settings.yaml`, `/etc/xroad-opmonitor/ssl` and the Security Server RPC CA file.
 
-**Rows of an earlier migration**
-
-An earlier version of the migration wrote the X-Road 7 `[common] grpc-internal-*` settings to the configuration database of the Security Server as dead rows. They are not used. To remove them, run on the Security Server:
-
-```bash
-for k in host tls-enabled keystore keystore-password truststore truststore-password; do
-  /usr/share/xroad/scripts/db_property.sh remove "xroad.common.grpc-internal-$k" --yes
-done
-```
-
 The package `xroad-opmonitor` does not ask for and does not write `xroad.op-monitor.tls.certificate-provisioning.*`. A row of that name from an earlier installation is not used by the daemon.
 
 ## Troubleshooting
