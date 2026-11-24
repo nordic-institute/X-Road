@@ -28,6 +28,7 @@ Doc. ID: IG-CS-8
   - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
   - [2.2 Reference Data](#22-reference-data)
     - [2.2.1 Network Diagram](#221-network-diagram)
+    - [2.2.2 Issuer Service health endpoint](#222-issuer-service-health-endpoint)
   - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repositories](#25-setup-package-repositories)
@@ -120,7 +121,7 @@ The table below lists the required connections between different components. Ple
 | In                  | X-Road Member Security Server     | Central Server                | 4001                | tcp          | Authentication certificate registration requests from X-Road Members' Security Servers                                                                                           |
 | In                  | Management Security Server        | Central Server                | 80, 443, 4001, 4002 | tcp          | Source in the internal network. Management service requests from Management Security Server. Global configuration distribution. Authentication certificate registration requests |
 | In                  | Monitoring Security Server        | Central Server                | 80, 443, 4001       | tcp          | Source in the internal network. Global configuration distribution. Authentication certificate registration requests                                                              |
-| In                  | Security Server                   | Central Server                | 6183, 6185, 6187    | tcp          | Issuer Service DID documents, credential issuance and credential status lists, reached through the cluster DNS name                                                               |
+| In                  | Security Server                   | Central Server                | 6183, 6185, 6187    | tcp          | Issuer Service DID documents, credential issuance and credential status lists, reached through the cluster DNS name                                                              |
 | In                  | X-Road Member Security Server     | Management Security Server    | 5500, 5577          | tcp          | Management service requests from X-Road Members' Security Servers                                                                                                                |
 | In                  | Central Monitoring Client         | Monitoring Security Server    | 8080, 8443          | tcp          | Source in the internal network                                                                                                                                                   |
 | In                  | Admin, management REST API client | Central Server                | 4000                | tcp          | Source in the internal network                                                                                                                                                   |
@@ -129,17 +130,17 @@ The table below lists the required connections between different components. Ple
 
 The table below lists the open ports for Central Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
 
-| **Component**        | **Ports** | **Protocol** | **Note**                                      |
-|----------------------|-----------|--------------|-----------------------------------------------|
-| Registration Service | 8084      | tcp          | For incoming requests to Registration Service |
-| Management Service   | 8085      | tcp          | For incoming requests to Management Service   |
+| **Component**        | **Ports** | **Protocol** | **Note**                                                                                                     |
+|----------------------|-----------|--------------|--------------------------------------------------------------------------------------------------------------|
+| Registration Service | 8084      | tcp          | For incoming requests to Registration Service                                                                |
+| Management Service   | 8085      | tcp          | For incoming requests to Management Service                                                                  |
 | Issuer Service       | 6181      | tcp          | EDC default API (HTTPS). It is closed while no certificate is served. Do not use it as a load balancer probe |
-| Issuer Service       | 6189      | tcp          | Health endpoint (plain HTTP), loopback by default |
-| Issuer Service       | 5460      | tcp          | gRPC from the Central Server admin service     |
-| PostgreSQL database  | 5432      | tcp          | Default PostgreSQL database port              |
-| Signer               | 5560      | tcp          | Signer gRPC port                              |
-| Audit log            | 514       | udp          |                                               |
-| Secret Store         | 8200      | tcp          | Local Secret Store (OpenBao) port             |
+| Issuer Service       | 6189      | tcp          | Health endpoint (plain HTTP), loopback by default                                                            |
+| Issuer Service       | 5460      | tcp          | gRPC from the Central Server admin service                                                                   |
+| PostgreSQL database  | 5432      | tcp          | Default PostgreSQL database port                                                                             |
+| Signer               | 5560      | tcp          | Signer gRPC port                                                                                             |
+| Audit log            | 514       | udp          |                                                                                                              |
+| Secret Store         | 8200      | tcp          | Local Secret Store (OpenBao) port                                                                            |
 
 The Issuer Service's public ports (6183, 6185, 6187) listen on the interface set by the
 `xroad.dataspace.issuer.listen-address` property. The default is `0.0.0.0`; it and `::` both
@@ -170,14 +171,14 @@ haproxy backend that reaches these ports on loopback. The property has no valida
 address does not fail the command that sets it, and shows up only as a bind failure when the
 Issuer Service next starts.
 
-#### Issuer Service health endpoint
+#### 2.2.2 Issuer Service health endpoint
 
 Each Issuer Service serves a read-only health endpoint in plain HTTP, without authentication.
-It listens on the interface set by the `xroad.dataspace.issuer.health-check-listen-address`
-property (default `127.0.0.1`) and on the port set by the `xroad.dataspace.issuer.health-check-port`
-property (default `6189`). With the defaults the endpoint is reachable only from the node
-itself. To let a load balancer probe the node, set the address to one that the load balancer
-can reach, and allow the load balancer to connect to the port in the firewall.
+The `xroad.dataspace.issuer.health-check-listen-address` property sets the interface. The
+default is `127.0.0.1`. The `xroad.dataspace.issuer.health-check-port` property sets the port.
+The default is `6189`. With the defaults, the endpoint is reachable only from the node itself.
+To let a load balancer probe the node, set the address to one that the load balancer can reach.
+Then allow the load balancer to connect to the port in the firewall.
 
 Set a shared value, used by every node without its own value, with:
 
@@ -199,21 +200,37 @@ The Issuer Service reads both properties once at startup, so restart it after a 
 sudo systemctl restart xroad-ds-issuer-service
 ```
 
-**Caution:** the properties have no validator. A mistyped address, an address that is not on
-the node, or a port that another process uses does not fail the command that sets it. It shows
-up as a bind failure when the Issuer Service next starts, and then the whole Issuer Service
-stops, including the DID document and the credential issuance.
+**Caution:** the properties have no validator. A bad value does not fail the command that sets
+it. Bad values are a mistyped address, an address that is not on the node, and a port that
+another process uses. A bad value shows up as a bind failure when the Issuer Service next
+starts. Then the whole Issuer Service stops, including the DID document and the credential
+issuance.
 
-The endpoint has two paths:
+Use these two paths:
 
-| **Path**          | **Use**             | **Answers UP when**                                                                                        |
-|-------------------|---------------------|------------------------------------------------------------------------------------------------------------|
-| `/q/health/ready` | Load balancer probe | The configuration database is reachable, and the public ports serve a TLS certificate that has not expired |
-| `/q/health/live`  | Process check       | The Issuer Service process responds                                                                        |
+| **Path**          | **Use**             | **Answers UP when**                                                                                         |
+|-------------------|---------------------|-------------------------------------------------------------------------------------------------------------|
+| `/q/health/ready` | Load balancer probe | The Central Server database is reachable, and the public ports serve a TLS certificate that has not expired |
+| `/q/health/live`  | Process check       | The Issuer Service process responds                                                                         |
 
-When `/q/health/ready` answers DOWN, the response body names the cause. The secret store
-(OpenBao) is not part of the readiness check, so a short OpenBao outage keeps the nodes in
-rotation. A database outage or an OpenBao outage never makes `/q/health/live` answer DOWN.
+The load balancer checks the HTTP status code of the answer. Each path answers HTTP 200 when
+the answer is UP, and HTTP 503 when the answer is DOWN. This command, run on the node, prints
+the status code of the readiness path:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:6189/q/health/ready
+```
+
+If you changed the address or the port, use the new values in the URL.
+
+The body of the answer is JSON. The `status` field holds the overall answer, `UP` or `DOWN`.
+The `checks` array holds the checks behind it. For `/q/health/ready`, the check named
+`EDC_READINESS_CHECK` has a `data` object only when it is `DOWN`. That object has one field for
+each component that fails, `database` or `connector-tls`, with a short cause.
+
+The secret store (OpenBao) is not part of the readiness check. A short OpenBao outage keeps the
+nodes in rotation. A database outage or an OpenBao outage never makes `/q/health/live` answer
+DOWN.
 
 The port refuses connections while the Issuer Service starts, and when it fails to start. A load
 balancer reads this as down, which is correct.
