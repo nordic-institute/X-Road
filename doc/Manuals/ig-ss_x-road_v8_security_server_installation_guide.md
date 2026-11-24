@@ -423,11 +423,20 @@ The daemon cannot run before the host is configured, so its first start after th
 * Ensure that the package is installed and that the database properties of the daemon exist. The command prints the property names only:
 
   ```bash
-  dpkg -s xroad-opmonitor | grep '^Status'
+  sudo systemctl list-units --all "xroad-*" "postgresql@*"
   sudo grep -E '^xroad\.db\.op-monitor\.hibernate\.' /etc/xroad/db.properties | cut -d= -f1
   ```
 
-  The first command must print `Status: install ok installed`. The second command must list six property names, as in [Annex A](#annex-a-security-server-default-database-properties).
+  The first command must list `xroad-opmonitor.service` as `loaded`. Until the host is configured, the daemon is not active: its state is `activating` (`auto-restart`) or `failed`. Example output:
+
+  ```text
+  UNIT                       LOAD   ACTIVE     SUB          DESCRIPTION
+  postgresql@16-main.service loaded active     running      PostgreSQL Cluster 16-main
+  xroad-base.service         loaded active     exited       X-Road initialization
+  xroad-opmonitor.service    loaded activating auto-restart X-Road opmonitor daemon
+  ```
+
+  The second command must list six property names, as in [Annex A](#annex-a-security-server-default-database-properties).
 
 ## 3 Security Server Initial Configuration
 

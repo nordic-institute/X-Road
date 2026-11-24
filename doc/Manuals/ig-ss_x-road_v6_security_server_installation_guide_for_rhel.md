@@ -542,11 +542,20 @@ The installation enables the service `xroad-opmonitor` but does not start it. Th
 * Ensure that the package is installed and that the database properties of the daemon exist. The command prints the property names only:
 
   ```bash
-  rpm -q xroad-opmonitor
+  sudo systemctl list-units --all "xroad-*" "postgresql*"
   sudo grep -E '^xroad\.db\.op-monitor\.hibernate\.' /etc/xroad/db.properties | cut -d= -f1
   ```
 
-  The first command must print the package name and version. The second command must list these six property names:
+  The first command must list `xroad-opmonitor.service` as `loaded`. The installation does not start the daemon, so its state is `inactive` until the host is configured. Example output:
+
+  ```text
+  UNIT                    LOAD   ACTIVE   SUB     DESCRIPTION
+  postgresql.service      loaded active   running PostgreSQL database server
+  xroad-base.service      loaded active   exited  X-Road initialization
+  xroad-opmonitor.service loaded inactive dead    X-Road opmonitor daemon
+  ```
+
+  The second command must list these six property names:
 
   ```text
   xroad.db.op-monitor.hibernate.jdbc.use_streams_for_binary
