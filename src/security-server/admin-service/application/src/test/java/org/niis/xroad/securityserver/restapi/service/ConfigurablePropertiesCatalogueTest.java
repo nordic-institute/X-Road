@@ -72,6 +72,8 @@ class ConfigurablePropertiesCatalogueTest {
             xroad.signer.enforce-token-pin-policy|signer|false
             xroad.signer.ocsp-response-retrieval-active|signer|false
             xroad.signer.ocsp-retry-delay|signer|60
+            xroad.signer.ocsp-client-connect-timeout|signer|20000
+            xroad.signer.ocsp-client-read-timeout|signer|60000
             xroad.signer.ocsp-cache-path|signer|/var/cache/xroad/
             xroad.signer.ocsp-prioritization-strategy|signer|NONE
             xroad.signer.module-manager-update-interval|signer|60

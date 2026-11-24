@@ -124,6 +124,22 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
+    /** {@code xroad.signer.ocsp-client-connect-timeout} — milliseconds */
+    public static final ConfigKey<Integer> OCSP_CLIENT_CONNECT_TIMEOUT = SIGNER
+            .integer("ocsp-client-connect-timeout")
+            .withDefaultValue(20000)
+            .withValidator(range(1, Integer.MAX_VALUE))
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.signer.ocsp-client-read-timeout} — milliseconds */
+    public static final ConfigKey<Integer> OCSP_CLIENT_READ_TIMEOUT = SIGNER
+            .integer("ocsp-client-read-timeout")
+            .withDefaultValue(60000)
+            .withValidator(range(1, Integer.MAX_VALUE))
+            .exposedInUi()
+            .build();
+
     /** {@code xroad.signer.module-manager-update-interval} */
     public static final ConfigKey<Integer> MODULE_MANAGER_UPDATE_INTERVAL = SIGNER
             .integer("module-manager-update-interval")
