@@ -194,20 +194,24 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
     fi
 
     if docker build --progress=plain -t "$IMAGE_NAME" "${CACHE_FLAG[@]}" "${MIRROR_BUILD_ARGS[@]}" "$BUILDER_DOCKER_DIR/$release/"; then
-      if [[ "$NO_PUSH" == "true" ]]; then
-        BUILD_END=$(date +%s)
-        DURATION=$((BUILD_END - BUILD_START))
-        log_success "Built ${release} (${DURATION}s), push skipped"
-        echo
-        continue
+      RESULT_TEXT="Built ${release}"
+      RESULT_SUFFIX=", push skipped"
+      PUSH_FAILED=false
+      if [[ "$NO_PUSH" != "true" ]]; then
+        log_info "  Pushing to registry..."
+        if docker push "$IMAGE_NAME" >/dev/null 2>&1; then
+          RESULT_TEXT="Built and pushed ${release}"
+          RESULT_SUFFIX=""
+        else
+          PUSH_FAILED=true
+        fi
       fi
-      log_info "  Pushing to registry..."
-      if docker push "$IMAGE_NAME" >/dev/null 2>&1; then
+      if [[ "$PUSH_FAILED" == "true" ]]; then
+        log_warn "Built ${release} but push failed (image available locally)"
+      else
         BUILD_END=$(date +%s)
         DURATION=$((BUILD_END - BUILD_START))
-        log_success "Built and pushed ${release} (${DURATION}s)"
-      else
-        log_warn "Built ${release} but push failed (image available locally)"
+        log_success "${RESULT_TEXT} (${DURATION}s)${RESULT_SUFFIX}"
       fi
     else
       log_error "Failed to build ${release}"
