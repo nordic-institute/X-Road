@@ -33,11 +33,17 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DecodedParticipant;
 import org.niis.xroad.ds.identity.DspConventions;
+import org.niis.xroad.ds.identity.MemberParticipant;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.ds.identity.SystemParticipant;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ProviderCandidates;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 
 import java.util.ArrayList;
@@ -45,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -75,33 +82,48 @@ public class CallModeSelector {
         if (!proxyProperties.dspEnabled() || dspRequestProcessor.bypassesDsp(request)) {
             return Optional.empty();
         }
-        var addresses = serviceAddressResolver.resolveCandidates(request.serviceId(), request.targetSecurityServer());
+        var servers = serviceAddressResolver.resolveCandidates(request.serviceId(), request.targetSecurityServer());
         var target = CalledTarget.of(request.serviceId(), request.managementSubsystem());
-        return select(target, addresses) instanceof CallMode.Dsp(var candidates)
+        return select(target, servers) instanceof CallMode.Dsp(var candidates)
                 ? Optional.of(request.withCandidates(candidates))
                 : Optional.empty();
     }
 
     /**
-     * Selects the call mode. A server that published the called DID without the values its DSP target needs is
-     * published but unusable: it is left out while another candidate remains.
+     * {@link #select(CalledTarget, ProviderCandidates)} over servers that are all available.
      *
      * @param target    the called participant
-     * @param addresses the provider's candidate servers; an address without a server id is matched to the servers
-     *                  that serve the provider at that address
-     * @return {@link CallMode.Dsp} with the usable candidates when any server published the called DID,
-     *         {@link CallMode.Unnegotiated} when none did
-     * @throws XrdRuntimeException the first failure to build a DSP target, when servers published the called DID and
-     *                             none of the published values is usable
+     * @param addresses the provider's candidate servers
+     * @return the call mode
+     * @throws XrdRuntimeException see {@link #select(CalledTarget, ProviderCandidates)}
      */
-    public CallMode select(CalledTarget target, List<ProviderAddress> addresses) {
-        var serversByAddress = addresses.stream().anyMatch(address -> address.serverId() == null)
+    CallMode select(CalledTarget target, List<ProviderAddress> addresses) {
+        return select(target, new ProviderCandidates(addresses, List.of()));
+    }
+
+    /**
+     * Selects the call mode. A server that published the called DID without the values its DSP target needs, or
+     * with a DID that does not belong to the called participant, is published but unusable: it is left out while
+     * another candidate remains. A server in maintenance mode still counts as published, so an unpublished sibling
+     * never takes over its calls.
+     *
+     * @param target  the called participant
+     * @param servers the provider's candidate servers; an address without a server id is matched to the servers
+     *                that serve the provider at that address
+     * @return {@link CallMode.Dsp} with the usable candidates when any available server published the called DID,
+     *         {@link CallMode.Unnegotiated} when no server published it
+     * @throws XrdRuntimeException the first failure to build a DSP target, when servers published the called DID and
+     *                             none of the published values is usable; the maintenance mode error of a server that
+     *                             published the called DID when every such server is in maintenance mode
+     */
+    public CallMode select(CalledTarget target, ProviderCandidates servers) {
+        var serversByAddress = needsServerLookup(servers)
                 ? serversByAddress(target.provider())
                 : Map.<String, List<SecurityServerId>>of();
         var candidates = new ArrayList<AcquisitionCandidate>();
         XrdRuntimeException firstFailure = null;
         var published = false;
-        for (var address : addresses) {
+        for (var address : servers.available()) {
             for (var serverId : serversOf(address, serversByAddress)) {
                 var systemValues = globalConfProvider.getServerSystemValues(serverId);
                 var did = publishedDid(target, serverId, systemValues);
@@ -110,7 +132,7 @@ public class CallModeSelector {
                 }
                 published = true;
                 try {
-                    candidates.add(candidateOf(serverId, did.get(), systemValues));
+                    candidates.add(candidateOf(target, serverId, did.get(), systemValues));
                 } catch (XrdRuntimeException ex) {
                     log.warn("Skipping SS {} (address {}): its published DSP target is not usable",
                             serverId, address.hostAddress(), ex);
@@ -126,7 +148,24 @@ public class CallModeSelector {
         if (published) {
             throw firstFailure;
         }
+        failOnPublishedServerInMaintenance(target, servers, serversByAddress);
         return new CallMode.Unnegotiated();
+    }
+
+    private void failOnPublishedServerInMaintenance(CalledTarget target, ProviderCandidates servers,
+                                                    Map<String, List<SecurityServerId>> serversByAddress) {
+        for (var unavailable : servers.inMaintenance()) {
+            var publishedInMaintenance = serversOf(unavailable.address(), serversByAddress).stream()
+                    .anyMatch(serverId -> publishedDid(target, serverId, globalConfProvider.getServerSystemValues(serverId)).isPresent());
+            if (publishedInMaintenance) {
+                throw unavailable.error();
+            }
+        }
+    }
+
+    private static boolean needsServerLookup(ProviderCandidates servers) {
+        return Stream.concat(servers.available().stream(), servers.inMaintenance().stream().map(ServerInMaintenance::address))
+                .anyMatch(address -> address.serverId() == null);
     }
 
     private Map<String, List<SecurityServerId>> serversByAddress(ClientId provider) {
@@ -154,9 +193,24 @@ public class CallModeSelector {
         return globalConfProvider.getMemberDid(target.provider(), serverId);
     }
 
-    private static AcquisitionCandidate candidateOf(SecurityServerId serverId, String did, Optional<ServerSystemValues> systemValues) {
+    private static AcquisitionCandidate candidateOf(CalledTarget target, SecurityServerId serverId, String did,
+                                                     Optional<ServerSystemValues> systemValues) {
         var values = systemValues.orElseThrow(() -> XrdRuntimeException.systemException(VALIDATION_ERROR,
                 "Security server %s published the DID %s without its DSP base URL", serverId, did));
-        return new AcquisitionCandidate(did, DspConventions.dspTarget(values.dspBaseUrl(), did));
+        var participant = ParticipantIdentifierScheme.decodeDid(did);
+        requireDidOf(target, serverId, did, participant);
+        return new AcquisitionCandidate(did, DspConventions.dspTarget(values.dspBaseUrl(), participant));
+    }
+
+    private static void requireDidOf(CalledTarget target, SecurityServerId serverId, String did, DecodedParticipant participant) {
+        var belongsToTarget = switch (participant) {
+            case MemberParticipant member -> !target.system() && member.member().memberEquals(target.provider());
+            case SystemParticipant _ -> target.system();
+        };
+        if (!belongsToTarget) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "Security server %s published the DID %s, which is not the DID of the called %s",
+                    serverId, did, target.system() ? "SYSTEM participant" : "member " + target.provider().toShortString());
+        }
     }
 }

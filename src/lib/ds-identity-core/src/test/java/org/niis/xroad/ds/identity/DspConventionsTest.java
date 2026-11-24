@@ -274,6 +274,15 @@ class DspConventionsTest {
     }
 
     @Test
+    void shouldBuildTheSameDspTargetFromADecodedParticipantAsFromItsDid() {
+        var did = DspConventions.memberCounterPartyId(MEMBER, "ss0.example.org").toString();
+
+        assertThat(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp/", ParticipantIdentifierScheme.decodeDid(did)))
+                .isEqualTo(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp/", did))
+                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
+    }
+
+    @Test
     void shouldRefuseDspTargetOfMalformedDid() {
         assertThatThrownBy(() -> DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp", "not-a-did"))
                 .isInstanceOf(XrdRuntimeException.class);

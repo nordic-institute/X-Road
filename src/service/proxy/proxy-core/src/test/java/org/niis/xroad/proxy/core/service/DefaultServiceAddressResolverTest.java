@@ -36,6 +36,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 import org.niis.xroad.proxy.core.util.RestRequestContext;
 
@@ -204,7 +205,9 @@ class DefaultServiceAddressResolverTest {
 
         var result = resolver.resolveCandidates(serviceProvider, null);
 
-        assertThat(result).containsExactly(new ProviderAddress(null, other));
+        assertThat(result.available()).containsExactly(new ProviderAddress(null, other));
+        assertThat(result.inMaintenance()).extracting(ServerInMaintenance::address)
+                .containsExactly(new ProviderAddress(null, HOST));
     }
 
     @Test
@@ -215,7 +218,8 @@ class DefaultServiceAddressResolverTest {
 
         var result = resolver.resolveCandidates(serviceProvider, null);
 
-        assertThat(result).hasSize(2);
+        assertThat(result.available()).hasSize(2);
+        assertThat(result.inMaintenance()).isEmpty();
     }
 
     @Test
@@ -238,7 +242,7 @@ class DefaultServiceAddressResolverTest {
 
         var result = resolver.resolveCandidates(serviceProvider, hint);
 
-        assertThat(result).containsExactly(new ProviderAddress(hint, HOST));
+        assertThat(result.available()).containsExactly(new ProviderAddress(hint, HOST));
     }
 
     @Test

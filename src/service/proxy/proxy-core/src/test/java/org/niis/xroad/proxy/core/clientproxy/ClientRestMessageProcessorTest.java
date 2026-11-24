@@ -75,6 +75,8 @@ import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ProviderCandidates;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
@@ -142,6 +144,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATA_PLANE_UNRE
 import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
+import static org.niis.xroad.common.core.exception.ErrorCode.MAINTENANCE_MODE;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS;
@@ -229,7 +232,7 @@ class ClientRestMessageProcessorTest {
                 .thenReturn(new DspAcquisition(new AssetAccessResponse("https://localhost:5500/", null, WINNER), 1));
         var serviceAddressResolver = mock(DefaultServiceAddressResolver.class);
         when(serviceAddressResolver.resolveCandidates(any(), any()))
-                .thenReturn(List.of(new ProviderAddress(null, SS_A_HOST)));
+                .thenReturn(new ProviderCandidates(List.of(new ProviderAddress(null, SS_A_HOST)), List.of()));
         publishServer(globalConfProvider, SS_A_SERVER, SS_A_HOST, SS_A_ID);
 
         return new ClientRestMessageProcessor(
@@ -513,6 +516,26 @@ class ClientRestMessageProcessorTest {
         send(harness);
 
         verify(harness.legacyCallRefusalPolicy(), times(2)).checkConsumerCallAllowed(serviceId());
+    }
+
+    @Test
+    void sendFailsWithMaintenanceModeWhenThePublishedServerIsInMaintenanceAndAnUnpublishedSiblingIsAvailable() throws Exception {
+        var harness = createHarness(true);
+        var maintenanceError = XrdRuntimeException.systemException(MAINTENANCE_MODE, "ss-a.example is in maintenance mode");
+        var unpublishedSibling = new ProviderAddress(SecurityServerId.Conf.create("DEV", "COM", "222", "ss-b"), "ss-b.example");
+        when(harness.serviceAddressResolver().resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(
+                List.of(unpublishedSibling),
+                List.of(new ServerInMaintenance(new ProviderAddress(SS_A_SERVER, SS_A_HOST), maintenanceError))));
+        stubUnnegotiatedAddress(harness);
+        var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
+
+        assertThatThrownBy(() -> send(harness)).isSameAs(maintenanceError);
+
+        verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
+        verify(harness.clientRequestPreparationService(), never())
+                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any());
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
     }
 
     @Test
@@ -1300,7 +1323,8 @@ class ClientRestMessageProcessorTest {
                                ClientRequestPreparationService clientRequestPreparationService,
                                GlobalConfProvider globalConfProvider, LegacyCallRefusalPolicy legacyCallRefusalPolicy,
                                DspSendFailureHandler dspSendFailureHandler, HttpSenderProvider httpSenderProvider,
-                               MessageSigningService messageSigningService) {
+                               MessageSigningService messageSigningService,
+                               DefaultServiceAddressResolver serviceAddressResolver) {
     }
 
     private RestHarness createHarness(boolean dspEnabled) {
@@ -1338,7 +1362,7 @@ class ClientRestMessageProcessorTest {
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
         var serviceAddressResolver = mock(DefaultServiceAddressResolver.class);
         when(serviceAddressResolver.resolveCandidates(any(), any()))
-                .thenReturn(List.of(new ProviderAddress(null, SS_A_HOST)));
+                .thenReturn(new ProviderCandidates(List.of(new ProviderAddress(null, SS_A_HOST)), List.of()));
         publishServer(globalConfProvider, SS_A_SERVER, SS_A_HOST, SS_A_ID);
         var legacyCallRefusalPolicy = spy(new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
         var dspSendFailureHandler = spy(new DspSendFailureHandler(consumerSideDspProcessor));
@@ -1363,7 +1387,7 @@ class ClientRestMessageProcessorTest {
                 new CallModeSelector(globalConfProvider, serviceAddressResolver, proxyProperties, consumerSideDspProcessor));
         return new RestHarness(processor, consumerSideDspProcessor, clientRequestPreparationService,
                 globalConfProvider, legacyCallRefusalPolicy, dspSendFailureHandler, httpSenderProvider,
-                messageSigningService);
+                messageSigningService, serviceAddressResolver);
     }
 
     private void verifyOpMonitoringData(Map<String, Object> data) {

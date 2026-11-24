@@ -52,8 +52,8 @@ public class ParticipantBindingCheck {
      *
      * @param bound the previously bound participant row
      * @throws XrdRuntimeException with {@code DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED} and metadata
-     *         {@code [boundSchemeVersion, supportedSchemeVersion]} if the row was bound under a scheme
-     *         version this check does not implement; with {@code VALIDATION_ERROR} if the DID encodes another
+     *         {@code [foundSchemeVersion, supportedSchemeVersion]} if the row was bound under, or its DID
+     *         carries, a scheme version this check does not implement; with {@code VALIDATION_ERROR} if the DID encodes another
      *         participant than the row's member identifier or ctx-id; with {@code INVALID_ENCODED_ID} if the
      *         DID cannot be decoded
      */

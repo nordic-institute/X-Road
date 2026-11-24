@@ -194,7 +194,18 @@ public class DspConventions {
      * @throws XrdRuntimeException if the DID is not a valid participant DID
      */
     public static String dspTarget(String dspBaseUrl, String participantDid) {
-        var contextId = switch (ParticipantIdentifierScheme.decodeDid(participantDid)) {
+        return dspTarget(dspBaseUrl, ParticipantIdentifierScheme.decodeDid(participantDid));
+    }
+
+    /**
+     * {@link #dspTarget(String, String)} for a participant that is already decoded.
+     *
+     * @param dspBaseUrl  the published DSP base URL of the participant's control plane; a trailing {@code /} is dropped
+     * @param participant the participant decoded from its published DID, member or SYSTEM
+     * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1}
+     */
+    public static String dspTarget(String dspBaseUrl, DecodedParticipant participant) {
+        var contextId = switch (participant) {
             case MemberParticipant member -> ParticipantIdentifierScheme.memberCtxId(member.member());
             case SystemParticipant _ -> ParticipantIdentifierScheme.SYSTEM_SEGMENT;
         };

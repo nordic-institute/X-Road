@@ -32,12 +32,15 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ProviderCandidates;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 
 import java.util.Arrays;
@@ -247,7 +250,7 @@ class CallModeSelectorTest {
     @Test
     void overDspIsEmptyWhenNoServerPublishedTheCalledDid() {
         when(proxyProperties.dspEnabled()).thenReturn(true);
-        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(addresses(HOST_A));
+        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
 
         assertThat(selector.overDsp(requestOf(PROVIDER))).isEmpty();
     }
@@ -255,7 +258,7 @@ class CallModeSelectorTest {
     @Test
     void overDspCarriesThePublishedCandidates() {
         when(proxyProperties.dspEnabled()).thenReturn(true);
-        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(addresses(HOST_A));
+        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
         publishMember(SS_A, HOST_A);
 
         var routed = selector.overDsp(requestOf(PROVIDER));
@@ -272,6 +275,145 @@ class CallModeSelectorTest {
 
         assertThatThrownBy(() -> selector.select(target, List.of(new ProviderAddress(SS_A, HOST_A), new ProviderAddress(SS_B, HOST_B))))
                 .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void hintedServerThatPublishedNothingGivesUnnegotiatedWhileASiblingPublished() {
+        publishMember(SS_B, HOST_B);
+
+        var mode = selector.select(CalledTarget.of(serviceOf(PROVIDER), false), List.of(new ProviderAddress(SS_A, HOST_A)));
+
+        assertThat(mode).isEqualTo(new CallMode.Unnegotiated());
+    }
+
+    @Test
+    void hintedServerWithUnusablePublishedDidThrowsWhileASiblingIsUsable() {
+        publishMemberDid(SS_A, HOST_A, "not-a-did");
+        publishMember(SS_B, HOST_B);
+        var target = CalledTarget.of(serviceOf(PROVIDER), false);
+
+        assertThatThrownBy(() -> selector.select(target, List.of(new ProviderAddress(SS_A, HOST_A))))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void schemeVersionV2FailsWithItsOwnCodeAndNamesThePublishedDid() {
+        var did = "did:web:ss-a.example%3A7183:v2:DEV:COM:222";
+        publishMemberDid(SS_A, HOST_A, did);
+        var target = CalledTarget.of(serviceOf(PROVIDER), false);
+
+        assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code()))
+                .hasMessageContaining(did);
+    }
+
+    @Test
+    void memberDidOfAnotherMemberIsUnusable() {
+        publishMemberDid(SS_A, HOST_A, DspConventions.memberCounterPartyId(ClientId.Conf.create("DEV", "COM", "333"), HOST_A).toString());
+        var target = CalledTarget.of(serviceOf(PROVIDER), false);
+
+        assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("not the DID of the called member");
+    }
+
+    @Test
+    void systemDidPublishedAsMemberDidIsUnusable() {
+        publishMemberDid(SS_A, HOST_A, DspConventions.systemCounterPartyId(HOST_A).toString());
+        var target = CalledTarget.of(serviceOf(PROVIDER), false);
+
+        assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("not the DID of the called member");
+    }
+
+    @Test
+    void memberDidOfAnotherMemberIsDroppedWhileAnotherServerIsLeft() {
+        publishMemberDid(SS_A, HOST_A, DspConventions.memberCounterPartyId(ClientId.Conf.create("DEV", "COM", "333"), HOST_A).toString());
+        publishMember(SS_B, HOST_B);
+
+        var mode = selector.select(CalledTarget.of(serviceOf(PROVIDER), false), addresses(HOST_A, HOST_B));
+
+        assertThat(mode).isInstanceOfSatisfying(CallMode.Dsp.class, dsp -> assertThat(dsp.candidates())
+                .extracting(AcquisitionCandidate::counterPartyAddress)
+                .containsExactly("https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1"));
+    }
+
+    @Test
+    void systemTargetWithAMemberDidPublishedAsSystemDidIsUnusable() {
+        when(globalConf.getServerSystemValues(SS_A)).thenReturn(Optional.of(new ServerSystemValues(
+                DspConventions.memberCounterPartyId(MEMBER, HOST_A).toString(), "https://" + HOST_A + ":8183/api/dsp")));
+        var target = CalledTarget.of(ServiceId.Conf.create(MEMBER, "getSecurityServerMetrics"), false);
+
+        assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("not the DID of the called SYSTEM participant");
+    }
+
+    @Test
+    void foreignInstanceWithoutPublishedValuesGivesUnnegotiated() {
+        var foreignServer = SecurityServerId.Conf.create("FOR", "GOV", "111", "ss-f");
+        when(globalConf.getClientSecurityServers(any())).thenReturn(Set.of(foreignServer));
+        when(globalConf.getSecurityServerAddress(foreignServer)).thenReturn("ss-f.example");
+        var foreignProvider = ClientId.Conf.create("FOR", "GOV", "111", "Provider");
+
+        var mode = selector.select(CalledTarget.of(serviceOf(foreignProvider), false), addresses("ss-f.example"));
+
+        assertThat(mode).isEqualTo(new CallMode.Unnegotiated());
+    }
+
+    @Test
+    void foreignInstanceWithPublishedValuesGivesDsp() {
+        var foreignServer = SecurityServerId.Conf.create("FOR", "GOV", "111", "ss-f");
+        var foreignMember = ClientId.Conf.create("FOR", "GOV", "111");
+        var foreignProvider = ClientId.Conf.create("FOR", "GOV", "111", "Provider");
+        when(globalConf.getClientSecurityServers(any())).thenReturn(Set.of(foreignServer));
+        when(globalConf.getSecurityServerAddress(foreignServer)).thenReturn("ss-f.example");
+        when(globalConf.getMemberDid(foreignProvider, foreignServer))
+                .thenReturn(Optional.of(DspConventions.memberCounterPartyId(foreignMember, "ss-f.example").toString()));
+        when(globalConf.getServerSystemValues(foreignServer)).thenReturn(Optional.of(systemValues("ss-f.example")));
+
+        var mode = selector.select(CalledTarget.of(serviceOf(foreignProvider), false), addresses("ss-f.example"));
+
+        assertThat(mode).isInstanceOfSatisfying(CallMode.Dsp.class, dsp -> assertThat(dsp.candidates())
+                .extracting(AcquisitionCandidate::counterPartyAddress)
+                .containsExactly("https://ss-f.example:8183/api/dsp/FOR:GOV:111/http-dsp-profile-2025-1"));
+    }
+
+    @Test
+    void publishedServerInMaintenanceWithUnpublishedSiblingFailsWithTheMaintenanceError() {
+        publishMember(SS_A, HOST_A);
+        var maintenanceError = XrdRuntimeException.systemException(ErrorCode.MAINTENANCE_MODE, "ss-a is in maintenance mode");
+        var servers = new ProviderCandidates(addresses(HOST_B),
+                List.of(new ServerInMaintenance(new ProviderAddress(null, HOST_A), maintenanceError)));
+
+        assertThatThrownBy(() -> selector.select(CalledTarget.of(serviceOf(PROVIDER), false), servers))
+                .isSameAs(maintenanceError);
+    }
+
+    @Test
+    void publishedServerInMaintenanceDoesNotStopDspToAnAvailablePublishedSibling() {
+        publishMember(SS_A, HOST_A);
+        publishMember(SS_B, HOST_B);
+        var servers = new ProviderCandidates(addresses(HOST_B), List.of(new ServerInMaintenance(new ProviderAddress(null, HOST_A),
+                XrdRuntimeException.systemException(ErrorCode.MAINTENANCE_MODE, "ss-a is in maintenance mode"))));
+
+        var mode = selector.select(CalledTarget.of(serviceOf(PROVIDER), false), servers);
+
+        assertThat(mode).isInstanceOfSatisfying(CallMode.Dsp.class, dsp -> assertThat(dsp.candidates())
+                .extracting(AcquisitionCandidate::counterPartyAddress)
+                .containsExactly("https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1"));
+    }
+
+    @Test
+    void unpublishedServerInMaintenanceWithUnpublishedSiblingGivesUnnegotiated() {
+        var servers = new ProviderCandidates(addresses(HOST_B), List.of(new ServerInMaintenance(new ProviderAddress(null, HOST_A),
+                XrdRuntimeException.systemException(ErrorCode.MAINTENANCE_MODE, "ss-a is in maintenance mode"))));
+
+        var mode = selector.select(CalledTarget.of(serviceOf(PROVIDER), false), servers);
+
+        assertThat(mode).isEqualTo(new CallMode.Unnegotiated());
     }
 
     private void publishMember(SecurityServerId serverId, String host) {

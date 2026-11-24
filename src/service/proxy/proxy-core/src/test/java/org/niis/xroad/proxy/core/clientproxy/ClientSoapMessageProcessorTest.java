@@ -67,6 +67,8 @@ import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ProviderCandidates;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
@@ -127,6 +129,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATA_PLANE_UNRE
 import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
+import static org.niis.xroad.common.core.exception.ErrorCode.MAINTENANCE_MODE;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS;
@@ -181,12 +184,12 @@ class ClientSoapMessageProcessorTest {
             ClientId.Conf.create("DEV", "COM", "4321", "TestClient");
     private static final String PROVIDER_ADDRESS = "https://provider.example/service";
     private static final String AGREEMENT_TOKEN = "token-abc-123";
-    private static final String SS_A_ID = "did:web:ss-a.example%3A7183:v1:DEV:COM:222";
-    private static final String SS_A_ADDRESS = "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
-    private static final String SS_B_ID = "did:web:ss-b.example%3A7183:v1:DEV:COM:222";
-    private static final String SS_B_ADDRESS = "https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
-    private static final String SS_C_ID = "did:web:ss-c.example%3A7183:v1:DEV:COM:222";
-    private static final String SS_C_ADDRESS = "https://ss-c.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String SS_A_ID = "did:web:ss-a.example%3A7183:v1:DEV:COM:4321";
+    private static final String SS_A_ADDRESS = "https://ss-a.example:8183/api/dsp/DEV:COM:4321/http-dsp-profile-2025-1";
+    private static final String SS_B_ID = "did:web:ss-b.example%3A7183:v1:DEV:COM:4321";
+    private static final String SS_B_ADDRESS = "https://ss-b.example:8183/api/dsp/DEV:COM:4321/http-dsp-profile-2025-1";
+    private static final String SS_C_ID = "did:web:ss-c.example%3A7183:v1:DEV:COM:4321";
+    private static final String SS_C_ADDRESS = "https://ss-c.example:8183/api/dsp/DEV:COM:4321/http-dsp-profile-2025-1";
     private static final String SS_A_TOKEN = "token-issued-by-ss-a";
     private static final String SS_B_TOKEN = "token-issued-by-ss-b";
     private static final String SS_C_TOKEN = "token-issued-by-ss-c";
@@ -425,6 +428,27 @@ class ClientSoapMessageProcessorTest {
         harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, null, null);
         verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), any(InputStream.class), eq((long) CHUNKED_LENGTH),
                 nullable(String.class));
+    }
+
+    @Test
+    void sendFailsWithMaintenanceModeWhenThePublishedServerIsInMaintenanceAndAnUnpublishedSiblingIsAvailable() throws Exception {
+        var harness = createRefusalHarness(true, false);
+        var maintenanceError = XrdRuntimeException.systemException(MAINTENANCE_MODE, "ss-a.example is in maintenance mode");
+        var unpublishedSibling = new ProviderAddress(SecurityServerId.Conf.create("DEV", "COM", "222", "ss-b"), "ss-b.example");
+        when(harness.serviceAddressResolver().resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(
+                List.of(unpublishedSibling),
+                List.of(new ServerInMaintenance(new ProviderAddress(SS_A_SERVER, SS_A_HOST), maintenanceError))));
+        var request = newUnfinishedRequest();
+        var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
+
+        assertThatThrownBy(() -> send(harness, request)).isSameAs(maintenanceError);
+
+        verify(httpSender, never()).doPost(any(URI.class), any(InputStream.class), anyLong(), any());
+        verify(httpSender, never()).doPost(any(URI.class), any(ReplaySoapProxyMessageEntity.class));
+        verify(harness.clientRequestPreparationService(), never())
+                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any());
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
     }
 
     @Test
@@ -1219,7 +1243,8 @@ class ClientSoapMessageProcessorTest {
                                   GlobalConfProvider globalConfProvider, LegacyCallRefusalPolicy legacyCallRefusalPolicy,
                                   DspRequestProcessor consumerSideDspProcessor,
                                   DspSendFailureHandler dspSendFailureHandler,
-                                  HttpSenderProvider httpSenderProvider) {
+                                  HttpSenderProvider httpSenderProvider,
+                                  DefaultServiceAddressResolver serviceAddressResolver) {
     }
 
     private RefusalHarness createRefusalHarness(boolean dspEnabled, boolean legacyProtocolDisabled) {
@@ -1257,7 +1282,7 @@ class ClientSoapMessageProcessorTest {
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
         var serviceAddressResolver = mock(DefaultServiceAddressResolver.class);
         when(serviceAddressResolver.resolveCandidates(any(), any()))
-                .thenReturn(List.of(new ProviderAddress(null, SS_A_HOST)));
+                .thenReturn(new ProviderCandidates(List.of(new ProviderAddress(null, SS_A_HOST)), List.of()));
         publishServer(globalConfProvider, SS_A_SERVER, SS_A_HOST, SS_A_ID);
         var dspSendFailureHandler = spy(new DspSendFailureHandler(consumerSideDspProcessor));
         var httpSenderProvider = mock(HttpSenderProvider.class);
@@ -1277,7 +1302,7 @@ class ClientSoapMessageProcessorTest {
                 new DspFailover(consumerSideDspProcessor, httpSenderProvider, dspSendFailureHandler),
                 new CallModeSelector(globalConfProvider, serviceAddressResolver, proxyProperties, consumerSideDspProcessor));
         return new RefusalHarness(processor, clientRequestPreparationService, globalConfProvider, legacyCallRefusalPolicy,
-                consumerSideDspProcessor, dspSendFailureHandler, httpSenderProvider);
+                consumerSideDspProcessor, dspSendFailureHandler, httpSenderProvider, serviceAddressResolver);
     }
 
     private Harness createHarness() {
