@@ -53,7 +53,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -138,7 +137,8 @@ public final class DatabaseReadinessProvider implements ReadinessProvider {
     /**
      * Runs {@code SELECT 1} with at most one query in flight. A caller that arrives while an earlier query still
      * runs waits for that query instead of starting another, up to the timeout. A query that outlives the timeout
-     * is interrupted, which ends a wait for a pooled connection, and runs with a matching JDBC query timeout.
+     * is not interrupted: it keeps the in-flight marker until it ends, and the JDBC query timeout equals the probe
+     * timeout.
      */
     @RequiredArgsConstructor
     private static final class SelectOneCheck implements HealthCheck {
@@ -179,8 +179,6 @@ public final class DatabaseReadinessProvider implements ReadinessProvider {
 
         private HealthCheckResponse runQuery() {
             var builder = HealthCheckResponse.builder().name(COMPONENT);
-            var expired = new AtomicBoolean();
-            var watchdog = interruptAfterTimeout(Thread.currentThread(), expired);
             try {
                 var source = dataSource.get();
                 if (source == null) {
@@ -190,22 +188,8 @@ public final class DatabaseReadinessProvider implements ReadinessProvider {
                 return builder.up().build();
             } catch (Exception e) {
                 monitor.warning("Database readiness check failed", e);
-                return expired.get() ? timedOut() : builder.down().withData(ERROR, sanitise(e)).build();
-            } finally {
-                watchdog.interrupt();
+                return builder.down().withData(ERROR, sanitise(e)).build();
             }
-        }
-
-        private Thread interruptAfterTimeout(Thread worker, AtomicBoolean expired) {
-            return Thread.ofVirtual().start(() -> {
-                try {
-                    Thread.sleep(timeout);
-                    expired.set(true);
-                    worker.interrupt();
-                } catch (InterruptedException _) {
-                    Thread.currentThread().interrupt();
-                }
-            });
         }
 
         private void selectOne(DataSource source) {

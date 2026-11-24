@@ -46,7 +46,6 @@ import java.sql.Statement;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -180,7 +179,7 @@ class DatabaseReadinessProviderTest {
         var dataSource = mock(DataSource.class);
         var statement = mock(Statement.class);
         when(dataSource.getConnection()).thenAnswer(invocation -> {
-            awaitUninterruptibly(release);
+            release.await(10, TimeUnit.SECONDS);
             return readyConnection(statement);
         });
         var provider = provider(() -> dataSource);
@@ -196,24 +195,6 @@ class DatabaseReadinessProviderTest {
         release.countDown();
         await().untilAsserted(() -> assertThat(provider.get().succeeded()).isTrue());
         verify(dataSource, times(2)).getConnection();
-    }
-
-    @Test
-    void endsTheWaitForAConnectionAtTheDeadlineSoTheNextCheckRuns() throws SQLException {
-        var calls = new AtomicInteger();
-        var dataSource = mock(DataSource.class);
-        var statement = mock(Statement.class);
-        when(dataSource.getConnection()).thenAnswer(invocation -> {
-            if (calls.getAndIncrement() == 0) {
-                awaitInterruptibly(new CountDownLatch(1));
-            }
-            return readyConnection(statement);
-        });
-        var provider = provider(() -> dataSource);
-
-        assertThat(provider.get().getFailureMessages()).containsExactly("timed out after 300 ms");
-
-        await().untilAsserted(() -> assertThat(provider.get().succeeded()).isTrue());
     }
 
     @Test
@@ -239,24 +220,6 @@ class DatabaseReadinessProviderTest {
         when(connection.createStatement()).thenReturn(statement);
         when(statement.executeQuery("SELECT 1")).thenReturn(rows);
         return connection;
-    }
-
-    private static void awaitUninterruptibly(CountDownLatch latch) {
-        while (latch.getCount() > 0) {
-            try {
-                latch.await();
-            } catch (InterruptedException _) {
-                continue;
-            }
-        }
-    }
-
-    private static void awaitInterruptibly(CountDownLatch latch) throws SQLException {
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            throw new SQLException("interrupted", e);
-        }
     }
 
     private DatabaseReadinessProvider provider(Supplier<DataSource> dataSource) {
