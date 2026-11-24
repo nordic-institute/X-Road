@@ -1,5 +1,5 @@
 name: 'Setup Mirrors'
-description: 'Use the Artifactory mirrors for the rest of the job when the mirror token is present and the off switch is not set'
+description: 'Use the Artifactory mirrors for the rest of the job when the mirror token and user name are present and the off switch is not set'
 inputs:
   token:
     description: 'Mirror access token (XROAD_MIRROR_TOKEN secret)'
@@ -38,7 +38,7 @@ inputs:
     required: false
     default: ''
   disabled:
-    description: 'Value of the repository variable XROAD_MIRRORS_DISABLED; "true" turns the mirrors off'
+    description: 'Value of the repository variable XROAD_MIRRORS_DISABLED; "true" turns the mirrors off, in any letter case and with surrounding spaces ignored'
     required: false
     default: ''
 outputs:

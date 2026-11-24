@@ -7,6 +7,9 @@
 #   test-setup-mirrors.sh assert <case>        check the current job environment after the real action ran
 #                                              (<case>: no-token, off-switch, enabled or no-plugins-url;
 #                                              ENABLED holds the action output)
+#
+# The local mode also covers a run without a user name and a failing docker login (the stub fails
+# when DOCKER_STUB_FAIL is set).
 
 set -uo pipefail
 
@@ -63,6 +66,7 @@ install_stub() {
   cat > "$1/docker" <<'STUB'
 #!/usr/bin/env bash
 echo "$* stdin=$(cat)" >> "${DOCKER_STUB_LOG:?DOCKER_STUB_LOG is not set}"
+[[ -z "${DOCKER_STUB_FAIL:-}" ]]
 STUB
   chmod +x "$1/docker"
 }
@@ -94,7 +98,7 @@ is_plugin_variable() {
 assert_case() {
   local case_name="$1" enabled="$2" name
   case "${case_name}" in
-    no-token | off-switch)
+    no-token | off-switch | no-username)
       for name in "${MIRROR_VARIABLES[@]}"; do
         check "${name} is not set" variable_unset "${name}"
       done
@@ -107,6 +111,10 @@ assert_case() {
       done
       check "docker login ran once, against the mirror host" docker_login_only
       check "enabled output is true" test "${enabled}" = "true"
+      ;;
+    login-failed)
+      check "docker login ran once, against the mirror host" docker_login_only
+      check "enabled output is false" test "${enabled}" = "false"
       ;;
     no-plugins-url)
       for name in "${PLUGIN_VARIABLES[@]}"; do
@@ -143,8 +151,10 @@ load_github_env() {
 }
 
 run_local_case() {
-  local case_name="$1" token="$2" disabled="$3" expected_case="$4" plugins_url="${5-${PLUGINS_URL}}"
-  local work_dir output
+  local case_name="$1" token="$2" disabled="$3" expected_case="$4" expected_log="$5"
+  shift 5
+  local work_dir output expected_rc=0
+  [[ "${expected_case}" == "login-failed" ]] && expected_rc=1
   work_dir="$(mktemp -d)"
   echo "case ${case_name}"
   install_stub "${work_dir}/bin"
@@ -156,15 +166,15 @@ run_local_case() {
       env -i PATH="${work_dir}/bin:${PATH}" HOME="${work_dir}" \
         GITHUB_ENV="${work_dir}/env" GITHUB_OUTPUT="${work_dir}/output" DOCKER_STUB_LOG="${work_dir}/docker.log" \
         MIRROR_TOKEN="${token}" MIRROR_USERNAME="${DUMMY_USERNAME}" \
-        MIRROR_MAVEN_URL="${MAVEN_URL}" MIRROR_PLUGINS_URL="${plugins_url}" \
+        MIRROR_MAVEN_URL="${MAVEN_URL}" MIRROR_PLUGINS_URL="${PLUGINS_URL}" \
         MIRROR_NPM_URL="${NPM_URL}" MIRROR_UBUNTU_URL="${UBUNTU_URL}" \
         MIRROR_DOCKER_URL="${DOCKER_URL}" MIRROR_GITHUB_URL="${GITHUB_URL}" \
-        MIRROR_K8S_URL="${K8S_URL}" MIRRORS_DISABLED="${disabled}" \
+        MIRROR_K8S_URL="${K8S_URL}" MIRRORS_DISABLED="${disabled}" "$@" \
         bash "${SCRIPT_DIR}/setup-mirrors.sh" 2>&1
   )"
   local rc=$?
-  check "the script exits 0" test "${rc}" -eq 0
-  check "the log has exactly one line" test "$(printf '%s\n' "${output}" | wc -l)" -eq 1
+  check "the script exits ${expected_rc}" test "${rc}" -eq "${expected_rc}"
+  check "the log is exactly the expected lines" test "${output}" = "${expected_log}"
   check "the log has no URL, user name or token" bash -c \
     '! grep -qE "example\.test|dummy-user|dummy-token" <<< "$1"' _ "${output}"
   echo "  log: ${output}"
@@ -188,20 +198,35 @@ case "${1:-local}" in
     assert_case "${2:?usage: assert <case>}" "${ENABLED:-}"
     ;;
   local)
-    run_local_case "token empty" "" "false" no-token
-    run_local_case "token set, off switch true" "${DUMMY_TOKEN}" "true" off-switch
-    run_local_case "token set, off switch false" "${DUMMY_TOKEN}" "false" enabled
-    run_local_case "token set, off switch unset" "${DUMMY_TOKEN}" "" enabled
-    run_local_case "token set, plugins URL empty" "${DUMMY_TOKEN}" "false" no-plugins-url ""
-    run_local_case "off switch True" "${DUMMY_TOKEN}" "True" off-switch
-    run_local_case "off switch TRUE" "${DUMMY_TOKEN}" "TRUE" off-switch
-    run_local_case "off switch with spaces" "${DUMMY_TOKEN}" " true " off-switch
-    run_local_case "off switch mixed case with spaces" "${DUMMY_TOKEN}" "  tRuE  " off-switch
-    run_local_case "off switch yes" "${DUMMY_TOKEN}" "yes" enabled
-    run_local_case "off switch 1" "${DUMMY_TOKEN}" "1" enabled
-    run_local_case "off switch truee" "${DUMMY_TOKEN}" "truee" enabled
-    run_local_case "off switch with inner space" "${DUMMY_TOKEN}" "tr ue" enabled
-    run_local_case "off switch FALSE" "${DUMMY_TOKEN}" "FALSE" enabled
+    LOG_NO_TOKEN="Artifactory mirrors disabled: no token"
+    LOG_OFF_SWITCH="Artifactory mirrors disabled: off switch"
+    LOG_ENABLED="Artifactory mirrors enabled"
+    LOG_NO_PLUGINS_URL="::warning::Artifactory mirror inputs empty: plugins-url"$'\n'"${LOG_ENABLED}"
+    LOG_NO_USERNAME="::warning::Artifactory mirrors disabled: empty inputs: username"
+    LOG_TOKEN_ONLY="::warning::Artifactory mirrors disabled: empty inputs: username, maven-url, plugins-url, npm-url, ubuntu-url, docker-url, github-url, k8s-url"
+    LOG_LOGIN_FAILED="Docker login to the mirror failed"
+    run_local_case "token empty" "" "false" no-token "${LOG_NO_TOKEN}"
+    run_local_case "token set, off switch true" "${DUMMY_TOKEN}" "true" off-switch "${LOG_OFF_SWITCH}"
+    run_local_case "token set, off switch false" "${DUMMY_TOKEN}" "false" enabled "${LOG_ENABLED}"
+    run_local_case "token set, off switch unset" "${DUMMY_TOKEN}" "" enabled "${LOG_ENABLED}"
+    run_local_case "token and user name set, plugins URL empty" "${DUMMY_TOKEN}" "false" no-plugins-url \
+      "${LOG_NO_PLUGINS_URL}" MIRROR_PLUGINS_URL=
+    run_local_case "token set, user name empty" "${DUMMY_TOKEN}" "false" no-username "${LOG_NO_USERNAME}" \
+      MIRROR_USERNAME=
+    run_local_case "token only" "${DUMMY_TOKEN}" "false" no-username "${LOG_TOKEN_ONLY}" \
+      MIRROR_USERNAME= MIRROR_MAVEN_URL= MIRROR_PLUGINS_URL= MIRROR_NPM_URL= MIRROR_UBUNTU_URL= \
+      MIRROR_DOCKER_URL= MIRROR_GITHUB_URL= MIRROR_K8S_URL=
+    run_local_case "docker login fails" "${DUMMY_TOKEN}" "false" login-failed "${LOG_LOGIN_FAILED}" \
+      DOCKER_STUB_FAIL=1
+    run_local_case "off switch True" "${DUMMY_TOKEN}" "True" off-switch "${LOG_OFF_SWITCH}"
+    run_local_case "off switch TRUE" "${DUMMY_TOKEN}" "TRUE" off-switch "${LOG_OFF_SWITCH}"
+    run_local_case "off switch with spaces" "${DUMMY_TOKEN}" " true " off-switch "${LOG_OFF_SWITCH}"
+    run_local_case "off switch mixed case with spaces" "${DUMMY_TOKEN}" "  tRuE  " off-switch "${LOG_OFF_SWITCH}"
+    run_local_case "off switch yes" "${DUMMY_TOKEN}" "yes" enabled "${LOG_ENABLED}"
+    run_local_case "off switch 1" "${DUMMY_TOKEN}" "1" enabled "${LOG_ENABLED}"
+    run_local_case "off switch truee" "${DUMMY_TOKEN}" "truee" enabled "${LOG_ENABLED}"
+    run_local_case "off switch with inner space" "${DUMMY_TOKEN}" "tr ue" enabled "${LOG_ENABLED}"
+    run_local_case "off switch FALSE" "${DUMMY_TOKEN}" "FALSE" enabled "${LOG_ENABLED}"
     ;;
   *)
     echo "unknown mode $1" >&2

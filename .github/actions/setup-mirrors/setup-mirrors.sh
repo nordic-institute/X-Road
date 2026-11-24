@@ -2,9 +2,12 @@
 # Turns on the Artifactory mirrors for the rest of a GitHub Actions job.
 #
 # Reads the mirror settings from MIRROR_* environment variables (the action maps its inputs to them).
+# The mirrors are enabled only when the token and the user name are set and the off switch is not.
 # When enabled, appends the XROAD_MIRROR_* and Gradle plugin repository variables to $GITHUB_ENV
 # and logs in to the Docker mirror host. The plugin repository variables are written only when the
 # plugins mirror URL is set. The off switch is "true" in any letter case, ignoring surrounding spaces.
+# Logs a warning that names the empty inputs (never their values) when the token is set but the user
+# name is empty, or when the mirrors are enabled with some URL empty.
 # Always appends "enabled=true|false" to $GITHUB_OUTPUT.
 # Prints no URL and no username.
 
@@ -39,6 +42,29 @@ if [[ "${off_switch}" == "true" ]]; then
   echo "Artifactory mirrors disabled: off switch"
   write_output false
   exit 0
+fi
+
+empty_inputs=()
+for input in username:MIRROR_USERNAME maven-url:MIRROR_MAVEN_URL plugins-url:MIRROR_PLUGINS_URL \
+  npm-url:MIRROR_NPM_URL ubuntu-url:MIRROR_UBUNTU_URL docker-url:MIRROR_DOCKER_URL \
+  github-url:MIRROR_GITHUB_URL k8s-url:MIRROR_K8S_URL; do
+  variable="${input#*:}"
+  [[ -n "${!variable:-}" ]] || empty_inputs+=("${input%%:*}")
+done
+empty_list=""
+if [[ ${#empty_inputs[@]} -gt 0 ]]; then
+  empty_list="$(printf ', %s' "${empty_inputs[@]}")"
+  empty_list="${empty_list#, }"
+fi
+
+if [[ -z "${MIRROR_USERNAME:-}" ]]; then
+  echo "::warning::Artifactory mirrors disabled: empty inputs: ${empty_list}"
+  write_output false
+  exit 0
+fi
+
+if [[ -n "${empty_list}" ]]; then
+  echo "::warning::Artifactory mirror inputs empty: ${empty_list}"
 fi
 
 write_env XROAD_MIRROR_TOKEN "${MIRROR_TOKEN}"

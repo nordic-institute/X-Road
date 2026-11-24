@@ -355,6 +355,19 @@ jobs:
           IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
             ./build-dev-infra.sh --push
 
+      - name: Write images-ready marker
+        run: |
+          mkdir -p ci-markers
+          echo "IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}" > ci-markers/images-ready.env
+          echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/images-ready.env
+
+      - name: Upload images-ready marker
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: images-ready
+          path: ci-markers/images-ready.env
+          compression-level: '0'
+
       - name: Scan images for mirror credentials
         if: steps.mirrors.outputs.enabled == 'true'
         working-directory: ./scripts/images
@@ -370,19 +383,6 @@ jobs:
             docker pull "${image}"
           done
           ./test-mirror-layer-leak.sh "${images[@]}"
-
-      - name: Write images-ready marker
-        run: |
-          mkdir -p ci-markers
-          echo "IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}" > ci-markers/images-ready.env
-          echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/images-ready.env
-
-      - name: Upload images-ready marker
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: images-ready
-          path: ci-markers/images-ready.env
-          compression-level: '0'
 
       # `build`, not bare `test` as it triggers all the relevant tasks and previous build (w/o tests) is still cached.
       - name: Run tests
@@ -441,3 +441,12 @@ jobs:
         uses: ./.github/actions/log-storage
         with:
           label: 'Final Storage Utilization'
+
+      - name: Log out of the mirror Docker host
+        if: always() && steps.mirrors.outputs.enabled == 'true'
+        run: |
+          docker_host="${XROAD_MIRROR_DOCKER_URL#*://}"
+          docker_host="${docker_host%%/*}"
+          if [[ -n "${docker_host}" ]]; then
+            docker logout "${docker_host}"
+          fi

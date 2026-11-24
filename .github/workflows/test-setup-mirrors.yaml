@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - '.github/actions/setup-mirrors/**'
+      - 'scripts/lib/test-helpers.sh'
       - '.github/workflows/test-setup-mirrors.yaml'
   push:
     branches:
       - develop
     paths:
       - '.github/actions/setup-mirrors/**'
+      - 'scripts/lib/test-helpers.sh'
       - '.github/workflows/test-setup-mirrors.yaml'
   workflow_dispatch:
 
@@ -70,3 +72,7 @@ jobs:
         env:
           ENABLED: ${{ steps.mirrors.outputs.enabled }}
         run: ./.github/actions/setup-mirrors/test-setup-mirrors.sh assert "${{ matrix.case }}"
+
+      - name: Run local mode
+        if: matrix.case == 'no-token'
+        run: ./.github/actions/setup-mirrors/test-setup-mirrors.sh

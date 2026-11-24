@@ -1,12 +1,19 @@
 name: Publish test CA image
 on: 
+  workflow_dispatch:
   push:
     branches:
       - develop
     paths:
       - '.github/workflows/publish_testca.yaml'
+      - '.github/actions/setup-mirrors/**'
       - 'development/docker/testca/**'
       - 'development/ansible/roles/xroad-ca/**'
+      - 'deployment/.scripts/**'
+      - 'scripts/lib/base-script.sh'
+      - 'scripts/lib/test-helpers.sh'
+      - 'scripts/images/test-mirror-layer-leak.sh'
+      - 'scripts/images/test-mirror-layer-leak-control.sh'
 env:
   REGISTRY: ghcr.io
   XROAD_HOME: ${{ github.workspace }}
@@ -67,3 +74,11 @@ jobs:
           account: nordic-institute
           keep-n-most-recent: 1
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log out of the mirror Docker host
+        if: always() && steps.mirrors.outputs.enabled == 'true'
+        run: |
+          docker_host="${XROAD_MIRROR_DOCKER_URL#*://}"
+          docker_host="${docker_host%%/*}"
+          if [[ -n "${docker_host}" ]]; then
+            docker logout "${docker_host}"
+          fi
