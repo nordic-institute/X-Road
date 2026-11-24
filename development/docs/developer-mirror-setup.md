@@ -63,23 +63,77 @@ CI jobs use the same mirrors. The `setup-mirrors` action (`.github/actions/setup
 
 ### Repository secrets
 
-Set these repository secrets. They have the same names and meaning as the variables in `~/.gradle/gradle.properties`:
+Set these repository secrets. They have the same names and meaning as the variables in `~/.gradle/gradle.properties`. All URLs point to the same Artifactory instance. `<host>` is its host name.
 
-- `XROAD_MIRROR_TOKEN`
-- `XROAD_MIRROR_USERNAME`
-- `XROAD_MIRROR_MAVEN_URL`
-- `XROAD_MIRROR_PLUGINS_URL`
-- `XROAD_MIRROR_NPM_URL`
-- `XROAD_MIRROR_UBUNTU_URL`
-- `XROAD_MIRROR_DOCKER_URL`
-- `XROAD_MIRROR_GITHUB_URL`
-- `XROAD_MIRROR_K8S_URL`
+| Secret | Value shape | Used for |
+|---|---|---|
+| `XROAD_MIRROR_TOKEN` | Access token | The only credential, for every mirror |
+| `XROAD_MIRROR_USERNAME` | User name of the CI account | Login name that goes with the token |
+| `XROAD_MIRROR_MAVEN_URL` | `https://<host>/artifactory/mirror-mavencentral/` | Gradle dependency repository (a Maven repository URL) |
+| `XROAD_MIRROR_PLUGINS_URL` | `https://<host>/artifactory/mirror-gradle-plugins/` | Gradle plugin repository (a Maven repository URL) |
+| `XROAD_MIRROR_NPM_URL` | `https://<host>/artifactory/api/npm/mirror-npm/` | npm registry. Keep the `api/npm/` path and the trailing slash: the build writes the token under the host and path of this URL |
+| `XROAD_MIRROR_UBUNTU_URL` | `https://<host>/artifactory/mirror-ubuntu-ports/` | APT sources and the DNF base (see below) |
+| `XROAD_MIRROR_DOCKER_URL` | `<host>/mirror-docker-hub/` | Base image registry prefix: no scheme, trailing slash. The build puts it in front of the image name. The login uses the part before the first `/` |
+| `XROAD_MIRROR_GITHUB_URL` | `https://<host>/artifactory/mirror-github/` | GitHub release downloads. Keep the trailing slash: the build appends the repository path to it |
+| `XROAD_MIRROR_K8S_URL` | `https://<host>/artifactory/mirror-k8s-dl/` | `kubectl` downloads. The build appends `/release/<version>/...` |
 
-The mirrors are off for a job when `XROAD_MIRROR_TOKEN` is empty.
+The Ubuntu URL has two more roles:
 
-### Off switch
+- The APT configuration replaces the `mirror-ubuntu...` path segment with `mirror-ubuntu-archive` on amd64 and with `mirror-ubuntu-ports` on arm64. Both repositories must exist, and the URL must have a `mirror-ubuntu...` path segment.
+- The RPM builder images use the part of the URL before the `/mirror-` path segment as the base of the DNF repositories. The repositories `mirror-rocky`, `mirror-oracle` and `mirror-epel` must exist under that base.
+
+The mirrors are off for a job when `XROAD_MIRROR_TOKEN` is empty. When the token is set but the username is empty, the mirrors stay off and the job logs a warning. An empty URL turns off only that mirror, and the job logs a warning that names the empty settings, not their values.
+
+### Credential and non-credential values
+
+Only the token is a credential. Keep it out of images, logs, files in the repository and chat.
+
+The mirror URL and the CI username are not credentials. The image scripts print them in the build output, and they can appear in public image history (`docker history`) because the Dockerfiles take them as build arguments. They stay repository secrets so that GitHub masks them in workflow logs. This does not hide them in images. Without the token, they give no access.
+
+### Required remote repositories
+
+Create these remote repositories on the Artifactory instance. Use the names from the URLs above.
+
+| Repository | Type | Upstream |
+|---|---|---|
+| `mirror-mavencentral` | Maven | Maven Central |
+| `mirror-gradle-plugins` | Maven | Gradle plugin portal |
+| `mirror-npm` | npm | npm registry |
+| `mirror-ubuntu-archive` | Debian | Ubuntu archive (amd64) |
+| `mirror-ubuntu-ports` | Debian | Ubuntu ports (arm64) |
+| `mirror-rocky` | Generic or RPM | Rocky Linux repositories |
+| `mirror-oracle` | Generic or RPM | Oracle Linux repositories |
+| `mirror-epel` | Generic or RPM | EPEL repositories |
+| `mirror-docker-hub` | Docker | Docker Hub |
+| `mirror-github` | Generic | github.com (release downloads) |
+| `mirror-k8s-dl` | Generic | dl.k8s.io |
+
+### Token scope and rotation
+
+- Give the CI token read access to these repositories only. It needs no deploy, delete or admin rights.
+- To rotate the token: create the new token, replace the `XROAD_MIRROR_TOKEN` repository secret, check one CI run, then revoke the old token.
+- Developers keep their own token in `~/.gradle/gradle.properties`. They do not share the CI token.
+
+### Off switch and outage recovery
 
 To turn the mirrors off for all CI jobs, set the repository variable `XROAD_MIRRORS_DISABLED` to `true`. Jobs then use the public sources. The check ignores letter case and surrounding spaces. Delete the variable or set it to `false` to turn the mirrors on again.
+
+When the mirror is down and the mirrors are on, builds fail. They do not fall back to the public sources. To recover, set `XROAD_MIRRORS_DISABLED` to `true`, re-run the failed jobs, and delete the variable when the mirror works again.
+
+### Dockerfile rules
+
+These rules keep the token out of image layers. They apply to every Dockerfile that sets up the APT or DNF mirror with `configure-mirror-apt.sh` or `configure-mirror-dnf.sh`. Examples: `deployment/native-packages/docker/deb-resolute/Dockerfile`, `deployment/security-server/images/base-images/auxiliary-service/Dockerfile` (APT) and `deployment/native-packages/docker/rpm-el9/Dockerfile` (DNF).
+
+- **APT.** Every `RUN` that runs `apt-get` or `apt` does three things:
+  - it bind-mounts `mirror-apt-auth.sh` from the `mirror-scripts` build context to `/tmp/mirror-apt-auth.sh`;
+  - it mounts the `mirror_token` secret;
+  - it sources `. /tmp/mirror-apt-auth.sh` before the first apt command.
+
+  The helper writes the apt login file for this `RUN` only and removes it when the shell of the step exits. The configure step has the same bind mount and secret mount, but it does not run apt and does not source the helper.
+- **DNF.** Configure, install and cleanup (`configure-mirror-dnf.sh`, `dnf install`, `dnf clean all`, `cleanup-mirror-dnf.sh`) stay in one `RUN` that mounts the `mirror_token` secret. The DNF configuration keeps the token in repository files and in `/root/.netrc`. If the cleanup is in a later `RUN`, the earlier layer keeps them.
+- **Cleanup.** The last mirror step of an APT image runs `cleanup-mirror-apt.sh`, so the published image uses the public sources.
+
+The layer scan `scripts/images/test-mirror-layer-leak.sh` enforces these rules on the images that CI builds. It fails when a layer or the image configuration holds the token, when a layer holds an apt or DNF credential file, or when the final filesystem keeps the APT TLS-verification override. The scan runs only when the mirrors are on, that is, in same-repository runs. Fork and Dependabot runs have no token, so they have no scan. To scan a local image, run `XROAD_MIRROR_TOKEN=<token> scripts/images/test-mirror-layer-leak.sh <image>`.
 
 ### Fork and Dependabot builds
 
