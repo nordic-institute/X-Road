@@ -19,7 +19,7 @@ dependencies {
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:edc-jetty-tls"))
   implementation(project(":lib:edc-tls-reload"))
-  implementation(project(":lib:health-check-core"))
+  implementation(project(":lib:health-check-common"))
   implementation(project(":lib:ds-identity-core"))
   implementation(project(":lib:properties-core"))
   implementation(libs.nimbus.jose.jwt)
