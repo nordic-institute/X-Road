@@ -43,8 +43,8 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -52,6 +52,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -99,24 +100,13 @@ class LogManagerNodeRoleTest {
     }
 
     @Test
-    void failedWriteDoesNotBreakTheBatchJob() {
+    void batchResultDoesNotTouchTheDatabase() {
         LogManager logManager = newPrimaryLogManager(60);
-
-        when(messageLogDatabaseCtx.doInTransaction(any())).thenThrow(new RuntimeException("write failed"));
-
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(false);
-
-            assertDoesNotThrow(() ->
-                    logManager.setTimestampingStatus(new SetTimestampingStatusMessage(SetTimestampingStatusMessage.Status.SUCCESS)));
-            assertDoesNotThrow(() ->
-                    logManager.setTimestampingStatus(new SetTimestampingStatusMessage(SetTimestampingStatusMessage.Status.FAILURE)));
-        }
-
-        verify(messageLogDatabaseCtx, times(2)).doInTransaction(any());
+        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(SetTimestampingStatusMessage.Status.SUCCESS));
+        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(SetTimestampingStatusMessage.Status.FAILURE));
+        verifyNoInteractions(messageLogDatabaseCtx);
         logManager.destroy();
     }
-
     @Test
     void readFailureRefusesMessage() {
         when(serverConfProvider.getTspUrls()).thenReturn(List.of("http://tsa"));
@@ -131,12 +121,12 @@ class LogManagerNodeRoleTest {
     }
 
     @Test
-    void readsSharedStateOnEveryCheck() {
+    void readsOldestPendingMessageOnEveryCheck() {
         when(serverConfProvider.getTspUrls()).thenReturn(List.of("http://tsa"));
 
         LogManager logManager = newSecondaryLogManager(60);
 
-        when(messageLogDatabaseCtx.doInTransaction(any())).thenReturn(null);
+        when(messageLogDatabaseCtx.doInTransaction(any())).thenReturn(Optional.empty());
 
         logManager.verifyCanLogMessage(false);
         logManager.verifyCanLogMessage(false);

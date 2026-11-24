@@ -13,6 +13,5 @@
       <mapping class="org.niis.xroad.messagelog.entity.DigestEntryEmbeddable" />
       <mapping class="org.niis.xroad.messagelog.entity.ArchiveDigestEntity" />
       <mapping class="org.niis.xroad.messagelog.entity.MessageAttachmentEntity" />
-      <mapping class="org.niis.xroad.messagelog.entity.TimestampingStatusEntity" />
   </session-factory>
 </hibernate-configuration>

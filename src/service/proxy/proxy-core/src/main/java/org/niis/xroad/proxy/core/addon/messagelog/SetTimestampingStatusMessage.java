@@ -26,15 +26,9 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.util.TimeUtils;
-
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
-import java.time.Instant;
 
 @Data
-@RequiredArgsConstructor
 class SetTimestampingStatusMessage {
     /**
      * Status
@@ -45,20 +39,4 @@ class SetTimestampingStatusMessage {
     }
 
     private final Status status;
-    /**
-     * Time when the status was achieved
-     */
-    private final Instant atTime;
-
-    /**
-     * Constructor that sets status change timestamp to current time.
-     *
-     * @param status
-     */
-    SetTimestampingStatusMessage(Status status) {
-        this.status = status;
-        this.atTime = TimeUtils.now();
-    }
 }
-
-

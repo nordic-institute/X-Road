@@ -48,7 +48,6 @@ import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.RestLogMessage;
 import org.niis.xroad.messagelog.SoapLogMessage;
 import org.niis.xroad.messagelog.TimestampRecord;
-import org.niis.xroad.messagelog.entity.TimestampingStatusEntity;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -59,6 +58,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -76,6 +76,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMPING_FAILED
  */
 @Slf4j
 public class LogManager extends AbstractLogManager {
+    private static final String OLDEST_UNTIMESTAMPED_MESSAGE_TIME_QUERY =
+            "select m.time from MessageRecordEntity m where m.timestampRecord is null order by m.id";
 
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
@@ -346,45 +348,8 @@ public class LogManager extends AbstractLogManager {
     }
 
     void setTimestampingStatus(SetTimestampingStatusMessage statusMessage) {
-        boolean succeeded = statusMessage.getStatus() == SetTimestampingStatusMessage.Status.SUCCESS;
-
-        if (!NodeProperties.isSecondaryNode() && !messageLogProperties.timestamper().timestampImmediately()) {
-            recordBatchResult(succeeded, statusMessage.getAtTime());
-        }
-
-        handleTimestampJob(succeeded);
+        handleTimestampJob(statusMessage.getStatus() == SetTimestampingStatusMessage.Status.SUCCESS);
     }
-
-    /**
-     * Writes the primary's batch time-stamping result to the shared state row, based only on
-     * what the row itself holds, never on this node's own in-memory state, so a restarted
-     * primary or a new primary after failover still clears a failure an earlier run recorded.
-     * The row exists only while batch time-stamping fails. A success deletes the row. A failure
-     * inserts the row with the failure start time when it is missing, and keeps the first
-     * failure time when it is present. A failed write is logged: it must not break the batch job
-     * or message processing.
-     */
-    private void recordBatchResult(boolean succeeded, Instant at) {
-        try {
-            messageLogDatabaseCtx.doInTransaction(session -> {
-                TimestampingStatusEntity entity = session.find(TimestampingStatusEntity.class, TimestampingStatusEntity.SINGLETON_ID);
-
-                if (succeeded) {
-                    if (entity != null) {
-                        session.remove(entity);
-                    }
-                } else if (entity == null) {
-                    entity = new TimestampingStatusEntity();
-                    entity.setFailedSince(at);
-                    session.persist(entity);
-                }
-                return null;
-            });
-        } catch (Exception e) {
-            log.warn("Failed to write shared time-stamping state", e);
-        }
-    }
-
     private void handleTimestampJob(boolean succeeded) {
         if (timestamperJob != null) {
             if (succeeded) {
@@ -417,34 +382,28 @@ public class LogManager extends AbstractLogManager {
     }
 
     /**
-     * Refuses when the shared batch time-stamping state records a failure that started earlier
-     * than the acceptable period. Every node, primary or secondary, decides from this shared
-     * state, read from the message log database on every check. A failed read throws, so the
-     * message is refused. A primary that is down (crashed, gone or stuck) records nothing, so this
-     * check does not detect it.
+     * Refuses when the oldest message still waiting for a time-stamp was logged earlier than the
+     * acceptable period plus one batch interval. The batch interval is the normal wait of a healthy
+     * queue. Every node reads the same message log database, so primary and secondary nodes make
+     * the same decision, also when the primary is down. A failed read throws, so the message is
+     * refused.
      */
     private void verifyTimestampingNotFailed(int period) {
-        Instant failedSince = readSharedFailedSince();
-
-        if (failedSince == null) {
-            return;
-        }
-
-        if (TimeUtils.now().minusSeconds(period).isAfter(failedSince)) {
+        long allowedWaitSeconds = (long) period + TimestamperJob.batchIntervalSeconds(globalConfProvider);
+        Instant oldestAllowed = TimeUtils.now().minusSeconds(allowedWaitSeconds);
+        if (readOldestUntimestampedMessageTime().filter(oldestAllowed::isAfter).isPresent()) {
             throw XrdRuntimeException.systemException(TIMESTAMPING_FAILED)
                     .details("Cannot time-stamp messages")
                     .build();
         }
     }
-
-    private Instant readSharedFailedSince() {
-        return messageLogDatabaseCtx.doInTransaction(session -> {
-            TimestampingStatusEntity entity = session.find(TimestampingStatusEntity.class, TimestampingStatusEntity.SINGLETON_ID);
-
-            return entity == null ? null : entity.getFailedSince();
-        });
+    private Optional<Instant> readOldestUntimestampedMessageTime() {
+        return messageLogDatabaseCtx.doInTransaction(session -> session
+                .createQuery(OLDEST_UNTIMESTAMPED_MESSAGE_TIME_QUERY, Long.class)
+                .setMaxResults(1)
+                .uniqueResultOptional()
+                .map(Instant::ofEpochMilli));
     }
-
     private String signatureHash(String signatureXml) throws IOException {
         return CryptoUtils.signatureHash(signatureXml, DigestAlgorithm.ofName(messageLogProperties.hashAlgoIdStr()));
     }
@@ -539,26 +498,33 @@ public class LogManager extends AbstractLogManager {
         }
 
         private Duration getNextDelay() {
-            int actualInterval = MIN_INTERVAL_SECONDS;
             log.debug("Use batch time-stamping retry backoff schedule: {}", retryMode.get());
-
-            try {
-                actualInterval = globalConfProvider.getTimestampingIntervalSeconds();
-            } catch (Exception e) {
-                log.error("Failed to get timestamping interval", e);
-            }
-
+            int actualInterval = configuredIntervalSeconds(globalConfProvider);
             if (retryMode.get()) {
                 actualInterval = (timestampRetryDelaySeconds < actualInterval && timestampRetryDelaySeconds > 0)
                         ? timestampRetryDelaySeconds : actualInterval;
             }
-
-            int intervalSeconds = Math.min(Math.max(actualInterval, MIN_INTERVAL_SECONDS), MAX_INTERVAL_SECONDS);
+            int intervalSeconds = clampInterval(actualInterval);
             log.debug("Time-stamping interval is: {}s", intervalSeconds);
-
             return Duration.of(intervalSeconds, ChronoUnit.SECONDS);
         }
-
+        /**
+         * The interval between batch time-stamping runs while time-stamping works.
+         */
+        static int batchIntervalSeconds(GlobalConfProvider globalConfProvider) {
+            return clampInterval(configuredIntervalSeconds(globalConfProvider));
+        }
+        private static int configuredIntervalSeconds(GlobalConfProvider globalConfProvider) {
+            try {
+                return globalConfProvider.getTimestampingIntervalSeconds();
+            } catch (Exception e) {
+                log.error("Failed to get timestamping interval", e);
+                return MIN_INTERVAL_SECONDS;
+            }
+        }
+        private static int clampInterval(int intervalSeconds) {
+            return Math.min(Math.max(intervalSeconds, MIN_INTERVAL_SECONDS), MAX_INTERVAL_SECONDS);
+        }
         protected void cancelNext() {
             if (scheduledTask != null) {
                 if (!scheduledTask.isCancelled()) {
