@@ -757,7 +757,10 @@ public class LegacyConfigMigrationCLI {
             log.warn("Failed tokens: {}", result.failedTokens());
         }
         if (!result.successfulTokens().isEmpty()) {
+            log.info("A PIN was stored; enabling signer autologin");
             enableSignerAutologin(dbPropertiesPath, installation);
+        } else if (!result.skippedTokens().isEmpty() && result.failedTokens().isEmpty()) {
+            enableSignerAutologinWhenUnset(dbPropertiesPath, installation);
         }
         if (!result.isSuccessful()) {
             throw XrdRuntimeException.systemException(INTERNAL_ERROR,
@@ -772,6 +775,15 @@ public class LegacyConfigMigrationCLI {
                     .formatted(dbPropertiesPath, DbPropertiesOption.OPTION));
         }
         DbPropertiesReader.readForInstallation(Path.of(dbPropertiesPath), installation);
+    }
+
+    private static void enableSignerAutologinWhenUnset(String dbPropertiesPath, InstallationType installation) {
+        if (new SinglePropertySetter(SIGNER_AUTOLOGIN_ENABLED_KEY, "true").hasStoredValue(dbPropertiesPath, installation)) {
+            log.info("No PIN was stored and {} already has a value; leaving it unchanged", SIGNER_AUTOLOGIN_ENABLED_KEY);
+            return;
+        }
+        log.info("Every PIN was already stored and {} was never set; enabling signer autologin", SIGNER_AUTOLOGIN_ENABLED_KEY);
+        enableSignerAutologin(dbPropertiesPath, installation);
     }
 
     private static void enableSignerAutologin(String dbPropertiesPath, InstallationType installation) {

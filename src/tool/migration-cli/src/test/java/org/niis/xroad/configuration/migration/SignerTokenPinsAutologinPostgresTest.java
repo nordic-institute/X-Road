@@ -128,7 +128,7 @@ class SignerTokenPinsAutologinPostgresTest {
 
     @ParameterizedTest
     @EnumSource(InstallationType.class)
-    void shouldLeaveAutologinUnchangedWhenTheRerunStoresNothing(InstallationType installation) throws Exception {
+    void shouldLeaveAutologinFalseWhenTheRerunStoresNothing(InstallationType installation) throws Exception {
         String database = freshDatabase(installation);
         Path dbProperties = writeDbProperties(installation, database);
         Path pinFile = pinFile(PIN_FIXTURE + "\n");
@@ -139,6 +139,49 @@ class SignerTokenPinsAutologinPostgresTest {
         migrate(installation, dbProperties, pinFile);
 
         assertThat(autologinFlag(database)).containsExactly("false");
+    }
+
+    @ParameterizedTest
+    @EnumSource(InstallationType.class)
+    void shouldEnableAutologinWhenTheRerunStoresNothingAndTheFlagWasNeverSet(InstallationType installation) throws Exception {
+        String database = freshDatabase(installation);
+        Path dbProperties = writeDbProperties(installation, database);
+        Path pinFile = pinFile(PIN_FIXTURE + "\n");
+        migrate(installation, dbProperties, pinFile);
+        execute(database, "DELETE FROM configuration_properties WHERE property_key = '" + AUTOLOGIN_KEY + "'");
+
+        migrate(installation, dbProperties, pinFile);
+
+        assertThat(autologinFlag(database)).containsExactly("true");
+        assertThat(autologinFlagNodeNames(database)).containsOnlyNulls();
+    }
+
+    @ParameterizedTest
+    @EnumSource(InstallationType.class)
+    void shouldKeepOneTrueRowWhenTheFlagIsAlreadyTrueAndTheRerunStoresNothing(InstallationType installation) throws Exception {
+        String database = freshDatabase(installation);
+        Path dbProperties = writeDbProperties(installation, database);
+        Path pinFile = pinFile(PIN_FIXTURE + "\n");
+        migrate(installation, dbProperties, pinFile);
+        migrate(installation, dbProperties, pinFile);
+        migrate(installation, dbProperties, pinFile);
+
+        assertThat(autologinFlag(database)).containsExactly("true");
+    }
+
+    @ParameterizedTest
+    @EnumSource(InstallationType.class)
+    void shouldNotTreatARowOfAnotherNodeAsTheFlagBeingSet(InstallationType installation) throws Exception {
+        String database = freshDatabase(installation);
+        Path dbProperties = writeDbProperties(installation, database);
+        Path pinFile = pinFile(PIN_FIXTURE + "\n");
+        migrate(installation, dbProperties, pinFile);
+        execute(database, "UPDATE configuration_properties SET ha_node_name = 'node_x' WHERE property_key = '"
+                + AUTOLOGIN_KEY + "'");
+
+        migrate(installation, dbProperties, pinFile);
+
+        assertThat(autologinFlagNodeNames(database)).containsExactlyInAnyOrder("node_x", null);
     }
 
     @ParameterizedTest
@@ -197,6 +240,22 @@ class SignerTokenPinsAutologinPostgresTest {
                     values.add(resultSet.getString(1));
                 }
                 return values;
+            }
+        }
+    }
+
+    private List<String> autologinFlagNodeNames(String database) throws SQLException {
+        try (var connection = DriverManager.getConnection(
+                url(database), POSTGRES.getUsername(), POSTGRES.getPassword());
+                var statement = connection.prepareStatement(
+                        "SELECT ha_node_name FROM configuration_properties WHERE property_key = ?")) {
+            statement.setString(1, AUTOLOGIN_KEY);
+            try (var resultSet = statement.executeQuery()) {
+                List<String> names = new ArrayList<>();
+                while (resultSet.next()) {
+                    names.add(resultSet.getString(1));
+                }
+                return names;
             }
         }
     }

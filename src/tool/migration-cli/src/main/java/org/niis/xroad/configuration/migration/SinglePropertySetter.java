@@ -56,6 +56,16 @@ public class SinglePropertySetter extends BasePropertiesToDbMigrator {
         saveToDb(loadProperties(dbPropertiesPath), dbPropertiesPath, installationType);
     }
 
+    /**
+     * Whether the property already has a stored value, in the row scope {@link #store} writes.
+     */
+    boolean hasStoredValue(String dbPropertiesPath, InstallationType installationType) {
+        refuseRowOfMergedType();
+        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath, installationType)) {
+            return dbRepo.findProperty(propertyKey).isPresent();
+        }
+    }
+
     private void refuseRowOfMergedType() {
         LegacyConfigValueTypes.mergedKeyFor(propertyKey).ifPresent(mergedKey -> {
             throw XrdRuntimeException.systemException(ErrorCode.INVALID_PROPERTY_VALUE,

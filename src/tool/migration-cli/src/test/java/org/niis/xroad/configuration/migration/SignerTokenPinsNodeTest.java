@@ -54,10 +54,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SystemStubsExtension.class)
 class SignerTokenPinsNodeTest {
@@ -108,14 +110,14 @@ class SignerTokenPinsNodeTest {
         String[] args = {"signer-token-pins", "--node", "node_b", "--db-properties", ssDbProperties.toString(),
                 fetchPinScript().toString()};
 
-        try (MockedConstruction<DbRepository> dbRepositories = Mockito.mockConstruction(DbRepository.class)) {
+        try (MockedConstruction<DbRepository> dbRepositories = mockRepositoriesHoldingAutologinFlag("true")) {
             LegacyConfigMigrationCLI.main(args);
             Map<String, String> afterFirstRun = Map.copyOf(store);
             LegacyConfigMigrationCLI.main(args);
 
             assertThat(afterFirstRun).containsOnlyKeys("signer/token-pins/node_b/0");
             assertThat(store).isEqualTo(afterFirstRun);
-            assertThat(dbRepositories.constructed()).hasSize(1);
+            assertThat(autologinWrites(dbRepositories)).isEqualTo(1);
         }
     }
 
@@ -279,14 +281,42 @@ class SignerTokenPinsNodeTest {
     }
 
     @Test
-    void shouldLeaveAutologinUnchangedWhenNoPinIsStoredOnRerun() throws IOException {
+    void shouldEnableAutologinOnRerunWhenEveryPinIsAlreadyStoredAndTheFlagWasNeverSet() throws IOException {
         Path pinFile = Files.writeString(tempDir.resolve("autologin"), PIN_FIXTURE + "\n");
+        seedPinStore(pinFile);
 
         try (MockedConstruction<DbRepository> dbRepositories = Mockito.mockConstruction(DbRepository.class)) {
             migrate(InstallationType.SECURITY_SERVER, ssDbProperties, locations(null, pinFile));
+
+            assertThat(autologinWrites(dbRepositories)).isEqualTo(1);
+        }
+    }
+
+    @Test
+    void shouldLeaveAnExistingAutologinValueUnchangedWhenTheRerunStoresNothing() throws IOException {
+        Path pinFile = Files.writeString(tempDir.resolve("autologin"), PIN_FIXTURE + "\n");
+        seedPinStore(pinFile);
+
+        try (MockedConstruction<DbRepository> dbRepositories = mockRepositoriesHoldingAutologinFlag("false")) {
             migrate(InstallationType.SECURITY_SERVER, ssDbProperties, locations(null, pinFile));
 
-            assertThat(dbRepositories.constructed()).hasSize(1);
+            assertThat(autologinWrites(dbRepositories)).isZero();
+        }
+    }
+
+    @Test
+    void shouldNotEnableAutologinWhenATokenFailsAndNoneWasStoredThoughAnotherWasSkipped() throws IOException {
+        Path pinFile = Files.writeString(tempDir.resolve("autologin"), "0:1111\n");
+        seedPinStore(pinFile);
+        openBao.rejectWritesTo("signer/token-pins/node_b/1");
+        Files.writeString(pinFile, "0:1111\n1:2222\n");
+
+        try (MockedConstruction<DbRepository> dbRepositories = Mockito.mockConstruction(DbRepository.class)) {
+            assertThatThrownBy(() -> migrate(InstallationType.SECURITY_SERVER, ssDbProperties, locations(null, pinFile)))
+                    .isInstanceOf(XrdRuntimeException.class)
+                    .hasMessageContaining("did not succeed");
+
+            assertThat(dbRepositories.constructed()).isEmpty();
         }
     }
 
@@ -322,6 +352,25 @@ class SignerTokenPinsNodeTest {
     void shouldKeepTheAutologinKeyInStepWithTheSignerConfigKey() {
         assertThat(LegacyConfigMigrationCLI.SIGNER_AUTOLOGIN_ENABLED_KEY)
                 .isEqualTo(SignerConfigKeys.AUTOLOGIN_ENABLED.key());
+    }
+
+    private void seedPinStore(Path pinFile) throws IOException {
+        try (MockedConstruction<DbRepository> ignored = Mockito.mockConstruction(DbRepository.class)) {
+            migrate(InstallationType.SECURITY_SERVER, ssDbProperties, locations(null, pinFile));
+        }
+    }
+
+    private static MockedConstruction<DbRepository> mockRepositoriesHoldingAutologinFlag(String value) {
+        return Mockito.mockConstruction(DbRepository.class,
+                (repository, _) -> when(repository.findProperty(AUTOLOGIN_KEY)).thenReturn(Optional.of(value)));
+    }
+
+    private static long autologinWrites(MockedConstruction<DbRepository> dbRepositories) {
+        return dbRepositories.constructed().stream()
+                .flatMap(repository -> Mockito.mockingDetails(repository).getInvocations().stream())
+                .filter(invocation -> invocation.getMethod().getName().equals("saveProperty"))
+                .filter(invocation -> invocation.getArgument(0).equals(AUTOLOGIN_KEY))
+                .count();
     }
 
     private void migrate(InstallationType installation, Path dbProperties, PinSourceLocations locations)
