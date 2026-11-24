@@ -844,7 +844,9 @@ describe('CS Issuer Service tab — Trusted issuer remove confirmation (Browser 
     await page.getByTestId('delete-trusted-issuer').first().click();
 
     await expect.element(page.getByTestId('dialog-title')).toHaveTextContent('Remove trusted issuer?');
-    await expect.element(page.getByTestId('dialog-simple')).toMatchTextContent(`Every credential ${ISSUER_ONE.did} signed becomes invalid`);
+    await expect
+      .element(page.getByTestId('dialog-simple'))
+      .toMatchTextContent(`Security Servers refuse new access with ${ISSUER_ONE.did}'s credentials`);
   });
 
   it('shows the last-entry warning with one issuer listed', async () => {
@@ -858,7 +860,7 @@ describe('CS Issuer Service tab — Trusted issuer remove confirmation (Browser 
 
     const dialog = page.getByTestId('dialog-simple');
     await expect.element(dialog).toMatchTextContent(`${ISSUER_ONE.did} is the last trusted issuer`);
-    await expect.element(dialog).toMatchTextContent('Every credential it signed becomes invalid');
+    await expect.element(dialog).toMatchTextContent('Security Servers refuse new access with its credentials');
     await expect.element(dialog).toMatchTextContent('all Dataspace Protocol (DSP) traffic stops');
   });
 
