@@ -72,12 +72,12 @@ import java.util.stream.Collectors;
  * shared by every connector instead of stock's one-per-connector, so it can be swapped as a unit.
  *
  * <p>The service is constructed without TLS material and its server starts with no connectors, so the rest of
- * the runtime boots before the connector TLS certificate exists. The first {@link #applyConnectorTlsMaterial}
+ * the runtime boots before the Dataspace TLS certificate exists. The first {@link #applyConnectorTlsMaterial}
  * call builds and starts the SSL context factory — failing fast if the material cannot back a working SSL
  * context — and opens every HTTPS connector on the running server; later calls hot-swap the keystore. Until
  * the first call, the ports refuse connections. A keystore that cannot back an SSL context fails with
  * {@link ConnectorTlsKeyStoreLoadException}; a port that cannot be bound fails with an {@link EdcException}.
- * While connector TLS is not served, the most recent failure is kept as a sanitised one-line cause (see
+ * While Dataspace TLS is not served, the most recent failure is kept as a sanitised one-line cause (see
  * {@link #connectorTlsStatus()}).
  *
  * <p>New material for a running factory is proven first: a throwaway factory with the same configuration must
@@ -85,7 +85,7 @@ import java.util.stream.Collectors;
  * {@link ConnectorTlsKeyStoreLoadException} naming the rejected material and the certificate still served, and
  * the previously served certificate keeps serving.
  *
- * <p>Every connector is HTTPS: the connector TLS certificate is mandatory for this runtime (see
+ * <p>Every connector is HTTPS: the Dataspace TLS certificate is mandatory for this runtime (see
  * {@link XRoadJettyExtension}), so stock's plaintext fallback for a missing keystore has no reason to exist
  * here — carrying it forward would silently reopen the unguarded HTTP path the owned module exists to close.
  *
@@ -150,7 +150,7 @@ public final class XRoadJettyService implements WebServer {
     }
 
     /**
-     * Accepts connector TLS material. The first call builds the shared SSL context factory; every later call
+     * Accepts Dataspace TLS material. The first call builds the shared SSL context factory; every later call
      * applies the keystore to the running SSL context, so every connector on this JVM — including
      * framework-internal ones such as the STS — serves the new certificate on its next handshake, without a
      * restart. The HTTPS connectors open once a factory exists, and a call that fails while opening them leaves
@@ -160,7 +160,7 @@ public final class XRoadJettyService implements WebServer {
      */
     public synchronized void applyConnectorTlsMaterial(KeyStore keyStore) {
         if (stopped) {
-            monitor.debug("Connector TLS material ignored, the X-Road Jetty service is stopped");
+            monitor.debug("Dataspace TLS material ignored, the X-Road Jetty service is stopped");
             return;
         }
         try {
@@ -186,7 +186,7 @@ public final class XRoadJettyService implements WebServer {
     }
 
     /**
-     * Records why the connector TLS material could not be loaded, for {@link #connectorTlsStatus()}. The cause is
+     * Records why the Dataspace TLS material could not be loaded, for {@link #connectorTlsStatus()}. The cause is
      * cleared by the next successful {@link #applyConnectorTlsMaterial}.
      */
     void recordLoadFailure(RuntimeException failure) {
@@ -215,7 +215,7 @@ public final class XRoadJettyService implements WebServer {
         try {
             sslContextFactory.reload(factory -> factory.setKeyStore(keyStore));
         } catch (Exception e) {
-            throw new ConnectorTlsKeyStoreLoadException("Failed to apply the reloaded connector TLS keystore", e);
+            throw new ConnectorTlsKeyStoreLoadException("Failed to apply the reloaded Dataspace TLS keystore", e);
         }
         servedCertificate = leaf;
     }
@@ -225,7 +225,7 @@ public final class XRoadJettyService implements WebServer {
         try {
             probe.start();
         } catch (Exception e) {
-            throw new ConnectorTlsKeyStoreLoadException("The connector TLS keystore cannot be loaded by Jetty", e);
+            throw new ConnectorTlsKeyStoreLoadException("The Dataspace TLS keystore cannot be loaded by Jetty", e);
         } finally {
             try {
                 probe.stop();
@@ -237,7 +237,7 @@ public final class XRoadJettyService implements WebServer {
 
     private ConnectorTlsKeyStoreLoadException rejected(KeyStore keyStore, ConnectorTlsKeyStoreLoadException failure) {
         return new ConnectorTlsKeyStoreLoadException(
-                "Connector TLS material (SHA-256 %s) rejected: %s. Still serving %s".formatted(
+                "Dataspace TLS material (SHA-256 %s) rejected: %s. Still serving %s".formatted(
                         ConnectorTlsCertificates.fingerprintOrUnknown(keyStore), describeCause(failure),
                         ConnectorTlsCertificates.describe(servedCertificate)),
                 failure.summary(), failure);
@@ -265,13 +265,13 @@ public final class XRoadJettyService implements WebServer {
             contextFactory.start();
         } catch (Exception e) {
             throw new ConnectorTlsKeyStoreLoadException(
-                    "Failed to initialize the connector TLS SSL context from the certificate stored in OpenBao", e);
+                    "Failed to initialize the Dataspace TLS SSL context from the certificate stored in OpenBao", e);
         }
         return contextFactory;
     }
 
     /**
-     * The connector TLS serving state. Lock-free so a health probe never waits on connectors still being opened;
+     * The Dataspace TLS serving state. Lock-free so a health probe never waits on connectors still being opened;
      * the cause is read before the open flag because the connectors open before the cause is cleared.
      */
     ConnectorTlsStatus connectorTlsStatus() {
@@ -285,7 +285,7 @@ public final class XRoadJettyService implements WebServer {
     }
 
     /**
-     * Whether connector TLS is served, why not when it is not, and when the served certificate expired once it has.
+     * Whether Dataspace TLS is served, why not when it is not, and when the served certificate expired once it has.
      */
     record ConnectorTlsStatus(boolean serving, Optional<String> notServedCause, Optional<Instant> expiredAt) {
     }

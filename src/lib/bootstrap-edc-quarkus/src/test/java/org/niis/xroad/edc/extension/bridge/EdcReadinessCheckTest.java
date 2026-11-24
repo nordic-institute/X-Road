@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 
 class EdcReadinessCheckTest {
 
-    private static final String COMPONENT = "connector-tls";
+    private static final String COMPONENT = "dataspace-tls";
 
     @Test
     void edcReadinessDownMapsToDownWithFailureMessages() {

@@ -75,6 +75,7 @@ public final class SharedParametersV7Fixture {
         when(systemParameters.getInstanceIdentifier()).thenReturn(INSTANCE);
         when(systemParameters.getOcspFreshnessSeconds()).thenReturn(OCSP_FRESHNESS_SECONDS);
         when(systemParameters.getIssuerDataFreshnessSeconds()).thenReturn(ISSUER_DATA_FRESHNESS_SECONDS);
+        when(systemParameters.getSoapProtocolVersions()).thenReturn(SharedParameters.GlobalSettings.DEFAULT_SOAP_PROTOCOL_VERSIONS);
         var configuration = mock(ConfigurationService.class);
         when(configuration.getNodeAddressesWithOrderedConfigurationSigningKeys()).thenReturn(Map.of("cs", List.of(
                 signingKey(ConfigurationSourceType.INTERNAL), signingKey(ConfigurationSourceType.EXTERNAL))));

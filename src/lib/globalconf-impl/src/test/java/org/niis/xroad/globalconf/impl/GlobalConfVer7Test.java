@@ -171,10 +171,10 @@ public class GlobalConfVer7Test {
         FileUtils.copyDirectory(new File(GOOD_CONF_DIR), confDir);
         File sharedParams = new File(confDir, "EE/shared-params.xml");
         String withoutPublishedValues = FileUtils.readFileToString(sharedParams, UTF_8)
-                .replaceAll("\\s*<did securityServer=\"[^\"]*\">[^<]*</did>", "")
+                .replaceAll("\\s*<did connector=\"[^\"]*\">[^<]*</did>", "")
                 .replaceAll("\\s*<dspBaseUrl>[^<]*</dspBaseUrl>", "")
                 .replaceAll("\\s*<systemDid>[^<]*</systemDid>", "")
-                .replaceAll("<securityServer id=\"[^\"]*\">", "<securityServer>");
+                .replaceAll("<connector id=\"[^\"]*\">", "<connector>");
         FileUtils.writeStringToFile(sharedParams, withoutPublishedValues, UTF_8);
 
         GlobalConfProvider stripped = load(confDir.getPath());
@@ -187,6 +187,15 @@ public class GlobalConfVer7Test {
     @Test
     public void legacyProtocolDisabledOfFederatedInstanceWithElement() {
         assertTrue(globalConfProvider.isLegacyProtocolDisabled("fed_v7"));
+    }
+
+    @Test
+    public void soapProtocolVersionsOfFederatedInstanceReachTheModel() {
+        var source = new FileSystemGlobalConfSource(GOOD_CONF_DIR);
+
+        var cache = source.findSharedParametersCache("fed_v7").orElseThrow();
+
+        assertEquals(Set.of(4, 5), cache.getSharedParameters().getGlobalSettings().getSoapProtocolVersions());
     }
 
     @Test

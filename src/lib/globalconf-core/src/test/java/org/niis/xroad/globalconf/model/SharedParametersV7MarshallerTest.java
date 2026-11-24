@@ -73,7 +73,7 @@ class SharedParametersV7MarshallerTest {
         final String result = marshaller.marshall(sharedParamsBuilder.build());
 
         assertThat(result).isNotBlank();
-        assertThat(result).contains("approvedConnectorTlsCA", "connectorTlsCertificateProfileId", "credentialIssuer",
+        assertThat(result).contains("approvedDataspaceTlsCA", "dataspaceTlsCertificateProfileId", "credentialIssuer",
                 "did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer",
                 "<issuerDataFreshnessSeconds>600</issuerDataFreshnessSeconds>");
         System.out.println(result);

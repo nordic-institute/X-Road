@@ -40,8 +40,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ConnectorType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ObjectFactory;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.SecurityServerType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.SharedParametersTypeV7;
 
 import java.io.StringWriter;
@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -66,19 +67,24 @@ class SharedParametersV7ToXmlConverterTest {
 
     private static final int ISSUER_DATA_FRESHNESS_SECONDS = 600;
     private static final Map<String, String> FIELD_NAME_MAP = Map.ofEntries(
-            entry("securityServer", "securityServers"),
+            entry("dataspaceIdentifier", "instanceIdentifier"),
+            entry("connector", "securityServers"),
+            entry("connectorCode", "serverCode"),
             entry("source", "sources"),
             entry("internalVerificationCert", "internalVerificationCerts"),
             entry("externalVerificationCert", "externalVerificationCerts"),
             entry("approvedCA", "approvedCAs"),
             entry("approvedTSA", "approvedTSAs"),
-            entry("approvedConnectorTlsCA", "approvedConnectorTlsCAs"),
-            entry("member", "members"),
+            entry("approvedDataspaceTlsCA", "approvedConnectorTlsCAs"),
+            entry("dataspaceTlsCertificateProfileId", "connectorTlsCertificateProfileId"),
+            entry("participant", "members"),
+            entry("participantCode", "memberCode"),
             entry("globalGroup", "globalGroups"),
             entry("intermediateCA", "intermediateCas"),
             entry("subsystem", "subsystems"),
             entry("client", "clients"),
             entry("memberClass", "memberClasses"),
+            entry("participantClass", "memberClasses"),
             entry("authCertHash", "authCerts"),
             entry("groupMember", "groupMembers"),
             entry("inMaintenanceMode", "maintenanceMode")
@@ -135,16 +141,16 @@ class SharedParametersV7ToXmlConverterTest {
                         "members.id",
                         "members.subsystems.id",
                         "members.did",
-                        "centralService",
                         "any",
-                        "credentialIssuer"
+                        "credentialIssuer",
+                        "globalSettings.soapProtocolVersions"
                 )
                 .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds", "issuerDataFreshnessSeconds")
                 .build();
 
         assertThat(xmlType)
-                .hasNoNullFieldsOrPropertiesExcept("centralService")
+                .hasNoNullFieldsOrProperties()
                 .usingRecursiveComparison(conf)
                 .isEqualTo(sharedParameters);
 
@@ -153,13 +159,15 @@ class SharedParametersV7ToXmlConverterTest {
                 .ignoringFields("globalGroup.groupMember.id")
                 .allFieldsSatisfy(Objects::nonNull);
 
+        assertThat(xmlType.getGlobalSettings().getSoapProtocolVersions().getEnabledVersions().getVersion())
+                .containsExactly(BigInteger.valueOf(4), BigInteger.valueOf(5));
         assertIdReferences(xmlType);
         assertMemberDidReferences(xmlType);
         var systemValues = sharedParameters.getSecurityServers().getFirst().getSystemValues();
-        assertThat(xmlType.getSecurityServer().getFirst())
-                .returns(systemValues.systemDid(), SecurityServerType::getSystemDid)
-                .returns(systemValues.dspBaseUrl(), SecurityServerType::getDspBaseUrl);
-        assertThat(xmlType.getSecurityServer().getFirst().getAuthCertHash().getFirst())
+        assertThat(xmlType.getConnector().getFirst())
+                .returns(systemValues.systemDid(), ConnectorType::getSystemDid)
+                .returns(systemValues.dspBaseUrl(), ConnectorType::getDspBaseUrl);
+        assertThat(xmlType.getConnector().getFirst().getAuthCertHash().getFirst())
                 .isEqualTo(sharedParameters.getSecurityServers().getFirst().getAuthCertHashes().getFirst().getHash(SHA256));
     }
 
@@ -240,7 +248,7 @@ class SharedParametersV7ToXmlConverterTest {
 
     @Test
     void shouldRoundTripLegacyProtocolDisabled() {
-        var xml = marshallWithLegacyProtocolDisabled(true);
+        var xml = marshallWithGlobalSettings(new SharedParameters.GlobalSettings(null, 60, true));
 
         assertThat(xml).contains("<legacyProtocolDisabled>true</legacyProtocolDisabled>");
         var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
@@ -249,11 +257,21 @@ class SharedParametersV7ToXmlConverterTest {
 
     @Test
     void shouldOmitLegacyProtocolDisabledWhenNotDisabled() {
-        var xml = marshallWithLegacyProtocolDisabled(false);
+        var xml = marshallWithGlobalSettings(new SharedParameters.GlobalSettings(null, 60, false));
 
         assertThat(xml).doesNotContain("legacyProtocolDisabled");
         var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
         assertThat(afterMarshalling.getGlobalSettings().isLegacyProtocolDisabled()).isFalse();
+    }
+
+    @Test
+    void shouldRoundTripSoapProtocolVersionsWithSeveralVersions() {
+        var xml = marshallWithGlobalSettings(new SharedParameters.GlobalSettings(null, 60, false, Set.of(4, 5, 12)));
+
+        assertThat(xml).containsPattern("<soapProtocolVersions>\\s*<enabledVersions>\\s*<version>4</version>\\s*"
+                + "<version>5</version>\\s*<version>12</version>\\s*</enabledVersions>\\s*</soapProtocolVersions>");
+        var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
+        assertThat(afterMarshalling.getGlobalSettings().getSoapProtocolVersions()).containsExactlyInAnyOrder(4, 5, 12);
     }
 
     @Test
@@ -276,12 +294,12 @@ class SharedParametersV7ToXmlConverterTest {
         var sharedParameters = xrdAdr44Example();
         var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
 
-        var member = xmlType.getMember().getFirst();
+        var member = xmlType.getParticipant().getFirst();
         var subsystem = member.getSubsystem().getFirst();
-        var server = xmlType.getSecurityServer().getFirst();
+        var server = xmlType.getConnector().getFirst();
         assertThat(server.getOwner()).isSameAs(member);
         assertThat(server.getClient()).map(JAXBElement::getValue).containsExactly(subsystem);
-        assertThat(member.getDid()).singleElement().satisfies(did -> assertThat(did.getSecurityServer()).isSameAs(server));
+        assertThat(member.getDid()).singleElement().satisfies(did -> assertThat(did.getConnector()).isSameAs(server));
         assertThat(idIndex(server.getId())).isGreaterThan(idIndex(subsystem.getId()));
         assertThat(idIndex(subsystem.getId())).isGreaterThan(idIndex(member.getId()));
 
@@ -322,12 +340,12 @@ class SharedParametersV7ToXmlConverterTest {
 
         var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
 
-        assertThat(xmlType.getSecurityServer()).singleElement().satisfies(ss -> assertThat(ss.getId()).isNotBlank());
-        assertThat(xmlType.getMember().getFirst().getDid()).isEmpty();
+        assertThat(xmlType.getConnector()).singleElement().satisfies(ss -> assertThat(ss.getId()).isNotBlank());
+        assertThat(xmlType.getParticipant().getFirst().getDid()).isEmpty();
 
         var xml = new SharedParametersV7Marshaller().marshall(sharedParameters);
 
-        assertThat(xml).doesNotContain("<did securityServer", "systemDid", "dspBaseUrl");
+        assertThat(xml).doesNotContain("<did connector", "systemDid", "dspBaseUrl");
         assertThat(new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters())
                 .usingRecursiveComparison()
                 .isEqualTo(sharedParameters);
@@ -346,10 +364,10 @@ class SharedParametersV7ToXmlConverterTest {
 
         var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
 
-        var server = xmlType.getSecurityServer().getFirst();
-        assertThat(xmlType.getMember().getFirst().getDid()).singleElement().satisfies(did -> {
+        var server = xmlType.getConnector().getFirst();
+        assertThat(xmlType.getParticipant().getFirst().getDid()).singleElement().satisfies(did -> {
             assertThat(did.getValue()).isEqualTo(listedDid);
-            assertThat(did.getSecurityServer()).isSameAs(server);
+            assertThat(did.getConnector()).isSameAs(server);
         });
         assertThat(warnings).singleElement().satisfies(warning -> {
             assertThat(warning.getLevel()).isEqualTo(Level.WARNING);
@@ -410,11 +428,11 @@ class SharedParametersV7ToXmlConverterTest {
         return afterMarshalling.getCredentialIssuerDids();
     }
 
-    private static String marshallWithLegacyProtocolDisabled(boolean legacyProtocolDisabled) {
+    private static String marshallWithGlobalSettings(SharedParameters.GlobalSettings globalSettings) {
         var sharedParamsBuilder = SharedParameters.builder();
         sharedParamsBuilder.instanceIdentifier("CS");
         sharedParamsBuilder.sources(getConfigurationSources());
-        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, legacyProtocolDisabled));
+        sharedParamsBuilder.globalSettings(globalSettings);
         sharedParamsBuilder.issuerDataFreshnessSeconds(ISSUER_DATA_FRESHNESS_SECONDS);
         return new SharedParametersV7Marshaller().marshall(sharedParamsBuilder.build());
     }
@@ -431,13 +449,13 @@ class SharedParametersV7ToXmlConverterTest {
     }
 
     private static void assertIdReferences(SharedParametersTypeV7 xmlType) {
-        var ownerMember = xmlType.getMember().getFirst();
+        var ownerMember = xmlType.getParticipant().getFirst();
         var client = ownerMember.getSubsystem().getFirst();
 
         assertThat(ownerMember).isNotNull();
         assertThat(client).isNotNull();
 
-        assertThat(xmlType.getSecurityServer()).singleElement()
+        assertThat(xmlType.getConnector()).singleElement()
                 .satisfies(ss -> {
                     assertThat(ss.getOwner()).isSameAs(ownerMember);
                     assertThat(ss.getClient())
@@ -447,12 +465,12 @@ class SharedParametersV7ToXmlConverterTest {
     }
 
     private static void assertMemberDidReferences(SharedParametersTypeV7 xmlType) {
-        var member = xmlType.getMember().getFirst();
-        var server = xmlType.getSecurityServer().getFirst();
+        var member = xmlType.getParticipant().getFirst();
+        var server = xmlType.getConnector().getFirst();
 
         assertThat(member.getDid()).singleElement().satisfies(did -> {
             assertThat(did.getValue()).isEqualTo("did:web:security-server-address%3A7183:v1:CLASS1:M1");
-            assertThat(did.getSecurityServer()).isSameAs(server);
+            assertThat(did.getConnector()).isSameAs(server);
         });
         assertThat(server.getId()).isNotBlank();
     }
@@ -473,7 +491,7 @@ class SharedParametersV7ToXmlConverterTest {
                 List.of(getSecurityServer()),
                 List.of(new SharedParameters.GlobalGroup("group-code",
                 "group-description", List.of(subsystemId(memberId(), "SUB1")))),
-                new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333, true));
+                new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333, true, Set.of(4, 5)));
     }
 
     private static List<String> getCredentialIssuerDids() {

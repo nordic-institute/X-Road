@@ -35,10 +35,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberClassType;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberDidType;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberType;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.SecurityServerType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ConnectorType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ParticipantClassType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ParticipantDidType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ParticipantType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.SharedParametersTypeV7;
 
 import javax.xml.namespace.QName;
@@ -120,7 +120,7 @@ class SharedParametersV7ConverterTest {
     @Test
     void shouldReadWellFormedDocumentWithoutWarning() {
         var parameters = read(document(
-                "<did securityServer=\"s0\">" + MEMBER_DID_0 + "</did><did securityServer=\"s1\">" + MEMBER_DID_1 + "</did>",
+                "<did connector=\"s0\">" + MEMBER_DID_0 + "</did><did connector=\"s1\">" + MEMBER_DID_1 + "</did>",
                 server("s0", "m0", "ss0", "<client>sub0</client>", DSP_BASE_URL, SYSTEM_DID),
                 server("s1", "m0", "ss1", "", null, null)));
 
@@ -177,7 +177,7 @@ class SharedParametersV7ConverterTest {
 
     @Test
     void shouldRejectMemberDidPointingAtMember() {
-        var xml = document("<did securityServer=\"m0\">" + MEMBER_DID_0 + "</did>",
+        var xml = document("<did connector=\"m0\">" + MEMBER_DID_0 + "</did>",
                 server("s0", "m0", "ss0", "", null, null));
 
         assertRejected(xml, ErrorCode.GLOBAL_CONF_MEMBER_DID_REFERENCES_NON_SERVER, "did", "m0");
@@ -185,7 +185,7 @@ class SharedParametersV7ConverterTest {
 
     @Test
     void shouldRejectMemberDidPointingAtSubsystem() {
-        var xml = document("<did securityServer=\"sub0\">" + MEMBER_DID_0 + "</did>",
+        var xml = document("<did connector=\"sub0\">" + MEMBER_DID_0 + "</did>",
                 server("s0", "m0", "ss0", "", null, null));
 
         assertRejected(xml, ErrorCode.GLOBAL_CONF_MEMBER_DID_REFERENCES_NON_SERVER, "did", "sub0");
@@ -203,7 +203,7 @@ class SharedParametersV7ConverterTest {
 
     @Test
     void shouldRejectDanglingMemberDidAsMalformedGlobalConf() {
-        assertMalformed(document("<did securityServer=\"missing\">" + MEMBER_DID_0 + "</did>",
+        assertMalformed(document("<did connector=\"missing\">" + MEMBER_DID_0 + "</did>",
                 server("s0", "m0", "ss0", "", null, null)));
     }
 
@@ -294,7 +294,7 @@ class SharedParametersV7ConverterTest {
     @Test
     void shouldReadBlankDidOfOneServerAsAbsentWhileOtherServersKeepTheirs() {
         var parameters = read(document(
-                "<did securityServer=\"s0\">  </did><did securityServer=\"s1\">" + MEMBER_DID_1 + "</did>",
+                "<did connector=\"s0\">  </did><did connector=\"s1\">" + MEMBER_DID_1 + "</did>",
                 server("s0", "m0", "ss0", "", null, null),
                 server("s1", "m0", "ss1", "", null, null)));
 
@@ -307,7 +307,7 @@ class SharedParametersV7ConverterTest {
     @Test
     void shouldNotCountBlankDidTowardDuplicate() {
         var parameters = read(document(
-                "<did securityServer=\"s0\"> </did><did securityServer=\"s0\">" + MEMBER_DID_0 + "</did>",
+                "<did connector=\"s0\"> </did><did connector=\"s0\">" + MEMBER_DID_0 + "</did>",
                 server("s0", "m0", "ss0", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member ->
@@ -318,9 +318,9 @@ class SharedParametersV7ConverterTest {
     @Test
     void shouldReadEqualDuplicateDidsOfOneServerAsNoDidWhileOtherServersKeepTheirs() {
         var parameters = read(document(
-                "<did securityServer=\"s0\">" + MEMBER_DID_0 + "</did>"
-                        + "<did securityServer=\"s0\">" + MEMBER_DID_0 + "</did>"
-                        + "<did securityServer=\"s1\">" + MEMBER_DID_1 + "</did>",
+                "<did connector=\"s0\">" + MEMBER_DID_0 + "</did>"
+                        + "<did connector=\"s0\">" + MEMBER_DID_0 + "</did>"
+                        + "<did connector=\"s1\">" + MEMBER_DID_1 + "</did>",
                 server("s0", "m0", "ss0", "", null, null),
                 server("s1", "m0", "ss1", "", null, null)));
 
@@ -332,9 +332,9 @@ class SharedParametersV7ConverterTest {
     @Test
     void shouldReadDifferingDuplicateDidsOfOneServerAsNoDidWhileOtherServersKeepTheirs() {
         var parameters = read(document(
-                "<did securityServer=\"s0\">" + MEMBER_DID_0 + "</did>"
-                        + "<did securityServer=\"s0\">" + MEMBER_DID_1 + "</did>"
-                        + "<did securityServer=\"s1\">" + MEMBER_DID_1 + "</did>",
+                "<did connector=\"s0\">" + MEMBER_DID_0 + "</did>"
+                        + "<did connector=\"s0\">" + MEMBER_DID_1 + "</did>"
+                        + "<did connector=\"s1\">" + MEMBER_DID_1 + "</did>",
                 server("s0", "m0", "ss0", "", null, null),
                 server("s1", "m0", "ss1", "", null, null)));
 
@@ -345,7 +345,7 @@ class SharedParametersV7ConverterTest {
 
     @Test
     void shouldReadBlankDidAsAbsentAndWarnOnce() {
-        var parameters = read(document("<did securityServer=\"s0\">  </did>",
+        var parameters = read(document("<did connector=\"s0\">  </did>",
                 server("s0", "m0", "ss0", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member -> assertThat(member.getDids()).isEmpty());
@@ -354,7 +354,7 @@ class SharedParametersV7ConverterTest {
 
     @Test
     void shouldReadEmptyDidElementAsAbsentAndWarnOnce() {
-        var parameters = read(document("<did securityServer=\"s0\"/>",
+        var parameters = read(document("<did connector=\"s0\"/>",
                 server("s0", "m0", "ss0", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member -> assertThat(member.getDids()).isEmpty());
@@ -363,7 +363,7 @@ class SharedParametersV7ConverterTest {
 
     @Test
     void shouldReadPaddedDidAsTrimmedValue() {
-        var parameters = read(document("<did securityServer=\"s0\">\n  " + MEMBER_DID_0 + "  \n</did>",
+        var parameters = read(document("<did connector=\"s0\">\n  " + MEMBER_DID_0 + "  \n</did>",
                 server("s0", "m0", "ss0", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member ->
@@ -374,7 +374,7 @@ class SharedParametersV7ConverterTest {
     @Test
     void shouldRejectUnresolvedOwnerWithoutSchemaValidation() {
         var source = graph();
-        source.getSecurityServer().getFirst().setOwner(null);
+        source.getConnector().getFirst().setOwner(null);
 
         assertUnresolved(source, "owner");
     }
@@ -382,7 +382,7 @@ class SharedParametersV7ConverterTest {
     @Test
     void shouldRejectUnresolvedClientWithoutSchemaValidation() {
         var source = graph();
-        source.getSecurityServer().getFirst().getClient().add(new JAXBElement<>(new QName("client"), Object.class, null));
+        source.getConnector().getFirst().getClient().add(new JAXBElement<>(new QName("client"), Object.class, null));
 
         assertUnresolved(source, "client");
     }
@@ -390,10 +390,10 @@ class SharedParametersV7ConverterTest {
     @Test
     void shouldRejectUnresolvedDidServerWithoutSchemaValidation() {
         var source = graph();
-        var did = new MemberDidType();
+        var did = new ParticipantDidType();
         did.setValue(MEMBER_DID_0);
-        did.setSecurityServer(null);
-        source.getMember().getFirst().getDid().add(did);
+        did.setConnector(null);
+        source.getParticipant().getFirst().getDid().add(did);
 
         assertUnresolved(source, "did");
     }
@@ -402,12 +402,86 @@ class SharedParametersV7ConverterTest {
     void shouldReadUnknownDidSchemeVersionUnchanged() {
         var did = "did:web:ss0.example.org%3A7183:v2:EE:BUSINESS:producer";
 
-        var parameters = read(document("<did securityServer=\"s0\">" + did + "</did>",
+        var parameters = read(document("<did connector=\"s0\">" + did + "</did>",
                 server("s0", "m0", "ss0", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member ->
                 assertThat(member.getDids()).containsExactly(entry(SERVER_0, did)));
         assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void shouldReadAbsentSoapProtocolVersionsAsVersionFour() {
+        var parameters = read(document("", server("s0", "m0", "ss0", "", null, null)));
+
+        assertThat(parameters.getGlobalSettings().getSoapProtocolVersions()).containsExactly(4);
+    }
+
+    @Test
+    void shouldReadFutureSoapProtocolVersionWithoutRejection() {
+        var parameters = read(withSoapProtocolVersions(enabledVersions("<version>4</version><version>5</version>")));
+
+        assertThat(parameters.getGlobalSettings().getSoapProtocolVersions()).containsExactlyInAnyOrder(4, 5);
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void shouldReadEmptyEnabledVersionsAsVersionFour() {
+        var parameters = read(withSoapProtocolVersions(enabledVersions("")));
+
+        assertThat(parameters.getGlobalSettings().getSoapProtocolVersions()).containsExactly(4);
+    }
+
+    @Test
+    void shouldIgnoreSoapProtocolVersionOutsideIntRange() {
+        var outOfRange = BigInteger.ONE.shiftLeft(32).add(BigInteger.valueOf(4));
+
+        var mixed = read(withSoapProtocolVersions(enabledVersions("<version>5</version><version>" + outOfRange + "</version>")));
+        var onlyOutOfRange = read(withSoapProtocolVersions(enabledVersions("<version>" + outOfRange + "</version>")));
+
+        assertThat(mixed.getGlobalSettings().getSoapProtocolVersions()).containsExactly(5);
+        assertThat(onlyOutOfRange.getGlobalSettings().getSoapProtocolVersions()).containsExactly(4);
+    }
+
+    @Test
+    void shouldRejectSoapProtocolVersionsWithoutEnabledVersions() {
+        assertMalformed(withSoapProtocolVersions(""));
+    }
+
+    @Test
+    void shouldRejectNonIntegerSoapProtocolVersion() {
+        assertMalformed(withSoapProtocolVersions(enabledVersions("<version>four</version>")));
+    }
+
+    @Test
+    void shouldReadUnknownChildrenInsideSoapProtocolVersionsWithoutRejection() {
+        var parameters = read(withSoapProtocolVersions(
+                enabledVersions("<version>4</version>")
+                        + "<futureLevel><subsystem>a</subsystem></futureLevel>"
+                        + "<otherSetting>1</otherSetting>"));
+
+        assertThat(parameters.getGlobalSettings().getSoapProtocolVersions()).containsExactly(4);
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void shouldReadUnknownRootChildWithoutRejection() {
+        var xml = document("", server("s0", "m0", "ss0", "", null, null))
+                .replace("</ns3:conf>", "<futureRootSetting>1</futureRootSetting></ns3:conf>");
+        assertThat(xml).contains("futureRootSetting");
+
+        assertThat(read(xml).getGlobalSettings().getOcspFreshnessSeconds()).isEqualTo(42);
+    }
+
+    private static String enabledVersions(String versions) {
+        return "<enabledVersions>" + versions + "</enabledVersions>";
+    }
+
+    private static String withSoapProtocolVersions(String content) {
+        var xml = document("", server("s0", "m0", "ss0", "", null, null)).replace("</globalSettings>",
+                "<soapProtocolVersions>" + content + "</soapProtocolVersions></globalSettings>");
+        assertThat(xml).contains("soapProtocolVersions");
+        return xml;
     }
 
     private static SharedParameters read(String xml) {
@@ -431,21 +505,21 @@ class SharedParametersV7ConverterTest {
     }
 
     private static SharedParametersTypeV7 graph() {
-        var memberClass = new MemberClassType();
+        var memberClass = new ParticipantClassType();
         memberClass.setCode("BUSINESS");
-        var member = new MemberType();
+        var member = new ParticipantType();
         member.setId("m0");
-        member.setMemberClass(memberClass);
-        member.setMemberCode("producer");
-        var server = new SecurityServerType();
+        member.setParticipantClass(memberClass);
+        member.setParticipantCode("producer");
+        var server = new ConnectorType();
         server.setId("s0");
         server.setOwner(member);
-        server.setServerCode("ss0");
+        server.setConnectorCode("ss0");
         var source = new SharedParametersTypeV7();
-        source.setInstanceIdentifier("EE");
+        source.setDataspaceIdentifier("EE");
         source.setIssuerDataFreshnessSeconds(BigInteger.valueOf(600));
-        source.getMember().add(member);
-        source.getSecurityServer().add(server);
+        source.getParticipant().add(member);
+        source.getConnector().add(server);
         return source;
     }
 
@@ -459,31 +533,31 @@ class SharedParametersV7ConverterTest {
         return """
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <ns3:conf xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
-                    <instanceIdentifier>EE</instanceIdentifier>
+                    <dataspaceIdentifier>EE</dataspaceIdentifier>
                     <source>
                         <address>cs0</address>
                         <internalVerificationCert>dGVzdA==</internalVerificationCert>
                         <externalVerificationCert>dGVzdA==</externalVerificationCert>
                     </source>
                     <issuerDataFreshnessSeconds>600</issuerDataFreshnessSeconds>
-                    <member id="m0">
-                        <memberClass>
+                    <participant id="m0">
+                        <participantClass>
                             <code>BUSINESS</code>
                             <description>1</description>
-                        </memberClass>
-                        <memberCode>producer</memberCode>
+                        </participantClass>
+                        <participantCode>producer</participantCode>
                         <name>Experimental producer</name>
                         <subsystem id="sub0">
                             <subsystemCode>sub</subsystemCode>
                         </subsystem>
                         %s
-                    </member>
+                    </participant>
                     %s
                     <globalSettings>
-                        <memberClass>
+                        <participantClass>
                             <code>BUSINESS</code>
                             <description>Business clients</description>
-                        </memberClass>
+                        </participantClass>
                         <ocspFreshnessSeconds>42</ocspFreshnessSeconds>
                     </globalSettings>
                 </ns3:conf>
@@ -493,15 +567,15 @@ class SharedParametersV7ConverterTest {
     private static String server(String id, String owner, String serverCode, String clients, String dspBaseUrl,
                                  String systemDid) {
         return """
-                <securityServer id="%s">
+                <connector id="%s">
                     <owner>%s</owner>
-                    <serverCode>%s</serverCode>
+                    <connectorCode>%s</connectorCode>
                     <address>%s.example.org</address>
                     <authCertHash>xcuWTrx4uFeP5mNBXIhYITy+gUM72CJfL63MsWXffXM=</authCertHash>
                     %s
                     %s
                     %s
-                </securityServer>
+                </connector>
                 """.formatted(id, owner, serverCode, serverCode, clients,
                 dspBaseUrl == null ? "" : "<dspBaseUrl>" + dspBaseUrl + "</dspBaseUrl>",
                 systemDid == null ? "" : "<systemDid>" + systemDid + "</systemDid>");

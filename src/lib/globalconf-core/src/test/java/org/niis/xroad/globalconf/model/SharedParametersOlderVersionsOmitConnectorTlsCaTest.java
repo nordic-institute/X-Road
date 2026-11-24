@@ -46,7 +46,7 @@ class SharedParametersOlderVersionsOmitConnectorTlsCaTest {
 
         assertThatNoException().isThrownBy(() -> xml[0] = marshaller.marshall(sharedParameters));
 
-        assertThat(xml[0]).doesNotContain("approvedConnectorTlsCA", "connectorTlsCertificateProfileId");
+        assertThat(xml[0]).doesNotContain("approvedDataspaceTlsCA", "dataspaceTlsCertificateProfileId");
     }
 
     private static Stream<SharedParametersMarshaller> olderVersionMarshallers() {

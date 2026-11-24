@@ -78,7 +78,7 @@ class ConnectorTlsReadinessProviderTest {
 
         assertThat(provider.get().succeeded()).isFalse();
         assertThat(provider.get().getFailureDetail()).contains("not served yet");
-        assertThat(provider.get().getComponent()).isEqualTo(ConnectorTlsReadinessProvider.COMPONENT);
+        assertThat(provider.get().getComponent()).isEqualTo("dataspace-tls");
 
         jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
 
@@ -130,7 +130,7 @@ class ConnectorTlsReadinessProviderTest {
         jettyService.recordLoadFailure(new IllegalStateException("loader   exploded\n at somewhere"));
 
         assertThat(provider.get().succeeded()).isFalse();
-        assertThat(provider.get().getFailureDetail()).isEqualTo("Connector TLS is not served: loader exploded at somewhere");
+        assertThat(provider.get().getFailureDetail()).isEqualTo("Dataspace TLS is not served: loader exploded at somewhere");
     }
 
     @Test
@@ -139,7 +139,7 @@ class ConnectorTlsReadinessProviderTest {
 
         jettyService.recordLoadFailure(new ConnectorTlsKeyStoreLoadException("No connector TLS certificate found", "slot empty", null));
 
-        assertThat(provider.get().getFailureDetail()).isEqualTo("Connector TLS is not served: slot empty");
+        assertThat(provider.get().getFailureDetail()).isEqualTo("Dataspace TLS is not served: slot empty");
     }
 
     @Test
@@ -150,7 +150,7 @@ class ConnectorTlsReadinessProviderTest {
                 .isInstanceOf(ConnectorTlsKeyStoreLoadException.class);
 
         assertThat(provider.get().succeeded()).isFalse();
-        assertThat(provider.get().getFailureDetail()).startsWith("Connector TLS is not served: keystore unusable: ");
+        assertThat(provider.get().getFailureDetail()).startsWith("Dataspace TLS is not served: keystore unusable: ");
     }
 
     @Test

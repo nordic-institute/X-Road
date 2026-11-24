@@ -43,8 +43,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -67,6 +69,9 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     public static final Integer DEFAULT_OCSP_FRESHNESS_SECONDS = 3600;
     public static final String LEGACY_PROTOCOL_DISABLED = "legacyProtocolDisabled";
     public static final boolean DEFAULT_LEGACY_PROTOCOL_DISABLED = false;
+    public static final String SOAP_PROTOCOL_VERSIONS = "soapProtocolVersions";
+    /** Versions this Central Server publishes when unset; readers default an absent element on their own. */
+    public static final Set<Integer> DEFAULT_SOAP_PROTOCOL_VERSIONS = Set.of(4);
     public static final String ISSUER_DATA_FRESHNESS_SECONDS = "issuerDataFreshnessSeconds";
     public static final Integer DEFAULT_ISSUER_DATA_FRESHNESS_SECONDS = 600;
     public static final String TIME_STAMPING_INTERVAL_SECONDS = "timeStampingIntervalSeconds";
@@ -173,6 +178,29 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     @Override
     public boolean isLegacyProtocolDisabled() {
         return getParameterValue(LEGACY_PROTOCOL_DISABLED, DEFAULT_LEGACY_PROTOCOL_DISABLED, Boolean::parseBoolean);
+    }
+
+    @Override
+    public Set<Integer> getSoapProtocolVersions() {
+        return getParameterValue(SOAP_PROTOCOL_VERSIONS, DEFAULT_SOAP_PROTOCOL_VERSIONS, this::parseSoapProtocolVersions);
+    }
+
+    private Set<Integer> parseSoapProtocolVersions(String value) {
+        Set<Integer> versions;
+        try {
+            versions = Arrays.stream(value.split(","))
+                    .map(String::trim)
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toUnmodifiableSet());
+        } catch (NumberFormatException _) {
+            versions = Set.of();
+        }
+        if (versions.isEmpty()) {
+            log.warn("System parameter {} has an invalid value '{}', using {}", SOAP_PROTOCOL_VERSIONS, value,
+                    DEFAULT_SOAP_PROTOCOL_VERSIONS);
+            return DEFAULT_SOAP_PROTOCOL_VERSIONS;
+        }
+        return versions;
     }
 
     @Override

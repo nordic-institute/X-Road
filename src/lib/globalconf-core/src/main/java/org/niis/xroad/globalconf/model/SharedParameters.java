@@ -39,6 +39,7 @@ import org.niis.xroad.common.SortableByCostType;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 public class SharedParameters {
@@ -229,8 +230,16 @@ public class SharedParameters {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class GlobalSettings {
+        public static final Set<Integer> DEFAULT_SOAP_PROTOCOL_VERSIONS = Set.of(4);
+
         private List<MemberClass> memberClasses;
         private Integer ocspFreshnessSeconds;
         private boolean legacyProtocolDisabled;
+        private Set<Integer> soapProtocolVersions = DEFAULT_SOAP_PROTOCOL_VERSIONS;
+
+        public GlobalSettings(List<MemberClass> memberClasses, Integer ocspFreshnessSeconds,
+                              boolean legacyProtocolDisabled) {
+            this(memberClasses, ocspFreshnessSeconds, legacyProtocolDisabled, DEFAULT_SOAP_PROTOCOL_VERSIONS);
+        }
     }
 }

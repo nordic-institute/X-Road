@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
-    <instanceIdentifier>EE</instanceIdentifier>
+    <dataspaceIdentifier>EE</dataspaceIdentifier>
     <source>
         <address>cs0</address>
         <internalVerificationCert>MIICqTCCAZGgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAOMQwwCgYDVQQDDANOL0EwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAOMQwwCgYDVQQDDANOL0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDe10ai/VApuFjG+cgVLaV18qOEor6il83v0ErKBVznkSEzhzfplPJbfbXVHCezUsZOtVypvS4VCKg3S9wDBJVHmLrTl8z43xHowSE2KhvBxP+boH+9wt4dWdkiM4vohzuDuqz2k7ly50LlaokY/hQfLZKqRAB4PyiA9H1dk9hri9kIckGZpKHxVmXD19pd1hbvRmEcxF0kEAP4oyQ8EaQpgoy4KiN60x6hV8+xZPUqf03eQgh5LXvpmXDtGT58zN43Om8L+dPCtKyK6dTTjNakv6tJxoZJ2yUnVWPZKH9B3nM79bToxA9SiCjg3i6rU8HJ8ih163Dh9upPwqpmdEqDAgMBAAGjEjAQMA4GA1UdDwEB/wQEAwIGQDANBgkqhkiG9w0BAQ0FAAOCAQEAdgVRzoNWG7shsBV+r9I4dB/ghfnxZAcgag9qevG4YrzLEDHupGB7a0Rx4dKp7gxzSV+E82oFOTZMhQdcVinRrqZT1U8DeT1tgvRH6V24g8HCplDp3AuRWKlPFAWIpsyZ6n6oMIrS9uVCaTF4A8uFZ7GxgcByMP+9BwCNQAigFGJOZzwln60idlR8YmtVCn4oVfBVrH+JRNSfgosVqqZe3q/XHNJP4iVqPt7taYzwwdz2XW02p8lgYZ1MwhMbcZ7xqNjYA0U9yQbUc6/oZ54R5FIgNldINCAJaNRRjXVS+1nt6bRM9GtZoeC4vhFqxIpduQRYpMD2MaJqbwDgal2pmA==</internalVerificationCert>
@@ -95,7 +95,7 @@
         <cert>MIICwjCCAaqgAwIBAgIIb+RPNmkfCdYwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIxMTI5MTE1MzA2WhcNMTQxMTI5MTE1MzA2WjAVMRMwEQYDVQQDDAp0aW1lc3RhbXAxMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCb55NVDtHzs91sflX3fatZWUS69rxkxDMpcGo6doJ7YaKrCMr3BZ3ZlDTfCdEosWocTcYXdm3CO8BXlZvhkvKyHN/hr0UzD0T8j8mBYoq3fGjTVTJOIG2yTsyT/3z3dpcMyGMWwsiqOd9TTtI8DcR2cOvQzlLiV9hz/kB9iLJeSQIDAQABo3gwdjAdBgNVHQ4EFgQUbdmtvKHCe0+vhKP+ZcVUjmf5w/AwDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8EBAMCBkAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwgwDQYJKoZIhvcNAQEFBQADggEBAFJ3AJ4I4RTeMBWhN8RLPQdJzcd0VRp9FUyYhnIkR679nXU+ZbIyaQNx3+hPIbhcOMKxlKGm0LcDnjHL4EuJ6Gb027vF7mSwFbcKPM+L23x2QLvuVcUEjcbP3Kcm93XCSu3RI71JINM+WinjXke/COuFzhMWJcLYj7S5dGR53ya0NnSf7dlua5FLBRiOFA5kRWTft6RcEW0jGZzscL6wZn+hH99IihjqgdxV1GydL+BgDMfryZzhl+h1WtTwv0Bi5Gs81v8UlNUTnCCfLu9fatHx85/ttFcXEyt9SQze3NGcaR1i3kyZvNijzG3C+jrUnJ/lFs5AcIiPG0Emz6oZEYs=</cert>
         <costType>PAID</costType>
     </approvedTSA>
-    <approvedConnectorTlsCA>
+    <approvedDataspaceTlsCA>
         <name>Test DS TLS CA</name>
         <topCA>
             <cert>MIIDjTCCAnWgAwIBAgIJAKL3zm5uAgNAMA0GCSqGSIb3DQEBBQUAMF0xCzAJBgNVBAYTAkVFMRQwEgYDVQQKEwtDeWJlcm5ldGljYTEMMAoGA1UECxMDSVRPMQ4wDAYDVQQDEwVDeWJlcjEaMBgGCSqGSIb3DQEJARYLYWFhQGJiYi5jY2MwHhcNMTQwOTI5MDk0MTM3WhcNMjQwOTI2MDk0MTM3WjBdMQswCQYDVQQGEwJFRTEUMBIGA1UEChMLQ3liZXJuZXRpY2ExDDAKBgNVBAsTA0lUTzEOMAwGA1UEAxMFQ3liZXIxGjAYBgkqhkiG9w0BCQEWC2FhYUBiYmIuY2NjMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0ntJBTdBj7KT+j37yQ3r9pzO/VgVRQptQO6pDGSYonBRDbziYyBAuo8Owta2GshTqiqbD9OMqi8EK2fxrnCfo5HhG4BwY4DPGCozwI/9ETCNp/ElxrICbb68zCQy6ecOrPbirG3baKUKPxBwnN/S1w57rR66Eb02hlA0/AAqN7GJnNqonpeDnIQ5vq4bdrrjGEwke44hfR+wI81fVP2oc28AWk3p1TVA0TPLjKfQOlXMfVYIA+Pf+9N4uiOXAcv4ZfUAJbiZQujBdHR7wF4SiV0u3Xfwfk6uj1Ddpv5ehh8HKhiNoDySCXgRI8I5X1gbQ3MIFR7CSwcZuZkolsQnHQIDAQABo1AwTjAMBgNVHRMEBTADAQH/MB0GA1UdDgQWBBR+egbuTBG1XAUq40xvTvPKht3y3jAfBgNVHSMEGDAWgBR+egbuTBG1XAUq40xvTvPKht3y3jANBgkqhkiG9w0BAQUFAAOCAQEAu6QBabq8zQXnxGRCeKpBvp4iMY4VOWm2QYiwDljaQpMvQWjoBhMEZsaaux/ouSiQvAzbO/NdHHJsXAfwxM2Eo8kFtZNIlTvBs3Os7CvLle1z7pwU/m9LOeakys9xDQRzlPqQwN0Q2oELu0tOHtkd2RBLXjy5ZXHHw+KnDwfQlLUzvNRLLmZIfZxMf57z53eP59T0UYBj2bHYV2hxfzYHmJG6nz8FW/mImr53meFTrM6muw6fKbeKTNvr4n+7AK6Hn6Whie730DB4A9xyWvjdQWYo7FtYJ/WvbC45E8ppGZH0OWBI028yDvfVgeB8eIpzeMyI1fSHGb66hKc3ruWdSA==</cert>
@@ -106,9 +106,9 @@
         <acmeServer>
             <directoryURL>http://testca.com/acme</directoryURL>
             <ipAddress>192.99.88.7</ipAddress>
-            <connectorTlsCertificateProfileId>ds-tls-profile</connectorTlsCertificateProfileId>
+            <dataspaceTlsCertificateProfileId>ds-tls-profile</dataspaceTlsCertificateProfileId>
         </acmeServer>
-    </approvedConnectorTlsCA>
+    </approvedDataspaceTlsCA>
     <credentialIssuer>
         <did>did:web:cs1.ee%3A443:issuer</did>
     </credentialIssuer>
@@ -116,31 +116,31 @@
         <did>did:web:cs2.ee%3A443:issuer</did>
     </credentialIssuer>
     <issuerDataFreshnessSeconds>600</issuerDataFreshnessSeconds>
-    <member id="id0">
-        <memberClass>
+    <participant id="id0">
+        <participantClass>
             <code>BUSINESS</code>
             <description>1</description>
-        </memberClass>
-        <memberCode>producer</memberCode>
+        </participantClass>
+        <participantCode>producer</participantCode>
         <name>Experimental producer</name>
-        <did securityServer="id5">did:web:127.0.0.1%3A7183:v1:EE:BUSINESS:producer</did>
-        <did securityServer="id9">did:web:127.0.0.1%3A7283:v1:EE:BUSINESS:producer</did>
-    </member>
-    <member id="id1">
-        <memberClass>
+        <did connector="id5">did:web:127.0.0.1%3A7183:v1:EE:BUSINESS:producer</did>
+        <did connector="id9">did:web:127.0.0.1%3A7283:v1:EE:BUSINESS:producer</did>
+    </participant>
+    <participant id="id1">
+        <participantClass>
             <code>BUSINESS</code>
             <description>1</description>
-        </memberClass>
-        <memberCode>consumer</memberCode>
+        </participantClass>
+        <participantCode>consumer</participantCode>
         <name>Experimental consumer</name>
-        <did securityServer="id6">did:web:www.foo.com%3A7183:v1:EE:BUSINESS:consumer</did>
-    </member>
-    <member id="id2">
-        <memberClass>
+        <did connector="id6">did:web:www.foo.com%3A7183:v1:EE:BUSINESS:consumer</did>
+    </participant>
+    <participant id="id2">
+        <participantClass>
             <code>BUSINESS</code>
             <description>1</description>
-        </memberClass>
-        <memberCode>foo</memberCode>
+        </participantClass>
+        <participantCode>foo</participantCode>
         <name>Org with no address</name>
         <subsystem id="id3">
             <subsystemCode>foosubsystem</subsystemCode>
@@ -149,11 +149,11 @@
         <subsystem id="id4">
             <subsystemCode>barsubsystemId</subsystemCode>
         </subsystem>
-        <did securityServer="id8">did:web:foo.bar.baz%3A7183:v2:EE:BUSINESS:foo</did>
-    </member>
-    <securityServer id="id5">
+        <did connector="id8">did:web:foo.bar.baz%3A7183:v2:EE:BUSINESS:foo</did>
+    </participant>
+    <connector id="id5">
         <owner>id0</owner>
-        <serverCode>producerServerCode</serverCode>
+        <connectorCode>producerServerCode</connectorCode>
         <address>127.0.0.1</address>
         <authCertHash>xcuWTrx4uFeP5mNBXIhYITy+gUM72CJfL63MsWXffXM=</authCertHash>
         <client>id1</client>
@@ -161,22 +161,22 @@
         <client>id3</client>
         <dspBaseUrl>https://127.0.0.1:8183/api/dsp</dspBaseUrl>
         <systemDid>did:web:127.0.0.1%3A7183:v1:system</systemDid>
-    </securityServer>
-    <securityServer id="id6">
+    </connector>
+    <connector id="id6">
         <owner>id1</owner>
-        <serverCode>consumerServerCode</serverCode>
+        <connectorCode>consumerServerCode</connectorCode>
         <address>https://www.foo.com/bar</address>
         <authCertHash>XhdxNaWNz7XBuakTRDyz+5Ald53DCy3DwxUacFe/VX8=</authCertHash>
-    </securityServer>
-    <securityServer id="id7">
+    </connector>
+    <connector id="id7">
         <owner>id2</owner>
-        <serverCode>fooServerCode</serverCode>
+        <connectorCode>fooServerCode</connectorCode>
         <authCertHash>enRxKzBGb0q7sUJa8Hx0A5aHmQwCa1HzWNFrN3ZDDJw=</authCertHash>
         <client>id0</client>
-    </securityServer>
-    <securityServer id="id8">
+    </connector>
+    <connector id="id8">
         <owner>id2</owner>
-        <serverCode>FooBarServerCode</serverCode>
+        <connectorCode>FooBarServerCode</connectorCode>
         <address>https://foo.bar.baz</address>
         <authCertHash>Q/wASEqban646kxZ0/uveKBv4h7U3FWnlKzsSJZU1f8=</authCertHash>
         <client>id2</client>
@@ -185,16 +185,16 @@
         </inMaintenanceMode>
         <dspBaseUrl>https://foo.bar.baz:8183/api/dsp</dspBaseUrl>
         <systemDid>did:web:foo.bar.baz%3A7183:v1:system</systemDid>
-    </securityServer>
-    <securityServer id="id9">
+    </connector>
+    <connector id="id9">
         <owner>id0</owner>
-        <serverCode>producerServerCode2</serverCode>
+        <connectorCode>producerServerCode2</connectorCode>
         <address>127.0.0.1</address>
         <authCertHash>IJBbi0Y46y/OW02eiU8NEQUkIngeT13LSDhzUQ03NM8=</authCertHash>
         <client>id0</client>
         <dspBaseUrl>https://127.0.0.1:8283/api/dsp</dspBaseUrl>
         <systemDid>did:web:127.0.0.1%3A7283:v1:system</systemDid>
-    </securityServer>
+    </connector>
     <globalGroup>
         <groupCode>Test group</groupCode>
         <description>Description</description>
@@ -221,10 +221,10 @@
         </groupMember>
     </globalGroup>
     <globalSettings>
-        <memberClass>
+        <participantClass>
             <code>BUSINESS</code>
             <description>Business clients</description>
-        </memberClass>
+        </participantClass>
         <ocspFreshnessSeconds>42</ocspFreshnessSeconds>
     </globalSettings>
 </ns3:conf>

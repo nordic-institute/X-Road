@@ -184,7 +184,7 @@
             </element>
             <element name="systemDid" type="string">
                 <annotation>
-                    <documentation>Dataspace identifier (SYSTEM DID) of the security server.</documentation>
+                    <documentation>SYSTEM DID of the security server.</documentation>
                 </annotation>
             </element>
             <element name="dspBaseUrl" type="string">
@@ -219,7 +219,7 @@
             </element>
             <element name="did" type="string">
                 <annotation>
-                    <documentation>Dataspace identifier (DID) of the member.</documentation>
+                    <documentation>DID of the member.</documentation>
                 </annotation>
             </element>
         </sequence>

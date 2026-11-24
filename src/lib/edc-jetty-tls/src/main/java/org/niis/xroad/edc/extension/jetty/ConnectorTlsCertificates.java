@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashOrThrow;
 
 /**
- * Checks and describes the certificate in a connector TLS keystore. A private key that does not belong to its
+ * Checks and describes the certificate in a Dataspace TLS keystore. A private key that does not belong to its
  * certificate passes keystore construction and Jetty's own load, and then fails every handshake, so it is
  * caught here before the keystore is served.
  */
@@ -57,7 +57,7 @@ final class ConnectorTlsCertificates {
     private static final String UNKNOWN = "unknown";
 
     /**
-     * The leaf certificate of the keystore's connector TLS entry, once its private key is proven to belong to it.
+     * The leaf certificate of the keystore's Dataspace TLS entry, once its private key is proven to belong to it.
      * A key of an algorithm this check has no signature scheme for is accepted without the proof.
      */
     static X509Certificate leafOfMatchingKey(KeyStore keyStore) {
@@ -66,20 +66,20 @@ final class ConnectorTlsCertificates {
             var certificate = keyStore.getCertificate(InternalSSLKey.KEY_ALIAS);
             if (!(key instanceof PrivateKey privateKey) || !(certificate instanceof X509Certificate leaf)) {
                 throw new ConnectorTlsKeyStoreLoadException(
-                        "The connector TLS keystore has no private key entry with an X.509 certificate");
+                        "The Dataspace TLS keystore has no private key entry with an X.509 certificate");
             }
             if (!keyMatches(privateKey, leaf.getPublicKey())) {
                 throw new ConnectorTlsKeyStoreLoadException(
-                        "The connector TLS private key does not match the public key of the certificate");
+                        "The Dataspace TLS private key does not match the public key of the certificate");
             }
             return leaf;
         } catch (GeneralSecurityException e) {
-            throw new ConnectorTlsKeyStoreLoadException("Cannot read the connector TLS entry from the keystore", e);
+            throw new ConnectorTlsKeyStoreLoadException("Cannot read the Dataspace TLS entry from the keystore", e);
         }
     }
 
     /**
-     * The fingerprint of the keystore's connector TLS certificate, or {@code unknown} when it cannot be read.
+     * The fingerprint of the keystore's Dataspace TLS certificate, or {@code unknown} when it cannot be read.
      */
     static String fingerprintOrUnknown(KeyStore keyStore) {
         try {

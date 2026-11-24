@@ -62,11 +62,13 @@ import java.nio.file.Path;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
@@ -97,6 +99,8 @@ class GlobalConfGenerationCycleTest {
     private static final String INSTANCE = "XRD";
     private static final String LEGACY_PROTOCOL_DISABLED = "legacyProtocolDisabled";
     private static final String LEGACY_PROTOCOL_DISABLED_TRUE = "<legacyProtocolDisabled>true</legacyProtocolDisabled>";
+    private static final String SOAP_PROTOCOL_VERSIONS = "soapProtocolVersions";
+    private static final String DEFAULT_SOAP_PROTOCOL_VERSIONS = "4";
     private static final String ISSUER_DATA_FRESHNESS_SECONDS = "issuerDataFreshnessSeconds";
     private static final String DEFAULT_ISSUER_DATA_FRESHNESS_SECONDS = "600";
     private static final int FIRST_VERSION = 2;
@@ -167,6 +171,35 @@ class GlobalConfGenerationCycleTest {
         assertThat(sharedParameters(CURRENT_VERSION)).contains(LEGACY_PROTOCOL_DISABLED_TRUE);
         for (int version = FIRST_VERSION; version < CURRENT_VERSION; version++) {
             assertThat(sharedParameters(version)).as("V%d", version).doesNotContain(LEGACY_PROTOCOL_DISABLED);
+        }
+    }
+
+    @Test
+    void versionSevenCarriesOnlySoapVersionFourWhenNoValueIsStored() throws IOException {
+        var service = createService(null);
+
+        service.generate();
+
+        verify(eventPublisher).publishEvent(SUCCESS);
+        assertThat(sharedParameters(CURRENT_VERSION))
+                .contains(enabledVersion(4))
+                .doesNotContain(enabledVersion(5));
+    }
+
+    @Test
+    void soapVersionChangesAreCarriedOnTheNextCycleAndNeverReachOlderVersions() throws IOException {
+        systemParameters.put(SOAP_PROTOCOL_VERSIONS, "4,5");
+        var service = createService(null);
+
+        service.generate();
+        assertThat(sharedParameters(CURRENT_VERSION)).contains(enabledVersion(4), enabledVersion(5));
+
+        systemParameters.put(SOAP_PROTOCOL_VERSIONS, "5");
+        service.generate();
+        assertThat(sharedParameters(CURRENT_VERSION)).contains(enabledVersion(5)).doesNotContain(enabledVersion(4));
+
+        for (int version = FIRST_VERSION; version < CURRENT_VERSION; version++) {
+            assertThat(sharedParameters(version)).as("V%d", version).doesNotContain(SOAP_PROTOCOL_VERSIONS);
         }
     }
 
@@ -249,6 +282,10 @@ class GlobalConfGenerationCycleTest {
         return "<" + ISSUER_DATA_FRESHNESS_SECONDS + ">" + seconds + "</" + ISSUER_DATA_FRESHNESS_SECONDS + ">";
     }
 
+    private static String enabledVersion(int version) {
+        return "<version>" + version + "</version>";
+    }
+
     private String sharedParameters(int version) throws IOException {
         var versionDir = generatedConfDir.resolve("V" + version);
         var latest = children(versionDir).stream()
@@ -323,6 +360,10 @@ class GlobalConfGenerationCycleTest {
                 systemParameters.getOrDefault(ISSUER_DATA_FRESHNESS_SECONDS, DEFAULT_ISSUER_DATA_FRESHNESS_SECONDS)));
         when(service.isLegacyProtocolDisabled())
                 .thenAnswer(invocation -> Boolean.parseBoolean(systemParameters.get(LEGACY_PROTOCOL_DISABLED)));
+        when(service.getSoapProtocolVersions()).thenAnswer(_ -> Arrays.stream(
+                        systemParameters.getOrDefault(SOAP_PROTOCOL_VERSIONS, DEFAULT_SOAP_PROTOCOL_VERSIONS).split(","))
+                .map(Integer::valueOf)
+                .collect(Collectors.toSet()));
         return service;
     }
 
