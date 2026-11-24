@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.112
+Version: 2.113
 Doc. ID: UG-SYSPAR
 
 
@@ -123,6 +123,7 @@ Doc. ID: UG-SYSPAR
 | 15.11.2026 | 2.110   | Documented the scope, the value 0 and the services to restart of the *xroad.common.vault-retry.budget* secret store retry                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas          |
 | 16.11.2026 | 2.111   | Documented that the dataspace services are covered by the secret store retry, and the daily secret store token renewal                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas          |
 | 16.11.2026 | 2.112   | Added the configurable secret store token renewal interval *xroad.common.vault-token-renewal.interval*                                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas          |
+| 23.11.2026 | 2.113   | Documented the *soapProtocolVersions* and *legacyProtocolDisabled* system parameters, distributed in global configuration version 7                                                                                                                                                                                                                                                                            | Egidijus Milierius         |
 
 ## Table of Contents
 
@@ -709,6 +710,8 @@ This section describes the system parameters used by the X-Road central server. 
 | ocspFreshnessSeconds        | integer        | 3600                                    | Defines the validity period (in seconds) for the OCSP responses retrieved from the OCSP responders. OCSP responses older than the validity period are considered expired and cannot be used for certificate verification.                       |
 | timeStampingIntervalSeconds | integer        | 60                                      | Defines the interval of time-stamping service calls. Interval in seconds after which message log records must be timestamped. The interval must be between 60 and 86400 seconds. **Note: this value must be less than *ocspFreshnessSeconds.*** |
 | issuerDataFreshnessSeconds  | integer        | 600                                     | How long security servers keep using the last good Issuer Service data after it should have been refreshed, when the Issuer Service cannot be reached. 0 = the data is not used once a refresh fails. |
+| legacyProtocolDisabled      | boolean        | false                                   | If true, every Security Server of this X-Road instance refuses legacy calls, that is, calls that made an unnegotiated call. Distributed in global configuration version 7. |
+| soapProtocolVersions        | string         | 4                                       | Comma-separated list of the SOAP message protocol major versions that this X-Road instance enables, for example `4,5`. Distributed in global configuration version 7. A blank or invalid value is replaced by the default value 4 and a warning is written to the log. The value is changed in the database only (see section [Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database)). Security Servers of X-Road 8.0 accept only version 4 of the SOAP message protocol. |
 
 ## 5 Configuration Proxy System Parameters
 

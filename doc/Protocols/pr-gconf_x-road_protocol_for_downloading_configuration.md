@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 2.12
+Version: 2.14
 Doc. ID: PR-GCONF
 
 | Date       | Version | Description                                           | Author               |
@@ -21,6 +21,8 @@ Doc. ID: PR-GCONF
 | 08.11.2018 | 2.10    | Introduction of V3                                    | Andres Rosenthal     |
 | 07.03.2025 | 2.11    | Introduction of V5                                    | Ovidijus Narkevičius |
 | 29.04.2025 | 2.12    | Update of V5 with additional elements                 | Ovidijus Narkevičius |
+| 23.11.2026 | 2.13    | Added V6 and V7 to Annex B, V7 is the current version | Egidijus Milierius   |
+| 24.11.2026 | 2.14    | Annex B V7: empty enabledVersions, configuration proxy upgrade order, schema locations, groupMember identifier | Egidijus Milierius   |
 
 ## Table of Contents
 
@@ -47,6 +49,8 @@ Doc. ID: PR-GCONF
     * [A.1 Example of Configuration Anchor](#a1-example-of-configuration-anchor)
     * [A.2 Example of Signed Directory](#a2-example-of-signed-directory)
 * [Annex B. shared-parameters.xsd](#annex-b-shared-parametersxsd)
+    * [Version 7](#version-7)
+    * [Version 6](#version-6)
     * [Version 5](#version-5)
     * [Version 4](#version-4)
     * [Version 3](#version-3)
@@ -183,7 +187,7 @@ A configuration client can download the configuration by making HTTP GET request
 
 ### 2.7 Versioning
 
-The current version of the configuration is 5.
+The current version of the configuration is 7.
 
 Configuration source MAY support several versions of the configuration. The configuration client SHOULD signal the version it supports by appending a "version" query parameter in the download URI specified in the configuration anchor. The version number is an integer which is incremented when a backwards-incompatible change is made to the PRIVATE-PARAMETERS or SHARED-PARAMETERS configuration part.
 
@@ -291,6 +295,1224 @@ D1XfU3UXTFxS8s8iVW9+ePJhcuYTgpN4+Ze4oZgjbt...=
 ```
 
 ## Annex B. shared-parameters.xsd
+
+### Version 7
+
+- Changes in version 7:
+    - the schema is standalone. It does not include or redefine the schema that versions 2 to 6 share.
+    - elements and types follow the dataspace vocabulary:
+
+      | Earlier name                                                | Version 7 name                                                          |
+      |-------------------------------------------------------------|-------------------------------------------------------------------------|
+      | *instanceIdentifier*                                        | *dataspaceIdentifier*                                                   |
+      | *member*, *MemberType*                                      | *participant*, *ParticipantType*                                        |
+      | *memberClass*, *MemberClassType*                            | *participantClass*, *ParticipantClassType*                              |
+      | *memberCode*                                                | *participantCode*                                                       |
+      | *securityServer*, *SecurityServerType*                      | *connector*, *ConnectorType*                                            |
+      | *serverCode*                                                | *connectorCode*                                                         |
+      | *MemberDidType*, attribute *securityServer* of *did*        | *ParticipantDidType*, attribute *connector* of *did*                    |
+      | *approvedConnectorTlsCA*, *ApprovedConnectorTlsCAType*      | *approvedDataspaceTlsCA*, *ApprovedDataspaceTlsCAType*                  |
+      | *connectorTlsCertificateProfileId*                          | *dataspaceTlsCertificateProfileId*                                      |
+
+    - the *centralService* element was removed.
+    - optional *soapProtocolVersions* element of type *SoapProtocolVersionsType* was added into *GlobalSettingsType*. The required *enabledVersions* element lists the enabled major versions of the SOAP message protocol as repeated *version* elements of type *integer*. A wildcard element follows *enabledVersions*, so that later releases can add elements without breaking the schema validation on older Security Servers. If *soapProtocolVersions* is absent, or if *enabledVersions* is empty, only version 4 is enabled. The setting is independent of *legacyProtocolDisabled* and does not apply to the REST message protocol. Security Servers of X-Road 8.0 read the setting but accept only version 4 of the SOAP message protocol.
+    - dataspace elements: *did* in *ParticipantType*, *dspBaseUrl* and *systemDid* in *ConnectorType*, *credentialIssuer*, *approvedDataspaceTlsCA*, *issuerDataFreshnessSeconds* and *legacyProtocolDisabled*.
+
+- Configuration proxies. A configuration proxy rewrites the shared parameters of its main instance. It drops the content that it does not know, for example the elements that a later release adds under the wildcards. Upgrade every configuration proxy no later than the Central Server of its main instance. Otherwise a Security Server behind the proxy does not receive that content.
+
+- Schema locations. The schemas of versions 6 and 7 are kept in the X-Road source repository, in the directories *globalconf/v6* and *globalconf/v7*. The intended published location is `https://x-road.eu/xsd/`.
+
+- Known residual terms. Version 7 uses the private parameters of version 3 (see [Annex C](#annex-c-private-parametersxsd)). The following still use the term *instanceIdentifier*:
+    - the private parameters of version 3;
+    - the metadata JSON of the signed configuration;
+    - the *instance-identifier* file;
+    - the configuration anchor.
+
+  The *groupMember* element of *GlobalGroupType* has the identifier type *XRoadClientIdentifierType* of the identifier schema. Its elements *xRoadInstance*, *memberClass*, *memberCode* and the optional *subsystemCode* are unchanged in version 7.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd">
+
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="http://x-road.eu/xsd/identifiers.xsd" id="id"/>
+
+    <element name="conf" type="tns:SharedParametersTypeV7">
+        <annotation>
+            <documentation>
+                Set of configuration parameters that are used by participants of this X-Road instance and other federated
+                instances.
+            </documentation>
+        </annotation>
+    </element>
+
+    <complexType name="ParticipantType">
+        <sequence>
+            <element name="participantClass" type="tns:ParticipantClassType">
+                <annotation>
+                    <documentation>
+                        Participant class of the participant.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="participantCode" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies the participant within the given participant class.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>
+                        Full, official name of the participant, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="subsystem" type="tns:SubsystemType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Represents information about a part of the participant's information system that is acting as an
+                        independent service consumer or provider in the X-Road system.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="did" type="tns:ParticipantDidType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        DID of this participant on one of the connectors that serve it. One entry per
+                        serving connector.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+
+    <complexType name="SubsystemType">
+        <sequence>
+            <element name="subsystemCode" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies this subsystem within the subsystems of its parent participant.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="subsystemName" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Full, official name of the subsystem, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+
+    <complexType name="ConnectorType">
+        <sequence>
+            <element name="owner" type="IDREF">
+                <annotation>
+                    <documentation>
+                        Identifier of the participant who is responsible for the connector.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="connectorCode" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies this server within servers owned by the same participant.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="address" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Externally visible address of the connector.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authCertHash" type="base64Binary" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Hash of the authentication certificate used by the connector.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="client" type="IDREF" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Identifier a registered client of this connector. Client can be either a participant or a subsystem.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="inMaintenanceMode" type="tns:MaintenanceMode" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        If present marks connector as in maintenance mode and not available
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="dspBaseUrl" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Base URL of the Dataspace Protocol endpoint of this connector.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="systemDid" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        DID of the SYSTEM context of this connector.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+
+    <complexType name="OcspInfoType">
+        <annotation>
+            <documentation>
+                Information about an OCSP provider.
+            </documentation>
+        </annotation>
+        <sequence>
+            <element name="url" type="string">
+                <annotation>
+                    <documentation>
+                        URL of the OSCP server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="cert" type="base64Binary" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Certificate used by the OCSP server to sign OCSP responses.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="costType" type="tns:CostType" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Is this OCSP service free or paid
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ApprovedTSAType">
+        <sequence>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>
+                        Name of the time-stamping authority, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="url" type="string">
+                <annotation>
+                    <documentation>
+                        URL of the time-stamping service.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="cert" type="base64Binary">
+                <annotation>
+                    <documentation>
+                        Certificate used by the time-stamping server to sign responses.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="costType" type="tns:CostType" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Is this TSA service free or paid
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="GlobalSettingsType">
+        <sequence>
+            <element name="participantClass" type="tns:ParticipantClassType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Lists the participant classes used in this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="ocspFreshnessSeconds" type="integer">
+                <annotation>
+                    <documentation>
+                        Maximum allowed validity time of OCSP responses. If thisUpdate field of an OCSP response is
+                        older than ocspFreshnessSeconds seconds, it is no longer valid.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="legacyProtocolDisabled" type="boolean" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        If present and true, every connector of this X-Road instance refuses legacy
+                        calls, that is, calls that made an unnegotiated call.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="soapProtocolVersions" type="tns:SoapProtocolVersionsType" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        SOAP message protocol versions that this X-Road instance enables. If absent, only major
+                        version 4 is enabled. It is independent of legacyProtocolDisabled.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="SoapProtocolVersionsType">
+        <sequence>
+            <element name="enabledVersions">
+                <annotation>
+                    <documentation>
+                        Major versions of the SOAP message protocol that are enabled in this X-Road instance.
+                        If the list is empty, only major version 4 is enabled.
+                    </documentation>
+                </annotation>
+                <complexType>
+                    <sequence>
+                        <element name="version" type="integer" minOccurs="0" maxOccurs="unbounded"/>
+                    </sequence>
+                </complexType>
+            </element>
+            <any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="GlobalGroupType">
+        <sequence>
+            <element name="groupCode" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies the group within an X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="description" type="string">
+                <annotation>
+                    <documentation>
+                        Description of the group.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="groupMember" type="id:XRoadClientIdentifierType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Identifier of an X-Road participant or a subsystem belonging to this group.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="CaInfoType">
+        <annotation>
+            <documentation>
+                This type encapsulates information about a certification authority.
+            </documentation>
+        </annotation>
+        <sequence>
+            <element name="cert" type="base64Binary">
+                <annotation>
+                    <documentation>
+                        The CA certificate value.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="ocsp" type="tns:OcspInfoType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        List of OCSP responders that provide status of certificates issued by this CA.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ParticipantClassType">
+        <sequence>
+            <element name="code" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies the participant class in this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="description" type="string">
+                <annotation>
+                    <documentation>
+                        Description of the participant class.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ParticipantDidType">
+        <simpleContent>
+            <extension base="string">
+                <attribute name="connector" type="IDREF" use="required">
+                    <annotation>
+                        <documentation>
+                            The connector on which the participant holds this DID.
+                        </documentation>
+                    </annotation>
+                </attribute>
+            </extension>
+        </simpleContent>
+    </complexType>
+
+    <complexType name="MaintenanceMode">
+        <sequence>
+            <element name="message" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        The optional message that is shown to consumers when the server is in maintenance mode.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ConfigurationSourceType">
+        <sequence>
+            <element name="address" type="string">
+                <annotation>
+                    <documentation>
+                        The address of the central server which provides the signed configuration.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="internalVerificationCert" type="base64Binary" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Public key that can be used to verify the signed configuration, presented as X.509 certificate.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="externalVerificationCert" type="base64Binary" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Public key that can be used to verify the signed configuration, presented as X.509 certificate.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="SharedParametersTypeV7">
+        <sequence>
+            <element name="dataspaceIdentifier" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies this instance of the X-Road system within a federation of
+                        systems.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="source" type="tns:ConfigurationSourceType" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Describes one configuration source.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="approvedCA" type="tns:ApprovedCATypeV4" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Certification authority approved by the Governing Authority of providing certification services
+                        for participants of this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="approvedTSA" type="tns:ApprovedTSAType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Time-stamping authority approved by the Governing Authority of providing time-stamping services
+                        for participants of this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="approvedDataspaceTlsCA" type="tns:ApprovedDataspaceTlsCAType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Certification authority approved by the Governing Authority for issuing dataspace TLS server
+                        certificates. Separate from approvedCA: trust for participant certificates never derives from this
+                        list.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="credentialIssuer" type="tns:CredentialIssuerType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Credential issuer published by one Central Server node of this X-Road instance. Under a
+                        high-availability Central Server, each node publishes its own; the full set is the distributed
+                        credential issuer trust anchor that Security Servers use to trust issued credentials. Absent
+                        when no Central Server node of this instance has provisioned a credential issuer.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="issuerDataFreshnessSeconds" type="integer">
+                <annotation>
+                    <documentation>
+                        How long, in seconds, Security Servers keep using the last good Issuer Service data after it
+                        should have been refreshed, when the Issuer Service cannot be reached.
+                        0 means the data is not used once a refresh fails.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="participant" type="tns:ParticipantType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Registered participant of this X-Road system.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="connector" type="tns:ConnectorType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Connector registered in this X-Road system.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="globalGroup" type="tns:GlobalGroupType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Group of access rights subjects, defined by the Governing Authority. An access rights subject
+                        can be either a participant or a subsystem.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="globalSettings" type="tns:GlobalSettingsType">
+                <annotation>
+                    <documentation>
+                        Classifiers and security policy settings used in this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="ApprovedCATypeV4">
+        <sequence>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>
+                        Name of the CA, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authenticationOnly" type="boolean" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        If present and true, indicates that certificates issued by this CA can only be used for TLS
+                        authentication and not for creating and verifying digital signatures/seals.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="topCA" type="tns:CaInfoType">
+                <annotation>
+                    <documentation>
+                        Topmost (usually self-signed) CA that is used as trust anchor.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="intermediateCA" type="tns:CaInfoType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Intermediate CA. This information can be used for certificate path building and finding OCSP
+                        responders.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="certificateProfileInfo" type="string">
+                <annotation>
+                    <documentation>
+                        Fully qualified class name implementing the
+                        ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="defaultCsrFormat" type="tns:CsrFormat" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Default format of the CSR.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="acmeServer" type="tns:AcmeServer" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        ACME specific certification services settings.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ApprovedDataspaceTlsCAType">
+        <sequence>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>
+                        Name of the CA, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="topCA" type="tns:CaInfoType">
+                <annotation>
+                    <documentation>
+                        Topmost (usually self-signed) CA that is used as trust anchor.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="intermediateCA" type="tns:CaInfoType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Intermediate CA. This information can be used for certificate path building and finding OCSP
+                        responders.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="acmeServer" type="tns:AcmeServer" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        ACME specific certification services settings. Absent when the certificate issued by this CA
+                        is obtained and uploaded out-of-band instead of via automated enrollment.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="CredentialIssuerType">
+        <sequence>
+            <element name="did" type="string">
+                <annotation>
+                    <documentation>
+                        Issuer DID (did:web) of this credential issuer.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="AcmeServer">
+        <sequence>
+            <element name="directoryURL" type="string" minOccurs="1">
+                <annotation>
+                    <documentation>
+                        ACME directory URL that is used as an entrypoint to communicate with the ACME server. The response of this
+                        endpoint will return all the other necessary API endpoints for making ACME operations.
+                        This is used by the Security Server's code internally to order and receive certificates from the CA
+                        automatically.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="ipAddress" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        ACME server IP address or multiple addresses separated by comma, that Security Server admins can
+                        use to whitelist the ACME Server in their firewall rules, so that the ACME server's HTTP challenge
+                        wouldn't be blocked.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authenticationCertificateProfileId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Profile ID used for some ACME servers to let them know the certificate usage type when ordering
+                        an authentication certificate.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="signingCertificateProfileId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Profile ID used for some ACME servers to let them know the certificate usage type when ordering
+                        a signing certificate.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="dataspaceTlsCertificateProfileId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Profile ID used for some ACME servers to let them know the certificate usage type when ordering
+                        a dataspace TLS server certificate.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <simpleType name="CostType">
+        <annotation>
+            <documentation>Describes whether the service is free or paid</documentation>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="FREE"/>
+            <enumeration value="PAID"/>
+            <enumeration value="UNDEFINED"/>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="CsrFormat">
+        <annotation>
+            <documentation>The format of the CSR</documentation>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="PEM"/>
+            <enumeration value="DER"/>
+        </restriction>
+    </simpleType>
+</schema>
+```
+
+### Version 6
+
+- Changes in version 6:
+    - optional *costType* element of type *CostType* was added into *OcspInfoType* and *ApprovedTSAType* to mark the service as free or paid.
+    - optional *defaultCsrFormat* element of type *CsrFormat* was added into *ApprovedCAType* to set the default format of the certificate signing request.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <import namespace="http://x-road.eu/xsd/identifiers"
+            schemaLocation="http://x-road.eu/xsd/identifiers.xsd" id="id"/>
+
+    <element name="conf" type="tns:SharedParametersType">
+        <annotation>
+            <documentation>Set of configuration parameters that are
+                used by members of this X-Road instance and other
+                federated instances.
+            </documentation>
+        </annotation>
+    </element>
+
+    <complexType name="SharedParametersType">
+        <sequence>
+            <element name="instanceIdentifier" type="string">
+                <annotation>
+                    <documentation>Code that uniquely identifies this
+                        instance of the X-Road system within a
+                        federation of systems.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="source" type="tns:ConfigurationSourceType" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Describes one configuration source.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="approvedCA" type="tns:ApprovedCAType"
+                     minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Certification authority approved
+                        by the Governing Authority of providing
+                        certification services for members of this
+                        X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="approvedTSA" type="tns:ApprovedTSAType"
+                     minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Time-stamping authority approved
+                        by the Governing Authority of providing
+                        time-stamping services for members of this
+                        X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="member" type="tns:MemberType" minOccurs="0"
+                     maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Registered member of this X-Road
+                        system.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="securityServer"
+                     type="tns:SecurityServerType" minOccurs="0"
+                     maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Security server registered in this
+                        X-Road system.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="globalGroup" type="tns:GlobalGroupType"
+                     minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Group of access rights subjects,
+                        defined by the Governing Authority. An access
+                        rights subject can be either a member or a
+                        subsystem.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="centralService"
+                     type="tns:CentralServiceType" minOccurs="0"
+                     maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Central service, defined by the
+                        Governing Authority.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="globalSettings"
+                     type="tns:GlobalSettingsType">
+                <annotation>
+                    <documentation>Classifiers and security policy
+                        settings used in this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="ConfigurationSourceType">
+        <sequence>
+            <element name="address" type="string">
+                <annotation>
+                    <documentation>The address of the central server which provides the signed configuration.</documentation>
+                </annotation>
+            </element>
+            <element name="internalVerificationCert" type="base64Binary" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Public key that can be used to verify the signed configuration, presented as X.509 certificate.</documentation>
+                </annotation>
+            </element>
+            <element name="externalVerificationCert" type="base64Binary" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Public key that can be used to verify the signed configuration, presented as X.509 certificate.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="MemberType">
+        <sequence>
+            <element name="memberClass" type="tns:MemberClassType">
+                <annotation>
+                    <documentation>Member class of the member.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="memberCode" type="string">
+                <annotation>
+                    <documentation>Code that uniquely identifies the
+                        member within the given member class.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>Full, official name of the member,
+                        used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="subsystem" type="tns:SubsystemType"
+                     minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Represents information about a
+                        part of the member's information system that
+                        is acting as an independent service consumer
+                        or provider in the X-Road system.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+
+    <complexType name="SecurityServerType">
+        <sequence>
+            <element name="owner" type="IDREF">
+                <annotation>
+                    <documentation>Identifier of the member who is
+                        responsible for the security server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="serverCode" type="string">
+                <annotation>
+                    <documentation>Code that uniquely identifies this
+                        server within servers owned by the same
+                        member.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="address" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Externally visible address of the
+                        security server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authCertHash" type="base64Binary"
+                     minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Hash of the authentication
+                        certificate used by the security server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="client" type="IDREF" minOccurs="0"
+                     maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Identifier a registered client of
+                        this security server. Client can be either a
+                        member or a subsystem.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="inMaintenanceMode" type="tns:MaintenanceMode" minOccurs="0" >
+                <annotation>
+                    <documentation>If present marks security server as in maintenance mode and not available.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="MaintenanceMode">
+        <sequence>
+            <element name="message" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>The optional message that is shown to consumers when the server is in maintenance mode.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ApprovedCAType">
+        <sequence>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>Name of the CA, used in user
+                        interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authenticationOnly" type="boolean"
+                     minOccurs="0">
+                <annotation>
+                    <documentation>If present and true, indicates
+                        that certificates issued by this CA can only
+                        be used for TLS authentication and not for
+                        creating and verifying digital
+                        signatures/seals.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="topCA" type="tns:CaInfoType">
+                <annotation>
+                    <documentation>Topmost (usually self-signed) CA
+                        that is used as trust anchor.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="intermediateCA" type="tns:CaInfoType"
+                     minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Intermediate CA. This information
+                        can be used for certificate path building and
+                        finding OCSP responders.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="certificateProfileInfo" type="string">
+                <annotation>
+                    <documentation>
+                        Fully qualified class name implementing the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="defaultCsrFormat" type="tns:CsrFormat" minOccurs="0">
+                <annotation>
+                    <documentation>Default format of the CSR.</documentation>
+                </annotation>
+            </element>
+            <element name="acmeServer" type="tns:AcmeServer" minOccurs="0">
+                <annotation>
+                    <documentation>ACME specific certification services settings.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="GlobalGroupType">
+        <sequence>
+            <element name="groupCode" type="string">
+                <annotation>
+                    <documentation>Code that uniquely identifies the
+                        group within an X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="description" type="string">
+                <annotation>
+                    <documentation>Description of the group.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="groupMember"
+                     type="id:XRoadClientIdentifierType" minOccurs="0"
+                     maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Identifier of an X-Road member or
+                        a subsystem belonging to this group.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="OcspInfoType">
+        <annotation>
+            <documentation>Information about an OCSP provider.
+            </documentation>
+        </annotation>
+        <sequence>
+            <element name="url" type="string">
+                <annotation>
+                    <documentation>URL of the OSCP server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="cert" type="base64Binary" minOccurs="0">
+                <annotation>
+                    <documentation>Certificate used by the OCSP
+                        server to sign OCSP responses.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="costType" type="tns:CostType" minOccurs="0">
+                <annotation>
+                    <documentation>Is this OCSP service free or paid.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ApprovedTSAType">
+        <sequence>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>Name of the time-stamping
+                        authority, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="url" type="string">
+                <annotation>
+                    <documentation>URL of the time-stamping service.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="cert" type="base64Binary">
+                <annotation>
+                    <documentation>Certificate used by the
+                        time-stamping server to sign responses.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="costType" type="tns:CostType" minOccurs="0">
+                <annotation>
+                    <documentation>Is this TSA service free or paid.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="CaInfoType">
+        <annotation>
+            <documentation>This type encapsulates information about a
+                certification authority.
+            </documentation>
+        </annotation>
+        <sequence>
+            <element name="cert" type="base64Binary">
+                <annotation>
+                    <documentation>The CA certificate value.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="ocsp" type="tns:OcspInfoType" minOccurs="0"
+                     maxOccurs="unbounded">
+                <annotation>
+                    <documentation>List of OCSP responders that
+                        provide status of certificates issued by this
+                        CA.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="AcmeServer">
+        <sequence>
+            <element name="directoryURL" type="string">
+                <annotation>
+                    <documentation>ACME directory URL that is used as an entrypoint to communicate with the ACME server. The response of this
+                        endpoint will return all the other necessary API endpoints for making ACME operations.
+                        This is used by the Security Server's code internally to order and receive certificates from the CA
+                        automatically.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="ipAddress" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>ACME server IP address or multiple addresses separated by comma, that Security Server admins can
+                        use to whitelist the ACME Server in their firewall rules, so that the ACME server's HTTP challenge
+                        wouldn't be blocked.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authenticationCertificateProfileId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Profile ID used for some ACME servers to let them know the certificate usage type when ordering
+                        an authentication certificate.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="signingCertificateProfileId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Profile ID used for some ACME servers to let them know the certificate usage type when ordering
+                        a signing certificate.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="SubsystemType">
+        <sequence>
+            <element name="subsystemCode" type="string">
+                <annotation>
+                    <documentation>Code that uniquely identifies this
+                        subsystem within the subsystems of its
+                        parent-member.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="subsystemName" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Full, official name of the subsystem, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+
+    <complexType name="MemberClassType">
+        <sequence>
+            <element name="code" type="string">
+                <annotation>
+                    <documentation>Code that uniquely identifies the
+                        member class in this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="description" type="string">
+                <annotation>
+                    <documentation>Description of the member class.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="CentralServiceType">
+        <sequence>
+            <element name="serviceCode" type="string">
+                <annotation>
+                    <documentation>Code that uniquely identifies a
+                        central service in this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="implementingService"
+                     type="id:XRoadServiceIdentifierType" minOccurs="0">
+                <annotation>
+                    <documentation>Identifier of the service that
+                        implements the central service.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="GlobalSettingsType">
+        <sequence>
+            <element name="memberClass" type="tns:MemberClassType"
+                     minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Lists the member classes used in
+                        this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="ocspFreshnessSeconds" type="integer">
+                <annotation>
+                    <documentation>Maximum allowed validity time of
+                        OCSP responses. If thisUpdate field of an OCSP
+                        response is older than ocspFreshnessSeconds
+                        seconds, it is no longer valid.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <simpleType name="CostType">
+        <annotation>
+            <documentation>Describes whether the service is free or paid.</documentation>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="FREE"/>
+            <enumeration value="PAID"/>
+            <enumeration value="UNDEFINED"/>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="CsrFormat">
+        <annotation>
+            <documentation>The format of the CSR.</documentation>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="PEM"/>
+            <enumeration value="DER"/>
+        </restriction>
+    </simpleType>
+</schema>
+```
 
 ### Version 5
 
