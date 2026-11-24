@@ -100,7 +100,7 @@
           </XrdCardTable>
         </template>
       </XrdCard>
-      <TrustedIssuersCard v-if="canViewTrustedIssuers" class="mt-4" @removed="refreshStatus" />
+      <TrustedIssuersCard v-if="canViewTrustedIssuers" ref="trustedIssuersCard" class="mt-4" @removed="refreshStatus" />
     </XrdSubView>
     <EditIssuerServiceHostDialog
       v-if="showEditHostDialog"
@@ -122,7 +122,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   useNotifications,
@@ -148,11 +148,15 @@ import { usePolling } from '@/composables/use-polling';
 
 const POLL_INTERVAL_MS = 5_000;
 
+type TrustedIssuersCardType = InstanceType<typeof TrustedIssuersCard>;
+
 const router = useRouter();
 const { hasPermission } = useUser();
 const { getStatus, initialize } = useIssuerService();
 const { checkAlerts } = useAlerts();
 const { addError, addSuccessMessage } = useNotifications();
+
+const trustedIssuersCard = useTemplateRef<TrustedIssuersCardType>('trustedIssuersCard');
 
 const state = ref<IssuerServiceState>();
 const loading = ref(true);
@@ -171,6 +175,7 @@ const polling = usePolling<IssuerServiceState>({
     loadFailed.value = false;
     if (wasRunning && !result.run_in_progress) {
       checkAlerts();
+      trustedIssuersCard.value?.fetchIssuers();
     }
   },
   onError: (error) => {

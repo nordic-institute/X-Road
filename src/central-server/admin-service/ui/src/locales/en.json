@@ -389,6 +389,7 @@
       "createdAt": "Created",
       "did": "DID",
       "removeConfirm": {
+        "alreadyRemoved": "This issuer was already removed.",
         "lastText": "{did} is the last trusted issuer. Every credential it signed becomes invalid on Security Servers within one global configuration refresh, and all Dataspace Protocol (DSP) traffic stops.",
         "text": "Every credential {did} signed becomes invalid on Security Servers within one global configuration refresh.",
         "title": "Remove trusted issuer?"

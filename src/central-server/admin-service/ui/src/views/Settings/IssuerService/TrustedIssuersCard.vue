@@ -79,6 +79,8 @@ import { useUser } from '@/store/modules/user';
 
 const emit = defineEmits<{ removed: [] }>();
 
+defineExpose({ fetchIssuers });
+
 const { t } = useI18n();
 const { hasPermission } = useUser();
 const { listTrustedIssuers, removeTrustedIssuer } = useIssuerService();
@@ -126,9 +128,13 @@ function openRemoveConfirm(issuer: TrustedIssuer): Promise<void> {
   return listTrustedIssuers()
     .then((result) => {
       issuers.value = result;
+      if (result.some((item) => item.id === issuer.id)) {
+        issuerToRemove.value = issuer;
+      } else {
+        addError(t('issuerService.trustedIssuers.removeConfirm.alreadyRemoved'), { warning: true });
+      }
     })
-    .catch((error) => addError(error))
-    .finally(() => (issuerToRemove.value = issuer));
+    .catch((error) => addError(error));
 }
 
 function confirmRemove(): void {
