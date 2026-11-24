@@ -59,10 +59,13 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * <p>The OpenBao case stops OpenBao inside {@code cs} and expects the node to stay ready and to keep serving the
  * DID document and the credential status list. The DID document is requested with the advertised issuer host
  * ({@code is_host} of {@code compose.aux.yaml}, the {@code cs} service name) pinned to the loopback address with
- * {@code curl --resolve}. The status list URL is the one the issuer stored for its published list. OpenBao is
- * started again afterwards and unsealed with the secret-store init script, also when an assertion fails. The class
- * runs after every other class, so a failed restore cannot affect them. PostgreSQL is not stopped here: it is
- * OpenBao's storage and the Central Server's database.
+ * {@code curl --resolve}. The status list URL is the one the issuer stored for its published list. OpenBao stays
+ * stopped until the issuer has logged a failed reload of the connector TLS certificate, which it attempts every
+ * {@code xroad.edc.web.https.keystore.reload-interval-seconds} (default 60, not overridden in the {@code cs} image),
+ * and readiness and serving are checked again after that. OpenBao is started again afterwards and unsealed with
+ * the secret-store init script, also when an assertion fails. The class runs after every other class, so a failed
+ * restore cannot affect them. PostgreSQL is not stopped here: it is OpenBao's storage and the Central Server's
+ * database.
  *
  * <p>Only the multi-container Compose environment can exec into {@code cs}; every other environment skips the
  * class.
@@ -82,6 +85,8 @@ class CsIssuerHealthTest extends E2eTest {
     private static final String OPENBAO_SEAL_STATUS_URL = "https://" + LOOPBACK + ":8200/v1/sys/seal-status";
     private static final String OPENBAO_PROGRAM = "openbao";
     private static final String SECRET_STORE_INIT = "/usr/share/xroad/scripts/secret-store-init.sh";
+    private static final String ISSUER_LOG = "/var/log/xroad/ds-issuer-service.log";
+    private static final String FAILED_RELOAD_LOG_MARKER = "ds-https-keystore: exhausted";
     private static final String CS_DATABASE = "centerui_production";
     private static final String PUBLISHED_STATUS_LIST_URL_SQL = """
             SELECT metadata->>'publicUrl' FROM "ds-issuer-service".credential_resource
@@ -91,6 +96,9 @@ class CsIssuerHealthTest extends E2eTest {
     private static final int NETSTAT_LOCAL_ADDRESS_COLUMN = 3;
     private static final String HTTP_OK = "200";
     private static final String STATUS_UP = "UP";
+    private static final Duration RELOAD_INTERVAL = Duration.ofSeconds(60);
+    private static final Duration RELOAD_CYCLE_MARGIN = Duration.ofSeconds(30);
+    private static final Duration RELOAD_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration UNSEAL_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration UNSEAL_POLL_INTERVAL = Duration.ofSeconds(2);
 
@@ -122,7 +130,7 @@ class CsIssuerHealthTest extends E2eTest {
                 publishedStatusListUrl(stack));
         then("the node is ready and serves the DID document and the status list with OpenBao up", () ->
                 assertReadyAndServing(stack, statusListUrl));
-
+        var failedReloadsBefore = and("the failed reloads logged so far are counted", () -> failedReloadCount(stack));
         try {
             when("OpenBao is stopped inside cs", () -> {
                 var stopped = exec(stack, "supervisorctl", "stop", OPENBAO_PROGRAM);
@@ -133,6 +141,10 @@ class CsIssuerHealthTest extends E2eTest {
                     assertThat(exec(stack, "curl", "-sk", "--connect-timeout", "3", "-o", "/dev/null",
                             OPENBAO_SEAL_STATUS_URL).getExitCode()).isNotZero());
             then("the node is still ready and serves the DID document and the status list", () ->
+                    assertReadyAndServing(stack, statusListUrl));
+            and("a reload of the connector TLS certificate fails while OpenBao is down", () ->
+                    awaitFailedReload(stack, failedReloadsBefore));
+            then("the node is still ready and serves the DID document and the status list after the failed reload", () ->
                     assertReadyAndServing(stack, statusListUrl));
         } finally {
             restoreOpenBao(stack);
@@ -163,6 +175,18 @@ class CsIssuerHealthTest extends E2eTest {
                 .isEqualTo(HTTP_OK);
     }
 
+    private static int failedReloadCount(E2eEnvSetup stack) {
+        var result = exec(stack, "grep", "-c", "-F", "-e", FAILED_RELOAD_LOG_MARKER, ISSUER_LOG);
+        assertThat(result.getExitCode()).as("grep in %s: %s", ISSUER_LOG, result.getStderr()).isIn(0, 1);
+        return Integer.parseInt(result.getStdout().trim());
+    }
+    private static void awaitFailedReload(E2eEnvSetup stack, int failedReloadsBefore) {
+        Awaitility.await()
+                .alias("failed reload of the connector TLS certificate")
+                .atMost(RELOAD_INTERVAL.plus(RELOAD_CYCLE_MARGIN))
+                .pollInterval(RELOAD_POLL_INTERVAL)
+                .until(() -> failedReloadCount(stack) > failedReloadsBefore);
+    }
     private static String publishedStatusListUrl(E2eEnvSetup stack) {
         var result = exec(stack, "runuser", "-u", "postgres", "--", "psql", "-d", CS_DATABASE, "-tAX", "-c",
                 PUBLISHED_STATUS_LIST_URL_SQL);
