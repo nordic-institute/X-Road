@@ -29,14 +29,56 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.inject.Inject;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class MessageLogDatabaseCtx extends DatabaseCtx {
     public static final String DB_NAME = "messagelog";
 
+    private static final String PENDING_MESSAGES_QUERY = "from MessageRecordEntity m where m.timestampRecord is null";
+
     @Inject
     public MessageLogDatabaseCtx(Map<String, String> hibernateProperties) {
         super(DB_NAME, hibernateProperties);
+    }
+
+    /**
+     * Finds the oldest pending messages, by id, up to the given limit.
+     *
+     * @param limit the maximum number of tasks to return
+     * @return the oldest pending messages, oldest first
+     */
+    public List<TimestampTask> findTimestampTasks(int limit) {
+        return doInTransaction(session -> session.createQuery(
+                        "select new " + TimestampTask.class.getName() + "(m.id, m.signatureHash) "
+                                + PENDING_MESSAGES_QUERY + " order by m.id", TimestampTask.class)
+                .setMaxResults(limit)
+                .list());
+    }
+
+    /**
+     * Counts the pending messages.
+     *
+     * @return the number of pending messages
+     */
+    public long countTimestampTasks() {
+        return doInTransaction(session -> session.createQuery(
+                "select count(m) " + PENDING_MESSAGES_QUERY, Long.class).uniqueResult());
+    }
+
+    /**
+     * Finds the log time of the oldest pending message, by id.
+     *
+     * @return the log time of the oldest pending message, or empty when none is pending
+     */
+    public Optional<Instant> findOldestTimestampTaskTime() {
+        return doInTransaction(session -> session.createQuery(
+                        "select m.time " + PENDING_MESSAGES_QUERY + " order by m.id", Long.class)
+                .setMaxResults(1)
+                .uniqueResultOptional()
+                .map(Instant::ofEpochMilli));
     }
 
 }

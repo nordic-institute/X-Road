@@ -30,7 +30,6 @@ import ee.ria.xroad.common.DiagnosticStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -44,6 +43,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.LogMessage;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.RestLogMessage;
 import org.niis.xroad.messagelog.SoapLogMessage;
@@ -58,7 +58,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -76,13 +75,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMPING_FAILED
  */
 @Slf4j
 public class LogManager extends AbstractLogManager {
-    private static final String OLDEST_UNTIMESTAMPED_MESSAGE_TIME_QUERY =
-            "select m.time from MessageRecordEntity m where m.timestampRecord is null order by m.id";
 
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
     protected final LogRecordManager logRecordManager;
-    protected final DatabaseCtx messageLogDatabaseCtx;
+    protected final MessageLogDatabaseCtx messageLogDatabaseCtx;
     protected final ProxyMessageLogProperties messageLogProperties;
 
     private final Timestamper timestamper;
@@ -93,7 +90,7 @@ public class LogManager extends AbstractLogManager {
     final TaskQueue taskQueue;
 
     public LogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                      LogRecordManager logRecordManager, DatabaseCtx messageLogDatabaseCtx,
+                      LogRecordManager logRecordManager, MessageLogDatabaseCtx messageLogDatabaseCtx,
                       ProxyMessageLogProperties messageLogProperties) {
         super(globalConfProvider, serverConfProvider);
 
@@ -347,9 +344,10 @@ public class LogManager extends AbstractLogManager {
         return timestampRecord;
     }
 
-    void setTimestampingStatus(SetTimestampingStatusMessage statusMessage) {
-        handleTimestampJob(statusMessage.getStatus() == SetTimestampingStatusMessage.Status.SUCCESS);
+    void setTimestampingStatus(boolean succeeded) {
+        handleTimestampJob(succeeded);
     }
+
     private void handleTimestampJob(boolean succeeded) {
         if (timestamperJob != null) {
             if (succeeded) {
@@ -383,27 +381,20 @@ public class LogManager extends AbstractLogManager {
 
     /**
      * Refuses when the oldest message still waiting for a time-stamp was logged earlier than the
-     * acceptable period plus one batch interval. The batch interval is the normal wait of a healthy
-     * queue. Every node reads the same message log database, so primary and secondary nodes make
-     * the same decision, also when the primary is down. A failed read throws, so the message is
-     * refused.
+     * acceptable period. Every node reads the same message log database, so primary and secondary
+     * nodes make the same decision, also when the primary is down. A failed read throws, so the
+     * message is refused.
      */
     private void verifyTimestampingNotFailed(int period) {
-        long allowedWaitSeconds = (long) period + TimestamperJob.batchIntervalSeconds(globalConfProvider);
-        Instant oldestAllowed = TimeUtils.now().minusSeconds(allowedWaitSeconds);
-        if (readOldestUntimestampedMessageTime().filter(oldestAllowed::isAfter).isPresent()) {
+        Instant oldestAllowed = TimeUtils.now().minusSeconds(period);
+
+        if (messageLogDatabaseCtx.findOldestTimestampTaskTime().filter(oldestAllowed::isAfter).isPresent()) {
             throw XrdRuntimeException.systemException(TIMESTAMPING_FAILED)
                     .details("Cannot time-stamp messages")
                     .build();
         }
     }
-    private Optional<Instant> readOldestUntimestampedMessageTime() {
-        return messageLogDatabaseCtx.doInTransaction(session -> session
-                .createQuery(OLDEST_UNTIMESTAMPED_MESSAGE_TIME_QUERY, Long.class)
-                .setMaxResults(1)
-                .uniqueResultOptional()
-                .map(Instant::ofEpochMilli));
-    }
+
     private String signatureHash(String signatureXml) throws IOException {
         return CryptoUtils.signatureHash(signatureXml, DigestAlgorithm.ofName(messageLogProperties.hashAlgoIdStr()));
     }
@@ -498,33 +489,26 @@ public class LogManager extends AbstractLogManager {
         }
 
         private Duration getNextDelay() {
+            int actualInterval = MIN_INTERVAL_SECONDS;
             log.debug("Use batch time-stamping retry backoff schedule: {}", retryMode.get());
-            int actualInterval = configuredIntervalSeconds(globalConfProvider);
+
+            try {
+                actualInterval = globalConfProvider.getTimestampingIntervalSeconds();
+            } catch (Exception e) {
+                log.error("Failed to get timestamping interval", e);
+            }
+
             if (retryMode.get()) {
                 actualInterval = (timestampRetryDelaySeconds < actualInterval && timestampRetryDelaySeconds > 0)
                         ? timestampRetryDelaySeconds : actualInterval;
             }
-            int intervalSeconds = clampInterval(actualInterval);
+
+            int intervalSeconds = Math.min(Math.max(actualInterval, MIN_INTERVAL_SECONDS), MAX_INTERVAL_SECONDS);
             log.debug("Time-stamping interval is: {}s", intervalSeconds);
+
             return Duration.of(intervalSeconds, ChronoUnit.SECONDS);
         }
-        /**
-         * The interval between batch time-stamping runs while time-stamping works.
-         */
-        static int batchIntervalSeconds(GlobalConfProvider globalConfProvider) {
-            return clampInterval(configuredIntervalSeconds(globalConfProvider));
-        }
-        private static int configuredIntervalSeconds(GlobalConfProvider globalConfProvider) {
-            try {
-                return globalConfProvider.getTimestampingIntervalSeconds();
-            } catch (Exception e) {
-                log.error("Failed to get timestamping interval", e);
-                return MIN_INTERVAL_SECONDS;
-            }
-        }
-        private static int clampInterval(int intervalSeconds) {
-            return Math.min(Math.max(intervalSeconds, MIN_INTERVAL_SECONDS), MAX_INTERVAL_SECONDS);
-        }
+
         protected void cancelNext() {
             if (scheduledTask != null) {
                 if (!scheduledTask.isCancelled()) {

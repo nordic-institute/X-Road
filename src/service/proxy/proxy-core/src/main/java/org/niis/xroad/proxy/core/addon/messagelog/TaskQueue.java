@@ -26,12 +26,10 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampTask;
@@ -53,7 +51,7 @@ public class TaskQueue {
 
     private final Timestamper timestamper;
     private final LogManager logManager;
-    private final DatabaseCtx messageLogDatabaseCtx;
+    private final MessageLogDatabaseCtx messageLogDatabaseCtx;
     private final ProxyMessageLogProperties.TimestamperProperties timestamperProperties;
 
     protected void handleTimestampSucceeded(TimestampSucceeded timestampSucceededResult) {
@@ -96,7 +94,7 @@ public class TaskQueue {
     }
 
     private void indicateSuccess() {
-        sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.SUCCESS);
+        logManager.setTimestampingStatus(true);
     }
 
     private void indicateFailure(TimestampFailed timestampFailedResult) {
@@ -112,11 +110,7 @@ public class TaskQueue {
         // set diagnostics status
         logManager.putStatusMapFailures(timestampFailedResult);
 
-        sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.FAILURE);
-    }
-
-    private void sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status status) {
-        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(status));
+        logManager.setTimestampingStatus(false);
     }
 
     protected void handleTimestampFailed(TimestampFailed timestampFailedResult) {
@@ -134,10 +128,10 @@ public class TaskQueue {
     }
 
     private void handleStartTimestamping(int timestampRecordsLimit) {
-        List<Task> timestampTasks;
+        List<org.niis.xroad.messagelog.TimestampTask> timestampTasks;
 
         try {
-            timestampTasks = messageLogDatabaseCtx.doInTransaction(session -> getTimestampTasks(session, timestampRecordsLimit));
+            timestampTasks = messageLogDatabaseCtx.findTimestampTasks(timestampRecordsLimit);
         } catch (Exception e) {
             log.error("Error getting time-stamp tasks", e);
 
@@ -169,13 +163,13 @@ public class TaskQueue {
         }
     }
 
-    private TimestampTask createTimestampTask(List<Task> timestampTasks) {
+    private TimestampTask createTimestampTask(List<org.niis.xroad.messagelog.TimestampTask> timestampTasks) {
         Long[] messageRecords = new Long[timestampTasks.size()];
         String[] signatureHashes = new String[timestampTasks.size()];
 
         for (int i = 0; i < timestampTasks.size(); i++) {
-            messageRecords[i] = timestampTasks.get(i).getMessageRecordNo();
-            signatureHashes[i] = timestampTasks.get(i).getSignatureHash();
+            messageRecords[i] = timestampTasks.get(i).id();
+            signatureHashes[i] = timestampTasks.get(i).signatureHash();
         }
 
         return new TimestampTask(messageRecords, signatureHashes);
@@ -183,28 +177,11 @@ public class TaskQueue {
 
     private boolean isTaskQueueEmpty() {
         try {
-            return messageLogDatabaseCtx.doInTransaction(TaskQueue::getTasksQueueSize) == 0L;
+            return messageLogDatabaseCtx.countTimestampTasks() == 0L;
         } catch (Exception e) {
             log.error("Could not read timestamp task queue status", e);
 
             return false;
         }
-    }
-
-    private List<Task> getTimestampTasks(Session session, int timestampRecordsLimit) {
-        return session.createQuery(getTaskQueueQuery(), Task.class).setMaxResults(timestampRecordsLimit).list();
-    }
-
-    private static Long getTasksQueueSize(Session session) {
-        return session.createQuery(getTaskQueueSizeQuery(), Long.class).uniqueResult();
-    }
-
-    static String getTaskQueueQuery() {
-        return "select new " + Task.class.getName() + "(m.id, m.signatureHash) "
-                + "from MessageRecordEntity m where m.timestampRecord is null order by m.id";
-    }
-
-    private static String getTaskQueueSizeQuery() {
-        return "select COUNT(*) from MessageRecordEntity m where m.timestampRecord is null";
     }
 }

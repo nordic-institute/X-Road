@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -37,6 +35,7 @@ import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -48,7 +47,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -68,7 +66,7 @@ class LogManagerNodeRoleTest {
     private LogRecordManager logRecordManager;
 
     @Mock
-    private DatabaseCtx messageLogDatabaseCtx;
+    private MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     private final ProxyMessageLogProperties messageLogProperties =
             new ProxyMessageLogProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).build());
@@ -102,51 +100,54 @@ class LogManagerNodeRoleTest {
     @Test
     void batchResultDoesNotTouchTheDatabase() {
         LogManager logManager = newPrimaryLogManager(60);
-        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(SetTimestampingStatusMessage.Status.SUCCESS));
-        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(SetTimestampingStatusMessage.Status.FAILURE));
+
+        logManager.setTimestampingStatus(true);
+        logManager.setTimestampingStatus(false);
+
         verifyNoInteractions(messageLogDatabaseCtx);
         logManager.destroy();
     }
+
+    /**
+     * The refusal check has no role branch: a primary node refuses exactly like a secondary one
+     * when the read of the oldest pending message fails. A long job delay keeps the batch job from
+     * running during the test.
+     */
     @Test
     void readFailureRefusesMessage() {
         when(serverConfProvider.getTspUrls()).thenReturn(List.of("http://tsa"));
 
-        LogManager logManager = newSecondaryLogManager(60);
+        LogManager logManager = newPrimaryLogManager(60);
 
-        when(messageLogDatabaseCtx.doInTransaction(any())).thenThrow(new RuntimeException("read failed"));
+        when(messageLogDatabaseCtx.findOldestTimestampTaskTime()).thenThrow(new RuntimeException("read failed"));
 
         assertThrows(RuntimeException.class, () -> logManager.verifyCanLogMessage(false));
 
         logManager.destroy();
     }
 
+    /**
+     * Every call to verifyCanLogMessage reads the oldest pending message time again; the check
+     * never caches the result between calls.
+     */
     @Test
     void readsOldestPendingMessageOnEveryCheck() {
         when(serverConfProvider.getTspUrls()).thenReturn(List.of("http://tsa"));
 
-        LogManager logManager = newSecondaryLogManager(60);
+        LogManager logManager = newPrimaryLogManager(60);
 
-        when(messageLogDatabaseCtx.doInTransaction(any())).thenReturn(Optional.empty());
+        when(messageLogDatabaseCtx.findOldestTimestampTaskTime()).thenReturn(Optional.empty());
 
         logManager.verifyCanLogMessage(false);
         logManager.verifyCanLogMessage(false);
         logManager.verifyCanLogMessage(false);
 
-        verify(messageLogDatabaseCtx, times(3)).doInTransaction(any());
+        verify(messageLogDatabaseCtx, times(3)).findOldestTimestampTaskTime();
         logManager.destroy();
     }
 
     private LogManager newLogManager() {
         return new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx, messageLogProperties);
-    }
-
-    private LogManager newSecondaryLogManager(int acceptableTimestampFailurePeriodSeconds) {
-        ProxyMessageLogProperties properties = newProperties(acceptableTimestampFailurePeriodSeconds);
-
-        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
-            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
-            return new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx, properties);
-        }
     }
 
     private LogManager newPrimaryLogManager(int acceptableTimestampFailurePeriodSeconds) {

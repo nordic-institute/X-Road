@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampFailed;
 import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampSucceeded;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
@@ -52,7 +51,7 @@ class TestTaskQueue extends TaskQueue {
 
     static Exception throwWhenSavingTimestamp;
 
-    TestTaskQueue(Timestamper timestamper, LogManager logManager, DatabaseCtx messageLogDatabaseCtx,
+    TestTaskQueue(Timestamper timestamper, LogManager logManager, MessageLogDatabaseCtx messageLogDatabaseCtx,
                   ProxyMessageLogProperties messageLogProperties) {
         super(timestamper, logManager, messageLogDatabaseCtx, messageLogProperties.timestamper());
     }

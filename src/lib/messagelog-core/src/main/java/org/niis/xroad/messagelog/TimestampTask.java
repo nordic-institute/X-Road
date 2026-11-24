@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,14 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon.messagelog;
+package org.niis.xroad.messagelog;
 
-import lombok.Data;
-
-@Data
-class Task {
-
-    private final Long messageRecordNo;
-    private final String signatureHash;
-
+/**
+ * One message record still waiting for a time-stamp.
+ *
+ * @param id             the message record id
+ * @param signatureHash  the message record's signature hash
+ */
+public record TimestampTask(Long id, String signatureHash) {
 }

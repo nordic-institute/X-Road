@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -45,7 +44,7 @@ class TestLogManager extends LogManager {
     private static CountDownLatch setTimestampingStatusLatch = new CountDownLatch(1);
 
     TestLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, LogRecordManager logRecordManager,
-                   DatabaseCtx messageLogDatabaseCtx, ProxyMessageLogProperties messageLogProperties) {
+                   MessageLogDatabaseCtx messageLogDatabaseCtx, ProxyMessageLogProperties messageLogProperties) {
         super(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx, messageLogProperties);
     }
 
@@ -101,8 +100,8 @@ class TestLogManager extends LogManager {
     }
 
     @Override
-    void setTimestampingStatus(SetTimestampingStatusMessage statusMessage) {
-        super.setTimestampingStatus(statusMessage);
+    void setTimestampingStatus(boolean succeeded) {
+        super.setTimestampingStatus(succeeded);
 
         setTimestampingStatusLatch.countDown();
     }
