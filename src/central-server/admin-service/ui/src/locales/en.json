@@ -390,8 +390,8 @@
       "did": "DID",
       "removeConfirm": {
         "alreadyRemoved": "This issuer was already removed.",
-        "lastText": "{did} is the last trusted issuer. Security Servers refuse new access with its credentials within two global configuration refresh cycles; once that happens, all Dataspace Protocol (DSP) traffic stops. Access already authorized can continue until its agreement token expires (60 seconds by default).",
-        "text": "Security Servers refuse new access with {did}'s credentials within two global configuration refresh cycles. Access already authorized can continue until its agreement token expires (60 seconds by default).",
+        "lastText": "{did} is the last trusted issuer. Security Servers refuse new access with its credentials within a few minutes; once that happens, all Dataspace Protocol (DSP) traffic stops. Access already authorized can continue until its agreement token expires (60 seconds by default).",
+        "text": "Security Servers refuse new access with {did}'s credentials within a few minutes. Access already authorized can continue until its agreement token expires (60 seconds by default).",
         "title": "Remove trusted issuer?"
       },
       "removeSuccess": "Trusted issuer removed successfully",
