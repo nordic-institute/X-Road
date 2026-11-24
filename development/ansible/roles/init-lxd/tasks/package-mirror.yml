@@ -4,6 +4,14 @@
   delegate_to: "{{ item }}"
   delegate_facts: true
 
+- name: Provide the APT mirror auth helper (Debian-based)
+  copy:
+    src: "{{ role_path }}/../../../../deployment/.scripts/mirror-apt-auth.sh"
+    dest: /tmp/mirror-apt-auth.sh
+    mode: "0644"
+  delegate_to: "{{ item }}"
+  when: hostvars[item]['ansible_facts']['os_family'] == "Debian"
+
 - name: Configure package mirror for APT (Debian-based)
   script:
     cmd: >-
@@ -13,6 +21,13 @@
   environment:
     XROAD_MIRROR_TOKEN: "{{ package_mirror_token }}"
   no_log: true
+  delegate_to: "{{ item }}"
+  when: hostvars[item]['ansible_facts']['os_family'] == "Debian"
+
+- name: Remove the APT mirror auth helper (Debian-based)
+  file:
+    path: /tmp/mirror-apt-auth.sh
+    state: absent
   delegate_to: "{{ item }}"
   when: hostvars[item]['ansible_facts']['os_family'] == "Debian"
 

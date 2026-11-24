@@ -1,11 +1,12 @@
 ARG DOCKER_REGISTRY=""
 FROM ${DOCKER_REGISTRY}rockylinux:9
 
+# Configure package mirror for DNF
 ARG XROAD_MIRROR_BASE_URL
 ARG XROAD_MIRROR_USER
 
-# Configure the mirror, install and clean up in one RUN: the credential comes from the
-# mirror_token secret and is removed before the step ends, so no image layer holds it.
+# Configure, install and cleanup stay in one RUN: the credential exists only while the
+# mirror_token secret is mounted.
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-dnf.sh,target=/tmp/configure-mirror-dnf.sh \
     --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-dnf.sh,target=/tmp/cleanup-mirror-dnf.sh \
     --mount=type=secret,id=mirror_token \

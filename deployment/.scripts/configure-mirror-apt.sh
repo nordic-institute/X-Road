@@ -16,6 +16,11 @@
 #
 # Token is read from /run/secrets/mirror_token (Docker) or XROAD_MIRROR_TOKEN env var (Ansible).
 # With the Docker secret, no auth file is written; see mirror-apt-auth.sh.
+# The host derivation and the auth line come from /tmp/mirror-apt-auth.sh, which must be present.
+
+XROAD_MIRROR_APT_AUTH_FUNCTIONS_ONLY=1
+# shellcheck source=mirror-apt-auth.sh
+. /tmp/mirror-apt-auth.sh
 
 setup_mirror() {
     echo "Starting Mirror APT Configuration..."
@@ -39,16 +44,14 @@ setup_mirror() {
     fi
 
     echo "Configuring package mirror: $MIRROR_URL"
-    MIRROR_HOST=$(echo "$MIRROR_URL" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+    MIRROR_HOST=$(mirror_apt_host "$MIRROR_URL")
 
     # 2. Configure Authentication (Machine Login)
     # -------------------------------------------------------------------------
     # With a Docker secret the credential must not enter an image layer: every RUN that
     # runs apt sources mirror-apt-auth.sh instead. Outside Docker the file is permanent.
     if [ ! -f /run/secrets/mirror_token ]; then
-        mkdir -p /etc/apt/auth.conf.d
-        echo "machine $MIRROR_HOST login $MIRROR_USER password $MIRROR_TOKEN" > /etc/apt/auth.conf.d/mirror.conf
-        chmod 600 /etc/apt/auth.conf.d/mirror.conf
+        mirror_apt_write_auth "$MIRROR_URL" "$MIRROR_USER" "$MIRROR_TOKEN"
     fi
 
     # 3. Disable TLS verification for mirror (GPG signature verification still protects packages)
