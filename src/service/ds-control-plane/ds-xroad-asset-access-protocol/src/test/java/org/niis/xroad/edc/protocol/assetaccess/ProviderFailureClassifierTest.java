@@ -56,6 +56,8 @@ class ProviderFailureClassifierTest {
                 arguments("a bad request", providerAnswer(400, "TransferType is not supported"), false),
                 arguments("the agreement wording under a server error",
                         providerAnswer(500, "agreement not found or not valid"), false),
+                arguments("the agreement wording under a service unavailable",
+                        providerAnswer(503, "agreement not found or not valid"), false),
                 arguments("the wording outside a provider answer", "agreement not found or not valid", false),
                 arguments("a status code in the url",
                         "Counter Party responded with Response{protocol=h2, code=400, message=, "

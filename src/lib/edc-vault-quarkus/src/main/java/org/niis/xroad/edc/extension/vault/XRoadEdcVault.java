@@ -45,7 +45,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * EDC {@link Vault} over the OpenBao KV v2 mount {@value #MOUNT}: the secret of key {@code k} lives at
- * {@code ds/<k>} in field {@value #CONTENT_FIELD}, the layout stock EDC 1.0.0-RC7 uses. Every call goes
+ * {@code ds/<k>} in field {@value #CONTENT_FIELD}, the layout stock EDC uses. Every call goes
  * through {@link ResilientVaultCall} and nothing is cached, so each read sees the current OpenBao value.
  * Delete removes the secret metadata, because only the {@code metadata/} path removes all versions of a secret.
  * <p>

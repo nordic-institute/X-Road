@@ -113,8 +113,8 @@ public class XRoadDataPlaneSignalingApiController {
 
     /**
      * Consumer-side notification that the provider has started the transfer.
-     * Required for consumer pull transfers — the control plane treats a non-2xx
-     * response as a fatal transfer failure.
+     * Required for consumer pull transfers. The control plane treats a 4xx response as a final
+     * transfer failure and retries a 5xx response or an I/O error once.
      *
      * @param dataFlowId flow identifier from the URL path
      * @param message    plain-JSON {@code DataFlowStartedNotificationMessage} (may carry the provider data address)
