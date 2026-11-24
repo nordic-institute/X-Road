@@ -85,8 +85,9 @@ class DatabaseReadinessProviderTest {
     void releasesThePooledConnectionAfterASuccessfulCheck() throws SQLException {
         var connection = mock(Connection.class);
         var statement = mock(Statement.class);
+        var rows = mock(ResultSet.class);
         when(connection.createStatement()).thenReturn(statement);
-        when(statement.executeQuery("SELECT 1")).thenReturn(mock(ResultSet.class));
+        when(statement.executeQuery("SELECT 1")).thenReturn(rows);
         var result = pooledProvider(connection).get();
         assertThat(result.succeeded()).isTrue();
         verify(connection, times(1)).close();
@@ -155,7 +156,7 @@ class DatabaseReadinessProviderTest {
     }
 
     @Test
-    void failsWithinTheTimeoutWhenTheConnectionBlocks() throws SQLException, InterruptedException {
+    void failsWithinTheTimeoutWhenTheConnectionBlocks() throws SQLException {
         var release = new CountDownLatch(1);
         var dataSource = mock(DataSource.class);
         when(dataSource.getConnection()).thenAnswer(invocation -> {
@@ -177,9 +178,10 @@ class DatabaseReadinessProviderTest {
     void startsNoSecondCheckWhileAnEarlierOneStillRuns() throws SQLException {
         var release = new CountDownLatch(1);
         var dataSource = mock(DataSource.class);
+        var statement = mock(Statement.class);
         when(dataSource.getConnection()).thenAnswer(invocation -> {
             awaitUninterruptibly(release);
-            return readyConnection(mock(Statement.class));
+            return readyConnection(statement);
         });
         var provider = provider(() -> dataSource);
 
@@ -200,11 +202,12 @@ class DatabaseReadinessProviderTest {
     void endsTheWaitForAConnectionAtTheDeadlineSoTheNextCheckRuns() throws SQLException {
         var calls = new AtomicInteger();
         var dataSource = mock(DataSource.class);
+        var statement = mock(Statement.class);
         when(dataSource.getConnection()).thenAnswer(invocation -> {
             if (calls.getAndIncrement() == 0) {
                 awaitInterruptibly(new CountDownLatch(1));
             }
-            return readyConnection(mock(Statement.class));
+            return readyConnection(statement);
         });
         var provider = provider(() -> dataSource);
 
@@ -229,10 +232,12 @@ class DatabaseReadinessProviderTest {
     private static void pauseLongerThanTheCache() {
         await().pollDelay(Duration.ofMillis(50)).until(() -> true);
     }
+
     private static Connection readyConnection(Statement statement) throws SQLException {
         var connection = mock(Connection.class);
+        var rows = mock(ResultSet.class);
         when(connection.createStatement()).thenReturn(statement);
-        when(statement.executeQuery("SELECT 1")).thenReturn(mock(ResultSet.class));
+        when(statement.executeQuery("SELECT 1")).thenReturn(rows);
         return connection;
     }
 
