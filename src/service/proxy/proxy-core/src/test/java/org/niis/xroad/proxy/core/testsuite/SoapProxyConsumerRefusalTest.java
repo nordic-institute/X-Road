@@ -56,6 +56,8 @@ import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 
 /**
@@ -199,6 +201,7 @@ class SoapProxyConsumerRefusalTest {
                 XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(props).build());
         PROXY_TEST_SUITE_HELPER.startTestServices();
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
+        when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(false);
     }
 
     private static final class Probe extends MessageTestCase {

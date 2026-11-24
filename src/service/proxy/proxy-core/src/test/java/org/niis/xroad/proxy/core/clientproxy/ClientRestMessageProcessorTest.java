@@ -54,6 +54,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
@@ -141,12 +142,15 @@ import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATA_PLANE_UNREACHABLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.MAINTENANCE_MODE;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
+import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 
@@ -234,6 +238,7 @@ class ClientRestMessageProcessorTest {
         when(serviceAddressResolver.resolveCandidates(any(), any()))
                 .thenReturn(new ProviderCandidates(List.of(new ProviderAddress(null, SS_A_HOST)), List.of()));
         publishServer(globalConfProvider, SS_A_SERVER, SS_A_HOST, SS_A_ID);
+        var legacyCallRefusalPolicy = mock(LegacyCallRefusalPolicy.class);
 
         return new ClientRestMessageProcessor(
                 messageSigningService,
@@ -247,9 +252,9 @@ class ClientRestMessageProcessorTest {
                 clientRequestPreparationService,
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
-                mock(LegacyCallRefusalPolicy.class),
                 new DspFailover(consumerSideDspProcessor, httpSenderProvider, mock(DspSendFailureHandler.class)),
-                new CallModeSelector(globalConfProvider, serviceAddressResolver, proxyProperties, consumerSideDspProcessor)
+                new CallModeSelector(globalConfProvider, serviceAddressResolver, proxyProperties, consumerSideDspProcessor,
+                        legacyCallRefusalPolicy)
         );
     }
 
@@ -476,7 +481,10 @@ class ClientRestMessageProcessorTest {
                         .isEqualTo("client." + LEGACY_CALL_REFUSED.code()));
 
         verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
-        verify(httpSender).close();
+        verifyNoInteractions(harness.httpSenderProvider());
+        verify(harness.clientRequestPreparationService(), never())
+                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any());
+        verify(harness.serviceAddressResolver(), never()).resolveCandidates(any(), any());
         verify(harness.consumerSideDspProcessor(), never()).execute(any());
     }
 
@@ -568,19 +576,141 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendSurfacesTargetResolutionErrorInsteadOfTheRefusal() throws Exception {
-        var harness = createHarness(false, true);
-        when(harness.clientRequestPreparationService()
-                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
-                .thenThrow(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "No address found"));
+    void sendRefusesAnUnpublishedDidWithDspEnabledWhenLocalSettingRefuses() throws Exception {
+        var harness = createHarness(true, true);
+        when(harness.globalConfProvider().getMemberDid(any(), any())).thenReturn(Optional.empty());
+        stubUnnegotiatedAddress(harness);
         var httpSender = mock(HttpSender.class);
         stubSenders(harness, httpSender);
 
         assertThatThrownBy(() -> send(harness))
-                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(UNKNOWN_MEMBER)).isTrue());
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.getErrorCode())
+                        .isEqualTo("client." + LEGACY_CALL_REFUSED.code()));
+
+        verify(harness.legacyCallRefusalPolicy()).checkConsumerCallAllowed(serviceId());
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
+        verifyNoInteractions(harness.httpSenderProvider());
+        verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
+    }
+
+    @Test
+    void sendRefusesAnUnpublishedDidWithDspEnabledWhenProviderInstanceRefuses() throws Exception {
+        var harness = createHarness(true, false);
+        when(harness.globalConfProvider().isLegacyProtocolDisabled(serviceId().getXRoadInstance())).thenReturn(true);
+        when(harness.globalConfProvider().getMemberDid(any(), any())).thenReturn(Optional.empty());
+        stubUnnegotiatedAddress(harness);
+        stubSenders(harness, mock(HttpSender.class));
+
+        assertThatThrownBy(() -> send(harness))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(LEGACY_CALL_REFUSED)).isTrue());
+
+        verifyNoInteractions(harness.httpSenderProvider());
+    }
+
+    @Test
+    void aDspFailureOnAPublishedDidReachesTheClientAndMakesNoUnnegotiatedCall() throws Exception {
+        var harness = createHarness(true);
+        var dspFailure = ClientFacingErrorPolicy.sanitizeForConsumer(XrdRuntimeException.systemException(DSP_NEGOTIATION_FAILED)
+                .origin(DATASPACE)
+                .details("negotiation ended by the provider")
+                .build());
+        when(harness.consumerSideDspProcessor().execute(any())).thenThrow(dspFailure);
+        stubUnnegotiatedAddress(harness);
+        stubSenders(harness, mock(HttpSender.class));
+
+        assertThatThrownBy(() -> send(harness)).isSameAs(dspFailure);
+
+        assertThat(dspFailure.isCausedBy(SERVICE_FAILED)).isTrue();
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verifyNoInteractions(harness.httpSenderProvider());
+        verify(harness.clientRequestPreparationService(), never())
+                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any());
+        verifyNoInteractions(harness.legacyCallRefusalPolicy());
+    }
+
+    @ParameterizedTest
+    @MethodSource("unusablePublishedDids")
+    void aPublishedDidThatCannotBeUsedReachesTheClientAsInternalErrorWithoutTheDidAndMakesNoUnnegotiatedCall(String publishedDid)
+            throws Exception {
+        var harness = createHarness(true, true);
+        publishServer(harness.globalConfProvider(), SS_A_SERVER, SS_A_HOST, publishedDid);
+        stubUnnegotiatedAddress(harness);
+        stubSenders(harness, mock(HttpSender.class));
+
+        assertThatThrownBy(() -> send(harness)).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+            assertThat(e.isCausedBy(INTERNAL_ERROR)).isTrue();
+            assertThat(e.getDetails()).contains("provider").doesNotContain(publishedDid).doesNotContain("DEV:COM");
+            assertThat(e.getErrorCodeMetadata().getFirst()).startsWith("originalCode=");
+        });
+
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
+        verifyNoInteractions(harness.httpSenderProvider());
+        verifyNoInteractions(harness.legacyCallRefusalPolicy());
+    }
+
+    static Stream<String> unusablePublishedDids() {
+        return Stream.of(
+                "did:web:ss-a.example%3A7183:v2:DEV:COM:222",
+                "did:web:ss-a.example%3A7183:v1:DEV:COM:9999");
+    }
+
+    @Test
+    void aServerWithoutSystemValuesThatPublishedTheCalledDidReachesTheClientAsInternalError() throws Exception {
+        var harness = createHarness(true);
+        when(harness.globalConfProvider().getServerSystemValues(SS_A_SERVER)).thenReturn(Optional.empty());
+        stubUnnegotiatedAddress(harness);
+        stubSenders(harness, mock(HttpSender.class));
+
+        assertThatThrownBy(() -> send(harness))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(INTERNAL_ERROR)).isTrue());
+
+        verifyNoInteractions(harness.httpSenderProvider());
+    }
+
+    @Test
+    void theMaintenanceErrorOfAPublishedServerReachesTheClientUnchangedWhileLegacyCallsAreRefused() throws Exception {
+        var harness = createHarness(true, true);
+        var maintenanceError = XrdRuntimeException.systemException(MAINTENANCE_MODE, "ss-a.example is in maintenance mode");
+        when(harness.serviceAddressResolver().resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(
+                List.of(), List.of(new ServerInMaintenance(new ProviderAddress(SS_A_SERVER, SS_A_HOST), maintenanceError))));
+        stubSenders(harness, mock(HttpSender.class));
+
+        assertThatThrownBy(() -> send(harness)).isSameAs(maintenanceError);
 
         verifyNoInteractions(harness.legacyCallRefusalPolicy());
-        verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
+        verifyNoInteractions(harness.httpSenderProvider());
+    }
+
+    @Test
+    void theCallModeFollowsThePublicationOfTheCalledDidAndTheRefusalOnEveryCall() throws Exception {
+        var harness = createHarness(true);
+        var globalConf = harness.globalConfProvider();
+        var viaDsp = mock(HttpSender.class);
+        var unnegotiated = mock(HttpSender.class);
+        var bypassing = mock(HttpSender.class);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
+        stubUnnegotiatedAddress(harness);
+        stubSenders(harness, viaDsp, unnegotiated, bypassing);
+
+        send(harness);
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(viaDsp).doPost(eq(URI.create(WON_BY_SS_A.endpoint())), nullable(HttpEntity.class));
+
+        when(globalConf.getMemberDid(any(), any())).thenReturn(Optional.empty());
+        send(harness);
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(unnegotiated).doPost(eq(URI.create(PROVIDER_ADDRESS)), nullable(HttpEntity.class));
+
+        when(globalConf.isLegacyProtocolDisabled(serviceId().getXRoadInstance())).thenReturn(true);
+        assertThatThrownBy(() -> send(harness))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(LEGACY_CALL_REFUSED)).isTrue());
+        verify(harness.httpSenderProvider(), times(2)).createClientHttpSender();
+
+        when(harness.consumerSideDspProcessor().bypassesDsp(any())).thenReturn(true);
+        send(harness);
+        verify(bypassing).doPost(eq(URI.create(PROVIDER_ADDRESS)), nullable(HttpEntity.class));
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(harness.legacyCallRefusalPolicy(), times(2)).checkConsumerCallAllowed(serviceId());
     }
 
     @Test
@@ -665,7 +795,9 @@ class ClientRestMessageProcessorTest {
         verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
         verify(httpSender).close();
         verifyNoInteractions(harness.dspSendFailureHandler());
-        verifyNoInteractions(harness.consumerSideDspProcessor());
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
     }
 
     @ParameterizedTest
@@ -1382,9 +1514,9 @@ class ClientRestMessageProcessorTest {
                 clientRequestPreparationService,
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
-                legacyCallRefusalPolicy,
                 new DspFailover(consumerSideDspProcessor, httpSenderProvider, dspSendFailureHandler),
-                new CallModeSelector(globalConfProvider, serviceAddressResolver, proxyProperties, consumerSideDspProcessor));
+                new CallModeSelector(globalConfProvider, serviceAddressResolver, proxyProperties, consumerSideDspProcessor,
+                        legacyCallRefusalPolicy));
         return new RestHarness(processor, consumerSideDspProcessor, clientRequestPreparationService,
                 globalConfProvider, legacyCallRefusalPolicy, dspSendFailureHandler, httpSenderProvider,
                 messageSigningService, serviceAddressResolver);

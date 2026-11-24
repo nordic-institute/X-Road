@@ -71,7 +71,6 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
-import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.CachingStream;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
@@ -126,7 +125,6 @@ public class ClientRestMessageProcessor {
     private final ClientRequestPreparationService clientRequestPreparationService;
     private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
-    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
     private final DspFailover dspFailover;
     private final CallModeSelector callModeSelector;
 
@@ -260,9 +258,6 @@ public class ClientRestMessageProcessor {
                 try {
                     var addresses = clientRequestPreparationService.prepareRequest(httpSender, requestServiceId,
                             restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);
-                    if (!proxyProperties.dspEnabled()) {
-                        checkUnnegotiatedCallAllowed(requestServiceId);
-                    }
                     addRequestHeaders(httpSender, xRequestId, null);
                     post(httpSender, addresses, entity, opMonitoringData);
                     return new SentRequest(httpSender, entity.getRestBodyDigest(), false);
@@ -323,10 +318,6 @@ public class ClientRestMessageProcessor {
      */
     private boolean canRetry(Exception exception, SigningProxyMessageEntity entity, Object targets, int attempt) {
         return clientRequestPreparationService.shouldRetry(exception, targets, attempt) && entity.isReplayable();
-    }
-
-    void checkUnnegotiatedCallAllowed(ServiceId requestServiceId) {
-        legacyCallRefusalPolicy.checkConsumerCallAllowed(requestServiceId);
     }
 
     private URI[] prepareDspSender(HttpSender httpSender, AssetAccessResponse access, ServiceId requestServiceId,

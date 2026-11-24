@@ -259,19 +259,19 @@ public abstract class AbstractProxyIntegrationTest {
         var clientRequestPreparationServiceClient = new ClientRequestPreparationService(
                 serviceAddressResolverClient, proxyProperties, opMonitoringDataHelperClient, unusableAddressTracker);
         clientRequestPreparationServiceClient.init();
+        var legacyCallRefusalPolicy = new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF);
         var clientRestMessageProcessor = new ClientRestMessageProcessor(
                 messageSigningServiceClient, httpSenderProviderClient,
                 clientVerificationServiceClient, opMonitoringDataHelperClient,
                 TEST_GLOBAL_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient,
                 CONSUMER_SIDE_DSP_PROCESSOR, identifierValidationService,
-                new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF),
                 new DspFailover(CONSUMER_SIDE_DSP_PROCESSOR, httpSenderProviderClient,
                         new DspSendFailureHandler(CONSUMER_SIDE_DSP_PROCESSOR)),
                 new CallModeSelector(TEST_GLOBAL_CONF,
                         new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties,
                                 new ProviderSecurityServerResolver(TEST_GLOBAL_CONF)),
-                        proxyProperties, CONSUMER_SIDE_DSP_PROCESSOR));
+                        proxyProperties, CONSUMER_SIDE_DSP_PROCESSOR, legacyCallRefusalPolicy));
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),

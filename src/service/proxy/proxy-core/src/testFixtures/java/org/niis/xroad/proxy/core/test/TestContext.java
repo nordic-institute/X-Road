@@ -212,18 +212,18 @@ public class TestContext {
             var clientRequestPreparationService = new ClientRequestPreparationService(
                     serviceAddressResolver, proxyProperties, opMonitoringDataHelper, unusableAddressTracker);
             clientRequestPreparationService.init();
+            var clientLegacyCallRefusalPolicy = new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider);
             var clientSoapMessageProcessor = new ClientSoapMessageProcessor(
                     messageSigningService, httpSenderProvider,
                     clientVerificationService, opMonitoringDataHelper,
                     globalConfProvider, proxyProperties, commonProperties,
                     ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService,
-                    new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider),
                     new DspFailover(consumerSideDspProcessor, httpSenderProvider,
                             new DspSendFailureHandler(consumerSideDspProcessor)),
                     new CallModeSelector(globalConfProvider,
                             new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
                                     new ProviderSecurityServerResolver(globalConfProvider)),
-                            proxyProperties, consumerSideDspProcessor));
+                            proxyProperties, consumerSideDspProcessor, clientLegacyCallRefusalPolicy));
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);

@@ -41,6 +41,7 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ProviderCandidates;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 
 import java.util.Arrays;
@@ -51,10 +52,12 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class CallModeSelectorTest {
@@ -70,8 +73,10 @@ class CallModeSelectorTest {
     private final DefaultServiceAddressResolver serviceAddressResolver = mock(DefaultServiceAddressResolver.class);
     private final ProxyProperties proxyProperties = mock(ProxyProperties.class);
     private final DspRequestProcessor dspRequestProcessor = mock(DspRequestProcessor.class);
+    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy = mock(LegacyCallRefusalPolicy.class);
     private final CallModeSelector selector =
-            new CallModeSelector(globalConf, serviceAddressResolver, proxyProperties, dspRequestProcessor);
+            new CallModeSelector(globalConf, serviceAddressResolver, proxyProperties, dspRequestProcessor,
+                    legacyCallRefusalPolicy);
 
     @BeforeEach
     void servers() {
@@ -192,9 +197,7 @@ class CallModeSelectorTest {
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, List.of(new ProviderAddress(SS_A, HOST_A), new ProviderAddress(SS_B, HOST_B))))
-                .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining("first-bad-did")
-                .hasMessageNotContaining("second-bad-did");
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.INVALID_ENCODED_ID, "first-bad-did", "second-bad-did"));
     }
 
     @Test
@@ -203,8 +206,7 @@ class CallModeSelectorTest {
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining("ss-a");
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.VALIDATION_ERROR, "ss-a", "DEV:COM:222"));
     }
 
     @Test
@@ -235,6 +237,29 @@ class CallModeSelectorTest {
 
         assertThat(selector.overDsp(requestOf(PROVIDER))).isEmpty();
         verify(serviceAddressResolver, never()).resolveCandidates(any(), any());
+        verify(legacyCallRefusalPolicy).checkConsumerCallAllowed(serviceOf(PROVIDER));
+    }
+
+    @Test
+    void overDspRefusesTheCallWhenDspIsDisabledAndLegacyCallsAreRefused() {
+        when(proxyProperties.dspEnabled()).thenReturn(false);
+        var refusal = XrdRuntimeException.systemException(ErrorCode.LEGACY_CALL_REFUSED, "legacy calls are refused");
+        doThrow(refusal).when(legacyCallRefusalPolicy).checkConsumerCallAllowed(serviceOf(PROVIDER));
+        var request = requestOf(PROVIDER);
+
+        assertThatThrownBy(() -> selector.overDsp(request)).isSameAs(refusal);
+        verify(serviceAddressResolver, never()).resolveCandidates(any(), any());
+    }
+
+    @Test
+    void overDspDoesNotCheckTheRefusalWhenDspIsDisabledAndTheRequestBypassesDsp() {
+        when(proxyProperties.dspEnabled()).thenReturn(false);
+        var request = requestOf(PROVIDER);
+        when(dspRequestProcessor.bypassesDsp(request)).thenReturn(true);
+
+        assertThat(selector.overDsp(request)).isEmpty();
+        verifyNoInteractions(legacyCallRefusalPolicy);
+        verify(serviceAddressResolver, never()).resolveCandidates(any(), any());
     }
 
     @Test
@@ -245,6 +270,7 @@ class CallModeSelectorTest {
 
         assertThat(selector.overDsp(request)).isEmpty();
         verify(serviceAddressResolver, never()).resolveCandidates(any(), any());
+        verifyNoInteractions(legacyCallRefusalPolicy);
     }
 
     @Test
@@ -253,6 +279,65 @@ class CallModeSelectorTest {
         when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
 
         assertThat(selector.overDsp(requestOf(PROVIDER))).isEmpty();
+        verify(legacyCallRefusalPolicy).checkConsumerCallAllowed(serviceOf(PROVIDER));
+    }
+
+    @Test
+    void overDspRefusesTheUnnegotiatedCallWhenLegacyCallsAreRefused() {
+        when(proxyProperties.dspEnabled()).thenReturn(true);
+        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
+        var refusal = XrdRuntimeException.systemException(ErrorCode.LEGACY_CALL_REFUSED, "legacy calls are refused");
+        doThrow(refusal).when(legacyCallRefusalPolicy).checkConsumerCallAllowed(serviceOf(PROVIDER));
+        var request = requestOf(PROVIDER);
+
+        assertThatThrownBy(() -> selector.overDsp(request)).isSameAs(refusal);
+    }
+
+    @Test
+    void overDspDoesNotCheckTheRefusalWhenTheCalledDidIsPublished() {
+        when(proxyProperties.dspEnabled()).thenReturn(true);
+        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
+        publishMember(SS_A, HOST_A);
+
+        assertThat(selector.overDsp(requestOf(PROVIDER))).isPresent();
+        verifyNoInteractions(legacyCallRefusalPolicy);
+    }
+
+    @Test
+    void overDspTurnsAPublishedDidFailureIntoInternalErrorWithoutTheDid() {
+        when(proxyProperties.dspEnabled()).thenReturn(true);
+        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
+        publishMemberDid(SS_A, HOST_A, "not-a-did");
+        var request = requestOf(PROVIDER);
+
+        assertThatThrownBy(() -> selector.overDsp(request))
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.INVALID_ENCODED_ID, "not-a-did"));
+        verifyNoInteractions(legacyCallRefusalPolicy);
+    }
+
+    @Test
+    void overDspKeepsTheCodeOfAFailureThatIsNotAPublishedDidFailure() {
+        when(proxyProperties.dspEnabled()).thenReturn(true);
+        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
+        var readFailure = XrdRuntimeException.systemException(ErrorCode.IO_ERROR, "global configuration is not readable");
+        when(globalConf.getClientSecurityServers(any())).thenThrow(readFailure);
+        var request = requestOf(PROVIDER);
+
+        assertThatThrownBy(() -> selector.overDsp(request)).isSameAs(readFailure);
+        verifyNoInteractions(legacyCallRefusalPolicy);
+    }
+
+    @Test
+    void overDspKeepsTheMaintenanceErrorUnchanged() {
+        when(proxyProperties.dspEnabled()).thenReturn(true);
+        publishMember(SS_A, HOST_A);
+        var maintenanceError = XrdRuntimeException.systemException(ErrorCode.MAINTENANCE_MODE, "ss-a is in maintenance mode");
+        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_B),
+                List.of(new ServerInMaintenance(new ProviderAddress(null, HOST_A), maintenanceError))));
+        var request = requestOf(PROVIDER);
+
+        assertThatThrownBy(() -> selector.overDsp(request)).isSameAs(maintenanceError);
+        verifyNoInteractions(legacyCallRefusalPolicy);
     }
 
     @Test
@@ -274,7 +359,7 @@ class CallModeSelectorTest {
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, List.of(new ProviderAddress(SS_A, HOST_A), new ProviderAddress(SS_B, HOST_B))))
-                .isInstanceOf(XrdRuntimeException.class);
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.INVALID_ENCODED_ID, "not-a-did"));
     }
 
     @Test
@@ -293,19 +378,17 @@ class CallModeSelectorTest {
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, List.of(new ProviderAddress(SS_A, HOST_A))))
-                .isInstanceOf(XrdRuntimeException.class);
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.INVALID_ENCODED_ID, "not-a-did"));
     }
 
     @Test
-    void schemeVersionV2FailsWithItsOwnCodeAndNamesThePublishedDid() {
+    void schemeVersionV2FailsAsInternalErrorWithoutNamingThePublishedDid() {
         var did = "did:web:ss-a.example%3A7183:v2:DEV:COM:222";
         publishMemberDid(SS_A, HOST_A, did);
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
-                .isInstanceOfSatisfying(XrdRuntimeException.class, ex ->
-                        assertThat(ex.getCode()).isEqualTo(ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code()))
-                .hasMessageContaining(did);
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED, did, "ss-a.example"));
     }
 
     @Test
@@ -314,8 +397,7 @@ class CallModeSelectorTest {
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining("not the DID of the called member");
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.VALIDATION_ERROR, "DEV:COM:333", "ss-a.example"));
     }
 
     @Test
@@ -324,8 +406,7 @@ class CallModeSelectorTest {
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining("not the DID of the called member");
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.VALIDATION_ERROR, "ss-a.example"));
     }
 
     @Test
@@ -347,8 +428,7 @@ class CallModeSelectorTest {
         var target = CalledTarget.of(ServiceId.Conf.create(MEMBER, "getSecurityServerMetrics"), false);
 
         assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining("not the DID of the called SYSTEM participant");
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.VALIDATION_ERROR, "ss-a.example", "DEV:COM:222"));
     }
 
     @Test
@@ -414,6 +494,16 @@ class CallModeSelectorTest {
         var mode = selector.select(CalledTarget.of(serviceOf(PROVIDER), false), servers);
 
         assertThat(mode).isEqualTo(new CallMode.Unnegotiated());
+    }
+
+    private static void assertSanitized(Throwable thrown, ErrorCode originalCode, String... hidden) {
+        assertThat(thrown).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+            assertThat(e.isCausedBy(ErrorCode.INTERNAL_ERROR)).isTrue();
+            assertThat(e.getErrorCodeMetadata().getFirst()).isEqualTo("originalCode=" + originalCode.code());
+            assertThat(e.getCause()).isNull();
+            assertThat(e.getMessage()).doesNotContain(hidden);
+            assertThat(e.getDetails()).doesNotContain(hidden);
+        });
     }
 
     private void publishMember(SecurityServerId serverId, String host) {

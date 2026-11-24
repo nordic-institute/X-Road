@@ -89,7 +89,7 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
     @Test
     void shouldRefuseTokenlessRequestWhenTheInstanceRefuses() {
-        refuseLegacyCallsOnTheInstance();
+        refuseLegacyCallsOnTheInstanceWhileTheProviderPublishesDspValues();
 
         postEcho()
                 .statusCode(500)
@@ -111,15 +111,6 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
         postEcho()
                 .statusCode(200)
                 .body("value", Matchers.equalTo(42));
-    }
-
-    private void refuseLegacyCallsOnTheInstance() {
-        TEST_GLOBAL_CONF.setGlobalConfProvider(new TestGlobalConf() {
-            @Override
-            public boolean isLegacyProtocolDisabled(String instanceIdentifier) {
-                return true;
-            }
-        });
     }
 
     private void refuseLegacyCallsOnTheInstanceWhileTheProviderPublishesDspValues() {

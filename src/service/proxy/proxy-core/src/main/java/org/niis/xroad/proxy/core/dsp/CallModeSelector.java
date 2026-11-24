@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DecodedParticipant;
 import org.niis.xroad.ds.identity.DspConventions;
@@ -44,6 +45,7 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ProviderCandidates;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 
 import java.util.ArrayList;
@@ -69,24 +71,32 @@ public class CallModeSelector {
     private final DefaultServiceAddressResolver serviceAddressResolver;
     private final ProxyProperties proxyProperties;
     private final DspRequestProcessor dspRequestProcessor;
+    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
 
     /**
-     * Decides whether a request goes to the provider over DSP.
+     * Decides whether a request goes to the provider over DSP. A request that is neither bypassing DSP nor going
+     * over DSP is an unnegotiated call, which is refused while legacy calls are refused for the provider. With DSP
+     * disabled every request that does not bypass DSP is unnegotiated, and no provider lookup is made.
      *
      * @param request the request to route
-     * @return the request carrying its DSP candidates, or empty when DSP is disabled, the request bypasses DSP or
-     *         no provider server published the called DID
-     * @throws XrdRuntimeException see {@link #select}
+     * @return the request carrying its DSP candidates, or empty when the request bypasses DSP, DSP is disabled or
+     *         no provider server published the called DID, and the unnegotiated call is allowed
+     * @throws XrdRuntimeException {@code LEGACY_CALL_REFUSED} when the call is unnegotiated and refused; see
+     *                             {@link #select(CalledTarget, ProviderCandidates)} for the selection failures
      */
     public Optional<DspRequest> overDsp(DspRequest request) {
-        if (!proxyProperties.dspEnabled() || dspRequestProcessor.bypassesDsp(request)) {
+        if (dspRequestProcessor.bypassesDsp(request)) {
             return Optional.empty();
         }
-        var servers = serviceAddressResolver.resolveCandidates(request.serviceId(), request.targetSecurityServer());
-        var target = CalledTarget.of(request.serviceId(), request.managementSubsystem());
-        return select(target, servers) instanceof CallMode.Dsp(var candidates)
-                ? Optional.of(request.withCandidates(candidates))
-                : Optional.empty();
+        if (proxyProperties.dspEnabled()) {
+            var servers = serviceAddressResolver.resolveCandidates(request.serviceId(), request.targetSecurityServer());
+            var target = CalledTarget.of(request.serviceId(), request.managementSubsystem());
+            if (select(target, servers) instanceof CallMode.Dsp(var candidates)) {
+                return Optional.of(request.withCandidates(candidates));
+            }
+        }
+        legacyCallRefusalPolicy.checkConsumerCallAllowed(request.serviceId());
+        return Optional.empty();
     }
 
     /**
@@ -112,9 +122,11 @@ public class CallModeSelector {
      *                that serve the provider at that address
      * @return {@link CallMode.Dsp} with the usable candidates when any available server published the called DID,
      *         {@link CallMode.Unnegotiated} when no server published it
-     * @throws XrdRuntimeException the first failure to build a DSP target, when servers published the called DID and
-     *                             none of the published values is usable; the maintenance mode error of a server that
-     *                             published the called DID when every such server is in maintenance mode
+     * @throws XrdRuntimeException {@code INTERNAL_ERROR} with a generic message for the first failure to build a DSP
+     *                             target, when servers published the called DID and none of the published values is
+     *                             usable, the failure itself being logged and kept as {@code originalCode=} metadata;
+     *                             the maintenance mode error of a server that published the called DID when every such
+     *                             server is in maintenance mode
      */
     public CallMode select(CalledTarget target, ProviderCandidates servers) {
         var serversByAddress = needsServerLookup(servers)
@@ -146,7 +158,7 @@ public class CallModeSelector {
             return new CallMode.Dsp(candidates);
         }
         if (published) {
-            throw firstFailure;
+            throw ClientFacingErrorPolicy.sanitizeProviderTargetFailure(firstFailure);
         }
         failOnPublishedServerInMaintenance(target, servers, serversByAddress);
         return new CallMode.Unnegotiated();
