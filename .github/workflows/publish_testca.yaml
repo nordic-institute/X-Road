@@ -55,7 +55,6 @@ jobs:
       - name: Scan image for mirror credentials
         if: steps.mirrors.outputs.enabled == 'true'
         run: |
-          ./scripts/images/test-mirror-layer-leak-control.sh
           ./scripts/images/test-mirror-layer-leak.sh "${TESTCA_IMAGE}"
       - name: Push Docker image
         run: docker push "${TESTCA_IMAGE}"

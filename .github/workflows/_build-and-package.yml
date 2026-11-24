@@ -369,7 +369,6 @@ jobs:
           for image in "${images[@]}"; do
             docker pull "${image}"
           done
-          ./test-mirror-layer-leak-control.sh
           ./test-mirror-layer-leak.sh "${images[@]}"
 
       - name: Write images-ready marker

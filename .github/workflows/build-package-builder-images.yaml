@@ -84,7 +84,6 @@ jobs:
           IMAGE_TAG: ${{ steps.version.outputs.tag }}-amd64
         run: |
           IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
-          ./test-mirror-layer-leak-control.sh
           ./test-mirror-layer-leak.sh \
             "${IMAGE_REGISTRY}/package-builder-deb-noble:${IMAGE_TAG}" \
             "${IMAGE_REGISTRY}/package-builder-deb-resolute:${IMAGE_TAG}" \
@@ -159,7 +158,6 @@ jobs:
           IMAGE_TAG: ${{ steps.version.outputs.tag }}-arm64
         run: |
           IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
-          ./test-mirror-layer-leak-control.sh
           ./test-mirror-layer-leak.sh \
             "${IMAGE_REGISTRY}/package-builder-deb-noble:${IMAGE_TAG}" \
             "${IMAGE_REGISTRY}/package-builder-deb-resolute:${IMAGE_TAG}" \

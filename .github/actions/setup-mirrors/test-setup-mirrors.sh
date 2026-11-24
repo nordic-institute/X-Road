@@ -11,6 +11,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../../../scripts/lib/test-helpers.sh"
 
 DUMMY_TOKEN="dummy-token-value"
 DUMMY_USERNAME="dummy-user"
@@ -56,15 +57,6 @@ expected_value() {
 }
 
 FAILURES=0
-
-pass() { echo "  ok: $1"; }
-fail() { echo "  FAILED: $1" >&2; FAILURES=$((FAILURES + 1)); }
-
-check() {
-  local description="$1"
-  shift
-  if "$@"; then pass "${description}"; else fail "${description}"; fi
-}
 
 install_stub() {
   mkdir -p "$1"

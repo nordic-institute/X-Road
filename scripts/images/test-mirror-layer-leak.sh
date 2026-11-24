@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Layer-leak scan for images built with a package mirror.
 #
-# Saves each image and checks every layer and the image configuration:
+# Runs the negative control (test-mirror-layer-leak-control.sh) first. Then saves each image and
+# checks every layer of every manifest entry and the image configuration:
 #   - the mirror token string is absent;
 #   - no apt or dnf mirror credential file exists.
 # Then checks the final filesystem for the apt TLS-verification override that the mirror
@@ -9,15 +10,18 @@
 #
 # Usage: XROAD_MIRROR_TOKEN=<token> ./test-mirror-layer-leak.sh <image> [<image>...]
 #
-# Exit codes: 0 clean, 1 a finding, 2 usage error. The token is never printed.
+# LAYER_LEAK_CONTROL_ACTIVE=1 skips the control; the control sets it for its own call of this script.
+# Exit codes: 0 clean, 1 a finding or a failed control, 2 usage error or a control probe that could
+# not be built. The token is never printed.
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
+source "${ROOT_DIR}/scripts/lib/test-helpers.sh"
 
-CREDENTIAL_FILE_PATTERN='^(\./)?(etc/apt/auth\.conf\.d/[^/]+|etc/yum\.repos\.d/00-mirror-[^/]*\.repo|root/\.netrc)$'
+CREDENTIAL_FILE_PATTERN='^(\./)?(etc/apt/auth\.conf(\.d/[^/]+)?|etc/yum\.repos\.d/00-mirror-[^/]*\.repo|root/\.netrc)$'
 TLS_OVERRIDE_PATH="etc/apt/apt.conf.d/99mirror-no-verify"
 
 if [[ $# -lt 1 ]]; then
@@ -41,7 +45,7 @@ CONTAINER=""
 FAILURES=0
 
 cleanup() {
-  if [[ -n "${CONTAINER}" ]]; then docker rm -f "${CONTAINER}" >/dev/null 2>&1; fi
+  if [[ -n "${CONTAINER}" ]]; then docker rm -f -v "${CONTAINER}" >/dev/null 2>&1; fi
   rm -rf "${WORK_DIR}"
 }
 trap cleanup EXIT
@@ -49,15 +53,6 @@ trap cleanup EXIT
 # The token goes to a private file so it never appears in a process argument list.
 umask 077
 printf '%s\n' "${XROAD_MIRROR_TOKEN}" >"${TOKEN_FILE}"
-
-pass() { log_success "  ok: $1"; }
-fail() { log_error "  FAILED: $1"; FAILURES=$((FAILURES + 1)); }
-
-check() {
-  local description="$1"
-  shift
-  if "$@"; then pass "${description}"; else fail "${description}"; fi
-}
 
 COUNT_FILE="${WORK_DIR}/count"
 
@@ -97,15 +92,14 @@ no_tls_override_in_final_filesystem() {
   }
   local present=1
   if docker cp "${CONTAINER}:/${TLS_OVERRIDE_PATH}" - >/dev/null 2>&1; then present=0; fi
-  docker rm -f "${CONTAINER}" >/dev/null 2>&1
+  docker rm -f -v "${CONTAINER}" >/dev/null 2>&1
   CONTAINER=""
   [[ ${present} -ne 0 ]]
 }
 
 scan_image() {
-  local image="$1" dir config layer index=0 total
-  dir="${WORK_DIR}/image-${RANDOM}"
-  mkdir -p "${dir}"
+  local image="$1" dir config layer entry entries index total
+  dir="$(mktemp -d "${WORK_DIR}/image-XXXXXX")"
 
   log_info "Scanning ${image}"
   if ! docker save "${image}" | tar -x -C "${dir}"; then
@@ -113,27 +107,44 @@ scan_image() {
     return
   fi
 
-  if ! config="${dir}/$(jq -er '.[0].Config' "${dir}/manifest.json" 2>/dev/null)" ||
-    ! total="$(jq -er '.[0].Layers | length' "${dir}/manifest.json" 2>/dev/null)"; then
+  if ! entries="$(jq -er 'length' "${dir}/manifest.json" 2>/dev/null)" || ((entries == 0)); then
     fail "${image}: cannot read the image manifest"
     return
   fi
-  if ((total == 0)); then
-    fail "${image}: the manifest lists no layers"
-    return
-  fi
 
-  check "${image}: image configuration has no token" stream_has_no_token cat -- "${config}"
+  for ((entry = 0; entry < entries; entry++)); do
+    if ! config="${dir}/$(jq -er ".[${entry}].Config" "${dir}/manifest.json" 2>/dev/null)" ||
+      ! total="$(jq -er ".[${entry}].Layers | length" "${dir}/manifest.json" 2>/dev/null)"; then
+      fail "${image}: cannot read manifest entry ${entry}"
+      continue
+    fi
+    if ((total == 0)); then
+      fail "${image}: manifest entry ${entry} lists no layers"
+      continue
+    fi
 
-  while IFS= read -r layer; do
-    index=$((index + 1))
-    check "${image}: layer ${index}/${total} ${layer##*/} has no token" stream_has_no_token tar -xOf "${dir}/${layer}"
-    check "${image}: layer ${index}/${total} ${layer##*/} has no credential file" no_credential_file_in_layer "${dir}/${layer}"
-  done < <(jq -r '.[0].Layers[]' "${dir}/manifest.json")
+    check "${image}: entry ${entry} image configuration has no token" stream_has_no_token cat -- "${config}"
+
+    index=0
+    while IFS= read -r layer; do
+      index=$((index + 1))
+      check "${image}: entry ${entry} layer ${index}/${total} ${layer##*/} has no token" stream_has_no_token tar -xOf "${dir}/${layer}"
+      check "${image}: entry ${entry} layer ${index}/${total} ${layer##*/} has no credential file" no_credential_file_in_layer "${dir}/${layer}"
+    done < <(jq -r ".[${entry}].Layers[]" "${dir}/manifest.json")
+  done
 
   check "${image}: final filesystem has no ${TLS_OVERRIDE_PATH}" no_tls_override_in_final_filesystem "${image}"
   rm -rf "${dir}"
 }
+
+if [[ -z "${LAYER_LEAK_CONTROL_ACTIVE:-}" ]]; then
+  "${SCRIPT_DIR}/test-mirror-layer-leak-control.sh"
+  control_exit=$?
+  if [[ ${control_exit} -ne 0 ]]; then
+    log_error "The negative control did not pass (exit ${control_exit}), no image was scanned"
+    exit "${control_exit}"
+  fi
+fi
 
 for image in "$@"; do
   scan_image "${image}"
