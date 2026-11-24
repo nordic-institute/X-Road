@@ -27,6 +27,7 @@
 
 package org.niis.xroad.ss.test.api.destructive;
 
+import io.restassured.response.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.ss.test.api.Port;
@@ -62,6 +63,8 @@ class IssuerServiceHealthcheckTest extends SsSharedStackDestructiveTest {
     private static final String CHECK_NAME = "EDC_READINESS_CHECK";
     private static final String DATABASE_COMPONENT = "database";
     private static final String CONNECTOR_TLS_COMPONENT = "connector-tls";
+    private static final String DATABASE_HOST = SsApiTestContainerSetup.DB_DS_ISSUER_SERVICE;
+    private static final String DATABASE_USER = "ds_issuer_service";
     private static final String CONNECTOR_TLS_CAUSE = "Connector TLS is not served";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(120);
@@ -74,18 +77,19 @@ class IssuerServiceHealthcheckTest extends SsSharedStackDestructiveTest {
         given("the Issuer Service readiness is UP initially", () ->
                 assertHealthcheckNoErrors(url, POLL_INTERVAL, POLL_TIMEOUT));
 
-        when("the db-ds-issuer-service container is stopped", () ->
-                stack.stopService(SsApiTestContainerSetup.DB_DS_ISSUER_SERVICE));
-
-        then("the readiness is DOWN with the database cause and no connection details", () ->
-                await()
-                        .pollDelay(Duration.ZERO)
-                        .pollInterval(POLL_INTERVAL)
-                        .atMost(POLL_TIMEOUT)
-                        .untilAsserted(() -> assertDatabaseDown(url)));
-
-        when("the db-ds-issuer-service container is started again", () ->
-                stack.startService(SsApiTestContainerSetup.DB_DS_ISSUER_SERVICE));
+        try {
+            when("the db-ds-issuer-service container is stopped", () ->
+                    stack.stopService(SsApiTestContainerSetup.DB_DS_ISSUER_SERVICE));
+            then("the readiness is DOWN with HTTP 503, the database cause and no connection details", () ->
+                    await()
+                            .pollDelay(Duration.ZERO)
+                            .pollInterval(POLL_INTERVAL)
+                            .atMost(POLL_TIMEOUT)
+                            .untilAsserted(() -> assertDatabaseDown(url)));
+        } finally {
+            and("the db-ds-issuer-service container is started again", () ->
+                    stack.startService(SsApiTestContainerSetup.DB_DS_ISSUER_SERVICE));
+        }
 
         then("the readiness is UP after the database recovers", () ->
                 assertHealthcheckNoErrors(url, POLL_INTERVAL, POLL_TIMEOUT));
@@ -120,22 +124,33 @@ class IssuerServiceHealthcheckTest extends SsSharedStackDestructiveTest {
         then("readiness is UP once the certificate is served", () ->
                 assertHealthcheckNoErrors(readinessUrl, POLL_INTERVAL, POLL_TIMEOUT));
     }
+
     private static AdminApiSession adminSession(SsApiTestContainerSetup stack) {
         var uiMapping = stack.getContainerMapping(SsApiTestContainerSetup.UI, Port.UI);
         return new AdminApiSession("https://%s:%d".formatted(uiMapping.host(), uiMapping.port()));
     }
+
     private static void assertConnectorTlsNotServed(String url) {
         assertHealthcheckStatus(url, CHECK_NAME, "DOWN");
         var cause = RestAssuredFactory.given().get(url).jsonPath()
                 .getString("checks.find { it.name == '%s' }.data['%s']".formatted(CHECK_NAME, CONNECTOR_TLS_COMPONENT));
         assertThat(cause).as("cause of the connector TLS component").contains(CONNECTOR_TLS_CAUSE);
     }
+
     private static void assertDatabaseDown(String url) {
-        assertHealthcheckStatus(url, CHECK_NAME, "DOWN");
-        var response = RestAssuredFactory.given().get(url);
-        var cause = response.jsonPath().getString("checks.find { it.name == '%s' }.data.%s"
-                .formatted(CHECK_NAME, DATABASE_COMPONENT));
+        Response response;
+        try {
+            response = RestAssuredFactory.given().get(url);
+        } catch (Exception e) {
+            throw new AssertionError("Healthcheck endpoint unreachable: " + e.getMessage(), e);
+        }
+        assertThat(response.statusCode()).as("HTTP status of the readiness endpoint").isEqualTo(503);
+        var json = response.jsonPath();
+        assertThat(json.getString("checks.find { it.name == '%s' }.status".formatted(CHECK_NAME)))
+                .as("status of healthcheck '%s'", CHECK_NAME)
+                .isEqualTo("DOWN");
+        var cause = json.getString("checks.find { it.name == '%s' }.data.%s".formatted(CHECK_NAME, DATABASE_COMPONENT));
         assertThat(cause).as("cause of the database component").isNotBlank();
-        assertThat(response.asString()).doesNotContain("jdbc:");
+        assertThat(response.asString()).doesNotContain("jdbc:", DATABASE_HOST, DATABASE_USER);
     }
 }
