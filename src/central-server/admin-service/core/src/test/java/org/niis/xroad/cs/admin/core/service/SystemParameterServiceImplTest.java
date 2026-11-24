@@ -163,7 +163,7 @@ class SystemParameterServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", "  ", ",", ",,", "four", "4,x", "4,,5", "4;5"})
+    @ValueSource(strings = {"", "  ", ",", ",,", "four", "4,x", "4,,5", "4;5", "5,", "5,,"})
     void soapProtocolVersionsFallBackToFourWithWarningWhenValueIsBadOrBlank(String value) {
         when(systemParameterRepository.findByKey(SOAP_PROTOCOL_VERSIONS))
                 .thenReturn(List.of(parameter(SOAP_PROTOCOL_VERSIONS, value)));

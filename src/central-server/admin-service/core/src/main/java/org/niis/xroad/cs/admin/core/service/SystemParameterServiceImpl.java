@@ -188,7 +188,7 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     private Set<Integer> parseSoapProtocolVersions(String value) {
         Set<Integer> versions;
         try {
-            versions = Arrays.stream(value.split(","))
+            versions = Arrays.stream(value.split(",", -1))
                     .map(String::trim)
                     .map(Integer::parseInt)
                     .collect(Collectors.toUnmodifiableSet());
