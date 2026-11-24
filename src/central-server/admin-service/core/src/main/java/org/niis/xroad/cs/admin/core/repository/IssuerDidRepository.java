@@ -44,6 +44,12 @@ public interface IssuerDidRepository extends GenericRepository<IssuerDidEntity, 
     List<IssuerDidEntity> findAllTrusted();
 
     /**
+     * Rows that are trusted, locked against concurrent removal for the rest of the caller's transaction, so a
+     * count taken from the result stays accurate until the caller's own removal commits.
+     */
+    List<IssuerDidEntity> findAllTrustedForUpdate();
+
+    /**
      * Marks the row as removed, unless it is already removed or missing.
      *
      * @return {@code true} if a row was updated

@@ -43,8 +43,14 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.sql.DriverManager;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -65,6 +71,7 @@ class IssuerDidPostgresTest {
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
 
     private static final String DID = "did:web:cs.example%3A6183:issuer";
+    private static final String OTHER_DID = "did:web:cs.example%3A6184:issuer";
     private static final String HOST = "cs.example";
     private static final int DID_PORT = 6183;
     private static final String ISSUANCE_URL = "https://cs.example:6185/api/issuance/v1/participants/issuer";
@@ -187,6 +194,76 @@ class IssuerDidPostgresTest {
             assertThat(withTransaction(entityManager, repository::findAllTrusted)).isEmpty();
         } finally {
             entityManager.close();
+        }
+    }
+
+    /**
+     * Two transactions race to remove the last two trusted rows. Each takes {@link #removeHoldingRowsLocked}'s
+     * path: lock every live row with {@code findAllTrustedForUpdate}, pause while still holding that lock, then
+     * mark its own row removed and commit. The {@link CyclicBarrier} lines both transactions up on the locking
+     * read so the race is real rather than incidental thread scheduling; without the lock, both reads would see
+     * two live rows and both would report {@code lastTrustedIssuer=false}.
+     */
+    @Test
+    void removingTheLastTwoTrustedIssuersConcurrentlyReportsLastTrustedIssuerExactlyOnce() throws Exception {
+        var entityManagerA = sessionFactory.createEntityManager();
+        var entityManagerB = sessionFactory.createEntityManager();
+        try {
+            var repositoryA = didRepository(entityManagerA);
+            var repositoryB = didRepository(entityManagerB);
+
+            withTransaction(entityManagerA, () -> {
+                repositoryA.insert(DID, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL);
+                repositoryA.insert(OTHER_DID, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL);
+                return null;
+            });
+            var ids = readStoredIds();
+            var idA = ids.get(0);
+            var idB = ids.get(1);
+
+            var barrier = new CyclicBarrier(2);
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            try {
+                var resultA = executor.submit(() -> removeHoldingRowsLocked(entityManagerA, repositoryA, idA, barrier));
+                var resultB = executor.submit(() -> removeHoldingRowsLocked(entityManagerB, repositoryB, idB, barrier));
+
+                assertThat(List.of(resultA.get(10, TimeUnit.SECONDS), resultB.get(10, TimeUnit.SECONDS)))
+                        .containsExactlyInAnyOrder(true, false);
+            } finally {
+                executor.shutdownNow();
+            }
+        } finally {
+            entityManagerA.close();
+            entityManagerB.close();
+        }
+    }
+
+    private static boolean removeHoldingRowsLocked(EntityManager entityManager, JpaIssuerDidRepository repository, int id,
+            CyclicBarrier barrier) throws Exception {
+        entityManager.getTransaction().begin();
+        try {
+            barrier.await(10, TimeUnit.SECONDS);
+            var trusted = repository.findAllTrustedForUpdate();
+            Thread.sleep(300);
+            var isLast = trusted.size() == 1;
+            repository.markRemoved(id);
+            entityManager.getTransaction().commit();
+            return isLast;
+        } catch (Exception e) {
+            entityManager.getTransaction().rollback();
+            throw e;
+        }
+    }
+
+    private List<Integer> readStoredIds() throws Exception {
+        try (var connection = DriverManager.getConnection(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+                var statement = connection.prepareStatement("SELECT id FROM " + IssuerDidEntity.TABLE_NAME + " ORDER BY id");
+                var resultSet = statement.executeQuery()) {
+            var ids = new ArrayList<Integer>();
+            while (resultSet.next()) {
+                ids.add(resultSet.getInt("id"));
+            }
+            return ids;
         }
     }
 

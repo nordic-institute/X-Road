@@ -104,24 +104,28 @@ public record IssuerServiceStatus(
                     case CANNOT_SIGN -> canSignResult.cause();
                 };
 
-        Overall overall;
-        if (didBound && boundRemoved) {
-            overall = Overall.REMOVED;
-        } else if (didBound) {
-            overall = matches ? Overall.READY : Overall.FAILED;
-        } else if (!hostSet) {
-            overall = Overall.NOT_CONFIGURED;
-        } else if (!certificateReady) {
-            overall = Overall.WAITING_FOR_CERTIFICATE;
-        } else if (runInProgress) {
-            overall = Overall.INITIALIZING;
-        } else if (probed && (canSignResult.outcome() == CanSignOutcome.ABSENT || matches)) {
-            overall = Overall.READY_TO_INITIALIZE;
-        } else {
-            overall = Overall.FAILED;
-        }
+        Overall overall = overall(didBound, boundRemoved, hostSet, certificateReady, runInProgress, probed, matches, canSignResult);
 
         return new IssuerServiceStatus(host, hostSet, certificateReady, runInProgress, didToBind, didBound, boundDid, canSign,
                 canSignCause, overall);
+    }
+
+    private static Overall overall(boolean didBound, boolean boundRemoved, boolean hostSet, boolean certificateReady,
+            boolean runInProgress, boolean probed, boolean matches, @Nullable CanSignResult canSignResult) {
+        if (didBound && boundRemoved) {
+            return Overall.REMOVED;
+        } else if (didBound) {
+            return matches ? Overall.READY : Overall.FAILED;
+        } else if (!hostSet) {
+            return Overall.NOT_CONFIGURED;
+        } else if (!certificateReady) {
+            return Overall.WAITING_FOR_CERTIFICATE;
+        } else if (runInProgress) {
+            return Overall.INITIALIZING;
+        } else if (probed && (canSignResult.outcome() == CanSignOutcome.ABSENT || matches)) {
+            return Overall.READY_TO_INITIALIZE;
+        } else {
+            return Overall.FAILED;
+        }
     }
 }

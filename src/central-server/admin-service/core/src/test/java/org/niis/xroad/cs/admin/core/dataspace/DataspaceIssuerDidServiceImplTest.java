@@ -131,7 +131,7 @@ class DataspaceIssuerDidServiceImplTest {
         var entity = mock(IssuerDidEntity.class);
         when(entity.getId()).thenReturn(ID);
         when(entity.getDid()).thenReturn(DID_1);
-        when(issuerDidRepository.findAllTrusted()).thenReturn(List.of(entity));
+        when(issuerDidRepository.findAllTrustedForUpdate()).thenReturn(List.of(entity));
         when(issuerDidRepository.markRemoved(ID)).thenReturn(true);
 
         assertThat(service.remove(ID)).isEqualTo(new TrustedIssuerRemoval(DID_1, true));
@@ -144,10 +144,8 @@ class DataspaceIssuerDidServiceImplTest {
         when(target.getDid()).thenReturn(DID_1);
 
         var other = mock(IssuerDidEntity.class);
-        when(other.getId()).thenReturn(ID + 1);
-        when(other.getDid()).thenReturn(DID_2);
 
-        when(issuerDidRepository.findAllTrusted()).thenReturn(List.of(target, other));
+        when(issuerDidRepository.findAllTrustedForUpdate()).thenReturn(List.of(target, other));
         when(issuerDidRepository.markRemoved(ID)).thenReturn(true);
 
         assertThat(service.remove(ID)).isEqualTo(new TrustedIssuerRemoval(DID_1, false));
@@ -155,7 +153,7 @@ class DataspaceIssuerDidServiceImplTest {
 
     @Test
     void removeOfAnUnknownOrRemovedIdThrowsNotFoundAndDoesNotUpdate() {
-        when(issuerDidRepository.findAllTrusted()).thenReturn(List.of());
+        when(issuerDidRepository.findAllTrustedForUpdate()).thenReturn(List.of());
 
         assertThatThrownBy(() -> service.remove(ID)).isInstanceOf(NotFoundException.class);
 
@@ -166,8 +164,7 @@ class DataspaceIssuerDidServiceImplTest {
     void removeThrowsNotFoundWhenMarkRemovedUpdatesNoRowWhileTheIdIsStillTrusted() {
         var entity = mock(IssuerDidEntity.class);
         when(entity.getId()).thenReturn(ID);
-        when(entity.getDid()).thenReturn(DID_1);
-        when(issuerDidRepository.findAllTrusted()).thenReturn(List.of(entity));
+        when(issuerDidRepository.findAllTrustedForUpdate()).thenReturn(List.of(entity));
         when(issuerDidRepository.markRemoved(ID)).thenReturn(false);
 
         assertThatThrownBy(() -> service.remove(ID)).isInstanceOf(NotFoundException.class);
