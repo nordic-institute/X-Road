@@ -46,9 +46,11 @@ import java.sql.Statement;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -78,6 +80,7 @@ class DatabaseReadinessProviderTest {
         verify(statement).executeQuery("SELECT 1");
         verify(connection).close();
     }
+
     @Test
     void releasesThePooledConnectionAfterASuccessfulCheck() throws SQLException {
         var connection = mock(Connection.class);
@@ -88,6 +91,7 @@ class DatabaseReadinessProviderTest {
         assertThat(result.succeeded()).isTrue();
         verify(connection, times(1)).close();
     }
+
     @Test
     void releasesThePooledConnectionAfterAFailedCheck() throws SQLException {
         var connection = mock(Connection.class);
@@ -169,9 +173,91 @@ class DatabaseReadinessProviderTest {
         assertThat(elapsed).isLessThan(Duration.ofSeconds(5));
     }
 
+    @Test
+    void startsNoSecondCheckWhileAnEarlierOneStillRuns() throws SQLException {
+        var release = new CountDownLatch(1);
+        var dataSource = mock(DataSource.class);
+        when(dataSource.getConnection()).thenAnswer(invocation -> {
+            awaitUninterruptibly(release);
+            return readyConnection(mock(Statement.class));
+        });
+        var provider = provider(() -> dataSource);
+
+        var first = provider.get();
+        pauseLongerThanTheCache();
+        var second = provider.get();
+
+        assertThat(first.getFailureMessages()).containsExactly("timed out after 300 ms");
+        assertThat(second.getFailureMessages()).containsExactly("timed out after 300 ms");
+        verify(dataSource, times(1)).getConnection();
+
+        release.countDown();
+        await().untilAsserted(() -> assertThat(provider.get().succeeded()).isTrue());
+        verify(dataSource, times(2)).getConnection();
+    }
+
+    @Test
+    void endsTheWaitForAConnectionAtTheDeadlineSoTheNextCheckRuns() throws SQLException {
+        var calls = new AtomicInteger();
+        var dataSource = mock(DataSource.class);
+        when(dataSource.getConnection()).thenAnswer(invocation -> {
+            if (calls.getAndIncrement() == 0) {
+                awaitInterruptibly(new CountDownLatch(1));
+            }
+            return readyConnection(mock(Statement.class));
+        });
+        var provider = provider(() -> dataSource);
+
+        assertThat(provider.get().getFailureMessages()).containsExactly("timed out after 300 ms");
+
+        await().untilAsserted(() -> assertThat(provider.get().succeeded()).isTrue());
+    }
+
+    @Test
+    void limitsTheQueryToTheProbeTimeout() throws SQLException {
+        var statement = mock(Statement.class);
+        var connection = readyConnection(statement);
+        var dataSource = mock(DataSource.class);
+        when(dataSource.getConnection()).thenReturn(connection);
+
+        var result = provider(() -> dataSource, new NoopTransactionContext(), Duration.ofSeconds(3)).get();
+
+        assertThat(result.succeeded()).isTrue();
+        verify(statement).setQueryTimeout(3);
+    }
+
+    private static void pauseLongerThanTheCache() {
+        await().pollDelay(Duration.ofMillis(50)).until(() -> true);
+    }
+    private static Connection readyConnection(Statement statement) throws SQLException {
+        var connection = mock(Connection.class);
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery("SELECT 1")).thenReturn(mock(ResultSet.class));
+        return connection;
+    }
+
+    private static void awaitUninterruptibly(CountDownLatch latch) {
+        while (latch.getCount() > 0) {
+            try {
+                latch.await();
+            } catch (InterruptedException _) {
+                continue;
+            }
+        }
+    }
+
+    private static void awaitInterruptibly(CountDownLatch latch) throws SQLException {
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new SQLException("interrupted", e);
+        }
+    }
+
     private DatabaseReadinessProvider provider(Supplier<DataSource> dataSource) {
         return provider(dataSource, new NoopTransactionContext());
     }
+
     private DatabaseReadinessProvider pooledProvider(Connection connection) throws SQLException {
         var pool = mock(DataSource.class);
         when(pool.getConnection()).thenReturn(connection);
@@ -180,7 +266,13 @@ class DatabaseReadinessProviderTest {
         transactionContext.registerResource(resource);
         return provider(() -> resource, transactionContext);
     }
+
     private DatabaseReadinessProvider provider(Supplier<DataSource> dataSource, TransactionContext transactionContext) {
-        return new DatabaseReadinessProvider(dataSource, transactionContext, monitor, TIMEOUT, CACHE_TIME);
+        return provider(dataSource, transactionContext, TIMEOUT);
+    }
+
+    private DatabaseReadinessProvider provider(Supplier<DataSource> dataSource, TransactionContext transactionContext,
+                                               Duration timeout) {
+        return new DatabaseReadinessProvider(dataSource, transactionContext, monitor, timeout, CACHE_TIME);
     }
 }

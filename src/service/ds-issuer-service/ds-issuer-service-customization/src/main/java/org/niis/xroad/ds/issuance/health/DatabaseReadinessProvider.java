@@ -27,6 +27,7 @@
 
 package org.niis.xroad.ds.issuance.health;
 
+import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
@@ -48,6 +49,12 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static org.niis.xroad.common.healthcheck.HealthCheckConstants.ERROR;
@@ -81,7 +88,7 @@ public final class DatabaseReadinessProvider implements ReadinessProvider {
      */
     public DatabaseReadinessProvider(Supplier<DataSource> dataSource, TransactionContext transactionContext,
                                      Monitor monitor, Duration timeout, Duration cacheTime) {
-        var query = new SelectOneCheck(dataSource, transactionContext, monitor);
+        var query = new SelectOneCheck(dataSource, transactionContext, monitor, timeout);
         this.check = new CachingHealthCheck(new TimedHealthCheck(query, timeout, COMPONENT),
                 cacheTime, cacheTime, MAX_ERROR_TTL, ERROR_BACKOFF_MULTIPLIER);
     }
@@ -128,12 +135,52 @@ public final class DatabaseReadinessProvider implements ReadinessProvider {
         return UNAVAILABLE;
     }
 
-    private record SelectOneCheck(Supplier<DataSource> dataSource, TransactionContext transactionContext,
-                                  Monitor monitor) implements HealthCheck {
+    /**
+     * Runs {@code SELECT 1} with at most one query in flight. A caller that arrives while an earlier query still
+     * runs waits for that query instead of starting another, up to the timeout. A query that outlives the timeout
+     * is interrupted, which ends a wait for a pooled connection, and runs with a matching JDBC query timeout.
+     */
+    @RequiredArgsConstructor
+    private static final class SelectOneCheck implements HealthCheck {
+
+        private final Supplier<DataSource> dataSource;
+        private final TransactionContext transactionContext;
+        private final Monitor monitor;
+        private final Duration timeout;
+        private final AtomicReference<CompletableFuture<HealthCheckResponse>> inFlight = new AtomicReference<>();
 
         @Override
         public HealthCheckResponse call() {
+            var own = new CompletableFuture<HealthCheckResponse>();
+            var running = inFlight.compareAndExchange(null, own);
+            if (running != null) {
+                return awaitRunning(running);
+            }
+            var response = timedOut();
+            try {
+                response = runQuery();
+            } finally {
+                inFlight.set(null);
+                own.complete(response);
+            }
+            return response;
+        }
+
+        private HealthCheckResponse awaitRunning(CompletableFuture<HealthCheckResponse> running) {
+            try {
+                return running.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            } catch (InterruptedException _) {
+                Thread.currentThread().interrupt();
+            } catch (TimeoutException | ExecutionException _) {
+                // no result in time
+            }
+            return timedOut();
+        }
+
+        private HealthCheckResponse runQuery() {
             var builder = HealthCheckResponse.builder().name(COMPONENT);
+            var expired = new AtomicBoolean();
+            var watchdog = interruptAfterTimeout(Thread.currentThread(), expired);
             try {
                 var source = dataSource.get();
                 if (source == null) {
@@ -143,18 +190,46 @@ public final class DatabaseReadinessProvider implements ReadinessProvider {
                 return builder.up().build();
             } catch (Exception e) {
                 monitor.warning("Database readiness check failed", e);
-                return builder.down().withData(ERROR, sanitise(e)).build();
+                return expired.get() ? timedOut() : builder.down().withData(ERROR, sanitise(e)).build();
+            } finally {
+                watchdog.interrupt();
             }
         }
 
-        private static void selectOne(DataSource source) {
+        private Thread interruptAfterTimeout(Thread worker, AtomicBoolean expired) {
+            return Thread.ofVirtual().start(() -> {
+                try {
+                    Thread.sleep(timeout);
+                    expired.set(true);
+                    worker.interrupt();
+                } catch (InterruptedException _) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+        }
+
+        private void selectOne(DataSource source) {
             try (var connection = source.getConnection();
-                 var statement = connection.createStatement();
-                 var rows = statement.executeQuery("SELECT 1")) {
-                rows.next();
+                 var statement = connection.createStatement()) {
+                statement.setQueryTimeout(queryTimeoutSeconds());
+                try (var rows = statement.executeQuery("SELECT 1")) {
+                    rows.next();
+                }
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
+        }
+
+        /** JDBC counts whole seconds; a timeout under one second rounds up to the one second JDBC allows. */
+        private int queryTimeoutSeconds() {
+            return (int) Math.max(1, timeout.toSeconds());
+        }
+
+        private HealthCheckResponse timedOut() {
+            return HealthCheckResponse.builder().name(COMPONENT).down()
+                    .withData(ERROR, TIMEOUT)
+                    .withData(TIMEOUT_MS, timeout.toMillis())
+                    .build();
         }
     }
 }
