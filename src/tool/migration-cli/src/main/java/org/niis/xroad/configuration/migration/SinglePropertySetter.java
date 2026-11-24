@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.migration.utils.InstallationType;
 
 import java.util.Map;
 
@@ -46,6 +47,13 @@ public class SinglePropertySetter extends BasePropertiesToDbMigrator {
     Map<String, String> loadProperties(String filePath) {
         refuseRowOfMergedType();
         return Map.of(propertyKey, propertyValue);
+    }
+
+    /**
+     * Writes the property without asking for confirmation, for callers that already hold the operator's consent.
+     */
+    void store(String dbPropertiesPath, InstallationType installationType) {
+        saveToDb(loadProperties(dbPropertiesPath), dbPropertiesPath, installationType);
     }
 
     private void refuseRowOfMergedType() {
