@@ -51,6 +51,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.test.MutableClock;
 
 import java.time.Clock;
@@ -62,6 +63,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -83,6 +85,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AgreementTokenKeyMaterialTest {
 
+    private static final String INSTANCE = "DEV";
     private static final Duration RETENTION = Duration.ofHours(1);
     private static final Duration STALE_LIMIT = RETENTION.minusSeconds(30 + 60 + 5);
 
@@ -117,7 +120,7 @@ class AgreementTokenKeyMaterialTest {
     private ProxyAgreementTokenProperties properties;
 
     @Mock
-    private ProxyProperties proxyProperties;
+    private GlobalConfProvider globalConfProvider;
 
     private final Map<String, String> keyPairsByKeyId = new HashMap<>();
     private final MutableClock clock = new MutableClock(Instant.parse("2026-01-01T00:00:00Z"));
@@ -136,7 +139,9 @@ class AgreementTokenKeyMaterialTest {
         lenient().when(properties.tokenTtl()).thenReturn(Duration.ofSeconds(60));
         lenient().when(properties.expiryLeeway()).thenReturn(Duration.ofSeconds(5));
         lenient().when(properties.staleSigningKeyLimit()).thenCallRealMethod();
-        lenient().when(proxyProperties.dspEnabled()).thenReturn(true);
+        lenient().when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
+        lenient().when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of("did:web:issuer.example"));
+        lenient().when(globalConfProvider.isValid()).thenReturn(true);
         originalLogLevel = materialLogger.getLevel();
         materialLogger.addHandler(logHandler);
         materialLogger.setLevel(Level.ALL);
@@ -167,7 +172,7 @@ class AgreementTokenKeyMaterialTest {
     }
 
     private AgreementTokenKeyMaterial newKeyMaterial(Duration rotationDelay) {
-        return new AgreementTokenKeyMaterial(vaultClient, properties, proxyProperties, clock, fixedDelay(rotationDelay));
+        return new AgreementTokenKeyMaterial(vaultClient, properties, globalConfProvider, clock, fixedDelay(rotationDelay));
     }
 
     private static RandomGenerator fixedDelay(Duration delay) {
@@ -179,6 +184,22 @@ class AgreementTokenKeyMaterialTest {
 
             @Override
             public long nextLong(long bound) {
+                return delay.toMillis();
+            }
+        };
+    }
+
+    private static RandomGenerator countingDelay(Duration delay, AtomicInteger draws) {
+        return new RandomGenerator() {
+            @Override
+            public long nextLong() {
+                draws.incrementAndGet();
+                return delay.toMillis();
+            }
+
+            @Override
+            public long nextLong(long bound) {
+                draws.incrementAndGet();
                 return delay.toMillis();
             }
         };
@@ -330,15 +351,86 @@ class AgreementTokenKeyMaterialTest {
     }
 
     @Test
-    void noAutomaticRotationWhileDspIsDisabled() {
+    void noAutomaticRotationWhileTheInstanceIsNotDataspaceReady() {
         var keyMaterial = newKeyMaterial();
-        when(proxyProperties.dspEnabled()).thenReturn(false);
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of());
         clock.advance(Duration.ofDays(365));
 
         keyMaterial.retryOrRefresh();
         keyMaterial.retryOrRefresh();
 
         assertThat(keyPairsByKeyId).containsOnlyKeys("1");
+    }
+
+    @Test
+    void noAutomaticRotationWhileGlobalConfIsUnavailable() {
+        var keyMaterial = newKeyMaterial();
+        when(globalConfProvider.getInstanceIdentifier()).thenThrow(new IllegalStateException("no anchor"));
+        clock.advance(Duration.ofDays(365));
+
+        keyMaterial.retryOrRefresh();
+        keyMaterial.retryOrRefresh();
+
+        assertThat(keyPairsByKeyId).containsOnlyKeys("1");
+    }
+
+    @Test
+    void noAutomaticRotationWhileGlobalConfIsNotValid() {
+        var keyMaterial = newKeyMaterial();
+        when(globalConfProvider.isValid()).thenReturn(false);
+        clock.advance(Duration.ofDays(365));
+
+        keyMaterial.retryOrRefresh();
+        keyMaterial.retryOrRefresh();
+
+        assertThat(keyPairsByKeyId).containsOnlyKeys("1");
+    }
+
+    @Test
+    void rotationRunsOnceTheInstanceBecomesDataspaceReadyAgain() {
+        var keyMaterial = newKeyMaterial();
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of());
+        clock.advance(Duration.ofDays(365));
+        keyMaterial.retryOrRefresh();
+        assertThat(keyPairsByKeyId).containsOnlyKeys("1");
+
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of("did:web:issuer.example"));
+        keyMaterial.retryOrRefresh();
+
+        assertThat(keyPairsByKeyId).containsOnlyKeys("1", "2");
+    }
+
+    @Test
+    void aNotReadyTickKeepsTheDrawnRotationDeadlineAndDoesNotDrawAgain() {
+        var delayDraws = new AtomicInteger();
+        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient, properties, globalConfProvider, clock,
+                countingDelay(Duration.ofSeconds(45), delayDraws));
+        clock.advance(Duration.ofDays(31));
+        keyMaterial.retryOrRefresh();
+        assertThat(delayDraws).hasValue(1);
+
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of());
+        clock.advance(Duration.ofSeconds(30));
+        keyMaterial.retryOrRefresh();
+        assertThat(keyPairsByKeyId).containsOnlyKeys("1");
+
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of("did:web:issuer.example"));
+        clock.advance(Duration.ofSeconds(15));
+        keyMaterial.retryOrRefresh();
+
+        assertThat(keyPairsByKeyId).containsOnlyKeys("1", "2");
+        assertThat(delayDraws).hasValue(1);
+    }
+
+    @Test
+    void theReadinessRuleIsEvaluatedOncePerTickEvenWhenRotationAndPruningBothRun() {
+        when(properties.keyRetention()).thenReturn(RETENTION);
+        var keyMaterial = newKeyMaterial();
+        clearInvocations(globalConfProvider);
+
+        keyMaterial.retryOrRefresh();
+
+        verify(globalConfProvider, times(1)).getInstanceIdentifier();
     }
 
     @Test
@@ -500,12 +592,40 @@ class AgreementTokenKeyMaterialTest {
     }
 
     @Test
-    void nothingIsDeletedWhileDspIsDisabled() {
+    void nothingIsDeletedWhileTheInstanceIsNotDataspaceReady() {
         when(properties.keyRetention()).thenReturn(RETENTION);
         var keyMaterial = newKeyMaterial();
         storeThreeKeysTheFirstTenDaysOld(keyMaterial);
         advanceUntilOnlyTheFirstKeyIsDue();
-        when(proxyProperties.dspEnabled()).thenReturn(false);
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of());
+
+        keyMaterial.retryOrRefresh();
+
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
+        assertThat(keyPairsByKeyId).containsOnlyKeys("1", "2", "3");
+    }
+
+    @Test
+    void nothingIsDeletedWhileGlobalConfIsUnavailable() {
+        when(properties.keyRetention()).thenReturn(RETENTION);
+        var keyMaterial = newKeyMaterial();
+        storeThreeKeysTheFirstTenDaysOld(keyMaterial);
+        advanceUntilOnlyTheFirstKeyIsDue();
+        when(globalConfProvider.isValid()).thenReturn(false);
+
+        keyMaterial.retryOrRefresh();
+
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
+        assertThat(keyPairsByKeyId).containsOnlyKeys("1", "2", "3");
+    }
+
+    @Test
+    void nothingIsDeletedWhileTheInstanceIdentifierIsUnavailable() {
+        when(properties.keyRetention()).thenReturn(RETENTION);
+        var keyMaterial = newKeyMaterial();
+        storeThreeKeysTheFirstTenDaysOld(keyMaterial);
+        advanceUntilOnlyTheFirstKeyIsDue();
+        when(globalConfProvider.getInstanceIdentifier()).thenThrow(new IllegalStateException("no anchor"));
 
         keyMaterial.retryOrRefresh();
 
@@ -758,7 +878,7 @@ class AgreementTokenKeyMaterialTest {
                 "xroad.proxy.agreement-token.expiry-leeway", "PT5S",
                 "xroad.proxy.agreement-token.key-retention", "PT16M5S"));
         realProperties.validateKeyLifecycle();
-        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient, realProperties, proxyProperties, clock, fixedDelay(Duration.ZERO));
+        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient, realProperties, globalConfProvider, clock, fixedDelay(Duration.ZERO));
         var minter = new AgreementTokenMinter(keyMaterial.provider().orElseThrow(), TOKEN_PROPERTIES, clock);
 
         for (var minute = 1; minute <= 20; minute++) {

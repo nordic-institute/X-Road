@@ -36,6 +36,8 @@ import org.niis.xroad.common.agreementtoken.key.VaultAgreementTokenKeyProvider;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.globalconf.DataspaceReadiness;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -59,13 +61,13 @@ import java.util.random.RandomGenerator;
  * path: once construction has succeeded, it calls {@link AgreementTokenKeyProvider#refresh()}; until then, it
  * keeps retrying construction.
  * <p>
- * When DSP is enabled and {@link ProxyAgreementTokenProperties#maxKeyAge()} is non-zero, each successful
+ * When the instance is dataspace-ready and {@link ProxyAgreementTokenProperties#maxKeyAge()} is non-zero, each successful
  * refresh is followed by a check of the newest key's age (never the signing key's, which lags the newest by the
  * activation delay). A due rotation waits for a random per-replica delay of up to twice the refresh interval,
  * so replicas sharing one secret store rarely rotate together, and is re-checked against the freshly refreshed
  * snapshot before it runs.
  * <p>
- * When DSP is enabled and {@link ProxyAgreementTokenProperties#keyRetention()} is non-zero, each successful
+ * When the instance is dataspace-ready and {@link ProxyAgreementTokenProperties#keyRetention()} is non-zero, each successful
  * refresh is also followed by deleting the keys that can no longer back a valid token. A key is kept for the
  * retention period after it stops signing, which is when its successor (the next higher id) starts signing: the
  * successor's issue time plus the activation delay. A key is also deleted only after this replica has itself
@@ -89,7 +91,7 @@ public class AgreementTokenKeyMaterial {
 
     private final VaultClient vaultClient;
     private final ProxyAgreementTokenProperties properties;
-    private final ProxyProperties proxyProperties;
+    private final GlobalConfProvider globalConfProvider;
     private final Clock clock;
     private final RandomGenerator random;
     private final AtomicReference<AgreementTokenKeyProvider> provider = new AtomicReference<>();
@@ -100,15 +102,15 @@ public class AgreementTokenKeyMaterial {
 
     @Inject
     public AgreementTokenKeyMaterial(VaultClient vaultClient, ProxyAgreementTokenProperties properties,
-                                     ProxyProperties proxyProperties) {
-        this(vaultClient, properties, proxyProperties, Clock.systemUTC(), RandomGenerator.getDefault());
+                                     GlobalConfProvider globalConfProvider) {
+        this(vaultClient, properties, globalConfProvider, Clock.systemUTC(), RandomGenerator.getDefault());
     }
 
     AgreementTokenKeyMaterial(VaultClient vaultClient, ProxyAgreementTokenProperties properties,
-                              ProxyProperties proxyProperties, Clock clock, RandomGenerator random) {
+                              GlobalConfProvider globalConfProvider, Clock clock, RandomGenerator random) {
         this.vaultClient = vaultClient;
         this.properties = properties;
-        this.proxyProperties = proxyProperties;
+        this.globalConfProvider = globalConfProvider;
         this.clock = clock;
         this.random = random;
         tryBuild();
@@ -138,14 +140,18 @@ public class AgreementTokenKeyMaterial {
             log.warn("Failed to refresh agreement-token signing key material; keeping the last known good snapshot", e);
             return;
         }
-        rotateIfDue(current);
-        pruneIfDue(current);
+        var dataspaceReady = DataspaceReadiness.isReady(globalConfProvider);
+        rotateIfDue(current, dataspaceReady);
+        pruneIfDue(current, dataspaceReady);
     }
 
-    private void rotateIfDue(AgreementTokenKeyProvider current) {
+    private void rotateIfDue(AgreementTokenKeyProvider current, boolean dataspaceReady) {
         var maxKeyAge = properties.maxKeyAge();
-        if (!proxyProperties.dspEnabled() || maxKeyAge.isZero()) {
+        if (maxKeyAge.isZero()) {
             rotationDeadline = null;
+            return;
+        }
+        if (!dataspaceReady) {
             return;
         }
         var keys = current.listKeys();
@@ -188,9 +194,9 @@ public class AgreementTokenKeyMaterial {
         }
     }
 
-    private void pruneIfDue(AgreementTokenKeyProvider current) {
+    private void pruneIfDue(AgreementTokenKeyProvider current, boolean dataspaceReady) {
         var retention = properties.keyRetention();
-        if (!proxyProperties.dspEnabled() || retention.isZero()) {
+        if (retention.isZero() || !dataspaceReady) {
             return;
         }
         var now = clock.instant();
