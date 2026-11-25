@@ -24,27 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.securityserver.restapi.service;
 
-package org.niis.xroad.securityserver.restapi.cache;
-
-import lombok.Setter;
-import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-
-@Component
-public class SecurityServerAddressChangeStatus {
-
-    @Setter
-    private String address;
-
-    public Optional<String> getAddressChangeRequest() {
-        return Optional.ofNullable(address);
-    }
-
-    public void clear() {
-        this.address = null;
-    }
-
-
+/**
+ * What one globalconf check does with the pending address change.
+ */
+public enum PendingAddressChangeAction {
+    /** Globalconf shows the requested address: drop the request, then re-identify the participants. */
+    RE_IDENTIFY,
+    /** The request waited too long: drop it without re-identifying. */
+    EXPIRE,
+    /** Leave the request as it is. */
+    KEEP
 }

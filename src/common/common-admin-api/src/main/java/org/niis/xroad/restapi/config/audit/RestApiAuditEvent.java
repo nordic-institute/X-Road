@@ -208,6 +208,7 @@ public enum RestApiAuditEvent {
     REJECT_CONNECTOR_PUBLISHED_VALUE("Reject connector published value"),
 
     ROTATE_AGREEMENT_TOKEN_KEY("Rotate agreement token signing key"),
+    RE_IDENTIFY_DATASPACE_PARTICIPANTS("Re-identify data space participants"),
 
     UPLOAD_OP_MONITOR_CA("Upload op-monitor CA certificate"),
     DELETE_OP_MONITOR_CA("Delete op-monitor CA certificate");

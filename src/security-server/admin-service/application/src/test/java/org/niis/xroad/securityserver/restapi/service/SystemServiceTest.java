@@ -51,9 +51,9 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
-import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
+import org.niis.xroad.securityserver.restapi.repository.PendingAddressChangeRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
@@ -62,7 +62,12 @@ import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -71,10 +76,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -109,7 +118,8 @@ public class SystemServiceTest {
     private AuditDataHelper auditDataHelper;
     @Mock
     private OwnSecurityServerResolver ownSecurityServerResolver;
-    private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
+    @Mock
+    private PendingAddressChangeRepository pendingAddressChangeRepository;
     private final MaintenanceModeStatus maintenanceModeStatus = new MaintenanceModeStatus();
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -129,7 +139,7 @@ public class SystemServiceTest {
 
         systemService = new SystemService(globalConfService, serverConfService,
                 currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider, proxyRpcClient,
+                pendingAddressChangeRepository, confClientRpcClient, maintenanceModeStatus, globalConfProvider, proxyRpcClient,
                 ownSecurityServerResolver);
     }
 
@@ -253,12 +263,50 @@ public class SystemServiceTest {
         systemService.changeSecurityServerAddress(SERVER_ADDRESS);
 
         verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, SERVER_ADDRESS);
-        verify(managementRequestSenderService).sendAddressChangeRequest(SERVER_ADDRESS);
+        var storeThenSend = inOrder(pendingAddressChangeRepository, managementRequestSenderService);
+        storeThenSend.verify(pendingAddressChangeRepository).save(eq(SERVER_ADDRESS), any(Instant.class));
+        storeThenSend.verify(managementRequestSenderService).sendAddressChangeRequest(SERVER_ADDRESS);
+    }
+
+    @Test
+    public void changeSecurityServerAddressStoresTheTimeOfTheRequest() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(OWN_SERVER_ID, "ss.address"));
+        var requestedAt = Instant.parse("2026-11-20T10:15:30Z");
+        systemService.setClock(Clock.fixed(requestedAt, ZoneOffset.UTC));
+
+        systemService.changeSecurityServerAddress(SERVER_ADDRESS);
+
+        verify(pendingAddressChangeRepository).save(SERVER_ADDRESS, requestedAt);
+    }
+
+    @Test
+    public void changeSecurityServerAddressSendFailureRollsBackTheStoredRecord() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(OWN_SERVER_ID, "ss.address"));
+        when(managementRequestSenderService.sendAddressChangeRequest(SERVER_ADDRESS))
+                .thenThrow(new ManagementRequestSendingFailedException(new IllegalStateException("send failed")));
+
+        var e = assertThrows(ManagementRequestSendingFailedException.class,
+                () -> systemService.changeSecurityServerAddress(SERVER_ADDRESS));
+
+        verify(pendingAddressChangeRepository).save(eq(SERVER_ADDRESS), any(Instant.class));
+        assertTrue(new DefaultTransactionAttribute().rollbackOn(e));
+    }
+
+    @Test
+    public void changeSecurityServerAddressConcurrentInsertIsRefusedWithoutSending() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(OWN_SERVER_ID, "ss.address"));
+        doThrow(new DataIntegrityViolationException("duplicate key"))
+                .when(pendingAddressChangeRepository).save(eq(SERVER_ADDRESS), any(Instant.class));
+
+        var e = assertThrows(ConflictException.class, () -> systemService.changeSecurityServerAddress(SERVER_ADDRESS));
+
+        assertEquals("Error[code=address_change_request_already_submitted]", e.getMessage());
+        verifyNoInteractions(managementRequestSenderService);
     }
 
     @Test
     public void changeSecurityServerAddressAlreadySubmitted() {
-        addressChangeStatus.setAddress(SERVER_ADDRESS);
+        when(pendingAddressChangeRepository.findRequestedAddress()).thenReturn(Optional.of(SERVER_ADDRESS));
 
         try {
             systemService.changeSecurityServerAddress("another address");
@@ -267,6 +315,8 @@ public class SystemServiceTest {
             assertEquals("Error[code=address_change_request_already_submitted]", e.getMessage());
             // ok
         }
+        verify(pendingAddressChangeRepository, never()).save(any(), any());
+        verifyNoInteractions(managementRequestSenderService);
     }
 
     @Test
