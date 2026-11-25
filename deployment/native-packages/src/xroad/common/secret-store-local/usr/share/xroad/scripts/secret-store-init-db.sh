@@ -1,6 +1,18 @@
 #!/bin/bash
 
+# Usage: secret-store-init-db.sh [--central-server] [DATABASE_HOST]
+# --central-server adds the database address checks of the Central Server installer.
+central_server=false
+if [ "$1" = "--central-server" ]; then
+  central_server=true
+  shift
+fi
+
 . /usr/share/xroad/scripts/_openbao_env.sh
+# The helper has its own setup_database; the definition below replaces it, so the helper is sourced first.
+if [ "$central_server" = true ]; then
+  . /usr/share/xroad/scripts/_setup_db.sh
+fi
 
 die() {
   echo >&2 "$@"
@@ -196,7 +208,12 @@ setup_database() {
   local db_properties=/etc/xroad/db.properties
   local root_properties=$(get_properties_files)
   local new_db_host="$1"
+  local central_server="$2"
   local db_host="${new_db_host:-127.0.0.1:5432}"
+
+  if [ "$central_server" = true ]; then
+    check_db_host_answer "$db_host" fresh
+  fi
 
   local db_master_conn_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
   local db_master_user=${db_master_conn_user%%@*}
@@ -216,8 +233,12 @@ setup_database() {
 
   parse_database_host "$db_host"
   setup_psql_functions "$root_properties" "$db_master_conn_user"
+  if [ "$central_server" = true ]; then
+    check_pg_version psql_master
+    check_db_writable psql_master "${db_addr}:${db_port}"
+  fi
   create_database_if_needed "$db_host"
   create_env_file_if_needed
 }
 
-setup_database "$1"
+setup_database "$1" "$central_server"

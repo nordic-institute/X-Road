@@ -6,6 +6,7 @@ if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
 fi
 
 source /usr/share/xroad/scripts/_read_cs_db_properties.sh
+source /usr/share/xroad/scripts/_setup_db.sh
 
 log() { echo >&2 "$@"; }
 die() {
@@ -48,6 +49,9 @@ role_probe() {
 psql_admin() {
   PGPASSWORD="$db_admin_password" psql -h "$db_host" -p "$db_port" -U "$db_admin_user" -d "$db_database" -v ON_ERROR_STOP=1 -qtA "$@"
 }
+
+check_pg_version psql_admin
+check_db_writable psql_admin "${db_host}:${db_port}"
 
 master_conn_user=$(get_prop "$ROOT_PROPS" postgres.connection.user 'postgres')
 master_pw=$(get_prop "$ROOT_PROPS" postgres.connection.password "")
