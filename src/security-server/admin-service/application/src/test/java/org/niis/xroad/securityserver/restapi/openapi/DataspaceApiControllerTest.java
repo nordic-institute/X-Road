@@ -35,8 +35,10 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.proto.dto.AgreementTokenKeyStatus;
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.ExceptionTranslator;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspacePublicationStateDto;
@@ -48,6 +50,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatus
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.MemberPublication;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.ServerStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceReIdentificationService;
 import org.niis.xroad.securityserver.restapi.service.HostStatus;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +68,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
@@ -78,6 +83,10 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
     private ExceptionTranslator exceptionTranslator;
     @MockitoBean
     private DataspaceProvisioningStatusService dataspaceProvisioningStatusService;
+    @MockitoBean
+    private DataspaceReIdentificationService reIdentificationService;
+    @MockitoBean
+    private AuditDataHelper auditDataHelper;
 
     @AfterEach
     void clearRole() {
@@ -312,6 +321,35 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
 
         assertThat(rotate.getAnnotation(AuditEventMethod.class).event())
                 .isEqualTo(RestApiAuditEvent.ROTATE_AGREEMENT_TOKEN_KEY);
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
+    void reIdentifyIsRefusedWithoutTheChangeAddressPermission() {
+        assertThatThrownBy(() -> dataspaceApiController.reIdentifyDataspaceParticipants())
+                .isInstanceOf(AccessDeniedException.class);
+
+        verifyNoInteractions(reIdentificationService);
+    }
+
+    @Test
+    @WithMockUser(authorities = "CHANGE_SS_ADDRESS")
+    void reIdentifyWithTheChangeAddressPermissionRunsTheServiceAndReturnsNoContent() {
+        when(reIdentificationService.reIdentifyOnOperatorRequest()).thenReturn(3);
+
+        var response = dataspaceApiController.reIdentifyDataspaceParticipants();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        verify(reIdentificationService).reIdentifyOnOperatorRequest();
+        verify(auditDataHelper).put(RestApiAuditProperty.RETIRED_BINDING_COUNT, 3);
+    }
+
+    @Test
+    void reIdentifyIsRecordedAsTheReIdentifyDataspaceParticipantsAuditEvent() throws NoSuchMethodException {
+        var reIdentify = DataspaceApiController.class.getMethod("reIdentifyDataspaceParticipants");
+
+        assertThat(reIdentify.getAnnotation(AuditEventMethod.class).event())
+                .isEqualTo(RestApiAuditEvent.RE_IDENTIFY_DATASPACE_PARTICIPANTS);
     }
 
     private static void actAs(Role role) {

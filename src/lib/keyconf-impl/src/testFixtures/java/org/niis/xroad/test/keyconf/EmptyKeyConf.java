@@ -31,6 +31,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.keyconf.dto.AuthKeyStatus;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -49,6 +50,11 @@ public class EmptyKeyConf implements KeyConfProvider {
     @Override
     public AuthKey getAuthKey() {
         return null;
+    }
+
+    @Override
+    public AuthKeyStatus getAuthKeyStatus() {
+        return new AuthKeyStatus.NotConfigured();
     }
 
     @Override

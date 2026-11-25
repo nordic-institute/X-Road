@@ -49,6 +49,7 @@ import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.BindingHold;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
@@ -89,6 +90,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -122,6 +124,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     private AdminServiceProperties.Dataspace dataspace;
 
     private static final Did HUB_DID = Did.parse("did:web:ss.example.test%3A7183:xrd-ss0");
+    private static final Did NEW_HOST_DID = Did.parse("did:web:ss.new.test%3A7183:xrd-ss0");
     private static final Did DRIFTED_INTENDED_DID = Did.parse("did:web:ss.moved.test%3A7183:xrd-ss0");
 
     private static final ParticipantContextStatus UNBOUND_CONTEXT =
@@ -1389,6 +1392,157 @@ class DataspaceParticipantProvisioningWorkerTest {
         assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
         verify(dataspaceProvisioningService, never()).teardownParticipant(any());
+    }
+
+    @Test
+    void afterTheRetiredBindingsAreTornDownTheSystemAndMembersAreBoundAgainAtTheNewHostUnderTheSameContextIds() {
+        var retiredSystem = new TombstonedParticipant(1L, SYSTEM_ID);
+        var retiredMember = new TombstonedParticipant(2L, MEMBER_ID);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.decommissionedParticipants()).thenReturn(List.of(retiredSystem, retiredMember));
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT)).thenReturn(
+                new ParticipantContextStatus(SYSTEM_ID, ParticipantKind.SYSTEM, null, false, NEW_HOST_DID,
+                        CredentialStatus.ABSENT, IdentityStatus.UNBOUND));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT)).thenReturn(
+                new ParticipantContextStatus(MEMBER_ID, ParticipantKind.MEMBER, null, false, NEW_HOST_DID,
+                        CredentialStatus.ABSENT, IdentityStatus.UNBOUND));
+
+        worker.provisionParticipant();
+
+        var tornDown = ArgumentCaptor.forClass(TombstonedParticipant.class);
+        var boundMembers = ArgumentCaptor.<Map<ClientId, Did>>captor();
+        var ensured = ArgumentCaptor.forClass(ParticipantContext.class);
+        var order = inOrder(dataspaceProvisioningService, participantBindingService);
+        order.verify(dataspaceProvisioningService, times(2)).teardownParticipant(tornDown.capture());
+        order.verify(participantBindingService).bindMembersIfAbsent(boundMembers.capture());
+        order.verify(participantBindingService).bindSystemIfAbsent(NEW_HOST_DID);
+        order.verify(dataspaceProvisioningService, times(2)).ensureParticipantContext(ensured.capture());
+        assertThat(tornDown.getAllValues()).extracting(TombstonedParticipant::participantContextId)
+                .containsExactly("system", "TEST:COM:5678");
+        assertThat(boundMembers.getValue()).containsOnlyKeys(MEMBER).containsValue(NEW_HOST_DID);
+        assertThat(ensured.getAllValues()).extracting(ParticipantContext::participantId)
+                .containsExactly("system", "TEST:COM:5678");
+    }
+
+    // --- hold while an active binding differs from the registered address ---
+
+    private void stubUnboundSystemAndMemberAtNewHost() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT)).thenReturn(
+                new ParticipantContextStatus(SYSTEM_ID, ParticipantKind.SYSTEM, null, false, NEW_HOST_DID,
+                        CredentialStatus.ABSENT, IdentityStatus.UNBOUND));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT)).thenReturn(
+                new ParticipantContextStatus(MEMBER_ID, ParticipantKind.MEMBER, null, false, NEW_HOST_DID,
+                        CredentialStatus.ABSENT, IdentityStatus.UNBOUND));
+    }
+
+    @Test
+    void whileAnActiveBindingDiffersNothingIsBoundAndNothingIsPublished() {
+        stubUnboundSystemAndMemberAtNewHost();
+        when(dataspaceProvisioningService.bindingHold()).thenReturn(BindingHold.HELD);
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        verifyNoInteractions(participantBindingService);
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
+        verify(dataspaceProvisioningService, never()).teardownParticipant(any());
+        verify(publicationStage, never()).publish(any(), anyBoolean());
+    }
+
+    @Test
+    void whileAnActiveBindingDiffersTheRemainingTearDownStillRuns() {
+        var tombstone = new TombstonedParticipant(1L, MEMBER_ID);
+        stubUnboundSystemAndMemberAtNewHost();
+        when(dataspaceProvisioningService.decommissionedParticipants()).thenReturn(List.of(tombstone));
+        when(dataspaceProvisioningService.bindingHold()).thenReturn(BindingHold.HELD);
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).teardownParticipant(tombstone);
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(publicationStage, never()).publish(any(), anyBoolean());
+    }
+
+    @Test
+    void theHoldIsLoggedOnceWhenItStartsAndOnceWhenItEndsNotOnEveryPass() {
+        workerLogger.setLevel(Level.INFO);
+        stubUnboundSystemAndMemberAtNewHost();
+        when(dataspaceProvisioningService.bindingHold()).thenReturn(BindingHold.NONE, BindingHold.HELD,
+                BindingHold.HELD, BindingHold.NONE, BindingHold.NONE);
+
+        for (int pass = 0; pass < 5; pass++) {
+            worker.provisionParticipant();
+        }
+
+        var holdEvents = workerAppender.list.stream()
+                .filter(event -> event.getFormattedMessage().contains("binding and publication"))
+                .toList();
+        assertThat(holdEvents).extracting(ILoggingEvent::getLevel).containsExactly(Level.WARN, Level.INFO);
+        assertThat(holdEvents.getFirst().getFormattedMessage()).contains("held");
+        assertThat(holdEvents.getLast().getFormattedMessage()).contains("no longer held");
+    }
+
+    @Test
+    void whileTheRegisteredAddressCannotCarryADidNothingIsHeldAndTheStateIsWarnedAboutOnce() {
+        workerLogger.setLevel(Level.INFO);
+        stubUnboundSystemAndMemberAtNewHost();
+        when(dataspaceProvisioningService.bindingHold()).thenReturn(BindingHold.ADDRESS_CANNOT_CARRY_DID);
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        verify(participantBindingService, times(3)).bindSystemIfAbsent(NEW_HOST_DID);
+        verify(publicationStage, times(3)).publish(any(), anyBoolean());
+        var events = workerAppender.list.stream()
+                .filter(event -> event.getFormattedMessage().contains("cannot carry a DID"))
+                .toList();
+        assertThat(events).extracting(ILoggingEvent::getLevel).containsExactly(Level.WARN);
+    }
+
+    @Test
+    void aHoldThatIsOnLiftsWhenTheRegisteredAddressCannotCarryADid() {
+        workerLogger.setLevel(Level.INFO);
+        stubUnboundSystemAndMemberAtNewHost();
+        when(dataspaceProvisioningService.bindingHold()).thenReturn(BindingHold.HELD,
+                BindingHold.ADDRESS_CANNOT_CARRY_DID, BindingHold.ADDRESS_CANNOT_CARRY_DID);
+
+        worker.provisionParticipant();
+        verifyNoInteractions(participantBindingService, publicationStage);
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        verify(participantBindingService, times(2)).bindSystemIfAbsent(NEW_HOST_DID);
+        verify(publicationStage, times(2)).publish(any(), anyBoolean());
+        var events = workerAppender.list.stream()
+                .filter(event -> event.getFormattedMessage().contains("binding and publication"))
+                .toList();
+        assertThat(events).extracting(ILoggingEvent::getLevel).containsExactly(Level.WARN, Level.INFO, Level.WARN);
+        assertThat(events.getLast().getFormattedMessage()).contains("cannot carry a DID");
+    }
+
+    @Test
+    void afterTheHoldEndsTheNewMemberIsBoundAtTheNewHostAndPublicationResumes() {
+        var retiredMember = new TombstonedParticipant(1L, OTHER_MEMBER_CONTEXT.participantId());
+        stubUnboundSystemAndMemberAtNewHost();
+        when(dataspaceProvisioningService.decommissionedParticipants()).thenReturn(List.of(retiredMember));
+        when(dataspaceProvisioningService.bindingHold()).thenReturn(BindingHold.HELD, BindingHold.NONE);
+
+        worker.provisionParticipant();
+        verifyNoInteractions(participantBindingService, publicationStage);
+
+        worker.provisionParticipant();
+
+        var order = inOrder(dataspaceProvisioningService, participantBindingService, publicationStage);
+        order.verify(dataspaceProvisioningService, times(2)).teardownParticipant(retiredMember);
+        var boundMembers = ArgumentCaptor.<Map<ClientId, Did>>captor();
+        order.verify(participantBindingService).bindMembersIfAbsent(boundMembers.capture());
+        order.verify(participantBindingService).bindSystemIfAbsent(NEW_HOST_DID);
+        order.verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT, MEMBER_CONTEXT)), anyBoolean());
+        assertThat(boundMembers.getValue()).containsOnlyKeys(MEMBER).containsValue(NEW_HOST_DID);
     }
 
     // --- single-threaded convergence ---

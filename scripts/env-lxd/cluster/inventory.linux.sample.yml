@@ -89,8 +89,6 @@ all:
         xrd-cs2:
           ansible_connection: lxd
           xroad_cs_ha_node_name: node_2
-          # On a shared database the install of a second node stops at OpenBao database creation.
-          xroad_cs_openbao_db_stop_expected: true
 
     # Hosts of the Patroni cluster. The first host listed is the first leader on a fresh build.
     db_nodes:

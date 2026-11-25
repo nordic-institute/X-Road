@@ -37,6 +37,7 @@ import org.niis.xroad.common.healthcheck.TimedHealthCheck;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.keyconf.dto.AuthKeyStatus;
 import org.niis.xroad.proxy.core.configuration.ProxyHealthCheckProperties;
 
 import java.security.cert.X509Certificate;
@@ -46,9 +47,10 @@ import static org.niis.xroad.common.healthcheck.HealthCheckConstants.STATUS;
 /**
  * Readiness check for the Proxy auth-key OCSP response status.
  * <p>
- * Startup-tolerant: null auth key / cert chain / end-entity cert return UP with a
- * fine-grained {@code status=AWAITING_*} payload rather than DOWN, to prevent restart
- * cascades during fresh Security Server installs where the signer has not yet synced.
+ * Startup-tolerant: an unconfigured auth key, or a null cert chain / end-entity cert, return UP
+ * with a fine-grained {@code status=AWAITING_*} payload rather than DOWN, to prevent restart
+ * cascades during fresh Security Server installs where the signer has not yet synced. A token the
+ * signer reports as not active (logged out) returns DOWN.
  * <p>
  * Self-wraps in its constructor:
  * {@code CachingHealthCheck(TimedHealthCheck(this::doCheck))} — cache on the outside,
@@ -82,13 +84,20 @@ public final class AuthKeyOcspReadinessCheck implements HealthCheck {
     }
 
     private HealthCheckResponse doCheck() {
-        AuthKey authKey = keyConfProvider.getAuthKey();
-        if (authKey == null) {
-            return HealthCheckResponse.named(NAME)
+        return switch (keyConfProvider.getAuthKeyStatus()) {
+            case AuthKeyStatus.NotActive() -> HealthCheckResponse.named(NAME)
+                    .down()
+                    .withData(STATUS, "TOKEN_NOT_ACTIVE")
+                    .build();
+            case AuthKeyStatus.NotConfigured() -> HealthCheckResponse.named(NAME)
                     .up()
                     .withData(STATUS, "AWAITING_AUTH_KEY")
                     .build();
-        }
+            case AuthKeyStatus.Present(AuthKey authKey) -> checkAuthKey(authKey);
+        };
+    }
+
+    private HealthCheckResponse checkAuthKey(AuthKey authKey) {
         CertChain certChain = authKey.certChain();
         if (certChain == null) {
             return HealthCheckResponse.named(NAME)

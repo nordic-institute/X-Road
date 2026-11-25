@@ -1,0 +1,3 @@
+---
+xroad_cs_openbao_first_member: "{{ xroad_cs_openbao_cluster_nodes | length > 1 and inventory_hostname == xroad_cs_openbao_cluster_nodes | first }}"
+xroad_cs_openbao_joining_member: "{{ xroad_cs_openbao_cluster_nodes | length > 1 and inventory_hostname != xroad_cs_openbao_cluster_nodes | first }}"
