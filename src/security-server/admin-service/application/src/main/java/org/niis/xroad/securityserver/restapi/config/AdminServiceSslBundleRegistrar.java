@@ -24,37 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.managementservice;
+package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.vault.TlsKeyStores;
-import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
-import org.springframework.boot.ssl.SslBundle;
-import org.springframework.boot.ssl.SslBundleRegistry;
-import org.springframework.boot.ssl.SslStoreBundle;
+import org.niis.xroad.common.vault.TlsKeyProvisioning;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.spring.VaultSslBundleRegistrar;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-@Slf4j
-public abstract class AbstractManagementServiceSslBundleRegistrar implements SslBundleRegistrar {
-    public static final String BUNDLE_NAME = "management-service";
+class AdminServiceSslBundleRegistrar extends VaultSslBundleRegistrar {
+    private final VaultKeyClient vaultKeyClient;
+    private final VaultClient vaultClient;
 
-    protected abstract InternalSSLKey resolveTlsCredentials() throws IOException, GeneralSecurityException;
-
-    @Override
-    public final void registerBundles(SslBundleRegistry registry) {
-        log.info("Registering '{}' SSL bundle", BUNDLE_NAME);
-        try {
-            var tlsCredentials = resolveTlsCredentials();
-
-            var keystore = TlsKeyStores.toPkcs12KeyStore(BUNDLE_NAME, tlsCredentials);
-            registry.registerBundle(BUNDLE_NAME, SslBundle.of(SslStoreBundle.of(keystore, null, null)));
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to register '%s' SSL bundle".formatted(BUNDLE_NAME), e);
-        }
+    AdminServiceSslBundleRegistrar(VaultKeyClient vaultKeyClient, VaultClient vaultClient) {
+        super(ADMIN_SERVICE_BUNDLE);
+        this.vaultKeyClient = vaultKeyClient;
+        this.vaultClient = vaultClient;
     }
 
+    @Override
+    protected InternalSSLKey resolveTlsCredentials() throws IOException, GeneralSecurityException {
+        return TlsKeyProvisioning.readOrProvisionOnPrimary(ADMIN_SERVICE_BUNDLE,
+                vaultClient::getAdminServiceTlsCredentials,
+                vaultClient::createAdminServiceTlsCredentials,
+                vaultKeyClient);
+    }
 }

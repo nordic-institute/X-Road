@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig.AuthenticationProviderType;
 import org.niis.xroad.restapi.domain.AdminUser;
@@ -47,7 +48,8 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INIT
  * Handles creation of the very first admin user when database-based authentication is enabled
  * and the Security Server has not yet been initialized. The endpoints backed by this service are
  * unauthenticated; bootstrap state is verified for every call so the entry point closes as soon
- * as an admin exists or the server is fully initialized.
+ * as an admin exists or the server is fully initialized, and is never offered on a secondary
+ * cluster node.
  */
 @Slf4j
 @Service
@@ -73,7 +75,8 @@ public class InitialAdminUserService {
      * @return true when the unauthenticated initial admin user creation flow should be offered
      */
     public boolean isInitialAdminUserRequired() {
-        return isDatabaseAuthentication() && !hasAnyAdminUser() && !isServerFullyInitialized();
+        return isDatabaseAuthentication() && !hasAnyAdminUser() && !isServerFullyInitialized()
+                && !NodeProperties.isSecondaryNode();
     }
 
     /**
