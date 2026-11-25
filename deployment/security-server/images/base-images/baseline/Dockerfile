@@ -26,17 +26,17 @@ COPY --from=build --chown=xroad:xroad /opentelemetry-javaagent.jar /usr/share/xr
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG GITHUB_URL=https://github.com/
+ARG GITHUB_URL=""
 ARG XROAD_MIRROR_USER
 RUN --mount=type=secret,id=mirror_token \
     apt-get -qq update && \
     apt-get -qq install --no-install-recommends -y curl && \
     CURL_AUTH="" && \
-    if [ -n "$XROAD_MIRROR_USER" ] && [ -f /run/secrets/mirror_token ]; then \
+    if [ -n "$GITHUB_URL" ] && [ -n "$XROAD_MIRROR_USER" ] && [ -f /run/secrets/mirror_token ]; then \
       CURL_AUTH="-u ${XROAD_MIRROR_USER}:$(cat /run/secrets/mirror_token)"; \
     fi && \
     curl -fsSL $CURL_AUTH -o /opt/jmx_prometheus_javaagent.jar \
-      "${GITHUB_URL}prometheus/jmx_exporter/releases/download/1.5.0/jmx_prometheus_javaagent-1.5.0.jar" && \
+      "${GITHUB_URL:-https://github.com/}prometheus/jmx_exporter/releases/download/1.5.0/jmx_prometheus_javaagent-1.5.0.jar" && \
     apt-get -qq autoremove -y && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
