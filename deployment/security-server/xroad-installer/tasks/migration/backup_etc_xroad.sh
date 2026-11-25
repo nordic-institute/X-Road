@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../lib/common.sh"
 
 XROAD_CONF_DIR="/etc/xroad"
+SNAPSHOT_DIR="/var/lib/xroad"
 BACKUP_PREFIX="xroad-pre-v8-backup"
 
 backup_etc_xroad() {
@@ -12,10 +13,15 @@ backup_etc_xroad() {
     log_die "$XROAD_CONF_DIR not found — nothing to back up. Refusing to continue upgrade."
   fi
 
-  # Honour an existing backup if one is already present in /etc/xroad to avoid
-  # overwriting the earliest pre-upgrade snapshot on a resumed run.
+  if [[ ! -d "$SNAPSHOT_DIR" ]]; then
+    log_die "$SNAPSHOT_DIR not found — cannot place the pre-upgrade snapshot. Refusing to continue upgrade."
+  fi
+
+  # Honour an existing snapshot in its current home, /var/lib/xroad, or one an
+  # earlier installer left in /etc/xroad, to avoid overwriting the earliest
+  # pre-upgrade snapshot on a resumed run.
   local existing
-  existing=$(find "$XROAD_CONF_DIR" -maxdepth 1 -type f -name "${BACKUP_PREFIX}-*.tar.gz" -print -quit 2>/dev/null || true)
+  existing=$(find "$SNAPSHOT_DIR" "$XROAD_CONF_DIR" -maxdepth 1 -type f -name "${BACKUP_PREFIX}-*.tar.gz" -print -quit 2>/dev/null || true)
   if [[ -n "$existing" ]]; then
     log_info "Pre-upgrade backup already exists: $existing — skipping"
     return 0
@@ -24,7 +30,7 @@ backup_etc_xroad() {
   local ts
   ts=$(date '+%Y-%m-%d_%H%M%S')
   local archive_name="${BACKUP_PREFIX}-${ts}.tar.gz"
-  local final_path="${XROAD_CONF_DIR}/${archive_name}"
+  local final_path="${SNAPSHOT_DIR}/${archive_name}"
   # Stage outside $XROAD_CONF_DIR so tar never sees its own output appearing
   # inside the directory it is archiving — otherwise GNU tar reports
   # "<dir>: file changed as we read it" and exits 1.
