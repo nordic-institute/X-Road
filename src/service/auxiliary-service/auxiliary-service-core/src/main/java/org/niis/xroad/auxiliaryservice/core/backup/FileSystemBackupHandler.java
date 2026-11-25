@@ -101,18 +101,7 @@ public class FileSystemBackupHandler {
 
         String[] params = new String[]{"-s", securityServerId, "-f", fullPath};
 
-        params = ArrayUtils.addAll(params, encryptionParams());
-
-        if (backupProperties.encryptionEnabled()) {
-            params = ArrayUtils.addAll(params, "-E", "encrypt");
-        }
-
-        if (backupProperties.encryptionKeyids().isPresent()) {
-            params = ArrayUtils.addAll(params, "-k",
-                    String.join(",", backupProperties.encryptionKeyids().get()));
-        }
-
-        return params;
+        return ArrayUtils.addAll(params, encryptionParams());
     }
 
     public void performRestore(String name, String securityServerId) {

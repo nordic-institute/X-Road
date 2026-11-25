@@ -10,7 +10,7 @@ THIS_FILE=$(pwd)/$0
 usage () {
 cat << EOF
 
-Usage: $0 -s <security server ID> -f <path of tar archive> [-S]
+Usage: $0 -s <security server ID> -f <path of tar archive> [-S] [-E <signonly|encrypt>] [-k <key ids>]
 
 Backup the configuration (files and database) of the X-Road security server to a tar archive.
 
@@ -20,22 +20,19 @@ OPTIONS:
     -s ID of the security server.
     -f Absolute path of the resulting tar archive.
     -S Skip database backup
+    -E Backup encryption mode: signonly or encrypt. Defaults to signonly.
+    -k Comma-separated GPG key IDs to encrypt the backup for.
 EOF
 }
 
 execute_backup () {
   if [ -x $COMMON_BACKUP_SCRIPT ] ; then
-    local args=(-t security -s "$SECURITY_SERVER_ID" -f "$BACKUP_FILENAME")
+    local args=(-t security -s "$SECURITY_SERVER_ID" -f "$BACKUP_FILENAME" -E "$ENCRYPT_MODE")
     if [[ $USE_BASE_64 = true ]] ; then
       args+=(-b)
     fi
     if [[ $SKIP_DB_BACKUP = true ]] ; then
       args+=(-S)
-    fi
-    if [[ $ENCRYPT_BACKUP = true ]] ; then
-      args+=(-E encrypt)
-    else
-      args+=(-E signonly)
     fi
     if [ -n "$GPG_KEYIDS" ]; then
       args+=(-k "$GPG_KEYIDS")
@@ -62,7 +59,9 @@ warn_about_localconf () {
   fi
 }
 
-while getopts ":s:f:Sbh" opt ; do
+ENCRYPT_MODE="signonly"
+
+while getopts ":s:f:SbhE:k:" opt ; do
   case $opt in
     h)
       usage
@@ -80,6 +79,12 @@ while getopts ":s:f:Sbh" opt ; do
     b)
       USE_BASE_64=true
       ;;
+    E)
+      ENCRYPT_MODE=$OPTARG
+      ;;
+    k)
+      GPG_KEYIDS=$OPTARG
+      ;;
     \?)
       echo "Invalid option $OPTARG"
       usage
@@ -96,11 +101,6 @@ done
 check_user
 check_security_server_id
 check_backup_file_name
-
-ENCRYPT_BACKUP=$(get_server_prop proxy.ini proxy "backup-encryption-enabled" false)
-echo "ENCRYPT_BACKUP=$ENCRYPT_BACKUP"
-GPG_KEYIDS=$(get_server_prop proxy.ini proxy "backup-encryption-keyids")
-echo "GPG_KEYIDS=$GPG_KEYIDS"
 
 execute_backup
 warn_about_localconf
