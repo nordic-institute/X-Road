@@ -38,6 +38,7 @@ import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.keyconf.dto.AuthKeyStatus;
 import org.niis.xroad.proxy.core.configuration.ProxyHealthCheckProperties;
 
 import java.security.cert.X509Certificate;
@@ -65,21 +66,31 @@ class AuthKeyOcspReadinessCheckTest {
     }
 
     @Test
-    void returnsUpWhenAuthKeyIsNull() {
-        when(keyConfProvider.getAuthKey()).thenReturn(null);
+    void returnsDownWhenTokenNotActive() {
+        when(keyConfProvider.getAuthKeyStatus()).thenReturn(new AuthKeyStatus.NotActive());
+
+        HealthCheckResponse response = check.call();
+
+        assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
+        assertThat(response.getName()).isEqualTo(CHECK_NAME);
+        assertThat(response.getData().get()).containsEntry("status", "TOKEN_NOT_ACTIVE");
+    }
+
+    @Test
+    void returnsUpWhenNotConfigured() {
+        when(keyConfProvider.getAuthKeyStatus()).thenReturn(new AuthKeyStatus.NotConfigured());
 
         HealthCheckResponse response = check.call();
 
         assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
         assertThat(response.getName()).isEqualTo(CHECK_NAME);
-        assertThat(response.getData()).isPresent();
         assertThat(response.getData().get()).containsEntry("status", "AWAITING_AUTH_KEY");
     }
 
     @Test
     void returnsUpWhenCertChainIsNull() {
         AuthKey authKey = new AuthKey(null, null);
-        when(keyConfProvider.getAuthKey()).thenReturn(authKey);
+        when(keyConfProvider.getAuthKeyStatus()).thenReturn(new AuthKeyStatus.Present(authKey));
 
         HealthCheckResponse response = check.call();
 
@@ -93,7 +104,7 @@ class AuthKeyOcspReadinessCheckTest {
         CertChain certChain = mock(CertChain.class);
         when(certChain.getEndEntityCert()).thenReturn(null);
         AuthKey authKey = new AuthKey(certChain, null);
-        when(keyConfProvider.getAuthKey()).thenReturn(authKey);
+        when(keyConfProvider.getAuthKeyStatus()).thenReturn(new AuthKeyStatus.Present(authKey));
 
         HealthCheckResponse response = check.call();
 
@@ -108,7 +119,7 @@ class AuthKeyOcspReadinessCheckTest {
         CertChain certChain = mock(CertChain.class);
         when(certChain.getEndEntityCert()).thenReturn(cert);
         AuthKey authKey = new AuthKey(certChain, null);
-        when(keyConfProvider.getAuthKey()).thenReturn(authKey);
+        when(keyConfProvider.getAuthKeyStatus()).thenReturn(new AuthKeyStatus.Present(authKey));
         when(keyConfProvider.getOcspResponse(any(X509Certificate.class)))
                 .thenThrow(new RuntimeException("boom"));
 
@@ -152,7 +163,7 @@ class AuthKeyOcspReadinessCheckTest {
         CertChain certChain = mock(CertChain.class);
         when(certChain.getEndEntityCert()).thenReturn(cert);
         AuthKey authKey = new AuthKey(certChain, null);
-        when(keyConfProvider.getAuthKey()).thenReturn(authKey);
+        when(keyConfProvider.getAuthKeyStatus()).thenReturn(new AuthKeyStatus.Present(authKey));
 
         OCSPResp resp = mock(OCSPResp.class);
         when(resp.getStatus()).thenReturn(status);

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. /usr/share/xroad/scripts/_openbao_env.sh
+
 die() {
   echo >&2 "$@"
   exit 1
@@ -24,12 +26,20 @@ get_properties_files() {
 load_or_generate_credentials() {
   local suffix="$1"
 
-  if [ -f /etc/openbao/openbao.env ] && [ -s /etc/openbao/openbao.env ]; then
-    echo "Found existing /etc/openbao/openbao.env, attempting to load credentials"
-    source /etc/openbao/openbao.env
+  if [ -f /etc/openbao/xroad-openbao.env ] && [ -s /etc/openbao/xroad-openbao.env ]; then
+    echo "Found existing /etc/openbao/xroad-openbao.env, attempting to load credentials"
+    BAO_PG_USER=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_USER)
+    BAO_PG_PASSWORD=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_PASSWORD)
+    BAO_PG_HOST=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_HOST)
+    BAO_PG_PORT=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_PORT)
+    BAO_PG_DATABASE=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_DATABASE)
+    BAO_PG_SCHEMA=$(read_env_value /etc/openbao/xroad-openbao.env BAO_PG_SCHEMA)
 
     if [ -n "${BAO_PG_USER}" ] && [ -n "${BAO_PG_PASSWORD}" ] && [ -n "${BAO_PG_DATABASE}" ]; then
-      echo "Successfully loaded credentials from /etc/openbao/openbao.env"
+      require_env_name BAO_PG_USER "${BAO_PG_USER}"
+      require_env_name BAO_PG_DATABASE "${BAO_PG_DATABASE}"
+      require_env_name BAO_PG_SCHEMA "${BAO_PG_SCHEMA}"
+      echo "Successfully loaded credentials from /etc/openbao/xroad-openbao.env"
       db_conn_user="${BAO_PG_USER}"
       db_user=${db_conn_user%%@*}
       db_password="${BAO_PG_PASSWORD}"
@@ -38,8 +48,8 @@ load_or_generate_credentials() {
       db_database="${BAO_PG_DATABASE}"
       db_schema="${BAO_PG_SCHEMA}"
     else
-      echo "WARNING: /etc/openbao/openbao.env exists but is incomplete, regenerating"
-      rm -f /etc/openbao/openbao.env
+      echo "WARNING: /etc/openbao/xroad-openbao.env exists but is incomplete, regenerating"
+      rm -f /etc/openbao/xroad-openbao.env
       db_conn_user="openbao$suffix"
       db_user=${db_conn_user%%@*}
       db_password="$(gen_pw)"
@@ -49,9 +59,9 @@ load_or_generate_credentials() {
       db_port=""
     fi
   else
-    if [ -f /etc/openbao/openbao.env ]; then
-      echo "WARNING: /etc/openbao/openbao.env exists but is empty, regenerating"
-      rm -f /etc/openbao/openbao.env
+    if [ -f /etc/openbao/xroad-openbao.env ]; then
+      echo "WARNING: /etc/openbao/xroad-openbao.env exists but is empty, regenerating"
+      rm -f /etc/openbao/xroad-openbao.env
     fi
     echo "Generating new credentials for OpenBao database"
     db_conn_user="openbao$suffix"
@@ -78,8 +88,13 @@ parse_database_host() {
 setup_psql_functions() {
   local root_properties="$1"
   local db_master_conn_user="$2"
+  local port="${PGPORT:-$db_port}"
 
-  local_psql() { su -l -c "psql -qtA -p ${PGPORT:-$db_port} $*" postgres; }
+  if [[ ! $port =~ ^[0-9]+$ ]] || ((10#$port < 1 || 10#$port > 65535)); then
+    die "Invalid database port ${port@Q}, expected a number from 1 to 65535"
+  fi
+
+  local_psql() { su -l -c 'port=$1; shift; exec psql -qtA -p "$port" "$@"' postgres -- _ "${PGPORT:-$db_port}" "$@"; }
   remote_psql() { psql -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA "$@"; }
 
   psql_dbuser() {
@@ -96,6 +111,15 @@ setup_psql_functions() {
   fi
 }
 
+psql_set_literal() {
+  local name="$1"
+  local value="$2"
+
+  value=${value//\\/\\\\}
+  value=${value//\'/\\\'}
+  printf '\\set %s '"'"'%s'"'"'\n' "$name" "$value"
+}
+
 create_database_if_needed() {
   local db_host="$1"
 
@@ -104,63 +128,56 @@ create_database_if_needed() {
     return 0
   fi
 
-  {
-    cat <<EOF
-\set ON_ERROR_STOP on
-CREATE DATABASE "${db_database}" ENCODING 'UTF8';
-REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
-DO \$\$
+  if ! {
+    printf '%s\n' '\set ON_ERROR_STOP on'
+    psql_set_literal bao_password "${db_password}"
+    cat <<'EOF'
+CREATE DATABASE :"bao_db" ENCODING 'UTF8';
+REVOKE ALL ON DATABASE :"bao_db" FROM PUBLIC;
+SET xroad_init.role_name = :'bao_user';
+SET xroad_init.role_password = :'bao_password';
+DO $$
 BEGIN
-  CREATE ROLE "${db_user}" LOGIN PASSWORD '${db_password}';
-  GRANT "${db_user}" to postgres;
+  EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', current_setting('xroad_init.role_name'), current_setting('xroad_init.role_password'));
+  EXECUTE format('GRANT %I TO postgres', current_setting('xroad_init.role_name'));
   EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_user already exists';
+    RAISE NOTICE 'User % already exists', current_setting('xroad_init.role_name');
 END
-\$\$;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
-\c "${db_database}"
-CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_user}";
+$$;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE :"bao_db" TO :"bao_user";
+\c :"bao_db"
+CREATE SCHEMA :"bao_schema" AUTHORIZATION :"bao_user";
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to "${db_user}";
+GRANT USAGE ON SCHEMA public to :"bao_user";
 EOF
-  } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration"
-}
-
-configure_openbao_storage() {
-  if [ ! -f /etc/openbao/openbao.hcl ]; then
-    return 0
-  fi
-
-  if grep -Eq '^storage "(file|pebbledb)"' /etc/openbao/openbao.hcl; then
-    echo "Configuring OpenBao to use PostgreSQL storage backend"
-    sed -i.bak -E 's/^storage "(file|pebbledb)" \{/storage "postgresql" {/' /etc/openbao/openbao.hcl
-    sed -i '/^\s*path\s*=.*openbao.*data/d' /etc/openbao/openbao.hcl
+  } | psql_master -v "bao_db=${db_database}" -v "bao_user=${db_user}" -v "bao_schema=${db_schema}"; then
+    die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration"
   fi
 }
 
 # Group xroad read is required, not incidental: the backup driver runs as the
 # xroad user (xroad-auxiliary-service, which execs
 # backup_xroad_proxy_configuration.sh -> _backup_xroad.sh ->
-# backup_openbao_db.sh) and both sources this file for the pg_dump credentials
+# backup_openbao_db.sh) and both read this file for the pg_dump credentials
 # and archives /etc/openbao. No privileged path exists for that dump, so
 # narrowing this to root-only breaks backups. It grants raw OpenBao storage
 # access, not secret disclosure — the root token and unseal keys stay root-only.
 enforce_env_file_permissions() {
-  chmod 0640 /etc/openbao/openbao.env
-  chown openbao:xroad /etc/openbao/openbao.env
+  chmod 0640 /etc/openbao/xroad-openbao.env
+  chown openbao:xroad /etc/openbao/xroad-openbao.env
 }
 
 create_env_file_if_needed() {
-  if [ -f /etc/openbao/openbao.env ]; then
-    echo "/etc/openbao/openbao.env already exists, preserving existing credentials"
+  if [ -f /etc/openbao/xroad-openbao.env ]; then
+    echo "/etc/openbao/xroad-openbao.env already exists, preserving existing credentials"
     enforce_env_file_permissions
     return 0
   fi
 
-  echo "Creating /etc/openbao/openbao.env with database credentials"
+  echo "Creating /etc/openbao/xroad-openbao.env with database credentials"
   local db_options="?search_path=$db_schema"
 
-  cat >/etc/openbao/openbao.env <<EOF
+  cat >/etc/openbao/xroad-openbao.env <<EOF
 # Individual components for backup/restore scripts
 BAO_PG_USER=${db_conn_user}
 BAO_PG_PASSWORD=${db_password}
@@ -200,7 +217,6 @@ setup_database() {
   parse_database_host "$db_host"
   setup_psql_functions "$root_properties" "$db_master_conn_user"
   create_database_if_needed "$db_host"
-  configure_openbao_storage
   create_env_file_if_needed
 }
 

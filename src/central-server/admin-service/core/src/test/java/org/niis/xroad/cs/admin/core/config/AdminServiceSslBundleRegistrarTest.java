@@ -24,72 +24,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.vault;
+package org.niis.xroad.cs.admin.core.config;
 
-import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
-import org.springframework.boot.ssl.SslBundle;
-import org.springframework.boot.ssl.SslBundleRegistry;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AdminServiceSslBundleRegistrarTest {
 
     private final VaultKeyClient keyClient = mock(VaultKeyClient.class);
     private final VaultClient vaultClient = mock(VaultClient.class);
-    private final SslBundleRegistry registry = mock(SslBundleRegistry.class);
 
     private final AdminServiceSslBundleRegistrar registrar = new AdminServiceSslBundleRegistrar(keyClient, vaultClient);
 
-    private final TestCertUtil.PKCS12 pkcs12 = TestCertUtil.getInternalKey();
-    private final PrivateKey privateKey = pkcs12.key;
-    private final X509Certificate[] certChain = pkcs12.certChain;
-
-    private void stubProvisionedKey() throws Exception {
-        when(keyClient.provisionNewCerts()).thenReturn(new VaultKeyClient.VaultKeyData(
-                certChain, privateKey, new X509Certificate[0]));
-    }
-
     @Test
-    void shouldCreateAndRegisterTheKeyWhenTheStoreReportsItAbsent() throws Exception {
+    void shouldCreateTheNodeOwnAdminServiceKeyWhateverTheNodeTypeSetting() throws Exception {
+        var privateKey = mock(PrivateKey.class);
         when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(
                 XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
-        stubProvisionedKey();
+        when(keyClient.provisionNewCerts()).thenReturn(new VaultKeyClient.VaultKeyData(
+                new X509Certificate[] {mock(X509Certificate.class)}, privateKey, new X509Certificate[0]));
 
-        registrar.registerBundles(registry);
+        InternalSSLKey result;
+        try (MockedStatic<NodeProperties> nodeProperties = mockStatic(NodeProperties.class)) {
+            nodeProperties.when(NodeProperties::isSecondaryNode).thenReturn(true);
 
+            result = registrar.resolveTlsCredentials();
+        }
+
+        assertThat(result.getKey()).isSameAs(privateKey);
         verify(vaultClient).createAdminServiceTlsCredentials(any());
-        verify(registry).registerBundle(eq(AdminServiceSslBundleRegistrar.BUNDLE_NAME), any(SslBundle.class));
-    }
-
-    @Test
-    void shouldNotCreateOrReplaceTheKeyWhenTheStoreFailsForAnotherReason() throws Exception {
-        var storeFailure = XrdRuntimeException.systemException(ErrorCode.INVALID_PROPERTY_VALUE)
-                .details("store unreachable").build();
-        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(storeFailure);
-        stubProvisionedKey();
-
-        assertThatThrownBy(() -> registrar.registerBundles(registry))
-                .isInstanceOf(IllegalStateException.class)
-                .hasCause(storeFailure);
-
-        verifyNoInteractions(keyClient);
-        verify(vaultClient, never()).createAdminServiceTlsCredentials(any());
-        verify(registry, never()).registerBundle(any(), any(SslBundle.class));
     }
 }

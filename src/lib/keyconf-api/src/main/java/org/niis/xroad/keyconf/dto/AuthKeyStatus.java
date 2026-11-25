@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,27 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.keyconf.dto;
 
-package org.niis.xroad.securityserver.restapi.cache;
+/**
+ * Status of the security server's authentication key, as reported by the signer.
+ */
+public sealed interface AuthKeyStatus {
 
-import lombok.Setter;
-import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-
-@Component
-public class SecurityServerAddressChangeStatus {
-
-    @Setter
-    private String address;
-
-    public Optional<String> getAddressChangeRequest() {
-        return Optional.ofNullable(address);
+    /**
+     * The authentication key is available.
+     *
+     * @param authKey the current key and certificate for SSL authentication
+     */
+    record Present(AuthKey authKey) implements AuthKeyStatus {
     }
 
-    public void clear() {
-        this.address = null;
+    /**
+     * No authentication key exists yet, either because the security server has no identifier or because
+     * the signer reports its token as not initialized.
+     */
+    record NotConfigured() implements AuthKeyStatus {
     }
 
-
+    /**
+     * The signer reports the token holding the authentication key as not active (logged out).
+     */
+    record NotActive() implements AuthKeyStatus {
+    }
 }

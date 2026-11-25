@@ -7,6 +7,7 @@ plugins {
 dependencies {
   api(project(":common:common-core"))
   implementation(libs.resilience4j.retry)
+  implementation(project(":lib:properties-core"))
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.logback.classic)
