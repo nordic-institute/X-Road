@@ -2,39 +2,39 @@ name: 'Setup Mirrors'
 description: 'Use the Artifactory mirrors for the rest of the job when the mirror token and user name are present and the off switch is not set'
 inputs:
   token:
-    description: 'Mirror access token (XROAD_MIRROR_TOKEN secret)'
+    description: 'Mirror access token (repository secret XROAD_MIRROR_TOKEN)'
     required: false
     default: ''
   username:
-    description: 'Mirror user name (XROAD_MIRROR_USERNAME secret)'
+    description: 'Mirror user name (repository variable XROAD_MIRROR_USERNAME)'
     required: false
     default: ''
   maven-url:
-    description: 'Maven mirror URL'
+    description: 'Maven mirror URL (repository variable XROAD_MIRROR_MAVEN_URL)'
     required: false
     default: ''
   plugins-url:
-    description: 'Gradle plugins mirror URL'
+    description: 'Gradle plugins mirror URL (repository variable XROAD_MIRROR_PLUGINS_URL)'
     required: false
     default: ''
   npm-url:
-    description: 'npm mirror URL'
+    description: 'npm mirror URL (repository variable XROAD_MIRROR_NPM_URL)'
     required: false
     default: ''
   ubuntu-url:
-    description: 'Ubuntu package mirror URL'
+    description: 'Ubuntu package mirror URL (repository variable XROAD_MIRROR_UBUNTU_URL)'
     required: false
     default: ''
   docker-url:
-    description: 'Docker mirror URL, host and repository key without scheme'
+    description: 'Docker mirror URL, host and repository key without scheme (repository variable XROAD_MIRROR_DOCKER_URL)'
     required: false
     default: ''
   github-url:
-    description: 'GitHub releases mirror URL'
+    description: 'GitHub releases mirror URL (repository variable XROAD_MIRROR_GITHUB_URL)'
     required: false
     default: ''
   k8s-url:
-    description: 'Kubernetes downloads mirror URL'
+    description: 'Kubernetes downloads mirror URL (repository variable XROAD_MIRROR_K8S_URL)'
     required: false
     default: ''
   disabled:
