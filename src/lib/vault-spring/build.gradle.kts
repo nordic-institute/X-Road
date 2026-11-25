@@ -11,6 +11,7 @@ dependencies {
   implementation(libs.microprofile.config.api)
 
   testImplementation(testFixtures(project(":lib:vault-core")))
+  testImplementation(project(":common:common-test"))
   testImplementation(libs.assertj.core)
   testImplementation(libs.springBoot.starterTest)
   testImplementation(libs.systemStubs)

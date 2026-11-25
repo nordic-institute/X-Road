@@ -186,7 +186,7 @@ ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev_partial.yml -e selected_modul
 
 #### Controlling the LXD operating system versions
 
-By default `xroad_dev.yml` creates Ubuntu 24.04 and RockyLinux 9 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `rhel_releasever` and `ubuntu_releasever`. Out of the box there is support for RHEL 9 based distro, and Ubuntu 22.04 and 24.04. Other versions may need additional tweaking of the Ansible scripts.
+By default `xroad_dev.yml` creates Ubuntu 24.04 and Oracle Linux 9 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `rhel_releasever` and `ubuntu_releasever`. Out of the box there is support for RHEL 9 based distro, and Ubuntu 22.04 and 24.04. Other versions may need additional tweaking of the Ansible scripts.
 ## 5. Test CA, TSA, and OCSP
 
 While not themselves components provided by X-Road, certification and time stamping authorities are crucial to messaging within the system. More information on creating development-use CA, TSA and OCSP services [here.](TESTCA.md)

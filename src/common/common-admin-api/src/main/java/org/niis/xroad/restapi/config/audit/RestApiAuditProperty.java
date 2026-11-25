@@ -186,7 +186,9 @@ public enum RestApiAuditProperty {
 
     ISSUER_DID,
     LAST_TRUSTED_ISSUER,
-    TRUSTED_ISSUER_ID;
+    TRUSTED_ISSUER_ID,
+
+    RETIRED_BINDING_COUNT;
 
     /**
      * Gets logged property name for the enum value.

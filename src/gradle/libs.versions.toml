@@ -7,16 +7,15 @@
 
 metrics = "4.2.40"
 jersey = "4.0.3"
-jetty = "12.1.14"
+jetty = "12.1.15"
 jaxb = "4.0.9"
-hibernate = "7.4.15.Final"
+hibernate = "7.4.16.Final"
 bytebuddy = "1.18.17"
 mapstruct = "1.6.3"
 jackson = "3.3.0"
 jacksonAnnotations = "2.23"
 mockito = "5.24.0"
-springBoot = "4.1.2"
-springFramework = "7.0.10"
+springBoot = "4.1.3"
 junitJupiter = "6.1.3"
 junitPlatform = "6.1.3"
 xmlUnit = "2.14.0"
@@ -43,7 +42,7 @@ testContainers = "2.0.5"
 testAllure = "2.34.0"
 shadowPlugin = "9.6.1"
 owaspDependencyCheck = "13.0.0"
-edc = "1.0.0-RC7"
+edc = "1.0.0-RC8"
 carbon-did = "0.10.0"
 nimbus = "10.10"
 opentelemetry-javaagent = "2.33.1"
@@ -56,7 +55,7 @@ jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty
 jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
 jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
 jetty-ee11-servlet = { module = "org.eclipse.jetty.ee11:jetty-ee11-servlet", version.ref = "jetty" }
-# EDC 0.18.0 itself targets the EE10 servlet API; version pinned to the root build's
+# EDC itself targets the EE10 servlet API; version pinned to the root build's
 # org.eclipse.jetty.ee10:jetty-ee10-servlet resolution override (CVE-2026-2332, CVE-2026-5795).
 jetty-ee10-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet", version.ref = "jetty" }
 
@@ -84,11 +83,6 @@ springBoot-starterWebmvcTest = { module = "org.springframework.boot:spring-boot-
 springBoot-starterValidation = { module = "org.springframework.boot:spring-boot-starter-validation", version.ref = "springBoot" }
 springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-webmvc", version.ref = "springBoot" }
 springBoot-starterWebfluxTest = { module = "org.springframework.boot:spring-boot-starter-webflux-test", version.ref = "springBoot" }
-
-springFramework-context = { module = "org.springframework:spring-context", version.ref = "springFramework" }
-springFramework-web = { module = "org.springframework:spring-web", version.ref = "springFramework" }
-springFramework-test = { module = "org.springframework:spring-test", version.ref = "springFramework" }
-springFramework-jdbc = { module = "org.springframework:spring-jdbc", version.ref = "springFramework" }
 
 springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.1.4" }
 springCloud-contractWiremock = { module = "org.springframework.cloud:spring-cloud-contract-wiremock", version = "5.0.3" }

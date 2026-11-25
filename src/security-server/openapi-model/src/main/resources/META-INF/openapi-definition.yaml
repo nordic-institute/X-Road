@@ -2652,6 +2652,65 @@ paths:
               examples:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
+  /dataspace/re-identify:
+    post:
+      tags:
+        - dataspace
+      summary: re-identify the data space participants
+      operationId: reIdentifyDataspaceParticipants
+      description: >
+        <h3>Administrator re-identifies the data space participants of this Security Server.</h3>
+        Every active participant binding whose DID host differs from the registered address is retired in one
+        transaction. Bindings whose DID cannot be decoded are left as they are. The provisioning worker then removes
+        the old contexts and creates new DIDs at the registered address. The action sends no request to the Central
+        Server.
+        <p>The action works on the primary or standalone node. It is refused on a secondary node, because only the
+        primary node runs the provisioning worker. It is also refused while participant provisioning is switched
+        off, when the registered address is unknown, when the provisioning worker could not bind new DIDs, or when
+        no binding differs.</p>
+      responses:
+        '204':
+          description: the differing bindings were retired
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: >
+            the action was refused. The error code tells why:
+            <ul>
+            <li><code>re_identification_address_unknown</code>: the registered address is unknown.</li>
+            <li><code>re_identification_provisioning_inactive</code>: this is a secondary node, or participant provisioning is switched off.</li>
+            <li><code>re_identification_cannot_bind</code>: the provisioning worker could not bind new DIDs.</li>
+            <li><code>re_identification_cannot_mint</code>: a new DID cannot be created. The cause is one of: the registered address includes a port, the DID would be too long, the registered host is not ASCII or is not a valid host, or a member identifier cannot be encoded.</li>
+            <li><code>re_identification_not_needed</code>: no binding differs from the registered address.</li>
+            </ul>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
   /diagnostics/operational-monitoring:
     get:
       tags:

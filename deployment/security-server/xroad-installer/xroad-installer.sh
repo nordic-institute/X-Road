@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source common functions and logging
 source "$SCRIPT_DIR/lib/common.sh"
+source "$SCRIPT_DIR/lib/dsp_port_prompt.sh"
 # make sure the same log file is used for all logs
 export XROAD_INSTALLER_LOG_FILE
 
@@ -24,6 +25,8 @@ XROAD_SECRET_STORE_TYPE="${XROAD_SECRET_STORE_TYPE:-}"
 XROAD_TLS_HOSTNAME="${XROAD_TLS_HOSTNAME:-}"
 XROAD_TLS_ALT_NAMES="${XROAD_TLS_ALT_NAMES:-}"
 XROAD_PROXY_MEM_SETTING="${XROAD_PROXY_MEM_SETTING:-}"
+XROAD_DID_PORT="${XROAD_DID_PORT:-}"
+XROAD_DSP_PORT="${XROAD_DSP_PORT:-}"
 XROAD_MESSAGELOG_ENABLED="${XROAD_MESSAGELOG_ENABLED:-}"
 XROAD_INSTALLER_CONFIG_FILE="${XROAD_INSTALLER_CONFIG_FILE:-}"
 
@@ -62,6 +65,12 @@ OPTIONS:
     --skip-requirements-check   Skip system requirements check
     --config-file FILE          Path to a configuration file containing installation settings
     -h, --help                  Show this help message
+
+CONFIGURATION FILE KEYS (set with --config-file) for the dataspace ports:
+    XROAD_DID_PORT              Port for the dataspace identity (DID) documents, 1024-65535 (default: $DSP_DEFAULT_DID_PORT)
+    XROAD_DSP_PORT              Port for the Dataspace Protocol (DSP), 1024-65535 (default: $DSP_DEFAULT_DSP_PORT)
+                                The two ports must differ. A key that is not set is asked for interactively.
+                                A secondary node (node.ini type secondary) is not asked.
 
 EXAMPLES:
     sudo ./xroad-installer.sh
@@ -288,7 +297,7 @@ select_ss_package() {
   fi
 
   local selection
-  if [[ "$os_type" == "rhel" ]] || [[ "$os_type" == "rocky" ]] || [[ "$os_type" == "almalinux" ]]; then
+  if [[ "$os_type" == "rhel" ]] || [[ "$os_type" == "rocky" ]] || [[ "$os_type" == "almalinux" ]] || [[ "$os_type" == "ol" ]]; then
       # RHEL options (no EE)
       selection=$(whiptail --title "X-Road Package Selection (RHEL)" \
         --menu "Choose the Security Server version to install:" 15 60 4 \
@@ -382,6 +391,16 @@ select_messagelog() {
   log_info "Message log enabled: $XROAD_MESSAGELOG_ENABLED"
 }
 
+# Returns 0 when the xroad-proxy package is fully installed.
+is_security_server_installed() {
+  detect_os
+  case "$OS_FAMILY" in
+    debian) [[ "$(dpkg-query -W -f='${Status}' xroad-proxy 2>/dev/null)" == "install ok installed" ]] ;;
+    rhel) rpm -q --quiet xroad-proxy ;;
+    *) return 1 ;;
+  esac
+}
+
 # Main installer function
 main() {
   # Parse command-line arguments
@@ -401,6 +420,8 @@ main() {
       log_die "Configuration file not found: $XROAD_INSTALLER_CONFIG_FILE"
     fi
   fi
+
+  validate_dsp_port_config
 
   log_message "========================================"
   log_message "  X-Road Security Server Installer"
@@ -512,6 +533,26 @@ main() {
   fi
   log_message ""
 
+  # Step: Collect and preseed DID and DSP ports (the packages store the rows)
+  local dsp_ports_skip_reason
+  if dsp_ports_skip_reason=$(dsp_port_rows_skip_reason); then
+    log_info "${dsp_ports_skip_reason}, not asking for the DID and DSP ports"
+  elif is_security_server_installed; then
+    log_info "The Security Server is already installed, keeping the stored DID and DSP ports and not asking for them"
+  else
+    select_dsp_ports
+    if [[ -f "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" ]]; then
+      if ! XROAD_DID_PORT="$XROAD_DID_PORT" \
+         XROAD_DSP_PORT="$XROAD_DSP_PORT" \
+         bash "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" preseed; then
+        log_die "DID and DSP port configuration failed"
+      fi
+    else
+      log_die "configure_dsp_ports.sh not found"
+    fi
+  fi
+  log_message ""
+
   # Step: Install Security Server
   # Select package if not provided
   select_ss_package
@@ -563,6 +604,20 @@ main() {
      XROAD_SS_PREINSTALLED="$ss_preinstalled" \
      bash "$SCRIPT_DIR/tasks/configure_tls.sh" write; then
     log_die "TLS configuration failed"
+  fi
+  log_message ""
+
+  # Step: Store the DID and DSP port rows (RHEL family; the packages do it on Debian)
+  # Runs before anything that starts the identity hub, the control plane or the admin service.
+  if [[ -f "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" ]]; then
+    if ! XROAD_DID_PORT="${XROAD_DID_PORT:-$DSP_DEFAULT_DID_PORT}" \
+       XROAD_DSP_PORT="${XROAD_DSP_PORT:-$DSP_DEFAULT_DSP_PORT}" \
+       XROAD_SS_PREINSTALLED="$ss_preinstalled" \
+       bash "$SCRIPT_DIR/tasks/configure_dsp_ports.sh" write; then
+      log_die "DID and DSP port configuration failed"
+    fi
+  else
+    log_die "configure_dsp_ports.sh not found"
   fi
   log_message ""
 

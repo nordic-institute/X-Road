@@ -3,9 +3,3 @@
 # controls lxd versions, if changed, check epel version and repo urls
 rhel_releasever: 9
 ubuntu_releasever: resolute
-
-# The security server "variant package", a meta-package that selects the country profile and
-# pulls other packages through dependencies. Shared by the xroad-ss and xroad-ss-installer roles.
-xroad_ss_package: >-
-  {{ 'xroad-securityserver' if (variant | default('vanilla')) == 'vanilla'
-     else 'xroad-securityserver-' + variant }}

@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * addressed to the federation's management subsystem client id. Whether that routes to the provider's
  * SYSTEM-context identity, rather than the provider member's context, additionally depends on the
  * service code being one the provider's SYSTEM catalog actually publishes — a decision the request
- * processor makes together with its builtin-service check. The consumer's own participant context is
+ * processor makes together with its monitoring-service check. The consumer's own participant context is
  * always the sender's derived member context, independent of this flag.
  *
  * @param serviceId            the target service's identifier (non-null after SOAP/REST decoding)

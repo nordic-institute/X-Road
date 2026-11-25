@@ -27,7 +27,7 @@ validate_os_version() {
         supported=true
       fi
     # Check for supported RHEL versions
-    elif [[ "$ID" == "rhel" ]] || [[ "$ID" == "rocky" ]] || [[ "$ID" == "almalinux" ]]; then
+    elif [[ "$ID" == "rhel" ]] || [[ "$ID" == "rocky" ]] || [[ "$ID" == "almalinux" ]] || [[ "$ID" == "ol" ]]; then
       if [[ "$VERSION_ID" =~ ^9\. ]] || [[ "$VERSION_ID" =~ ^10\. ]]; then
         supported=true
       fi

@@ -13,14 +13,10 @@
 # k8s chart) seeds its equivalent row at provisioning time.
 #
 # The same worker also calls the identity-hub and ds-control-plane
-# provisioning gRPC services to create/inspect participant contexts.
-# xroad.dataspace.{control-plane,identity-hub}-provisioning.rpc.host default
-# to the multi-container deployment's separate service names
-# ("ds-control-plane"/"ds-identity-hub"), which do not resolve to anything
-# inside a single sidecar container - both processes are always co-located
-# here, so this seeds both to 127.0.0.1 unconditionally (not
-# operator-configurable: there is no sidecar shape where they would run
-# anywhere else).
+# provisioning gRPC services to create/inspect participant contexts. Both
+# processes are always co-located in the sidecar container, so this seeds both
+# hosts to 127.0.0.1 (not operator-configurable: there is no sidecar shape
+# where they would run anywhere else).
 #
 # Contract:
 #   in  - XROAD_DATASPACE_IDENTITY_HUB_URL (optional, defaults to

@@ -237,7 +237,7 @@
   "footer": {
     "copyright": {
       "company": "Instituto Nórdico de Soluções de Interoperabilidade (NIIS)",
-      "domain": "niis.org",
+      "licenceInfo": "Informações de licença",
       "title": "Direitos autorais"
     },
     "software": {

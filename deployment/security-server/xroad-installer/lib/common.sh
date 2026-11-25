@@ -203,7 +203,7 @@ detect_os() {
       ubuntu|debian)
         OS_FAMILY="debian"
         ;;
-      rhel|rocky|almalinux)
+      rhel|rocky|almalinux|ol)
         OS_FAMILY="rhel"
         ;;
       *)
@@ -332,7 +332,9 @@ captured_country_package() {
   echo "${country_pkg:-none}"
 }
 
-# X-Road units that must NOT auto-start during package upgrade.
+# X-Road units that must NOT auto-start during package upgrade. The two xroad-ds-*
+# units are held back so that they first start after write_dsp_ports.sh has stored
+# the DID and DSP ports.
 # xroad-secret-store-local is intentionally absent — its postinst fresh-install
 # branch starts OpenBao + the secret-store init service, which step 9 (TLS
 # migration) needs.
@@ -346,6 +348,8 @@ XROAD_MASK_UNITS=(
   xroad-monitor.service
   xroad-opmonitor.service
   xroad-auxiliary-service.service
+  xroad-ds-identity-hub.service
+  xroad-ds-control-plane.service
 )
 
 mask_xroad_units() {
@@ -366,9 +370,10 @@ unmask_xroad_units() {
   systemctl daemon-reload
 
   # On RHEL, %systemd_post's `systemctl preset` was blocked by the mask for
-  # fresh-install V8 units (xroad-ds-*, xroad-auxiliary-service). Apply preset
-  # now so they pick up their default enabled-on-boot state. Idempotent for
-  # upgraded V7 units (preset is a no-op when the unit is already enabled).
+  # fresh-install V8 units (xroad-ds-identity-hub, xroad-ds-control-plane,
+  # xroad-auxiliary-service). Preset applies the vendor preset policy to every
+  # unit in the list, so those units get their default enabled-on-boot state.
+  # It also re-enables a unit the operator had disabled.
   for unit in "${XROAD_MASK_UNITS[@]}"; do
     systemctl preset "$unit" >/dev/null 2>&1 || true
   done
