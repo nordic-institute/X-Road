@@ -109,7 +109,7 @@ class DisabledServiceFault {
         }
     }
 
-    private static Observation observe(Response response) {
+    static Observation observe(Response response) {
         var reply = Replies.toReply(response);
         if (reply.status() == 200 && EXPECTED_RESPONSE_MESSAGE.equals(response.jsonPath().getString("message"))) {
             return new Observation(Verdict.ALLOWED, reply.toString());

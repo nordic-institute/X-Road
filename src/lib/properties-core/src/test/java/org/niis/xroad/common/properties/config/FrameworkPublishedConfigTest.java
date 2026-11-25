@@ -71,6 +71,15 @@ class FrameworkPublishedConfigTest {
             "xroad.dsp.outbound-http.max-requests-per-host",
             "xroad.dsp.control-plane.pool.max-total",
             "xroad.dsp.control-plane.pool.max-idle",
+            "xroad.dsp.issuer-data.download-wait",
+            "xroad.dsp.issuer-data.download-retry-seconds",
+            "xroad.dsp.issuer-data.download-expire-after",
+            "xroad.dsp.issuer-data.download-timeout",
+            "xroad.dsp.issuer-data.cache.statuslist.size",
+            "xroad.dsp.issuer-data.cache.statuslist-download.size",
+            "xroad.dsp.issuer-data.cache.did-download.size",
+            "xroad.dsp.issuer-data.cleanup.interval",
+            "xroad.dsp.issuer-data.cleanup.enabled",
             // Quarkus @LookupIfProperty bean gates (proxy messagelog beans + readiness check) and the
             // auxiliary-service @ConfigProperty reader resolve this from framework config
             "xroad.proxy.message-log.enabled",

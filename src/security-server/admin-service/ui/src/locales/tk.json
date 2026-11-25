@@ -1327,6 +1327,29 @@
           },
           "common": {
             "temp-files-path": "Wagtlaýyn faýllarynyň saklanylýan katalogyna doly ýol."
+          },
+          "dsp": {
+            "issuer-data": {
+              "download-wait": "Issuer Service jogap berýän wagty barlagyň täze ýüklemä garaşýan iň uzak wagty. Baha 0-dan uly bolmaly. Amatly bahalar: 1-den 10 sekunda çenli. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
+              "download-retry-seconds": "Şowsuz ýüklemeden soň indiki ýüklemeden öňki garaşma wagty, sekuntda. Otur bilen aýrylan sanawyň n-nji ýazgysy n-nji şowsuzlykdan soňky garaşma wagtydyr, soňky ýazgy gaýtalanýar. Her ýazgy položitel bitin sandyr. download-expire-after bahasyndan uzyn ýazgynyň täsiri ýok. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
+              "download-expire-after": "Bu wagt geçenden soň şowsuz ýa-da jogapsyz ýüklemäniň möhleti geçýär we ol ýatdan çykarylýar. Maglumata mätäç indiki barlag täze ýükleme başlaýar we gaýtadan synanyşygyň gijikdirmesi ýene-de birinji ýazgydan başlaýar. Bu bahadan uzyn gaýtadan synanyşyk gijikdirmesiniň täsiri ýok. Rugsat berilýän bahalar: 0-dan uly. Amatly bahalar: 5-den 10 minuda çenli. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
+              "download-timeout": "Statuslist ýa-da çykaryjynyň DID resminamasynyň bir ýüklemesiniň iň uzyn dowam edýän wagty, haýyşyň başyndan jogabyň soňuna çenli. Bu wagtdan uzyn dowam edýän ýükleme bes edilýär we şowsuz hasaplanýar. Rugsat berilýän bahalar: 0-dan uly. Amatly bahalar: 10-dan 30 sekunda çenli. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
+              "cache": {
+                "statuslist": {
+                  "size": "Ýadyda saklanylýan statuslist-leriň iň köp sany. Rugsat berilýän bahalar: 0 ýa-da ondan uly bitin sanlar. 0 bolanda, ýadyda nusga saklanylmaýar, bir wagtda işleýän barlaglar henizem bir ýüklemäni paýlaşýar we saklanan nusga elýeterli bolmadyk wagty henizem ulanylýar. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň."
+                },
+                "statuslist-download": {
+                  "size": "Bir wagtyň özünde ýüklemesi işleýän ýa-da gaýtadan synanyşyga garaşýan statuslist-leriň iň köp sany. Rugsat berilýän bahalar: 1 ýa-da ondan uly bitin sanlar. Amatly bahalar: xroad.dsp.issuer-data.cache.statuslist.size bahasyndan azyndan iki esse köp. Çäk dolanda, bir ýazgy çykarylýar, oňa garaşýan barlaglar maglumat bazasyndaky nusgany ulanyp bilmeseler, gaýtadan synanyşmaga rugsat berýän ýalňyşlyk bilen tamamlanýar we indiki barlag täze ýükleme başlaýar. Kiçi baha Issuer Service-e has köp çagyryşa sebäp bolýar. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň."
+                },
+                "did-download": {
+                  "size": "Bir wagtyň özünde ýüklemesi işleýän ýa-da gaýtadan synanyşyga garaşýan çykaryjynyň DID resminamalarynyň iň köp sany. Diňe global konfigurasiýada sanalan çykaryjy DID-leri ýüklenýär. Rugsat berilýän bahalar: 1 ýa-da ondan uly bitin sanlar. Amatly bahalar: edc.did.resolver.cache.size bahasyndan azyndan iki esse köp. Çäk dolanda, bir ýazgy çykarylýar, oňa garaşýan barlaglar maglumat bazasyndaky nusgany ulanyp bilmeseler, gaýtadan synanyşmaga rugsat berýän ýalňyşlyk bilen tamamlanýar we indiki barlag täze ýükleme başlaýar. Kiçi baha Issuer Service-e has köp çagyryşa sebäp bolýar. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň."
+                }
+              },
+              "cleanup": {
+                "interval": "Möhleti geçen issuer maglumatlaryny arassalamagyň işleriniň arasyndaky wagt. Rugsat berilýän bahalar: 5 minut ýa-da ondan köp. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň.",
+                "enabled": "false bolanda, möhleti geçen issuer maglumatlaryny arassalamak işlemeýär. Üýtgeşmeden soň xroad-ds-control-plane we xroad-ds-identity-hub hyzmatlaryny gaýtadan işe giriziň."
+              }
+            }
           }
         }
       }

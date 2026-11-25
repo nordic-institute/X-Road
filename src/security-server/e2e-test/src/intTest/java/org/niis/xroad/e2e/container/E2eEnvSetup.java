@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.e2e.AclParityProperties;
 import org.niis.xroad.e2e.E2eEnvironment;
+import org.niis.xroad.e2e.IssuerOutageOps;
 import org.niis.xroad.e2e.MessagelogArchiveOps;
 import org.niis.xroad.e2e.MessagelogDbOps;
 import org.niis.xroad.e2e.parity.acl.AclMode;
@@ -42,6 +43,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -54,7 +56,8 @@ import static org.awaitility.Awaitility.await;
  * overridden to fail loudly — test code must use the env-qualified overloads.
  */
 @Slf4j
-public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps {
+public class E2eEnvSetup extends BaseComposeSetup
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, IssuerOutageOps {
 
     private static final Pattern PROCESSED_FILES_PATTERN = Pattern.compile("Processed (\\d+) files\\.");
     private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
@@ -64,8 +67,13 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     private static final String AUX_ENV = "aux";
     private static final String CA_ENV = "ca";
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
-    private static final Duration PROXY_RESTART_TIMEOUT = Duration.ofMinutes(5);
-    private static final Duration PROXY_RESTART_POLL_INTERVAL = Duration.ofSeconds(5);
+    private static final Duration SERVICE_RESTART_TIMEOUT = Duration.ofMinutes(5);
+    private static final Duration SERVICE_RESTART_POLL_INTERVAL = Duration.ofSeconds(5);
+    private static final String ISSUER_SERVICE_PROGRAM = "xroad-ds-issuer-service";
+    private static final String CENTRAL_SERVER_DATABASE = "centerui_production";
+    private static final String ISSUER_DATA_FRESHNESS_KEY = "issuerDataFreshnessSeconds";
+    private static final String GLOBALCONF_DIRECTORY = "/etc/xroad/globalconf";
+    private static final Duration ISSUER_START_TIMEOUT = Duration.ofMinutes(3);
 
     private AuxStackSetup aux;
     private AbstractSsStack ss0;
@@ -122,11 +130,103 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
             throw new IllegalStateException(
                     "storing legacy-protocol-disabled in the serverconf of ss0 failed: " + stored.getStderr());
         }
-        stack.restartService(SsStackSetup.PROXY);
-        await().atMost(PROXY_RESTART_TIMEOUT).pollInterval(PROXY_RESTART_POLL_INTERVAL).ignoreExceptions()
-                .until(() -> stack.execInContainer(SsStackSetup.PROXY, "curl", "-fs",
-                        "http://localhost:5588/q/health/ready").getExitCode() == 0);
+        restartAndAwaitHealthy(stack, List.of(new HealthProbe(SsStackSetup.PROXY,
+                List.of("curl", "-fs", "http://localhost:5588/q/health/ready"))));
         log.info("ss0 proxy is ready with legacy calls refused");
+    }
+
+    @Override
+    public boolean ss0RunsSeparateDataspaceServices() {
+        return ss0 instanceof SsStackSetup;
+    }
+
+    @Override
+    public void stopIssuerService() {
+        if (issuerServiceRuns()) {
+            superviseIssuerService("stop");
+        }
+    }
+
+    @Override
+    public void startIssuerService() {
+        if (!issuerServiceRuns()) {
+            superviseIssuerService("start");
+        }
+        await().pollDelay(Duration.ZERO).atMost(ISSUER_START_TIMEOUT).pollInterval(SERVICE_RESTART_POLL_INTERVAL)
+                .until(this::issuerServiceRuns);
+    }
+
+    @Override
+    public void restartSs0DataspaceServices() {
+        if (!(ss0 instanceof SsStackSetup stack)) {
+            throw new IllegalStateException("the sidecar stack has no separate dataspace containers to restart");
+        }
+        restartAndAwaitHealthy(stack, List.of(
+                new HealthProbe(SsStackSetup.DS_CONTROL_PLANE, List.of("curl", "-f", "http://localhost:4099/q/health")),
+                new HealthProbe(SsStackSetup.DS_IDENTITY_HUB,
+                        List.of("curl", "-fk", "https://localhost:7181/api/check/health"))));
+        log.info("ss0 control plane and Identity Hub are healthy again");
+    }
+
+    @Override
+    public long countSs0ControlPlaneLogLines(Pattern pattern) {
+        if (!(ss0 instanceof SsStackSetup stack)) {
+            throw new IllegalStateException("the sidecar stack has no separate control plane container");
+        }
+        return stack.containerLogLines(SsStackSetup.DS_CONTROL_PLANE).filter(line -> pattern.matcher(line).find()).count();
+    }
+
+    @Override
+    public void setIssuerDataFreshnessSeconds(int seconds) {
+        runCentralServerSql("""
+                SET ROLE centerui;
+                UPDATE centerui.system_parameters SET value = '%1$d', updated_at = now() WHERE key = '%2$s';
+                INSERT INTO centerui.system_parameters (key, value, created_at, updated_at, ha_node_name)
+                SELECT '%2$s', '%1$d', now(), now(), (SELECT min(ha_node_name) FROM centerui.system_parameters)
+                WHERE NOT EXISTS (SELECT 1 FROM centerui.system_parameters WHERE key = '%2$s');
+                """.formatted(seconds, ISSUER_DATA_FRESHNESS_KEY));
+    }
+
+    @Override
+    public boolean ss0HasDownloadedIssuerDataFreshnessSeconds(int seconds) {
+        return execInEnvContainer("ss0", SsStackSetup.CONFIGURATION_CLIENT, "grep", "-rlE",
+                "%s>[[:space:]]*%d[[:space:]]*<".formatted(ISSUER_DATA_FRESHNESS_KEY, seconds), GLOBALCONF_DIRECTORY)
+                .getExitCode() == 0;
+    }
+
+    @Override
+    public void resetIssuerDataFreshnessSeconds() {
+        runCentralServerSql("SET ROLE centerui; DELETE FROM centerui.system_parameters WHERE key = '%s';"
+                .formatted(ISSUER_DATA_FRESHNESS_KEY));
+    }
+
+    private static void restartAndAwaitHealthy(SsStackSetup stack, List<HealthProbe> services) {
+        services.forEach(service -> stack.restartService(service.container()));
+        await().pollDelay(Duration.ZERO).atMost(SERVICE_RESTART_TIMEOUT).pollInterval(SERVICE_RESTART_POLL_INTERVAL)
+                .ignoreExceptions()
+                .until(() -> services.stream().allMatch(service -> stack.execInContainer(service.container(),
+                        service.command().toArray(String[]::new)).getExitCode() == 0));
+    }
+
+    private boolean issuerServiceRuns() {
+        return execInEnvContainer(AUX_ENV, AuxStackSetup.CS, "supervisorctl", "status", ISSUER_SERVICE_PROGRAM)
+                .getStdout().contains("RUNNING");
+    }
+
+    private void superviseIssuerService(String action) {
+        var result = execInEnvContainer(AUX_ENV, AuxStackSetup.CS, "supervisorctl", action, ISSUER_SERVICE_PROGRAM);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("supervisorctl %s %s failed: %s %s"
+                    .formatted(action, ISSUER_SERVICE_PROGRAM, result.getStdout(), result.getStderr()));
+        }
+    }
+
+    private void runCentralServerSql(String sql) {
+        var result = execInEnvContainer(AUX_ENV, AuxStackSetup.CS, "su", "-c",
+                "psql -q -v ON_ERROR_STOP=1 %s -c \"%s\"".formatted(CENTRAL_SERVER_DATABASE, sql), "postgres");
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("SQL on the Central Server database failed: " + result.getStderr());
+        }
     }
 
     @Override
@@ -287,7 +387,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
             case DEFAULT -> new SsStackSetup(coreProperties, "ss0",
                     Set.of(SsStackSetup.Feature.BATCH_SIGNATURES, SsStackSetup.Feature.SOFTTOKEN_SIGNER,
                             SsStackSetup.Feature.OP_MONITOR, SsStackSetup.Feature.AGREEMENT_TOKEN_KEY_PRUNING,
-                            SsStackSetup.Feature.COUNTRY_PROFILE));
+                            SsStackSetup.Feature.COUNTRY_PROFILE, SsStackSetup.Feature.ISSUER_OUTAGE));
             case SIDECAR -> new SidecarSsStackSetup(coreProperties, "ss0");
         };
     }
@@ -333,5 +433,8 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     public void copyFileFromContainer(String containerName, String containerPath, String localPath) {
         throw new UnsupportedOperationException("Use copyFileFromContainer(env, container, containerPath, localPath); "
                 + "this facade manages three stacks");
+    }
+
+    private record HealthProbe(String container, List<String> command) {
     }
 }
