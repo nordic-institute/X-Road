@@ -103,6 +103,7 @@ public class SsStackSetup extends AbstractSsStack {
                 .withEnv("DSP_PARTICIPANT_ID", "xrd-" + name)
                 .withEnv("SS_ADDRESS", "xrd-" + name)
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
+                .withExposedService(PROXY, Port.PROXY_TLS, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
@@ -200,6 +201,8 @@ public class SsStackSetup extends AbstractSsStack {
     public static final class Port {
         public static final int UI = 4000;
         public static final int PROXY = 8080;
+        /** The client proxy's HTTPS port. */
+        public static final int PROXY_TLS = 8443;
         public static final int PROXY_HEALTHCHECK = 5588;
         /** Test CA's cert-issuance/serving port (the {@code ca-api} service port in the k8s fixtures chart). */
         public static final int CA_API = 8888;

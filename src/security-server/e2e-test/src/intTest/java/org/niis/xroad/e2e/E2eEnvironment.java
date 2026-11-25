@@ -27,6 +27,8 @@ package org.niis.xroad.e2e;
 
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup.ContainerMapping;
 
+import java.time.Duration;
+
 /**
  * Environment abstraction for the e2e test suite. Implemented by both the Compose facade
  * ({@code E2eEnvSetup}) and the LXD adapter ({@code LxdEnvSetup}); tests declare this type (or one
@@ -48,4 +50,9 @@ public interface E2eEnvironment {
      * Returns the security server address registered in the global configuration for the given environment.
      */
     String securityServerAddress(String env);
+
+    /**
+     * Returns how long a Security Server keeps a serverconf value cached in this environment.
+     */
+    Duration serverConfCachePeriod();
 }

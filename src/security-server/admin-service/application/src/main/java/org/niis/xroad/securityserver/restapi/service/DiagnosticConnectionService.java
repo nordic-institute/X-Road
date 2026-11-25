@@ -55,17 +55,16 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
-import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.securityserver.restapi.dto.ConnectionStatus;
 import org.niis.xroad.securityserver.restapi.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.securityserver.restapi.dto.ServiceProtocolType;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
-import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -116,7 +115,7 @@ public class DiagnosticConnectionService {
     private final AuthCertVerifier authCertVerifier;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final ConfClientRpcClient confClientRpcClient;
-    private final ServerConfProvider serverConfProvider;
+    private final VaultKeyProvider vaultKeyProvider;
     private final AdminServiceProperties adminServiceProperties;
 
     public List<DownloadUrlConnectionStatus> getGlobalConfStatus() {
@@ -266,7 +265,7 @@ public class DiagnosticConnectionService {
 
     private CloseableHttpClient createProxyHttpClient() {
         try {
-            return createProxyHttpClientWithInternalKey();
+            return createProxyHttpClientWithOpenBaoCertificate();
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(INTERNAL_ERROR)
                     .cause(e)
@@ -276,7 +275,7 @@ public class DiagnosticConnectionService {
     }
 
     @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified")
-    private CloseableHttpClient createProxyHttpClientWithInternalKey() {
+    private CloseableHttpClient createProxyHttpClientWithOpenBaoCertificate() {
         TrustManager trustManager = new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -294,7 +293,7 @@ public class DiagnosticConnectionService {
             }
         };
 
-        return createHttpClient(new KeyManager[] {new ClientSslKeyManager(serverConfProvider)}, new TrustManager[] {trustManager});
+        return createHttpClient(new KeyManager[] {vaultKeyProvider.getKeyManager()}, new TrustManager[] {trustManager});
     }
 
     private CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers) {
