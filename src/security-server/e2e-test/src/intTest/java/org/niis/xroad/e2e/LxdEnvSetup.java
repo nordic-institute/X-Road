@@ -27,7 +27,6 @@ package org.niis.xroad.e2e;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.Container;
@@ -39,7 +38,6 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -103,11 +101,6 @@ public class LxdEnvSetup extends BaseComposeSetup
     @Override
     public String securityServerAddress(String env) {
         return resolveHost(env);
-    }
-
-    @Override
-    public Duration serverConfCachePeriod() {
-        return Duration.ofSeconds(ServerConfConfigKeys.CACHE_PERIOD.convertedDefaultValue());
     }
 
     @Override

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.e2e;
 
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup.ContainerMapping;
 
 import java.time.Duration;
@@ -54,5 +55,7 @@ public interface E2eEnvironment {
     /**
      * Returns how long a Security Server keeps a serverconf value cached in this environment.
      */
-    Duration serverConfCachePeriod();
+    default Duration serverConfCachePeriod() {
+        return Duration.ofSeconds(ServerConfConfigKeys.CACHE_PERIOD.convertedDefaultValue());
+    }
 }

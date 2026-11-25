@@ -123,10 +123,12 @@ class SsDiagnosticsConnectionTest extends E2eTest {
     private static final List<String> CONNECTION_TYPES = List.of(HTTP, HTTPS_NO_AUTH, HTTPS);
 
     private static final String INTERNAL_TLS_DISTINGUISHED_NAME = "CN=ss1";
+    private static final String THROWAWAY_CA_COMMON_NAME = "throwaway test CA";
     private static final Duration INTERNAL_TLS_CACHE_MARGIN = Duration.ofSeconds(5);
 
     private static final Map<String, String> ORIGINAL_CONNECTION_TYPES = new LinkedHashMap<>();
     private static byte[] originalInternalTlsCertificate;
+    private static boolean internalTlsCertificateImported;
 
     @BeforeAll
     static void internalTlsCertificateIsNotIssuedByOpenBao(E2eEnvironment env) {
@@ -139,6 +141,10 @@ class SsDiagnosticsConnectionTest extends E2eTest {
 
         assertThat(response.getStatusCode()).as("import the signed internal TLS certificate: %s", response.asString())
                 .isEqualTo(200);
+        internalTlsCertificateImported = true;
+        assertThat(AdminApi.getInternalTlsCertificateIssuerCommonName(baseUrl, session))
+                .as("issuer of the stored internal TLS certificate")
+                .isEqualTo(THROWAWAY_CA_COMMON_NAME);
         var cacheWait = env.serverConfCachePeriod().plus(INTERNAL_TLS_CACHE_MARGIN);
         Awaitility.await()
                 .alias("the admin service reloads the internal TLS key")
@@ -162,17 +168,14 @@ class SsDiagnosticsConnectionTest extends E2eTest {
         var baseUrl = AdminApi.adminBaseUrl(env, SS1_ENV);
         var session = AdminApi.login(baseUrl);
         assertAll(ORIGINAL_CONNECTION_TYPES.entrySet().stream().map(original -> (Executable) () -> {
-            try {
-                AdminApi.setConnectionType(baseUrl, session, original.getKey(), original.getValue());
-            } finally {
-                awaitProxyUsesConnectionType(env, original.getKey(), original.getValue());
-            }
+            AdminApi.setConnectionType(baseUrl, session, original.getKey(), original.getValue());
+            awaitProxyUsesConnectionType(env, original.getKey(), original.getValue());
         }));
     }
 
     @AfterAll
     static void internalTlsCertificateIsRestored(E2eEnvironment env) {
-        if (originalInternalTlsCertificate == null) {
+        if (!internalTlsCertificateImported) {
             return;
         }
         var baseUrl = AdminApi.adminBaseUrl(env, SS1_ENV);
@@ -296,7 +299,7 @@ class SsDiagnosticsConnectionTest extends E2eTest {
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(caKeys.getPrivate());
         try (var parser = new PEMParser(new StringReader(new String(csrPem, StandardCharsets.US_ASCII)))) {
             var csr = new JcaPKCS10CertificationRequest((PKCS10CertificationRequest) parser.readObject());
-            var builder = new JcaX509v3CertificateBuilder(new X500Name("CN=throwaway test CA"),
+            var builder = new JcaX509v3CertificateBuilder(new X500Name("CN=" + THROWAWAY_CA_COMMON_NAME),
                     BigInteger.valueOf(System.nanoTime()),
                     Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
                     Date.from(Instant.now().plus(30, ChronoUnit.DAYS)),

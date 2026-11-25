@@ -336,6 +336,13 @@ class AdminApi {
         return response.asByteArray();
     }
 
+    /** Reads the common name of the issuer of the stored internal TLS certificate. */
+    static String getInternalTlsCertificateIssuerCommonName(String baseUrl, AdminSession session) {
+        var response = authed(session).get(baseUrl + "/api/v1/system/certificate");
+        assertThat(response.getStatusCode()).as("GET /system/certificate").isEqualTo(HTTP_OK);
+        return response.jsonPath().getString("issuer_common_name");
+    }
+
     /** Imports a signed certificate (PEM or DER bytes) as the internal TLS certificate; the status is left to the caller. */
     static Response importInternalTlsCertificate(String baseUrl, AdminSession session, byte[] certificate) {
         return authed(session)
