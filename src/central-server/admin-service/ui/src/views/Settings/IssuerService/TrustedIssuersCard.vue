@@ -29,7 +29,7 @@
     <v-data-table
       item-value="id"
       data-test="trusted-issuers-table"
-      class="xrd border"
+      class="xrd"
       hide-default-footer
       must-sort
       :loading="loading"
