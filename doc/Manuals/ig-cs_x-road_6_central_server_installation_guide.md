@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.49
+Version: 2.50
 Doc. ID: IG-CS
 
 ---
@@ -67,6 +67,7 @@ Doc. ID: IG-CS
 | 05.11.2026 | 2.47    | Document per-node property values in `db_property.sh`                                                                                                                                        |                      |
 | 07.11.2026 | 2.48    | Add the `db_property.sh list` command and the node name rule                                                                                                                                 |                      |
 | 11.11.2026 | 2.49    | Use the TLS certificate name keys as the per-node example and describe the default of a key without a row                                                                                    | Ričardas Bučiūnas    |
+| 25.11.2026 | 2.50    | Update the PostgreSQL version examples to 15 or newer                                                                                                                                        | Ričardas Bučiūnas    |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -271,10 +272,10 @@ sudo apt install xroad-database-remote
 For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
 ```bash
 psql --version
-psql (PostgreSQL) 12.14 (Ubuntu 12.14-0ubuntu0.20.04.1)
+psql (PostgreSQL) 16.4 (Ubuntu 16.4-0ubuntu0.24.04.1)
 
 psql -h <database host> -U <superuser> -tAc 'show server_version'
-10.16 (Ubuntu 10.16-0ubuntu0.18.04.1)
+15.8 (Ubuntu 15.8-0ubuntu0.24.04.1)
 ```
 
 The installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
@@ -634,8 +635,8 @@ If the Central Server installation is aborted, with the error message
 
 then the PostgreSQL package is installed with the wrong locale. One way to fix it is to remove the data store created upon the PostgreSQL installation and recreate it with the correct encoding. WARNING: All data in the database will be erased!
 
-`sudo pg_dropcluster --stop 12 main`<br>
-`LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 12 main`
+`sudo pg_dropcluster --stop 15 main`<br>
+`LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 15 main`
 
 To complete the interrupted installation, run the command:
 
@@ -646,11 +647,11 @@ To complete the interrupted installation, run the command:
 If the following error message is displayed during PostgreSQL installation
 
 `Error: The locale requested by the environment is invalid.`<br>
-`Error: could not create default cluster. Please create it manually with pg_createcluster 12 main –start`
+`Error: could not create default cluster. Please create it manually with pg_createcluster 15 main –start`
 
 Use the following command to create the PostgreSQL data cluster:
 
-`LC_ALL="en_US.UTF-8" sudo  pg_createcluster --start 12 main`
+`LC_ALL="en_US.UTF-8" sudo  pg_createcluster --start 15 main`
 
 The interrupted installation can be finished using
 
@@ -666,7 +667,7 @@ If the following error message appears during installation
 Then check if any of the following errors occurred during the installation of PostgreSQL.
 
 - Error installing the data cluster. Refer to section 4.3.
-- The PostgreSQL data cluster installed during the installation of the Security Server is not configured to listen on port 5432. To verify and configure the listening port, edit the PostgreSQL configuration file in /etc/postgresql/12/main/postgresql.conf. If you change the listening port, the postgresql service must be restarted.
+- The PostgreSQL data cluster installed during the installation of the Security Server is not configured to listen on port 5432. To verify and configure the listening port, edit the PostgreSQL configuration file in /etc/postgresql/15/main/postgresql.conf. If you change the listening port, the postgresql service must be restarted.
 
 The interrupted installation can be finished using
 

@@ -1,7 +1,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.27
+Version: 1.28
 Doc. ID: IG-CSHA
 
 ---
@@ -40,6 +40,7 @@ Doc. ID: IG-CSHA
 | 17.11.2026 | 1.25    | Document joining the OpenBao cluster, the ports between the nodes and using an external OpenBao               | Ričardas Bučiūnas  |
 | 18.11.2026 | 1.26    | Correct the steps for joining a node to the OpenBao cluster and state the limits of the Red Hat packages  | Ričardas Bučiūnas  |
 | 20.11.2026 | 1.27    | Rename the bundle script to secret-store-cluster-bundle.sh                                                | Ričardas Bučiūnas  |
+| 25.11.2026 | 1.28    | Document the database conditions of a cluster, the connection pools and the installer checks of the database address. Remove the text about secondary database hosts and the PostgreSQL versions below 15 | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -56,10 +57,12 @@ Doc. ID: IG-CSHA
 - [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
 - [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
   - [3.1 Requirements](#31-requirements)
+    - [3.1.1 Database requirements](#311-database-requirements)
+    - [3.1.2 Connection pools](#312-connection-pools)
+    - [3.1.3 Installer checks of the database](#313-installer-checks-of-the-database)
   - [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
   - [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
   - [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
-  - [3.5 Post-Configuration Steps](#35-post-configuration-steps)
 - [4 General Installation of HA Support](#4-general-installation-of-ha-support)
   - [4.1 Node name and renaming a node](#41-node-name-and-renaming-a-node)
   - [4.2 Root token file and unseal keys on every node](#42-root-token-file-and-unseal-keys-on-every-node)
@@ -100,7 +103,7 @@ Every Central Server node has its own:
 - node specific public address which is distributed to the configuration clients in configuration anchor files;
 - optionally, a management Security Server.
 
-In addition, a highly-available PostgreSQL compatible database is required for storing the shared configuration. Setting up the database is out of the scope of this document.
+In addition, a highly-available PostgreSQL database is required for storing the shared configuration. The conditions that the database must meet are in section [3.1.1](#311-database-requirements). Setting up the database is out of the scope of this document.
 
 The minimum X-Road Central Server version is 6.23.
 
@@ -125,7 +128,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\]
 
 1.  Correct timekeeping is important.
 
-    It is assumed that the clocks of the cluster nodes are synchronized using e.g. NTP. The administrator must configure a time synchronization service (e.g. ntpd, chrony, systemd-timesyncd) and take care to keep the time synced.
+    It is assumed that the clocks of the cluster nodes are synchronized using e.g. NTP. The administrator must configure a time synchronization service (e.g. ntpd, chrony, systemd-timesyncd) and take care to keep the time synced. The difference between the clocks of the nodes must stay small, see section [3.1.1](#311-database-requirements).
 
 2.  Network security and speed.
 
@@ -144,7 +147,64 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\]
 ### 3.1 Requirements
 
 The nodes must meet all the requirements listed in the X-Road Central Server Installation Guide (see \[[IG-CS](#Ref_IG-CS)\]). 
-Additionally, creating an HA setup requires that all nodes can access the shared configuration database. A PostgreSQL (version 9.4 or newer) compatible database is required.
+Additionally, creating an HA setup requires that all nodes can access the shared configuration database. The database must meet the conditions in section [3.1.1](#311-database-requirements).
+
+#### 3.1.1 Database requirements
+
+You set up and operate the database. X-Road does not choose or provide a PostgreSQL high availability product. The database must meet these conditions:
+
+- **PostgreSQL 15 or newer.** All nodes use the same version of the database software.
+- **One write address.** All nodes and all components of a node use the same database address. The address always leads to the one database server that accepts writes. It can be the primary server, a virtual IP address, a connection pooler, a managed database endpoint or a Kubernetes read-write service. Do not use the address of a standby server or of a read-only replica. Do not use a list of hosts.
+- **An address that follows a failover.** After a failover, the write address must lead to the new primary server without a change on the nodes. The installation stores the database address in more than one place. For example, the secret store (OpenBao) keeps the address from the first installation in `/etc/openbao/xroad-openbao.env` and does not change it later.
+- **One writer.** At any time, only one database server accepts writes. A database with more than one writer is not supported.
+- **Isolation level `READ COMMITTED`.** This is the default of PostgreSQL, and no X-Road component sets another level. Do not set another default transaction isolation level for the database or for the roles of X-Road.
+- **Tight clock synchronization.** Use a time synchronization service on every node. Keep the difference between the clocks of the nodes small.
+- **A database master user that can create roles and databases.** The user named by `postgres.connection.user` in `/etc/xroad.properties` (`postgres` by default) needs the attributes `CREATEROLE` and `CREATEDB`. It does not need to be a superuser. See [Annex D of the X-Road 8 Central Server Installation Guide](ig-cs_x-road_8_central_server_installation_guide.md#annex-d-remote-and-shared-database).
+
+#### 3.1.2 Connection pools
+
+Each node keeps a pool of database connections for each of its components. The table lists the largest pool of each component in the current release:
+
+| Component on a node                                                        | Connections per node |
+|----------------------------------------------------------------------------|----------------------|
+| Signer                                                                     | 20                   |
+| Components that use the shared Hibernate configuration and set no own size | 10                   |
+| Issuer Service, EDC pool (the EDC default)                                 | 8                    |
+| Issuer Service, reader of the bound identities                             | 1                    |
+
+The admin service and OpenBao use the pool defaults of their frameworks. This guide gives no value for them.
+
+The connection limit of the database server (`max_connections`) and of the connection pooler, if you use one, must be larger than the total of all nodes. Count the pools of every node, the connections of the admin service and OpenBao, and the connections that you need for administration, backup and monitoring. Check the limit again each time you add a node.
+
+#### 3.1.3 Installer checks of the database
+
+The installation of the Central Server packages checks the database address before it creates or changes anything in the database. The checks run when you install, upgrade or reconfigure the Central Server. If a check fails, the installation stops with a message. Fix the cause and run the installation or the reconfiguration again.
+
+| Check        | What the installer does                                                                                                                      | If the check fails                                                                                                                                                                                                                                       |
+|--------------|----------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Version      | Refuses a PostgreSQL older than 15. The message is `PostgreSQL version <n> is not supported. Minimum required version is 15.`               | Use a database of version 15 or newer. If the message is `Unable to determine PostgreSQL version`, the installer could not log in to the database. Check the address, the port, the firewall and the credentials of the step that failed (see below).    |
+| Write access | Refuses a database that does not accept writes. The message names the address and tells you to use the write address.                        | Use the write address of the database. If the address already is a write address, check that the database, or the role that the installer uses, does not set `default_transaction_read_only` to `on`.                                                     |
+| Host list    | On a first installation, refuses an address that holds a comma, such as `db1,db2`. The message asks for one write address.                   | Give one write address, as in section [3.1.1](#311-database-requirements), and run the installation again.                                                                                                                                              |
+
+The write check asks the database for the value of `transaction_read_only`. It therefore refuses a standby server, and it also refuses a database or a role that is set read-only.
+
+An existing configuration can already have a host list in `spring.datasource.url` in `/etc/xroad/db.properties`. An upgrade from an old format of `db.properties` that listed secondary database hosts gets such a list. The installer does not refuse it, because an upgrade keeps `db.properties` unchanged. It writes a warning that OpenBao uses only the first host and so does not follow a failover. Change the address to one write address when it suits you.
+
+The checks run in the packages in this order: the secret store (`xroad-secret-store-local`), the Central Server (`xroad-center`) and the Issuer Service (`xroad-ds-issuer-service`). A read-only address therefore shows first in the secret store step. The steps log in with these credentials:
+
+- The secret store step runs the three checks on the first installation of a Central Server, as the database master user (`postgres.connection.user` and `postgres.connection.password` in `/etc/xroad.properties`). It does not run on a node that joins the OpenBao cluster, because that node creates no OpenBao database.
+- The Central Server step runs the version check and the write check as the Central Server database role from `/etc/xroad/db.properties` when that role can log in. This is the case on a node that you prepared as in step 4 of section [4](#4-general-installation-of-ha-support). Otherwise it uses the database master user. It runs the host list check before it uses any credentials.
+- The Issuer Service step runs the version check and the write check as the Central Server database admin role (`centerui.database.admin_user` and `centerui.database.admin_password` in `/etc/xroad.properties`). With wrong admin credentials it ends with `Unable to determine PostgreSQL version` after a retry of about 30 seconds.
+
+**Preconfiguration of the packages.** The secret store step knows that it runs on a Central Server only when the questions of the Central Server package are loaded before the secret store package is configured. If they are not loaded, the secret store step skips the version check, the write check and the host list check, and it does not tell you. Do one of these on node 1:
+
+- Install the package `apt-utils`. It is installed by default on Ubuntu Server. Then apt preconfigures all packages first, so the questions of the Central Server package exist before the secret store package is configured.
+- Preseed the question of the Central Server package that decides on the database migrations before the installation. Use `false` for automatic migrations:
+  ```bash
+  sudo debconf-set-selections <<< 'xroad-center xroad-common/skip-cs-db-migrations boolean false'
+  ```
+
+The variable `XROAD_IGNORE_DATABASE_SETUP` skips the Issuer Service database setup, including its checks, and the Central Server database migrations. It does not skip the checks of the Central Server step or of the secret store step.
 
 ### 3.2 Workflow for a New X-Road Instance Setup
 
@@ -171,23 +231,10 @@ Referencing steps in section [4](#4-general-installation-of-ha-support).
 
 After installing and configuring all the X-Road Central Server nodes, retrieve new internal end external configuration anchor files from one of the nodes and distribute the files to all Security Servers and configuration proxies.
 
-### 3.5 Post-Configuration Steps
-
-If the remote database supports fail over to a secondary host (e.g. when using PostgreSQL streaming replication with hot-standby), it is possible to define the secondary database hosts in `/etc/xroad/db.properties`. The system will automatically try the secondary hosts in case the primary fails.
-
-```properties
-secondary_hosts=<comma separated list of hosts>
-
-# Example: 
-# secondary_hosts=standby.example.org,standby2.example.org
-```
-
-The secondary hosts are assumed to use the same port (default 5432) as the primary host.
-
 ## 4 General Installation of HA Support
 
 The HA support requires that an external database is initialized and available (see [X-Road Central Server Installation Guide](#Ref_IG-CS) about using an external database). 
-The database can also be installed on the Central Server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
+The database can also be installed on the Central Server node(s), but that is not recommended. The database must meet the conditions in section [3.1.1](#311-database-requirements).
 
 In addition, it is necessary to configure a unique node name for each node participating in the cluster. There are two equal routes: create `node.ini` before installing the Central Server (steps 1 and 2), or answer the node name question that each node's first Central Server installation asks (steps 3 and 4; preseed key `xroad-common/node-name`; you can skip steps 1 and 2, but the notes after step 2 apply to both routes). The installation asks the question only when `node.ini` has no name yet. It checks an entered name before it writes anything, and stops with an error when the name is not valid. The package database setup checks a name that is already in `node.ini` on install, upgrade and reconfigure, and stops with an error when the name is not valid. The services also check every name when they start, and a node with an invalid name does not start.
 
@@ -204,11 +251,9 @@ In addition, it is necessary to configure a unique node name for each node parti
 
     When upgrading an existing Central Server to HA configuration, the name of the existing server *must be* `node_0`. A Central Server that is not clustered already uses `node_0` as its default node name, so its keys in the secret store are stored under that name, and its signer rows (tokens, keys, certificates and requests) carry it too. The installation and the X-Road 7 migration store its configuration rows as shared rows. Setting `name=node_0` in `node.ini` turns the server into node 1 of the cluster and moves nothing: the keys and the signer rows are already under `node_0`, and the shared rows keep applying. From then on the server reports itself as clustered. See [IG-CS section 2.6.4](ig-cs_x-road_8_central_server_installation_guide.md#264-node-name).
 
-    If upgrading an existing cluster with BDR, the name of the node **must be** the same as the local BDR node name.
-
 3.  Install the X-Road Central Server software according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] on the first node.
     
-    When the installation asks for a database host, provide the details of the external database.
+    When the installation asks for a database host, provide the write address of the external database: one host and port, not a list (see section [3.1.1](#311-database-requirements)). Prepare the packages as in section [3.1.3](#313-installer-checks-of-the-database) so that all installer checks run.
 
 4.  On the subsequent nodes, provide the database settings of the first node before you install the Central Server. The package `xroad-base` must be installed first, because it creates the `xroad` user.
     Copy the database configuration file `/etc/xroad/db.properties` from the first node. The copy must be owned by `xroad:xroad` and have the mode `0640`. The services cannot read a copy that `root` owns.
@@ -435,7 +480,7 @@ sudo cat /run/xroad-openbao-join.tar | ssh <admin>@<new-node> \
     ```bash
     sudo apt install xroad-centralserver
     ```
-    The installation asks for the database host: enter the host of the shared database, the same as on node 1. On a node with a join answer, the installation uses the imported OpenBao settings and creates no OpenBao database. It writes the OpenBao configuration with the answers, starts OpenBao and joins the existing cluster. It never initializes a new OpenBao. The installation of the Central Server then continues as in the Central Server installation guide \[[IG-CS](#Ref_IG-CS)\].
+    The installation asks for the database host: enter the write address of the shared database, the same as on node 1. On a node with a join answer, the installation uses the imported OpenBao settings and creates no OpenBao database. It writes the OpenBao configuration with the answers, starts OpenBao and joins the existing cluster. It never initializes a new OpenBao. The installation of the Central Server then continues as in the Central Server installation guide \[[IG-CS](#Ref_IG-CS)\].
 
 **5. Check the result.** On each node:
 
@@ -597,7 +642,7 @@ Recovery procedure depends on the type of the failure and database used. If conf
 
 * Stop Central Servers.
 * Set up a new database.
-* Update the db.properties on each Central Server node to point to the new database.
+* Update the db.properties on each Central Server node to point to the write address of the new database.
 * On one node, restore the database from a backup (see \[[UG-CS](#Ref_UG-CS)\]).
 * Start Central Servers.
 
@@ -612,15 +657,16 @@ See [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-work
 
 ## Appendix A. Setting up a replicated PostgreSQL database
 
-In this configuration, the Central Server nodes share an external PostgreSQL database that uses a master - standby configuration with streaming replication. In case of master failure, the Central Server nodes can automatically start using the standby once it has been promoted to master. The promoting is manual by default, but can be automated by custom scripts or using third-party tools. Because the database standby is read-only and the Central Server nodes require write access, this setup does not provide horizontal scalability.
+In this configuration, the Central Server nodes share an external PostgreSQL database that uses a master - standby configuration with streaming replication. In case of master failure, the standby is promoted to master, and the write address (see section [3.1.1](#311-database-requirements)) must then lead to the new master. The promoting is manual by default, but can be automated by custom scripts or using third-party tools. Because the database standby is read-only and the Central Server nodes require write access, this setup does not provide horizontal scalability.
 
-It is assumed that a PostgreSQL database is installed on two or more similar hosts. It is recommended to use a recent PostgeSQL version (10 or later). One of these hosts will be configured as a master, and others will replicate the master database (standby). The master node can have an existing database, but the standby databases will be initialized during the installation.
+It is assumed that a PostgreSQL database is installed on two or more similar hosts. Use PostgreSQL 15 or newer. One of these hosts will be configured as a master, and others will replicate the master database (standby). The master node can have an existing database, but the standby databases will be initialized during the installation.
 
 A thorough discussion about PostgreSQL replication and high-availability is out of the scope of this guide. For more details, see e.g. [PostgreSQL documentation about high-availability](https://www.postgresql.org/docs/current/high-availability.html).
 
 ### Prerequisites
 
-* Same version (10 or later) of PostgreSQL installed on at least two similar hosts.
+* Same version (15 or newer) of PostgreSQL installed on at least two similar hosts.
+* A write address that leads to the master (see section [3.1.1](#311-database-requirements)): for example a virtual IP address or a connection pooler that you move to the new master at a failover.
 * Network connections on PostgreSQL port (tcp/5432) are allowed between database servers (both directions).
 * Network connections to PostgreSQL port (tcp/5432) are allowed from the Central Servers to the database servers.
 
@@ -692,15 +738,7 @@ sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_n
 
 
 * Additional settings:
-  * Postgresql version < 12: Edit `recovery.conf` (in the data directory) and verify the settings:
-  
-  ```properties
-  standby_mode = 'on'
-  primary_conninfo = 'host=<master> user=<standby> password=<password>'
-  primary_slot_name = 'standby_node1'
-  recovery_target_timeline = 'latest'
-  ```
-   * Postgresql version >=12: Previous settings were moved to `postgresql.conf` instead and standby_mode is not used anymore. A standby.signal file in the data directory is used instead. (https://www.postgresql.org/docs/current/recovery-config.html):
+  * Edit `postgresql.conf` and create the file `standby.signal` in the data directory (https://www.postgresql.org/docs/current/recovery-config.html). `pg_basebackup` with the option `-R` creates both. Verify the settings:
   ```properties
   primary_conninfo = 'host=<master> user=<standby> password=<password>'
   primary_slot_name = 'standby_node1'
@@ -749,9 +787,10 @@ Edit `/etc/xroad/db.properties` and change the connection properties:
 ```properties
 spring.datasource.username=<database_user>
 spring.datasource.password=<password>
-spring.datasource.url=jdbc:postgresql://<master_host>:<master_port>/<database>
-secondary_hosts=<standby_host>
+spring.datasource.url=jdbc:postgresql://<write_address_host>:<write_address_port>/<database>
 ```
+
+`<write_address_host>` is the write address of the database (see section [3.1.1](#311-database-requirements)). Use one host. Do not add a list of hosts to the URL.
 
 Restart Central Servers and verify that the cluster is working (see [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)).
 
@@ -765,10 +804,10 @@ sudo pg_ctl promote
 On Ubuntu pg_ctl is typically not in the path, use pg_ctlcluster instead:
 ```bash
 sudo pg_ctlcluster <major version> <cluster name> promote
-# e.g. sudo pg_ctlcluster 10 main promote
+# e.g. sudo pg_ctlcluster 15 main promote
 ```
 
-If the standby is configured as a secondary database host on the Central Servers, the servers will automatically reconnect to it.
+After the promotion, move the write address to the new master (for example the virtual IP address or the connection pooler). The Central Servers do not choose a new database host themselves. Restart the Central Server services on every node if they do not reconnect.
 To avoid a "split-brain" situation, the old master must not be started until it has been reconfigured as a standby.
 
 See also: https://www.postgresql.org/docs/current/warm-standby-failover.html

@@ -1,6 +1,6 @@
 # X-Road 8: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 1.6
+Version: 1.7
 Doc. ID: IG-CS-8
 
 ---
@@ -15,6 +15,7 @@ Doc. ID: IG-CS-8
 | 18.11.2026 | 1.4     | Correct the introduction and the line breaks of the OpenBao configuration files                      | Ričardas Bučiūnas |
 | 20.11.2026 | 1.5     | Use the term cluster bundle for the archive that a joining node imports                              | Ričardas Bučiūnas |
 | 23.11.2026 | 1.6     | Document the Issuer Service health endpoint and correct the description of port 6181                 | Ričardas Bučiūnas |
+| 25.11.2026 | 1.7     | Add the annex on the remote and shared database: write address, PostgreSQL 15 or newer, database master user attributes, the role ds-issuer-service and the preconfiguration of the packages | Ričardas Bučiūnas |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -48,6 +49,7 @@ Doc. ID: IG-CS-8
 - [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
 - [Annex C `xroad-secret-store-local` default configuration](#annex-c-xroad-secret-store-local-default-configuration)
+- [Annex D Remote and Shared Database](#annex-d-remote-and-shared-database)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -314,7 +316,7 @@ Upon the first installation of the Central Server software, the system asks for 
 
 - Account name for the user who will be granted the rights to perform all activities in the user interface (reference data: 1.4).
 
-- Database server URL. Locally installed database is suggested as default.
+- Database server URL. Locally installed database is suggested as default. For a remote or shared database, enter its write address, see [Annex D Remote and Shared Database](#annex-d-remote-and-shared-database).
 
 - Whether the database migrations should be skipped and handled manually instead. Usually automatic migrations should be used, but for legacy database support (like BDR1) it's possible to rely on manual operations instead. How to execute the database migrations manually is described in [Annex E Run Database Migrations Manually](#annex-e-run-database-migrations-manually).
 
@@ -543,3 +545,35 @@ Files:<br/>
 `root-token` - root OpenBao token. Owner `root:root`, mode `600`. In a cluster, every node keeps the same file, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#42-root-token-file-and-unseal-keys-on-every-node).<br/>
 `unseal-keys` - OpenBao unseal keys. Owner `root:root`, mode `600`. In a cluster, every node keeps the same file.<br/>
 The steps for joining a node to a cluster are in the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#43-joining-the-openbao-cluster).
+
+## Annex D Remote and Shared Database
+
+The Central Server can use a PostgreSQL database that runs on another host, and the nodes of a high availability cluster share one such database. Set up and operate this database yourself. The conditions below apply to a remote database and to a shared database. The Central Server High Availability Installation Guide gives the full conditions for a cluster: [section 3.1](ig-csha_x-road_6_ha_installation_guide.md#31-requirements).
+
+**Database address.** The database server URL that the installation asks for is one write address: the address of the one database server that accepts writes. It can be the primary server, a virtual IP address, a connection pooler, a managed database endpoint or a Kubernetes read-write service. Do not enter the address of a standby server or a read-only replica, and do not enter a list of hosts. The installer refuses an address that does not accept writes, and refuses a list of hosts on a first installation.
+
+**PostgreSQL version.** Use PostgreSQL 15 or newer. The installer refuses an older version.
+
+**Database master user.** The installer connects to the remote database as the master user. Set its name and password in `/etc/xroad.properties`:
+
+```properties
+postgres.connection.user=<master_user>
+postgres.connection.password=<master_password>
+```
+
+The master user needs the attributes `CREATEROLE` and `CREATEDB`. It does not need to be a superuser. The installer uses it to create the databases and the roles in [Annex B Database Users](#annex-b-database-users), and the role `ds-issuer-service`. If the roles already exist, on PostgreSQL 16 and later the master user also needs ADMIN OPTION on them, see Annex B.
+
+**Role `ds-issuer-service`.** The Issuer Service connects to the database as the role `ds-issuer-service`. The installer creates the role once, with a generated password, and stores the password in `/etc/xroad/db.properties`. The role can log in and has no other attributes. The Issuer Service schema `ds-issuer-service` is in the Central Server database. The role `centerui_admin` creates the schema and runs its migrations. The installer connects with it as `centerui.database.admin_user` and `centerui.database.admin_password` in `/etc/xroad.properties`. On the second and later nodes of a shared database, copy `/etc/xroad/db.properties` from the first node, so that the node has the password of the role. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#4-general-installation-of-ha-support).
+
+**Preconfiguration of the packages.** For a Central Server with a remote or shared database, apt must load the questions of the Central Server package before it configures the secret store package. Otherwise the step of the installation that creates the OpenBao database cannot tell that it runs on a Central Server, and it skips the version check, the write check and the host list check. It does not show a message. Do one of these:
+
+- Make sure that the package `apt-utils` is installed. It is installed by default on Ubuntu Server. Then apt preconfigures all packages first.
+- Preseed the answer for the database migrations before the installation:
+
+  ```bash
+  sudo debconf-set-selections <<< 'xroad-center xroad-common/skip-cs-db-migrations boolean false'
+  ```
+
+  Use `false` for automatic migrations, or `true` to run the migrations manually.
+
+The Central Server High Availability Installation Guide describes the installer checks and what to do when one fails: [section 3.1.3](ig-csha_x-road_6_ha_installation_guide.md#313-installer-checks-of-the-database).
