@@ -38,6 +38,7 @@ import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.vault.FakeOpenBao;
 import org.niis.xroad.migration.tokenpin.PinSourceLocations;
 import org.niis.xroad.migration.tokenpin.PinSourceNotFoundException;
 import org.niis.xroad.migration.utils.InstallationType;
@@ -84,9 +85,9 @@ class SignerTokenPinsNodeTest {
 
     @BeforeEach
     void startFakeOpenBao() throws IOException {
-        openBao = new FakeOpenBao();
-        openBao.pointEnvironmentAt(envVars);
-        store = openBao.store();
+        openBao = FakeOpenBao.started(FakeOpenBao.KvVersion.V1_STATEFUL);
+        SecretStoreTestEnvironment.pointAt(envVars, openBao);
+        store = openBao.storedByPath();
 
         ssDbProperties = writeDbProperties("ss-db.properties", """
                 xroad.db.serverconf.hibernate.connection.url=jdbc:postgresql://localhost/ss

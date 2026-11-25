@@ -39,6 +39,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.vault.FakeOpenBao;
 import org.niis.xroad.migration.tokenpin.PinSourceLocations;
 import org.niis.xroad.migration.utils.InstallationType;
 import org.testcontainers.DockerClientFactory;
@@ -105,8 +106,8 @@ class SignerTokenPinsAutologinPostgresTest {
 
     @BeforeEach
     void startFakeOpenBao() throws IOException {
-        openBao = new FakeOpenBao();
-        openBao.pointEnvironmentAt(envVars);
+        openBao = FakeOpenBao.started(FakeOpenBao.KvVersion.V1_STATEFUL);
+        SecretStoreTestEnvironment.pointAt(envVars, openBao);
     }
 
     @AfterEach
@@ -122,7 +123,7 @@ class SignerTokenPinsAutologinPostgresTest {
 
         migrate(installation, dbProperties, pinFile(PIN_FIXTURE + "\n"));
 
-        assertThat(openBao.store()).containsOnlyKeys("signer/token-pins/node_b/0");
+        assertThat(openBao.storedByPath()).containsOnlyKeys("signer/token-pins/node_b/0");
         assertThat(autologinFlag(database)).containsExactly("true");
     }
 
@@ -192,7 +193,7 @@ class SignerTokenPinsAutologinPostgresTest {
 
         migrate(installation, dbProperties, pinFile("\n"));
 
-        assertThat(openBao.store()).isEmpty();
+        assertThat(openBao.storedByPath()).isEmpty();
         assertThat(autologinFlag(database)).isEmpty();
     }
 
