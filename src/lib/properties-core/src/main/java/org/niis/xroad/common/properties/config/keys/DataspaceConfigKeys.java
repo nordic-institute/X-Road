@@ -46,6 +46,7 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     private static final Prefix IDENTITY_HUB_PROVISIONING_RPC = DATASPACE.subPrefix("identity-hub-provisioning").subPrefix("rpc");
 
     private static final String DEADLINE_AFTER = "deadline-after";
+    private static final String LOOPBACK_ADDRESS = "127.0.0.1";
 
     private static final DataspaceConfigKeys INSTANCE = new DataspaceConfigKeys();
 
@@ -86,6 +87,21 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
             .build();
 
     /**
+     * {@code xroad.dataspace.issuer.health-check-listen-address} — the interface the Issuer Service's plain-HTTP
+     * health endpoint binds to; the default listens on the loopback interface only.
+     */
+    public static final ConfigKey<String> ISSUER_HEALTH_CHECK_LISTEN_ADDRESS = ISSUER
+            .string("health-check-listen-address")
+            .withDefaultValue(LOOPBACK_ADDRESS)
+            .publishedToFramework()
+            .build();
+    /** {@code xroad.dataspace.issuer.health-check-port} — the port of the Issuer Service's plain-HTTP health endpoint. */
+    public static final ConfigKey<Integer> ISSUER_HEALTH_CHECK_PORT = ISSUER
+            .integer("health-check-port")
+            .withDefaultValue(6189)
+            .publishedToFramework()
+            .build();
+    /**
      * {@code xroad.dataspace.issuer.acme-renewal-active} — the Central Server's own explicit kill-switch for
      * the co-located Issuer Service's DS TLS certificate ACME renewal scheduler: {@code xroad-ds-issuer-service}
      * is an unconditional dependency of the Central Server package, not an opt-in feature.
@@ -98,7 +114,7 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.dataspace.issuer-provisioning.rpc.host}. */
     public static final ConfigKey<String> ISSUER_PROVISIONING_RPC_HOST = ISSUER_PROVISIONING_RPC
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOOPBACK_ADDRESS)
             .build();
 
     /** {@code xroad.dataspace.issuer-provisioning.rpc.port}. */
@@ -123,7 +139,7 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.dataspace.identity-hub-provisioning.rpc.host}. */
     public static final ConfigKey<String> IDENTITY_HUB_PROVISIONING_RPC_HOST = IDENTITY_HUB_PROVISIONING_RPC
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOOPBACK_ADDRESS)
             .withContainerDefaultValue("ds-identity-hub")
             .build();
 

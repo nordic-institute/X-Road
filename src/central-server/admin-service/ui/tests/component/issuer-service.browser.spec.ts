@@ -500,6 +500,15 @@ describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
     };
   }
 
+  async function advancePollingUntilRunEnds() {
+    await expect
+      .poll(async () => {
+        await vi.advanceTimersByTimeAsync(5_000);
+        return page.getByTestId('issuer-service-run-in-progress').query();
+      })
+      .toBeNull();
+  }
+
   it('polls while a run is in progress and stops once the run ends', async () => {
     const { reads, end } = await renderAndStartRun();
     const readsOnceRunning = reads();
@@ -508,8 +517,7 @@ describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
     await expect.poll(() => reads()).toBeGreaterThan(readsOnceRunning);
 
     end();
-    await vi.advanceTimersByTimeAsync(5_000);
-    await expect.poll(() => page.getByTestId('issuer-service-run-in-progress').query()).toBeNull();
+    await advancePollingUntilRunEnds();
     const readsAfterEnd = reads();
 
     await vi.advanceTimersByTimeAsync(60_000);
@@ -518,8 +526,9 @@ describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
 
   it('stops polling when the user leaves the tab', async () => {
     const { router, reads } = await renderAndStartRun();
+    const readsOnceRunning = reads();
     await vi.advanceTimersByTimeAsync(5_000);
-    await expect.poll(() => reads()).toBeGreaterThan(0);
+    await expect.poll(() => reads()).toBeGreaterThan(readsOnceRunning);
 
     await router.push('/forbidden');
     await expect.poll(() => page.getByTestId('issuer-service-view').query()).toBeNull();
@@ -541,8 +550,7 @@ describe('CS Issuer Service tab — run polling (Browser Mode)', () => {
     const alertReadsWhileRunning = alertReads;
 
     end();
-    await vi.advanceTimersByTimeAsync(5_000);
-    await expect.poll(() => page.getByTestId('issuer-service-run-in-progress').query()).toBeNull();
+    await advancePollingUntilRunEnds();
 
     await expect.poll(() => alertReads).toBeGreaterThan(alertReadsWhileRunning);
   });

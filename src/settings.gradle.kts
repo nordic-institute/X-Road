@@ -97,6 +97,7 @@ include("lib:rpc-quarkus")
 include("lib:vault-core")
 include("lib:vault-spring")
 include("lib:vault-quarkus")
+include("lib:health-check-common")
 include("lib:health-check-core")
 include("lib:ds-identity-core")
 
