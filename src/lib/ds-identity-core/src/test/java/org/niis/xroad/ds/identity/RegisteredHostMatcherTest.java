@@ -171,6 +171,39 @@ class RegisteredHostMatcherTest {
         assertThat(unusable.isSystemPairStale(SYSTEM_DID, DSP_BASE_URL)).isTrue();
     }
 
+    @Test
+    void shouldCallABindingDifferentOnlyWhenItsSchemeIsSupportedItsDidDecodesAndItsHostDiffers() {
+        var scheme = ParticipantIdentifierScheme.SCHEME_VERSION;
+
+        assertThat(matcher.isBindingHostDifferent(scheme, memberDid("ss1.example.org:7183"))).isTrue();
+        assertThat(matcher.isBindingHostDifferent(scheme, SYSTEM_DID)).isFalse();
+        assertThat(matcher.isBindingHostDifferent(scheme, memberDid("SS0.EXAMPLE.ORG:8443"))).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"v9", ""})
+    @NullSource
+    void shouldNotCallABindingOfAnUnsupportedSchemeVersionDifferent(String schemeVersion) {
+        assertThat(matcher.isBindingHostDifferent(schemeVersion, memberDid("ss1.example.org:7183"))).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"not-a-did", "did:web:ss1.example.org", "did:web:ss1.example.org:v9:DEV:COM:222"})
+    @NullAndEmptySource
+    void shouldNotCallABindingWithAnUndecodableDidDifferent(String did) {
+        assertThat(matcher.isBindingHostDifferent(ParticipantIdentifierScheme.SCHEME_VERSION, did)).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"bücher.example", "ss0.example.org:notaport"})
+    @NullSource
+    void shouldNotCallABindingDifferentWhenTheRegisteredAddressCannotBeUsed(String registeredAddress) {
+        var unusable = RegisteredHostMatcher.of(registeredAddress);
+
+        assertThat(unusable.isBindingHostDifferent(ParticipantIdentifierScheme.SCHEME_VERSION,
+                memberDid("ss1.example.org:7183"))).isFalse();
+    }
+
     private static String memberDid(String authority) {
         return ParticipantIdentifierScheme.memberDid(MEMBER, authority).toString();
     }

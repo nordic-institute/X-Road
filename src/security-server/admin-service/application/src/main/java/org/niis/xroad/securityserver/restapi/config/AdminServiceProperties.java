@@ -46,6 +46,7 @@ import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.securityserver.restapi.mail.NotificationConfig;
 import org.springframework.util.unit.DataSize;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
@@ -163,6 +164,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
 
     public boolean isAutoUpdateTimestampServiceUrl() {
         return config.value(AdminServiceConfigKeys.AUTO_UPDATE_TIMESTAMP_SERVICE_URL);
+    }
+
+    public Duration getAddressChangeExpiry() {
+        return config.value(AdminServiceConfigKeys.ADDRESS_CHANGE_EXPIRY);
     }
 
     public boolean isAutomaticActivateAuthCertificate() {

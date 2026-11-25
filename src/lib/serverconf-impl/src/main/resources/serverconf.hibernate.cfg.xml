@@ -22,6 +22,7 @@
         <mapping class="org.niis.xroad.serverconf.impl.entity.EndpointEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.GroupMemberEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.LocalGroupEntity"/>
+        <mapping class="org.niis.xroad.serverconf.impl.entity.PendingAddressChangeEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.ServerConfEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.ServiceEntity"/>

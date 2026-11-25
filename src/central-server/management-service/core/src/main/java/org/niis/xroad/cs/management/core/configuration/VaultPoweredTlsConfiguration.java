@@ -26,10 +26,10 @@
  */
 package org.niis.xroad.cs.management.core.configuration;
 
-import org.niis.xroad.common.managementservice.AbstractManagementServiceSslBundleRegistrar;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
+import org.niis.xroad.common.vault.spring.VaultSslBundleRegistrar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
 import org.springframework.context.annotation.Bean;
@@ -41,13 +41,13 @@ import org.springframework.vault.core.VaultTemplate;
 public class VaultPoweredTlsConfiguration {
 
     @Bean
-    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = AbstractManagementServiceSslBundleRegistrar.BUNDLE_NAME)
+    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = VaultSslBundleRegistrar.MANAGEMENT_SERVICE_BUNDLE)
     VaultKeyClient vaultKeyClient(VaultTemplate vaultTemplate, ManagementServiceTlsProperties properties) {
         return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
     }
 
     @Bean
-    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = AbstractManagementServiceSslBundleRegistrar.BUNDLE_NAME)
+    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = VaultSslBundleRegistrar.MANAGEMENT_SERVICE_BUNDLE)
     public SslBundleRegistrar vaultSslBundleRegistrar(VaultKeyClient vaultKeyClient, VaultClient vaultClient) {
         return new ManagementServiceSslBundleRegistrar(vaultKeyClient, vaultClient);
     }

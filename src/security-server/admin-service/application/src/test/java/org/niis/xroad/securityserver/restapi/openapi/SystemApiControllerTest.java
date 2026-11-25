@@ -479,6 +479,27 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         assertNull(response.getBody().getCurrentAddress());
     }
 
+    @Test
+    @WithMockUser(authorities = {"CHANGE_SS_ADDRESS"})
+    public void getServerAddressWithPendingChange() {
+        when(systemService.registeredAddress()).thenReturn(Optional.of("ss.example.org"));
+        when(systemService.pendingAddressChange()).thenReturn(Optional.of("new.example.org"));
+        var response = systemApiController.getServerAddress();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("ss.example.org", response.getBody().getCurrentAddress().getAddress());
+        assertEquals("new.example.org", response.getBody().getRequestedChange().getAddress());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"CHANGE_SS_ADDRESS"})
+    public void getServerAddressWithoutPendingChange() {
+        when(systemService.registeredAddress()).thenReturn(Optional.of("ss.example.org"));
+        when(systemService.pendingAddressChange()).thenReturn(Optional.empty());
+        var response = systemApiController.getServerAddress();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody().getRequestedChange());
+    }
+
     private void getSystemCertificate() throws IOException {
         X509Certificate x509Certificate = null;
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
