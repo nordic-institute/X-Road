@@ -440,19 +440,24 @@ public class K8sEnvSetup extends BaseComposeSetup
 
     /**
      * Both SS's are reached via kubectl port-forward on {@code localhost}, so — unlike LXD's
-     * distinct hostnames — ss0/ss1 need distinct local ports per service; the {@code port}
-     * argument (the service's canonical in-cluster port, e.g. {@link SsStackSetup.Port#PROXY})
-     * is only used as a fallback for services this adapter has no dedicated forwarded port for.
+     * distinct hostnames — ss0/ss1 need distinct local ports per service. For the proxy, the
+     * {@code port} argument (the service's canonical in-cluster port, e.g. {@link SsStackSetup.Port#PROXY})
+     * selects the plaintext or TLS forward; for services this adapter has no dedicated forwarded
+     * port for, it is returned unchanged.
      */
     private int resolvePort(String env, String service, int port) {
         return switch (env) {
             case "ss0" -> switch (service) {
-                case SsStackSetup.PROXY -> k8sProperties.ss0ProxyPort();
+                case SsStackSetup.PROXY -> port == SsStackSetup.Port.PROXY_TLS
+                        ? k8sProperties.ss0ProxyTlsPort()
+                        : k8sProperties.ss0ProxyPort();
                 case SsStackSetup.UI -> k8sProperties.ss0UiPort();
                 default -> port;
             };
             case "ss1" -> switch (service) {
-                case SsStackSetup.PROXY -> k8sProperties.ss1ProxyPort();
+                case SsStackSetup.PROXY -> port == SsStackSetup.Port.PROXY_TLS
+                        ? k8sProperties.ss1ProxyTlsPort()
+                        : k8sProperties.ss1ProxyPort();
                 case SsStackSetup.UI -> k8sProperties.ss1UiPort();
                 default -> port;
             };

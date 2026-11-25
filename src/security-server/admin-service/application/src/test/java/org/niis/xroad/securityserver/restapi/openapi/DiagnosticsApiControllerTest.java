@@ -678,7 +678,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getOtherSecurityServerStatus() {
-        when(vaultKeyProvider.getKeyManager()).thenReturn(mock(KeyManager.class));
+        KeyManager keyManager = mock(KeyManager.class);
+        when(vaultKeyProvider.getKeyManager()).thenReturn(keyManager);
 
         ResponseEntity<ConnectionStatusDto> response = diagnosticsApiController.getOtherSecurityServerStatus("REST",
                 "DEV:COM:4321", "DEV:COM:1234:MANAGEMENT", "DEV:COM:1234:SS0");
