@@ -37,6 +37,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -280,7 +281,7 @@ public class DataspaceProvisioningService {
 
     /**
      * Enumerates the bound participant rows awaiting teardown convergence: every {@code ds_participant}
-     * row currently marked {@link ParticipantState#DECOMMISSIONED}. A member with an entry here is
+     * row currently marked {@link ParticipantState#DECOMMISSIONED}. A participant with an entry here is
      * excluded from {@link #participantContexts()} until its row is gone.
      */
     @Transactional(readOnly = true)
@@ -454,13 +455,14 @@ public class DataspaceProvisioningService {
 
     /**
      * Enumerates the participant contexts to provision or report on: the per-server SYSTEM context,
-     * always listed, followed by one member context per distinct X-Road member
+     * listed unless its row is an unconverged {@link ParticipantState#DECOMMISSIONED} tombstone,
+     * followed by one member context per distinct X-Road member
      * (subsystems collapsed) hosted on this Security Server — a member appears once it has a
      * registered local client, the SS owner included. Member ctx-ids follow the v1 scheme
      * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant}.
      * A member with an unconverged {@link ParticipantState#DECOMMISSIONED} row is excluded — it is
      * never provisioned until that tombstone is gone, which prevents provision/teardown flapping on
-     * a rapid remove-then-re-add.
+     * a rapid remove-then-re-add; the SYSTEM context is held back the same way.
      *
      * <p>The SYSTEM context carries the current SS owner as its credential subject (the member the
      * credential is issued to), which is distinct from the SYSTEM identifier itself: the DID and ctx-id
@@ -471,29 +473,35 @@ public class DataspaceProvisioningService {
         ClientId owner = ownSecurityServerResolver.identity().serverId().map(SecurityServerId::getOwner).orElse(null);
 
         List<ParticipantContext> contexts = new ArrayList<>();
-        contexts.add(new ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, owner));
+        var system = new ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, owner);
 
         if (owner == null) {
             // serverconf is not initialised: reading local clients would throw MALFORMED_SERVERCONF
+            contexts.add(system);
             return contexts;
+        }
+        if (!isTombstoned(isDecommissioned(dsParticipantRepository.findSystemParticipant()), "context", "SYSTEM")) {
+            contexts.add(system);
         }
 
         HostedMembers.of(clientRepository.getAllLocalClients()).stream()
-                .filter(member -> !isTombstoned(member))
+                .filter(member -> !isTombstoned(isDecommissioned(dsParticipantRepository.findByMemberIdentifier(member)),
+                        "member", member))
                 .forEach(member -> contexts.add(
                         new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member)));
 
         return contexts;
     }
 
-    private boolean isTombstoned(ClientId member) {
-        boolean tombstoned = dsParticipantRepository.findByMemberIdentifier(member)
-                .map(row -> row.getState() == ParticipantState.DECOMMISSIONED)
-                .orElse(false);
-        if (tombstoned) {
-            log.debug("Data space provisioning: member {} blocked from provisioning by an unconverged tombstone", member);
+    private static boolean isDecommissioned(Optional<DsParticipantEntity> row) {
+        return row.map(bound -> bound.getState() == ParticipantState.DECOMMISSIONED).orElse(false);
+    }
+
+    private static boolean isTombstoned(boolean decommissioned, String kind, Object id) {
+        if (decommissioned) {
+            log.debug("Data space provisioning: {} {} blocked from provisioning by an unconverged tombstone", kind, id);
         }
-        return tombstoned;
+        return decommissioned;
     }
 
     /**
@@ -558,6 +566,43 @@ public class DataspaceProvisioningService {
      */
     public boolean registeredAddressKnown() {
         return didAuthority.isKnown();
+    }
+
+    /**
+     * What the provisioning worker does about an active binding whose DID host is not the registered address, by
+     * the rule that decides which bindings a re-identification retires.
+     */
+    public enum BindingHold {
+        /** No active binding differs from the registered address, or the address is unknown or unusable. */
+        NONE,
+        /** An active binding differs: the worker binds and publishes nothing until the participants are re-identified. */
+        HELD,
+        /** An active binding differs, but a participant's DID cannot be created at the registered address. */
+        ADDRESS_CANNOT_CARRY_DID
+    }
+
+    /**
+     * Tells whether the worker holds binding and publication. The hold does not apply while the DID of a participant
+     * with a differing binding cannot be created at the registered address, because re-identification would refuse
+     * and the hold would never end. The DID check runs only when an active binding differs.
+     *
+     * @return the hold decision
+     */
+    @Transactional(readOnly = true)
+    public BindingHold bindingHold() {
+        var differing = registeredHostMatcher()
+                .map(dsParticipantRepository::findDifferingBindings)
+                .orElse(List.of());
+        if (differing.isEmpty()) {
+            return BindingHold.NONE;
+        }
+        return DataspaceDidMintRule.firstUnmintable(didAuthority, differing).isPresent()
+                ? BindingHold.ADDRESS_CANNOT_CARRY_DID
+                : BindingHold.HELD;
+    }
+
+    private Optional<RegisteredHostMatcher> registeredHostMatcher() {
+        return ownSecurityServerResolver.address().registeredAddress().map(RegisteredHostMatcher::of);
     }
 
     private Did boundDidOf(ParticipantContext context) {

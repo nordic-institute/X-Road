@@ -31,9 +31,16 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataspaceConfigKeysTest {
+
+    private static final Set<String> PUBLISHED_KEYS = Set.of(
+            "xroad.dataspace.issuer.listen-address",
+            "xroad.dataspace.issuer.health-check-listen-address",
+            "xroad.dataspace.issuer.health-check-port");
 
     @Test
     void didResolutionDeadlineRejectsZeroAndNegativeAndDefaultsToFourSeconds() {
@@ -58,6 +65,16 @@ class DataspaceConfigKeysTest {
         assertThat(key.publishedToFramework()).isTrue();
     }
 
+    @Test
+    void issuerHealthCheckKeysDefaultToLoopbackAndPort6189AndArePublishedToFramework() {
+        assertThat(DataspaceConfigKeys.ISSUER_HEALTH_CHECK_LISTEN_ADDRESS.key())
+                .isEqualTo("xroad.dataspace.issuer.health-check-listen-address");
+        assertThat(DataspaceConfigKeys.ISSUER_HEALTH_CHECK_LISTEN_ADDRESS.convertedDefaultValue()).isEqualTo("127.0.0.1");
+        assertThat(DataspaceConfigKeys.ISSUER_HEALTH_CHECK_LISTEN_ADDRESS.publishedToFramework()).isTrue();
+        assertThat(DataspaceConfigKeys.ISSUER_HEALTH_CHECK_PORT.key()).isEqualTo("xroad.dataspace.issuer.health-check-port");
+        assertThat(DataspaceConfigKeys.ISSUER_HEALTH_CHECK_PORT.convertedDefaultValue()).isEqualTo(6189);
+        assertThat(DataspaceConfigKeys.ISSUER_HEALTH_CHECK_PORT.publishedToFramework()).isTrue();
+    }
     @Test
     void identityHubProvisioningRpcHostResolvesToLocalhostOnNativeAndToTheContainerNameWhenContainerized() {
         var nativeConfig = XRoadConfigBuilder.create().register(DataspaceConfigKeys.instance()).build();
@@ -84,7 +101,7 @@ class DataspaceConfigKeysTest {
         assertThat(DataspaceConfigKeys.IDENTITY_HUB_PROVISIONING_RPC_DEADLINE_AFTER.convertedDefaultValue()).isEqualTo(60000);
 
         assertThat(DataspaceConfigKeys.instance().keys())
-                .filteredOn(key -> !key.key().equals("xroad.dataspace.issuer.listen-address"))
+                .filteredOn(key -> !PUBLISHED_KEYS.contains(key.key()))
                 .allSatisfy(key -> {
                     assertThat(key.publishedToFramework()).as("%s must stay out of the framework config", key.key()).isFalse();
                     assertThat(key.exposedInUi()).as("%s must stay out of the system-parameters UI", key.key()).isFalse();

@@ -1,6 +1,6 @@
 # X-Road 8: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 1.2
+Version: 1.6
 Doc. ID: IG-CS-8
 
 ---
@@ -11,6 +11,10 @@ Doc. ID: IG-CS-8
 | 07.10.2025 | 1.0     | Initial version                                                                                      | Justas Samuolis |
 | 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check, the default node name, the shared rows of a standalone server and the signer rows | Ričardas Bučiūnas |
 | 12.11.2026 | 1.2     | Describe the root token file that every node of a cluster keeps                                      | Ričardas Bučiūnas |
+| 17.11.2026 | 1.3     | Document the ports between the nodes of a cluster and the OpenBao configuration files                | Ričardas Bučiūnas |
+| 18.11.2026 | 1.4     | Correct the introduction and the line breaks of the OpenBao configuration files                      | Ričardas Bučiūnas |
+| 20.11.2026 | 1.5     | Use the term cluster bundle for the archive that a joining node imports                              | Ričardas Bučiūnas |
+| 23.11.2026 | 1.6     | Document the Issuer Service health endpoint and correct the description of port 6181                 | Ričardas Bučiūnas |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -27,6 +31,7 @@ Doc. ID: IG-CS-8
   - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
   - [2.2 Reference Data](#22-reference-data)
     - [2.2.1 Network Diagram](#221-network-diagram)
+    - [2.2.2 Issuer Service health endpoint](#222-issuer-service-health-endpoint)
   - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repositories](#25-setup-package-repositories)
@@ -96,6 +101,7 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 | 1.5.1   | TCP 4002 management services                                                                                                                                                                                                                                                                     | Port for inbound connections from the management Security Server                                                                                                                                                                                                                           |
 | 1.6     | TCP 80, 443 software updates                                                                                                                                                                                                                                                                     | Ports for outbound connections (from the Central Server to the external network)                                                                                                                                                                                                           |
 | 1.7     | TCP 80 HTTP between the Central Server and the management services' Security Server<br>TCP 443 HTTP between the Central Server and the management services' Security Server<br>TCP 4000 user interface<br>TCP 4002 HTTPS between the Central Server and the management services' Security Server | Internal network ports, the user interface port, and management service ports for the management services' Security Server                                                                                                                                                                 |
+| 1.7.1   | TCP 8200 OpenBao API between the Central Server nodes of a cluster<br>TCP 8201 OpenBao cluster traffic between the Central Server nodes of a cluster                                                                                                                                             | Ports for connections between the nodes of a cluster                                                                                                                                                                                                                                       |
 | 1.8     |                                                                                                                                                                                                                                                                                                  | Central Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                     |
 | 1.9     |                                                                                                                                                                                                                                                                                                  | Central Server public IP address, NAT address                                                                                                                                                                                                                                              |
 | 1.10    | <by default, the server’s host name is the common name and its IP addresses and names are the alternative names; the installation asks for them>                                                                                                                                                                                   | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
@@ -119,25 +125,28 @@ The table below lists the required connections between different components. Ple
 | In                  | X-Road Member Security Server     | Central Server                | 4001                | tcp          | Authentication certificate registration requests from X-Road Members' Security Servers                                                                                           |
 | In                  | Management Security Server        | Central Server                | 80, 443, 4001, 4002 | tcp          | Source in the internal network. Management service requests from Management Security Server. Global configuration distribution. Authentication certificate registration requests |
 | In                  | Monitoring Security Server        | Central Server                | 80, 443, 4001       | tcp          | Source in the internal network. Global configuration distribution. Authentication certificate registration requests                                                              |
-| In                  | Security Server                   | Central Server                | 6183, 6185, 6187    | tcp          | Issuer Service DID documents, credential issuance and credential status lists, reached through the cluster DNS name                                                               |
+| In                  | Security Server                   | Central Server                | 6183, 6185, 6187    | tcp          | Issuer Service DID documents, credential issuance and credential status lists, reached through the cluster DNS name                                                              |
 | In                  | X-Road Member Security Server     | Management Security Server    | 5500, 5577          | tcp          | Management service requests from X-Road Members' Security Servers                                                                                                                |
 | In                  | Central Monitoring Client         | Monitoring Security Server    | 8080, 8443          | tcp          | Source in the internal network                                                                                                                                                   |
 | In                  | Admin, management REST API client | Central Server                | 4000                | tcp          | Source in the internal network                                                                                                                                                   |
 | In                  | Admin                             | Management Security Server    | 4000                | tcp          | Source in the internal network                                                                                                                                                   |
 | In                  | Admin                             | Monitoring Security Server    | 4000                | tcp          | Source in the internal network                                                                                                                                                   |
+| In                  | Central Server node               | Central Server node           | 8200                | tcp          | OpenBao API between the nodes of a cluster, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#43-joining-the-openbao-cluster)|
+| In                  | Central Server node               | Central Server node           | 8201                | tcp          | OpenBao cluster traffic between the nodes of a cluster (request forwarding)                                                                                                      |
 
-The table below lists the open ports for Central Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
+The table below lists the open ports for Central Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally. The OpenBao port is the exception on a node of a cluster: besides the loopback interface, it also listens on the address of the node, and it uses the port 8201 for cluster traffic (see the table above).
 
-| **Component**        | **Ports** | **Protocol** | **Note**                                      |
-|----------------------|-----------|--------------|-----------------------------------------------|
-| Registration Service | 8084      | tcp          | For incoming requests to Registration Service |
-| Management Service   | 8085      | tcp          | For incoming requests to Management Service   |
-| Issuer Service       | 6181      | tcp          | EDC default API and health check              |
-| Issuer Service       | 5460      | tcp          | gRPC from the Central Server admin service     |
-| PostgreSQL database  | 5432      | tcp          | Default PostgreSQL database port              |
-| Signer               | 5560      | tcp          | Signer gRPC port                              |
-| Audit log            | 514       | udp          |                                               |
-| Secret Store         | 8200      | tcp          | Local Secret Store (OpenBao) port             |
+| **Component**        | **Ports** | **Protocol** | **Note**                                                                                                     |
+|----------------------|-----------|--------------|--------------------------------------------------------------------------------------------------------------|
+| Registration Service | 8084      | tcp          | For incoming requests to Registration Service                                                                |
+| Management Service   | 8085      | tcp          | For incoming requests to Management Service                                                                  |
+| Issuer Service       | 6181      | tcp          | EDC default API (HTTPS). It is closed while no certificate is served. Do not use it as a load balancer probe |
+| Issuer Service       | 6189      | tcp          | Health endpoint (plain HTTP), loopback by default                                                            |
+| Issuer Service       | 5460      | tcp          | gRPC from the Central Server admin service                                                                   |
+| PostgreSQL database  | 5432      | tcp          | Default PostgreSQL database port                                                                             |
+| Signer               | 5560      | tcp          | Signer gRPC port                                                                                             |
+| Audit log            | 514       | udp          |                                                                                                              |
+| Secret Store         | 8200      | tcp          | Local Secret Store (OpenBao) port. A node of a cluster also listens on its node address                      |
 
 The Issuer Service's public ports (6183, 6185, 6187) listen on the interface set by the
 `xroad.dataspace.issuer.listen-address` property. The default is `0.0.0.0`; it and `::` both
@@ -168,6 +177,79 @@ haproxy backend that reaches these ports on loopback. The property has no valida
 address does not fail the command that sets it, and shows up only as a bind failure when the
 Issuer Service next starts.
 
+#### 2.2.2 Issuer Service health endpoint
+
+Each Issuer Service serves a read-only health endpoint in plain HTTP, without authentication.
+The `xroad.dataspace.issuer.health-check-listen-address` property sets the interface. The
+default is `127.0.0.1`. The `xroad.dataspace.issuer.health-check-port` property sets the port.
+The default is `6189`. With the defaults, the endpoint is reachable only from the node itself.
+To let a load balancer probe the node, set the address to one that the load balancer can reach.
+Then allow the load balancer to connect to the port in the firewall.
+
+Set a shared value, used by every node without its own value, with:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.dataspace.issuer.health-check-listen-address <address>
+sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.dataspace.issuer.health-check-port <port>
+```
+
+Set a value for one node of a cluster instead with:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set --yes --node <node> -- xroad.dataspace.issuer.health-check-listen-address <address>
+sudo /usr/share/xroad/scripts/db_property.sh set --yes --node <node> -- xroad.dataspace.issuer.health-check-port <port>
+```
+
+The Issuer Service reads both properties once at startup, so restart it after a change:
+
+```bash
+sudo systemctl restart xroad-ds-issuer-service
+```
+
+**Caution:** the properties have no validator. A bad value does not fail the command that sets
+it. Bad values are a mistyped address, an address that is not on the node, and a port that
+another process uses. A bad value shows up as a bind failure when the Issuer Service next
+starts. Then the whole Issuer Service stops, including the DID document and the credential
+issuance.
+
+Use these two paths:
+
+| **Path**          | **Use**             | **Answers UP when**                                                                                         |
+|-------------------|---------------------|-------------------------------------------------------------------------------------------------------------|
+| `/q/health/ready` | Load balancer probe | The Central Server database is reachable, and the public ports serve a TLS certificate that has not expired |
+| `/q/health/live`  | Process check       | The Issuer Service process responds                                                                         |
+
+The load balancer checks the HTTP status code of the answer. Each path answers HTTP 200 when
+the answer is UP, and HTTP 503 when the answer is DOWN. This command, run on the node, prints
+the status code of the readiness path:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:6189/q/health/ready
+```
+
+If you changed the address or the port, use the new values in the URL.
+
+The body of the answer is JSON. The `status` field holds the overall answer, `UP` or `DOWN`.
+The `checks` array holds the checks behind it. For `/q/health/ready`, the check named
+`EDC_READINESS_CHECK` has a `data` object only when it is `DOWN`. That object has one field for
+each component that fails, `database` or `connector-tls`, with a short cause.
+
+The secret store (OpenBao) is not part of the readiness check. A short OpenBao outage keeps the
+nodes in rotation. A database outage or an OpenBao outage never makes `/q/health/live` answer
+DOWN.
+
+The port refuses connections while the Issuer Service starts, and when it fails to start. A load
+balancer reads this as down, which is correct.
+
+To take a node out of rotation, disable it at the load balancer, or stop the service:
+
+```bash
+sudo systemctl stop xroad-ds-issuer-service
+```
+
+The Issuer Service has no maintenance mode. If the Java process runs out of memory, it exits
+and systemd restarts it.
+
 ### 2.3 Requirements to the Central Server
 
 Minimum recommended hardware parameters:
@@ -178,7 +260,7 @@ Minimum recommended hardware parameters:
 
 Requirements for software and settings:
 - an installed and configured Ubuntu 24.04 LTS x86-64 operating system;
-- the necessary connections are allowed in the firewall (reference data: 1.5; 1.5.1; 1.6; 1.7),
+- the necessary connections are allowed in the firewall (reference data: 1.5; 1.5.1; 1.6; 1.7; 1.7.1),
 - if the Central Server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.9).
 
 ### 2.4 Preparing OS
@@ -372,7 +454,7 @@ A standalone Central Server does not need a node name. Set one on every node of 
   - The services use the name `node_0` in secret store paths.
   - Backup archive names have no node name suffix.
   - `node_0` is the default name of an initialized Central Server that is not clustered. The server does not report itself as clustered.
-- To turn a standalone Central Server into node 1 of a cluster, set `name=node_0` in `node.ini`. The server keeps its keys in the secret store, because they are already stored under `node_0`. It keeps its configuration rows too: the installation and the migration from X-Road 7 write shared rows, and shared rows keep applying to the node. Nothing is moved. From then on the server reports itself as clustered. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md) for the other steps.
+- To turn a standalone Central Server into node 1 of a cluster, set `name=node_0` in `node.ini`. The server keeps its keys in the secret store, because they are already stored under `node_0`. It keeps its configuration rows too: the installation and the migration from X-Road 7 write shared rows, and shared rows keep applying to the node. Nothing is moved. From then on the server reports itself as clustered. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md) for the other steps, including [joining the OpenBao cluster](ig-csha_x-road_6_ha_installation_guide.md#43-joining-the-openbao-cluster).
 - The installation checks the name that is entered at the prompt before it writes anything. A name that does not follow the rule stops the installation with an error, and neither `node.ini` nor any configuration row is written. Enter a valid name and run the installation again. The installation also stops when `node.ini` exists but cannot be read.
 - The package database setup checks a name that is already in `node.ini` on install, upgrade and reconfigure. A name that does not follow the rule stops it with an error. Restoring a backup with `restore_db.sh` stops the same way. The services also check the name when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
 - Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node and move its configuration rows.
@@ -394,7 +476,7 @@ Configuration parameters for management web service are specified in the [UG-SYS
 
 The installation is successful if the system services are started and the user interface is responding.
 
--   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the `xroad-confclient` to be in `stopped` state on the Central Server since it operates in one-shot mode. `xroad-secret-store-local` is run once to initialize OpenBao and then stops.
+-   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the `xroad-confclient` to be in `stopped` state on the Central Server since it operates in one-shot mode. `xroad-secret-store-local` runs the OpenBao setup after every start and every upgrade and then stops.
     ```bash
     sudo systemctl list-units "xroad*"
 
@@ -452,8 +534,12 @@ GRANT SELECT ON "ds-issuer-service".keypair_resource TO "centerui";
 
 ## Annex C `xroad-secret-store-local` default configuration
 
-Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
+Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`, except the OpenBao configuration files and the systemd drop-in.<br/>
 Files:<br/>
-`openbao.hcl` - OpenBao main configuration file. Contains DB credentials and other options.<br/>
-`root-token` - root OpenBao token. In a cluster, every node keeps the same file, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#42-root-token-file-and-unseal-keys-on-every-node).<br/>
-`unseal-keys` - OpenBao unseal keys.
+`/usr/share/xroad/openbao/xroad-openbao.hcl` - base OpenBao configuration file, shipped by the package. It holds the loopback listener `127.0.0.1:8200` with its TLS certificate, the PostgreSQL storage settings and the loopback API address. Owner `root:root`, mode `644`, in a directory with owner `root:root` and mode `755`. Do not edit it. The `openbao.hcl` file of the OpenBao package is not used.<br/>
+`/etc/xroad-secret-store/node.hcl` - node configuration file that X-Road writes with `/usr/share/xroad/scripts/secret-store-cluster-config.sh`, only on a cluster node. It holds the listener on the node address and the addresses that the node announces to the other nodes of the cluster. The file does not hold secrets. Owner `root:root`, mode `644`, in a directory with owner `root:root` and mode `755`. Do not edit it. To make the node a single node again, run the script with `--single-node`: the script removes the file.<br/>
+`/usr/lib/systemd/system/openbao.service.d/xroad.conf` - systemd drop-in, owned by the package, that starts OpenBao with the base file and, when it exists, the node file, and unseals OpenBao after every start. The OpenBao unit restarts OpenBao after a failure.<br/>
+`xroad-openbao.env` - the database connection of OpenBao, including the credentials of the database role `openbao`. Owner `openbao:xroad`, mode `640`. A node that joins a cluster gets the file from the cluster bundle.<br/>
+`root-token` - root OpenBao token. Owner `root:root`, mode `600`. In a cluster, every node keeps the same file, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#42-root-token-file-and-unseal-keys-on-every-node).<br/>
+`unseal-keys` - OpenBao unseal keys. Owner `root:root`, mode `600`. In a cluster, every node keeps the same file.<br/>
+The steps for joining a node to a cluster are in the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#43-joining-the-openbao-cluster).

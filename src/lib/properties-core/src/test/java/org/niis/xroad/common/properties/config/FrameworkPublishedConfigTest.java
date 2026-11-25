@@ -64,6 +64,9 @@ class FrameworkPublishedConfigTest {
             // the Issuer Service's application.yaml interpolates this into the did/issuance/statuslist
             // contexts' bind host
             "xroad.dataspace.issuer.listen-address",
+            // the Issuer Service's application.yaml binds the Quarkus health listener to these
+            "xroad.dataspace.issuer.health-check-listen-address",
+            "xroad.dataspace.issuer.health-check-port",
             "xroad.dsp.task-poll.workers",
             "xroad.dsp.outbound-http.max-requests-per-host",
             "xroad.dsp.control-plane.pool.max-total",

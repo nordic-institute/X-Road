@@ -17,23 +17,28 @@ done
 shift $(($OPTIND - 1))
 
 dump_file="$1"
+env_file=/etc/openbao/xroad-openbao.env
 
-# Source environment file to get database credentials
-if [[ -f /etc/openbao/openbao.env ]]; then
-  source /etc/openbao/openbao.env
-else
-  echo "Unable to find OpenBao environment file at /etc/openbao/openbao.env"
+. /usr/share/xroad/scripts/_openbao_env.sh
+
+if [[ ! -f $env_file ]]; then
+  echo "Unable to find OpenBao environment file at $env_file"
   exit 1
 fi
 
-# Use individual variables from env file
-db_conn_user="${BAO_PG_USER}"
+# Read the database credentials from the env file as data
+db_conn_user=$(read_env_value "$env_file" BAO_PG_USER)
 db_user=${db_conn_user%%@*}
-db_password="${BAO_PG_PASSWORD}"
-db_addr="${BAO_PG_HOST}"
-db_port="${BAO_PG_PORT}"
-db_database="${BAO_PG_DATABASE}"
-db_schema="${BAO_PG_SCHEMA:-public}"
+db_password=$(read_env_value "$env_file" BAO_PG_PASSWORD)
+db_addr=$(read_env_value "$env_file" BAO_PG_HOST)
+db_port=$(read_env_value "$env_file" BAO_PG_PORT)
+db_database=$(read_env_value "$env_file" BAO_PG_DATABASE)
+db_schema=$(read_env_value "$env_file" BAO_PG_SCHEMA)
+db_schema="${db_schema:-public}"
+
+require_env_name BAO_PG_USER "$db_conn_user"
+require_env_name BAO_PG_DATABASE "$db_database"
+require_env_name BAO_PG_SCHEMA "$db_schema"
 
 pg_options="-c client-min-messages=warning -c search_path=$db_schema"
 
@@ -47,11 +52,11 @@ if [[ ! -z $PGOPTIONS_EXTRA ]]; then
 fi
 
 remote_psql() {
-  psql -v ON_ERROR_STOP=1 -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA
+  psql -v ON_ERROR_STOP=1 -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA "$@"
 }
 
 psql_dbuser() {
-  PGOPTIONS="$pg_options${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql
+  PGOPTIONS="$pg_options${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
 }
 
 pgrestore() {
@@ -66,24 +71,21 @@ pgrestore() {
 }
 
 if [[ $FORCE_RESTORE == true ]] ; then
-  { cat <<EOF
-     DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
+  psql_dbuser -v "bao_schema=${db_schema}" <<'EOF' || abort "Restoring database failed. Could not drop schema."
+DROP SCHEMA IF EXISTS :"bao_schema" CASCADE;
 EOF
-  } | psql_dbuser || abort "Restoring database failed. Could not drop schema."
 fi
 
-{ cat <<EOF
-CREATE SCHEMA IF NOT EXISTS "$db_schema";
+psql_dbuser -v "bao_schema=${db_schema}" <<'EOF' || abort "Restoring database failed. Could not create schema."
+CREATE SCHEMA IF NOT EXISTS :"bao_schema";
 EOF
-} | psql_dbuser || abort "Restoring database failed. Could not create schema."
 
 pgrestore || abort "Restoring database failed."
 
 # PostgreSQL does not in all cases detect that prepared statements in open sessions
 # need to be re-parsed. Therefore, try to forcibly close any serverconf connections.
-{ cat <<EOF
+psql_dbuser -v "bao_user=${db_user}" -v "bao_db=${db_database}" <<'EOF' || true
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
-WHERE usename='$db_user' and datname='$db_database' and pid <> pg_backend_pid();
+WHERE usename = :'bao_user' AND datname = :'bao_db' AND pid <> pg_backend_pid();
 EOF
-} | psql_dbuser || true

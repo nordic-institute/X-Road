@@ -30,20 +30,21 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import io.github.resilience4j.retry.Retry;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.managementservice.AbstractManagementServiceSslBundleRegistrar;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.spring.VaultSslBundleRegistrar;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 @Slf4j
-public class RegistrationServiceSslBundleRegistrar extends AbstractManagementServiceSslBundleRegistrar {
+public class RegistrationServiceSslBundleRegistrar extends VaultSslBundleRegistrar {
 
     private final VaultClient vaultClient;
     private final Retry retryInstance;
 
     public RegistrationServiceSslBundleRegistrar(VaultClient vaultClient, Retry retryInstance) {
+        super(MANAGEMENT_SERVICE_BUNDLE);
         this.vaultClient = vaultClient;
         this.retryInstance = retryInstance;
 

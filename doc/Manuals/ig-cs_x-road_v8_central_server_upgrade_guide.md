@@ -106,7 +106,7 @@ Confirm the output begins with `7.8.`. Stop here if it does not.
 TS=$(date +%Y-%m-%d_%H%M%S)
 tar -czf "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz" -C /etc xroad
 chmod 600 "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz"
-mv "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz" /etc/xroad/
+mv "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz" /var/lib/xroad/
 ```
 
 **3. Back up db.properties.** Keep a `.bak` of the original. Do not edit `/etc/xroad/db.properties`: X-Road 8 reads it in the same format as X-Road 7.8.
@@ -295,7 +295,7 @@ The upgrade is destructive once steps 7 (repo switch) and 9 (package install) ha
 
 **Snapshot restore (recommended).** Restore the host snapshot taken in [Before you start](#before-you-start).
 
-**Restore /etc/xroad and the centerui database from backup.** If no snapshot is available, restore the pre-upgrade backup on top of a freshly-reinstalled 7.8 Central Server. The `/etc/xroad/xroad-pre-v8-backup-*.tar.gz` written in step 2 covers `/etc/xroad/` only; the database must come from your standard CS backup. The `node-name` sub-command in step 8 may have written `/etc/xroad/conf.d/node.ini`; the backup does not contain it, so delete that file when you restore over a tree that already has it.
+**Restore /etc/xroad and the centerui database from backup.** If no snapshot is available, restore the pre-upgrade backup on top of a freshly-reinstalled 7.8 Central Server. The `/var/lib/xroad/xroad-pre-v8-backup-*.tar.gz` written in step 2 covers `/etc/xroad/` only; the database must come from your standard CS backup. The `node-name` sub-command in step 8 may have written `/etc/xroad/conf.d/node.ini`; the backup does not contain it, so delete that file when you restore over a tree that already has it.
 
 **The procedure halts before destructive change when preflight fails.** Steps 1–6 can be undone without a rollback procedure: remove the OpenBao sources file, and `systemctl start` the services. Beta 2 does not support a package-level downgrade as a primary rollback strategy.
 
