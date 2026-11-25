@@ -110,7 +110,8 @@ Create these remote repositories on the Artifactory instance. Use the names from
 
 ### Token scope and rotation
 
-- Give the CI token read access to these repositories only. It needs no deploy, delete or admin rights.
+- Give the CI token Read and Deploy/Cache on these remote repositories only. Deploy/Cache lets Artifactory cache a first-time download; it does not allow uploads. The token needs no delete, annotate or admin rights.
+- Use a group-scoped token for a dedicated non-human user. Its user name must equal `XROAD_MIRROR_USERNAME`.
 - To rotate the token: create the new token, replace the `XROAD_MIRROR_TOKEN` repository secret, check one CI run, then revoke the old token.
 - Developers keep their own token in `~/.gradle/gradle.properties`. They do not share the CI token.
 - In the build and package job, the layer scan runs after the images are pushed and after the e2e jobs are told the images are ready, so it only detects a leak. If it reports the token or a credential file, rotate the token and delete the image tags of that run.
