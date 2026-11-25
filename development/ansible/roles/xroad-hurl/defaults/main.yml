@@ -20,3 +20,6 @@ hurl_cs_host: xrd-cs.lxd
 hurl_is_host: xrd-cs
 hurl_cs_ds_tls_dn: CN=xrd-cs
 hurl_cs_ds_tls_san: DNS:xrd-cs,DNS:xrd-cs.lxd,DNS:localhost
+# true: setup.hurl skips the Issuer Service host, initialize, bound, publication and credential waits, for an
+# environment that runs without the Issuer Service.
+hurl_skip_issuer_service: false

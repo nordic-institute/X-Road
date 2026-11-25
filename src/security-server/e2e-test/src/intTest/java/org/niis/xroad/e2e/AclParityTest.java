@@ -38,12 +38,13 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.container.AuxStackSetup;
 import org.niis.xroad.e2e.container.E2eEnvSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.e2e.parity.acl.AclMode;
 import org.niis.xroad.e2e.parity.acl.AclModeProbe;
+import org.niis.xroad.e2e.parity.acl.AclModeProbe.DataspaceState;
 import org.niis.xroad.e2e.parity.acl.AclParticipants;
 import org.niis.xroad.e2e.parity.acl.AclScenario;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Expectation;
@@ -99,9 +100,10 @@ import static org.niis.xroad.e2e.AdminApi.login;
  *
  * <p>Runs only when {@code -Pe2e.acl-mode} is set and the environment is the Compose stack, the only one that
  * applies the mode; otherwise the pool is not registered and every scenario is skipped. Before the pool is
- * registered, the stored {@code xroad.proxy.dsp-enabled} of ss1 must name the configured mode, else the run
- * fails. Single-threaded and ordered after every other class, and a failing scenario does not stop
- * the next one: the Gradle task sets the fail-fast threshold to {@code 0} in that mode.
+ * registered, the Issuer Service binding of the Central Server and the {@code dataspace_ready} flag of ss0
+ * and ss1 must match the configured mode, else the run fails. Single-threaded and ordered after every other
+ * class, and a failing scenario does not stop the next one: the Gradle task sets the fail-fast threshold to
+ * {@code 0} in that mode.
  */
 @Slf4j
 @Order(500)
@@ -124,10 +126,11 @@ class AclParityTest extends E2eTest {
         assumeTrue(env instanceof E2eEnvSetup,
                 "ACL parity runs only with -Pe2e.env-mode=compose: only the Compose stack applies -Pe2e.acl-mode");
         aclMode = mode.get();
-        log.info(AclModeProbe.verify(aclMode, storedDspEnabled((E2eEnvSetup) env)));
-        AclParityProperties.verdictsFile().ifPresent(file -> AclVerdictReport.start(Path.of(file)));
         var ss1BaseUrl = adminBaseUrl(env, SS1_ENV);
-        AdminApi.setConnectionType(ss1BaseUrl, login(ss1BaseUrl), AclParticipants.MEMBER_OF_CONSUMER, "HTTP");
+        var ss1Session = login(ss1BaseUrl);
+        log.info(AclModeProbe.verify(aclMode, dataspaceState(env, ss1BaseUrl, ss1Session)));
+        AclParityProperties.verdictsFile().ifPresent(file -> AclVerdictReport.start(Path.of(file)));
+        AdminApi.setConnectionType(ss1BaseUrl, ss1Session, AclParticipants.MEMBER_OF_CONSUMER, "HTTP");
         SubsystemPoolSetup.ensure(env);
         if (aclMode.refusesLegacyCalls()) {
             ((E2eEnvSetup) env).refuseLegacyCallsOnSs0();
@@ -144,17 +147,13 @@ class AclParityTest extends E2eTest {
         }
     }
 
-    private static String storedDspEnabled(E2eEnvSetup env) {
-        var query = "SELECT property_value FROM configuration_properties WHERE property_key = '%s'"
-                .formatted(ProxyConfigKeys.DSP_ENABLED.key());
-        var result = env.execInEnvContainer(SS1_ENV, SsStackSetup.DB_SERVERCONF,
-                "env", "PGOPTIONS=-c search_path=serverconf,public",
-                "psql", "-U", "postgres", "-d", "serverconf", "-tAX", "-c", query);
-        if (result.getExitCode() != 0) {
-            throw new IllegalStateException("reading dsp-enabled from the serverconf of %s failed: %s"
-                    .formatted(SS1_ENV, result.getStderr()));
-        }
-        return result.getStdout().trim();
+    private static DataspaceState dataspaceState(E2eEnvironment env, String ss1BaseUrl, AdminSession ss1Session) {
+        var csBaseUrl = CentralServerApi.baseUrl(env);
+        var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
+        return new DataspaceState(
+                CentralServerApi.issuerServiceBound(csBaseUrl, login(csBaseUrl)),
+                AdminApi.dataspaceReady(ss0BaseUrl, login(ss0BaseUrl)),
+                AdminApi.dataspaceReady(ss1BaseUrl, ss1Session));
     }
 
     private static List<String> managementGrants(E2eEnvironment env) {

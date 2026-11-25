@@ -89,9 +89,9 @@ tasks.register<Test>("e2eTest") {
       "stack shape ('default': today's per-service stack; 'sidecar': one full-sidecar " +
       "container in its place), ignored otherwise. -Pe2e.acl-mode runs the ACL parity scenarios with no fail-fast " +
       "and writes one verdict per row to build/test-results/e2eTest/acl-parity-<mode>-verdicts.tsv: 'legacy' " +
-      "sends ss1's outgoing calls unnegotiated, 'dsp' negotiates them through the data space protocol, " +
-      "'dsp-refusal' negotiates them and makes ss0 refuse X-Road 7 style calls once the subsystem pool is " +
-      "registered (needs the default ss0 stack); unset, the parity class is skipped. " +
+      "runs without the Issuer Service, so every call is unnegotiated, 'dsp' negotiates every call through " +
+      "the data space protocol, 'dsp-refusal' negotiates every call and makes ss0 refuse X-Road 7 style calls once the " +
+      "subsystem pool is registered (needs the default ss0 stack); unset, the parity class is skipped. " +
       "Pass --tests <pattern> to run a single class/method directly (IDE-friendly)."
   group = "verification"
 

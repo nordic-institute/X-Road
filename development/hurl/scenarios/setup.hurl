@@ -31,6 +31,8 @@ HTTP 200
 PUT https://{{cs_host}}:4000/api/v1/issuer-service/host
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
+[Options]
+skip: {{skip_issuer_service}}
 {
   "host": "{{is_host}}"
 }
@@ -270,6 +272,8 @@ HTTP 200
 # re-run against an already-bound issuer stays idempotent.
 POST https://{{cs_host}}:4000/api/v1/issuer-service/initialize
 X-XSRF-TOKEN: {{cs_xsrf_token}}
+[Options]
+skip: {{skip_issuer_service}}
 
 HTTP *
 [Asserts]
@@ -280,6 +284,8 @@ status toString matches "^(202|409)$"
 # request instead of waiting out the bound-wait retries below.
 GET https://{{cs_host}}:4000/api/v1/issuer-service
 X-XSRF-TOKEN: {{cs_xsrf_token}}
+[Options]
+skip: {{skip_issuer_service}}
 
 HTTP 200
 [Asserts]
@@ -289,6 +295,7 @@ jsonpath "$.certificate_ready" == true
 GET https://{{cs_host}}:4000/api/v1/issuer-service
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 [Options]
+skip: {{skip_issuer_service}}
 retry: 30
 retry-interval: 5000
 
@@ -1051,6 +1058,8 @@ HTTP 201
 
 # Gate: issuer DID document is published (200 with full JSON, not 204).
 GET https://{{is_host}}:{{is_did_port}}/issuer/did.json
+[Options]
+skip: {{skip_issuer_service}}
 
 HTTP 200
 [Asserts]
@@ -1062,6 +1071,7 @@ jsonpath "$.id" == "did:web:{{is_host}}%3A{{is_did_port}}:issuer"
 GET https://{{ss0_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 [Options]
+skip: {{skip_issuer_service}}
 retry: 60
 retry-interval: 5000
 
@@ -1072,6 +1082,7 @@ jsonpath "$.server.publication_state" == "PUBLISHED"
 GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 [Options]
+skip: {{skip_issuer_service}}
 retry: 60
 retry-interval: 5000
 
@@ -1630,6 +1641,7 @@ jsonpath "$.prev_update_at" toDate "%Y-%m-%dT%H:%M:%S%.fZ" > {{monitoring_publis
 GET https://{{ss0_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 [Options]
+skip: {{skip_issuer_service}}
 retry: 60
 retry-interval: 5000
 
@@ -1641,6 +1653,7 @@ jsonpath "$.participant_contexts[?(@.kind == 'SYSTEM')].credential_status" == "I
 GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 [Options]
+skip: {{skip_issuer_service}}
 retry: 60
 retry-interval: 5000
 

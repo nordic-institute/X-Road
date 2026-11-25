@@ -27,6 +27,7 @@
 package org.niis.xroad.e2e;
 
 import io.restassured.http.Method;
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.experimental.UtilityClass;
@@ -388,11 +389,7 @@ class AdminApi {
                 .timeout(CREDENTIAL_ISSUED_POLL_TIMEOUT)
                 .ignoreExceptions()
                 .until(() -> {
-                    var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
-                    if (response.getStatusCode() != HTTP_OK) {
-                        return false;
-                    }
-                    Map<String, Object> context = response.jsonPath().getMap(
+                    Map<String, Object> context = provisioningStatus(baseUrl, session).getMap(
                             "participant_contexts.find { it.kind == 'MEMBER' && it.participant_id == '"
                                     + memberCtxId + "' }");
                     observed.set(context);
@@ -401,11 +398,21 @@ class AdminApi {
         return observed.get();
     }
 
-    /** The DSP base URL the Security Server's provisioning status reports for the server itself. */
-    static String dspBaseUrl(String baseUrl, AdminSession session) {
+    /** Reads the Security Server's data space provisioning status, which must answer HTTP 200, and returns its body. */
+    static JsonPath provisioningStatus(String baseUrl, AdminSession session) {
         var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
         assertThat(response.getStatusCode()).as("GET /dataspace/provisioning-status of %s", baseUrl).isEqualTo(HTTP_OK);
-        var dspBaseUrl = response.jsonPath().getString("server.dsp_base_url");
+        return response.jsonPath();
+    }
+
+    /** Whether the Security Server's provisioning status reports {@code server.dataspace_ready}. */
+    static boolean dataspaceReady(String baseUrl, AdminSession session) {
+        return provisioningStatus(baseUrl, session).getBoolean("server.dataspace_ready");
+    }
+
+    /** The DSP base URL the Security Server's provisioning status reports for the server itself. */
+    static String dspBaseUrl(String baseUrl, AdminSession session) {
+        var dspBaseUrl = provisioningStatus(baseUrl, session).getString("server.dsp_base_url");
         assertThat(dspBaseUrl).as("server.dsp_base_url of %s", baseUrl).isNotBlank();
         return dspBaseUrl;
     }

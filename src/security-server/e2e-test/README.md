@@ -183,7 +183,8 @@ of idling out. The suite runs through the shadow jar, e.g.
 
 The compose leg runs the ACL parity rows in `dsp` mode. The `Nightly ACL Parity`
 workflow (`nightly-acl-parity.yaml`, also on manual dispatch) runs the suite in
-`legacy` and `dsp-refusal` mode, one compose leg each, with no fail-fast. A
+`legacy` and `dsp-refusal` mode, one compose leg each, with no fail-fast. The
+`legacy` leg runs without the Issuer Service, so every call is unnegotiated. A
 mismatching row fails the leg; the job summary lists the mismatching rows, and
 the verdicts TSV is in the uploaded report. A TSV that is missing or has no
 rows also fails the leg: the parity rows never ran.

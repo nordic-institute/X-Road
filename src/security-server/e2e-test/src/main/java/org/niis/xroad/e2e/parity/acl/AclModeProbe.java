@@ -26,12 +26,10 @@
 
 package org.niis.xroad.e2e.parity.acl;
 
-import java.util.Locale;
-
 /**
- * Tells which {@link AclMode} the consumer Security Server runs in from the value its serverconf stores for
- * {@code xroad.proxy.dsp-enabled}, the only source the proxy reads that key from. Without a stored value the
- * proxy uses its default, which is the data space protocol.
+ * Tells which {@link AclMode} the consumer Security Server runs in from what the Central Server and the Security
+ * Servers report about the Issuer Service. Without a bound Issuer Service no Security Server is ready for the data
+ * space, no DID is published, and the consumer calls every provider without negotiation.
  */
 public final class AclModeProbe {
 
@@ -39,35 +37,42 @@ public final class AclModeProbe {
     }
 
     /**
-     * The mode a stored {@code dsp-enabled} value names.
+     * What the Central Server and the Security Servers report about the data space.
      *
-     * @param storedValue the value in serverconf, or {@code null} or blank when none is stored
-     * @throws IllegalStateException when the value is neither {@code true} nor {@code false}
+     * @param issuerServiceBound whether the Central Server's Issuer Service identity is bound
+     * @param ss0DataspaceReady  whether ss0 reports {@code dataspace_ready}
+     * @param ss1DataspaceReady  whether ss1 reports {@code dataspace_ready}
      */
-    public static AclMode modeOf(String storedValue) {
-        var value = storedValue == null ? "" : storedValue.trim();
-        return switch (value.toLowerCase(Locale.ROOT)) {
-            case "", "true" -> AclMode.DSP;
-            case "false" -> AclMode.LEGACY;
-            default -> throw new IllegalStateException("unexpected stored value of dsp-enabled: " + value);
-        };
+    public record DataspaceState(boolean issuerServiceBound, boolean ss0DataspaceReady, boolean ss1DataspaceReady) {
+
+        private boolean anyPresent() {
+            return issuerServiceBound || ss0DataspaceReady || ss1DataspaceReady;
+        }
+
+        private boolean allPresent() {
+            return issuerServiceBound && ss0DataspaceReady && ss1DataspaceReady;
+        }
+
+        String describe() {
+            return "Issuer Service bound: %s, ss0 dataspace_ready: %s, ss1 dataspace_ready: %s"
+                    .formatted(issuerServiceBound, ss0DataspaceReady, ss1DataspaceReady);
+        }
     }
 
     /**
-     * Checks that the stored value names the mode the expected mode needs the consumer to run in.
+     * Checks that the reported state matches the expected mode: {@link AclMode#LEGACY} needs no bound Issuer Service
+     * and no ready Security Server, every other mode needs all three.
      *
-     * @return a line saying which mode the Security Server runs in
-     * @throws IllegalStateException when the stored value names another mode
+     * @return a line saying which mode the consumer Security Server runs in
+     * @throws IllegalStateException when the reported state names another mode
      */
-    public static String verify(AclMode expected, String storedValue) {
-        var actual = modeOf(storedValue);
-        var stored = storedValue == null || storedValue.isBlank() ? "none (default)" : storedValue.trim();
-        if (actual != expected.consumerMode()) {
-            throw new IllegalStateException(
-                    "ACL mode %s was requested but the consumer Security Server runs in %s (stored dsp-enabled: %s)"
-                            .formatted(expected, actual, stored));
+    public static String verify(AclMode expected, DataspaceState state) {
+        var matches = expected.consumerMode() == AclMode.LEGACY ? !state.anyPresent() : state.allPresent();
+        if (!matches) {
+            throw new IllegalStateException("ACL mode %s was requested but the environment is not set up for it (%s)"
+                    .formatted(expected, state.describe()));
         }
-        return "consumer Security Server runs in ACL mode %s (stored dsp-enabled: %s)".formatted(actual, stored);
+        return "consumer Security Server runs in ACL mode %s (%s)".formatted(expected.consumerMode(), state.describe());
     }
 
     /**
