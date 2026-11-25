@@ -1090,6 +1090,35 @@ HTTP 200
 [Asserts]
 jsonpath "$.server.publication_state" == "PUBLISHED"
 
+# Gate: waits until the member DIDs of the providers that the DSP scenarios call are PUBLISHED in the
+# host server's copy of the global configuration. The providers are the member of SS0 (TestService,
+# including its REST services) and the member of SS1 (TestClient in its reverse-direction provider role). A member
+# DID is published separately from the server's SYSTEM values: a consumer calls a member without a
+# published DID over the unnegotiated call, and a scenario then passes without using DSP. The timeout
+# covers two global configuration refreshes, one for the Central Server to list the DID and one for the
+# server to read it.
+GET https://{{ss0_host}}:4000/api/v1/dataspace/provisioning-status
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+[Options]
+skip: {{skip_issuer_service}}
+retry: 96
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.participant_contexts[?(@.participant_id == '{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}')].publication_state" == "PUBLISHED"
+
+GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+[Options]
+skip: {{skip_issuer_service}}
+retry: 96
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.participant_contexts[?(@.participant_id == '{{xroad_instance}}:{{member_class}}:{{ss1_member_code}}')].publication_state" == "PUBLISHED"
+
 # Add TestClient to SS1 Security Server
 POST https://{{ss1_host}}:4000/api/v1/clients
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
