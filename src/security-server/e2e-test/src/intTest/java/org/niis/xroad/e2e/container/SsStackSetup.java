@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -189,6 +190,20 @@ public class SsStackSetup extends AbstractSsStack {
             throw new IllegalStateException("Reading the log of %s did not finish in %s".formatted(service, LOG_READ_TIMEOUT));
         }
         return output.toString().lines();
+    }
+
+    /** Docker's latest healthcheck results of the container, oldest first, each as its exit code and output. */
+    String dockerHealthLog(String service) {
+        var container = env.getContainerByServiceName(service)
+                .orElseThrow(() -> new IllegalStateException("Container not found: " + service));
+        var health = container.getDockerClient().inspectContainerCmd(container.getContainerId()).exec()
+                .getState().getHealth();
+        if (health == null || health.getLog() == null) {
+            return "no healthcheck results";
+        }
+        return health.getLog().stream()
+                .map(entry -> "exit=%d %s".formatted(entry.getExitCodeLong(), entry.getOutput().strip()))
+                .collect(Collectors.joining("; "));
     }
 
     private void connectToExternalNetwork(List<String> serviceNames) {

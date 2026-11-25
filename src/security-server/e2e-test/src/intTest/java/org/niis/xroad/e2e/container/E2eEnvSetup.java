@@ -27,6 +27,7 @@ package org.niis.xroad.e2e.container;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.core.ConditionTimeoutException;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.e2e.AclParityProperties;
 import org.niis.xroad.e2e.E2eEnvironment;
@@ -46,7 +47,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.awaitility.Awaitility.await;
 
@@ -162,9 +165,9 @@ public class E2eEnvSetup extends BaseComposeSetup
             throw new IllegalStateException("the sidecar stack has no separate dataspace containers to restart");
         }
         restartAndAwaitHealthy(stack, List.of(
-                new HealthProbe(SsStackSetup.DS_CONTROL_PLANE, List.of("curl", "-f", "http://localhost:4099/q/health")),
+                new HealthProbe(SsStackSetup.DS_CONTROL_PLANE, List.of("curl", "-fsS", "http://localhost:4099/q/health")),
                 new HealthProbe(SsStackSetup.DS_IDENTITY_HUB,
-                        List.of("curl", "-fk", "https://localhost:7181/api/check/health"))));
+                        List.of("curl", "-fksS", "https://localhost:7181/api/check/health"))));
         log.info("ss0 control plane and Identity Hub are healthy again");
     }
 
@@ -202,10 +205,32 @@ public class E2eEnvSetup extends BaseComposeSetup
 
     private static void restartAndAwaitHealthy(SsStackSetup stack, List<HealthProbe> services) {
         services.forEach(service -> stack.restartService(service.container()));
-        await().pollDelay(Duration.ZERO).atMost(SERVICE_RESTART_TIMEOUT).pollInterval(SERVICE_RESTART_POLL_INTERVAL)
-                .ignoreExceptions()
-                .until(() -> services.stream().allMatch(service -> stack.execInContainer(service.container(),
-                        service.command().toArray(String[]::new)).getExitCode() == 0));
+        var lastFailure = new AtomicReference<>("no probe finished");
+        try {
+            await().pollDelay(Duration.ZERO).atMost(SERVICE_RESTART_TIMEOUT).pollInterval(SERVICE_RESTART_POLL_INTERVAL)
+                    .until(() -> services.stream().allMatch(service -> probe(stack, service, lastFailure)));
+        } catch (ConditionTimeoutException e) {
+            var dockerHealth = services.stream()
+                    .map(service -> service.container() + ": " + stack.dockerHealthLog(service.container()))
+                    .collect(Collectors.joining(" | "));
+            throw new IllegalStateException("not healthy %s after the restart, last failed probe: %s, docker healthchecks: %s"
+                    .formatted(SERVICE_RESTART_TIMEOUT, lastFailure.get(), dockerHealth), e);
+        }
+    }
+
+    private static boolean probe(SsStackSetup stack, HealthProbe service, AtomicReference<String> lastFailure) {
+        try {
+            var result = stack.execInContainer(service.container(), service.command().toArray(String[]::new));
+            if (result.getExitCode() == 0) {
+                return true;
+            }
+            lastFailure.set("%s exit=%d stdout=%s stderr=%s".formatted(service.container(), result.getExitCode(),
+                    result.getStdout().strip(), result.getStderr().strip()));
+        } catch (Exception e) {
+            lastFailure.set("%s %s".formatted(service.container(), e));
+        }
+        log.info("Health probe failed: {}", lastFailure.get());
+        return false;
     }
 
     private boolean issuerServiceRuns() {
