@@ -61,6 +61,7 @@ import static java.lang.String.valueOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
@@ -213,8 +214,8 @@ class AgreementTokenAclSkipTest {
     private void stubAssetAccess(String token) {
         var endpoint = "http://127.0.0.1:" + PROXY_TEST_SUITE_HELPER.proxyProperties.serverProxyPort() + "/";
         when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(false);
-        when(ctx.getConsumerSideDspProcessor().execute(argThat(req -> GET_STATE.equals(req.serviceId()))))
-                .thenReturn(new DspAcquisition(new AssetAccessResponse(endpoint, token, WINNER), 1));
+        doReturn(new DspAcquisition(new AssetAccessResponse(endpoint, token, WINNER), 1))
+                .when(ctx.getConsumerSideDspProcessor()).execute(argThat(req -> GET_STATE.equals(req.serviceId())));
     }
 
     private static ProxyProperties buildProxyProperties(Map<String, String> overrides) {

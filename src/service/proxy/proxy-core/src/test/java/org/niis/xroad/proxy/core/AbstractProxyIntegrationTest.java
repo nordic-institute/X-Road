@@ -91,6 +91,7 @@ import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
+import org.niis.xroad.proxy.core.test.StubbableDspRequestProcessor;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
@@ -121,6 +122,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.lang.String.valueOf;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
@@ -162,7 +164,7 @@ public abstract class AbstractProxyIntegrationTest {
     protected static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConf());
     protected static final OcspVerifierFactory OCSP_VERIFIER_FACTORY = new OcspVerifierFactory();
     /** The consumer-side DSP dependency of the client proxy; reset after each test. */
-    protected static final DspRequestProcessor CONSUMER_SIDE_DSP_PROCESSOR = mock(DspRequestProcessor.class);
+    protected static final DspRequestProcessor CONSUMER_SIDE_DSP_PROCESSOR = mock(StubbableDspRequestProcessor.class, CALLS_REAL_METHODS);
     /** The key material of the server-side agreement token check; reset after each test. */
     protected static final AgreementTokenKeyMaterial AGREEMENT_TOKEN_KEY_MATERIAL = mock(AgreementTokenKeyMaterial.class);
     /** The agreement token properties of the server-side agreement token check; reset after each test. */
@@ -208,8 +210,7 @@ public abstract class AbstractProxyIntegrationTest {
                 "xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml",
                 "xroad.proxy.client-proxy.connector-host", "127.0.0.1",
                 "xroad.proxy.client-proxy.client-http-port", valueOf(proxyClientPort),
-                "xroad.proxy.client-proxy.client-https-port", valueOf(getFreePort()),
-                "xroad.proxy.dsp-enabled", "false"
+                "xroad.proxy.client-proxy.client-https-port", valueOf(getFreePort())
         ));
         properties.putAll(ADDITIONAL_PROPERTIES);
 

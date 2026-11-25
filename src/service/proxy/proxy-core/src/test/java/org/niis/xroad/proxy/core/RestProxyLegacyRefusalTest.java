@@ -53,6 +53,7 @@ import java.util.Set;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
@@ -144,7 +145,7 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
     private static void stubAssetAccess(String token) {
         var response = new AssetAccessResponse("https://127.0.0.1:" + proxyServerPort + "/", token, WINNER);
-        when(CONSUMER_SIDE_DSP_PROCESSOR.execute(any())).thenReturn(new DspAcquisition(response, 1));
+        doReturn(new DspAcquisition(response, 1)).when(CONSUMER_SIDE_DSP_PROCESSOR).execute(any());
     }
 
     private String mintToken() {

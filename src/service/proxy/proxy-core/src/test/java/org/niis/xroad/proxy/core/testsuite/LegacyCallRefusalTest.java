@@ -71,6 +71,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -320,8 +321,8 @@ class LegacyCallRefusalTest {
         var endpoint = "http://127.0.0.1:" + PROXY_TEST_SUITE_HELPER.proxyProperties.serverProxyPort() + "/";
         var response = new AssetAccessResponse(endpoint, mintToken(client, service), WINNER);
         when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(false);
-        when(ctx.getConsumerSideDspProcessor().execute(argThat(req -> service.equals(req.serviceId()))))
-                .thenReturn(new DspAcquisition(response, 1));
+        doReturn(new DspAcquisition(response, 1))
+                .when(ctx.getConsumerSideDspProcessor()).execute(argThat(req -> service.equals(req.serviceId())));
     }
 
     private static Map<String, String> withLocalRefusal() {

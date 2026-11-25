@@ -93,6 +93,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -113,7 +114,10 @@ public class TestContext {
     final AgreementTokenKeyProvider agreementTokenKeyProvider = InMemoryAgreementTokenKeyProvider.withGeneratedKey("1");
     @Getter
     final ProxyAgreementTokenProperties agreementTokenProperties = mockAgreementTokenProperties();
-    /** The consumer-side DSP dependency of the client proxy, stubbable per test case. Requests bypass DSP unless stubbed. */
+    /**
+     * The consumer-side DSP dependency of the client proxy, stubbable per test case. Requests bypass DSP, and skip
+     * the call-mode selection, until {@link #routeThroughCallModeSelection()} is called.
+     */
     @Getter
     final DspRequestProcessor consumerSideDspProcessor = mockConsumerSideDspProcessor();
 
@@ -197,10 +201,11 @@ public class TestContext {
                     new OwnSecurityServerResolver(new ServerConfProviderIdentitySource(serverConfProvider), globalConfProvider));
             var httpSenderProvider = new HttpSenderProvider(httpClient, httpClientCreator.getHttpClient(), proxyProperties);
             var messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider);
-            var serviceAddressResolver = serviceAddressResolverOverride != null
+            var defaultServiceAddressResolver = new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
+                    new ProviderSecurityServerResolver(globalConfProvider));
+            ServiceAddressResolver serviceAddressResolver = serviceAddressResolverOverride != null
                     ? serviceAddressResolverOverride
-                    : new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
-                            new ProviderSecurityServerResolver(globalConfProvider));
+                    : defaultServiceAddressResolver;
             var clientVerificationService = new ClientVerificationService(serverConfProvider, clientAuthenticationService,
                     globalConfProvider, proxyProperties, certHelper);
 
@@ -220,10 +225,8 @@ public class TestContext {
                     ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService,
                     new DspFailover(consumerSideDspProcessor, httpSenderProvider,
                             new DspSendFailureHandler(consumerSideDspProcessor)),
-                    new CallModeSelector(globalConfProvider,
-                            new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
-                                    new ProviderSecurityServerResolver(globalConfProvider)),
-                            proxyProperties, consumerSideDspProcessor, clientLegacyCallRefusalPolicy));
+                    new CallModeSelector(globalConfProvider, defaultServiceAddressResolver, proxyProperties,
+                            consumerSideDspProcessor, clientLegacyCallRefusalPolicy));
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);
@@ -279,9 +282,14 @@ public class TestContext {
     }
 
     private static DspRequestProcessor mockConsumerSideDspProcessor() {
-        var processor = mock(DspRequestProcessor.class);
+        var processor = mock(StubbableDspRequestProcessor.class, CALLS_REAL_METHODS);
         when(processor.bypassesDsp(any())).thenReturn(true);
         return processor;
+    }
+
+    /** Makes the client proxy select the call mode of every request, bypassing DSP only for metaservices. */
+    public void routeThroughCallModeSelection() {
+        when(consumerSideDspProcessor.bypassesDsp(any())).thenCallRealMethod();
     }
 
     private static ProxyAgreementTokenProperties mockAgreementTokenProperties() {

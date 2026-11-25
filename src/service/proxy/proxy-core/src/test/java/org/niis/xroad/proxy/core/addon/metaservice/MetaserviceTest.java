@@ -105,6 +105,7 @@ class MetaserviceTest {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
+        ctx.routeThroughCallModeSelection();
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),
