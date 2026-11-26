@@ -1729,6 +1729,8 @@ SHIM
 
 PSQL_ROLE_CALLS_FILE="/tmp/psql-role-calls"
 ROLE_LOGIN_OK_FILE="/tmp/stub-role-login-ok"
+ROLE_LOGIN_LATE_FILE="/tmp/stub-role-login-late"
+PSQL_ROLE_INPUT_FILE="/tmp/psql-role-input"
 # role_check_calls USER: the version and write checks the stub answered as USER.
 role_check_calls() { in_container sh -c "grep -c \"^$1 .*\\(server_version_num\\|transaction_read_only\\)\" ${PSQL_ROLE_CALLS_FILE} || true"; }
 
@@ -1739,16 +1741,19 @@ scenario_central_server_check_role() {
 #!/bin/sh
 echo "${PGUSER:-none} $*" >>/tmp/psql-role-calls
 case "$*" in
-  *'\q'*) [ -e /tmp/stub-role-login-ok ] && [ "${PGUSER}" = openbao ]; exit $? ;;
+  *'\q'*)
+    [ -e /tmp/stub-role-login-ok ] && [ "${PGUSER}" = openbao ] || exit 1
+    if [ -e /tmp/stub-role-login-late ] && [ "$(grep -cF '\q' /tmp/psql-role-calls)" -le 1 ]; then exit 1; fi
+    exit 0 ;;
   *server_version_num*) echo 180000; exit 0 ;;
   *transaction_read_only*) if [ -e "/tmp/stub-read-only-${PGUSER}" ]; then echo on; else echo off; fi; exit 0 ;;
 esac
-cat >/dev/null
+cat >>/tmp/psql-role-input
 SHIM
   docker cp "${WORK_DIR}/psql-role-stub" "${CONTAINER}:/usr/local/bin/psql" >/dev/null || exit 1
   in_container chmod +x /usr/local/bin/psql
   in_container sh -c "printf 'postgres.connection.password = master-pw-for-test\n' > /etc/xroad.properties"
-  in_container sh -c "touch ${PSQL_ROLE_CALLS_FILE} && chmod 666 ${PSQL_ROLE_CALLS_FILE}"
+  in_container sh -c "touch ${PSQL_ROLE_CALLS_FILE} ${PSQL_ROLE_INPUT_FILE} && chmod 666 ${PSQL_ROLE_CALLS_FILE} ${PSQL_ROLE_INPUT_FILE}"
   local address="127.0.0.1:5432"
 
   in_container sh -c "rm -f ${ENV_FILE} /etc/xroad/db.properties /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch ${ROLE_LOGIN_OK_FILE} /tmp/stub-read-only-postgres"
@@ -1772,7 +1777,15 @@ SHIM
   check_ne "role login fails: the checks run as the master user" 0 "$(role_check_calls postgres)"
   check_eq "role login fails: the OpenBao role runs no check" 0 "$(role_check_calls openbao)"
 
-  in_container sh -c "rm -f ${ENV_FILE} /etc/xroad/db.properties /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch /tmp/stub-read-only-openbao"
+  in_container sh -c "rm -f ${ROLE_LOGIN_LATE_FILE} /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; : > ${PSQL_ROLE_INPUT_FILE}; touch ${ROLE_LOGIN_OK_FILE} ${ROLE_LOGIN_LATE_FILE}"
+  write_psql_env_file openbao role-pw-for-test 127.0.0.1 5432 openbao openbao
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "first role login fails, a later one works: exit 0" 0 "${RC}"
+  check_eq "first role login fails, a later one works: the role is probed again" 2 "$(in_container sh -c "grep -cF '\\q' ${PSQL_ROLE_CALLS_FILE}")"
+  check "first role login fails, a later one works: the existing database is kept" grep -qF "Database and user exists, skipping database creation." "${OUT_FILE}"
+  check_eq "first role login fails, a later one works: no CREATE DATABASE is sent" 0 "$(in_container sh -c "grep -c 'CREATE DATABASE' ${PSQL_ROLE_INPUT_FILE} || true")"
+
+  in_container sh -c "rm -f ${ENV_FILE} /etc/xroad/db.properties ${ROLE_LOGIN_OK_FILE} ${ROLE_LOGIN_LATE_FILE} /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch /tmp/stub-read-only-openbao"
   run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
   check_eq "fresh install, writable for the master user: exit 0" 0 "${RC}"
   check_ne "fresh install: the checks run as the master user" 0 "$(role_check_calls postgres)"

@@ -136,7 +136,7 @@ create_database_if_needed() {
   local db_host="$1"
   local role_login="$2"
 
-  if [ -z "$role_login" ]; then
+  if [ "$role_login" != true ]; then
     role_login=false
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
       role_login=true
@@ -248,7 +248,6 @@ setup_database() {
   local role_login=
   if [ "$central_server" = true ]; then
     local check_psql=psql_master
-    role_login=false
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
       check_psql=psql_dbuser
       role_login=true
