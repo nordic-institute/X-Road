@@ -12,13 +12,10 @@ ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
 
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
-    --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
+    --mount=type=secret,id=mirror_netrc \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
-RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
-    . /tmp/mirror-apt-auth.sh && \
+RUN --mount=type=secret,id=mirror_netrc,target=/etc/apt/auth.conf.d/mirror.conf \
     apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install \
@@ -39,7 +36,6 @@ RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/
 
 # Add OpenBao repo
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
-    --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-openbao-deb.sh
 
 # The signed remote apt repository, for external builds. The Release ADD is a
@@ -81,10 +77,8 @@ ARG XROAD_PACKAGES="\
 
 RUN --mount=type=bind,source=files/xroad-internal-repo.sh,target=/tmp/xroad-internal-repo.sh \
     --mount=type=bind,from=packages,target=/tmp/packages \
-    --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
-    . /tmp/mirror-apt-auth.sh \
-  && /bin/bash /tmp/xroad-internal-repo.sh provision "$PACKAGE_SOURCE" \
+    --mount=type=secret,id=mirror_netrc,target=/etc/apt/auth.conf.d/mirror.conf \
+    /bin/bash /tmp/xroad-internal-repo.sh provision "$PACKAGE_SOURCE" \
   && apt-get -qq update \
   && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install $XROAD_PACKAGES \
   && /bin/bash /tmp/xroad-internal-repo.sh cleanup "$PACKAGE_SOURCE" \

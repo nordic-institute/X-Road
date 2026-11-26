@@ -5,8 +5,7 @@ ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
 
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
-    --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
+    --mount=type=secret,id=mirror_netrc \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 # ACME
@@ -15,9 +14,7 @@ ARG A2C_DEB_RELEASE=2
 ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-${A2C_DEB_RELEASE}_all.deb /tmp/
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
-    . /tmp/mirror-apt-auth.sh && \
+RUN --mount=type=secret,id=mirror_netrc,target=/etc/apt/auth.conf.d/mirror.conf \
     apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates supervisor nginx python3 python3-pip \

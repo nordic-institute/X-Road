@@ -14,9 +14,6 @@ cleanup_mirror_dnf() {
     # Remove mirror repo files
     rm -f /etc/yum.repos.d/00-mirror-*.repo
 
-    # Remove authentication configuration
-    rm -f /root/.netrc
-
     echo "Mirror cleanup complete. Using default public mirrors."
 }
 

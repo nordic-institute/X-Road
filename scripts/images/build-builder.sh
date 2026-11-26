@@ -65,18 +65,21 @@ if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
   MIRROR_BUILD_ARGS_RPM+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
 fi
 
-if [[ -n "$XROAD_MIRROR_UBUNTU_URL" ]] && [[ -n "$XROAD_MIRROR_USERNAME" ]] && [[ -n "$XROAD_MIRROR_TOKEN" ]]; then
+if [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  XROAD_MIRROR_NETRC="$(mirror_netrc_line "$XROAD_MIRROR_UBUNTU_URL" "$XROAD_MIRROR_USERNAME" "$XROAD_MIRROR_TOKEN")"
+  export XROAD_MIRROR_NETRC
   # For APT-based builds
   MIRROR_BUILD_ARGS_APT+=(
     --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
     --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
-    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+    --secret "id=mirror_netrc,env=XROAD_MIRROR_NETRC"
   )
   # For DNF-based builds (uses BASE_URL - strip the specific mirror path)
   MIRROR_BASE_URL="${XROAD_MIRROR_UBUNTU_URL%/mirror-*}"
   MIRROR_BUILD_ARGS_RPM+=(
     --build-arg XROAD_MIRROR_BASE_URL="$MIRROR_BASE_URL"
     --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_netrc,env=XROAD_MIRROR_NETRC"
     --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
   )
 fi

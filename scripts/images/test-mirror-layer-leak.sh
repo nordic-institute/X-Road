@@ -4,7 +4,8 @@
 # Runs the negative control (test-mirror-layer-leak-control.sh) first. Then saves each image and
 # checks every layer of every manifest entry and the image configuration:
 #   - the mirror token string is absent;
-#   - no apt or dnf mirror credential file exists.
+#   - no apt or dnf mirror credential file exists, nor a left-over mount of the secret
+#     (apt auth file, dnf variable file).
 # Then checks the final filesystem for the apt TLS-verification override that the mirror
 # script writes and the cleanup script removes.
 #
@@ -21,7 +22,7 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
 source "${ROOT_DIR}/scripts/lib/test-helpers.sh"
 
-CREDENTIAL_FILE_PATTERN='^(\./)?(etc/apt/auth\.conf(\.d/[^/]+)?|etc/yum\.repos\.d/00-mirror-[^/]*\.repo|root/\.netrc)$'
+CREDENTIAL_FILE_PATTERN='^(\./)?(etc/apt/auth\.conf(\.d/[^/]+)?|etc/yum\.repos\.d/00-mirror-[^/]*\.repo|etc/dnf/vars/mirror_token|root/\.netrc)$'
 TLS_OVERRIDE_PATH="etc/apt/apt.conf.d/99mirror-no-verify"
 
 if [[ $# -lt 1 ]]; then

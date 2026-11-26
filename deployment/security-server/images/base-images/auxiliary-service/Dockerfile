@@ -11,14 +11,11 @@ ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
 
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
-    --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
+    --mount=type=secret,id=mirror_netrc \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 # Install backup/restore dependencies
-RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
-    . /tmp/mirror-apt-auth.sh && \
+RUN --mount=type=secret,id=mirror_netrc,target=/etc/apt/auth.conf.d/mirror.conf \
     apt-get -qq update && \
     apt-get -qq install --no-install-recommends curl gnupg postgresql-client && \
     apt-get -qq clean && \
@@ -27,11 +24,11 @@ RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/
 # Install kubectl for Kubernetes backup operations
 ARG KUBECTL_DIST_URL=""
 ARG KUBECTL_VERSION=v1.35.0
-RUN --mount=type=secret,id=mirror_token \
+RUN --mount=type=secret,id=mirror_netrc \
     ARCH=$(dpkg --print-architecture) && \
     CURL_AUTH="" && \
-    if [ -n "$KUBECTL_DIST_URL" ] && [ -n "$XROAD_MIRROR_USER" ] && [ -f /run/secrets/mirror_token ]; then \
-      CURL_AUTH="-u ${XROAD_MIRROR_USER}:$(cat /run/secrets/mirror_token)"; \
+    if [ -n "$KUBECTL_DIST_URL" ] && [ -s /run/secrets/mirror_netrc ]; then \
+      CURL_AUTH="--netrc-file /run/secrets/mirror_netrc"; \
     fi && \
     curl -fsSLo /tmp/kubectl $CURL_AUTH ${KUBECTL_DIST_URL:-https://dl.k8s.io}/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl && \
     curl -fsSLo /tmp/kubectl.sha256 $CURL_AUTH ${KUBECTL_DIST_URL:-https://dl.k8s.io}/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl.sha256 && \

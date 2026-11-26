@@ -14,7 +14,14 @@
 # BASE_URL - Mirror base URL (e.g., https://artifactory.niis.org/artifactory)
 # USER - Username for authentication
 #
-# Token is read from /run/secrets/mirror_token (Docker) or XROAD_MIRROR_TOKEN env var (Ansible)
+# Credentials:
+#   Docker build: the mirror_netrc secret, mounted at /run/secrets/mirror_netrc, serves the
+#     GPG key downloads. The repo files hold the literal variable $mirror_token, which dnf
+#     reads from /etc/dnf/vars/mirror_token; the RUN that configures and uses dnf mounts the
+#     mirror_token secret there. No credential file is written.
+#   Ansible: the XROAD_MIRROR_TOKEN env var; the repo files keep the token.
+
+NETRC_SECRET=/run/secrets/mirror_netrc
 
 setup_mirror() {
     echo "Starting Mirror DNF Configuration..."
@@ -24,14 +31,19 @@ setup_mirror() {
     MIRROR_BASE_URL="$1"
     MIRROR_USER="$2"
 
-    # Token from Docker secret or environment variable
-    if [ -f /run/secrets/mirror_token ]; then
-        MIRROR_TOKEN=$(cat /run/secrets/mirror_token)
+    if [ -s "$NETRC_SECRET" ]; then
+        MIRROR_NETRC="$NETRC_SECRET"
+        # shellcheck disable=SC2016
+        REPO_PASSWORD='$mirror_token'
     elif [ -n "$XROAD_MIRROR_TOKEN" ]; then
-        MIRROR_TOKEN="$XROAD_MIRROR_TOKEN"
+        MIRROR_NETRC=""
+        REPO_PASSWORD="$XROAD_MIRROR_TOKEN"
+    else
+        MIRROR_NETRC=""
+        REPO_PASSWORD=""
     fi
 
-    if [ -z "$MIRROR_BASE_URL" ] || [ -z "$MIRROR_USER" ] || [ -z "$MIRROR_TOKEN" ]; then
+    if [ -z "$MIRROR_BASE_URL" ] || [ -z "$MIRROR_USER" ] || [ -z "$REPO_PASSWORD" ]; then
         echo "Mirror credentials (BASE_URL, USER, TOKEN) not fully present. Skipping mirror setup."
         echo "Using default public mirrors."
         return 0
@@ -93,12 +105,16 @@ setup_mirror() {
 
     # 4. Configure Authentication
     # -------------------------------------------------------------------------
-    cat > /root/.netrc <<EOF
-machine $MIRROR_HOST
-login $MIRROR_USER
-password $MIRROR_TOKEN
-EOF
-    chmod 600 /root/.netrc
+    TEMP_NETRC=""
+    if [ -z "$MIRROR_NETRC" ]; then
+        MIRROR_NETRC=$(mktemp)
+        TEMP_NETRC="$MIRROR_NETRC"
+        (
+            umask 077
+            printf 'machine %s login %s password %s\n' "$MIRROR_HOST" "$MIRROR_USER" "$XROAD_MIRROR_TOKEN" \
+                > "$MIRROR_NETRC"
+        )
+    fi
 
     # 5. Import GPG keys not present in minimal container images
     # -------------------------------------------------------------------------
@@ -107,7 +123,7 @@ EOF
     # Distribution GPG key
     if [ ! -f "/etc/pki/rpm-gpg/${DISTRO_GPG_KEY_FILE}" ]; then
         echo "Importing $DISTRO_NAME GPG key from mirror..."
-        if curl -fsSL --netrc -o "/etc/pki/rpm-gpg/${DISTRO_GPG_KEY_FILE}" "$DISTRO_GPG_KEY_URL"; then
+        if curl -fsSL --netrc-file "$MIRROR_NETRC" -o "/etc/pki/rpm-gpg/${DISTRO_GPG_KEY_FILE}" "$DISTRO_GPG_KEY_URL"; then
             rpm --import "/etc/pki/rpm-gpg/${DISTRO_GPG_KEY_FILE}"
         else
             echo "Warning: Failed to fetch $DISTRO_NAME GPG key. Package installation may fail."
@@ -117,12 +133,13 @@ EOF
     # EPEL GPG key
     EPEL_KEY_URL="${MIRROR_BASE_URL}/mirror-epel/RPM-GPG-KEY-EPEL-${VERSION}"
     echo "Importing EPEL GPG key from mirror..."
-    if curl -fsSL --netrc -o /tmp/RPM-GPG-KEY-EPEL-${VERSION} "$EPEL_KEY_URL"; then
+    if curl -fsSL --netrc-file "$MIRROR_NETRC" -o /tmp/RPM-GPG-KEY-EPEL-${VERSION} "$EPEL_KEY_URL"; then
         rpm --import /tmp/RPM-GPG-KEY-EPEL-${VERSION}
         rm -f /tmp/RPM-GPG-KEY-EPEL-${VERSION}
     else
         echo "Warning: Failed to fetch EPEL GPG key. EPEL packages may not install."
     fi
+    [ -n "$TEMP_NETRC" ] && rm -f "$TEMP_NETRC"
 
     # 6. Create mirror repos as OVERLAY (Keep original repos)
     # -------------------------------------------------------------------------
@@ -140,7 +157,7 @@ gpgkey=${DISTRO_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
-password=$MIRROR_TOKEN
+password=$REPO_PASSWORD
 EOF
 
     cat > /etc/yum.repos.d/00-mirror-appstream.repo <<EOF
@@ -153,7 +170,7 @@ gpgkey=${DISTRO_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
-password=$MIRROR_TOKEN
+password=$REPO_PASSWORD
 EOF
 
     if [ -n "$EXTRAS_URL" ]; then
@@ -167,7 +184,7 @@ gpgkey=${DISTRO_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
-password=$MIRROR_TOKEN
+password=$REPO_PASSWORD
 EOF
     fi
 
@@ -181,7 +198,7 @@ gpgkey=${EPEL_GPG_KEY}
 sslverify=0
 priority=1
 username=$MIRROR_USER
-password=$MIRROR_TOKEN
+password=$REPO_PASSWORD
 EOF
 
     echo "Mirror DNF configuration complete (overlay mode - original repos preserved)."

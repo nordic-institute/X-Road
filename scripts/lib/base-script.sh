@@ -159,6 +159,14 @@ resolve_module_gradle_path() {
   return 1
 }
 
+# Print the netrc line for a mirror: "machine <host of URL> login <user> password <token>".
+# Usage: mirror_netrc_line <url> <user> <token>
+mirror_netrc_line() {
+  local host="${1#*//}"
+  host="${host%%/*}"
+  printf 'machine %s login %s password %s' "${host}" "$2" "$3"
+}
+
 # Populate global MIRROR_BUILD_ARGS with Docker buildx --build-arg / --secret / --build-context
 # flags for the configured mirrors.
 #
@@ -210,11 +218,13 @@ build_mirror_args() {
     log_warn "APT mirror DISABLED (using public repos)"
   fi
 
-  if [[ "${no_mirror}" != "true" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && \
-     [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  if [[ "${no_mirror}" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && \
+     [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+    XROAD_MIRROR_NETRC="$(mirror_netrc_line "${XROAD_MIRROR_UBUNTU_URL}" "${XROAD_MIRROR_USERNAME}" "${XROAD_MIRROR_TOKEN}")"
+    export XROAD_MIRROR_NETRC
     MIRROR_BUILD_ARGS+=(
       --build-arg XROAD_MIRROR_USER="${XROAD_MIRROR_USERNAME}"
-      --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+      --secret "id=mirror_netrc,env=XROAD_MIRROR_NETRC"
     )
   fi
 

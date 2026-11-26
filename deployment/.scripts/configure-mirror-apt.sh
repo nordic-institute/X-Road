@@ -14,13 +14,17 @@
 #   URL      - Mirror URL (e.g., https://artifactory.example.org/artifactory/mirror-ubuntu)
 #   USER     - Username for authentication
 #
-# Token is read from /run/secrets/mirror_token (Docker) or XROAD_MIRROR_TOKEN env var (Ansible).
-# With the Docker secret, no auth file is written; see mirror-apt-auth.sh.
-# The host derivation and the auth line come from /tmp/mirror-apt-auth.sh, which must be present.
+# Credentials:
+#   Docker build: the mirror_netrc secret, mounted at /run/secrets/mirror_netrc, holds the apt
+#     auth line. No credential file is written here; every RUN that runs apt mounts the secret
+#     at /etc/apt/auth.conf.d/mirror.conf.
+#   Ansible: the XROAD_MIRROR_TOKEN env var; the auth file is written and kept.
 
-XROAD_MIRROR_APT_AUTH_FUNCTIONS_ONLY=1
-# shellcheck source=mirror-apt-auth.sh
-. /tmp/mirror-apt-auth.sh
+NETRC_SECRET=/run/secrets/mirror_netrc
+
+mirror_apt_host() {
+    printf '%s\n' "$1" | sed -e 's|^[^/]*//||' -e 's|/.*$||'
+}
 
 setup_mirror() {
     echo "Starting Mirror APT Configuration..."
@@ -30,14 +34,13 @@ setup_mirror() {
     MIRROR_URL="$1"
     MIRROR_USER="$2"
 
-    # Token from Docker secret or environment variable
-    if [ -f /run/secrets/mirror_token ]; then
-        MIRROR_TOKEN=$(cat /run/secrets/mirror_token)
-    elif [ -n "$XROAD_MIRROR_TOKEN" ]; then
-        MIRROR_TOKEN="$XROAD_MIRROR_TOKEN"
+    if [ -s "$NETRC_SECRET" ] || [ -n "$XROAD_MIRROR_TOKEN" ]; then
+        HAS_CREDENTIAL=1
+    else
+        HAS_CREDENTIAL=""
     fi
 
-    if [ -z "$MIRROR_URL" ] || [ -z "$MIRROR_USER" ] || [ -z "$MIRROR_TOKEN" ]; then
+    if [ -z "$MIRROR_URL" ] || [ -z "$MIRROR_USER" ] || [ -z "$HAS_CREDENTIAL" ]; then
         echo "Mirror credentials (URL, USER, TOKEN) not fully present. Skipping mirror setup."
         echo "Using default public mirrors."
         return 0
@@ -48,10 +51,14 @@ setup_mirror() {
 
     # 2. Configure Authentication (Machine Login)
     # -------------------------------------------------------------------------
-    # With a Docker secret the credential must not enter an image layer: every RUN that
-    # runs apt sources mirror-apt-auth.sh instead. Outside Docker the file is permanent.
-    if [ ! -f /run/secrets/mirror_token ]; then
-        mirror_apt_write_auth "$MIRROR_URL" "$MIRROR_USER" "$MIRROR_TOKEN"
+    if [ ! -s "$NETRC_SECRET" ]; then
+        mkdir -p /etc/apt/auth.conf.d
+        (
+            umask 077
+            printf 'machine %s login %s password %s\n' "$MIRROR_HOST" "$MIRROR_USER" "$XROAD_MIRROR_TOKEN" \
+                > /etc/apt/auth.conf.d/mirror.conf
+        )
+        chmod 600 /etc/apt/auth.conf.d/mirror.conf
     fi
 
     # 3. Disable TLS verification for mirror (GPG signature verification still protects packages)

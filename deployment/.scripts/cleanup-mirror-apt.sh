@@ -17,9 +17,6 @@ cleanup_mirror_apt() {
     # Remove priority pinning
     rm -f /etc/apt/preferences.d/00-mirror
 
-    # Remove authentication configuration
-    rm -f /etc/apt/auth.conf.d/mirror.conf
-
     # Remove TLS verification override
     rm -f /etc/apt/apt.conf.d/99mirror-no-verify
 

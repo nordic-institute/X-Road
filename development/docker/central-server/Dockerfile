@@ -11,13 +11,10 @@ ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
 
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
-    --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
+    --mount=type=secret,id=mirror_netrc \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
-RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
-    . /tmp/mirror-apt-auth.sh && \
+RUN --mount=type=secret,id=mirror_netrc,target=/etc/apt/auth.conf.d/mirror.conf \
     apt-get -qq update \
   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-25-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
@@ -41,15 +38,12 @@ ARG XROAD_MIRROR_USER
 
 # Add OpenBao repo
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
-    --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-openbao-deb.sh
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
-RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
-    . /tmp/mirror-apt-auth.sh \
-  && echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
+RUN --mount=type=secret,id=mirror_netrc,target=/etc/apt/auth.conf.d/mirror.conf \
+    echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   && apt-key add '/tmp/repokey.gpg' \
   # Do not exclude man pages & other documentation
   && rm -f /etc/dpkg/dpkg.cfg.d/excludes \
@@ -71,14 +65,11 @@ ARG XROAD_MIRROR_USER
 
 # Add OpenBao repo
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
-    --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-openbao-deb.sh
 
-RUN --mount=type=bind,from=mirror-scripts,source=mirror-apt-auth.sh,target=/tmp/mirror-apt-auth.sh \
-    --mount=type=secret,id=mirror_token \
+RUN --mount=type=secret,id=mirror_netrc,target=/etc/apt/auth.conf.d/mirror.conf \
     --mount=type=bind,from=packages,target=/tmp/packages \
-   . /tmp/mirror-apt-auth.sh \
-  && cp -r /tmp/packages /tmp/repo \
+    cp -r /tmp/packages /tmp/repo \
   && cd /tmp/repo && dpkg-scanpackages -m . > Packages \
   && echo "deb [trusted=yes] file:/tmp/repo /" >/etc/apt/sources.list.d/xroad.list \
   # Do not exclude man pages & other documentation
