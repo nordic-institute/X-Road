@@ -97,6 +97,25 @@ public class SignerRepository {
         return findId(FIND_TOKEN_ID, externalId);
     }
 
+    boolean isTokenPinEmpty(long tokenId) throws SQLException {
+        String sql = "SELECT pin IS NULL OR length(pin) = 0 AS pin_empty FROM signer_tokens WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, tokenId);
+            try (ResultSet rs = statement.executeQuery()) {
+                return rs.next() && rs.getBoolean("pin_empty");
+            }
+        }
+    }
+
+    void setTokenPin(long tokenId, byte[] pinHash) throws SQLException {
+        String sql = "UPDATE signer_tokens SET pin = ? WHERE id = ? AND (pin IS NULL OR length(pin) = 0)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setObject(1, pinHash, Types.BINARY); // pin hash
+            statement.setLong(2, tokenId); // id
+            statement.executeUpdate();
+        }
+    }
+
     long saveToken(DeviceType deviceType, byte[] pinHash) throws SQLException {
         String sql = "INSERT INTO signer_tokens(ha_node_name, external_id, type, friendly_name, serial_no, label, pin) VALUES "
                 + "(?, ?, ?, ?, ?, ?, ?) RETURNING id";

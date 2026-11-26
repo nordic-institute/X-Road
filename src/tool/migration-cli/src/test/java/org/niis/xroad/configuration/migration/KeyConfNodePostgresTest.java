@@ -140,6 +140,51 @@ class KeyConfNodePostgresTest {
     }
 
     @Test
+    void shouldSetPinHashOnSoftTokenRowCreatedBySignerWithoutPin() throws Exception {
+        seedToken("node_b", "0", "softToken", null);
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
+        assertThat(tokenPinHex("node_b", "0")).hasSize(2 * 48);
+        assertThat(queryStrings("SELECT coalesce(friendly_name, '') || coalesce(label, '') FROM signer_tokens "
+                + "WHERE ha_node_name = 'node_b' AND external_id = '0'")).containsExactly("");
+    }
+
+    @Test
+    void shouldKeepPinHashOfSoftTokenRowThatHasOne() throws Exception {
+        String existingPinHex = "0102030405060708090a0b0c0d0e0f10";
+        seedToken("node_b", "0", "softToken", existingPinHex);
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
+        assertThat(tokenPinHex("node_b", "0")).isEqualTo(existingPinHex);
+    }
+
+    @Test
+    void shouldLeaveHardwareTokenRowWithoutPinUnchanged() throws Exception {
+        seedToken("node_b", "2", "hsm_ncipher", null);
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(tokenPinHex("node_b", "2")).isNull();
+        assertThat(tokenPinHex("node_b", "0")).hasSize(2 * 48);
+    }
+
+    @Test
+    void shouldChangeNothingWhenRunAgainAfterPinHashWasSetOnExistingToken() throws Exception {
+        seedToken("node_b", "0", "softToken", null);
+        runKeyconf("--node", "node_b");
+        List<String> afterFirstRun = snapshot();
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(afterFirstRun).hasSize(9);
+        assertThat(snapshot()).isEqualTo(afterFirstRun);
+    }
+
+    @Test
     void shouldKeepEachNodesRowsApartWhenTheTokenIdentifiersAreTheSame() {
         runKeyconf("--node", "node_a");
         List<String> nodeARows = snapshotOf("node_a");
@@ -166,6 +211,17 @@ class KeyConfNodePostgresTest {
         args.addAll(List.of(nodeOption));
         args.addAll(List.of(keyconfDir, dbProperties));
         LegacyConfigMigrationCLI.main(args.toArray(new String[0]));
+    }
+
+    private void seedToken(String node, String externalId, String type, String pinHex) throws SQLException {
+        String pin = pinHex == null ? "NULL" : "decode('" + pinHex + "', 'hex')";
+        execute(database, "INSERT INTO signer_tokens (ha_node_name, external_id, type, pin, created_at, updated_at) "
+                + "VALUES ('" + node + "', '" + externalId + "', '" + type + "', " + pin + ", now(), now())");
+    }
+
+    private String tokenPinHex(String node, String externalId) {
+        return queryStrings("SELECT encode(pin, 'hex') FROM signer_tokens "
+                + "WHERE ha_node_name = '" + node + "' AND external_id = '" + externalId + "'").get(0);
     }
 
     private List<Integer> rowCountsByNode(String node) {

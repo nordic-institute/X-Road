@@ -46,6 +46,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -102,6 +104,49 @@ class KeyConfMigratorTest {
         verify(signerRepositoryMock, times(3)).saveKey(any(), anyLong(), anyBoolean(), any());
         verify(signerRepositoryMock, times(3)).saveCertificate(any(), anyLong());
         verify(signerRepositoryMock).saveCertificateRequest(any(), anyLong());
+    }
+
+    @Test
+    void shouldSetPinHashOnExistingSoftTokenWithoutPin() throws Exception {
+        KeyConfMigrator keyConfMigrator = new TestKeyConfMigrator(signerRepositoryMock, "Secret1234");
+        String keyconfPath = Paths.get(getClass().getClassLoader().getResource("signer/").toURI()).toString();
+
+        when(signerRepositoryMock.getTokenId(any())).thenReturn(Optional.of(5L));
+        when(signerRepositoryMock.isTokenPinEmpty(5L)).thenReturn(true);
+        when(signerRepositoryMock.saveKey(any(), anyLong(), anyBoolean(), any())).thenReturn(0L);
+
+        keyConfMigrator.migrate(keyconfPath, "not/used/in/test", NODE);
+
+        verify(signerRepositoryMock, times(1)).setTokenPin(eq(5L), any());
+        verify(signerRepositoryMock, never()).saveToken(any(), any());
+    }
+
+    @Test
+    void shouldLeaveExistingSoftTokenWithPinUnchanged() throws Exception {
+        KeyConfMigrator keyConfMigrator = new TestKeyConfMigrator(signerRepositoryMock, "Secret1234");
+        String keyconfPath = Paths.get(getClass().getClassLoader().getResource("signer/").toURI()).toString();
+
+        when(signerRepositoryMock.getTokenId(any())).thenReturn(Optional.of(5L));
+        when(signerRepositoryMock.isTokenPinEmpty(5L)).thenReturn(false);
+        when(signerRepositoryMock.saveKey(any(), anyLong(), anyBoolean(), any())).thenReturn(0L);
+
+        keyConfMigrator.migrate(keyconfPath, "not/used/in/test", NODE);
+
+        verify(signerRepositoryMock, never()).setTokenPin(anyLong(), any());
+    }
+
+    @Test
+    void shouldFailOnWrongPinForExistingSoftTokenWithoutPin() throws Exception {
+        KeyConfMigrator keyConfMigrator = new TestKeyConfMigrator(signerRepositoryMock, "WrongPin");
+        String keyconfPath = Paths.get(getClass().getClassLoader().getResource("signer/").toURI()).toString();
+
+        when(signerRepositoryMock.getTokenId(any())).thenReturn(Optional.of(5L));
+        when(signerRepositoryMock.isTokenPinEmpty(5L)).thenReturn(true);
+
+        var exception = assertThrows(IllegalStateException.class,
+                () -> keyConfMigrator.migrate(keyconfPath, "not/used/in/test", NODE));
+        assertTrue(exception.getMessage().startsWith("Invalid soft token pin provided via"));
+        verify(signerRepositoryMock, never()).setTokenPin(anyLong(), any());
     }
 
     @Test

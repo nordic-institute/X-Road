@@ -15,6 +15,7 @@ Doc. ID: IG-CS-8-UPGRADE
 | 11.11.2026 | 1.1     | Carry the node name before the package upgrade | Ričardas Bučiūnas  |
 | 12.11.2026 | 1.2     | Keep db.properties; add `--installation=cs`    | Ričardas Bučiūnas  |
 | 24.11.2026 | 1.3     | Close the gaps found on a test upgrade         | Andres Rosenthal   |
+| 26.11.2026 | 1.4     | Set the soft token PIN hash on a token the signer created first; add recovery for an uninitialized token | Andres Rosenthal   |
 
 ## License
 
@@ -285,7 +286,7 @@ With `--node <node>`, `keyconf` writes the signer keys and certificates under th
 
 The command logs the source it used. A script prints, and the PIN file holds, either one PIN (for token 0) or lines of the form `tokenId:pin`. A single PIN that contains `:` is read as a `tokenId:pin` line, so a PIN of that kind is not migrated correctly. If there is no source at all, the command exits with status 1 and names the four locations it checked. The `if` check in the example skips the command on a server that never used autologin. Once the command stores a PIN, it sets `xroad.signer.autologin.enabled=true` itself, so there is no extra step for that flag. A run where every PIN is already stored exits with status 0 and sets the flag only if it was never set, so a run that stopped before it could set the flag is completed by a re-run, and a value you set on purpose is kept. The command exits with a non-zero status when a token fails.
 
-Review the `keyconf` output. A ⚠ line that says `already exists` is expected when you run the step again. Act only on lines marked ❌ and on lines that say a key was skipped. Such a line means that a soft token key file was not migrated; `keyconf` still exits with status 0. To restore the key, put `<keyId>.p12` back under `/etc/xroad/signer/softtoken/` and run `keyconf` again. Running `keyconf` again is safe: it saves only the items that are not yet in the database.
+Review the `keyconf` output. The package upgrade in step 9 may have started `xroad-signer`, and the signer then creates soft token 0 without a PIN. In that case `keyconf` finds the token and logs `✅ PIN hash set on existing token 0`; the PIN you exported is verified against the 7.8 soft token keystore first. A ⚠ line that says `Token <id> already exists` means that the token already has a PIN hash (or is not a soft token), and `keyconf` left it unchanged. This is expected when you run the step again. Act only on lines marked ❌ and on lines that say a key was skipped. Such a line means that a soft token key file was not migrated; `keyconf` still exits with status 0. To restore the key, put `<keyId>.p12` back under `/etc/xroad/signer/softtoken/` and run `keyconf` again. Running `keyconf` again is safe: it saves only the items that are not yet in the database.
 
 Stop and investigate when any command exits with a non-zero status. A failed sub-command often prints a Java stack trace too. Do not proceed if a command printed an exception. The Security Server wizard looks for the patterns `Error `, `Caused by:`, `Exception in ` and `<Class>Exception:` in the output, and the same patterns are reliable signals here.
 
@@ -393,6 +394,32 @@ The upgrade is destructive once steps 7 (repo switch) and 9 (package install) ha
 | `Connection to <secret-store> failed` (TLS migration step) | OpenBao is not running or not reachable | Verify `systemctl status` for the OpenBao service and the host/port in `/etc/xroad/services/secret-store-local.conf` |
 | `Migration CLI step '<step>' reported an error: …` | The migration-CLI printed a stack trace | Inspect the log; fix the underlying issue; re-run only the failed sub-command |
 | `Package manager reported success but xroad-center version did not change` | V8 repository has no package for your architecture, or wrong repo URL | Verify the repo configuration and confirm packages exist for your architecture |
+
+### Token not initialized after the upgrade
+
+**Symptom:** `token_not_initialized` in the signer journal, the check 5 command of the verification prints nothing, and the software token has the status `NOT_INITIALIZED` (the `status` field of `GET /api/v1/tokens`, or the token view in the admin UI). Global configuration generation fails with `token_not_active`.
+
+```bash
+journalctl -u xroad-signer -b | grep -F 'token_not_initialized'
+```
+
+**Cause:** the token row in the database has no PIN hash, so the signer cannot log in to the token. `keyconf` sets the hash on a soft token row that has none, but only when the exported PIN is the correct 7.8 PIN.
+
+**Fix:** export the 7.8 PIN and run `keyconf` again with the node name from step 8, then restart the signer. The restart is needed because the signer runs autologin only once per start. Do this before step 13 deletes `/etc/xroad/signer`.
+
+```bash
+NODE=$(crudini --get /etc/xroad/conf.d/node.ini node name 2>/dev/null || true)
+NODE=${NODE:-node_0}
+read -rsp 'Soft token PIN: ' XROAD_MIGRATION_SOFTTOKEN_PIN; echo
+export XROAD_MIGRATION_SOFTTOKEN_PIN
+java -jar /var/tmp/migration-cli.jar keyconf --installation=cs --node "$NODE" /etc/xroad/signer /etc/xroad/db.properties
+unset XROAD_MIGRATION_SOFTTOKEN_PIN
+systemctl restart xroad-signer
+```
+
+The output must contain `✅ PIN hash set on existing token 0`. Then repeat check 5 of the verification.
+
+**Fallback:** initialize the software token with the **7.8** PIN through the admin UI, or with `POST /api/v1/initialization`, and then run `systemctl restart xroad-signer`. The API request needs `software_token_pin` and also the server's current `instance_identifier` and `central_server_address`, which are required fields; `GET /api/v1/initialization/status` returns both. The PIN must be the old one, because the migrated keys are encrypted with it.
 
 **Getting help:**
 
