@@ -101,6 +101,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIM
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_PARSE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_IDENTITY_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTION_MISSING;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
@@ -122,8 +123,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * negotiation entirely and transfers with the existing agreement. A successful transfer records its agreement in
  * the note.
  *
- * <p>Only a provider refusal ends an agreement's reuse: a refusal of the transfer, as recognised by
- * {@link ProviderFailureClassifier}, or a data address the provider marks refused
+ * <p>Only a provider refusal ends an agreement's reuse: an agreement refusal or a DCP identity rejection of the
+ * transfer, as recognised by {@link ProviderFailureClassifier}, or a data address the provider marks refused
  * ({@link DspConventions#ACCESS_REFUSED_PROPERTY}) because the caller's live ACL grants no endpoint. The note
  * entry is removed (unless a newer one replaced it) and the same candidate falls back to one full negotiation,
  * whose newer agreement wins reuse from then on. A transport fault is never a refusal: the candidate goes into
@@ -131,7 +132,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * candidates without one by negotiation. Every other failure keeps the agreement and the note entry and fails the
  * acquisition: a provider-side termination without a refusal and a failed initiation. A marked data address is
  * never returned: after a reused agreement's renegotiation, or after a fresh negotiation, it fails the acquisition
- * with {@code DSP_ACCESS_REFUSED}.
+ * with {@code DSP_ACCESS_REFUSED}. A DCP identity rejection of the negotiation or the transfer - the provider
+ * could not verify the consumer's identity - fails the acquisition with {@code DSP_IDENTITY_REJECTED} instead of
+ * {@code DSP_NEGOTIATION_FAILED} or {@code DSP_TRANSFER_FAILED}; the renegotiation that follows one on a reused
+ * agreement's transfer is not itself retried if its own negotiation or transfer is rejected the same way.
  *
  * <p>An acquisition runs under the {@link CallBudget} its caller supplies. The catalog fetch, the negotiation wait
  * and the transfer wait each get the lesser of their own cap and the time left, so together they never outlast the
@@ -380,7 +384,10 @@ public class AssetAccessOrchestrator {
         return failureKind != FailureKind.TRANSPORT_FAULT
                 && unwrap(failure) instanceof XrdRuntimeException xrdException
                 && (xrdException.isCausedBy(DSP_ACCESS_REFUSED)
-                || xrdException.isCausedBy(DSP_TRANSFER_FAILED) && ProviderFailureClassifier.isRefusal(xrdException.getDetails()));
+                || xrdException.isCausedBy(DSP_IDENTITY_REJECTED)
+                || xrdException.isCausedBy(DSP_TRANSFER_FAILED)
+                && ProviderFailureClassifier.classify(xrdException.getDetails())
+                == ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL);
     }
 
     private static Throwable unwrap(Throwable failure) {
@@ -701,7 +708,30 @@ public class AssetAccessOrchestrator {
         return transfer
                 .whenComplete((outcome, throwable) -> onTransferComplete(key, transferProcessId, outcome, throwable))
                 .thenApply(outcome -> call.classifyTimeout(outcome, timeout, transferTimeout))
-                .thenApply(outcome -> refuseMarkedAddress(key, transferProcessId, outcome));
+                .thenApply(outcome -> refuseMarkedAddress(key, transferProcessId, outcome))
+                .thenApply(outcome -> reclassifyIdentityRejection(key, transferProcessId, outcome));
+    }
+
+    /**
+     * Reports a transfer failure that is a DCP identity rejection - a bare 404, as recognised by
+     * {@link ProviderFailureClassifier} - with {@code DSP_IDENTITY_REJECTED} instead of
+     * {@code DSP_TRANSFER_FAILED}. Every other failure, including an agreement refusal, is unchanged.
+     */
+    private StageOutcome<DataAddress> reclassifyIdentityRejection(String key, String transferProcessId,
+                                                                   StageOutcome<DataAddress> outcome) {
+        if (!(outcome instanceof StageOutcome.Failed(var failureKind, var failure))
+                || !(failure instanceof XrdRuntimeException xrdException)
+                || !xrdException.isCausedBy(DSP_TRANSFER_FAILED)
+                || ProviderFailureClassifier.classify(xrdException.getDetails())
+                != ProviderFailureClassifier.Classification.IDENTITY_REJECTION) {
+            return outcome;
+        }
+        monitor.warning("%s provider rejected the consumer's identity: transferProcessId=%s".formatted(key, transferProcessId));
+        return new StageOutcome.Failed<>(failureKind, XrdRuntimeException.systemException(DSP_IDENTITY_REJECTED)
+                .origin(ErrorOrigin.DATASPACE)
+                .metadataItems(transferProcessId)
+                .details(xrdException.getDetails())
+                .build());
     }
 
     private StageOutcome<DataAddress> refuseMarkedAddress(String key, String transferProcessId,

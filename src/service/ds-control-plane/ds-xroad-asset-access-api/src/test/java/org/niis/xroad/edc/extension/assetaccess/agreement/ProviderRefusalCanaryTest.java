@@ -139,7 +139,8 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(404);
-        assertThat(ProviderFailureClassifier.isRefusal(consumerDetail(response))).isTrue();
+        assertThat(ProviderFailureClassifier.classify(consumerDetail(response)))
+                .isEqualTo(ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL);
     }
 
     @Test
@@ -151,7 +152,8 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(400);
-        assertThat(ProviderFailureClassifier.isRefusal(consumerDetail(response))).isTrue();
+        assertThat(ProviderFailureClassifier.classify(consumerDetail(response)))
+                .isEqualTo(ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL);
     }
 
     @Test
@@ -162,11 +164,12 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(400);
-        assertThat(ProviderFailureClassifier.isRefusal(consumerDetail(response))).isFalse();
+        assertThat(ProviderFailureClassifier.classify(consumerDetail(response)))
+                .isEqualTo(ProviderFailureClassifier.Classification.NO_REFUSAL);
     }
 
     @Test
-    void aTokenTheProviderCannotVerifyIsNotARefusal() throws Exception {
+    void aTokenTheProviderCannotVerifyIsAnIdentityRejection() throws Exception {
         when(protocolTokenValidator.verify(eq(participantContext), any(), any(), any()))
                 .thenReturn(ServiceResult.unauthorized("bad token"));
         when(negotiationStore.queryAgreements(any())).thenAnswer(invocation -> Stream.of(agreement()));
@@ -174,7 +177,8 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(404);
-        assertThat(ProviderFailureClassifier.isRefusal(consumerDetail(response))).isFalse();
+        assertThat(ProviderFailureClassifier.classify(consumerDetail(response)))
+                .isEqualTo(ProviderFailureClassifier.Classification.IDENTITY_REJECTION);
     }
 
     private void givenVerifiedRequestForStoredAgreement() {

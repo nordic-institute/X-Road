@@ -303,9 +303,9 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
         when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
-                Stream.of(terminatedTransfer("tp-1", PROVIDER_CONFLICT)));
+                Stream.of(terminatedTransfer("tp-1", providerAnswer(404, "Not found"))));
         when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
-                Stream.of(terminatedNegotiation("neg-1", "no offer for this client")));
+                Stream.of(terminatedNegotiation("neg-1", providerAnswer(404, "Not found"))));
 
         var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());
         pollUntilDone(future);
@@ -314,9 +314,22 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
                 .isInstanceOf(ExecutionException.class)
                 .hasCauseInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
-                        .isEqualTo("dataspace.dsp_negotiation_failed"));
+                        .isEqualTo("dataspace.dsp_identity_rejected"));
         verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
         verify(transferProcessService, times(1)).initiateTransfer(any(), any());
+    }
+
+    @Test
+    void aFirstNegotiationRejectedWithABare404FailsTheAcquisitionWithTheIdentityRejection() {
+        stubCatalogAndTransformChain("asset-1");
+        stubNegotiationInitiation();
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(terminatedNegotiation("neg-1", providerAnswer(404, "Not found"))));
+
+        var failure = acquireExpectingFailure(null);
+
+        assertThat(((XrdRuntimeException) failure).getErrorCode()).isEqualTo("dataspace.dsp_identity_rejected");
+        verify(transferProcessService, never()).initiateTransfer(any(), any());
     }
 
     @Test

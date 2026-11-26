@@ -34,22 +34,25 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
- * Recognises a provider refusal of a transfer in the free-text failure detail the consumer's EDC records.
+ * Recognises a provider refusal, or a provider rejection of the consumer's DCP identity, in the free-text
+ * failure detail the consumer's EDC records for a contract negotiation or a transfer.
  *
  * <p>The consumer receives the provider's HTTP answer as one sentence, {@code Counter Party responded with
- * Response{protocol=.., code=NNN, ..}. Body: ..}, inside the transfer failure detail. A provider refusal is
- * a 409, or a 400 or 404 whose body says {@value #AGREEMENT_NOT_VALID}: the provider no longer holds the
- * agreement valid. A bare 400 (for example an unsupported transfer type), a bare 404 (the provider could not
- * verify the request token) and every other status are not refusals.
+ * Response{protocol=.., code=NNN, ..}. Body: ..}, inside the failure detail. An agreement refusal is a 409,
+ * or a 400 or 404 whose body says {@value #AGREEMENT_NOT_VALID}: the provider no longer holds the agreement
+ * valid. A bare 404, without that wording, is the provider rejecting a request token it could not verify: an
+ * identity rejection. A bare 400 (for example an unsupported transfer type) and every other status are
+ * neither.
  *
- * <p>{@link #isRefusal} returning {@code false} says nothing more than "not a refusal". A detail without a
- * provider sentence is not the same as a failed connection: provider-side termination reasons, consumer-local
- * failures and connection failures all carry no such sentence and cannot be told apart by their text.
+ * <p>{@link #classify} returning {@link Classification#NO_REFUSAL} says nothing more than "neither". A
+ * detail without a provider sentence is not the same as a failed connection: provider-side termination
+ * reasons, consumer-local failures and connection failures all carry no such sentence and cannot be told
+ * apart by their text.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ProviderFailureClassifier {
 
-    /** The wording EDC puts in the body of a transfer request answer naming an agreement it does not hold valid. */
+    /** The wording EDC puts in the body of an answer naming an agreement it does not hold valid. */
     public static final String AGREEMENT_NOT_VALID = "agreement not found or not valid";
 
     private static final int CONFLICT = 409;
@@ -58,22 +61,38 @@ public final class ProviderFailureClassifier {
     private static final Pattern PROVIDER_STATUS =
             Pattern.compile("Counter Party responded with Response\\{[^}]*?\\bcode=(\\d{3})\\b");
 
+    /** What a failure detail says about the provider's answer. */
+    public enum Classification {
+        /** Neither an agreement refusal nor an identity rejection. */
+        NO_REFUSAL,
+        /** A 409, or a 400 or 404 carrying {@value #AGREEMENT_NOT_VALID}: the agreement is no longer valid. */
+        AGREEMENT_REFUSAL,
+        /** A bare 404: the provider could not verify the consumer's DCP identity. */
+        IDENTITY_REJECTION
+    }
+
     /**
-     * Tells whether the failure detail describes a provider refusal of the agreement.
+     * Classifies the provider's answer from the failure detail of a contract negotiation or a transfer.
      *
-     * @param failureDetail the transfer failure detail, may be {@code null}
-     * @return {@code true} for a 409, or a 400 or 404 carrying {@value #AGREEMENT_NOT_VALID}
+     * @param failureDetail the failure detail, may be {@code null}
+     * @return the classification of the provider's answer
      */
-    public static boolean isRefusal(String failureDetail) {
+    public static Classification classify(String failureDetail) {
         if (failureDetail == null) {
-            return false;
+            return Classification.NO_REFUSAL;
         }
         var status = PROVIDER_STATUS.matcher(failureDetail);
         if (!status.find()) {
-            return false;
+            return Classification.NO_REFUSAL;
         }
         var code = Integer.parseInt(status.group(1));
         var namesInvalidAgreement = failureDetail.toLowerCase(Locale.ROOT).contains(AGREEMENT_NOT_VALID);
-        return code == CONFLICT || ((code == BAD_REQUEST || code == NOT_FOUND) && namesInvalidAgreement);
+        if (code == CONFLICT || ((code == BAD_REQUEST || code == NOT_FOUND) && namesInvalidAgreement)) {
+            return Classification.AGREEMENT_REFUSAL;
+        }
+        if (code == NOT_FOUND) {
+            return Classification.IDENTITY_REJECTION;
+        }
+        return Classification.NO_REFUSAL;
     }
 }

@@ -337,6 +337,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DSP_NEGOTIATION_FAILED("dsp_negotiation_failed"),
     DSP_TRANSFER_FAILED("dsp_transfer_failed"),
     DSP_ACCESS_REFUSED("dsp_access_refused"),
+    DSP_IDENTITY_REJECTED("dsp_identity_rejected"),
     DSP_ACQUISITION_FAILED("dsp_acquisition_failed"),
     DSP_DATA_PLANE_UNREACHABLE("dsp_data_plane_unreachable"),
     DSP_PROVISIONING_FAILED("dsp_provisioning_failed"),

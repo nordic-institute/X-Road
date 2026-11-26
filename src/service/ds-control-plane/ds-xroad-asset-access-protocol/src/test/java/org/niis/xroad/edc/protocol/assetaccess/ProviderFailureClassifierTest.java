@@ -35,6 +35,9 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL;
+import static org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier.Classification.IDENTITY_REJECTION;
+import static org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier.Classification.NO_REFUSAL;
 
 class ProviderFailureClassifierTest {
 
@@ -45,32 +48,34 @@ class ProviderFailureClassifierTest {
 
     private static Stream<Arguments> details() {
         return Stream.of(
-                arguments("a conflict", providerAnswer(409, "{\"message\":\"anything\"}"), true),
+                arguments("a conflict", providerAnswer(409, "{\"message\":\"anything\"}"), AGREEMENT_REFUSAL),
                 arguments("a not found naming the agreement",
-                        providerAnswer(404, "Cannot process TransferRequestMessage because agreement not found or not valid"), true),
+                        providerAnswer(404, "Cannot process TransferRequestMessage because agreement not found or not valid"),
+                        AGREEMENT_REFUSAL),
                 arguments("a bad request naming the agreement",
-                        providerAnswer(400, "Cannot process TransferRequestMessage because agreement not found or not valid"), true),
+                        providerAnswer(400, "Cannot process TransferRequestMessage because agreement not found or not valid"),
+                        AGREEMENT_REFUSAL),
                 arguments("the agreement wording in another case",
-                        providerAnswer(404, "Agreement Not Found Or Not Valid"), true),
-                arguments("a bare not found", providerAnswer(404, "Not found"), false),
-                arguments("a bad request", providerAnswer(400, "TransferType is not supported"), false),
+                        providerAnswer(404, "Agreement Not Found Or Not Valid"), AGREEMENT_REFUSAL),
+                arguments("a bare not found", providerAnswer(404, "Not found"), IDENTITY_REJECTION),
+                arguments("a bad request", providerAnswer(400, "TransferType is not supported"), NO_REFUSAL),
                 arguments("the agreement wording under a server error",
-                        providerAnswer(500, "agreement not found or not valid"), false),
+                        providerAnswer(500, "agreement not found or not valid"), NO_REFUSAL),
                 arguments("the agreement wording under a service unavailable",
-                        providerAnswer(503, "agreement not found or not valid"), false),
-                arguments("the wording outside a provider answer", "agreement not found or not valid", false),
+                        providerAnswer(503, "agreement not found or not valid"), NO_REFUSAL),
+                arguments("the wording outside a provider answer", "agreement not found or not valid", NO_REFUSAL),
                 arguments("a status code in the url",
                         "Counter Party responded with Response{protocol=h2, code=400, message=, "
                                 + "url=https://p.example/x?code=409}. Body: bad.",
-                        false),
-                arguments("a failure without a provider sentence", "provider terminated", false),
-                arguments("an empty detail", "", false),
-                arguments("a missing detail", null, false));
+                        NO_REFUSAL),
+                arguments("a failure without a provider sentence", "provider terminated", NO_REFUSAL),
+                arguments("an empty detail", "", NO_REFUSAL),
+                arguments("a missing detail", null, NO_REFUSAL));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("details")
-    void classifiesTheDetailAsARefusalOrNot(String description, String detail, boolean refusal) {
-        assertThat(ProviderFailureClassifier.isRefusal(detail)).isEqualTo(refusal);
+    void classifiesTheDetail(String description, String detail, ProviderFailureClassifier.Classification classification) {
+        assertThat(ProviderFailureClassifier.classify(detail)).isEqualTo(classification);
     }
 }
