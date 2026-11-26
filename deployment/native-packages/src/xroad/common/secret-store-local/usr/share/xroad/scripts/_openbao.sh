@@ -15,6 +15,7 @@ bao_api() {
     --connect-timeout 5 \
     --retry 3 \
     --retry-delay 2 \
+    ${BAO_API_MAX_TIME:+--max-time "$BAO_API_MAX_TIME"} \
     -X "$method" \
     "$host$endpoint" \
     -H "Content-Type: application/json" \
@@ -66,6 +67,64 @@ wait_until_ready() {
 
   echo "[OPENBAO] Error: Timed out waiting for OpenBao to become ready after $((max_attempts * wait_seconds)) seconds" >&2
   return 1
+}
+
+# The active node answers an unauthenticated request with 403. A standby that forwards to the active
+# node answers the same; a standby without a working leader answers with a redirect.
+forwards_requests() {
+  local addr="${1:-$BAO_ADDR}"
+  [ "$(curl -s -k -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time "${BAO_API_MAX_TIME:-5}" "$addr/v1/sys/mounts")" = "403" ]
+}
+
+wait_until_active() {
+  local addr="${1:-$BAO_ADDR}"
+  local max_attempts=${2:-40}
+  local attempt=0
+  local status
+
+  while [ $attempt -lt $max_attempts ]; do
+    status=$(curl -s -k -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time "${BAO_API_MAX_TIME:-5}" "$addr/v1/sys/health")
+    # 200 is the active node. A 429 standby counts only once it forwards requests to the active node;
+    # an unsealed node that has not yet taken or found the leader answers 429 too and redirects.
+    if [ "$status" = "200" ]; then
+      return 0
+    fi
+    if [ "$status" = "429" ] && forwards_requests "$addr"; then
+      return 0
+    fi
+    attempt=$((attempt + 1))
+    sleep 1
+  done
+
+  echo "[OPENBAO] OpenBao did not become active or standby within $max_attempts seconds" >&2
+  return 1
+}
+
+fail_join_not_initialized() {
+  echo "Join mode: OpenBao is not initialized. Initialize it on the first node of the cluster; a joining node never initializes it" >&2
+  exit 1
+}
+
+# Join mode stops unless the cluster bundle files are present; the file list is owned by the bundle script.
+require_join_files() {
+  /usr/share/xroad/scripts/secret-store-cluster-bundle.sh check || {
+    echo "Join mode: import the cluster bundle first (secret-store-cluster-bundle.sh import <file>)" >&2
+    exit 1
+  }
+}
+
+# Restricts each existing file to root:root, mode 600. Missing files are skipped, symbolic links are
+# left alone, and a failure is reported without stopping the caller.
+enforce_root_only_files() {
+  local file
+  for file in "$@"; do
+    if [ -L "$file" ]; then
+      echo "Not changing $file: it is a symbolic link" >&2
+    elif [ -e "$file" ]; then
+      chown root:root "$file" && chmod 600 "$file" || echo "Could not restrict $file to root:root, mode 600" >&2
+    fi
+  done
+  return 0
 }
 
 is_initialized() {

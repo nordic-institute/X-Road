@@ -1,0 +1,9 @@
+services:
+  ds-control-plane:
+    environment:
+      # DID document cache time in ms (EDC default 300000); a few seconds, so a DID document is fetched again within seconds.
+      - EDC_DID_RESOLVER_CACHE_EXPIRY=3000
+
+  ds-identity-hub:
+    environment:
+      - EDC_DID_RESOLVER_CACHE_EXPIRY=3000

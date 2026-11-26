@@ -7,7 +7,9 @@ dependencies {
     implementation(libs.edc.spi.core)
     implementation(libs.edc.spi.dsp.v2025)
     implementation(libs.edc.lib.core)
+    implementation(libs.edc.crypto.verifiablecredentials.jwt)
 
+    implementation(project(":lib:edc-issuer-data"))
     implementation(project(":lib:edc-tls-reload"))
     implementation(project(":lib:globalconf-core"))
     implementation(project(":lib:serverconf-core"))

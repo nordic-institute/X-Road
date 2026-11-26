@@ -102,9 +102,11 @@ public record TokenPinMigrationResult(
     }
 
     /**
-     * Returns true if migration was successful or skipped (non-failure states).
+     * Returns true if migration was successful or skipped (non-failure states), or if every token was either
+     * migrated or already present.
      */
     public boolean isSuccessful() {
-        return status == MigrationStatus.SUCCESS || status == MigrationStatus.SKIPPED;
+        return status == MigrationStatus.SUCCESS || status == MigrationStatus.SKIPPED
+                || status == MigrationStatus.PARTIAL_SUCCESS && failedTokens.isEmpty();
     }
 }

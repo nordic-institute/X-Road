@@ -591,6 +591,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    public int getIssuerDataFreshnessSeconds(String instanceIdentifier) {
+        Integer seconds = getSharedParameters(instanceIdentifier).getIssuerDataFreshnessSeconds();
+        return seconds == null ? 0 : Math.max(0, seconds);
+    }
+
+    @Override
     public boolean isLegacyProtocolDisabled(String instanceIdentifier) {
         try {
             return findShared(instanceIdentifier)

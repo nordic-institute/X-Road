@@ -1,0 +1,454 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+package org.niis.xroad.edc.issuerdata;
+
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.edc.iam.verifiablecredentials.revocation.RevocationServiceRegistryImpl;
+import org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring.BitstringStatusListRevocationService;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
+import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.test.MutableClock;
+
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_CREDENTIAL;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_INDEX;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_PURPOSE;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_SIZE;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+class IssuerDataExtensionTest {
+
+    private static final String INSTANCE = "DEV";
+    private static final String SUBJECT = "did:web:ss0.example.org%3A7183:v1:DEV:COM:222";
+    private static final int CLEAR_INDEX = 15;
+    private static final long CACHE_VALIDITY_MILLIS = 5000;
+    private static final Duration PAST_CACHE_VALIDITY = Duration.ofMillis(CACHE_VALIDITY_MILLIS).plusSeconds(1);
+    private static final Duration FRESHNESS = Duration.ofSeconds(60);
+    private static final long DID_CACHE_EXPIRY_MILLIS = 60_000;
+    private static final long NEGATIVE_CACHE_VALIDITY_MILLIS = -FRESHNESS.toMillis();
+    private static final Duration SEND_TIME_TOLERANCE = Duration.ofSeconds(5);
+
+    private final RevocationServiceRegistryImpl registry = new RevocationServiceRegistryImpl(mock(Monitor.class));
+    private final GlobalConfProvider globalConf = mock(GlobalConfProvider.class);
+    private final DidResolverRegistry didResolvers = mock(DidResolverRegistry.class);
+    private final List<IssuerDataExtension> extensions = new ArrayList<>();
+    private final InMemoryIssuerDataStore store = new InMemoryIssuerDataStore();
+    private final MutableClock clock = new MutableClock(Instant.now());
+    private FakeIssuer issuer;
+
+    @BeforeEach
+    void setUp() {
+        issuer = new FakeIssuer();
+        issuer.publishStatusList(Set.of(), null);
+        when(globalConf.getInstanceIdentifier()).thenReturn(INSTANCE);
+        when(globalConf.getIssuerDataFreshnessSeconds(INSTANCE)).thenReturn((int) FRESHNESS.toSeconds());
+        initializeExtension();
+    }
+
+    @AfterEach
+    void tearDown() {
+        extensions.forEach(IssuerDataExtension::shutdown);
+        issuer.close();
+    }
+
+    @Test
+    void shouldVerifyBitstringCredentialFromLastGoodCopyWhenIssuerGoesDown() {
+        assertThat(registry.checkValidity(credentialWith(bitstringStatus())).succeeded()).isTrue();
+        issuer.down(true);
+        var requestsBeforeOutage = issuer.statusListRequests();
+        clock.advance(PAST_CACHE_VALIDITY);
+
+        assertThat(registry.checkValidity(credentialWith(bitstringStatus())).succeeded()).isTrue();
+        assertThat(issuer.statusListRequests()).isGreaterThan(requestsBeforeOutage);
+    }
+
+    @Test
+    void shouldProvideRuleThatReadsStatusListThroughTheSameSource() {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        var token = statusListToken();
+        var rule = extensions.getFirst().issuerStatusListAvailabilityRule();
+        assertThat(rule.checkRule(token, Map.of()).succeeded()).isTrue();
+        issuer.statusListDown(true);
+        var requestsBeforeOutage = issuer.statusListRequests();
+        clock.advance(PAST_CACHE_VALIDITY);
+
+        assertThat(rule.checkRule(token, Map.of()).succeeded()).isTrue();
+        assertThat(issuer.statusListRequests()).isGreaterThan(requestsBeforeOutage);
+    }
+
+    @Test
+    void shouldEndStatusListDownloadAtTheTimeLimitWhenBodyTricklesAndNoCopyIsStored() {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        issuer.bodyDelivery(FakeIssuer.BodyDelivery.TRICKLE);
+        var rule = initializeWithDownloadTimeout(Duration.ofSeconds(1), new IssuerDataDidResolverRegistry(50, 0, Clock.systemUTC()))
+                .issuerStatusListAvailabilityRule();
+        var result = assertTimeoutPreemptively(Duration.ofSeconds(8), () -> rule.checkRule(statusListToken(), Map.of()));
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isTrue();
+    }
+
+    @Test
+    void shouldEndIssuerDidDownloadAtTheTimeLimitWhenIssuerStallsAndNoCopyIsStored() {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        issuer.answerAfter(Duration.ofSeconds(2));
+        var realDidResolvers = new IssuerDataDidResolverRegistry(50, 0, Clock.systemUTC());
+        initializeWithDownloadTimeout(Duration.ofSeconds(1), realDidResolvers);
+        var result = realDidResolvers.resolve(issuer.did());
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isTrue();
+    }
+
+    @Test
+    void shouldSendOneRequestPerDownloadAttemptWhenIssuerAnswers5xx() {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        issuer.down(true);
+        var rule = initializeWithDownloadTimeout(Duration.ofSeconds(30), new IssuerDataDidResolverRegistry(50, 0, Clock.systemUTC()))
+                .issuerStatusListAvailabilityRule();
+        var result = assertTimeoutPreemptively(Duration.ofSeconds(8), () -> rule.checkRule(statusListToken(), Map.of()));
+        assertThat(result.isRetryable()).isTrue();
+        assertThat(issuer.statusListRequests()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldResolveParticipantDidSlowerThanDownloadTimeoutThroughTheStockResolver() {
+        issuer.answerAfter(Duration.ofSeconds(2));
+        var realDidResolvers = new IssuerDataDidResolverRegistry(50, 0, Clock.systemUTC());
+        initializeWithDownloadTimeout(Duration.ofSeconds(1), realDidResolvers);
+        var result = realDidResolvers.resolve(issuer.did());
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void shouldBootWithoutTouchingGlobalConf() {
+        var freshGlobalConf = mock(GlobalConfProvider.class);
+        issuer.down(true);
+
+        newExtension(new RevocationServiceRegistryImpl(mock(Monitor.class)), EdcTestStack.create(),
+                mock(DidResolverRegistry.class), freshGlobalConf, Clock.systemUTC(), defaultConfig())
+                .initialize(context(0, 50));
+
+        verifyNoInteractions(freshGlobalConf);
+    }
+
+    @Test
+    void shouldServeLastGoodCopyDuringOutageWhenCacheValidityIsNegative() {
+        var negativeRegistry = new RevocationServiceRegistryImpl(mock(Monitor.class));
+        initializeExtension(negativeRegistry, EdcTestStack.create(), NEGATIVE_CACHE_VALIDITY_MILLIS);
+        var credential = credentialWith(bitstringStatus());
+        assertThat(negativeRegistry.checkValidity(credential).succeeded()).isTrue();
+        issuer.down(true);
+
+        var result = negativeRegistry.checkValidity(credential);
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void shouldDownloadOnEveryCheckAndServeStoredRowsDuringOutageWhenBothCacheLimitsAreZero() {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        var statusListServices = new RevocationServiceRegistryImpl(mock(Monitor.class));
+        var realDidResolvers = new IssuerDataDidResolverRegistry(50, 0, Clock.systemUTC());
+        initializeWithCacheLimitsAtZero(statusListServices, realDidResolvers);
+        var credential = credentialWith(bitstringStatus());
+
+        assertThat(statusListServices.checkValidity(credential).succeeded()).isTrue();
+        var statusListRequestsAfterFirstCheck = issuer.statusListRequests();
+        assertThat(statusListServices.checkValidity(credential).succeeded()).isTrue();
+        assertThat(issuer.statusListRequests()).isGreaterThan(statusListRequestsAfterFirstCheck);
+        assertThat(realDidResolvers.resolve(issuer.did()).succeeded()).isTrue();
+        var didRequestsAfterFirstResolve = issuer.didDocumentRequests();
+        assertThat(realDidResolvers.resolve(issuer.did()).succeeded()).isTrue();
+        assertThat(issuer.didDocumentRequests()).isGreaterThan(didRequestsAfterFirstResolve);
+
+        issuer.down(true);
+
+        assertThat(statusListServices.checkValidity(credential).succeeded()).isTrue();
+        assertThat(realDidResolvers.resolve(issuer.did()).succeeded()).isTrue();
+    }
+
+    @Test
+    void shouldRegisterResolverThatServesLastGoodIssuerDidDocumentWhileIssuerIsDown() {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        var realDidResolvers = new IssuerDataDidResolverRegistry(50, 0, Clock.systemUTC());
+        newExtension(new RevocationServiceRegistryImpl(mock(Monitor.class)), EdcTestStack.create(), realDidResolvers,
+                globalConf, Clock.systemUTC(), defaultConfig()).initialize(context(0, 50));
+
+        assertThat(realDidResolvers.resolve(issuer.did()).succeeded()).isTrue();
+        issuer.down(true);
+
+        var duringOutage = realDidResolvers.resolve(issuer.did());
+
+        assertThat(duringOutage.succeeded()).isTrue();
+        assertThat(duringOutage.getContent().getId()).isEqualTo(issuer.did());
+    }
+
+    @Test
+    void shouldGiveIssuerDidSourceTheConfiguredDidCacheTime() {
+        var didClock = new MutableClock(Instant.parse("2026-11-18T10:00:00Z"));
+        var resolvers = initializeWithDidCacheExpiry(didClock, DID_CACHE_EXPIRY_MILLIS);
+        didClock.set(Instant.now());
+        assertThat(resolvers.resolve(issuer.did()).succeeded()).isTrue();
+        var requestsAfterFirstCheck = issuer.didDocumentRequests();
+        didClock.advance(Duration.ofMillis(DID_CACHE_EXPIRY_MILLIS).minus(SEND_TIME_TOLERANCE));
+        assertThat(resolvers.resolve(issuer.did()).succeeded()).isTrue();
+        assertThat(issuer.didDocumentRequests()).isEqualTo(requestsAfterFirstCheck);
+        didClock.advance(SEND_TIME_TOLERANCE.multipliedBy(2));
+        assertThat(resolvers.resolve(issuer.did()).succeeded()).isTrue();
+        assertThat(issuer.didDocumentRequests()).isGreaterThan(requestsAfterFirstCheck);
+    }
+
+    @Test
+    void shouldServeIssuerDidCopyDuringOutageUntilDownloadTimePlusDidCacheTimePlusMaximumAge() {
+        var didClock = new MutableClock(Instant.parse("2026-11-18T10:00:00Z"));
+        var resolvers = initializeWithDidCacheExpiry(didClock, IssuerDataExtension.DEFAULT_DID_CACHE_EXPIRY_MILLIS);
+        didClock.set(Instant.now());
+        assertThat(resolvers.resolve(issuer.did()).succeeded()).isTrue();
+        issuer.down(true);
+        var requestsBeforeOutage = issuer.didDocumentRequests();
+        var lastServedAge = Duration.ofMillis(IssuerDataExtension.DEFAULT_DID_CACHE_EXPIRY_MILLIS).plus(FRESHNESS)
+                .minus(SEND_TIME_TOLERANCE);
+        didClock.advance(lastServedAge);
+        var beforeDeadline = resolvers.resolve(issuer.did());
+        assertThat(beforeDeadline.succeeded()).isTrue();
+        assertThat(beforeDeadline.getContent().getId()).isEqualTo(issuer.did());
+        assertThat(issuer.didDocumentRequests()).isGreaterThan(requestsBeforeOutage);
+        didClock.advance(SEND_TIME_TOLERANCE.multipliedBy(2));
+        var atDeadline = resolvers.resolve(issuer.did());
+        assertThat(atDeadline.failed()).isTrue();
+        assertThat(atDeadline.isRetryable()).isTrue();
+    }
+
+    @Test
+    void shouldReadMaximumAgeOfOwnInstanceInSeconds() {
+        var age = IssuerDataExtension.maximumAge(globalConf).get();
+
+        assertThat(age.getContent()).isEqualTo(FRESHNESS);
+    }
+
+    @Test
+    void shouldTreatNegativeMaximumAgeAsZero() {
+        when(globalConf.getIssuerDataFreshnessSeconds(INSTANCE)).thenReturn(-5);
+
+        var age = IssuerDataExtension.maximumAge(globalConf).get();
+
+        assertThat(age.getContent()).isEqualTo(Duration.ZERO);
+    }
+
+    @Test
+    void shouldReportFailureWhenGlobalConfIsUnreadable() {
+        when(globalConf.getInstanceIdentifier()).thenThrow(new IllegalStateException("no globalconf yet"));
+
+        var age = IssuerDataExtension.maximumAge(globalConf).get();
+
+        assertThat(age.failed()).isTrue();
+    }
+
+    @Test
+    void shouldApplyTheStatusListDownloadLimitToStatusListsOnly() {
+        var statusListServices = new RevocationServiceRegistryImpl(mock(Monitor.class));
+        var realDidResolvers = new IssuerDataDidResolverRegistry(50, 0, Clock.systemUTC());
+        initializeWithDownloadLimits(statusListServices, realDidResolvers, 1, 200);
+        issuer.down(true);
+        checkTwoStatusListsAndResolveTwoIssuerDids(statusListServices, realDidResolvers);
+        var statusListRequests = issuer.statusListRequests();
+        var didDocumentRequests = issuer.didDocumentRequests();
+        checkTwoStatusListsAndResolveTwoIssuerDids(statusListServices, realDidResolvers);
+        assertThat(issuer.statusListRequests()).isGreaterThan(statusListRequests);
+        assertThat(issuer.didDocumentRequests()).isEqualTo(didDocumentRequests);
+    }
+
+    @Test
+    void shouldApplyTheIssuerDidDownloadLimitToIssuerDidsOnly() {
+        var statusListServices = new RevocationServiceRegistryImpl(mock(Monitor.class));
+        var realDidResolvers = new IssuerDataDidResolverRegistry(50, 0, Clock.systemUTC());
+        initializeWithDownloadLimits(statusListServices, realDidResolvers, 2000, 1);
+        issuer.down(true);
+        checkTwoStatusListsAndResolveTwoIssuerDids(statusListServices, realDidResolvers);
+        var statusListRequests = issuer.statusListRequests();
+        var didDocumentRequests = issuer.didDocumentRequests();
+        checkTwoStatusListsAndResolveTwoIssuerDids(statusListServices, realDidResolvers);
+        assertThat(issuer.statusListRequests()).isEqualTo(statusListRequests);
+        assertThat(issuer.didDocumentRequests()).isGreaterThan(didDocumentRequests);
+    }
+
+    private IssuerDataExtension initializeWithDownloadTimeout(Duration timeout, DidResolverRegistry targetDidResolvers) {
+        var config = config(Map.of(DspConfigKeys.ISSUER_DATA_DOWNLOAD_TIMEOUT.key(), timeout.toString()));
+        var extension = newExtension(new RevocationServiceRegistryImpl(mock(Monitor.class)), EdcTestStack.create(),
+                targetDidResolvers, globalConf, Clock.systemUTC(), config);
+        extension.initialize(context(0, 0));
+        return extension;
+    }
+
+    private ClaimToken statusListToken() {
+        return ClaimToken.Builder.newInstance()
+                .headers(Map.of("kid", issuer.did() + "#key-1"))
+                .claim("iss", issuer.did())
+                .claim("vc", Map.of("credentialStatus", Map.of("type", BitstringStatusListStatus.TYPE,
+                        STATUS_LIST_CREDENTIAL, issuer.statusListUrl())))
+                .build();
+    }
+
+    private DidResolverRegistry initializeWithDidCacheExpiry(Clock extensionClock, long didCacheExpiryMillis) {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did()));
+        var realDidResolvers = new IssuerDataDidResolverRegistry(50, DID_CACHE_EXPIRY_MILLIS, Clock.systemUTC());
+        var context = context(0, 50);
+        when(context.getSetting(eq(IssuerDataExtension.DID_CACHE_EXPIRY_SETTING), anyLong()))
+                .thenReturn(didCacheExpiryMillis);
+        newExtension(new RevocationServiceRegistryImpl(mock(Monitor.class)), EdcTestStack.create(), realDidResolvers,
+                globalConf, extensionClock, defaultConfig()).initialize(context);
+        return realDidResolvers;
+    }
+
+    private void initializeWithDownloadLimits(RevocationServiceRegistry statusListServices,
+                                              DidResolverRegistry targetDidResolvers, int statusListLimit, int didLimit) {
+        when(globalConf.getCredentialIssuerDids(INSTANCE)).thenReturn(Set.of(issuer.did(1), issuer.did(2)));
+        var limits = config(Map.of(
+                DspConfigKeys.ISSUER_DATA_CACHE_STATUSLIST_DOWNLOAD_SIZE.key(), String.valueOf(statusListLimit),
+                DspConfigKeys.ISSUER_DATA_CACHE_DID_DOWNLOAD_SIZE.key(), String.valueOf(didLimit)));
+        newExtension(statusListServices, EdcTestStack.create(), targetDidResolvers, globalConf, Clock.systemUTC(), limits)
+                .initialize(context(0, 0));
+    }
+
+    private void checkTwoStatusListsAndResolveTwoIssuerDids(RevocationServiceRegistry statusListServices,
+                                                            DidResolverRegistry targetDidResolvers) {
+        statusListServices.checkValidity(credentialWith(bitstringStatus(issuer.statusListUrl(1))));
+        statusListServices.checkValidity(credentialWith(bitstringStatus(issuer.statusListUrl(2))));
+        targetDidResolvers.resolve(issuer.did(1));
+        targetDidResolvers.resolve(issuer.did(2));
+    }
+
+    private void initializeWithCacheLimitsAtZero(RevocationServiceRegistry statusListServices,
+                                                 DidResolverRegistry targetDidResolvers) {
+        var context = context(CACHE_VALIDITY_MILLIS, 0);
+        when(context.getSetting(eq(IssuerDataExtension.DID_CACHE_EXPIRY_SETTING), anyLong()))
+                .thenReturn(DID_CACHE_EXPIRY_MILLIS);
+        var zeroLimits = config(Map.of(DspConfigKeys.ISSUER_DATA_CACHE_STATUSLIST_SIZE.key(), "0"));
+        newExtension(statusListServices, EdcTestStack.create(), targetDidResolvers, globalConf, Clock.systemUTC(),
+                zeroLimits).initialize(context);
+    }
+
+    private void initializeExtension() {
+        var stack = EdcTestStack.create();
+        registry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(stack.mapper(), 0,
+                List.of(IssuerDataExtension.DEFAULT_CONTENT_TYPES), stack.httpClient(), stack.tokenValidationService(),
+                stack.didPublicKeyResolver()));
+
+        initializeExtension(registry, stack, CACHE_VALIDITY_MILLIS);
+    }
+
+    private void initializeExtension(RevocationServiceRegistry target, EdcTestStack stack, long cacheValidityMillis) {
+        newExtension(target, stack, didResolvers, globalConf, clock, defaultConfig())
+                .initialize(context(cacheValidityMillis, 50));
+    }
+
+    private static ServiceExtensionContext context(long cacheValidityMillis, int didCacheSize) {
+        var context = mock(ServiceExtensionContext.class);
+        when(context.getMonitor()).thenReturn(mock(Monitor.class));
+        when(context.getSetting(eq(IssuerDataExtension.CACHE_VALIDITY_SETTING), anyLong()))
+                .thenReturn(cacheValidityMillis);
+        when(context.getSetting(eq(IssuerDataExtension.CONTENT_TYPES_SETTING), anyString()))
+                .thenReturn(IssuerDataExtension.DEFAULT_CONTENT_TYPES);
+        when(context.getSetting(eq(IssuerDataExtension.DID_CACHE_SIZE_SETTING), anyInt())).thenReturn(didCacheSize);
+        return context;
+    }
+
+    private IssuerDataExtension newExtension(RevocationServiceRegistry revocationServiceRegistry, EdcTestStack stack,
+                                             DidResolverRegistry didResolverRegistry,
+                                             GlobalConfProvider globalConfProvider, Clock extensionClock,
+                                             XRoadConfig xRoadConfig) {
+        var typeManager = mock(TypeManager.class);
+        when(typeManager.getMapper()).thenReturn(stack.mapper());
+        var extension = new IssuerDataExtension(revocationServiceRegistry, typeManager, stack.httpClient(),
+                stack.okHttpClient(), stack.tokenValidationService(), stack.didPublicKeyResolver(),
+                didResolverRegistry, globalConfProvider, ExecutorInstrumentation.noop(), xRoadConfig, store,
+                extensionClock);
+        extensions.add(extension);
+        return extension;
+    }
+
+    private static XRoadConfig defaultConfig() {
+        return config(Map.of());
+    }
+
+    private static XRoadConfig config(Map<String, String> stored) {
+        return XRoadConfigBuilder.create().register(DspConfigKeys.instance()).overrides(stored).build();
+    }
+
+    private CredentialStatus bitstringStatus() {
+        return bitstringStatus(issuer.statusListUrl());
+    }
+
+    private CredentialStatus bitstringStatus(String statusListUrl) {
+        return new CredentialStatus(SUBJECT, BitstringStatusListStatus.TYPE,
+                Map.of(STATUS_LIST_PURPOSE, "revocation",
+                        STATUS_LIST_INDEX, CLEAR_INDEX,
+                        STATUS_LIST_SIZE, 1,
+                        STATUS_LIST_CREDENTIAL, statusListUrl));
+    }
+
+    private VerifiableCredential credentialWith(CredentialStatus status) {
+        return VerifiableCredential.Builder.newInstance()
+                .type("VerifiableCredential")
+                .issuer(new Issuer(issuer.did()))
+                .issuanceDate(Instant.now())
+                .credentialSubject(CredentialSubject.Builder.newInstance().id(SUBJECT).claim("claim", "value").build())
+                .credentialStatus(status)
+                .build();
+    }
+}

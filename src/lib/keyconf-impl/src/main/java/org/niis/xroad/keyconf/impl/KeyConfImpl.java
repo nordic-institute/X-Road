@@ -40,6 +40,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.keyconf.dto.AuthKeyStatus;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -58,6 +59,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.niis.xroad.common.core.exception.ErrorCode.CANNOT_CREATE_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.TOKEN_NOT_ACTIVE;
 
 /**
  * Encapsulates KeyConf related functionality.
@@ -125,6 +127,29 @@ class KeyConfImpl implements KeyConfProvider {
         }
 
         return new AuthKey(certChain, pkey);
+    }
+
+    @Override
+    public AuthKeyStatus getAuthKeyStatus() {
+        try {
+            SecurityServerId serverId = serverConfProvider.getIdentifier();
+            if (serverId == null) {
+                return new AuthKeyStatus.NotConfigured();
+            }
+
+            var keyInfo = signerRpcClient.getAuthKey(serverId);
+            CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.cert().getCertificateBytes());
+            return new AuthKeyStatus.Present(new AuthKey(certChain, keyInfo.key()));
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(TOKEN_NOT_ACTIVE)) {
+                return new AuthKeyStatus.NotActive();
+            }
+            log.error("Failed to get authentication key status", e);
+            return new AuthKeyStatus.NotConfigured();
+        } catch (Exception e) {
+            log.error("Failed to get authentication key status", e);
+            return new AuthKeyStatus.NotConfigured();
+        }
     }
 
     @Override

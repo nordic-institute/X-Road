@@ -65,6 +65,7 @@ dependencies {
 
   runtimeOnly(project(":service:ds-control-plane:ds-control-plane-tasks-store-poll-executor"))
   runtimeOnly(project(":lib:edc-vault-quarkus"))
+  runtimeOnly(project(":lib:edc-issuer-data"))
 
   runtimeOnly(libs.edc.dataplane.signaling)
   runtimeOnly(libs.edc.core.participantcontext.connector.classic)

@@ -223,7 +223,7 @@ class ProxyConfig {
 
     private void ensureInternalTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient)
             throws IOException, GeneralSecurityException {
-        TlsKeyProvisioning.readOrProvision("internal",
+        TlsKeyProvisioning.readOrProvisionOnPrimary("internal",
                 vaultClient::getInternalTlsCredentials,
                 vaultClient::createInternalTlsCredentials,
                 vaultKeyClient);

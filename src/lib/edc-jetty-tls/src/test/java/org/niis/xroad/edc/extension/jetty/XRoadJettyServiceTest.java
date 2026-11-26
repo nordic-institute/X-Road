@@ -39,6 +39,7 @@ import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -51,7 +52,9 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -70,10 +73,19 @@ import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.keyStor
 
 class XRoadJettyServiceTest {
 
+    private static final int CONNECT_PROBE_TIMEOUT_MILLIS = 1000;
+
     private static final Monitor MONITOR = new Monitor() {
     };
 
+    private static Optional<InetAddress> nonLoopbackAddress = Optional.empty();
+
     private XRoadJettyService jettyService;
+
+    @BeforeAll
+    static void probeNonLoopbackAddress() throws Exception {
+        nonLoopbackAddress = findNonLoopbackTestAddress();
+    }
 
     @AfterEach
     void tearDown() {
@@ -225,8 +237,7 @@ class XRoadJettyServiceTest {
 
     @Test
     void theDefaultContextAcceptsOnLoopbackAndRefusesOnANonLoopbackAddress() throws Exception {
-        var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var nonLoopback = requireNonLoopbackAddress();
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping(XRoadJettyService.DEFAULT_CONTEXT_NAME, port, "/api"));
@@ -237,17 +248,16 @@ class XRoadJettyServiceTest {
         jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
 
         assertThat(get(port, "/api").body()).isEqualTo("default-ok");
-        assertThatThrownBy(() -> new Socket(nonLoopback.get(), port).close()).isInstanceOf(ConnectException.class);
+        assertThatThrownBy(() -> new Socket(nonLoopback, port).close()).isInstanceOf(ConnectException.class);
     }
 
     @Test
     void aNamedContextWithAConfiguredHostBindsOnlyToThatAddress() throws Exception {
-        var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var nonLoopback = requireNonLoopbackAddress();
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("named", port, "/api"));
-        var configuredHost = nonLoopback.get().getHostAddress();
+        var configuredHost = nonLoopback.getHostAddress();
         jettyService = new XRoadJettyService(MONITOR, registry, contextName -> "named".equals(contextName) ? configuredHost : null);
         disableSniHostCheck(jettyService);
         jettyService.start();
@@ -260,8 +270,7 @@ class XRoadJettyServiceTest {
 
     @Test
     void aNamedContextWithoutAConfiguredHostBindsToEveryInterface() throws Exception {
-        var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var nonLoopback = requireNonLoopbackAddress();
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("named", port, "/api"));
@@ -272,13 +281,12 @@ class XRoadJettyServiceTest {
         jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
 
         assertThat(get(port, "/api").body()).isEqualTo("named-ok");
-        assertThat(get(nonLoopback.get().getHostAddress(), port, "/api").body()).isEqualTo("named-ok");
+        assertThat(get(nonLoopback.getHostAddress(), port, "/api").body()).isEqualTo("named-ok");
     }
 
     @Test
     void aNamedContextWithABlankConfiguredHostBindsToEveryInterface() throws Exception {
-        var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var nonLoopback = requireNonLoopbackAddress();
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("named", port, "/api"));
@@ -289,42 +297,58 @@ class XRoadJettyServiceTest {
         jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
 
         assertThat(get(port, "/api").body()).isEqualTo("named-ok");
-        assertThat(get(nonLoopback.get().getHostAddress(), port, "/api").body()).isEqualTo("named-ok");
+        assertThat(get(nonLoopback.getHostAddress(), port, "/api").body()).isEqualTo("named-ok");
     }
 
     @Test
     void aHostSettingForTheDefaultContextHasNoEffect() throws Exception {
-        var nonLoopback = nonLoopbackTestAddress();
-        assumeTrue(nonLoopback.isPresent(), "test host has no non-loopback network interface address");
+        var nonLoopback = requireNonLoopbackAddress();
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping(XRoadJettyService.DEFAULT_CONTEXT_NAME, port, "/api"));
-        jettyService = new XRoadJettyService(MONITOR, registry, contextName -> nonLoopback.get().getHostAddress());
+        jettyService = new XRoadJettyService(MONITOR, registry, contextName -> nonLoopback.getHostAddress());
         disableSniHostCheck(jettyService);
         jettyService.start();
         jettyService.registerServlet(XRoadJettyService.DEFAULT_CONTEXT_NAME, echoServlet("default-ok"));
         jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
 
         assertThat(get(port, "/api").body()).isEqualTo("default-ok");
-        assertThatThrownBy(() -> new Socket(nonLoopback.get(), port).close()).isInstanceOf(ConnectException.class);
+        assertThatThrownBy(() -> new Socket(nonLoopback, port).close()).isInstanceOf(ConnectException.class);
+    }
+
+    private static InetAddress requireNonLoopbackAddress() {
+        assumeTrue(nonLoopbackAddress.isPresent(), "no non-loopback address accepts local connections");
+        return nonLoopbackAddress.get();
     }
 
     /**
-     * The first address of a non-loopback, up network interface on the test host, used to prove a connector
-     * refuses or accepts connections from outside loopback. Some hosts (a sandboxed CI runner) have none.
+     * The first IPv4 address of a non-loopback, up network interface on the test host that accepts local
+     * connections, used to prove a connector refuses or accepts connections from outside loopback. Some
+     * hosts (a sandboxed CI runner) have none, and others list addresses of stale bridges that refuse every
+     * connection.
      */
-    private static Optional<InetAddress> nonLoopbackTestAddress() throws Exception {
+    private static Optional<InetAddress> findNonLoopbackTestAddress() throws Exception {
         for (var networkInterface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
             if (!networkInterface.isUp() || networkInterface.isLoopback()) {
                 continue;
             }
             for (var address : Collections.list(networkInterface.getInetAddresses())) {
-                if (address instanceof Inet4Address && !address.isLoopbackAddress()) {
+                if (address instanceof Inet4Address && !address.isLoopbackAddress()
+                        && acceptsLocalConnections(address)) {
                     return Optional.of(address);
                 }
             }
         }
         return Optional.empty();
+    }
+
+    private static boolean acceptsLocalConnections(InetAddress address) {
+        try (var server = new ServerSocket(0, 1, address); var client = new Socket()) {
+            client.connect(new InetSocketAddress(address, server.getLocalPort()), CONNECT_PROBE_TIMEOUT_MILLIS);
+            return true;
+        } catch (IOException _) {
+            return false;
+        }
     }
 
     /**

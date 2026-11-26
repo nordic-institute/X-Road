@@ -34,6 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
@@ -49,6 +50,7 @@ import java.util.Set;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 public class GlobalConfVer7Test {
@@ -224,5 +226,40 @@ public class GlobalConfVer7Test {
     @Test
     public void legacyProtocolDisabledOfUnknownInstanceIsFalse() {
         assertFalse(globalConfProvider.isLegacyProtocolDisabled("XX"));
+    }
+
+    @Test
+    public void issuerDataFreshnessSecondsOfOwnInstance() {
+        assertEquals(600, globalConfProvider.getIssuerDataFreshnessSeconds("EE"));
+    }
+
+    @Test
+    public void issuerDataFreshnessSecondsOfFederatedInstance() {
+        assertEquals(300, globalConfProvider.getIssuerDataFreshnessSeconds("fed_v7"));
+    }
+
+    @Test
+    public void issuerDataFreshnessSecondsOfInstanceWithOlderVersionIsZero() {
+        assertEquals(0, globalConfProvider.getIssuerDataFreshnessSeconds("corge_v6"));
+        assertEquals(0, globalConfProvider.getIssuerDataFreshnessSeconds("quux_v5"));
+        assertEquals(0, globalConfProvider.getIssuerDataFreshnessSeconds("qux_v4"));
+        assertEquals(0, globalConfProvider.getIssuerDataFreshnessSeconds("baz_v3"));
+        assertEquals(0, globalConfProvider.getIssuerDataFreshnessSeconds("foo_v2"));
+    }
+
+    @Test
+    public void issuerDataFreshnessSecondsNegativeIsZero() throws IOException {
+        File confDir = TEMP_FOLDER.newFolder("negative-issuer-data-freshness");
+        FileUtils.copyDirectory(new File(GOOD_CONF_DIR), confDir);
+        File sharedParams = new File(confDir, "EE/shared-params.xml");
+        String negative = FileUtils.readFileToString(sharedParams, UTF_8)
+                .replace("<issuerDataFreshnessSeconds>600<", "<issuerDataFreshnessSeconds>-5<");
+        FileUtils.writeStringToFile(sharedParams, negative, UTF_8);
+        assertEquals(0, load(confDir.getPath()).getIssuerDataFreshnessSeconds("EE"));
+    }
+
+    @Test
+    public void issuerDataFreshnessSecondsOfInstanceAbsentFromGlobalConfThrows() {
+        assertThrows(XrdRuntimeException.class, () -> globalConfProvider.getIssuerDataFreshnessSeconds("XX"));
     }
 }

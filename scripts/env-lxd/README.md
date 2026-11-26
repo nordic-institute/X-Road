@@ -79,7 +79,7 @@ Containers:
 
 In the profile:
 
-- The Central Server admin UI and API are on node 1: <https://xrd-cs1.lxd:4000/>. Port 4000 is per node; node 2 serves no admin API while its install stops at OpenBao database creation.
+- The Central Server admin UI and API are on node 1: <https://xrd-cs1.lxd:4000/>. Port 4000 is per node; node 2 serves its own at <https://xrd-cs2.lxd:4000/> once its Central Server install completes.
 - The Issuer Service host is the cluster name. Every container and the host resolve it.
 - `setup.hurl` issues the Issuer Service TLS certificate from the test CA. The cluster's throwaway CA is not used.
 - The Security Servers send mail to Mailpit on `xrd-cs1`. Node 1 and node 2 get the dev `local.conf` and Mailpit, like `xrd-cs` in the single-node env.
@@ -91,7 +91,7 @@ Lifecycle:
 - Starting one profile while containers of the other exist stops before any change and asks for `--recreate`.
 - A second `./start-env.sh --profile=cluster --skip-build` leaves the cluster unchanged.
 - `scripts/delete-env.sh` removes every `xrd-*` container, the cluster included. `cluster/delete-cluster.sh` removes only the cluster containers.
-- To redeploy a module to the cluster nodes, use `./dev.sh -i cluster/deploy-inventory.yml -bdm <module>`. It targets node 1 only.
+- To redeploy a module to the cluster nodes, use `./dev.sh -i cluster/deploy-inventory.yml -bdm <module>`. It targets both nodes.
 
 Configuration:
 
@@ -112,7 +112,6 @@ What does not work in the profile:
 
 - The e2e Java suite: it expects `xrd-cs`.
 - Snapshots: `--snapshot-empty-containers` is refused.
-- Node 2 does not complete: its install stops at OpenBao database creation until the OpenBao join and the Issuer Service database handover exist.
 - The cluster and `xrd-cs` cannot run side by side.
 
 ### Monitoring

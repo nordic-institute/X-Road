@@ -45,6 +45,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.keyconf.dto.AuthKeyStatus;
 import org.niis.xroad.test.keyconf.EmptyKeyConf;
 
 import java.security.PrivateKey;
@@ -81,6 +82,11 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
                 globalConfProvider.getCaCert("EE", consumer.certChain[0]),
                 consumer.certChain[0], null),
                 consumer.key);
+    }
+
+    @Override
+    public AuthKeyStatus getAuthKeyStatus() {
+        return new AuthKeyStatus.Present(getAuthKey());
     }
 
     @Override

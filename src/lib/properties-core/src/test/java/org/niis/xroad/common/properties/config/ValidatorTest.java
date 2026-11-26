@@ -140,6 +140,24 @@ class ValidatorTest {
     }
 
     @Test
+    void durationAtLeastAcceptsTheMinimumAndAnyLongerDuration() {
+        var validator = Validator.durationAtLeast(Duration.ofMinutes(1));
+
+        assertThat(validator.validate(Duration.ofMinutes(1)).valid()).isTrue();
+        assertThat(validator.validate(Duration.ofDays(36500)).valid()).isTrue();
+    }
+
+    @Test
+    void durationAtLeastRejectsShorterDurationAndNull() {
+        var validator = Validator.durationAtLeast(Duration.ofMinutes(1));
+
+        assertThat(validator.validate(Duration.ofMinutes(1).minusMillis(1)).valid()).isFalse();
+        assertThat(validator.validate(Duration.ZERO).valid()).isFalse();
+        assertThat(validator.validate(null).valid()).isFalse();
+        assertThat(validator.validate(Duration.ZERO).message()).isEqualTo("must be at least PT1M");
+    }
+
+    @Test
     void negativeDurationDefaultWithPositiveFailsAtBuild() {
         var builder = Prefix.of("xroad.signer")
                 .keyDuration("csr-timeout")
@@ -189,6 +207,7 @@ class ValidatorTest {
         assertThat(Validator.nonNegative().describe()).contains("non-negative duration");
         assertThat(Validator.durationBetween(Duration.ZERO, Duration.ofMinutes(5)).describe())
                 .contains("within [PT0S, PT5M]");
+        assertThat(Validator.durationAtLeast(Duration.ofMinutes(1)).describe()).contains("at least PT1M");
         assertThat(Validator.positiveLong().describe()).contains("positive number");
         assertThat(Validator.positiveInt().describe()).contains("positive number");
     }

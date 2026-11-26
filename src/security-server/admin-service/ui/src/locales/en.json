@@ -613,6 +613,11 @@
     "pin_incorrect": "Incorrect PIN. Please try again.",
     "process_failed": "Process failed",
     "process_not_executable": "Process is not executable",
+    "re_identification_address_unknown": "The registered address of the Security Server is not known, re-identification is not possible",
+    "re_identification_cannot_bind": "Participants cannot be bound again now: the data space is not ready, the authentication certificate is not registered or the global configuration is not usable",
+    "re_identification_cannot_mint": "A participant DID cannot be created at the registered address: the address includes a port or makes a DID too long",
+    "re_identification_not_needed": "No participant has a DID at an address other than the registered address",
+    "re_identification_provisioning_inactive": "Participant provisioning is not active on this node, so new DIDs cannot be bound: it is switched off or this is a secondary node",
     "same_address_change_request": "The new address is the same as the current address",
     "server_already_fully_initialized": "Server is already fully initialised",
     "server_code_exists": "Server code exists",
@@ -1517,6 +1522,29 @@
           },
           "common": {
             "temp-files-path": "Absolute path to the directory where temporary files are stored."
+          },
+          "dsp": {
+            "issuer-data": {
+              "download-wait": "The longest time a check waits for a fresh download while the Issuer Service answers. The value must be above 0. Reasonable values: 1 to 10 seconds. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+              "download-retry-seconds": "The wait in seconds before the next download after a failed download. Entry n of the comma-separated list is the wait after failure n, and the last entry repeats. Every entry is a positive whole number. An entry longer than download-expire-after has no effect. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+              "download-expire-after": "After this time a failed or unanswered download expires and is forgotten. The next check that needs the data starts a new download, and the retry delay starts again from the first entry. A retry delay longer than this value has no effect. Allowed values: above 0. Reasonable values: 5 to 10 minutes. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+              "download-timeout": "The longest time one download of a statuslist or an issuer DID document takes, from the start of the request to the end of the response. A download that takes longer stops and counts as failed. Allowed values: above 0. Reasonable values: 10 to 30 seconds. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+              "cache": {
+                "statuslist": {
+                  "size": "The most statuslists kept in memory. Allowed values: whole numbers of 0 or more. With 0, no copy is kept in memory, checks that run at the same time still share one download, and a stored copy is still used during an outage. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change."
+                },
+                "statuslist-download": {
+                  "size": "The most statuslists whose download runs or waits for a retry at one time. Allowed values: whole numbers of 1 or more. Reasonable values: at least double the value of xroad.dsp.issuer-data.cache.statuslist.size. When the limit is full, an entry is pushed out, the checks that wait for it fail with a retryable error unless they can use a copy from the database, and the next check starts a new download. A lower value causes more calls to the Issuer Service. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change."
+                },
+                "did-download": {
+                  "size": "The most issuer DID documents whose download runs or waits for a retry at one time. Only the issuer DIDs listed in global configuration are downloaded. Allowed values: whole numbers of 1 or more. Reasonable values: at least double the value of edc.did.resolver.cache.size. When the limit is full, an entry is pushed out, the checks that wait for it fail with a retryable error unless they can use a copy from the database, and the next check starts a new download. A lower value causes more calls to the Issuer Service. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change."
+                }
+              },
+              "cleanup": {
+                "interval": "The time between runs of the cleanup of expired issuer data. Allowed values: 5 minutes or more. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change.",
+                "enabled": "When false, the cleanup of expired issuer data does not run. Restart xroad-ds-control-plane and xroad-ds-identity-hub after a change."
+              }
+            }
           }
         }
       }

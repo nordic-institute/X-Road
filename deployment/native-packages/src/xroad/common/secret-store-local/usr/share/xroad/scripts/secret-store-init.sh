@@ -8,6 +8,24 @@ BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
 ROOT_TOKEN_FILE="/etc/openbao/root-token"
 UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
 
+# --join: this node joins an existing cluster. The cluster bundle files must be present, the store
+# must already be initialized, and initialization is never attempted.
+JOIN=false
+case "${1:-}" in
+  --join) JOIN=true ;;
+  "") ;;
+  *)
+    echo "Usage: $0 [--join]" >&2
+    exit 1
+    ;;
+esac
+
+if [ "$JOIN" = true ]; then
+  require_join_files
+fi
+
+enforce_root_only_files "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"
+
 if wait_until_ready; then
   echo "OpenBao is ready"
 else
@@ -18,6 +36,8 @@ fi
 # Check if already initialized
 if is_initialized; then
   echo "OpenBao is already initialized"
+elif [ "$JOIN" = true ]; then
+  fail_join_not_initialized
 else
   echo "Initializing OpenBao..."
   INIT_RESPONSE=$(initialize) || {
@@ -30,35 +50,22 @@ else
   UNSEAL_KEYS=$(echo "$INIT_RESPONSE" | jq -r '.keys_base64[]')
   echo "$UNSEAL_KEYS" > "$UNSEAL_KEYS_FILE"
   echo "$ROOT_TOKEN" > "$ROOT_TOKEN_FILE"
-  chmod 600 "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"
-  chown root:root "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"
+  enforce_root_only_files "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"
 fi
 
-# Check if sealed and unseal if needed
+# Unsealing is the job of secret-store-unseal.sh, which also runs after every OpenBao start.
+# A freshly initialized store is still sealed, so unseal it here and require the result.
+/usr/share/xroad/scripts/secret-store-unseal.sh
 if is_sealed; then sealed_rc=0; else sealed_rc=$?; fi
 if [ "$sealed_rc" -eq 2 ]; then
   echo "Cannot determine OpenBao seal status; aborting" >&2
   exit 1
-elif [ "$sealed_rc" -ne 0 ]; then
-  echo "OpenBao is already unsealed"
-else
-  echo "Unsealing OpenBao..."
-  while IFS= read -r key || [ -n "$key" ]; do
-    if ! unseal "$BAO_ADDR" "$key"; then
-      echo "Failed to unseal OpenBao" >&2
-      exit 1
-    fi
-
-    if is_sealed; then sealed_rc=0; else sealed_rc=$?; fi
-    if [ "$sealed_rc" -eq 2 ]; then
-      echo "Cannot verify seal status after unseal; aborting" >&2
-      exit 1
-    elif [ "$sealed_rc" -ne 0 ]; then
-      echo "Successfully unsealed OpenBao"
-      break
-    fi
-  done < "$UNSEAL_KEYS_FILE"
+elif [ "$sealed_rc" -eq 0 ]; then
+  echo "OpenBao is sealed; aborting" >&2
+  exit 1
 fi
+
+wait_until_active || true
 
 if [ -z "${BAO_TOKEN:-}" ] && [ -s "$ROOT_TOKEN_FILE" ]; then
   BAO_TOKEN=$(cat "$ROOT_TOKEN_FILE")

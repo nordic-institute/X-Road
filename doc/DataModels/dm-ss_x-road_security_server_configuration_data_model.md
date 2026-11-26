@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.16
+Version: 1.17
 Doc. ID: DM-SS
 
 ## Version history
@@ -27,6 +27,7 @@ Doc. ID: DM-SS
 | 30.03.2026 | 1.14    | Added unique constraints to identifier tables and removed unnnecessary columns (service_code, service_version) | Eneli Reimets                   |
 | 01.04.2026 | 1.15    | Update minimum PostgreSQL version to 15                                                                        | Egidijus M                      |
 | 23.09.2026 | 1.16    | Table "dataflow_state" added                                                                                   | Eneli Reimets                   |
+| 19.11.2026 | 1.17    | Table "pending_address_change" added                                                                           | Justas Samuolis                 |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -92,6 +93,9 @@ Doc. ID: DM-SS
   * [2.19 DATAFLOW_STATE](#219-dataflow_state)
     * [2.19.1 Indexes](#2191-indexes)
     * [2.19.2 Attributes](#2192-attributes)
+  * [2.20 PENDING_ADDRESS_CHANGE](#220-pending_address_change)
+    * [2.20.1 Indexes](#2201-indexes)
+    * [2.20.2 Attributes](#2202-attributes)
 
 <!-- vim-markdown-toc -->
 
@@ -526,3 +530,23 @@ The proxy and the control plane must run in the same time zone, because `updated
 | state        | character varying(32)   | NOT NULL  | The flow's current lifecycle state: one of `PROVISIONED`, `STARTED`, `SUSPENDED`, `COMPLETED`, `TERMINATED`. |
 | created_at   | timestamp(6)            | NOT NULL  | Row creation time. Set automatically by the `set_timestamps` trigger, not by the application.                     |
 | updated_at   | timestamp(6)            | NOT NULL  | Time of the row's last lifecycle update. Set automatically by the `set_timestamps` trigger on every insert/update. |
+
+### 2.20 PENDING_ADDRESS_CHANGE
+
+The table stores the Security Server address change that the administrator requested and global configuration does not yet show. It holds at most one row, with the fixed `id` 1, and all nodes of a clustered Security Server share it.
+
+The row is stored before the address change request is sent to the Central Server, and is removed again if the request cannot be sent. While the row exists, a new address change request is refused. The primary or standalone node deletes the row in two cases: when global configuration shows the requested address, and when the request has waited for the configured expiry. In the first case the node deletes the row before it re-identifies the participants once. The result of the re-identification does not keep the row. The expiry is measured from `requested_at`.
+
+#### 2.20.1 Indexes
+
+| Name                                          | Columns |
+|:-----------------------------------------------|:-------:|
+| pending_address_change_pkey                    |   id    |
+
+#### 2.20.2 Attributes
+
+| Name              |          Type           | Modifiers | Description                                                          |
+|:------------------|:-----------------------:|:----------|:-----------------------------------------------------------------------|
+| id [PK]           |         bigint          | NOT NULL  | Primary key. Always 1: the check constraint `single_pending_address_change` allows one row only. |
+| requested_address | character varying(255)  | NOT NULL  | The address the administrator requested.                              |
+| requested_at      | timestamp(6)            | NOT NULL  | Time when the administrator requested the address change.             |

@@ -29,6 +29,8 @@ package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AdminServiceConfigKeysTest {
@@ -57,5 +59,15 @@ class AdminServiceConfigKeysTest {
         assertThat(key.validate(10081).valid()).isFalse();
         assertThat(key.validate(5).valid()).isTrue();
         assertThat(key.validate(10080).valid()).isTrue();
+    }
+
+    @Test
+    void addressChangeExpiryDefaultsToThreeHoursAndRejectsLessThanOneMinute() {
+        var key = AdminServiceConfigKeys.ADDRESS_CHANGE_EXPIRY;
+
+        assertThat(key.convertedDefaultValue()).isEqualTo(Duration.ofHours(3));
+        assertThat(key.validate(Duration.ZERO).valid()).isFalse();
+        assertThat(key.validate(Duration.ofSeconds(59)).valid()).isFalse();
+        assertThat(key.validate(Duration.ofMinutes(1)).valid()).isTrue();
     }
 }
