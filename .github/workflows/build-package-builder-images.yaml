@@ -54,15 +54,6 @@ jobs:
         uses: ./.github/actions/setup-mirrors
         with:
           token: ${{ secrets.XROAD_MIRROR_TOKEN }}
-          username: ${{ vars.XROAD_MIRROR_USERNAME }}
-          maven-url: ${{ vars.XROAD_MIRROR_MAVEN_URL }}
-          plugins-url: ${{ vars.XROAD_MIRROR_PLUGINS_URL }}
-          npm-url: ${{ vars.XROAD_MIRROR_NPM_URL }}
-          ubuntu-url: ${{ vars.XROAD_MIRROR_UBUNTU_URL }}
-          docker-url: ${{ vars.XROAD_MIRROR_DOCKER_URL }}
-          github-url: ${{ vars.XROAD_MIRROR_GITHUB_URL }}
-          k8s-url: ${{ vars.XROAD_MIRROR_K8S_URL }}
-          disabled: ${{ vars.XROAD_MIRRORS_DISABLED }}
 
       - name: Read version from gradle.properties
         id: version

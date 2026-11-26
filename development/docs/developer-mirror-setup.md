@@ -59,30 +59,37 @@ docker login artifactory.niis.org -u <your-username> -p <your-artifactory-token>
 
 ## GitHub Actions
 
-CI jobs use the same mirrors. The `setup-mirrors` action (`.github/actions/setup-mirrors/`) sets the `XROAD_MIRROR_*` variables for the rest of the job.
+CI jobs use the same mirrors. The `setup-mirrors` action (`.github/actions/setup-mirrors/`) sets the `XROAD_MIRROR_*` variables for the rest of the job. Workflows pass only the token to the action: `token: ${{ secrets.XROAD_MIRROR_TOKEN }}`. The action reads the repository variables itself.
 
 ### Repository secret and variables
 
-The token is the only repository secret (Settings, Secrets and variables, Actions, tab Secrets). The user name and the URLs are repository variables (same page, tab Variables). All of them have the same names and meaning as the variables in `~/.gradle/gradle.properties`. All URLs point to the same Artifactory instance. `<host>` is its host name.
+The token is the only repository secret (Settings, Secrets and variables, Actions, tab Secrets). The base URL, the user name and the off switch are repository variables (same page, tab Variables). `<host>` is the host name of the Artifactory instance.
 
 | Name | Kind | Value shape | Used for |
 |---|---|---|---|
 | `XROAD_MIRROR_TOKEN` | Secret | Access token | The only credential, for every mirror |
+| `XROAD_MIRROR_BASE_URL` | Variable | `https://<host>/artifactory`, with or without a trailing slash | Artifactory base URL. The action derives all per-tool URLs from it |
 | `XROAD_MIRROR_USERNAME` | Variable | User name of the CI account | Login name that goes with the token |
-| `XROAD_MIRROR_MAVEN_URL` | Variable | `https://<host>/artifactory/mirror-mavencentral/` | Gradle dependency repository (a Maven repository URL) |
-| `XROAD_MIRROR_PLUGINS_URL` | Variable | `https://<host>/artifactory/mirror-gradle-plugins/` | Gradle plugin repository (a Maven repository URL) |
-| `XROAD_MIRROR_NPM_URL` | Variable | `https://<host>/artifactory/api/npm/mirror-npm/` | npm registry. Keep the `api/npm/` path and the trailing slash: the build writes the token under the host and path of this URL |
-| `XROAD_MIRROR_UBUNTU_URL` | Variable | `https://<host>/artifactory/mirror-ubuntu-ports/` | APT sources and the DNF base (see below) |
-| `XROAD_MIRROR_DOCKER_URL` | Variable | `<host>/mirror-docker-hub/` | Base image registry prefix: no scheme, trailing slash. The build puts it in front of the image name. The login uses the part before the first `/` |
-| `XROAD_MIRROR_GITHUB_URL` | Variable | `https://<host>/artifactory/mirror-github/` | GitHub release downloads. Keep the trailing slash: the build appends the repository path to it |
-| `XROAD_MIRROR_K8S_URL` | Variable | `https://<host>/artifactory/mirror-k8s-dl/` | `kubectl` downloads. The build appends `/release/<version>/...` |
+| `XROAD_MIRRORS_DISABLED` | Variable | `true` or empty | Off switch (see below) |
+
+The action derives the per-tool URLs from the base URL with fixed repository keys and exports them with the same names as the variables in `~/.gradle/gradle.properties`:
+
+| Exported variable | Value | Used for |
+|---|---|---|
+| `XROAD_MIRROR_MAVEN_URL` | `https://<host>/artifactory/mirror-mavencentral/` | Gradle dependency repository (a Maven repository URL) |
+| `XROAD_MIRROR_PLUGINS_URL` | `https://<host>/artifactory/mirror-gradle-plugins/` | Gradle plugin repository (a Maven repository URL) |
+| `XROAD_MIRROR_NPM_URL` | `https://<host>/artifactory/api/npm/mirror-npm/` | npm registry. The build writes the token under the host and path of this URL |
+| `XROAD_MIRROR_UBUNTU_URL` | `https://<host>/artifactory/mirror-ubuntu-ports/` | APT sources and the DNF base (see below) |
+| `XROAD_MIRROR_DOCKER_URL` | `<host>/mirror-docker-hub/` | Base image registry prefix: no scheme, trailing slash. The build puts it in front of the image name. The login uses the part before the first `/` |
+| `XROAD_MIRROR_GITHUB_URL` | `https://<host>/artifactory/mirror-github/` | GitHub release downloads. The build appends the repository path to it |
+| `XROAD_MIRROR_K8S_URL` | `https://<host>/artifactory/mirror-k8s-dl/` | `kubectl` downloads. The build appends `/release/<version>/...` |
 
 The Ubuntu URL has two more roles:
 
-- The APT configuration replaces the `mirror-ubuntu...` path segment with `mirror-ubuntu-archive` on amd64 and with `mirror-ubuntu-ports` on arm64. Both repositories must exist, and the URL must have a `mirror-ubuntu...` path segment.
+- The APT configuration replaces the `mirror-ubuntu...` path segment with `mirror-ubuntu-archive` on amd64 and with `mirror-ubuntu-ports` on arm64. Both repositories must exist.
 - The RPM builder images use the part of the URL before the `/mirror-` path segment as the base of the DNF repositories. The repositories `mirror-rocky`, `mirror-oracle` and `mirror-epel` must exist under that base.
 
-The mirrors are off for a job when `XROAD_MIRROR_TOKEN` is empty. When the token is set but the username is empty, the mirrors stay off and the job logs a warning. An empty URL turns off only that mirror, and the job logs a warning that names the empty settings, not their values.
+The mirrors are off for a job when `XROAD_MIRROR_TOKEN` is empty. When the token is set but `XROAD_MIRROR_USERNAME` or `XROAD_MIRROR_BASE_URL` is empty, or the base URL does not start with `http://` or `https://`, the mirrors stay off and the job logs a warning that names the variable, not its value.
 
 ### Credential and non-credential values
 

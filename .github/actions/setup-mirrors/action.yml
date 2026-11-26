@@ -1,44 +1,8 @@
 name: 'Setup Mirrors'
-description: 'Use the Artifactory mirrors for the rest of the job when the mirror token and user name are present and the off switch is not set'
+description: 'Use the Artifactory mirrors for the rest of the job when the mirror token, user name and base URL are present and the off switch is not set. Reads the repository variables XROAD_MIRROR_BASE_URL, XROAD_MIRROR_USERNAME and XROAD_MIRRORS_DISABLED itself'
 inputs:
   token:
-    description: 'Mirror access token (repository secret XROAD_MIRROR_TOKEN)'
-    required: false
-    default: ''
-  username:
-    description: 'Mirror user name (repository variable XROAD_MIRROR_USERNAME)'
-    required: false
-    default: ''
-  maven-url:
-    description: 'Maven mirror URL (repository variable XROAD_MIRROR_MAVEN_URL)'
-    required: false
-    default: ''
-  plugins-url:
-    description: 'Gradle plugins mirror URL (repository variable XROAD_MIRROR_PLUGINS_URL)'
-    required: false
-    default: ''
-  npm-url:
-    description: 'npm mirror URL (repository variable XROAD_MIRROR_NPM_URL)'
-    required: false
-    default: ''
-  ubuntu-url:
-    description: 'Ubuntu package mirror URL (repository variable XROAD_MIRROR_UBUNTU_URL)'
-    required: false
-    default: ''
-  docker-url:
-    description: 'Docker mirror URL, host and repository key without scheme (repository variable XROAD_MIRROR_DOCKER_URL)'
-    required: false
-    default: ''
-  github-url:
-    description: 'GitHub releases mirror URL (repository variable XROAD_MIRROR_GITHUB_URL)'
-    required: false
-    default: ''
-  k8s-url:
-    description: 'Kubernetes downloads mirror URL (repository variable XROAD_MIRROR_K8S_URL)'
-    required: false
-    default: ''
-  disabled:
-    description: 'Value of the repository variable XROAD_MIRRORS_DISABLED; "true" turns the mirrors off, in any letter case and with surrounding spaces ignored'
+    description: 'Mirror access token (repository secret XROAD_MIRROR_TOKEN). A composite action cannot read secrets, so the caller passes it'
     required: false
     default: ''
 outputs:
@@ -54,13 +18,7 @@ runs:
       shell: bash
       env:
         MIRROR_TOKEN: ${{ inputs.token }}
-        MIRROR_USERNAME: ${{ inputs.username }}
-        MIRROR_MAVEN_URL: ${{ inputs.maven-url }}
-        MIRROR_PLUGINS_URL: ${{ inputs.plugins-url }}
-        MIRROR_NPM_URL: ${{ inputs.npm-url }}
-        MIRROR_UBUNTU_URL: ${{ inputs.ubuntu-url }}
-        MIRROR_DOCKER_URL: ${{ inputs.docker-url }}
-        MIRROR_GITHUB_URL: ${{ inputs.github-url }}
-        MIRROR_K8S_URL: ${{ inputs.k8s-url }}
-        MIRRORS_DISABLED: ${{ inputs.disabled }}
+        MIRROR_URL: ${{ vars.XROAD_MIRROR_BASE_URL }}
+        MIRROR_USERNAME: ${{ vars.XROAD_MIRROR_USERNAME }}
+        MIRRORS_DISABLED: ${{ vars.XROAD_MIRRORS_DISABLED }}
       run: bash "${{ github.action_path }}/setup-mirrors.sh"

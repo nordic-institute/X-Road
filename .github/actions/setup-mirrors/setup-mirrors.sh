@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 # Turns on the Artifactory mirrors for the rest of a GitHub Actions job.
 #
-# Reads the mirror settings from MIRROR_* environment variables (the action maps its inputs to them).
-# The mirrors are enabled only when the token and the user name are set and the off switch is not.
-# When enabled, appends the XROAD_MIRROR_* and Gradle plugin repository variables to $GITHUB_ENV
-# and logs in to the Docker mirror host. The plugin repository variables are written only when the
-# plugins mirror URL is set. The off switch is "true" in any letter case, ignoring surrounding spaces.
-# Logs a warning that names the empty inputs (never their values) when the token is set but the user
-# name is empty, or when the mirrors are enabled with some URL empty.
+# Reads MIRROR_TOKEN, MIRROR_URL (the Artifactory base URL, for example https://host/artifactory),
+# MIRROR_USERNAME and MIRRORS_DISABLED from the environment (the action maps the repository secret and
+# variables to them). The mirrors are enabled only when the token, the user name and the base URL are
+# set, the base URL is an http(s) URL and the off switch is not set. The off switch is "true" in any
+# letter case, ignoring surrounding spaces.
+# When enabled, derives the per-tool mirror URLs from the base URL and the repository keys of the mirror,
+# appends the XROAD_MIRROR_* and Gradle plugin repository variables to $GITHUB_ENV and logs in to the
+# Docker mirror host. A failed docker login prints Docker's own error output before the failure message.
+# When the token is set but the user name or the base URL is empty or invalid, logs a warning that
+# names the repository variable (never its value).
 # Always appends "enabled=true|false" to $GITHUB_OUTPUT.
-# Prints no URL and no username.
+# Never prints the token.
 
 set -euo pipefail
 
@@ -27,16 +30,19 @@ write_env() {
   printf '%s<<%s\n%s\n%s\n' "${name}" "${delimiter}" "${value}" "${delimiter}" >> "${GITHUB_ENV}"
 }
 
+trim() {
+  local value="$1"
+  value="${value#"${value%%[![:space:]]*}"}"
+  printf '%s' "${value%"${value##*[![:space:]]}"}"
+}
+
 if [[ -z "${MIRROR_TOKEN:-}" ]]; then
   echo "Artifactory mirrors disabled: no token"
   write_output false
   exit 0
 fi
 
-off_switch="${MIRRORS_DISABLED:-}"
-off_switch="${off_switch#"${off_switch%%[![:space:]]*}"}"
-off_switch="${off_switch%"${off_switch##*[![:space:]]}"}"
-off_switch="$(printf '%s' "${off_switch}" | tr '[:upper:]' '[:lower:]')"
+off_switch="$(trim "${MIRRORS_DISABLED:-}" | tr '[:upper:]' '[:lower:]')"
 
 if [[ "${off_switch}" == "true" ]]; then
   echo "Artifactory mirrors disabled: off switch"
@@ -44,57 +50,49 @@ if [[ "${off_switch}" == "true" ]]; then
   exit 0
 fi
 
-empty_inputs=()
-for input in username:MIRROR_USERNAME maven-url:MIRROR_MAVEN_URL plugins-url:MIRROR_PLUGINS_URL \
-  npm-url:MIRROR_NPM_URL ubuntu-url:MIRROR_UBUNTU_URL docker-url:MIRROR_DOCKER_URL \
-  github-url:MIRROR_GITHUB_URL k8s-url:MIRROR_K8S_URL; do
-  variable="${input#*:}"
-  [[ -n "${!variable:-}" ]] || empty_inputs+=("${input%%:*}")
-done
-empty_list=""
-if [[ ${#empty_inputs[@]} -gt 0 ]]; then
-  empty_list="$(printf ', %s' "${empty_inputs[@]}")"
-  empty_list="${empty_list#, }"
-fi
-
-if [[ -z "${MIRROR_USERNAME:-}" ]]; then
-  echo "::warning::Artifactory mirrors disabled: empty inputs: ${empty_list}"
+empty_variables=()
+[[ -n "${MIRROR_USERNAME:-}" ]] || empty_variables+=(XROAD_MIRROR_USERNAME)
+[[ -n "${MIRROR_URL:-}" ]] || empty_variables+=(XROAD_MIRROR_BASE_URL)
+if [[ ${#empty_variables[@]} -gt 0 ]]; then
+  empty_list="$(printf ', %s' "${empty_variables[@]}")"
+  echo "::warning::Artifactory mirrors disabled: empty repository variables: ${empty_list#, }"
   write_output false
   exit 0
 fi
 
-if [[ -n "${empty_list}" ]]; then
-  echo "::warning::Artifactory mirror inputs empty: ${empty_list}"
+base_url="$(trim "${MIRROR_URL}")"
+base_url="${base_url%"${base_url##*[!/]}"}"
+if [[ ! "${base_url}" =~ ^https?://[^/[:space:]]+ ]]; then
+  echo "::warning::Artifactory mirrors disabled: repository variable XROAD_MIRROR_BASE_URL is not an http(s) URL"
+  write_output false
+  exit 0
 fi
+
+mirror_host="${base_url#*://}"
+mirror_host="${mirror_host%%/*}"
+plugins_url="${base_url}/mirror-gradle-plugins/"
 
 write_env XROAD_MIRROR_TOKEN "${MIRROR_TOKEN}"
-write_env XROAD_MIRROR_USERNAME "${MIRROR_USERNAME:-}"
-write_env XROAD_MIRROR_MAVEN_URL "${MIRROR_MAVEN_URL:-}"
-write_env XROAD_MIRROR_PLUGINS_URL "${MIRROR_PLUGINS_URL:-}"
-write_env XROAD_MIRROR_NPM_URL "${MIRROR_NPM_URL:-}"
-write_env XROAD_MIRROR_UBUNTU_URL "${MIRROR_UBUNTU_URL:-}"
-write_env XROAD_MIRROR_DOCKER_URL "${MIRROR_DOCKER_URL:-}"
-write_env XROAD_MIRROR_GITHUB_URL "${MIRROR_GITHUB_URL:-}"
-write_env XROAD_MIRROR_K8S_URL "${MIRROR_K8S_URL:-}"
+write_env XROAD_MIRROR_USERNAME "${MIRROR_USERNAME}"
+write_env XROAD_MIRROR_MAVEN_URL "${base_url}/mirror-mavencentral/"
+write_env XROAD_MIRROR_PLUGINS_URL "${plugins_url}"
+write_env XROAD_MIRROR_NPM_URL "${base_url}/api/npm/mirror-npm/"
+write_env XROAD_MIRROR_UBUNTU_URL "${base_url}/mirror-ubuntu-ports/"
+write_env XROAD_MIRROR_DOCKER_URL "${mirror_host}/mirror-docker-hub/"
+write_env XROAD_MIRROR_GITHUB_URL "${base_url}/mirror-github/"
+write_env XROAD_MIRROR_K8S_URL "${base_url}/mirror-k8s-dl/"
 
-if [[ -n "${MIRROR_PLUGINS_URL:-}" ]]; then
-  for prefix in GRADLE_PLUGIN_REPOSITORY DEVELOCITY_INJECTION_PLUGIN_REPOSITORY; do
-    write_env "${prefix}_URL" "${MIRROR_PLUGINS_URL}"
-    write_env "${prefix}_USERNAME" "${MIRROR_USERNAME:-}"
-    write_env "${prefix}_PASSWORD" "${MIRROR_TOKEN}"
-  done
-fi
+for prefix in GRADLE_PLUGIN_REPOSITORY DEVELOCITY_INJECTION_PLUGIN_REPOSITORY; do
+  write_env "${prefix}_URL" "${plugins_url}"
+  write_env "${prefix}_USERNAME" "${MIRROR_USERNAME}"
+  write_env "${prefix}_PASSWORD" "${MIRROR_TOKEN}"
+done
 
-docker_host="${MIRROR_DOCKER_URL:-}"
-docker_host="${docker_host#*://}"
-docker_host="${docker_host%%/*}"
-
-if [[ -n "${docker_host}" && -n "${MIRROR_USERNAME:-}" ]]; then
-  if ! printf '%s' "${MIRROR_TOKEN}" | docker login "${docker_host}" --username "${MIRROR_USERNAME}" --password-stdin >/dev/null 2>&1; then
-    echo "Docker login to the mirror failed" >&2
-    write_output false
-    exit 1
-  fi
+if ! login_output="$(printf '%s' "${MIRROR_TOKEN}" | docker login "${mirror_host}" --username "${MIRROR_USERNAME}" --password-stdin 2>&1)"; then
+  echo "${login_output}" >&2
+  echo "Docker login to the mirror failed" >&2
+  write_output false
+  exit 1
 fi
 
 echo "Artifactory mirrors enabled"

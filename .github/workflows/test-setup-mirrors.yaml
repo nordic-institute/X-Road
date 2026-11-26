@@ -20,29 +20,9 @@ permissions:
 
 jobs:
   test-setup-mirrors:
-    name: setup-mirrors (${{ matrix.case }})
+    name: setup-mirrors
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - case: no-token
-            token: ''
-            disabled: 'false'
-            plugins-url: 'https://mirror.example.test/artifactory/mirror-gradle-plugins/'
-          - case: off-switch
-            token: 'dummy-token-value'
-            disabled: 'true'
-            plugins-url: 'https://mirror.example.test/artifactory/mirror-gradle-plugins/'
-          - case: enabled
-            token: 'dummy-token-value'
-            disabled: 'false'
-            plugins-url: 'https://mirror.example.test/artifactory/mirror-gradle-plugins/'
-          - case: no-plugins-url
-            token: 'dummy-token-value'
-            disabled: 'false'
-            plugins-url: ''
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -53,26 +33,16 @@ jobs:
           echo "${stub_dir}" >> "${GITHUB_PATH}"
           echo "DOCKER_STUB_LOG=${RUNNER_TEMP}/docker-calls.log" >> "${GITHUB_ENV}"
 
-      - name: Run setup-mirrors
+      - name: Run setup-mirrors with an empty token
         id: mirrors
         uses: ./.github/actions/setup-mirrors
         with:
-          token: ${{ matrix.token }}
-          username: 'dummy-user'
-          maven-url: 'https://mirror.example.test/artifactory/mirror-mavencentral/'
-          plugins-url: ${{ matrix.plugins-url }}
-          npm-url: 'https://mirror.example.test/artifactory/api/npm/mirror-npm/'
-          ubuntu-url: 'https://mirror.example.test/artifactory/mirror-ubuntu-ports/'
-          docker-url: 'registry.example.test/mirror-docker-hub/'
-          github-url: 'https://mirror.example.test/artifactory/mirror-github/'
-          k8s-url: 'https://mirror.example.test/artifactory/mirror-k8s-dl/'
-          disabled: ${{ matrix.disabled }}
+          token: ''
 
       - name: Check job environment
         env:
           ENABLED: ${{ steps.mirrors.outputs.enabled }}
-        run: ./.github/actions/setup-mirrors/test-setup-mirrors.sh assert "${{ matrix.case }}"
+        run: ./.github/actions/setup-mirrors/test-setup-mirrors.sh assert no-token
 
       - name: Run local mode
-        if: matrix.case == 'no-token'
         run: ./.github/actions/setup-mirrors/test-setup-mirrors.sh
