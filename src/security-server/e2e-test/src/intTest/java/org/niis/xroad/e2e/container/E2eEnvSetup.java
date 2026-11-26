@@ -69,6 +69,8 @@ public class E2eEnvSetup extends BaseComposeSetup
     static final String SS0_COUNTRY_PROFILE = "FO";
     private static final String AUX_ENV = "aux";
     private static final String CA_ENV = "ca";
+    /** The serverconf cache period the compose seed and the Sidecar e2e config set. */
+    private static final Duration E2E_SERVERCONF_CACHE_PERIOD = Duration.ofSeconds(2);
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
     private static final Duration SERVICE_RESTART_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration SERVICE_RESTART_POLL_INTERVAL = Duration.ofSeconds(5);
@@ -275,6 +277,11 @@ public class E2eEnvSetup extends BaseComposeSetup
     @Override
     public String securityServerAddress(String envName) {
         return "xrd-" + envName;
+    }
+
+    @Override
+    public Duration serverConfCachePeriod() {
+        return E2E_SERVERCONF_CACHE_PERIOD;
     }
 
     @Override

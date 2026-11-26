@@ -45,6 +45,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
@@ -53,7 +54,6 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.dto.DownloadUrlConnectionStatus;
 import org.niis.xroad.securityserver.restapi.dto.ServiceProtocolType;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
-import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -92,7 +92,7 @@ class DiagnosticConnectionServiceTest {
     @Mock
     ConfClientRpcClient confClientRpcClient;
     @Mock
-    ServerConfProvider serverConfProvider;
+    VaultKeyProvider vaultKeyProvider;
     @Mock
     AdminServiceProperties adminServiceProperties;
 
@@ -101,7 +101,7 @@ class DiagnosticConnectionServiceTest {
     @BeforeEach
     void setUp() {
         service = new DiagnosticConnectionService(globalConfProvider, tokenService, authCertVerifier, managementRequestSenderService,
-                confClientRpcClient, serverConfProvider, adminServiceProperties);
+                confClientRpcClient, vaultKeyProvider, adminServiceProperties);
     }
 
 

@@ -54,6 +54,11 @@ public interface K8sEnvProperties {
     @WithName("ss0-proxy-port")
     int ss0ProxyPort();
 
+    /** Forwarded proxy TLS port on ss0Host (TEST_FRAMEWORK_K8S_SS0_PROXY_TLS_PORT). */
+    @WithDefault("8443")
+    @WithName("ss0-proxy-tls-port")
+    int ss0ProxyTlsPort();
+
     /** Forwarded admin UI port on ss0Host (TEST_FRAMEWORK_K8S_SS0_UI_PORT). */
     @WithDefault("4000")
     @WithName("ss0-ui-port")
@@ -73,6 +78,11 @@ public interface K8sEnvProperties {
     @WithDefault("8081")
     @WithName("ss1-proxy-port")
     int ss1ProxyPort();
+
+    /** Forwarded proxy TLS port on ss1Host (TEST_FRAMEWORK_K8S_SS1_PROXY_TLS_PORT). */
+    @WithDefault("8444")
+    @WithName("ss1-proxy-tls-port")
+    int ss1ProxyTlsPort();
 
     /** Forwarded admin UI port on ss1Host (TEST_FRAMEWORK_K8S_SS1_UI_PORT). */
     @WithDefault("4001")
