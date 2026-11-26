@@ -68,7 +68,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * database.
  *
  * <p>Only the multi-container Compose environment can exec into {@code cs}; every other environment skips the
- * class.
+ * class. The OpenBao case also skips in a legacy ACL run, which never initializes the Issuer Service.
  */
 @Slf4j
 @DisplayName("CS Issuer Service health endpoint")
@@ -123,6 +123,8 @@ class CsIssuerHealthTest extends E2eTest {
     @Order(2)
     @DisplayName("node stays ready and serves the DID document and status list while OpenBao is down")
     void nodeServesWhileOpenBaoIsDown(E2eEnvironment env) {
+        Assumptions.assumeFalse(AclParityProperties.isLegacyRun(),
+                "a legacy run never initializes the Issuer Service, so it has no published status list to serve");
         var stack = composeStack(env);
 
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());

@@ -67,7 +67,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * <p>The scenario changes the Central Server's global configuration and stops a service, so it is {@link Isolated}
  * (the suite runs serially in {@link Order} order) and restores the Issuer Service and the default maximum age
  * when it ends, also on failure. It needs {@link IssuerOutageOps}, which only the compose adapter implements,
- * and self-skips elsewhere via {@link Assumptions}.
+ * and self-skips elsewhere via {@link Assumptions}. It also skips in a legacy ACL run, which has no Issuer Service.
  */
 @DisplayName("SS dataspace - verification survives a short Issuer Service outage")
 @Slf4j
@@ -108,6 +108,9 @@ class SsIssuerOutageTest extends E2eTest {
     @Test
     @DisplayName("Calls survive the outage and a restart, fail once the maximum age is 0 and recover")
     void callsSurviveTheOutageAcrossARestart(E2eEnvironment env) {
+        Assumptions.assumeFalse(AclParityProperties.isLegacyRun(),
+                "a legacy run has no Issuer Service to stop, and every call is unnegotiated, so the provider verifies "
+                        + "no credential");
         Assumptions.assumeTrue(env instanceof IssuerOutageOps candidate && candidate.ss0RunsSeparateDataspaceServices(),
                 () -> "%s cannot stop the Issuer Service and restart ss0's dataspace services"
                         .formatted(env.getClass().getSimpleName()));
