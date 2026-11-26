@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.3
+Version: 1.4
 Doc. ID: IG-CS-8-UPGRADE
 
 ---
@@ -15,7 +15,7 @@ Doc. ID: IG-CS-8-UPGRADE
 | 11.11.2026 | 1.1     | Carry the node name before the package upgrade | Ričardas Bučiūnas  |
 | 12.11.2026 | 1.2     | Keep db.properties; add `--installation=cs`    | Ričardas Bučiūnas  |
 | 24.11.2026 | 1.3     | Close the gaps found on a test upgrade         | Andres Rosenthal   |
-| 26.11.2026 | 1.4     | Set the soft token PIN hash on a token the signer created first; add recovery for an uninitialized token; run the confirmation-prompting migration-CLI commands in step 11 without a prompt; delete only the X-Road 7 logback files in step 13 | Andres Rosenthal   |
+| 26.11.2026 | 1.4     | Set the soft token PIN hash on a token the signer created first; add recovery for an uninitialized token; run the confirmation-prompting migration-CLI commands in step 11 without a prompt; delete only the X-Road 7 logback files in step 13; name the backup command, the node name default, the probes of check 8 and the PIN-policy and parameter-reset effects of the initialization fallback; purge `xroad-autologin` in step 13; make the commands in steps 8 and 11 exit 0 on a normal host | Andres Rosenthal   |
 
 ## License
 
@@ -34,6 +34,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 - [Post-upgrade verification](#post-upgrade-verification)
 - [Rollback](#rollback)
 - [Troubleshooting](#troubleshooting)
+  - [Token not initialized after the upgrade](#token-not-initialized-after-the-upgrade)
 - [References](#references)
 
 ## Overview
@@ -80,7 +81,17 @@ The output must begin with `7.8.`.
 
 ## Before you start
 
-1. **Take a full backup.** Use the standard Central Server backup tooling, capture both the `centerui` database and `/etc/xroad/`. Copy the archive off the host. There is no automatic pre-upgrade snapshot for the Central Server upgrade.
+1. **Take a full backup.** Use the X-Road 7.8 Central Server backup. It captures the `centerui` database and `/etc/xroad/`. Copy the archive off the host. There is no automatic pre-upgrade snapshot for the Central Server upgrade.
+
+   In the admin UI, open **Settings**, select the **Backup And Restore** sub-tab and click **Back up config**. Or run the backup script on the command line. The script must be run as the `xroad` user. `-i` is the instance identifier, which the file `/etc/xroad/globalconf/instance-identifier` holds, and `-f` is the absolute path of the archive:
+
+   ```bash
+   INSTANCE=$(cat /etc/xroad/globalconf/instance-identifier)
+   sudo -u xroad /usr/share/xroad/scripts/backup_xroad_center_configuration.sh \
+     -i "$INSTANCE" -f "/var/lib/xroad/backup/pre-v8-$(date +%Y%m%d-%H%M%S).gpg"
+   ```
+
+   The script also accepts `-n <HA node name>`, for a node of a Central Server cluster. Both the UI and the script write the archives to `/var/lib/xroad/backup/`.
 2. **Take a host snapshot if possible** (LXD, hypervisor, cloud-provider). This is the only fully-supported rollback path — see [Rollback](#rollback).
 3. **Notify federated members.** Global configuration distribution will be unavailable while the Central Server is stopped. Plan a maintenance window.
 4. **Stage the migration-CLI artifact.** Use the `migration-cli.jar` that is published with the X-Road 8 release you install. This command set downloads the published jar and checks its checksum:
@@ -181,7 +192,7 @@ Then carry the node name from X-Road 7 into `node.ini`. The option `--installati
 
 ```bash
 java -jar /var/tmp/migration-cli.jar node-name --installation=cs /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/node.ini
-[ -f /etc/xroad/conf.d/node.ini ] && chown xroad:xroad /etc/xroad/conf.d/node.ini
+if [ -f /etc/xroad/conf.d/node.ini ]; then chown xroad:xroad /etc/xroad/conf.d/node.ini; fi
 ```
 
 Run the `node-name` sub-command before the package upgrade in step 9, so that the package scripts, the TLS step and the first start of the Central Server services see the node name. X-Road 7.8 keeps the node name in `[center] ha-node-name` of `/etc/xroad/conf.d/local.ini`. X-Road 8 reads it from the `name` key of the `[node]` section in `/etc/xroad/conf.d/node.ini`. The sub-command creates `node.ini` if it does not exist and keeps its other keys, such as `[node] type`. It changes nothing when `ha-node-name` is empty or missing, and when `node.ini` already holds the same name. It stops without writing anything when the name is not valid (it must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long, so a host name with dots is not valid) or when `node.ini` holds a different name. If the name is not valid, choose a valid name and set it in `[node] name` of `node.ini` yourself. The database rows keyed by the old name stay behind under that name. The X-Road 7.8 package scripts give the `xroad` user ownership of the files in `/etc/xroad/conf.d`. The `chown` line gives a newly created `node.ini` the same owner.
@@ -243,22 +254,26 @@ for name in internal center-admin-service management-service; do
 done
 ```
 
-**11. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server. A sub-command exits with an error when its source file is missing. The `[ -f ]` checks below skip the optional ones. `keyconf` always needs `/etc/xroad/signer/keyconf.xml`. Pass `--installation=cs` to every sub-command. `signer-devices` and `ini-to-db` would otherwise ask `Proceed with migration? [y/N]`, so the commands below set `XROAD_MIGRATION_AUTO_CONFIRM=true` for those two only; the list of properties they write is still printed. For a Central Server, the following sub-commands are the relevant ones:
+**11. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server. A sub-command exits with an error when its source file is missing. The `if [ -f … ]` checks below skip the optional ones, and they exit with status 0 when the file is absent. `keyconf` always needs `/etc/xroad/signer/keyconf.xml`. Pass `--installation=cs` to every sub-command. `signer-devices` and `ini-to-db` would otherwise ask `Proceed with migration? [y/N]`, so the commands below set `XROAD_MIGRATION_AUTO_CONFIRM=true` for those two only; the list of properties they write is still printed. For a Central Server, the following sub-commands are the relevant ones:
 
 ```bash
 java -jar /var/tmp/migration-cli.jar validate --installation=cs
 
 # devices.ini — HSM/signer module declarations
-[ -f /etc/xroad/devices.ini ] && \
+if [ -f /etc/xroad/devices.ini ]; then
   XROAD_MIGRATION_AUTO_CONFIRM=true java -jar /var/tmp/migration-cli.jar signer-devices --installation=cs /etc/xroad/devices.ini /etc/xroad/db.properties
+fi
 
 # ini-to-db — every override-*.ini, then local.ini
 for ini in /etc/xroad/conf.d/override-*.ini /etc/xroad/conf.d/local.ini; do
-  [ -f "$ini" ] && XROAD_MIGRATION_AUTO_CONFIRM=true java -jar /var/tmp/migration-cli.jar ini-to-db --installation=cs "$ini" /etc/xroad/db.properties
+  if [ -f "$ini" ]; then
+    XROAD_MIGRATION_AUTO_CONFIRM=true java -jar /var/tmp/migration-cli.jar ini-to-db --installation=cs "$ini" /etc/xroad/db.properties
+  fi
 done
 
-# <node> is the node name from step 8; --node may be left out only for node_0
-NODE='<node>'
+# node name from node.ini; node_0 when step 8 set no name
+NODE=$(crudini --get /etc/xroad/conf.d/node.ini node name 2>/dev/null || true)
+NODE=${NODE:-node_0}
 
 # keyconf — signer state (soft token PIN required)
 read -rsp 'Soft token PIN: ' XROAD_MIGRATION_SOFTTOKEN_PIN; echo
@@ -275,7 +290,7 @@ if [ -f /usr/share/xroad/autologin/custom-fetch-pin.sh ] \
 fi
 ```
 
-With `--node <node>`, `keyconf` writes the signer keys and certificates under the node name, so the signer on this node sees only its own rows, and `signer-token-pins` stores the PINs in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
+The `NODE` line reads the node name that step 8 wrote to `node.ini`, and uses `node_0` when there is no `node.ini` or no name in it. `crudini` is installed with the X-Road 8 packages in step 9. With `--node "$NODE"`, `keyconf` writes the signer keys and certificates under the node name, so the signer on this node sees only its own rows, and `signer-token-pins` stores the PINs in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
 
 `signer-token-pins` needs the secret store settings in its environment. The subshell in the example sources `/etc/xroad/services/secret-store-local.conf` for this, so the secret store token does not stay in your root shell. The full form of the command is `signer-token-pins --installation=cs [--node <name>] [--db-properties <path>] [<script-path>]`. `--db-properties` defaults to `/etc/xroad/db.properties`, which on X-Road 8 holds the `spring.datasource.*` keys. The upgrade of the packages in step 9 removes `xroad-autologin` and its fetch-pin script, so the command does not depend on them. It reads the PIN from the first of these sources that exists:
 
@@ -321,6 +336,14 @@ done
 
 Delete `/etc/xroad/autologin` and `custom-fetch-pin.sh` only after check 5 of the verification passes: the PIN is now in the secret store, and these files are the plaintext copy. Delete the three `management-service` files only after checks 6 to 8 pass: step 10 moved that TLS to the secret store. Do not remove the 7.8 nginx sites for ports 4001 and 4002 by hand. The package upgrade removes them.
 
+After check 5 passes, purge the `xroad-autologin` package. The X-Road 8 `xroad-signer` package replaces it, so it stays in the removed state `rc` in the package database. The purge clears that state. It does **not** delete `/etc/xroad/autologin`: the X-Road 7.8.3 `xroad-autologin` package does not own that file, so delete it as listed above.
+
+```bash
+if [ -n "$(dpkg-query -W -f='${Version}' xroad-autologin 2>/dev/null)" ]; then
+  apt-get purge -y xroad-autologin
+fi
+```
+
 ## Post-upgrade verification
 
 **1. Check all expected services are active:**
@@ -334,10 +357,11 @@ Expect: `xroad-signer`, `xroad-center`, `xroad-center-management-service`, `xroa
 **2. Confirm the package version:**
 
 ```bash
-dpkg-query -W -f='${Package} ${Version}\n' 'xroad-*'
+dpkg-query -W -f='${db:Status-Abbrev} ${Package} ${Version}\n' 'xroad-*' \
+  | awk '$1 == "ii" && $3 !~ /^8\./ {print $2, $3}'
 ```
 
-Every X-Road package should be on `8.x`.
+The command lists the installed (`ii`) `xroad-*` packages that are not on `8.x`. It must print nothing. It skips removed packages (state `rc`), such as `xroad-autologin`, and names that are not installed.
 
 **3. Open the Central Server admin UI** at `https://<server>:4000/` and sign in. Verify that the member list, global configuration sources, trusted anchors, and approved CAs/timestamping services are intact.
 
@@ -367,7 +391,15 @@ systemctl show -p NRestarts xroad-center-management-service xroad-center-registr
 
 Both lines must show `NRestarts=0`.
 
-**8. Verify that a management request succeeds.** Use the standard probes for the management and registration web services. Then send one real management request, for example the registration of the authentication certificate of a Security Server, or the publication of its data space, which must reach `PUBLISHED`.
+**8. Verify that a management request succeeds.** First confirm again that `java` listens on ports 4001 and 4002, then probe the management and registration web services:
+
+```bash
+ss -ltnp 'sport = :4001 or sport = :4002'
+curl -sk -o /dev/null -w '%{http_code}\n' -X POST https://localhost:4001/managementservice
+curl -sk -o /dev/null -w '%{http_code}\n' -X POST https://localhost:4002/managementservice/manage
+```
+
+Both `curl` commands must print `400`: the application answers and rejects the empty request. A `502` (from nginx) or `000` (no connection) means that the service is not answering. Then send one real management request, for example the registration of the authentication certificate of a Security Server, or the publication of its data space, which must reach `PUBLISHED`.
 
 ## Rollback
 
@@ -399,6 +431,10 @@ The upgrade is destructive once steps 7 (repo switch) and 9 (package install) ha
 | `Migration CLI step '<step>' reported an error: …` | The migration-CLI printed a stack trace | Inspect the log; fix the underlying issue; re-run only the failed sub-command |
 | `Package manager reported success but xroad-center version did not change` | V8 repository has no package for your architecture, or wrong repo URL | Verify the repo configuration and confirm packages exist for your architecture |
 
+**Getting help:**
+
+X-Road is an open source project. Open a GitHub issue at <https://github.com/nordic-institute/X-Road/issues> with the migration-CLI output attached. If a `db.properties` file is needed, remove the database password from it first.
+
 ### Token not initialized after the upgrade
 
 **Symptom:** `token_not_initialized` in the signer journal, the check 5 command of the verification prints nothing, and the software token has the status `NOT_INITIALIZED` (the `status` field of `GET /api/v1/tokens`, or the token view in the admin UI). Global configuration generation fails with `token_not_active`.
@@ -425,9 +461,9 @@ The output must contain `✅ PIN hash set on existing token 0`. Then repeat chec
 
 **Fallback:** initialize the software token with the **7.8** PIN through the admin UI, or with `POST /api/v1/initialization`, and then run `systemctl restart xroad-signer`. The API request needs `software_token_pin` and also the server's current `instance_identifier` and `central_server_address`, which are required fields; `GET /api/v1/initialization/status` returns both. The PIN must be the old one, because the migrated keys are encrypted with it.
 
-**Getting help:**
+Initialization also resets these Central Server system parameters to their defaults, whatever their current values: `authCertRegUrl`, `confSignDigestAlgoId`, `confHashAlgoUri`, `confSignCertHashAlgoUri` and `securityServerOwnersGroup`. It also sets the description of the `security-server-owners` global group to `Security server owners`. Note any custom values first and set them again after the initialization.
 
-X-Road is an open source project. Open a GitHub issue at <https://github.com/nordic-institute/X-Road/issues> with the migration-CLI output attached. If a `db.properties` file is needed, remove the database password from it first.
+If the signer enforces the PIN policy (the property `xroad.signer.enforce-token-pin-policy` is `true`; the default is `false`), initialization checks the PIN against the policy first. A 7.8 PIN that fails the policy (at least 10 characters, from at least 3 character classes) is rejected with the error code `token_weak_pin`, and a PIN with characters that are not allowed with `token_invalid_characters`. In that case use the `keyconf` re-run in **Fix** above, which does not check the PIN against the policy.
 
 ## References
 
