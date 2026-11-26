@@ -311,6 +311,15 @@ public interface GlobalConfProvider {
 
     /**
      * @param instanceIdentifier the instance identifier
+     * @return how many seconds, after a download, the last good Issuer Service data stays usable beyond its cache
+     * time. 0 when the instance does not publish the setting or publishes a negative value.
+     */
+    default int getIssuerDataFreshnessSeconds(String instanceIdentifier) {
+        return 0;
+    }
+
+    /**
+     * @param instanceIdentifier the instance identifier
      * @return true when the instance refuses legacy calls. False when the instance does not publish the setting, is
      * unknown or its global configuration cannot be read.
      */

@@ -1,0 +1,40 @@
+plugins {
+  id("xroad.java-conventions")
+}
+
+dependencies {
+  implementation(platform(libs.jackson.bom))
+  implementation(project(":lib:globalconf-core"))
+  implementation(project(":lib:properties-core"))
+
+  implementation(libs.quarkus.caffeine)
+  implementation(libs.edc.spi.core)
+  implementation(libs.edc.lib.core)
+  implementation(libs.edc.ih.identity.did.core)
+  implementation(libs.edc.ih.identity.did.web)
+  implementation(libs.okhttp)
+  implementation("tools.jackson.core:jackson-databind")
+
+  testImplementation(project(":common:common-test"))
+  testImplementation(project(":tool:liquibase-executor"))
+  testImplementation(libs.liquibase.core)
+  testImplementation(libs.postgresql)
+  testImplementation(libs.testcontainers.postgresql)
+  testImplementation(libs.assertj.core)
+  testImplementation(libs.mockito.jupiter)
+  testImplementation(libs.junit.jupiter.params)
+  testImplementation(libs.awaitility)
+  testImplementation(libs.nimbus.jose.jwt)
+  testImplementation(libs.edc.junit)
+  testImplementation(libs.edc.transaction.local)
+  testImplementation(libs.edc.crypto.verifiablecredentials)
+  testImplementation(libs.edc.crypto.verifiablecredentials.jwt)
+  testImplementation(libs.edc.iam.dcp.core)
+  testImplementation(libs.edc.iam.dcp.service)
+  testImplementation(libs.edc.core.controlplane.services)
+  testImplementation(libs.edc.core.connector)
+  testImplementation(libs.edc.spi.controlplane)
+  testImplementation(libs.edc.ih.core)
+  testImplementation(libs.edc.spi.identityhub)
+  testImplementation(libs.edc.spi.identityhub.vc)
+}
