@@ -30,6 +30,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import org.jboss.logmanager.ExtLogRecord;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -47,6 +49,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -75,6 +82,15 @@ class CallModeSelectorTest {
     private final CallModeSelector selector =
             new CallModeSelector(globalConf, serviceAddressResolver, dspRequestProcessor,
                     legacyCallRefusalPolicy);
+
+    private final List<LogCapture> logCaptures = new CopyOnWriteArrayList<>();
+
+    @AfterEach
+    void detachLogCaptures() {
+        var logger = Logger.getLogger(CallModeSelector.class.getName());
+        logCaptures.forEach(logger::removeHandler);
+        logger.setLevel(null);
+    }
 
     @BeforeEach
     void servers() {
@@ -136,12 +152,17 @@ class CallModeSelectorTest {
     }
 
     @Test
-    void addressWithoutMatchingServerGivesUnnegotiated() {
+    void addressWithoutMatchingServerGivesUnnegotiatedAndLogsAWarnNamingTheAddress() {
         publishMember(SS_A, HOST_A);
+        var capture = captureSelectorLog();
 
         var mode = selector.select(CalledTarget.of(serviceOf(PROVIDER), false), addresses("other.example"));
 
         assertThat(mode).isEqualTo(new CallMode.Unnegotiated());
+        assertThat(capture.records)
+                .filteredOn(record -> capture.formatted(record).contains("other.example"))
+                .singleElement()
+                .satisfies(record -> assertThat(record.getLevel()).isEqualTo(Level.WARNING));
     }
 
     @Test
@@ -162,6 +183,7 @@ class CallModeSelectorTest {
         assertThat(mode).isInstanceOfSatisfying(CallMode.Dsp.class, dsp -> assertThat(dsp.candidates())
                 .extracting(AcquisitionCandidate::counterPartyAddress)
                 .containsExactly("https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1"));
+        verify(globalConf, never()).getClientSecurityServers(any());
     }
 
     @Test
@@ -190,12 +212,13 @@ class CallModeSelectorTest {
 
     @Test
     void allPublishedDidsUnusableThrowsTheFirstFailureInsteadOfUnnegotiated() {
+        var versionTwoDid = "did:web:ss-b.example%3A7183:v2:DEV:COM:222";
         publishMemberDid(SS_A, HOST_A, "first-bad-did");
-        publishMemberDid(SS_B, HOST_B, "second-bad-did");
+        publishMemberDid(SS_B, HOST_B, versionTwoDid);
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, List.of(new ProviderAddress(SS_A, HOST_A), new ProviderAddress(SS_B, HOST_B))))
-                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.INVALID_ENCODED_ID, "first-bad-did", "second-bad-did"));
+                .satisfies(thrown -> assertSanitized(thrown, ErrorCode.INVALID_ENCODED_ID, "first-bad-did", versionTwoDid));
     }
 
     @Test
@@ -285,6 +308,30 @@ class CallModeSelectorTest {
         var request = requestOf(PROVIDER);
 
         assertThatThrownBy(() -> selector.overDsp(request)).isSameAs(readFailure);
+        verifyNoInteractions(legacyCallRefusalPolicy);
+    }
+
+    @Test
+    void overDspOfAManagementRequestCarriesTheSystemCandidate() {
+        when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
+        publishSystem(SS_A, HOST_A);
+        var request = new DspRequest(ServiceId.Conf.create(PROVIDER, "clientReg"), MEMBER, null, true);
+
+        var routed = selector.overDsp(request);
+
+        assertThat(routed).hasValueSatisfying(dspRequest -> assertThat(dspRequest.candidates())
+                .containsExactly(new AcquisitionCandidate(PublishedDspValues.systemDidAt(HOST_A),
+                        "https://ss-a.example:8183/api/dsp/system/http-dsp-profile-2025-1")));
+        verifyNoInteractions(legacyCallRefusalPolicy);
+    }
+
+    @Test
+    void overDspKeepsAnErrorOfTheCandidateResolutionBeforeTheLegacyCallRefusalIsChecked() {
+        var unknownMember = XrdRuntimeException.systemException(ErrorCode.UNKNOWN_MEMBER, "no server serves the provider");
+        when(serviceAddressResolver.resolveCandidates(any(), any())).thenThrow(unknownMember);
+        var request = requestOf(PROVIDER);
+
+        assertThatThrownBy(() -> selector.overDsp(request)).isSameAs(unknownMember);
         verifyNoInteractions(legacyCallRefusalPolicy);
     }
 
@@ -455,6 +502,15 @@ class CallModeSelectorTest {
         assertThat(mode).isEqualTo(new CallMode.Unnegotiated());
     }
 
+    private LogCapture captureSelectorLog() {
+        var capture = new LogCapture();
+        var logger = Logger.getLogger(CallModeSelector.class.getName());
+        logger.setLevel(Level.ALL);
+        logger.addHandler(capture);
+        logCaptures.add(capture);
+        return capture;
+    }
+
     private static void assertSanitized(Throwable thrown, ErrorCode originalCode, String... hidden) {
         assertThat(thrown).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
             assertThat(e.isCausedBy(ErrorCode.INTERNAL_ERROR)).isTrue();
@@ -489,6 +545,29 @@ class CallModeSelectorTest {
 
     private static DspRequest requestOf(ClientId provider) {
         return new DspRequest(serviceOf(provider), MEMBER, null, false);
+    }
+
+    private static final class LogCapture extends Handler {
+        private final List<LogRecord> records = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void publish(LogRecord record) {
+            records.add(record);
+        }
+
+        String formatted(LogRecord record) {
+            return record instanceof ExtLogRecord ext ? ext.getFormattedMessage() : record.getMessage();
+        }
+
+        @Override
+        public void flush() {
+            // nothing is buffered
+        }
+
+        @Override
+        public void close() {
+            records.clear();
+        }
     }
 
     private static ServiceId serviceOf(ClientId provider) {

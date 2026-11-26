@@ -101,13 +101,13 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void ordinaryRequestNegotiatesAsSenderMemberDerivedContext() {
+    void ordinaryRequestNegotiatesAsSenderMemberDerivedContextWithTheSenderAsConsumerClient() {
         stubAcquisition();
 
         processor.execute(requestTo(HOST_A));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(DID_A, URL_A)), any(), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(DID_A, URL_A)), eq(SENDER), any());
     }
 
     @Test
@@ -293,16 +293,6 @@ class ConsumerSideDspProcessorTest {
                         new AcquisitionCandidate(DID_A, URL_A),
                         new AcquisitionCandidate(DID_B, URL_B)))), any(), any());
         verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), any(), any(), any());
-    }
-
-    @Test
-    void ordinaryRequestPassesTheSenderAsConsumerClient() {
-        stubAcquisition();
-
-        processor.execute(requestTo(HOST_A));
-
-        verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(DID_A, URL_A)), eq(SENDER), any());
     }
 
     @Test

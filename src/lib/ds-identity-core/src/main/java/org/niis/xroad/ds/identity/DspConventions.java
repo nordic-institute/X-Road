@@ -130,18 +130,6 @@ public class DspConventions {
      * The counter-party address of a participant that published its DSP base URL: the published base URL, the
      * participant's context segment taken from its DID, and the DSP profile.
      *
-     * @param dspBaseUrl     the published DSP base URL of the participant's control plane; a trailing {@code /} is dropped
-     * @param participantDid the participant's published DID, member or SYSTEM, in wire form
-     * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1}
-     * @throws XrdRuntimeException if the DID is not a valid participant DID
-     */
-    public static String dspTarget(String dspBaseUrl, String participantDid) {
-        return dspTarget(dspBaseUrl, ParticipantIdentifierScheme.decodeDid(participantDid));
-    }
-
-    /**
-     * {@link #dspTarget(String, String)} for a participant that is already decoded.
-     *
      * @param dspBaseUrl  the published DSP base URL of the participant's control plane; a trailing {@code /} is dropped
      * @param participant the participant decoded from its published DID, member or SYSTEM
      * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1}

@@ -78,6 +78,6 @@ class SecurityServerAuthorityConventionsTest {
     }
 
     private static String dspTarget(String host, Did did) {
-        return DspConventions.dspTarget(DspConventions.dspBaseUrl(host, DSP_PORT), did.toString());
+        return DspConventions.dspTarget(DspConventions.dspBaseUrl(host, DSP_PORT), ParticipantIdentifierScheme.decodeDid(did.toString()));
     }
 }

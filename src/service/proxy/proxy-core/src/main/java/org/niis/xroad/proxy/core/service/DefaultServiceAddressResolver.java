@@ -118,7 +118,7 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
         // ProviderSecurityServerResolver is intentionally maintenance-unaware, so the hinted server
         // is checked here by its id and every candidate by its host address below.
         if (serverId != null) {
-            var hintHost = candidates.get(0).hostAddress();
+            var hintHost = candidates.getFirst().hostAddress();
             globalConfProvider.getMaintenanceMode(serverId)
                     .filter(SharedParameters.MaintenanceMode::enabled)
                     .ifPresent(maintenanceMode -> {

@@ -128,8 +128,8 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     private DspAcquisition acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
         var candidates = untriedCandidates(request);
-        log.debug("processing DSP request for service {}, asset {}, management={}. Got {} untried candidates",
-                serviceId, assetId, request.managementSubsystem(), candidates.size());
+        log.debug("processing DSP request for service {}, asset {}. Got {} untried candidates",
+                serviceId, assetId, candidates.size());
         if (candidates.isEmpty()) {
             throw noCandidatesFound(serviceId);
         }

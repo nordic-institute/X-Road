@@ -141,8 +141,8 @@ public class CallModeSelector {
                 try {
                     candidates.add(candidateOf(target, serverId, did.get(), systemValues));
                 } catch (XrdRuntimeException ex) {
-                    log.warn("Skipping SS {} (address {}): its published DSP target is not usable",
-                            serverId, address.hostAddress(), ex);
+                    log.warn("Skipping SS {} (address {}): its published DSP target is not usable: {}",
+                            serverId, address.hostAddress(), ex.getMessage());
                     if (firstFailure == null) {
                         firstFailure = ex;
                     }
@@ -190,7 +190,12 @@ public class CallModeSelector {
         if (address.serverId() != null) {
             return List.of(address.serverId());
         }
-        return serversByAddress.getOrDefault(address.hostAddress(), List.of());
+        var servers = serversByAddress.get(address.hostAddress());
+        if (servers == null) {
+            log.warn("No security server matches provider address {}; treating it as unpublished", address.hostAddress());
+            return List.of();
+        }
+        return servers;
     }
 
     private Optional<String> publishedDid(CalledTarget target, SecurityServerId serverId, Optional<ServerSystemValues> systemValues) {

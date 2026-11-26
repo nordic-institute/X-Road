@@ -61,6 +61,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 class ClientFacingErrorPolicyTest {
 
+    private static final Throwable PROVIDER_TARGET_FAILURE_CAUSE = new IllegalStateException("root cause");
+
     static Stream<Arguments> dspToClientFacingMappings() {
         return Stream.of(
                 Arguments.of(DSP_CATALOG_FETCH_FAILED, IO_ERROR),
@@ -230,15 +232,17 @@ class ClientFacingErrorPolicyTest {
         assertThat(result.getErrorCodeMetadata().getFirst()).isEqualTo("originalCode=" + failure.getErrorCode());
         assertThat(result.getErrorCodeMetadata()).contains("meta");
         assertThat(result.getIdentifier()).isEqualTo(failure.getIdentifier());
-        assertThat(result.getCause()).isSameAs(failure.getCause());
+        assertThat(result.getCause()).isSameAs(PROVIDER_TARGET_FAILURE_CAUSE);
         assertThat(result.getMessage()).doesNotContain("DEV:COM:222").doesNotContainIgnoringCase("did:");
     }
 
     static Stream<XrdRuntimeException> providerTargetFailures() {
         return Stream.of(
                 XrdRuntimeException.systemException(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED)
+                        .cause(PROVIDER_TARGET_FAILURE_CAUSE)
                         .details("did:web:xrd-ss1.lxd:v2:DEV:COM:222 uses scheme version v2").metadataItems("meta").build(),
                 XrdRuntimeException.systemException(ErrorCode.VALIDATION_ERROR)
+                        .cause(PROVIDER_TARGET_FAILURE_CAUSE)
                         .details("Security server DEV:COM:222 published a DID of another member").metadataItems("meta").build());
     }
 

@@ -114,7 +114,7 @@ class XRoadProtocolWebhookResolverTest {
 
         assertThat(webhook).isNotNull();
         assertThat(webhook.url()).isEqualTo(DspConventions.dspTarget(BASE_URL,
-                ParticipantIdentifierScheme.memberDid(member, DID_AUTHORITY).toString()));
+                ParticipantIdentifierScheme.decodeDid(ParticipantIdentifierScheme.memberDid(member, DID_AUTHORITY).toString())));
     }
 
     @Test

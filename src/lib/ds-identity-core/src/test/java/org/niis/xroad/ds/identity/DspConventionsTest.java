@@ -132,7 +132,7 @@ class DspConventionsTest {
 
     @Test
     void shouldBuildDspTargetFromPublishedBaseUrlAndMemberDid() {
-        assertThat(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp", memberDid(MEMBER)))
+        assertThat(dspTarget("https://ss0.example.org:8183/api/dsp", memberDid(MEMBER)))
                 .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     }
 
@@ -140,7 +140,7 @@ class DspConventionsTest {
     void shouldEscapePercentSignInDspTargetContextSegment() {
         var member = ClientId.Conf.create("DEV", "COM", "A+B");
 
-        assertThat(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp", memberDid(member)))
+        assertThat(dspTarget("https://ss0.example.org:8183/api/dsp", memberDid(member)))
                 .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:A%252BB/http-dsp-profile-2025-1");
     }
 
@@ -148,29 +148,18 @@ class DspConventionsTest {
     void shouldBuildDspTargetFromPublishedSystemDid() {
         var systemDid = ParticipantIdentifierScheme.systemDid(DID_AUTHORITY).toString();
 
-        assertThat(DspConventions.dspTarget("https://ss0.example.org:9183/custom", systemDid))
+        assertThat(dspTarget("https://ss0.example.org:9183/custom", systemDid))
                 .isEqualTo("https://ss0.example.org:9183/custom/system/http-dsp-profile-2025-1");
     }
 
     @Test
     void shouldStripTrailingSlashOfPublishedBaseUrlFromDspTarget() {
-        assertThat(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp/", memberDid(MEMBER)))
+        assertThat(dspTarget("https://ss0.example.org:8183/api/dsp/", memberDid(MEMBER)))
                 .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     }
 
-    @Test
-    void shouldBuildTheSameDspTargetFromADecodedParticipantAsFromItsDid() {
-        var did = memberDid(MEMBER);
-
-        assertThat(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp/", ParticipantIdentifierScheme.decodeDid(did)))
-                .isEqualTo(DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp/", did))
-                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
-    }
-
-    @Test
-    void shouldRefuseDspTargetOfMalformedDid() {
-        assertThatThrownBy(() -> DspConventions.dspTarget("https://ss0.example.org:8183/api/dsp", "not-a-did"))
-                .isInstanceOf(XrdRuntimeException.class);
+    private static String dspTarget(String dspBaseUrl, String did) {
+        return DspConventions.dspTarget(dspBaseUrl, ParticipantIdentifierScheme.decodeDid(did));
     }
 
     private static String memberDid(ClientId member) {
