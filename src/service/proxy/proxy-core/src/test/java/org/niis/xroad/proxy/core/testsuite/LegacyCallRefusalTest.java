@@ -81,9 +81,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJ
 /**
  * Proves, through a real client proxy and server proxy, that a provider which refuses legacy calls rejects every
  * access-checked request without an agreement token and still serves requests that carry a valid one. Handlers
- * that skip the access check, such as metaservices and monitoring, are served without a token. A request is tokenless
- * because the consumer-side DSP dependency of the client proxy is left unstubbed and so hands out no token. The
- * instance value is published through {@link ProxyTestSuiteHelper#legacyProtocolDisabledByInstance}. Kept out of
+ * that skip the access check, such as metaservices and monitoring, are served without a token. Call mode selection
+ * runs by default. A request is tokenless because no DSP values are published for the provider, or because the test
+ * opts out of selection with {@code bypassCallModeSelection()}; requests that carry a token get it from a stubbed
+ * consumer-side DSP response. The instance value is published through
+ * {@link ProxyTestSuiteHelper#legacyProtocolDisabledByInstance}. Kept out of
  * {@code testsuite.testcases} so that {@link org.niis.xroad.proxy.core.test.TestcaseLoader} does not scan it.
  */
 class LegacyCallRefusalTest {
@@ -110,7 +112,6 @@ class LegacyCallRefusalTest {
         PROPS.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         PROPS.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
         PROPS.put("xroad.proxy.ssl-enabled", "false");
-        PROPS.put("xroad.proxy.dsp-enabled", "true");
 
         PROXY_TEST_SUITE_HELPER.setPropsIfNotSet(PROPS);
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
@@ -144,6 +145,7 @@ class LegacyCallRefusalTest {
     @Test
     void shouldRefuseTokenlessRequestWithoutConsultingTheAclWhenTheInstanceRefuses() throws Exception {
         startContext();
+        ctx.bypassCallModeSelection();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
 
         var request = new Probe("getstate.query", "getstate.answer");
@@ -180,6 +182,7 @@ class LegacyCallRefusalTest {
     @Test
     void shouldRestoreTheAclCheckWithoutRestartWhenTheInstanceValueIsRemoved() throws Exception {
         startContext();
+        ctx.bypassCallModeSelection();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
 
         var refused = new Probe("getstate.query", "getstate.answer");
@@ -215,7 +218,6 @@ class LegacyCallRefusalTest {
     void shouldServeTokenlessMetaserviceRequestWhenTheInstanceRefuses() throws Exception {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-        stubMetaserviceBypass();
         var request = new Probe("listMethods.query", null);
         request.execute(ctx);
         assertThat(request.faultCode).isNull();
@@ -228,7 +230,6 @@ class LegacyCallRefusalTest {
     void shouldServeTokenlessSubsystemAddressedAllowedMethodsRequestWhenTheInstanceRefuses() throws Exception {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-        stubMetaserviceBypass();
         var request = new Probe("allowedMethods-subsystem.query", null);
         request.execute(ctx);
         assertThat(request.faultCode).isNull();
@@ -241,7 +242,6 @@ class LegacyCallRefusalTest {
     void shouldServeTokenlessSubsystemAddressedGetWsdlRequestWhenTheInstanceRefuses() throws Exception {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-        stubMetaserviceBypass();
         var request = new CountingGetWsdl("getWsdl-subsystem.query");
         request.execute(ctx);
         assertThat(request.aclChecks).hasValue(0);
@@ -252,7 +252,6 @@ class LegacyCallRefusalTest {
     void shouldServeTokenlessMemberAddressedListMethodsRequestWhenTheInstanceRefuses() throws Exception {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-        stubMetaserviceBypass();
         var request = new Probe("listMethods-member.query", null);
         request.execute(ctx);
         assertThat(request.faultCode).isNull();
@@ -265,7 +264,6 @@ class LegacyCallRefusalTest {
     void shouldServeTokenlessMemberAddressedAllowedMethodsRequestWhenTheInstanceRefuses() throws Exception {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-        stubMetaserviceBypass();
         var request = new Probe("allowedMethods.query", null);
         request.execute(ctx);
         assertThat(request.faultCode).isNull();
@@ -278,7 +276,6 @@ class LegacyCallRefusalTest {
     void shouldServeTokenlessMemberAddressedGetWsdlRequestWhenTheInstanceRefuses() throws Exception {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-        stubMetaserviceBypass();
         var request = new CountingGetWsdl("getWsdl.query");
         request.execute(ctx);
         assertThat(request.aclChecks).hasValue(0);
@@ -288,6 +285,7 @@ class LegacyCallRefusalTest {
     @Test
     void shouldServeTokenlessProxyMonitoringRequestWhenTheInstanceRefuses() throws Exception {
         startContext(monitorReturningMetrics());
+        ctx.bypassCallModeSelection();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
         var request = new Probe("getMetrics.query", null).ownedBy(PRODUCER);
         request.execute(ctx);
@@ -313,14 +311,9 @@ class LegacyCallRefusalTest {
                 .mint(new AgreementTokenGrant("agreement-1", client, service, List.of(new AgreementTokenScope("*", "**"))));
     }
 
-    private void stubMetaserviceBypass() {
-        when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(true);
-    }
-
     private void stubAssetAccess(ClientId client, ServiceId service) {
         var endpoint = "http://127.0.0.1:" + PROXY_TEST_SUITE_HELPER.proxyProperties.serverProxyPort() + "/";
         var response = new AssetAccessResponse(endpoint, mintToken(client, service), WINNER);
-        when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(false);
         doReturn(new DspAcquisition(response, 1))
                 .when(ctx.getConsumerSideDspProcessor()).execute(argThat(req -> service.equals(req.serviceId())));
     }

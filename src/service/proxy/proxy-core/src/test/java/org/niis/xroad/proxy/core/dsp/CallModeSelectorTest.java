@@ -34,15 +34,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ProviderCandidates;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
 import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
+import org.niis.xroad.proxy.core.test.PublishedDspValues;
 
 import java.util.Arrays;
 import java.util.List;
@@ -71,11 +70,10 @@ class CallModeSelectorTest {
 
     private final GlobalConfProvider globalConf = mock(GlobalConfProvider.class);
     private final DefaultServiceAddressResolver serviceAddressResolver = mock(DefaultServiceAddressResolver.class);
-    private final ProxyProperties proxyProperties = mock(ProxyProperties.class);
     private final DspRequestProcessor dspRequestProcessor = mock(DspRequestProcessor.class);
     private final LegacyCallRefusalPolicy legacyCallRefusalPolicy = mock(LegacyCallRefusalPolicy.class);
     private final CallModeSelector selector =
-            new CallModeSelector(globalConf, serviceAddressResolver, proxyProperties, dspRequestProcessor,
+            new CallModeSelector(globalConf, serviceAddressResolver, dspRequestProcessor,
                     legacyCallRefusalPolicy);
 
     @BeforeEach
@@ -232,39 +230,7 @@ class CallModeSelectorTest {
     }
 
     @Test
-    void overDspIsEmptyWhenDspIsDisabled() {
-        when(proxyProperties.dspEnabled()).thenReturn(false);
-
-        assertThat(selector.overDsp(requestOf(PROVIDER))).isEmpty();
-        verify(serviceAddressResolver, never()).resolveCandidates(any(), any());
-        verify(legacyCallRefusalPolicy).checkConsumerCallAllowed(serviceOf(PROVIDER));
-    }
-
-    @Test
-    void overDspRefusesTheCallWhenDspIsDisabledAndLegacyCallsAreRefused() {
-        when(proxyProperties.dspEnabled()).thenReturn(false);
-        var refusal = XrdRuntimeException.systemException(ErrorCode.LEGACY_CALL_REFUSED, "legacy calls are refused");
-        doThrow(refusal).when(legacyCallRefusalPolicy).checkConsumerCallAllowed(serviceOf(PROVIDER));
-        var request = requestOf(PROVIDER);
-
-        assertThatThrownBy(() -> selector.overDsp(request)).isSameAs(refusal);
-        verify(serviceAddressResolver, never()).resolveCandidates(any(), any());
-    }
-
-    @Test
-    void overDspDoesNotCheckTheRefusalWhenDspIsDisabledAndTheRequestBypassesDsp() {
-        when(proxyProperties.dspEnabled()).thenReturn(false);
-        var request = requestOf(PROVIDER);
-        when(dspRequestProcessor.bypassesDsp(request)).thenReturn(true);
-
-        assertThat(selector.overDsp(request)).isEmpty();
-        verifyNoInteractions(legacyCallRefusalPolicy);
-        verify(serviceAddressResolver, never()).resolveCandidates(any(), any());
-    }
-
-    @Test
     void overDspIsEmptyWhenTheRequestBypassesDsp() {
-        when(proxyProperties.dspEnabled()).thenReturn(true);
         var request = requestOf(PROVIDER);
         when(dspRequestProcessor.bypassesDsp(request)).thenReturn(true);
 
@@ -275,7 +241,6 @@ class CallModeSelectorTest {
 
     @Test
     void overDspIsEmptyWhenNoServerPublishedTheCalledDid() {
-        when(proxyProperties.dspEnabled()).thenReturn(true);
         when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
 
         assertThat(selector.overDsp(requestOf(PROVIDER))).isEmpty();
@@ -284,7 +249,6 @@ class CallModeSelectorTest {
 
     @Test
     void overDspRefusesTheUnnegotiatedCallWhenLegacyCallsAreRefused() {
-        when(proxyProperties.dspEnabled()).thenReturn(true);
         when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
         var refusal = XrdRuntimeException.systemException(ErrorCode.LEGACY_CALL_REFUSED, "legacy calls are refused");
         doThrow(refusal).when(legacyCallRefusalPolicy).checkConsumerCallAllowed(serviceOf(PROVIDER));
@@ -295,7 +259,6 @@ class CallModeSelectorTest {
 
     @Test
     void overDspDoesNotCheckTheRefusalWhenTheCalledDidIsPublished() {
-        when(proxyProperties.dspEnabled()).thenReturn(true);
         when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
         publishMember(SS_A, HOST_A);
 
@@ -305,7 +268,6 @@ class CallModeSelectorTest {
 
     @Test
     void overDspTurnsAPublishedDidFailureIntoInternalErrorWithoutTheDid() {
-        when(proxyProperties.dspEnabled()).thenReturn(true);
         when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
         publishMemberDid(SS_A, HOST_A, "not-a-did");
         var request = requestOf(PROVIDER);
@@ -317,7 +279,6 @@ class CallModeSelectorTest {
 
     @Test
     void overDspKeepsTheCodeOfAFailureThatIsNotAPublishedDidFailure() {
-        when(proxyProperties.dspEnabled()).thenReturn(true);
         when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
         var readFailure = XrdRuntimeException.systemException(ErrorCode.IO_ERROR, "global configuration is not readable");
         when(globalConf.getClientSecurityServers(any())).thenThrow(readFailure);
@@ -329,7 +290,6 @@ class CallModeSelectorTest {
 
     @Test
     void overDspKeepsTheMaintenanceErrorUnchanged() {
-        when(proxyProperties.dspEnabled()).thenReturn(true);
         publishMember(SS_A, HOST_A);
         var maintenanceError = XrdRuntimeException.systemException(ErrorCode.MAINTENANCE_MODE, "ss-a is in maintenance mode");
         when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_B),
@@ -342,7 +302,6 @@ class CallModeSelectorTest {
 
     @Test
     void overDspCarriesThePublishedCandidates() {
-        when(proxyProperties.dspEnabled()).thenReturn(true);
         when(serviceAddressResolver.resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(addresses(HOST_A), List.of()));
         publishMember(SS_A, HOST_A);
 
@@ -393,7 +352,7 @@ class CallModeSelectorTest {
 
     @Test
     void memberDidOfAnotherMemberIsUnusable() {
-        publishMemberDid(SS_A, HOST_A, DspConventions.memberCounterPartyId(ClientId.Conf.create("DEV", "COM", "333"), HOST_A).toString());
+        publishMemberDid(SS_A, HOST_A, PublishedDspValues.memberDidAt(ClientId.Conf.create("DEV", "COM", "333"), HOST_A));
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
@@ -402,7 +361,7 @@ class CallModeSelectorTest {
 
     @Test
     void systemDidPublishedAsMemberDidIsUnusable() {
-        publishMemberDid(SS_A, HOST_A, DspConventions.systemCounterPartyId(HOST_A).toString());
+        publishMemberDid(SS_A, HOST_A, PublishedDspValues.systemDidAt(HOST_A));
         var target = CalledTarget.of(serviceOf(PROVIDER), false);
 
         assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
@@ -411,7 +370,7 @@ class CallModeSelectorTest {
 
     @Test
     void memberDidOfAnotherMemberIsDroppedWhileAnotherServerIsLeft() {
-        publishMemberDid(SS_A, HOST_A, DspConventions.memberCounterPartyId(ClientId.Conf.create("DEV", "COM", "333"), HOST_A).toString());
+        publishMemberDid(SS_A, HOST_A, PublishedDspValues.memberDidAt(ClientId.Conf.create("DEV", "COM", "333"), HOST_A));
         publishMember(SS_B, HOST_B);
 
         var mode = selector.select(CalledTarget.of(serviceOf(PROVIDER), false), addresses(HOST_A, HOST_B));
@@ -424,7 +383,7 @@ class CallModeSelectorTest {
     @Test
     void systemTargetWithAMemberDidPublishedAsSystemDidIsUnusable() {
         when(globalConf.getServerSystemValues(SS_A)).thenReturn(Optional.of(new ServerSystemValues(
-                DspConventions.memberCounterPartyId(MEMBER, HOST_A).toString(), "https://" + HOST_A + ":8183/api/dsp")));
+                PublishedDspValues.memberDidAt(MEMBER, HOST_A), "https://" + HOST_A + ":8183/api/dsp")));
         var target = CalledTarget.of(ServiceId.Conf.create(MEMBER, "getSecurityServerMetrics"), false);
 
         assertThatThrownBy(() -> selector.select(target, addresses(HOST_A)))
@@ -451,7 +410,7 @@ class CallModeSelectorTest {
         when(globalConf.getClientSecurityServers(any())).thenReturn(Set.of(foreignServer));
         when(globalConf.getSecurityServerAddress(foreignServer)).thenReturn("ss-f.example");
         when(globalConf.getMemberDid(foreignProvider, foreignServer))
-                .thenReturn(Optional.of(DspConventions.memberCounterPartyId(foreignMember, "ss-f.example").toString()));
+                .thenReturn(Optional.of(PublishedDspValues.memberDidAt(foreignMember, "ss-f.example")));
         when(globalConf.getServerSystemValues(foreignServer)).thenReturn(Optional.of(systemValues("ss-f.example")));
 
         var mode = selector.select(CalledTarget.of(serviceOf(foreignProvider), false), addresses("ss-f.example"));
@@ -507,7 +466,7 @@ class CallModeSelectorTest {
     }
 
     private void publishMember(SecurityServerId serverId, String host) {
-        publishMemberDid(serverId, host, DspConventions.memberCounterPartyId(MEMBER, host).toString());
+        publishMemberDid(serverId, host, PublishedDspValues.memberDidAt(MEMBER, host));
     }
 
     private void publishMemberDid(SecurityServerId serverId, String host, String did) {
@@ -517,7 +476,7 @@ class CallModeSelectorTest {
 
     private void publishMemberDidOnly(SecurityServerId serverId, String host) {
         when(globalConf.getMemberDid(PROVIDER, serverId))
-                .thenReturn(Optional.of(DspConventions.memberCounterPartyId(MEMBER, host).toString()));
+                .thenReturn(Optional.of(PublishedDspValues.memberDidAt(MEMBER, host)));
     }
 
     private void publishSystem(SecurityServerId serverId, String host) {
@@ -525,7 +484,7 @@ class CallModeSelectorTest {
     }
 
     private static ServerSystemValues systemValues(String host) {
-        return new ServerSystemValues(DspConventions.systemCounterPartyId(host).toString(), "https://" + host + ":8183/api/dsp");
+        return new ServerSystemValues(PublishedDspValues.systemDidAt(host), "https://" + host + ":8183/api/dsp");
     }
 
     private static DspRequest requestOf(ClientId provider) {

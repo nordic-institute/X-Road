@@ -59,10 +59,8 @@ import java.util.Map;
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static java.lang.String.valueOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
@@ -70,10 +68,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJ
  * Proves the agreement-token ACL skip through a real request: a SOAP request carries the
  * {@code x-road-agreement-token} transport header only because the client proxy's DSP dependency
  * handed it a token, and the server proxy reads that header off the wrapped request rather than
- * from any test-only shortcut. Kept out of {@code testsuite.testcases} (and so out of
- * {@link org.niis.xroad.proxy.core.test.TestcaseLoader}'s scan) and out of {@link ProxyTests}'
- * shared context, since this is the only scenario in the suite that needs
- * {@code xroad.proxy.dsp-enabled=true} and a stubbed DSP response.
+ * from any test-only shortcut. Call mode selection runs by default and the test publishes DSP values for the
+ * provider, so the request is negotiated through the stubbed DSP response. Kept out of
+ * {@code testsuite.testcases} (and so out of {@link org.niis.xroad.proxy.core.test.TestcaseLoader}'s scan) and out
+ * of {@link ProxyTests}' shared context, since it needs per-test DSP stubbing.
  */
 class AgreementTokenAclSkipTest {
 
@@ -97,7 +95,6 @@ class AgreementTokenAclSkipTest {
         PROPS.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         PROPS.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
         PROPS.put("xroad.proxy.ssl-enabled", "false");
-        PROPS.put("xroad.proxy.dsp-enabled", "true");
 
         PROXY_TEST_SUITE_HELPER.setPropsIfNotSet(PROPS);
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
@@ -213,7 +210,6 @@ class AgreementTokenAclSkipTest {
 
     private void stubAssetAccess(String token) {
         var endpoint = "http://127.0.0.1:" + PROXY_TEST_SUITE_HELPER.proxyProperties.serverProxyPort() + "/";
-        when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(false);
         doReturn(new DspAcquisition(new AssetAccessResponse(endpoint, token, WINNER), 1))
                 .when(ctx.getConsumerSideDspProcessor()).execute(argThat(req -> GET_STATE.equals(req.serviceId())));
     }

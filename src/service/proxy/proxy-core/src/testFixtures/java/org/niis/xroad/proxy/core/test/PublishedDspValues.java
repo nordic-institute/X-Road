@@ -29,7 +29,9 @@ package org.niis.xroad.proxy.core.test;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.ds.identity.DspConventions;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 
 import java.util.Optional;
@@ -42,7 +44,8 @@ import java.util.Set;
  */
 public final class PublishedDspValues {
     private static final String PUBLISHED_ADDRESS = "ss-a.example";
-    private static final int DSP_PORT = 8183;
+    private static final int DID_PORT = Integer.parseInt(DspConfigKeys.DID_PORT.defaultValue());
+    private static final int DSP_PORT = Integer.parseInt(DspConfigKeys.DSP_PORT.defaultValue());
     private static final String SERVER_CODE = "SS1";
 
     private PublishedDspValues() {
@@ -61,15 +64,32 @@ public final class PublishedDspValues {
      * @return the member DID the provider's server publishes
      */
     public static Optional<String> memberDid(ClientId provider) {
-        return Optional.of(DspConventions.memberCounterPartyId(memberOf(provider), PUBLISHED_ADDRESS).toString());
+        return Optional.of(memberDidAt(memberOf(provider), PUBLISHED_ADDRESS));
     }
 
     /**
      * @return the SYSTEM DID and DSP base URL the published servers publish
      */
     public static Optional<ServerSystemValues> systemValues() {
-        return Optional.of(new ServerSystemValues(DspConventions.systemCounterPartyId(PUBLISHED_ADDRESS).toString(),
+        return Optional.of(new ServerSystemValues(systemDidAt(PUBLISHED_ADDRESS),
                 DspConventions.dspBaseUrl(PUBLISHED_ADDRESS, DSP_PORT)));
+    }
+
+    /**
+     * @param member the member
+     * @param host   the host of the server that publishes the DID
+     * @return the member DID of a server at the host, in the {@code v1} scheme
+     */
+    public static String memberDidAt(ClientId member, String host) {
+        return ParticipantIdentifierScheme.memberDid(member, DspConventions.didAuthority(host, DID_PORT)).toString();
+    }
+
+    /**
+     * @param host the host of the server that publishes the DID
+     * @return the SYSTEM DID of a server at the host, in the {@code v1} scheme
+     */
+    public static String systemDidAt(String host) {
+        return ParticipantIdentifierScheme.systemDid(DspConventions.didAuthority(host, DID_PORT)).toString();
     }
 
     private static ClientId memberOf(ClientId provider) {

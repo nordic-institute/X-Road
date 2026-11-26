@@ -25,9 +25,6 @@
  */
 package org.niis.xroad.ds.identity;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
-import com.apicatalog.did.Did;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -37,26 +34,14 @@ import java.net.URISyntaxException;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
- * Ecosystem-wide DSP conventions that are not distributed via GlobalConf: the fixed ports of the
- * identity hub's DID endpoint and the control plane's DSP endpoint, the DSP profile id, and the
- * counter-party coordinates every consumer derives from them.
+ * Ecosystem-wide DSP conventions that are not distributed via GlobalConf: the DSP profile and path, and the
+ * builders of DID authorities, DSP URLs and credential-service endpoints from published or configured values.
  *
- * <p>A member served by several Security Servers is a distinct participant on each (per XRDADR-41),
- * so counter-party coordinates are derived per serving server address; selecting among the serving
- * servers is the caller's concern.
+ * <p>A member served by several Security Servers is a distinct participant on each (per XRDADR-41);
+ * selecting among the serving servers is the caller's concern.
  */
 @UtilityClass
 public class DspConventions {
-
-    /**
-     * Port of the identity hub's DID resolution endpoint, part of every derived {@code did:web} authority.
-     */
-    public static final int DID_PORT = 7183;
-
-    /**
-     * Port of the control plane's DSP protocol endpoint, part of every derived counter-party address.
-     */
-    public static final int DSP_PORT = 8183;
 
     /**
      * Path of the control plane's DSP protocol endpoint, the tail of every DSP base URL.
@@ -91,24 +76,9 @@ public class DspConventions {
 
     /**
      * The {@code host:port} authority under which a Security Server's participant DIDs are minted
-     * and their DID documents served, at the ecosystem-wide {@link #DID_PORT}. This is the form
-     * every counter-party derives from GlobalConf alone.
+     * and their DID documents served.
      *
-     * @param ssAddress the Security Server's GlobalConf-registered address, without a port
-     * @return the canonical DID authority, {@code {ssAddress}:7183}; an IPv6 literal address is bracketed
-     * @throws XrdRuntimeException as {@link DidAuthority#canonicalHost(String)}
-     */
-    public static String didAuthority(String ssAddress) {
-        return didAuthority(ssAddress, DID_PORT);
-    }
-
-    /**
-     * {@link #didAuthority(String)} at the given DID port. A provider minting its own DIDs uses its
-     * configured identity hub DID port here; counter-parties can only derive
-     * {@link #didAuthority(String)}, so the two agree only while the configured port is
-     * {@link #DID_PORT}.
-     *
-     * @param ssAddress the Security Server's GlobalConf-registered address, without a port
+     * @param ssAddress the Security Server's address, without a port
      * @param didPort   the identity hub's DID resolution port
      * @return the canonical DID authority, {@code {ssAddress}:{didPort}}; an IPv6 literal address is
      *         bracketed and port 443 is omitted
@@ -139,34 +109,6 @@ public class DspConventions {
                     "DSP port '%d' must be between %d and %d", dspPort, MIN_PORT, MAX_PORT);
         }
         return "https://%s:%d%s".formatted(DidAuthority.canonicalHost(ssAddress), dspPort, DSP_PATH);
-    }
-
-    /**
-     * The counter-party id (URL-encoded {@code did:web} DID) of a member participant served at the
-     * given Security Server address.
-     *
-     * @param member    the provider member; must not carry a subsystem code
-     * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
-     * @return the member's per-server DID, e.g. {@code did:web:ss0.example.org%3A7183:v1:DEV:COM:222}
-     */
-    public static Did memberCounterPartyId(ClientId member, String ssAddress) {
-        return ParticipantIdentifierScheme.memberDid(member, didAuthority(ssAddress));
-    }
-
-    /**
-     * The counter-party address (DSP base URL of the serving control plane, scoped to the member's
-     * participant context and the DSP profile) of a member participant served at the given Security
-     * Server address.
-     *
-     * <p>The context id is embedded as a path segment encoded by {@link #participantPathSegment(String)}.
-     *
-     * @param member    the provider member; must not carry a subsystem code
-     * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
-     * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1};
-     *         an IPv6 literal address is bracketed
-     */
-    public static String memberCounterPartyAddress(ClientId member, String ssAddress) {
-        return counterPartyAddress(ParticipantIdentifierScheme.memberCtxId(member), ssAddress);
     }
 
     /**
@@ -213,10 +155,6 @@ public class DspConventions {
         return "%s/%s/%s".formatted(baseUrl, participantPathSegment(contextId), DSP_PROFILE_ID);
     }
 
-    private static String counterPartyAddress(String participantContextId, String ssAddress) {
-        return "%s/%s/%s".formatted(dspBaseUrl(ssAddress, DSP_PORT), participantPathSegment(participantContextId), DSP_PROFILE_ID);
-    }
-
     /**
      * The id of a participant's credential-service entry in its DID document.
      *
@@ -245,32 +183,5 @@ public class DspConventions {
             throw XrdRuntimeException.systemException(VALIDATION_ERROR, e,
                     "cannot build a credential-service URL for host '%s' and participant '%s'", identityHubHost, participantContextId);
         }
-    }
-
-    /**
-     * The counter-party id (URL-encoded {@code did:web} DID) of the SYSTEM participant served at the
-     * given Security Server address.
-     *
-     * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
-     * @return the server's SYSTEM DID, e.g. {@code did:web:ss0.example.org%3A7183:v1:system}
-     */
-    public static Did systemCounterPartyId(String ssAddress) {
-        return ParticipantIdentifierScheme.systemDid(didAuthority(ssAddress));
-    }
-
-    /**
-     * The counter-party address (DSP base URL of the serving control plane, scoped to the SYSTEM
-     * participant context and the DSP profile) of the SYSTEM participant served at the given
-     * Security Server address.
-     *
-     * <p>The context segment is the fixed literal {@link ParticipantIdentifierScheme#SYSTEM_SEGMENT},
-     * which {@link #participantPathSegment(String)} leaves unchanged.
-     *
-     * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
-     * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/system/http-dsp-profile-2025-1};
-     *         an IPv6 literal address is bracketed
-     */
-    public static String systemCounterPartyAddress(String ssAddress) {
-        return counterPartyAddress(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ssAddress);
     }
 }

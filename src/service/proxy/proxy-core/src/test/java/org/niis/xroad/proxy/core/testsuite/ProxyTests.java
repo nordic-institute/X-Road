@@ -114,7 +114,6 @@ class ProxyTests {
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
         PROXY_TEST_SUITE_HELPER.proxyProperties = buildProxyProperties(PROPS);
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
-        ctx.routeThroughCallModeSelection();
 
         return createDynamicTests(testCasesToRun);
     }
@@ -131,7 +130,6 @@ class ProxyTests {
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.dummyServerProxyPort));
         PROXY_TEST_SUITE_HELPER.proxyProperties = buildProxyProperties(PROPS);
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER, false);
-        ctx.routeThroughCallModeSelection();
 
         return createDynamicTests(testCasesToRun);
     }
@@ -148,7 +146,6 @@ class ProxyTests {
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
         PROXY_TEST_SUITE_HELPER.proxyProperties = buildProxyProperties(PROPS);
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER, false);
-        ctx.routeThroughCallModeSelection();
 
         return createDynamicTests(testCasesToRun);
     }
@@ -170,7 +167,6 @@ class ProxyTests {
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
         PROXY_TEST_SUITE_HELPER.proxyProperties = buildProxyProperties(PROPS);
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER, false);
-        ctx.routeThroughCallModeSelection();
 
         assertTrue(testCase.execute(ctx));
     }
@@ -188,7 +184,6 @@ class ProxyTests {
         PROXY_TEST_SUITE_HELPER.proxyProperties = spy(buildProxyProperties(PROPS));
 
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
-        ctx.routeThroughCallModeSelection();
         return createDynamicTests(testCasesToRun);
     }
 
@@ -204,7 +199,6 @@ class ProxyTests {
         PROXY_TEST_SUITE_HELPER.proxyProperties = buildProxyProperties(PROPS);
 
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
-        ctx.routeThroughCallModeSelection();
         return createDynamicTests(testCasesToRun);
     }
 

@@ -115,8 +115,8 @@ public class TestContext {
     @Getter
     final ProxyAgreementTokenProperties agreementTokenProperties = mockAgreementTokenProperties();
     /**
-     * The consumer-side DSP dependency of the client proxy, stubbable per test case. Requests bypass DSP, and skip
-     * the call-mode selection, until {@link #routeThroughCallModeSelection()} is called.
+     * The consumer-side DSP dependency of the client proxy, stubbable per test case. The client proxy selects the call
+     * mode of every request, bypassing DSP only for metaservices, until {@link #bypassCallModeSelection()} is called.
      */
     @Getter
     final DspRequestProcessor consumerSideDspProcessor = mockConsumerSideDspProcessor();
@@ -225,7 +225,7 @@ public class TestContext {
                     ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService,
                     new DspFailover(consumerSideDspProcessor, httpSenderProvider,
                             new DspSendFailureHandler(consumerSideDspProcessor)),
-                    new CallModeSelector(globalConfProvider, defaultServiceAddressResolver, proxyProperties,
+                    new CallModeSelector(globalConfProvider, defaultServiceAddressResolver,
                             consumerSideDspProcessor, clientLegacyCallRefusalPolicy));
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
@@ -282,14 +282,12 @@ public class TestContext {
     }
 
     private static DspRequestProcessor mockConsumerSideDspProcessor() {
-        var processor = mock(StubbableDspRequestProcessor.class, CALLS_REAL_METHODS);
-        when(processor.bypassesDsp(any())).thenReturn(true);
-        return processor;
+        return mock(StubbableDspRequestProcessor.class, CALLS_REAL_METHODS);
     }
 
-    /** Makes the client proxy select the call mode of every request, bypassing DSP only for metaservices. */
-    public void routeThroughCallModeSelection() {
-        when(consumerSideDspProcessor.bypassesDsp(any())).thenCallRealMethod();
+    /** Makes the client proxy bypass DSP and the call-mode selection for every request. */
+    public void bypassCallModeSelection() {
+        when(consumerSideDspProcessor.bypassesDsp(any())).thenReturn(true);
     }
 
     private static ProxyAgreementTokenProperties mockAgreementTokenProperties() {

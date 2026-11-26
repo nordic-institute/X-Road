@@ -41,7 +41,6 @@ import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.ds.identity.SystemParticipant;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ProviderCandidates;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
@@ -69,18 +68,16 @@ public class CallModeSelector {
 
     private final GlobalConfProvider globalConfProvider;
     private final DefaultServiceAddressResolver serviceAddressResolver;
-    private final ProxyProperties proxyProperties;
     private final DspRequestProcessor dspRequestProcessor;
     private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
 
     /**
      * Decides whether a request goes to the provider over DSP. A request that is neither bypassing DSP nor going
-     * over DSP is an unnegotiated call, which is refused while legacy calls are refused for the provider. With DSP
-     * disabled every request that does not bypass DSP is unnegotiated, and no provider lookup is made.
+     * over DSP is an unnegotiated call, which is refused while legacy calls are refused for the provider.
      *
      * @param request the request to route
-     * @return the request carrying its DSP candidates, or empty when the request bypasses DSP, DSP is disabled or
-     *         no provider server published the called DID, and the unnegotiated call is allowed
+     * @return the request carrying its DSP candidates, or empty when the request bypasses DSP or no provider server
+     *         published the called DID, and the unnegotiated call is allowed
      * @throws XrdRuntimeException {@code LEGACY_CALL_REFUSED} when the call is unnegotiated and refused; see
      *                             {@link #select(CalledTarget, ProviderCandidates)} for the selection failures
      */
@@ -88,12 +85,10 @@ public class CallModeSelector {
         if (dspRequestProcessor.bypassesDsp(request)) {
             return Optional.empty();
         }
-        if (proxyProperties.dspEnabled()) {
-            var servers = serviceAddressResolver.resolveCandidates(request.serviceId(), request.targetSecurityServer());
-            var target = CalledTarget.of(request.serviceId(), request.managementSubsystem());
-            if (select(target, servers) instanceof CallMode.Dsp(var candidates)) {
-                return Optional.of(request.withCandidates(candidates));
-            }
+        var servers = serviceAddressResolver.resolveCandidates(request.serviceId(), request.targetSecurityServer());
+        var target = CalledTarget.of(request.serviceId(), request.managementSubsystem());
+        if (select(target, servers) instanceof CallMode.Dsp(var candidates)) {
+            return Optional.of(request.withCandidates(candidates));
         }
         legacyCallRefusalPolicy.checkConsumerCallAllowed(request.serviceId());
         return Optional.empty();

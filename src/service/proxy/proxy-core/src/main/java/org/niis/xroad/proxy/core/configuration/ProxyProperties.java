@@ -61,7 +61,6 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIEN
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_TOTAL_MAX_CONNECTIONS;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MILLIS;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE;
-import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_INTERFACE;
@@ -116,10 +115,6 @@ public class ProxyProperties {
 
     public int adminPort() {
         return xRoadConfig.value(ADMIN_PORT);
-    }
-
-    public boolean dspEnabled() {
-        return xRoadConfig.value(DSP_ENABLED);
     }
 
     public boolean legacyProtocolDisabled() {

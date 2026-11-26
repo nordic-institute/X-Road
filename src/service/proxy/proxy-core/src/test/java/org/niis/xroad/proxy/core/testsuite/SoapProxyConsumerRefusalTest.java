@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
@@ -56,17 +57,16 @@ import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 
 /**
  * Proves, through a real client proxy and server proxy, that a consumer whose local setting refuses legacy calls
- * fails an unnegotiated SOAP call itself with a {@code client.legacy_call_refused} fault and sends nothing to the provider, while the
- * same call is served when no setting refuses. Also proves that, without a local refusal, the call follows the
- * {@code legacyProtocolDisabled} value of the provider's instance and not that of the consumer's own instance, and
- * that a change of the global configuration applies to the next call. Kept out of {@code testsuite.testcases} so that
- * {@link org.niis.xroad.proxy.core.test.TestcaseLoader} does not scan it.
+ * fails an unnegotiated SOAP call itself with a {@code client.legacy_call_refused} fault and opens no connection to
+ * the server proxy, while the same call is served when no setting refuses. Also proves that, without a local
+ * refusal, the call follows the {@code legacyProtocolDisabled} value of the provider's instance and not that of the
+ * consumer's own instance, and that a change of the global configuration applies to the next call. Kept out of
+ * {@code testsuite.testcases} so that {@link org.niis.xroad.proxy.core.test.TestcaseLoader} does not scan it.
  */
 class SoapProxyConsumerRefusalTest {
 
@@ -76,15 +76,15 @@ class SoapProxyConsumerRefusalTest {
     private static final String OTHER_INSTANCE = "DEV";
     private static final Map<String, String> PROPS = new HashMap<>();
     private static final ProxyTestSuiteHelper PROXY_TEST_SUITE_HELPER = new ProxyTestSuiteHelper();
+    private final AtomicInteger serverProxyConnections = new AtomicInteger();
     private TestContext ctx;
 
     @BeforeAll
-    static void beforeAll() throws Exception {
+    static void beforeAll() {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
         PROPS.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         PROPS.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
-        PROPS.put("xroad.proxy.ssl-enabled", "false");
-        PROPS.put("xroad.proxy.dsp-enabled", "false");
+        PROPS.put("xroad.proxy.ssl-enabled", "true");
         PROXY_TEST_SUITE_HELPER.setPropsIfNotSet(PROPS);
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
         PROXY_TEST_SUITE_HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
@@ -113,6 +113,7 @@ class SoapProxyConsumerRefusalTest {
         request.execute(ctx);
         assertThat(request.faultCode).isEqualTo(LEGACY_CALL_REFUSED_FAULT);
         assertThat(request.aclChecks).hasValue(0);
+        assertThat(serverProxyConnections).hasValue(0);
     }
 
     @Test
@@ -123,6 +124,7 @@ class SoapProxyConsumerRefusalTest {
         assertThat(request.faultCode).isNull();
         assertTrue(request.served);
         assertThat(request.aclChecks.get()).isPositive();
+        assertThat(serverProxyConnections.get()).isPositive();
     }
 
     @Test
@@ -135,6 +137,7 @@ class SoapProxyConsumerRefusalTest {
 
         assertThat(request.faultCode).isEqualTo(LEGACY_CALL_REFUSED_FAULT);
         assertThat(request.aclChecks).hasValue(0);
+        assertThat(serverProxyConnections).hasValue(0);
     }
 
     @Test
@@ -148,6 +151,7 @@ class SoapProxyConsumerRefusalTest {
 
         assertThat(request.faultCode).isEqualTo(LEGACY_CALL_REFUSED_FAULT);
         assertThat(request.aclChecks).hasValue(0);
+        assertThat(serverProxyConnections).hasValue(0);
     }
 
     @Test
@@ -174,6 +178,7 @@ class SoapProxyConsumerRefusalTest {
 
         assertThat(request.faultCode).isEqualTo(LEGACY_CALL_REFUSED_FAULT);
         assertThat(request.aclChecks).hasValue(0);
+        assertThat(serverProxyConnections).hasValue(0);
     }
 
     @Test
@@ -183,12 +188,14 @@ class SoapProxyConsumerRefusalTest {
 
         var refused = new Probe();
         refused.execute(ctx);
+        var connectionsAfterRefusal = serverProxyConnections.get();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.remove(PROVIDER_INSTANCE);
         var served = new Probe();
         served.execute(ctx);
 
         assertThat(refused.faultCode).isEqualTo(LEGACY_CALL_REFUSED_FAULT);
         assertThat(refused.aclChecks).hasValue(0);
+        assertThat(connectionsAfterRefusal).isZero();
         assertThat(served.faultCode).isNull();
         assertTrue(served.served);
         assertThat(served.aclChecks.get()).isPositive();
@@ -200,8 +207,8 @@ class SoapProxyConsumerRefusalTest {
         PROXY_TEST_SUITE_HELPER.proxyProperties = new ProxyProperties(
                 XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(props).build());
         PROXY_TEST_SUITE_HELPER.startTestServices();
-        ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
-        when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(false);
+        ctx = new TestContext(PROXY_TEST_SUITE_HELPER, true, mock(MonitorRpcClient.class), null,
+                serverProxyConnections::incrementAndGet);
     }
 
     private static final class Probe extends MessageTestCase {

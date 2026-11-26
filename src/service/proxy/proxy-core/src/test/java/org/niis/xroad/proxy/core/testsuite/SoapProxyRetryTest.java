@@ -233,7 +233,6 @@ class SoapProxyRetryTest {
                 .build());
         ctx = new TestContext(HELPER, true, mock(org.niis.xroad.monitor.rpc.MonitorRpcClient.class), RESOLVER,
                 GATE::clientPastConnect);
-        ctx.routeThroughCallModeSelection();
         serverProxyPort = ctx.getServerProxyListenPort();
         int actualClientHttpPort = ctx.getClientHttpPort();
         PROPS.put("xroad.proxy.server.listen-port", valueOf(serverProxyPort));

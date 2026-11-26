@@ -32,7 +32,6 @@ import ee.ria.xroad.common.message.RestMessage;
 
 import io.restassured.response.ValidatableResponse;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.agreementtoken.AgreementTokenGrant;
@@ -71,12 +70,6 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
     private static final ServiceId ECHO = ServiceId.Conf.create("EE", "BUSINESS", "producer", "sub", "echo");
 
     private final InMemoryAgreementTokenKeyProvider keyProvider = InMemoryAgreementTokenKeyProvider.withGeneratedKey("1");
-
-    @BeforeAll
-    static void enableDspAndRestartProxies() throws Exception {
-        ADDITIONAL_PROPERTIES.put("xroad.proxy.dsp-enabled", "true");
-        restartProxies();
-    }
 
     @BeforeEach
     void provideTokenKeyMaterialAndTokenlessAssetAccess() {

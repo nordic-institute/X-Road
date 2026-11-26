@@ -272,8 +272,8 @@ public class ClientSoapMessageProcessor {
 
     void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, DspRequest dspRequest, AssetAccessResponse assetAccess) {
         var tokenPresented = assetAccess != null && StringUtils.isNotBlank(assetAccess.authorization());
-        if (proxyProperties.dspEnabled() && (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
-                || tokenPresented && failure.isCausedBy(ACCESS_DENIED))) {
+        if (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
+                || tokenPresented && failure.isCausedBy(ACCESS_DENIED)) {
             consumerSideDspProcessor.invalidateAssetAccess(dspRequest);
         }
     }

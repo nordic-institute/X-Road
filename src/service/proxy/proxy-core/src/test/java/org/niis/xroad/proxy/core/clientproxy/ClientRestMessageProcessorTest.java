@@ -60,7 +60,6 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
-import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
@@ -83,6 +82,7 @@ import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
+import org.niis.xroad.proxy.core.test.PublishedDspValues;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.RestRequestContext;
@@ -253,7 +253,7 @@ class ClientRestMessageProcessorTest {
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
                 new DspFailover(consumerSideDspProcessor, httpSenderProvider, mock(DspSendFailureHandler.class)),
-                new CallModeSelector(globalConfProvider, serviceAddressResolver, proxyProperties, consumerSideDspProcessor,
+                new CallModeSelector(globalConfProvider, serviceAddressResolver, consumerSideDspProcessor,
                         legacyCallRefusalPolicy)
         );
     }
@@ -357,7 +357,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendWithDspEnabledTakesTheLegacyPathWhenNoServerPublishedTheCalledDid() throws Exception {
+    void sendTakesTheLegacyPathWhenServerValuesArePublishedButTheCalledMemberHasNoDid() throws Exception {
         var harness = createHarness(true);
         when(harness.globalConfProvider().getMemberDid(any(), any())).thenReturn(Optional.empty());
         stubUnnegotiatedAddress(harness);
@@ -386,7 +386,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendOmitsAgreementTokenHeaderWhenDspDisabled() throws Exception {
+    void sendOmitsAgreementTokenHeaderWhenNoServerPublishedTheCalledDid() throws Exception {
         var harness = createHarness(false);
         stubUnnegotiatedAddress(harness);
         var httpSender = mock(HttpSender.class);
@@ -460,16 +460,6 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void tokenRejectionDoesNothingWhenDspDisabled() {
-        var harness = createHarness(false);
-
-        harness.processor().dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId(), true);
-
-        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccess(any());
-    }
-
-    @Test
     void sendRefusesUnnegotiatedCallWhenLocalSettingRefuses() throws Exception {
         var harness = createHarness(false, true);
         stubUnnegotiatedAddress(harness);
@@ -484,7 +474,6 @@ class ClientRestMessageProcessorTest {
         verifyNoInteractions(harness.httpSenderProvider());
         verify(harness.clientRequestPreparationService(), never())
                 .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any());
-        verify(harness.serviceAddressResolver(), never()).resolveCandidates(any(), any());
         verify(harness.consumerSideDspProcessor(), never()).execute(any());
     }
 
@@ -547,7 +536,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendNegotiatesAndSendsWhenDspEnabledEvenIfLegacyCallsAreRefused() throws Exception {
+    void sendNegotiatesAndSendsEvenIfLegacyCallsAreRefused() throws Exception {
         var harness = createHarness(true, true);
         stubAcquisitions(harness, 1, new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
         var httpSender = mock(HttpSender.class);
@@ -576,7 +565,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendRefusesAnUnpublishedDidWithDspEnabledWhenLocalSettingRefuses() throws Exception {
+    void sendRefusesAnUnpublishedDidWhenLocalSettingRefuses() throws Exception {
         var harness = createHarness(true, true);
         when(harness.globalConfProvider().getMemberDid(any(), any())).thenReturn(Optional.empty());
         stubUnnegotiatedAddress(harness);
@@ -594,7 +583,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendRefusesAnUnpublishedDidWithDspEnabledWhenProviderInstanceRefuses() throws Exception {
+    void sendRefusesAnUnpublishedDidWhenProviderInstanceRefuses() throws Exception {
         var harness = createHarness(true, false);
         when(harness.globalConfProvider().isLegacyProtocolDisabled(serviceId().getXRoadInstance())).thenReturn(true);
         when(harness.globalConfProvider().getMemberDid(any(), any())).thenReturn(Optional.empty());
@@ -1336,7 +1325,7 @@ class ClientRestMessageProcessorTest {
         when(globalConfProvider.getSecurityServerAddress(serverId)).thenReturn(host);
         when(globalConfProvider.getMemberDid(any(), eq(serverId))).thenReturn(Optional.of(did));
         when(globalConfProvider.getServerSystemValues(serverId))
-                .thenReturn(Optional.of(new ServerSystemValues(DspConventions.systemCounterPartyId(host).toString(),
+                .thenReturn(Optional.of(new ServerSystemValues(PublishedDspValues.systemDidAt(host),
                         "https://" + host + ":8183/api/dsp")));
     }
 
@@ -1459,26 +1448,25 @@ class ClientRestMessageProcessorTest {
                                DefaultServiceAddressResolver serviceAddressResolver) {
     }
 
-    private RestHarness createHarness(boolean dspEnabled) {
-        return createHarness(dspEnabled, false);
+    private RestHarness createHarness(boolean published) {
+        return createHarness(published, false);
     }
 
-    private RestHarness createHarness(boolean dspEnabled, boolean legacyProtocolDisabled) {
-        return createHarness(dspEnabled, legacyProtocolDisabled, true);
+    private RestHarness createHarness(boolean published, boolean legacyProtocolDisabled) {
+        return createHarness(published, legacyProtocolDisabled, true);
     }
 
-    private RestHarness createHarness(boolean dspEnabled, boolean legacyProtocolDisabled, boolean requestRetryEnabled) {
-        return createHarness(dspEnabled, legacyProtocolDisabled, requestRetryEnabled, null);
+    private RestHarness createHarness(boolean published, boolean legacyProtocolDisabled, boolean requestRetryEnabled) {
+        return createHarness(published, legacyProtocolDisabled, requestRetryEnabled, null);
     }
 
-    private RestHarness createHarness(boolean dspEnabled, boolean legacyProtocolDisabled, boolean requestRetryEnabled,
+    private RestHarness createHarness(boolean published, boolean legacyProtocolDisabled, boolean requestRetryEnabled,
                                       ServiceAddressResolver addressResolverOfRealPreparation) {
         var globalConfProvider = mock(GlobalConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
         var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
                 .register(ProxyConfigKeys.instance())
                 .overrides(Map.of(
-                        "xroad.proxy.dsp-enabled", String.valueOf(dspEnabled),
                         "xroad.proxy.legacy-protocol-disabled", String.valueOf(legacyProtocolDisabled),
                         "xroad.proxy.client-proxy.enable-request-retry", String.valueOf(requestRetryEnabled)))
                 .build());
@@ -1495,7 +1483,9 @@ class ClientRestMessageProcessorTest {
         var serviceAddressResolver = mock(DefaultServiceAddressResolver.class);
         when(serviceAddressResolver.resolveCandidates(any(), any()))
                 .thenReturn(new ProviderCandidates(List.of(new ProviderAddress(null, SS_A_HOST)), List.of()));
-        publishServer(globalConfProvider, SS_A_SERVER, SS_A_HOST, SS_A_ID);
+        if (published) {
+            publishServer(globalConfProvider, SS_A_SERVER, SS_A_HOST, SS_A_ID);
+        }
         var legacyCallRefusalPolicy = spy(new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
         var dspSendFailureHandler = spy(new DspSendFailureHandler(consumerSideDspProcessor));
         var httpSenderProvider = mock(HttpSenderProvider.class);
@@ -1515,7 +1505,7 @@ class ClientRestMessageProcessorTest {
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
                 new DspFailover(consumerSideDspProcessor, httpSenderProvider, dspSendFailureHandler),
-                new CallModeSelector(globalConfProvider, serviceAddressResolver, proxyProperties, consumerSideDspProcessor,
+                new CallModeSelector(globalConfProvider, serviceAddressResolver, consumerSideDspProcessor,
                         legacyCallRefusalPolicy));
         return new RestHarness(processor, consumerSideDspProcessor, clientRequestPreparationService,
                 globalConfProvider, legacyCallRefusalPolicy, dspSendFailureHandler, httpSenderProvider,

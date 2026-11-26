@@ -34,6 +34,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.ds.identity.DspConventions;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.DidResolutionOps.DidDocumentResponse;
 import org.niis.xroad.e2e.DspNegotiationDbAssertions.ProviderNegotiation;
@@ -127,6 +128,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 class SsProxyDspRuntimeMemberTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
+
+    private static final int DID_PORT = 7183;
 
     private static final String X_ROAD_INSTANCE = "DEV";
     private static final String NEW_MEMBER_CLASS = "COM";
@@ -257,7 +260,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     private String newMemberDid(E2eEnvironment env) {
-        return DspConventions.memberCounterPartyId(NEW_MEMBER, env.securityServerAddress(SS0_ENV)).toString();
+        return ParticipantIdentifierScheme.memberDid(NEW_MEMBER,
+                DspConventions.didAuthority(env.securityServerAddress(SS0_ENV), DID_PORT)).toString();
     }
 
     /** The {@code did:web} resolution URL: the decoded authority, then the remaining DID segments as the path. */

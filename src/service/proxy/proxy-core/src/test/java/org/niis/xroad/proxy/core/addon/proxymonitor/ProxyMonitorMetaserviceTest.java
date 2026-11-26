@@ -115,7 +115,6 @@ public class ProxyMonitorMetaserviceTest {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER, true, monitorRpcClient);
-        ctx.routeThroughCallModeSelection();
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),

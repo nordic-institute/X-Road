@@ -272,7 +272,7 @@ public abstract class AbstractProxyIntegrationTest {
                 new CallModeSelector(TEST_GLOBAL_CONF,
                         new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties,
                                 new ProviderSecurityServerResolver(TEST_GLOBAL_CONF)),
-                        proxyProperties, CONSUMER_SIDE_DSP_PROCESSOR, legacyCallRefusalPolicy));
+                        CONSUMER_SIDE_DSP_PROCESSOR, legacyCallRefusalPolicy));
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),

@@ -216,8 +216,8 @@ public class ClientRestMessageProcessor {
 
     void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, RestRequest restRequest, ServiceId requestServiceId,
                                          boolean tokenPresented) {
-        if (proxyProperties.dspEnabled() && (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
-                || tokenPresented && failure.isCausedBy(ACCESS_DENIED))) {
+        if (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
+                || tokenPresented && failure.isCausedBy(ACCESS_DENIED)) {
             consumerSideDspProcessor.invalidateAssetAccess(new DspRequest(requestServiceId, restRequest.getClientId(),
                     restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
         }
