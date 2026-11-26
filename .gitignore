@@ -25,3 +25,5 @@ mailpit*
 **/.npmrc
 .claude
 .planning/
+**/.$*.drawio.bkp
+**/.$*.drawio.dtmp

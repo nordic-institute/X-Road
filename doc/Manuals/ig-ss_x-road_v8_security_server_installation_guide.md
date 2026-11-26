@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.3
+Version: 1.5
 Doc. ID: IG-SS-8
 
 ---
@@ -16,6 +16,7 @@ Doc. ID: IG-SS-8
 | 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets     |
 | 17.11.2026 | 1.3     | Documented country profile selection and precedence                  | Ričardas Bučiūnas |
 | 18.11.2026 | 1.4     | Added the DID and DSP port choice at installation                    | Justas Samuolis   |
+| 26.11.2026 | 1.5     | Updated network diagram and port listings                            | Justas Samuolis   |
 
 ## License
 
@@ -128,43 +129,58 @@ The software can be installed both on physical and virtualized hardware.
 
 The network diagram below provides an example of a basic Security Server setup. Allowing incoming connections from the Monitoring Security Server on ports 5500/tcp and 5577/tcp is necessary for the X-Road Operator to be able to monitor the ecosystem and provide statistics and support for Members.
 
-![network diagram](img/ig-ss_network_diagram.svg)
+![network diagram](img/ig-ss_network_diagram_v8.svg)
 
 The table below lists the required connections between different components.
 
-| **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports** | **Protocol** | **Note**                                                                                                                                                                              |
-|---------------------|----------------------------------------------------------|----------------------------------------------------------|------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Out                 | Security Server                                          | Central Server                                           | 80, 443, 4001    | tcp          |                                                                                                                                                                                       |
-| Out                 | Security Server                                          | Management Security Server                               | 5500, 5577       | tcp          |                                                                                                                                                                                       |
-| Out                 | Security Server                                          | OCSP Service                                             | 80 / 443         | tcp          |                                                                                                                                                                                       |
-| Out                 | Security Server                                          | Timestamping Service                                     | 80 / 443         | tcp          |                                                                                                                                                                                       |
-| Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577       | tcp          |                                                                                                                                                                                       |
-| Out                 | Security Server                                          | Producer Information System                              | 80, 443, other   | tcp          | Target in the internal network                                                                                                                                                        |
-| Out                 | Security Server                                          | ACME Server                                              | 80 / 443         | tcp          |                                                                                                                                                                                       |
-| Out                 | Security Server                                          | Mail server                                              | 587              | tcp          |                                                                                                                                                                                       |
-| In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                                                                                                                                                                       |
-| In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                                                                                                                                                                       |
-| In                  | Central Server                                           | Security Server                                          | 7183             | tcp          | DID port, chosen at installation (default shown), see [2.6.3](#263-did-and-dsp-ports)                                                                                                 |
-| In                  | Data Exchange Partner Security Server                    | Security Server                                          | 7183, 8183       | tcp          | DID port and DSP port, chosen at installation (defaults shown), see [2.6.3](#263-did-and-dsp-ports)                                                                                   |
-| In                  | ACME Server                                              | Security Server                                          | 80               | tcp          |                                                                                                                                                                                       | 
-| In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network                                                                                                                                                        |
-| In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network                                                                                                                                                        |
-| In                  | Monitoring system                                        | Security Server                                          | other            | tcp          | Source in the internal network<br />The health check interface is disabled by default and the target port is defined by the Security Server administrator when the feature is enabled |
+| **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports**                | **Protocol** | **Note**                                                                                                                                                                              |
+|---------------------|----------------------------------------------------------|----------------------------------------------------------|---------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Out                 | Security Server                                          | Central Server                                           | 80, 443, 4001, 6183, 6185, 6187 | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Management Security Server                               | 5500, 5577, 7183, 7185, 8183    | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Monitoring Security Server                               | 7183, 7185, 8183                | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | OCSP Service                                             | 80 / 443                        | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Timestamping Service                                     | 80 / 443                        | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577, 7183, 7185, 8183    | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Consumer) | 7183, 7185, 8183                | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Producer Information System                              | 80, 443, other                  | tcp          | Target in the internal network                                                                                                                                                        |
+| Out                 | Security Server                                          | ACME Server                                              | 80 / 443                        | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Mail server                                              | 587                             | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Security Server                                          | 7184                            | tcp          | Security Server must be able to connect to port 7184 on itself using its public hostname.                                                                                |
+| In                  | Central Server                                           | Security Server                                          | 7183, 7185                      | tcp          |                                                                                                                                                                                       |
+| In                  | Management Security Server                               | Security Server                                          | 7183, 7185, 8183                | tcp          |                                                                                                                                                                                       |
+| In                  | Monitoring Security Server                               | Security Server                                          | 5500, 55777, 7183, 7185, 8183   | tcp          |                                                                                                                                                                                       |
+| In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 55777, 7183, 7185, 8183   | tcp          |                                                                                                                                                                                       |
+| In                  | Data Exchange Partner Security Server (Service Producer) | Security Server                                          | 7183, 7185, 8183                | tcp          | DID port (7183) and DSP port (8183) are chosen at installation (defaults shown), see [2.6.3](#263-did-and-dsp-ports)                                                                                     |
+| In                  | Central Server                                           | Security Server                                          | 7183, 7185                      | tcp          | DID port (7183) is chosen at installation (default shown), see [2.6.3](#263-did-and-dsp-ports)                                                                                        |
+| In                  | Data Exchange Partner Security Server                    | Security Server                                          | 7183, 7185, 8183                | tcp          | DID port (7183) and DSP port (8183) are chosen at installation (defaults shown), see [2.6.3](#263-did-and-dsp-ports)                                                                  |
+| In                  | ACME Server                                              | Security Server                                          | 80                              | tcp          |                                                                                                                                                                                       | 
+| In                  | Consumer Information System                              | Security Server                                          | 8080, 8443                      | tcp          | Source in the internal network                                                                                                                                                        |
+| In                  | Admin                                                    | Security Server                                          | 4000                            | tcp          | Source in the internal network                                                                                                                                                        |
+| In                  | Monitoring system                                        | Security Server                                          | other                           | tcp          | Source in the internal network<br />The health check interface is disabled by default and the target port is defined by the Security Server administrator when the feature is enabled |
+| In                  | Security Server                                          | Security Server                                          | 7184                            | tcp          | Security Server must be able to connect to port 7184 on itself using its public hostname.                                                                                |
 
 The table below lists the open ports for Security Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
 
-| **Component**            | **Ports** | **Protocol** | **Note**                                  |
-|--------------------------|-----------|--------------|-------------------------------------------|
-| PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port                   |
-| OP Monitoring daemon     | 2081      | tcp          | Operational monitoring gRPC server port   |
-| Environmental monitoring | 2552      | tcp          | Environmental monitoring gRPC server port |
-| Signer                   | 5560      | tcp          | Signer gRPC port                          |
-| Proxy                    | 5566      | tcp          | Proxy admin port                          |
-| Proxy                    | 5567      | tcp          | Proxy gRPC server port                    |
-| Configuration Client     | 5665      | tcp          | Configuration Client gRPC server port     |
-| Auxiliary service        | 5666      | tcp          | Auxiliary service gRPC server port        |
-| Secret Store             | 8200      | tcp          | Local Secret Store (OpenBao) port         |
-| Audit Log                | 514       | udp          |                                           |
+| **Component**                 | **Ports** | **Protocol** | **Note**                                                   |
+|-------------------------------|-----------|--------------|------------------------------------------------------------|
+| PostgreSQL database           | 5432      | tcp          | Default PostgreSQL port                                    |
+| OP Monitoring daemon          | 2081      | tcp          | Operational monitoring gRPC server port                    |
+| Environmental monitoring      | 2552      | tcp          | Environmental monitoring gRPC server port                  |
+| Signer                        | 5560      | tcp          | Signer gRPC port                                           |
+| Proxy                         | 5566      | tcp          | Proxy admin port                                           |
+| Proxy                         | 5567      | tcp          | Proxy gRPC server port                                     |
+| Proxy                         | 5590      | tcp          | Proxy data plane port, called by the dataspace control plane |
+| Configuration Client          | 5665      | tcp          | Configuration Client gRPC server port                      |
+| Auxiliary service             | 5666      | tcp          | Auxiliary service gRPC server port                         |
+| Dataspace control plane       | 8181      | tcp          | Control plane default API port                             |
+| Dataspace control plane       | 8185      | tcp          | Control plane data plane signalling port \*                |
+| Dataspace control plane       | 5461      | tcp          | Control plane gRPC provisioning port \*                    |
+| Dataspace identity hub        | 7181      | tcp          | Identity hub default API port                              |
+| Dataspace identity hub        | 5460      | tcp          | Identity hub gRPC provisioning port \*                     |
+| Secret Store                  | 8200      | tcp          | Local Secret Store (OpenBao) port                          |
+| Audit Log                     | 514       | udp          |                                                            |
+
+\* These ports listen on all network interfaces by default, although only local components use them. Block them from external networks with a firewall.
 
 ### 2.3 Requirements for the Security Server
 
