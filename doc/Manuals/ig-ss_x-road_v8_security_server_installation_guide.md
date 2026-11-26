@@ -16,8 +16,7 @@ Doc. ID: IG-SS-8
 | 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets     |
 | 17.11.2026 | 1.3     | Documented country profile selection and precedence                  | Ričardas Bučiūnas |
 | 18.11.2026 | 1.4     | Added the DID and DSP port choice at installation                    | Justas Samuolis   |
-| 26.11.2026 | 1.5     | Updated network diagram and port listings                            | Justas Samuolis   |
-| 26.11.2026 | 1.6     | Fixed port listings, added the table of network interface ports      | Petteri Kivimäki  |
+| 26.11.2026 | 1.5     | Update network diagram and port listings                             | Petteri Kivimäki  |
 
 ## License
 
