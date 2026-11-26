@@ -51,6 +51,7 @@ import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
+import org.springframework.vault.VaultException;
 import org.springframework.vault.authentication.TokenAuthentication;
 import org.springframework.vault.client.VaultEndpoint;
 import org.springframework.vault.core.VaultKeyValueOperations;
@@ -270,12 +271,13 @@ class IssuerKeyGuardPostgresOpenBaoTest {
                 }
                 """);
         var scopedToken = createTokenWithPolicy(policyName);
-        var scopedClient = new SpringVaultClient(null, versionedOperationsFor(scopedToken), null, Duration.ZERO);
+        var scopedClient = clientFor(scopedToken);
 
         assertThat(scopedClient.dsIssuerServiceKeypairSecretExists("metadata-only-policy-key")).isTrue();
         assertThat(scopedClient.dsIssuerServiceKeypairSecretExists("metadata-only-policy-key-missing")).isFalse();
 
-        assertThatThrownBy(() -> keyValueOperationsFor(scopedToken).get(path)).isInstanceOf(RuntimeException.class);
+        var deniedRead = keyValueOperationsFor(scopedToken);
+        assertThatThrownBy(() -> deniedRead.get(path)).isInstanceOf(VaultException.class);
     }
 
     @Test
@@ -283,12 +285,11 @@ class IssuerKeyGuardPostgresOpenBaoTest {
         insertKeypairRow("unreadable-signing-key", SIGNING_STATE, true);
         dsIssuerServiceVaultOperations().put("ds/unreadable-signing-key", Map.of("payload", "irrelevant"));
         var tokenWithoutMetadataAccess = createTokenWithPolicy("default");
-        var versionedOps = versionedOperationsFor(tokenWithoutMetadataAccess);
-        var clientWithoutMetadataAccess = new SpringVaultClient(null, versionedOps, null, Duration.ZERO);
+        var clientWithoutMetadataAccess = clientFor(tokenWithoutMetadataAccess);
         var guardWithoutMetadataAccess = new IssuerKeyGuardImpl(reader, clientWithoutMetadataAccess);
 
         assertThatThrownBy(() -> withTransaction(guardWithoutMetadataAccess::signingKeySecretPresent))
-                .isInstanceOf(RuntimeException.class);
+                .isInstanceOf(VaultException.class);
     }
 
     /**
@@ -387,6 +388,10 @@ class IssuerKeyGuardPostgresOpenBaoTest {
 
     private VaultKeyValueOperations keyValueOperationsFor(String token) {
         return vaultTemplateFor(token).opsForKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT, KeyValueBackend.KV_2);
+    }
+
+    private SpringVaultClient clientFor(String token) {
+        return new SpringVaultClient(null, versionedOperationsFor(token), null, Duration.ZERO);
     }
 
     private VaultTemplate vaultTemplateFor(String token) {
