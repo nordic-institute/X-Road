@@ -36,19 +36,28 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
+import org.niis.xroad.signer.core.config.SoftwarePinHasherProperties;
+import org.niis.xroad.signer.core.tokenmanager.token.SoftwarePinHasher;
+import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
+import org.niis.xroad.signer.core.util.SignerUtil;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,9 +73,15 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class KeyConfNodePostgresTest {
 
     private static final String TEMPLATE_DATABASE = "keyconf_template";
+    private static final String SOFT_TOKEN_PIN = "Secret1234";
     private static final String SOFT_TOKEN_PIN_ENV = "XROAD_MIGRATION_SOFTTOKEN_PIN";
     private static final List<String> SIGNER_TABLES = List.of(
             "signer_tokens", "signer_keys", "signer_certificates", "signer_certificate_requests");
+
+    private static final String SIGNER_SOFT_TOKEN_FRIENDLY_NAME =
+            SignerUtil.getDefaultFriendlyName(new SoftwareTokenDefinition(Map.of()));
+    private static final SoftwarePinHasher PIN_HASHER = new SoftwarePinHasher(new SoftwarePinHasherProperties(
+            XRoadConfigBuilder.create().register(SignerConfigKeys.instance()).build()));
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
     private static final AtomicInteger DATABASE_COUNTER = new AtomicInteger();
@@ -99,7 +114,7 @@ class KeyConfNodePostgresTest {
 
     @BeforeEach
     void createFreshDatabase() throws Exception {
-        envVars.set(SOFT_TOKEN_PIN_ENV, "Secret1234");
+        envVars.set(SOFT_TOKEN_PIN_ENV, SOFT_TOKEN_PIN);
         database = "keyconf_" + DATABASE_COUNTER.incrementAndGet();
         execute(POSTGRES.getDatabaseName(), "CREATE DATABASE " + database + " TEMPLATE " + TEMPLATE_DATABASE);
 
@@ -140,6 +155,74 @@ class KeyConfNodePostgresTest {
     }
 
     @Test
+    void shouldStorePinHashThatTheSignerVerifiesOnNewSoftTokenRow() {
+        runKeyconf("--node", "node_b");
+
+        assertThat(PIN_HASHER.verifyPin(SOFT_TOKEN_PIN.toCharArray(), tokenPin("node_b", "0"))).isTrue();
+    }
+
+    @Test
+    void shouldSetPinHashThatTheSignerVerifiesOnSoftTokenRowCreatedBySignerWithoutPin() throws Exception {
+        long tokenId = seedToken("node_b", "0", "softToken", SIGNER_SOFT_TOKEN_FRIENDLY_NAME, null);
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
+        assertThat(PIN_HASHER.verifyPin(SOFT_TOKEN_PIN.toCharArray(), tokenPin("node_b", "0"))).isTrue();
+        assertThat(tokenColumn("node_b", "0", "friendly_name")).isEqualTo(SIGNER_SOFT_TOKEN_FRIENDLY_NAME);
+        assertThat(tokenColumn("node_b", "0", "label")).isNull();
+        assertThat(queryStrings("SELECT token_id FROM signer_keys WHERE ha_node_name = 'node_b' AND type = 'SOFTWARE'"))
+                .hasSize(2).containsOnly(String.valueOf(tokenId));
+    }
+
+    @Test
+    void shouldKeepPinHashOfSoftTokenRowThatHasOne() throws Exception {
+        String existingPinHex = "0102030405060708090a0b0c0d0e0f10";
+        seedToken("node_b", "0", "softToken", SIGNER_SOFT_TOKEN_FRIENDLY_NAME, existingPinHex);
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
+        assertThat(tokenColumn("node_b", "0", "encode(pin, 'hex')")).isEqualTo(existingPinHex);
+    }
+
+    @Test
+    void shouldLeaveHardwareTokenRowWithoutPinUnchanged() throws Exception {
+        seedToken("node_b", "2", "hsm_ncipher", "hsm_ncipher-2", null);
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(tokenColumn("node_b", "2", "encode(pin, 'hex')")).isNull();
+        assertThat(tokenPin("node_b", "0")).hasSize(48);
+    }
+
+    @Test
+    void shouldLeaveSoftTokenRowWithoutPinAndMigrateOtherDevicesWhenThereIsNoKeystore() throws Exception {
+        Path keyconfWithoutKeystore = tempDir.resolve("keyconf-without-keystore");
+        copyDirectory(Paths.get(keyconfDir), keyconfWithoutKeystore);
+        Files.delete(keyconfWithoutKeystore.resolve("softtoken").resolve(".softtoken.p12"));
+        keyconfDir = keyconfWithoutKeystore.toString();
+        seedToken("node_b", "0", "softToken", SIGNER_SOFT_TOKEN_FRIENDLY_NAME, null);
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(tokenColumn("node_b", "0", "encode(pin, 'hex')")).isNull();
+        assertThat(tokenColumn("node_b", "2", "type")).isEqualTo("hsm_ncipher");
+    }
+
+    @Test
+    void shouldChangeNothingWhenRunAgainAfterPinHashWasSetOnExistingToken() throws Exception {
+        seedToken("node_b", "0", "softToken", SIGNER_SOFT_TOKEN_FRIENDLY_NAME, null);
+        runKeyconf("--node", "node_b");
+        List<String> afterFirstRun = snapshot();
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(afterFirstRun).hasSize(9);
+        assertThat(snapshot()).isEqualTo(afterFirstRun);
+    }
+
+    @Test
     void shouldKeepEachNodesRowsApartWhenTheTokenIdentifiersAreTheSame() {
         runKeyconf("--node", "node_a");
         List<String> nodeARows = snapshotOf("node_a");
@@ -166,6 +249,38 @@ class KeyConfNodePostgresTest {
         args.addAll(List.of(nodeOption));
         args.addAll(List.of(keyconfDir, dbProperties));
         LegacyConfigMigrationCLI.main(args.toArray(new String[0]));
+    }
+
+    private long seedToken(String node, String externalId, String type, String friendlyName, String pinHex)
+            throws SQLException {
+        String pin = pinHex == null ? "NULL" : "decode('" + pinHex + "', 'hex')";
+        execute(database, "INSERT INTO signer_tokens (ha_node_name, external_id, type, friendly_name, pin, created_at, updated_at) "
+                + "VALUES ('" + node + "', '" + externalId + "', '" + type + "', '" + friendlyName + "', " + pin
+                + ", now(), now())");
+        return queryInt("SELECT id FROM signer_tokens WHERE ha_node_name = '" + node + "' AND external_id = '"
+                + externalId + "'");
+    }
+
+    private String tokenColumn(String node, String externalId, String column) {
+        return queryStrings("SELECT " + column + " FROM signer_tokens "
+                + "WHERE ha_node_name = '" + node + "' AND external_id = '" + externalId + "'").get(0);
+    }
+
+    private byte[] tokenPin(String node, String externalId) {
+        return HexFormat.of().parseHex(tokenColumn(node, externalId, "encode(pin, 'hex')"));
+    }
+
+    private static void copyDirectory(Path source, Path target) throws IOException {
+        try (var paths = Files.walk(source)) {
+            for (Path path : paths.toList()) {
+                Path destination = target.resolve(source.relativize(path).toString());
+                if (Files.isDirectory(path)) {
+                    Files.createDirectories(destination);
+                } else {
+                    Files.copy(path, destination);
+                }
+            }
+        }
     }
 
     private List<Integer> rowCountsByNode(String node) {

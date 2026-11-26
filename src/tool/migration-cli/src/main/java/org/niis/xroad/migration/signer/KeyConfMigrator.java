@@ -54,9 +54,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
+import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -69,6 +71,8 @@ public class KeyConfMigrator {
     private static final String SOFTTOKEN_PIN_ENV_VAR = "XROAD_MIGRATION_SOFTTOKEN_PIN";
     private static final String INDENT_UNIT = "  ";
     private static final int PIN_SALT_LENGTH = 16;
+    private static final int PIN_HASH_LENGTH = 32;
+    private static final int STORED_PIN_HASH_LENGTH = PIN_SALT_LENGTH + PIN_HASH_LENGTH;
 
     private final SecureRandom secureRandom = new SecureRandom();
     private final InstallationType installationType;
@@ -132,13 +136,53 @@ public class KeyConfMigrator {
     private long handleToken(DeviceType deviceType, SignerRepository repo, boolean isSoftToken, String keyconfPath) throws SQLException {
         Optional<Long> dbId = repo.getTokenId(deviceType.getId());
         if (dbId.isPresent()) {
-            logWarn(1, "⚠ Token {} already exists", deviceType.getId());
-            return dbId.get();
+            long existingTokenId = dbId.get();
+            if (isSoftToken) {
+                handleExistingSoftToken(deviceType.getId(), existingTokenId, repo, keyconfPath);
+            } else {
+                logWarn(1, "⚠ Token {} already exists", deviceType.getId());
+            }
+            return existingTokenId;
         }
         byte[] pinHash = isSoftToken ? getPinHashFromInput(keyconfPath) : null;
         long tokenId = repo.saveToken(deviceType, pinHash);
         logInfo(1, "✅ Token {} saved", deviceType.getId());
         return tokenId;
+    }
+
+    private void handleExistingSoftToken(String deviceId, long tokenId, SignerRepository repo, String keyconfPath)
+            throws SQLException {
+        if (repo.isTokenPinEmpty(tokenId)) {
+            fillTokenPin(deviceId, tokenId, repo, keyconfPath);
+        } else {
+            logWarn(1, "⚠ Token {} already exists", deviceId);
+            warnIfStoredPinHashDiffers(deviceId, tokenId, repo);
+        }
+    }
+
+    private void fillTokenPin(String deviceId, long tokenId, SignerRepository repo, String keyconfPath) throws SQLException {
+        if (!Files.exists(softTokenKeystore(keyconfPath))) {
+            logWarn(1, "⚠ Token {} has no 7.x keystore and stays uninitialized", deviceId);
+        } else if (repo.setTokenPin(tokenId, getPinHashFromInput(keyconfPath))) {
+            logInfo(1, "✅ PIN hash set on existing token {}", deviceId);
+        } else {
+            logWarn(1, "⚠ PIN hash not set on token {}: the token already has a PIN hash", deviceId);
+        }
+    }
+
+    private void warnIfStoredPinHashDiffers(String deviceId, long tokenId, SignerRepository repo) throws SQLException {
+        Optional<char[]> exportedPin = readPin();
+        if (exportedPin.isEmpty()) {
+            return;
+        }
+        boolean differs = repo.getTokenPin(tokenId)
+                .filter(storedHash -> storedHash.length == STORED_PIN_HASH_LENGTH)
+                .filter(storedHash -> !verifyPin(exportedPin.get(), storedHash))
+                .isPresent();
+        if (differs) {
+            logWarn(1, "⚠ Token {} has a PIN hash that does not match the exported 7.8 PIN. "
+                    + "The migrated keys will not open", deviceId);
+        }
     }
 
     private Optional<Long> handleKey(KeyType keyType, SignerRepository repo, boolean isSoftToken, long tokenId,
@@ -163,12 +207,17 @@ public class KeyConfMigrator {
         return new SignerRepository(dbCredentials, nodeIdentity);
     }
 
+    private Path softTokenKeystore(String keyconfPath) {
+        return Paths.get(keyconfPath, SOFT_TOKEN, ".softtoken.p12");
+    }
+
     private byte[] getPinHashFromInput(String keyconfPath) {
-        char[] pin = readPin();
+        char[] pin = readPin().orElseThrow(() -> new IllegalStateException(
+                "Soft token pin not provided. Export " + SOFTTOKEN_PIN_ENV_VAR
+                        + " before running the keyconf migration step."));
         try {
             KeyStore keystore = KeyStore.getInstance("pkcs12");
-            try (FileInputStream fis = new FileInputStream(Paths.get(
-                    keyconfPath, SOFT_TOKEN, ".softtoken.p12").toFile())) {
+            try (FileInputStream fis = new FileInputStream(softTokenKeystore(keyconfPath).toFile())) {
                 keystore.load(fis, pin);
             }
             PrivateKey privateKey = (PrivateKey) keystore.getKey("pin", pin);
@@ -199,14 +248,10 @@ public class KeyConfMigrator {
         return INDENT_UNIT.repeat(Math.max(0, indentLevel));
     }
 
-    protected char[] readPin() {
-        String pin = System.getenv(SOFTTOKEN_PIN_ENV_VAR);
-        if (pin == null || pin.isEmpty()) {
-            throw new IllegalStateException(
-                    "Soft token pin not provided. Export " + SOFTTOKEN_PIN_ENV_VAR
-                            + " before running the keyconf migration step.");
-        }
-        return pin.toCharArray();
+    protected Optional<char[]> readPin() {
+        return Optional.ofNullable(System.getenv(SOFTTOKEN_PIN_ENV_VAR))
+                .filter(pin -> !pin.isEmpty())
+                .map(String::toCharArray);
     }
 
     private Optional<byte[]> readKey(String id, String keyconfPath) {
@@ -258,6 +303,21 @@ public class KeyConfMigrator {
         byte[] salt = new byte[PIN_SALT_LENGTH];
         secureRandom.nextBytes(salt);
 
+        byte[] hash = computeHash(pin, salt);
+
+        byte[] result = new byte[PIN_SALT_LENGTH + hash.length];
+        System.arraycopy(salt, 0, result, 0, PIN_SALT_LENGTH);
+        System.arraycopy(hash, 0, result, PIN_SALT_LENGTH, hash.length);
+        return result;
+    }
+
+    private boolean verifyPin(char[] pin, byte[] storedHash) {
+        byte[] salt = Arrays.copyOfRange(storedHash, 0, PIN_SALT_LENGTH);
+        byte[] expectedHash = Arrays.copyOfRange(storedHash, PIN_SALT_LENGTH, storedHash.length);
+        return MessageDigest.isEqual(computeHash(pin, salt), expectedHash);
+    }
+
+    private byte[] computeHash(char[] pin, byte[] salt) {
         var params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
                 .withIterations(4)
                 .withMemoryAsKB(19456)
@@ -265,15 +325,11 @@ public class KeyConfMigrator {
                 .withSalt(salt)
                 .build();
         byte[] pinBytes = new String(pin).getBytes(StandardCharsets.UTF_8);
-        byte[] hash = new byte[32];
+        byte[] hash = new byte[PIN_HASH_LENGTH];
 
         Argon2BytesGenerator generator = new Argon2BytesGenerator();
         generator.init(params);
         generator.generateBytes(pinBytes, hash);
-
-        byte[] result = new byte[PIN_SALT_LENGTH + hash.length];
-        System.arraycopy(salt, 0, result, 0, PIN_SALT_LENGTH);
-        System.arraycopy(hash, 0, result, PIN_SALT_LENGTH, hash.length);
-        return result;
+        return hash;
     }
 }
