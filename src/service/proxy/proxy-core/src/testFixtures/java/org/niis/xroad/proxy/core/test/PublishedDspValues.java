@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.core.test;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
@@ -42,14 +43,12 @@ import java.util.Set;
  * negotiated call: one server per provider member, a member DID in the {@code v1} scheme and an {@code https} DSP
  * base URL.
  */
-public final class PublishedDspValues {
+@UtilityClass
+public class PublishedDspValues {
     private static final String PUBLISHED_ADDRESS = "ss-a.example";
     private static final int DID_PORT = Integer.parseInt(DspConfigKeys.DID_PORT.defaultValue());
     private static final int DSP_PORT = Integer.parseInt(DspConfigKeys.DSP_PORT.defaultValue());
     private static final String SERVER_CODE = "SS1";
-
-    private PublishedDspValues() {
-    }
 
     /**
      * @param provider the provider member or subsystem

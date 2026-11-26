@@ -94,6 +94,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -287,7 +288,7 @@ public class TestContext {
 
     /** Makes the client proxy bypass DSP and the call-mode selection for every request. */
     public void bypassCallModeSelection() {
-        when(consumerSideDspProcessor.bypassesDsp(any())).thenReturn(true);
+        doReturn(true).when(consumerSideDspProcessor).bypassesDsp(any());
     }
 
     private static ProxyAgreementTokenProperties mockAgreementTokenProperties() {

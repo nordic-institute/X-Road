@@ -57,7 +57,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * Proves, through a real client proxy and server proxy, that a provider whose instance refuses legacy calls rejects a
- * REST request without an agreement token and still serves one that carries a valid token.
+ * REST request without an agreement token and still serves one that carries a valid token. When the instance does not
+ * refuse, a provider that publishes no DSP values is called unnegotiated and serves the request without a token.
  */
 class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
@@ -101,7 +102,7 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    void shouldServeTokenlessRequestWhenNothingRefuses() {
+    void shouldServeUnnegotiatedRequestWhenNothingRefuses() {
         postEcho()
                 .statusCode(200)
                 .body("value", Matchers.equalTo(42));

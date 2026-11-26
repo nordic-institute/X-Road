@@ -363,7 +363,7 @@ class AgreementTokenKeyMaterialTest {
     }
 
     @Test
-    void noAutomaticRotationWhileGlobalConfIsUnavailable() {
+    void noAutomaticRotationWhileTheInstanceIdentifierIsUnavailable() {
         var keyMaterial = newKeyMaterial();
         when(globalConfProvider.getInstanceIdentifier()).thenThrow(new IllegalStateException("no anchor"));
         clock.advance(Duration.ofDays(365));
@@ -592,6 +592,42 @@ class AgreementTokenKeyMaterialTest {
     }
 
     @Test
+    void eachChangeOfDataspaceReadinessLogsOneInfoLineAndSteadyTicksLogNone() {
+        var keyMaterial = newKeyMaterial();
+        logHandler.records.clear();
+
+        keyMaterial.retryOrRefresh();
+        keyMaterial.retryOrRefresh();
+        assertThat(readinessLogLines()).isEmpty();
+
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of());
+        keyMaterial.retryOrRefresh();
+        keyMaterial.retryOrRefresh();
+        assertThat(readinessLogLines()).hasSize(1);
+        assertThat(readinessLogLines().getLast()).contains("paused");
+
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of("did:web:issuer.example"));
+        keyMaterial.retryOrRefresh();
+        keyMaterial.retryOrRefresh();
+        assertThat(readinessLogLines()).hasSize(2);
+        assertThat(readinessLogLines().getLast()).contains("resumed");
+        assertThat(logRecordsAt(Level.WARNING)).isEmpty();
+    }
+
+    @Test
+    void startingNotDataspaceReadyLogsThePauseOnce() {
+        var keyMaterial = newKeyMaterial();
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of());
+        logHandler.records.clear();
+
+        keyMaterial.retryOrRefresh();
+        keyMaterial.retryOrRefresh();
+
+        assertThat(readinessLogLines()).hasSize(1);
+        assertThat(readinessLogLines().getFirst()).contains("paused");
+    }
+
+    @Test
     void nothingIsDeletedWhileTheInstanceIsNotDataspaceReady() {
         when(properties.keyRetention()).thenReturn(RETENTION);
         var keyMaterial = newKeyMaterial();
@@ -606,7 +642,7 @@ class AgreementTokenKeyMaterialTest {
     }
 
     @Test
-    void nothingIsDeletedWhileGlobalConfIsUnavailable() {
+    void nothingIsDeletedWhileGlobalConfIsNotValid() {
         when(properties.keyRetention()).thenReturn(RETENTION);
         var keyMaterial = newKeyMaterial();
         storeThreeKeysTheFirstTenDaysOld(keyMaterial);
@@ -944,6 +980,13 @@ class AgreementTokenKeyMaterialTest {
 
     private List<LogRecord> logRecordsAt(Level level) {
         return logHandler.records.stream().filter(logRecord -> logRecord.getLevel().intValue() == level.intValue()).toList();
+    }
+
+    private List<String> readinessLogLines() {
+        return logRecordsAt(Level.INFO).stream()
+                .map(LogRecord::getMessage)
+                .filter(message -> message.contains("data space readiness"))
+                .toList();
     }
 
     private static ProxyAgreementTokenProperties realPropertiesWith(Map<String, String> overrides) {

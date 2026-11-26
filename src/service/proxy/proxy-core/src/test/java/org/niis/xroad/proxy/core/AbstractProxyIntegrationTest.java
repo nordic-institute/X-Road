@@ -248,10 +248,11 @@ public abstract class AbstractProxyIntegrationTest {
                 new OwnSecurityServerResolver(new ServerConfProviderIdentitySource(TEST_SERVER_CONF), TEST_GLOBAL_CONF));
         var httpSenderProviderClient = new HttpSenderProvider(httpClient, httpClient, proxyProperties);
         var messageSigningServiceClient = new MessageSigningService(clientKeyConf, signingCtxProvider);
+        var defaultServiceAddressResolver = new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties,
+                new ProviderSecurityServerResolver(TEST_GLOBAL_CONF));
         var serviceAddressResolverClient = serviceAddressResolverOverride != null
                 ? serviceAddressResolverOverride
-                : new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties,
-                        new ProviderSecurityServerResolver(TEST_GLOBAL_CONF));
+                : defaultServiceAddressResolver;
         var clientVerificationServiceClient = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
                 TEST_GLOBAL_CONF, proxyProperties, certHelper);
 
@@ -269,9 +270,7 @@ public abstract class AbstractProxyIntegrationTest {
                 CONSUMER_SIDE_DSP_PROCESSOR, identifierValidationService,
                 new DspFailover(CONSUMER_SIDE_DSP_PROCESSOR, httpSenderProviderClient,
                         new DspSendFailureHandler(CONSUMER_SIDE_DSP_PROCESSOR)),
-                new CallModeSelector(TEST_GLOBAL_CONF,
-                        new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties,
-                                new ProviderSecurityServerResolver(TEST_GLOBAL_CONF)),
+                new CallModeSelector(TEST_GLOBAL_CONF, defaultServiceAddressResolver,
                         CONSUMER_SIDE_DSP_PROCESSOR, legacyCallRefusalPolicy));
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,

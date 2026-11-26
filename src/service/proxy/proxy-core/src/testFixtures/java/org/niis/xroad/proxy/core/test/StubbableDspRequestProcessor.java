@@ -35,10 +35,9 @@ import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 /**
  * Consumer-side DSP processor for tests that stub {@link #execute} per case. Create it with
  * {@code mock(StubbableDspRequestProcessor.class, CALLS_REAL_METHODS)}, so that {@link #bypassesDsp} applies the
- * metaservice rule of the production processor until a test stubs it. A {@code null} request, as passed by an
- * argument matcher while a test stubs {@link #bypassesDsp}, does not bypass DSP. A test stubs {@link #execute} with
- * {@code doReturn(...).when(processor).execute(...)}: the unstubbed method fails, and so does a
- * {@code when(processor.execute(...))} call.
+ * metaservice rule of the production processor until a test stubs it. A test stubs {@link #execute} and
+ * {@link #bypassesDsp} with {@code doReturn(...).when(processor).method(...)}: the unstubbed {@link #execute}
+ * fails, and so does a {@code when(processor.execute(...))} call.
  */
 public abstract class StubbableDspRequestProcessor implements DspRequestProcessor {
 
@@ -50,7 +49,7 @@ public abstract class StubbableDspRequestProcessor implements DspRequestProcesso
 
     @Override
     public boolean bypassesDsp(DspRequest request) {
-        var serviceId = request == null ? null : request.serviceId();
+        var serviceId = request.serviceId();
         return serviceId != null && BuiltinServiceCodes.METASERVICES.contains(serviceId.getServiceCode());
     }
 }

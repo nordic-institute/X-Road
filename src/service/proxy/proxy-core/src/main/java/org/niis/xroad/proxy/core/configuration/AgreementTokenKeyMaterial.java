@@ -82,6 +82,9 @@ import java.util.random.RandomGenerator;
  * {@link ProxyAgreementTokenProperties#staleSigningKeyLimit()}, with
  * {@link ErrorCode#AGREEMENT_TOKEN_SIGNING_KEY_STALE}. Verification with retained keys is never limited. The
  * refusal is logged once at warn when it starts and once at info when the next successful refresh lifts it.
+ * <p>
+ * A change in dataspace readiness is logged once at info, as rotation and pruning pausing or resuming. The
+ * first refresh logs only when the instance is not ready.
  */
 @Slf4j
 @ApplicationScoped
@@ -99,6 +102,7 @@ public class AgreementTokenKeyMaterial {
     private final Map<String, Instant> notSigningSince = new HashMap<>();
     private Instant rotationDeadline;
     private int ticksSincePruneFailureWarning = PRUNE_FAILURE_WARNING_TICKS;
+    private boolean lastDataspaceReady = true;
 
     @Inject
     public AgreementTokenKeyMaterial(VaultClient vaultClient, ProxyAgreementTokenProperties properties,
@@ -141,8 +145,17 @@ public class AgreementTokenKeyMaterial {
             return;
         }
         var dataspaceReady = DataspaceReadiness.isReady(globalConfProvider);
+        logReadinessChange(dataspaceReady);
         rotateIfDue(current, dataspaceReady);
         pruneIfDue(current, dataspaceReady);
+    }
+
+    private void logReadinessChange(boolean dataspaceReady) {
+        if (dataspaceReady != lastDataspaceReady) {
+            log.info("Agreement-token key rotation and pruning {}: data space readiness is now {}",
+                    dataspaceReady ? "resumed" : "paused", dataspaceReady);
+            lastDataspaceReady = dataspaceReady;
+        }
     }
 
     private void rotateIfDue(AgreementTokenKeyProvider current, boolean dataspaceReady) {

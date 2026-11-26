@@ -32,6 +32,7 @@ dependencies {
   implementation(libs.jetty.ee11.servlet)
 
   testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":service:proxy:proxy-core")))
   testImplementation(libs.assertj.core)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.mockito.core)
