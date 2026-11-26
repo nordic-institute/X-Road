@@ -41,9 +41,11 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
 import org.springframework.scheduling.config.IntervalTask;
 import org.springframework.scheduling.config.ScheduledTask;
+import org.springframework.vault.core.VaultKeyValueMetadataOperations;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
 import org.springframework.vault.core.VaultTemplate;
+import org.springframework.vault.core.VaultVersionedKeyValueOperations;
 import org.springframework.web.client.ResourceAccessException;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -67,6 +69,10 @@ class SpringVaultClientConfigTest {
 
     private final VaultKeyValueOperations kvOperations = mock(VaultKeyValueOperations.class);
     private final VaultTemplate vaultTemplate = mock(VaultTemplate.class);
+    private final VaultVersionedKeyValueOperations dsIssuerServiceVersionedOperations =
+            mock(VaultVersionedKeyValueOperations.class);
+    private final VaultKeyValueMetadataOperations dsIssuerServiceMetadataOperations =
+            mock(VaultKeyValueMetadataOperations.class);
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withBean(VaultTemplate.class, () -> vaultTemplate)
@@ -77,6 +83,9 @@ class SpringVaultClientConfigTest {
 
     SpringVaultClientConfigTest() {
         when(vaultTemplate.opsForKeyValue("xrd-secret", KeyValueBackend.KV_1)).thenReturn(kvOperations);
+        when(vaultTemplate.opsForVersionedKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT))
+                .thenReturn(dsIssuerServiceVersionedOperations);
+        when(dsIssuerServiceVersionedOperations.opsForKeyValueMetadata()).thenReturn(dsIssuerServiceMetadataOperations);
     }
 
     @Test
@@ -113,16 +122,12 @@ class SpringVaultClientConfigTest {
 
     @Test
     void shouldWireTheDsIssuerServiceSecretMountForTheKeypairExistsCheck() {
-        var dsIssuerServiceKvOperations = mock(VaultKeyValueOperations.class);
-        when(vaultTemplate.opsForKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT, KeyValueBackend.KV_2))
-                .thenReturn(dsIssuerServiceKvOperations);
-
         contextRunner.withUserConfiguration(SpringVaultClientConfig.class).run(context -> {
             var client = context.getBean(SpringVaultClient.class);
 
             client.dsIssuerServiceKeypairSecretExists("issuer-key");
 
-            verify(dsIssuerServiceKvOperations).get(VaultClient.DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER + "/issuer-key");
+            verify(dsIssuerServiceMetadataOperations).get(VaultClient.DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER + "/issuer-key");
         });
     }
 
