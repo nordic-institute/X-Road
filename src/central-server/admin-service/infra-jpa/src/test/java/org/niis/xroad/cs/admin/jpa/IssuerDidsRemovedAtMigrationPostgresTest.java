@@ -91,8 +91,7 @@ class IssuerDidsRemovedAtMigrationPostgresTest {
 
         assertThat(rows).hasSize(1);
         var row = rows.get(0);
-        assertThat(row.get("did")).isEqualTo(BOUND_DID);
-        assertThat(row.get("host")).isEqualTo("cs.bound");
+        assertThat(row).containsEntry("did", BOUND_DID).containsEntry("host", "cs.bound");
         assertThat(row.get("removed_at")).isNull();
     }
 

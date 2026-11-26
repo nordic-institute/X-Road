@@ -104,14 +104,15 @@ public record IssuerServiceStatus(
                     case CANNOT_SIGN -> canSignResult.cause();
                 };
 
-        Overall overall = overall(didBound, boundRemoved, hostSet, certificateReady, runInProgress, probed, matches, canSignResult);
+        boolean absentOnProbe = probed && canSignResult.outcome() == CanSignOutcome.ABSENT;
+        Overall overall = overall(didBound, boundRemoved, hostSet, certificateReady, runInProgress, probed, matches, absentOnProbe);
 
         return new IssuerServiceStatus(host, hostSet, certificateReady, runInProgress, didToBind, didBound, boundDid, canSign,
                 canSignCause, overall);
     }
 
     private static Overall overall(boolean didBound, boolean boundRemoved, boolean hostSet, boolean certificateReady,
-            boolean runInProgress, boolean probed, boolean matches, @Nullable CanSignResult canSignResult) {
+            boolean runInProgress, boolean probed, boolean matches, boolean absentOnProbe) {
         if (didBound && boundRemoved) {
             return Overall.REMOVED;
         } else if (didBound) {
@@ -122,7 +123,7 @@ public record IssuerServiceStatus(
             return Overall.WAITING_FOR_CERTIFICATE;
         } else if (runInProgress) {
             return Overall.INITIALIZING;
-        } else if (probed && (canSignResult.outcome() == CanSignOutcome.ABSENT || matches)) {
+        } else if (probed && (absentOnProbe || matches)) {
             return Overall.READY_TO_INITIALIZE;
         } else {
             return Overall.FAILED;
