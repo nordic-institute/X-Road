@@ -40,7 +40,7 @@ Doc. ID: IG-CSHA
 | 17.11.2026 | 1.25    | Document joining the OpenBao cluster, the ports between the nodes and using an external OpenBao               | Ričardas Bučiūnas  |
 | 18.11.2026 | 1.26    | Correct the steps for joining a node to the OpenBao cluster and state the limits of the Red Hat packages  | Ričardas Bučiūnas  |
 | 20.11.2026 | 1.27    | Rename the bundle script to secret-store-cluster-bundle.sh                                                | Ričardas Bučiūnas  |
-| 25.11.2026 | 1.28    | Document the database conditions of a cluster, the connection pools and the installer checks of the database address. Remove the text about secondary database hosts and the PostgreSQL versions below 15 | Ričardas Bučiūnas  |
+| 25.11.2026 | 1.28    | Document the database conditions of a cluster, the connection pools and the installer checks of the database address. Remove the text about secondary database hosts and the PostgreSQL versions below 15. State that the write address is set at the first installation, add the OpenBao and admin service connection pool defaults, preseed the database address and describe the upgrade with an existing host list | Ričardas Bučiūnas  |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -155,7 +155,7 @@ You set up and operate the database. X-Road does not choose or provide a Postgre
 
 - **PostgreSQL 15 or newer.** All nodes use the same version of the database software.
 - **One write address.** All nodes and all components of a node use the same database address. The address always leads to the one database server that accepts writes. It can be the primary server, a virtual IP address, a connection pooler, a managed database endpoint or a Kubernetes read-write service. Do not use the address of a standby server or of a read-only replica. Do not use a list of hosts.
-- **An address that follows a failover.** After a failover, the write address must lead to the new primary server without a change on the nodes. The installation stores the database address in more than one place. For example, the secret store (OpenBao) keeps the address from the first installation in `/etc/openbao/xroad-openbao.env` and does not change it later.
+- **An address that follows a failover.** You set the write address at the first installation of the Central Server, and it must stay valid. Use a stable name or a virtual IP address that leads to the new primary server after a failover, without a change on the nodes. The installation stores the database address in more than one place: in `/etc/xroad/db.properties` (the Central Server and the Issuer Service) and in `/etc/openbao/xroad-openbao.env` (the secret store, OpenBao). The installation does not change the stored addresses later, and no procedure in this guide changes them.
 - **One writer.** At any time, only one database server accepts writes. A database with more than one writer is not supported.
 - **Isolation level `READ COMMITTED`.** This is the default of PostgreSQL, and no X-Road component sets another level. Do not set another default transaction isolation level for the database or for the roles of X-Road.
 - **Tight clock synchronization.** Use a time synchronization service on every node. Keep the difference between the clocks of the nodes small.
@@ -165,16 +165,17 @@ You set up and operate the database. X-Road does not choose or provide a Postgre
 
 Each node keeps a pool of database connections for each of its components. The table lists the largest pool of each component in the current release:
 
-| Component on a node                                                        | Connections per node |
-|----------------------------------------------------------------------------|----------------------|
-| Signer                                                                     | 20                   |
-| Components that use the shared Hibernate configuration and set no own size | 10                   |
-| Issuer Service, EDC pool (the EDC default)                                 | 8                    |
-| Issuer Service, reader of the bound identities                             | 1                    |
+| Component on a node                                | Connections per node            |
+|----------------------------------------------------|---------------------------------|
+| OpenBao (the `max_parallel` default)               | up to 128                       |
+| Signer                                             | 20                              |
+| Admin service (the Spring Boot Hikari default)     | 10                              |
+| Issuer Service, EDC pool (the EDC default)         | 8                               |
+| Issuer Service, reader of the bound identities     | 1                               |
 
-The admin service and OpenBao use the pool defaults of their frameworks. This guide gives no value for them.
+OpenBao opens up to `max_parallel` connections to its PostgreSQL storage. The shipped OpenBao configuration does not set `max_parallel`, so OpenBao uses the default of its PostgreSQL storage backend. The admin service has no own pool size setting, so it uses the default of Spring Boot.
 
-The connection limit of the database server (`max_connections`) and of the connection pooler, if you use one, must be larger than the total of all nodes. Count the pools of every node, the connections of the admin service and OpenBao, and the connections that you need for administration, backup and monitoring. Check the limit again each time you add a node.
+The connection limit of the database server (`max_connections`) and of the connection pooler, if you use one, must be larger than the total of all nodes. Count the pools of every node, including OpenBao and the admin service, and the connections that you need for administration, backup and monitoring. Check the limit again each time you add a node.
 
 #### 3.1.3 Installer checks of the database
 
@@ -188,7 +189,13 @@ The installation of the Central Server packages checks the database address befo
 
 The write check asks the database for the value of `transaction_read_only`. It therefore refuses a standby server, and it also refuses a database or a role that is set read-only.
 
-An existing configuration can already have a host list in `spring.datasource.url` in `/etc/xroad/db.properties`. An upgrade from an old format of `db.properties` that listed secondary database hosts gets such a list. The installer does not refuse it, because an upgrade keeps `db.properties` unchanged. It writes a warning that OpenBao uses only the first host and so does not follow a failover. Change the address to one write address when it suits you.
+An existing configuration can already have a host list in `spring.datasource.url` in `/etc/xroad/db.properties`. An upgrade from an old format of `db.properties` that listed secondary database hosts gets such a list. The upgrade continues, and the installer writes a warning that OpenBao uses only the first host and so does not follow a failover. The checks of an existing host list work as follows:
+
+- The version check still refuses an unsupported PostgreSQL version.
+- The write check of the Central Server step checks only the first host. If the first host does not accept writes, the check writes a warning that names the host and does not stop the installation. The check of a single-host address still refuses a database that does not accept writes.
+- The secret store step and the Issuer Service step write to the first host. They still refuse a first host that does not accept writes.
+
+Use one write address instead of a host list. You set the address at the first installation of the Central Server. As section [3.1.1](#311-database-requirements) says, the installation does not change the stored addresses later, and this guide has no procedure to change them.
 
 The checks run in the packages in this order: the secret store (`xroad-secret-store-local`), the Central Server (`xroad-center`) and the Issuer Service (`xroad-ds-issuer-service`). A read-only address therefore shows first in the secret store step. The steps log in with these credentials:
 
@@ -199,10 +206,12 @@ The checks run in the packages in this order: the secret store (`xroad-secret-st
 **Preconfiguration of the packages.** The secret store step knows that it runs on a Central Server only when the questions of the Central Server package are loaded before the secret store package is configured. If they are not loaded, the secret store step skips the version check, the write check and the host list check, and it does not tell you. Do one of these on node 1:
 
 - Install the package `apt-utils`. It is installed by default on Ubuntu Server. Then apt preconfigures all packages first, so the questions of the Central Server package exist before the secret store package is configured.
-- Preseed the question of the Central Server package that decides on the database migrations before the installation. Use `false` for automatic migrations:
+- Preseed two questions of the Central Server package before the installation: the question that decides on the database migrations (use `false` for automatic migrations) and the database address (the write address, as `<host>:<port>`):
   ```bash
   sudo debconf-set-selections <<< 'xroad-center xroad-common/skip-cs-db-migrations boolean false'
+  sudo debconf-set-selections <<< 'xroad-center xroad-common/database-host string <write_address_host>:<write_address_port>'
   ```
+  Preseeding only the migrations question is not enough. The question for the database address does not exist before the Central Server package is preconfigured, so the secret store step reads an empty answer. It then uses `127.0.0.1:5432`: it runs the checks against the local database and creates the OpenBao database there, not on the write address.
 
 The variable `XROAD_IGNORE_DATABASE_SETUP` skips the Issuer Service database setup, including its checks, and the Central Server database migrations. It does not skip the checks of the Central Server step or of the secret store step.
 
@@ -641,8 +650,7 @@ Recovery procedure depends on the type of the failure and database used. If conf
 ### 6.1 Configuration database (and possible replicas) is lost
 
 * Stop Central Servers.
-* Set up a new database.
-* Update the db.properties on each Central Server node to point to the write address of the new database.
+* Set up a new database that the same write address leads to. The write address is set at the first installation and is stored in more than one place (see section [3.1.1](#311-database-requirements)), so move the stable name or the virtual IP address to the new database. Do not edit only `db.properties` to point to another address.
 * On one node, restore the database from a backup (see \[[UG-CS](#Ref_UG-CS)\]).
 * Start Central Servers.
 
@@ -783,16 +791,11 @@ The `status` should be _streaming_ and `sent_lsn` on master should be close to `
 
 See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#17-migrating-to-remote-database-host) for instructions about migrating an existing Central Server database to an external database.
 
-Edit `/etc/xroad/db.properties` and change the connection properties:
-```properties
-spring.datasource.username=<database_user>
-spring.datasource.password=<password>
-spring.datasource.url=jdbc:postgresql://<write_address_host>:<write_address_port>/<database>
-```
+Set the write address of the database at the first installation of the Central Server: give it as the database server URL of the installation (see section [3.1.3](#313-installer-checks-of-the-database) for the preconfiguration). The write address must be a stable name or a virtual IP address that leads to the primary server and follows a failover (see section [3.1.1](#311-database-requirements)). Use one host. Do not use a list of hosts.
 
-`<write_address_host>` is the write address of the database (see section [3.1.1](#311-database-requirements)). Use one host. Do not add a list of hosts to the URL.
+The installation stores the address in `/etc/xroad/db.properties` (the Central Server and the Issuer Service) and in `/etc/openbao/xroad-openbao.env` (OpenBao). To move a node to another database address, do not change only the Central Server key in `db.properties`: the Issuer Service keeps its own copy of the address in other keys of `db.properties`, and OpenBao keeps its copy in `xroad-openbao.env`. This guide has no procedure for a change of the address. After the installation, a failover changes only where the stable name or the virtual IP address leads.
 
-Restart Central Servers and verify that the cluster is working (see [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)).
+Verify that the cluster is working (see [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)).
 
 ### Fail-over
 

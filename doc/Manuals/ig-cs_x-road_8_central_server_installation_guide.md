@@ -15,7 +15,7 @@ Doc. ID: IG-CS-8
 | 18.11.2026 | 1.4     | Correct the introduction and the line breaks of the OpenBao configuration files                      | Ričardas Bučiūnas |
 | 20.11.2026 | 1.5     | Use the term cluster bundle for the archive that a joining node imports                              | Ričardas Bučiūnas |
 | 23.11.2026 | 1.6     | Document the Issuer Service health endpoint and correct the description of port 6181                 | Ričardas Bučiūnas |
-| 25.11.2026 | 1.7     | Add the annex on the remote and shared database: write address, PostgreSQL 15 or newer, database master user attributes, the role ds-issuer-service and the preconfiguration of the packages | Ričardas Bučiūnas |
+| 25.11.2026 | 1.7     | Add the annex on the remote and shared database: write address, PostgreSQL 15 or newer, database master user attributes, the role ds-issuer-service and the preconfiguration of the packages, including the database address | Ričardas Bučiūnas |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -550,7 +550,7 @@ The steps for joining a node to a cluster are in the [Central Server High Availa
 
 The Central Server can use a PostgreSQL database that runs on another host, and the nodes of a high availability cluster share one such database. Set up and operate this database yourself. The conditions below apply to a remote database and to a shared database. The Central Server High Availability Installation Guide gives the full conditions for a cluster: [section 3.1](ig-csha_x-road_6_ha_installation_guide.md#31-requirements).
 
-**Database address.** The database server URL that the installation asks for is one write address: the address of the one database server that accepts writes. It can be the primary server, a virtual IP address, a connection pooler, a managed database endpoint or a Kubernetes read-write service. Do not enter the address of a standby server or a read-only replica, and do not enter a list of hosts. The installer refuses an address that does not accept writes, and refuses a list of hosts on a first installation.
+**Database address.** The database server URL that the installation asks for is one write address: the address of the one database server that accepts writes. It can be the primary server, a virtual IP address, a connection pooler, a managed database endpoint or a Kubernetes read-write service. Do not enter the address of a standby server or a read-only replica, and do not enter a list of hosts. The installer refuses an address that does not accept writes, and refuses a list of hosts on a first installation. You set the write address at the first installation. The installation stores it in `/etc/xroad/db.properties` and in `/etc/openbao/xroad-openbao.env`, and does not change it later, so use a stable name or a virtual IP address that follows a failover.
 
 **PostgreSQL version.** Use PostgreSQL 15 or newer. The installer refuses an older version.
 
@@ -568,12 +568,13 @@ The master user needs the attributes `CREATEROLE` and `CREATEDB`. It does not ne
 **Preconfiguration of the packages.** For a Central Server with a remote or shared database, apt must load the questions of the Central Server package before it configures the secret store package. Otherwise the step of the installation that creates the OpenBao database cannot tell that it runs on a Central Server, and it skips the version check, the write check and the host list check. It does not show a message. Do one of these:
 
 - Make sure that the package `apt-utils` is installed. It is installed by default on Ubuntu Server. Then apt preconfigures all packages first.
-- Preseed the answer for the database migrations before the installation:
+- Preseed the answers for the database migrations and for the database address before the installation:
 
   ```bash
   sudo debconf-set-selections <<< 'xroad-center xroad-common/skip-cs-db-migrations boolean false'
+  sudo debconf-set-selections <<< 'xroad-center xroad-common/database-host string <write_address_host>:<write_address_port>'
   ```
 
-  Use `false` for automatic migrations, or `true` to run the migrations manually.
+  Use `false` for automatic migrations, or `true` to run the migrations manually. Preseeding only the migrations answer is not enough. The question for the database address does not exist before the Central Server package is preconfigured, so the secret store step reads an empty answer. It then uses `127.0.0.1:5432`: it runs the checks against the local database and creates the OpenBao database there, not on the write address.
 
 The Central Server High Availability Installation Guide describes the installer checks and what to do when one fails: [section 3.1.3](ig-csha_x-road_6_ha_installation_guide.md#313-installer-checks-of-the-database).
