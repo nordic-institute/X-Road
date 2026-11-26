@@ -15,7 +15,7 @@ Doc. ID: IG-CS-8-UPGRADE
 | 11.11.2026 | 1.1     | Carry the node name before the package upgrade | Ričardas Bučiūnas  |
 | 12.11.2026 | 1.2     | Keep db.properties; add `--installation=cs`    | Ričardas Bučiūnas  |
 | 24.11.2026 | 1.3     | Close the gaps found on a test upgrade         | Andres Rosenthal   |
-| 26.11.2026 | 1.4     | Set the soft token PIN hash on a token the signer created first; add recovery for an uninitialized token | Andres Rosenthal   |
+| 26.11.2026 | 1.4     | Set the soft token PIN hash on a token the signer created first; add recovery for an uninitialized token; run the confirmation-prompting migration-CLI commands in step 11 without a prompt | Andres Rosenthal   |
 
 ## License
 
@@ -243,18 +243,18 @@ for name in internal center-admin-service management-service; do
 done
 ```
 
-**11. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server. A sub-command exits with an error when its source file is missing. The `[ -f ]` checks below skip the optional ones. `keyconf` always needs `/etc/xroad/signer/keyconf.xml`. Pass `--installation=cs` to every sub-command. For a Central Server, the following sub-commands are the relevant ones:
+**11. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server. A sub-command exits with an error when its source file is missing. The `[ -f ]` checks below skip the optional ones. `keyconf` always needs `/etc/xroad/signer/keyconf.xml`. Pass `--installation=cs` to every sub-command. `signer-devices` and `ini-to-db` would otherwise ask `Proceed with migration? [y/N]`, so the commands below set `XROAD_MIGRATION_AUTO_CONFIRM=true` for those two only; the list of properties they write is still printed. For a Central Server, the following sub-commands are the relevant ones:
 
 ```bash
 java -jar /var/tmp/migration-cli.jar validate --installation=cs
 
 # devices.ini — HSM/signer module declarations
 [ -f /etc/xroad/devices.ini ] && \
-  java -jar /var/tmp/migration-cli.jar signer-devices --installation=cs /etc/xroad/devices.ini /etc/xroad/db.properties
+  XROAD_MIGRATION_AUTO_CONFIRM=true java -jar /var/tmp/migration-cli.jar signer-devices --installation=cs /etc/xroad/devices.ini /etc/xroad/db.properties
 
 # ini-to-db — every override-*.ini, then local.ini
 for ini in /etc/xroad/conf.d/override-*.ini /etc/xroad/conf.d/local.ini; do
-  [ -f "$ini" ] && java -jar /var/tmp/migration-cli.jar ini-to-db --installation=cs "$ini" /etc/xroad/db.properties
+  [ -f "$ini" ] && XROAD_MIGRATION_AUTO_CONFIRM=true java -jar /var/tmp/migration-cli.jar ini-to-db --installation=cs "$ini" /etc/xroad/db.properties
 done
 
 # <node> is the node name from step 8; --node may be left out only for node_0
