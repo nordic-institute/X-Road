@@ -127,36 +127,38 @@ public class CallModeSelector {
         var serversByAddress = needsServerLookup(servers)
                 ? serversByAddress(target.provider())
                 : Map.<String, List<SecurityServerId>>of();
-        var candidates = new ArrayList<AcquisitionCandidate>();
-        XrdRuntimeException firstFailure = null;
-        var published = false;
+        var selection = new Selection();
         for (var address : servers.available()) {
             for (var serverId : serversOf(address, serversByAddress)) {
-                var systemValues = globalConfProvider.getServerSystemValues(serverId);
-                var did = publishedDid(target, serverId, systemValues);
-                if (did.isEmpty()) {
-                    continue;
-                }
-                published = true;
-                try {
-                    candidates.add(candidateOf(target, serverId, did.get(), systemValues));
-                } catch (XrdRuntimeException ex) {
-                    log.warn("Skipping SS {} (address {}): its published DSP target is not usable: {}",
-                            serverId, address.hostAddress(), ex.getMessage());
-                    if (firstFailure == null) {
-                        firstFailure = ex;
-                    }
-                }
+                collect(target, address, serverId, selection);
             }
         }
-        if (!candidates.isEmpty()) {
-            return new CallMode.Dsp(candidates);
+        if (!selection.candidates.isEmpty()) {
+            return new CallMode.Dsp(selection.candidates);
         }
-        if (published) {
-            throw ClientFacingErrorPolicy.sanitizeProviderTargetFailure(firstFailure);
+        if (selection.published) {
+            throw ClientFacingErrorPolicy.sanitizeProviderTargetFailure(selection.firstFailure);
         }
         failOnPublishedServerInMaintenance(target, servers, serversByAddress);
         return new CallMode.Unnegotiated();
+    }
+
+    private void collect(CalledTarget target, ProviderAddress address, SecurityServerId serverId, Selection selection) {
+        var systemValues = globalConfProvider.getServerSystemValues(serverId);
+        var did = publishedDid(target, serverId, systemValues);
+        if (did.isEmpty()) {
+            return;
+        }
+        selection.published = true;
+        try {
+            selection.candidates.add(candidateOf(target, serverId, did.get(), systemValues));
+        } catch (XrdRuntimeException ex) {
+            log.warn("Skipping SS {} (address {}): its published DSP target is not usable: {}",
+                    serverId, address.hostAddress(), ex.getMessage());
+            if (selection.firstFailure == null) {
+                selection.firstFailure = ex;
+            }
+        }
     }
 
     private void failOnPublishedServerInMaintenance(CalledTarget target, ProviderCandidates servers,
@@ -224,5 +226,11 @@ public class CallModeSelector {
                     "Security server %s published the DID %s, which is not the DID of the called %s",
                     serverId, did, target.system() ? "SYSTEM participant" : "member " + target.provider().toShortString());
         }
+    }
+
+    private static final class Selection {
+        private final List<AcquisitionCandidate> candidates = new ArrayList<>();
+        private XrdRuntimeException firstFailure;
+        private boolean published;
     }
 }

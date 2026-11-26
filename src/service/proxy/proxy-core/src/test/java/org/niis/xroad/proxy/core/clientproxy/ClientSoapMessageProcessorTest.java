@@ -388,7 +388,7 @@ class ClientSoapMessageProcessorTest {
     }
 
     @Test
-    void sendRefusesUnnegotiatedCallWhenLocalSettingRefuses() throws Exception {
+    void sendRefusesUnnegotiatedCallWhenLocalSettingRefuses() {
         var harness = createRefusalHarness(false, true);
         var httpSender = mock(HttpSender.class);
         stubSenders(harness, httpSender);
@@ -404,7 +404,7 @@ class ClientSoapMessageProcessorTest {
     }
 
     @Test
-    void sendRefusesUnnegotiatedCallWhenProviderInstanceRefuses() throws Exception {
+    void sendRefusesUnnegotiatedCallWhenProviderInstanceRefuses() {
         var harness = createRefusalHarness(false, false);
         when(harness.globalConfProvider().isLegacyProtocolDisabled(OTHER_CLIENT.getXRoadInstance())).thenReturn(true);
         stubSenders(harness, mock(HttpSender.class));
@@ -507,7 +507,7 @@ class ClientSoapMessageProcessorTest {
     }
 
     @Test
-    void sendRefusesAnUnpublishedDidWhenProviderInstanceRefuses() throws Exception {
+    void sendRefusesAnUnpublishedDidWhenProviderInstanceRefuses() {
         var harness = createRefusalHarness(true, false);
         when(harness.globalConfProvider().isLegacyProtocolDisabled(OTHER_CLIENT.getXRoadInstance())).thenReturn(true);
         when(harness.globalConfProvider().getMemberDid(any(), any())).thenReturn(Optional.empty());
@@ -520,7 +520,7 @@ class ClientSoapMessageProcessorTest {
     }
 
     @Test
-    void aDspFailureOnAPublishedDidReachesTheClientAndMakesNoUnnegotiatedCall() throws Exception {
+    void aDspFailureOnAPublishedDidReachesTheClientAndMakesNoUnnegotiatedCall() {
         var harness = createRefusalHarness(true, false);
         var dspFailure = ClientFacingErrorPolicy.sanitizeForConsumer(XrdRuntimeException.systemException(DSP_NEGOTIATION_FAILED)
                 .origin(DATASPACE)
@@ -541,8 +541,7 @@ class ClientSoapMessageProcessorTest {
 
     @ParameterizedTest
     @MethodSource("unusablePublishedDids")
-    void aPublishedDidThatCannotBeUsedReachesTheClientAsInternalErrorWithoutTheDidAndMakesNoUnnegotiatedCall(String publishedDid)
-            throws Exception {
+    void aPublishedDidThatCannotBeUsedReachesTheClientAsInternalErrorWithoutTheDidAndMakesNoUnnegotiatedCall(String publishedDid) {
         var harness = createRefusalHarness(true, true);
         publishServer(harness.globalConfProvider(), SS_A_SERVER, SS_A_HOST, publishedDid);
         stubSenders(harness, mock(HttpSender.class));
@@ -565,7 +564,7 @@ class ClientSoapMessageProcessorTest {
     }
 
     @Test
-    void aServerWithoutSystemValuesThatPublishedTheCalledDidReachesTheClientAsInternalError() throws Exception {
+    void aServerWithoutSystemValuesThatPublishedTheCalledDidReachesTheClientAsInternalError() {
         var harness = createRefusalHarness(true, false);
         when(harness.globalConfProvider().getServerSystemValues(SS_A_SERVER)).thenReturn(Optional.empty());
         stubSenders(harness, mock(HttpSender.class));
@@ -579,7 +578,7 @@ class ClientSoapMessageProcessorTest {
     }
 
     @Test
-    void theMaintenanceErrorOfAPublishedServerReachesTheClientUnchangedWhileLegacyCallsAreRefused() throws Exception {
+    void theMaintenanceErrorOfAPublishedServerReachesTheClientUnchangedWhileLegacyCallsAreRefused() {
         var harness = createRefusalHarness(true, true);
         var maintenanceError = XrdRuntimeException.systemException(MAINTENANCE_MODE, "ss-a.example is in maintenance mode");
         when(harness.serviceAddressResolver().resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(

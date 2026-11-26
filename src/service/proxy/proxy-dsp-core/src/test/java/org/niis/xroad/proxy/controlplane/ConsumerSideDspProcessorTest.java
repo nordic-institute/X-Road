@@ -297,7 +297,8 @@ class ConsumerSideDspProcessorTest {
 
     @Test
     void aRequestWithNoCandidatesYieldsUnknownMemberWithOriginalDspCode() {
-        assertThatThrownBy(() -> processor.execute(requestTo()))
+        var request = requestTo();
+        assertThatThrownBy(() -> processor.execute(request))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
@@ -316,7 +317,8 @@ class ConsumerSideDspProcessorTest {
 
     @Test
     void aRequestWhoseEveryCandidateWasTriedYieldsUnknownMemberAndNoAcquisitionCall() {
-        assertThatThrownBy(() -> processor.execute(requestTo(HOST_A).withTriedServer(URL_A)))
+        var request = requestTo(HOST_A).withTriedServer(URL_A);
+        assertThatThrownBy(() -> processor.execute(request))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue());
 
@@ -330,7 +332,8 @@ class ConsumerSideDspProcessorTest {
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any()))
                 .thenThrow(dspException);
 
-        assertThatThrownBy(() -> processor.execute(requestTo(HOST_A)))
+        var request = requestTo(HOST_A);
+        assertThatThrownBy(() -> processor.execute(request))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
@@ -352,7 +355,8 @@ class ConsumerSideDspProcessorTest {
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any()))
                 .thenThrow(dspException);
 
-        assertThatThrownBy(() -> processor.execute(requestTo(HOST_A)))
+        var request = requestTo(HOST_A);
+        assertThatThrownBy(() -> processor.execute(request))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
@@ -372,7 +376,8 @@ class ConsumerSideDspProcessorTest {
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
                 .thenThrow(dspException);
 
-        assertThatThrownBy(() -> processor.execute(requestTo(HOST_A, HOST_B)))
+        var request = requestTo(HOST_A, HOST_B);
+        assertThatThrownBy(() -> processor.execute(request))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
@@ -408,7 +413,8 @@ class ConsumerSideDspProcessorTest {
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
                 .thenThrow(grpcFailure);
 
-        assertThatThrownBy(() -> processor.execute(requestTo(HOST_A)))
+        var request = requestTo(HOST_A);
+        assertThatThrownBy(() -> processor.execute(request))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
@@ -430,7 +436,8 @@ class ConsumerSideDspProcessorTest {
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any()))
                 .thenThrow(dspException);
 
-        assertThatThrownBy(() -> processor.execute(requestTo(HOST_A)))
+        var request = requestTo(HOST_A);
+        assertThatThrownBy(() -> processor.execute(request))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
@@ -450,7 +457,8 @@ class ConsumerSideDspProcessorTest {
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any()))
                 .thenThrow(dspException);
 
-        assertThatThrownBy(() -> processor.execute(requestTo(HOST_A)))
+        var request = requestTo(HOST_A);
+        assertThatThrownBy(() -> processor.execute(request))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
@@ -473,7 +481,8 @@ class ConsumerSideDspProcessorTest {
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any()))
                 .thenThrow(futureDspException);
 
-        assertThatThrownBy(() -> processor.execute(requestTo(HOST_A)))
+        var request = requestTo(HOST_A);
+        assertThatThrownBy(() -> processor.execute(request))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;

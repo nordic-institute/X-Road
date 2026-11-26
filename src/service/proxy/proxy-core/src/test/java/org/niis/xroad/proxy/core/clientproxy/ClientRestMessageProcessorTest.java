@@ -583,7 +583,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendRefusesAnUnpublishedDidWhenProviderInstanceRefuses() throws Exception {
+    void sendRefusesAnUnpublishedDidWhenProviderInstanceRefuses() {
         var harness = createHarness(true, false);
         when(harness.globalConfProvider().isLegacyProtocolDisabled(serviceId().getXRoadInstance())).thenReturn(true);
         when(harness.globalConfProvider().getMemberDid(any(), any())).thenReturn(Optional.empty());
@@ -597,7 +597,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void aDspFailureOnAPublishedDidReachesTheClientAndMakesNoUnnegotiatedCall() throws Exception {
+    void aDspFailureOnAPublishedDidReachesTheClientAndMakesNoUnnegotiatedCall() {
         var harness = createHarness(true);
         var dspFailure = ClientFacingErrorPolicy.sanitizeForConsumer(XrdRuntimeException.systemException(DSP_NEGOTIATION_FAILED)
                 .origin(DATASPACE)
@@ -619,8 +619,7 @@ class ClientRestMessageProcessorTest {
 
     @ParameterizedTest
     @MethodSource("unusablePublishedDids")
-    void aPublishedDidThatCannotBeUsedReachesTheClientAsInternalErrorWithoutTheDidAndMakesNoUnnegotiatedCall(String publishedDid)
-            throws Exception {
+    void aPublishedDidThatCannotBeUsedReachesTheClientAsInternalErrorWithoutTheDidAndMakesNoUnnegotiatedCall(String publishedDid) {
         var harness = createHarness(true, true);
         publishServer(harness.globalConfProvider(), SS_A_SERVER, SS_A_HOST, publishedDid);
         stubUnnegotiatedAddress(harness);
@@ -644,7 +643,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void aServerWithoutSystemValuesThatPublishedTheCalledDidReachesTheClientAsInternalError() throws Exception {
+    void aServerWithoutSystemValuesThatPublishedTheCalledDidReachesTheClientAsInternalError() {
         var harness = createHarness(true);
         when(harness.globalConfProvider().getServerSystemValues(SS_A_SERVER)).thenReturn(Optional.empty());
         stubUnnegotiatedAddress(harness);
@@ -657,7 +656,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void theMaintenanceErrorOfAPublishedServerReachesTheClientUnchangedWhileLegacyCallsAreRefused() throws Exception {
+    void theMaintenanceErrorOfAPublishedServerReachesTheClientUnchangedWhileLegacyCallsAreRefused() {
         var harness = createHarness(true, true);
         var maintenanceError = XrdRuntimeException.systemException(MAINTENANCE_MODE, "ss-a.example is in maintenance mode");
         when(harness.serviceAddressResolver().resolveCandidates(any(), any())).thenReturn(new ProviderCandidates(

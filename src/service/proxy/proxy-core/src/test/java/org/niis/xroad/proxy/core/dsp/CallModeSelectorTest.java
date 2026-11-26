@@ -160,9 +160,9 @@ class CallModeSelectorTest {
 
         assertThat(mode).isEqualTo(new CallMode.Unnegotiated());
         assertThat(capture.records)
-                .filteredOn(record -> capture.formatted(record).contains("other.example"))
+                .filteredOn(logRecord -> capture.formatted(logRecord).contains("other.example"))
                 .singleElement()
-                .satisfies(record -> assertThat(record.getLevel()).isEqualTo(Level.WARNING));
+                .satisfies(logRecord -> assertThat(logRecord.getLevel()).isEqualTo(Level.WARNING));
     }
 
     @Test
@@ -551,12 +551,12 @@ class CallModeSelectorTest {
         private final List<LogRecord> records = new CopyOnWriteArrayList<>();
 
         @Override
-        public void publish(LogRecord record) {
-            records.add(record);
+        public void publish(LogRecord logRecord) {
+            records.add(logRecord);
         }
 
-        String formatted(LogRecord record) {
-            return record instanceof ExtLogRecord ext ? ext.getFormattedMessage() : record.getMessage();
+        String formatted(LogRecord logRecord) {
+            return logRecord instanceof ExtLogRecord ext ? ext.getFormattedMessage() : logRecord.getMessage();
         }
 
         @Override

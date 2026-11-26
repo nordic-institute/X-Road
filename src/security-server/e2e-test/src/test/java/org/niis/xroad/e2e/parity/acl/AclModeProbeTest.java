@@ -44,17 +44,22 @@ class AclModeProbeTest {
 
     @Test
     void legacyModeFailsWhenTheIssuerServiceIsBound() {
-        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, new DataspaceState(true, false, false)))
+        var issuerBound = new DataspaceState(true, false, false);
+
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, issuerBound))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("LEGACY").hasMessageContaining("Issuer Service bound: true");
     }
 
     @Test
     void legacyModeFailsWhenOneSecurityServerIsDataspaceReady() {
-        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, new DataspaceState(false, true, false)))
+        var ss0Ready = new DataspaceState(false, true, false);
+        var ss1Ready = new DataspaceState(false, false, true);
+
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, ss0Ready))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("ss0 dataspace_ready: true");
-        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, new DataspaceState(false, false, true)))
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, ss1Ready))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("ss1 dataspace_ready: true");
     }
@@ -67,10 +72,12 @@ class AclModeProbeTest {
 
     @Test
     void dataspaceModesFailWithoutDataspace() {
+        var ss1NotReady = new DataspaceState(true, true, false);
+
         assertThatThrownBy(() -> AclModeProbe.verify(AclMode.DSP, NO_DATASPACE))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("DSP").hasMessageContaining("Issuer Service bound: false");
-        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.DSP_REFUSAL, new DataspaceState(true, true, false)))
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.DSP_REFUSAL, ss1NotReady))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("DSP_REFUSAL").hasMessageContaining("ss1 dataspace_ready: false");
     }
