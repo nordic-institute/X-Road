@@ -212,7 +212,11 @@ setup_database() {
   local db_host="${new_db_host:-127.0.0.1:5432}"
 
   if [ "$central_server" = true ]; then
-    check_db_host_answer "$db_host" fresh
+    local host_state=fresh
+    if [ -n "$(get_prop "$db_properties" spring.datasource.url)" ]; then
+      host_state=existing
+    fi
+    check_db_host_answer "$db_host" "$host_state"
   fi
 
   local db_master_conn_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')

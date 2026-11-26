@@ -132,6 +132,28 @@ class CsDatabasePreflightTest {
     }
 
     @Test
+    void readOnlyFirstHostOfExistingHostListWarnsAndPasses() throws Exception {
+        var database = newDatabase();
+        makeReadOnly(database);
+
+        var result = checkWritable(database, runtimeAccess(database), HOST_LIST, "existing");
+
+        assertThat(result.getExitCode()).as(result.getStderr()).isZero();
+        assertThat(result.getStderr()).contains("Warning").contains("'db1.example.test:5432'").contains(HOST_LIST);
+    }
+
+    @Test
+    void readOnlySingleHostOfExistingInstallIsRefused() throws Exception {
+        var database = newDatabase();
+        makeReadOnly(database);
+
+        var result = checkWritable(database, runtimeAccess(database), ADDRESS, "existing");
+
+        assertThat(result.getExitCode()).isEqualTo(1);
+        assertThat(result.getStderr()).contains(ADDRESS).doesNotContain("Warning");
+    }
+
+    @Test
     void hostListIsRefusedOnFreshInstall() throws Exception {
         assumeHostRuleRunsOnce();
 
@@ -174,6 +196,11 @@ class CsDatabasePreflightTest {
 
     private static ExecResult checkWritable(Database database, Access access) throws IOException, InterruptedException {
         return run(database, access, "check_db_writable psql_check '%s'".formatted(ADDRESS));
+    }
+
+    private static ExecResult checkWritable(Database database, Access access, String address, String state)
+            throws IOException, InterruptedException {
+        return run(database, access, "check_db_writable psql_check '%s' %s".formatted(address, state));
     }
 
     private static ExecResult run(Database database, Access access, String call) throws IOException, InterruptedException {

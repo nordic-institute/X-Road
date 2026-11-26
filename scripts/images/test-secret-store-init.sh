@@ -121,7 +121,7 @@ in_container() { docker exec "${CONTAINER}" "$@"; }
 
 stage_scripts() {
   mkdir -p "${SCRIPTS_DIR}"
-  cp -p "${SECRET_STORE_SCRIPTS_DIR}"/* "${BASE_SCRIPTS_DIR}/secret-store-cluster-bundle.sh" "${BASE_SCRIPTS_DIR}/_restore_xroad.sh" "${SCRIPTS_DIR}/"
+  cp -p "${SECRET_STORE_SCRIPTS_DIR}"/* "${BASE_SCRIPTS_DIR}/secret-store-cluster-bundle.sh" "${BASE_SCRIPTS_DIR}/_restore_xroad.sh" "${BASE_SCRIPTS_DIR}/_setup_db.sh" "${SCRIPTS_DIR}/"
 }
 write_shim() {
   cat >"${WORK_DIR}/curl-shim" <<'SHIM'
@@ -1681,6 +1681,46 @@ check_psql_hostile_case() {
     check_psql_password_not_in_arguments "${description}" "${password}"
   fi
 }
+scenario_central_server_host_list() {
+  log_info "Scenario: the Central Server host-list rule in the OpenBao storage step"
+  local hosts="db1.example.test:5432,db2.example.test:5432"
+  CONTAINER="${ENV_PARSE_CONTAINER}"
+  docker rm -f "${CONTAINER}" >/dev/null 2>&1
+  docker run -d --init --name "${CONTAINER}" \
+    -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
+    --entrypoint sh "${IMAGE}" -c 'exec tail -f /dev/null' >/dev/null || exit 1
+  in_container mkdir -p /etc/openbao /etc/xroad /usr/local/bin
+  cat >"${WORK_DIR}/crudini-shim" <<'SHIM'
+#!/bin/sh
+sed -n "s/^$4[[:space:]]*=[[:space:]]*//p" "$2" | { read -r value || exit 1; printf '%s' "${value}"; }
+SHIM
+  cat >"${WORK_DIR}/psql-writable-stub" <<'SHIM'
+#!/bin/sh
+case "$*" in
+  *server_version_num*) echo 180000; exit 0 ;;
+  *transaction_read_only*) echo off; exit 0 ;;
+esac
+cat >/dev/null
+SHIM
+  docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
+  docker cp "${WORK_DIR}/psql-writable-stub" "${CONTAINER}:/usr/local/bin/psql" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/crudini /usr/local/bin/psql
+
+  in_container sh -c "printf 'postgres.connection.password = master-pw-for-test\n' > /etc/xroad.properties"
+  in_container rm -f "${ENV_FILE}" /etc/xroad/db.properties
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${hosts}"
+  check_eq "no existing URL, host list: exit 1" 1 "${RC}"
+  check "no existing URL, host list: the message asks for one write address" grep -qF "is a host list. Give one write address" "${ERR_FILE}"
+  check_eq "no existing URL, host list: no OpenBao environment file is written" "" "$(in_container ls "${ENV_FILE}" 2>/dev/null)"
+
+  in_container sh -c "printf 'spring.datasource.url = jdbc:postgresql://%s/centerui_production\n' '${hosts}' > /etc/xroad/db.properties"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${hosts}"
+  check_eq "existing URL, host list: exit 0" 0 "${RC}"
+  check "existing URL, host list: the warning names the list" grep -qF "Warning: the database address '${hosts}' is a host list" "${ERR_FILE}"
+  check "existing URL, host list: the first host is probed for writes" grep -qF "Database at 'db1.example.test:5432' accepts writes" "${ERR_FILE}"
+  check "existing URL, host list: the OpenBao environment file is written" in_container test -s "${ENV_FILE}"
+}
+
 scenario_psql_values_not_executed() {
   log_info "Scenario: values from the OpenBao environment file reach a real psql only as data"
   local mode marker user password dbname generated_user generated_password env_hash key value
@@ -1834,6 +1874,7 @@ scenario_restore_keeps_node_config
 scenario_postrm_purge
 scenario_import_base_only
 scenario_env_file_parsing
+scenario_central_server_host_list
 scenario_psql_values_not_executed
 scenario_supervisor_listener
 

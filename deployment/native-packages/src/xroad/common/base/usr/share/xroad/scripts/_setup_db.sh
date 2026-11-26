@@ -42,14 +42,20 @@ check_pg_version() {
 }
 
 # Refuses a database that does not accept writes, such as a standby or a read-only endpoint.
-# Arguments: $1 - name of the psql function to query the database with, $2 - database address, named in the message
+# An existing configuration with a host list only gets a warning, because only the first host is checked.
+# Arguments: $1 - name of the psql function to query the database with, $2 - database address, named in the message,
+# $3 - optional, existing for an address that was configured before
 check_db_writable() {
-  local -r psql_fn="$1" address="$2"
+  local -r psql_fn="$1" address="$2" state="${3:-}"
   local read_only
 
   read_only=$(PGCONNECT_TIMEOUT=5 "$psql_fn" -tA -c "SHOW transaction_read_only" 2>/dev/null | tr -d '[:space:]')
 
   if [[ "$read_only" != "off" ]]; then
+    if [[ "$state" == existing && "$address" == *,* ]]; then
+      log "Warning: the first host '${address%%,*}' of the database address '$address' does not accept writes. Only the first host was checked. Make sure that the address follows the primary, or use one write address instead."
+      return 0
+    fi
     die "The database at '$address' does not accept writes. Use the write address of the database: the primary, a virtual IP, a connection pooler, a managed endpoint or a Kubernetes read-write service."
   fi
 
