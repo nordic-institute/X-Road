@@ -134,8 +134,16 @@ psql_set_literal() {
 
 create_database_if_needed() {
   local db_host="$1"
+  local role_login="$2"
 
-  if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+  if [ -z "$role_login" ]; then
+    role_login=false
+    if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+      role_login=true
+    fi
+  fi
+
+  if [ "$role_login" = true ]; then
     echo "Database and user exists, skipping database creation."
     return 0
   fi
@@ -237,11 +245,18 @@ setup_database() {
 
   parse_database_host "$db_host"
   setup_psql_functions "$root_properties" "$db_master_conn_user"
+  local role_login=
   if [ "$central_server" = true ]; then
-    check_pg_version psql_master
-    check_db_writable psql_master "${db_addr}:${db_port}"
+    local check_psql=psql_master
+    role_login=false
+    if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+      check_psql=psql_dbuser
+      role_login=true
+    fi
+    check_pg_version "$check_psql"
+    check_db_writable "$check_psql" "${db_addr}:${db_port}"
   fi
-  create_database_if_needed "$db_host"
+  create_database_if_needed "$db_host" "$role_login"
   create_env_file_if_needed
 }
 

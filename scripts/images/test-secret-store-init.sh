@@ -1681,9 +1681,8 @@ check_psql_hostile_case() {
     check_psql_password_not_in_arguments "${description}" "${password}"
   fi
 }
-scenario_central_server_host_list() {
-  log_info "Scenario: the Central Server host-list rule in the OpenBao storage step"
-  local hosts="db1.example.test:5432,db2.example.test:5432"
+# start_central_server_container: a bare container with the init scripts, a crudini shim and no database.
+start_central_server_container() {
   CONTAINER="${ENV_PARSE_CONTAINER}"
   docker rm -f "${CONTAINER}" >/dev/null 2>&1
   docker run -d --init --name "${CONTAINER}" \
@@ -1694,6 +1693,14 @@ scenario_central_server_host_list() {
 #!/bin/sh
 sed -n "s/^$4[[:space:]]*=[[:space:]]*//p" "$2" | { read -r value || exit 1; printf '%s' "${value}"; }
 SHIM
+  docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/crudini
+}
+
+scenario_central_server_host_list() {
+  log_info "Scenario: the Central Server host-list rule in the OpenBao storage step"
+  local hosts="db1.example.test:5432,db2.example.test:5432"
+  start_central_server_container
   cat >"${WORK_DIR}/psql-writable-stub" <<'SHIM'
 #!/bin/sh
 case "$*" in
@@ -1702,9 +1709,8 @@ case "$*" in
 esac
 cat >/dev/null
 SHIM
-  docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
   docker cp "${WORK_DIR}/psql-writable-stub" "${CONTAINER}:/usr/local/bin/psql" >/dev/null || exit 1
-  in_container chmod +x /usr/local/bin/crudini /usr/local/bin/psql
+  in_container chmod +x /usr/local/bin/psql
 
   in_container sh -c "printf 'postgres.connection.password = master-pw-for-test\n' > /etc/xroad.properties"
   in_container rm -f "${ENV_FILE}" /etc/xroad/db.properties
@@ -1719,6 +1725,63 @@ SHIM
   check "existing URL, host list: the warning names the list" grep -qF "Warning: the database address '${hosts}' is a host list" "${ERR_FILE}"
   check "existing URL, host list: the first host is probed for writes" grep -qF "Database at 'db1.example.test:5432' accepts writes" "${ERR_FILE}"
   check "existing URL, host list: the OpenBao environment file is written" in_container test -s "${ENV_FILE}"
+}
+
+PSQL_ROLE_CALLS_FILE="/tmp/psql-role-calls"
+ROLE_LOGIN_OK_FILE="/tmp/stub-role-login-ok"
+# role_check_calls USER: the version and write checks the stub answered as USER.
+role_check_calls() { in_container sh -c "grep -c \"^$1 .*\\(server_version_num\\|transaction_read_only\\)\" ${PSQL_ROLE_CALLS_FILE} || true"; }
+
+scenario_central_server_check_role() {
+  log_info "Scenario: the Central Server checks in the OpenBao storage step run as the role that the step uses next"
+  start_central_server_container
+  cat >"${WORK_DIR}/psql-role-stub" <<'SHIM'
+#!/bin/sh
+echo "${PGUSER:-none} $*" >>/tmp/psql-role-calls
+case "$*" in
+  *'\q'*) [ -e /tmp/stub-role-login-ok ] && [ "${PGUSER}" = openbao ]; exit $? ;;
+  *server_version_num*) echo 180000; exit 0 ;;
+  *transaction_read_only*) if [ -e "/tmp/stub-read-only-${PGUSER}" ]; then echo on; else echo off; fi; exit 0 ;;
+esac
+cat >/dev/null
+SHIM
+  docker cp "${WORK_DIR}/psql-role-stub" "${CONTAINER}:/usr/local/bin/psql" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/psql
+  in_container sh -c "printf 'postgres.connection.password = master-pw-for-test\n' > /etc/xroad.properties"
+  in_container sh -c "touch ${PSQL_ROLE_CALLS_FILE} && chmod 666 ${PSQL_ROLE_CALLS_FILE}"
+  local address="127.0.0.1:5432"
+
+  in_container sh -c "rm -f ${ENV_FILE} /etc/xroad/db.properties /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch ${ROLE_LOGIN_OK_FILE} /tmp/stub-read-only-postgres"
+  write_psql_env_file openbao role-pw-for-test 127.0.0.1 5432 openbao openbao
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "working role, writable for the role: exit 0" 0 "${RC}"
+  check "working role, writable for the role: the write check passes" grep -qF "Database at '${address}' accepts writes" "${ERR_FILE}"
+  check_ne "working role: the checks run as the OpenBao role" 0 "$(role_check_calls openbao)"
+  check_eq "working role: the master user runs no check" 0 "$(role_check_calls postgres)"
+
+  in_container sh -c "rm -f /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch /tmp/stub-read-only-openbao"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "working role, read-only for the role: exit 1" 1 "${RC}"
+  check "working role, read-only for the role: the message says the database does not accept writes" grep -qF "The database at '${address}' does not accept writes" "${ERR_FILE}"
+  check_eq "working role, read-only for the role: the master user runs no check" 0 "$(role_check_calls postgres)"
+
+  in_container sh -c "rm -f ${ROLE_LOGIN_OK_FILE} /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch /tmp/stub-read-only-openbao"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "role login fails, writable for the master user: exit 0" 0 "${RC}"
+  check "role login fails: the write check passes" grep -qF "Database at '${address}' accepts writes" "${ERR_FILE}"
+  check_ne "role login fails: the checks run as the master user" 0 "$(role_check_calls postgres)"
+  check_eq "role login fails: the OpenBao role runs no check" 0 "$(role_check_calls openbao)"
+
+  in_container sh -c "rm -f ${ENV_FILE} /etc/xroad/db.properties /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch /tmp/stub-read-only-openbao"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "fresh install, writable for the master user: exit 0" 0 "${RC}"
+  check_ne "fresh install: the checks run as the master user" 0 "$(role_check_calls postgres)"
+  check "fresh install: the OpenBao environment file is written" in_container test -s "${ENV_FILE}"
+
+  in_container sh -c "rm -f ${ENV_FILE} /etc/xroad/db.properties /tmp/stub-read-only-*; touch /tmp/stub-read-only-postgres"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "fresh install, read-only for the master user: exit 1" 1 "${RC}"
+  check "fresh install, read-only for the master user: the message says the database does not accept writes" grep -qF "The database at '${address}' does not accept writes" "${ERR_FILE}"
 }
 
 scenario_psql_values_not_executed() {
@@ -1875,6 +1938,7 @@ scenario_postrm_purge
 scenario_import_base_only
 scenario_env_file_parsing
 scenario_central_server_host_list
+scenario_central_server_check_role
 scenario_psql_values_not_executed
 scenario_supervisor_listener
 
