@@ -147,6 +147,19 @@ public class DataspaceReadinessPredicates {
     }
 
     /**
+     * Whether a participant context may be bound, given a known registered address: the data space is ready and the
+     * SS has a registered authentication certificate. The provisioning worker and every action that relies on its
+     * binding step use this one rule.
+     *
+     * @param dataspaceReady     the result of {@link #isDataspaceReady()}
+     * @param authCertRegistered the result of {@link #hasRegisteredAuthCert()}
+     * @return whether the worker binds unbound contexts
+     */
+    public static boolean mayBind(boolean dataspaceReady, boolean authCertRegistered) {
+        return dataspaceReady && authCertRegistered;
+    }
+
+    /**
      * Returns {@code true} if the management-request subsystem is registered as a client on this SS.
      * Loads server configuration from the repository inside the active transaction.
      * Treats globalconf or serverconf unavailability as "not registered".

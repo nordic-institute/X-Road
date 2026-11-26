@@ -25,16 +25,22 @@
  */
 package org.niis.xroad.e2e.container;
 
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.model.ContainerNetwork;
+import com.github.dockerjava.api.model.Frame;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.testcontainers.containers.ComposeContainer;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
@@ -74,6 +80,7 @@ public class SsStackSetup extends AbstractSsStack {
     private static final String COMPOSE_SS_MSGLOG_CLI = "compose.ss-msglog.e2e.yaml";
     private static final String XROAD_NETWORK = "xroad-network";
     private static final String COUNTRY_PROFILE_ENV = "COUNTRY_PROFILE";
+    private static final Duration LOG_READ_TIMEOUT = Duration.ofSeconds(30);
 
     private final String name;
     private final Set<Feature> features;
@@ -103,6 +110,7 @@ public class SsStackSetup extends AbstractSsStack {
                 .withEnv("DSP_PARTICIPANT_ID", "xrd-" + name)
                 .withEnv("SS_ADDRESS", "xrd-" + name)
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
+                .withExposedService(PROXY, Port.PROXY_TLS, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
@@ -163,6 +171,42 @@ public class SsStackSetup extends AbstractSsStack {
                 });
     }
 
+    /** The lines the container has written to its output so far, including those of earlier runs of the container. */
+    @SneakyThrows
+    Stream<String> containerLogLines(String service) {
+        var container = env.getContainerByServiceName(service)
+                .orElseThrow(() -> new IllegalStateException("Container not found: " + service));
+        var output = new StringBuilder();
+        var completed = container.getDockerClient().logContainerCmd(container.getContainerId())
+                .withStdOut(true)
+                .withStdErr(true)
+                .exec(new ResultCallback.Adapter<Frame>() {
+                    @Override
+                    public void onNext(Frame frame) {
+                        output.append(new String(frame.getPayload(), StandardCharsets.UTF_8));
+                    }
+                })
+                .awaitCompletion(LOG_READ_TIMEOUT.toSeconds(), TimeUnit.SECONDS);
+        if (!completed) {
+            throw new IllegalStateException("Reading the log of %s did not finish in %s".formatted(service, LOG_READ_TIMEOUT));
+        }
+        return output.toString().lines();
+    }
+
+    /** Docker's latest healthcheck results of the container, oldest first, each as its exit code and output. */
+    String dockerHealthLog(String service) {
+        var container = env.getContainerByServiceName(service)
+                .orElseThrow(() -> new IllegalStateException("Container not found: " + service));
+        var health = container.getDockerClient().inspectContainerCmd(container.getContainerId()).exec()
+                .getState().getHealth();
+        if (health == null || health.getLog() == null) {
+            return "no healthcheck results";
+        }
+        return health.getLog().stream()
+                .map(entry -> "exit=%d %s".formatted(entry.getExitCodeLong(), entry.getOutput().strip()))
+                .collect(Collectors.joining("; "));
+    }
+
     private void connectToExternalNetwork(List<String> serviceNames) {
         for (String serviceName : serviceNames) {
             var containerState = env.getContainerByServiceName(serviceName).orElseThrow();
@@ -200,6 +244,8 @@ public class SsStackSetup extends AbstractSsStack {
     public static final class Port {
         public static final int UI = 4000;
         public static final int PROXY = 8080;
+        /** The client proxy's HTTPS port. */
+        public static final int PROXY_TLS = 8443;
         public static final int PROXY_HEALTHCHECK = 5588;
         /** Test CA's cert-issuance/serving port (the {@code ca-api} service port in the k8s fixtures chart). */
         public static final int CA_API = 8888;
@@ -218,7 +264,8 @@ public class SsStackSetup extends AbstractSsStack {
         MESSAGE_LOG_ENCRYPTION("compose.ss-msglog-encryption.e2e.yaml"),
         OP_MONITOR("compose.ss-opmonitor.e2e.yaml"),
         AGREEMENT_TOKEN_KEY_PRUNING("compose.ss-agreement-token-key-pruning.e2e.yaml"),
-        COUNTRY_PROFILE("compose.ss-country-profile.e2e.yaml");
+        COUNTRY_PROFILE("compose.ss-country-profile.e2e.yaml"),
+        ISSUER_OUTAGE("compose.ss-issuer-outage.e2e.yaml");
 
         private final String composeFile;
 

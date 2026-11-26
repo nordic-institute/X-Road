@@ -32,9 +32,13 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.time.Duration;
 import java.util.Set;
 
+import static org.niis.xroad.common.properties.config.Validator.durationAtLeast;
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
+import static org.niis.xroad.common.properties.config.Validator.positive;
+import static org.niis.xroad.common.properties.config.Validator.positiveInts;
 import static org.niis.xroad.common.properties.config.Validator.positiveLong;
 import static org.niis.xroad.common.properties.config.Validator.range;
 
@@ -48,7 +52,8 @@ import static org.niis.xroad.common.properties.config.Validator.range;
  * DID resolution fetch timeout. An X-Road process reads a key
  * through {@code XRoadConfig}: the admin
  * service reads both port keys through {@code AdminServiceProperties.Dataspace.getDidPort()} and
- * {@code getDspPort()}. An application configuration interpolates a
+ * {@code getDspPort()}, and the issuer data extensions of the control plane and the Identity Hub read the
+ * {@code issuer-data} keys. An application configuration interpolates a
  * key with {@code ${...}}: the identity hub's DID web context port uses {@code ${xroad.dsp.did-port}}.
  *
  * <p>{@code publishedToFramework()} is set on every key so that the packaged default and a stored row both
@@ -65,6 +70,12 @@ public final class DspConfigKeys implements ConfigKeyProvider {
     private static final Prefix TASK_POLL = DSP.subPrefix("task-poll");
     private static final Prefix OUTBOUND_HTTP = DSP.subPrefix("outbound-http");
     private static final Prefix CONTROL_PLANE_POOL = DSP.subPrefix("control-plane").subPrefix("pool");
+    private static final Prefix ISSUER_DATA = DSP.subPrefix("issuer-data");
+    private static final Prefix ISSUER_DATA_CACHE = ISSUER_DATA.subPrefix("cache");
+    private static final Prefix ISSUER_DATA_CACHE_STATUSLIST = ISSUER_DATA_CACHE.subPrefix("statuslist");
+    private static final Prefix ISSUER_DATA_CACHE_STATUSLIST_DOWNLOAD = ISSUER_DATA_CACHE.subPrefix("statuslist-download");
+    private static final Prefix ISSUER_DATA_CACHE_DID_DOWNLOAD = ISSUER_DATA_CACHE.subPrefix("did-download");
+    private static final Prefix ISSUER_DATA_CLEANUP = ISSUER_DATA.subPrefix("cleanup");
 
     private static final DspConfigKeys INSTANCE = new DspConfigKeys();
 
@@ -181,6 +192,113 @@ public final class DspConfigKeys implements ConfigKeyProvider {
             .integer("max-idle")
             .withDefaultValue(16)
             .withValidator(range(1, Integer.MAX_VALUE))
+            .publishedToFramework()
+            .build();
+
+    /**
+     * {@code xroad.dsp.issuer-data.download-wait}: the longest wait of a check for a fresh download while the
+     * issuer answers. Reasonable values are from 1 to 10 seconds.
+     */
+    public static final ConfigKey<Duration> ISSUER_DATA_DOWNLOAD_WAIT = ISSUER_DATA
+            .keyDuration("download-wait")
+            .withDefaultValue(Duration.ofSeconds(2))
+            .withValidator(positive())
+            .exposedInUi()
+            .publishedToFramework()
+            .build();
+
+    /**
+     * {@code xroad.dsp.issuer-data.download-retry-seconds}: the wait in seconds before the next download after
+     * a failed one. Entry n is the wait after failure n, and the last entry repeats.
+     */
+    public static final ConfigKey<String[]> ISSUER_DATA_DOWNLOAD_RETRY_SECONDS = ISSUER_DATA
+            .stringArray("download-retry-seconds")
+            .withDefaultValue("5,10,15,20,30,60")
+            .withValidator(positiveInts())
+            .exposedInUi()
+            .publishedToFramework()
+            .build();
+
+    /**
+     * {@code xroad.dsp.issuer-data.download-expire-after}: after this time a failed or unanswered download expires
+     * and is forgotten, and the retry delay starts again from the first entry. Reasonable values are from 5 to 10
+     * minutes.
+     */
+    public static final ConfigKey<Duration> ISSUER_DATA_DOWNLOAD_EXPIRE_AFTER = ISSUER_DATA
+            .keyDuration("download-expire-after")
+            .withDefaultValue(Duration.ofMinutes(10))
+            .withValidator(positive())
+            .exposedInUi()
+            .publishedToFramework()
+            .build();
+
+    /**
+     * {@code xroad.dsp.issuer-data.download-timeout}: the longest time one download of a statuslist or an issuer DID
+     * document takes, from the start of the request to the end of the response body. Reasonable values are from 10
+     * to 30 seconds.
+     */
+    public static final ConfigKey<Duration> ISSUER_DATA_DOWNLOAD_TIMEOUT = ISSUER_DATA
+            .keyDuration("download-timeout")
+            .withDefaultValue(Duration.ofSeconds(30))
+            .withValidator(positive())
+            .exposedInUi()
+            .publishedToFramework()
+            .build();
+
+    /**
+     * {@code xroad.dsp.issuer-data.cache.statuslist.size}: the most statuslists kept in memory. Value 0 keeps no
+     * copy in memory; the data then comes from the shared download, or from the stored copy during an outage.
+     */
+    public static final ConfigKey<Integer> ISSUER_DATA_CACHE_STATUSLIST_SIZE = ISSUER_DATA_CACHE_STATUSLIST
+            .integer("size")
+            .withDefaultValue(1000)
+            .withValidator(range(0, Integer.MAX_VALUE))
+            .exposedInUi()
+            .publishedToFramework()
+            .build();
+
+    /**
+     * {@code xroad.dsp.issuer-data.cache.statuslist-download.size}: the most statuslists whose download runs or waits
+     * for a retry at one time. When the limit is full, the service pushes out an entry. The checks that wait for a
+     * pushed-out download fail with a retryable error unless a usable copy is in the database, and the next check
+     * starts a new download.
+     */
+    public static final ConfigKey<Integer> ISSUER_DATA_CACHE_STATUSLIST_DOWNLOAD_SIZE = ISSUER_DATA_CACHE_STATUSLIST_DOWNLOAD
+            .integer("size")
+            .withDefaultValue(10000)
+            .withValidator(range(1, Integer.MAX_VALUE))
+            .exposedInUi()
+            .publishedToFramework()
+            .build();
+
+    /**
+     * {@code xroad.dsp.issuer-data.cache.did-download.size}: the most issuer DID documents whose download runs or
+     * waits for a retry at one time. When the limit is full, the service pushes out an entry. The checks that wait
+     * for a pushed-out download fail with a retryable error unless a usable copy is in the database, and the next
+     * check starts a new download.
+     */
+    public static final ConfigKey<Integer> ISSUER_DATA_CACHE_DID_DOWNLOAD_SIZE = ISSUER_DATA_CACHE_DID_DOWNLOAD
+            .integer("size")
+            .withDefaultValue(10000)
+            .withValidator(range(1, Integer.MAX_VALUE))
+            .exposedInUi()
+            .publishedToFramework()
+            .build();
+
+    /** {@code xroad.dsp.issuer-data.cleanup.interval}: the time between runs of the expired issuer data cleanup. */
+    public static final ConfigKey<Duration> ISSUER_DATA_CLEANUP_INTERVAL = ISSUER_DATA_CLEANUP
+            .keyDuration("interval")
+            .withDefaultValue(Duration.ofMinutes(10))
+            .withValidator(durationAtLeast(Duration.ofMinutes(5)))
+            .exposedInUi()
+            .publishedToFramework()
+            .build();
+
+    /** {@code xroad.dsp.issuer-data.cleanup.enabled}: whether the expired issuer data cleanup job runs. */
+    public static final ConfigKey<Boolean> ISSUER_DATA_CLEANUP_ENABLED = ISSUER_DATA_CLEANUP
+            .bool("enabled")
+            .withDefaultValue(true)
+            .exposedInUi()
             .publishedToFramework()
             .build();
 

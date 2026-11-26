@@ -368,4 +368,9 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     public boolean isLegacyProtocolDisabled(String instanceIdentifier) {
         return globalConfProvider.isLegacyProtocolDisabled(instanceIdentifier);
     }
+
+    @Override
+    public int getIssuerDataFreshnessSeconds(String instanceIdentifier) {
+        return globalConfProvider.getIssuerDataFreshnessSeconds(instanceIdentifier);
+    }
 }

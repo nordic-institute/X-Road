@@ -15,9 +15,7 @@ dependencies {
     exclude(module = "spring-webmvc")
     exclude(module = "spring-boot-starter-json")
   }
-  implementation(project(":common:common-management-service")) {
-    exclude(module = "spring-boot-starter-tomcat")
-  }
+  implementation(project(":lib:vault-spring"))
 
   testImplementation(libs.springBoot.starterTest)
 }

@@ -43,6 +43,9 @@ Do this at every change of `edc` in `src/gradle/libs.versions.toml`.
      Set `logicalFilePath` to the new file's own path.
    - Use typed changes (`createTable`, `addColumn`, `createIndex`, ...), and raw `<sql>` only where no typed
      change fits.
+   - An X-Road-owned table that several components use (today `xroad_issuer_data`) goes in a shared folder, like
+     `configuration-properties/`: `issuer-data/NNN-<description>.xml` with its own `logicalFilePath`, included
+     from each component's changelog.
    - Never edit an applied changeset, including the baseline: Liquibase stores its checksum, so `update` then
      fails on existing databases.
    - Never name a schema: it differs per deployment.

@@ -32,11 +32,11 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 /**
- * A {@link Clock} that only moves when a test calls {@link #advance(Duration)}.
+ * A {@link Clock} that only moves when a test calls {@link #advance(Duration)} or {@link #set(Instant)}.
  */
 public final class MutableClock extends Clock {
 
-    private Instant instant;
+    private volatile Instant instant;
 
     public MutableClock(Instant instant) {
         this.instant = instant;
@@ -44,6 +44,10 @@ public final class MutableClock extends Clock {
 
     public void advance(Duration duration) {
         instant = instant.plus(duration);
+    }
+
+    public void set(Instant value) {
+        instant = value;
     }
 
     @Override

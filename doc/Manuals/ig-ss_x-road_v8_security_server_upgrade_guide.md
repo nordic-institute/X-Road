@@ -98,7 +98,7 @@ The output must begin with `7.8.`.
 
 ## Before you start
 
-1. **Take a full backup.** The upgrade migrates configuration and signer state in place. A pre-upgrade backup is your safety net. Use the standard Security Server backup tooling (see the [Security Server User Guide](#references)) and copy the archive off the host. The wizard additionally writes a timestamped `xroad-pre-v8-backup-*.tar.gz` to `/etc/xroad/` before mutating any files, but that snapshot only covers `/etc/xroad` — your full backup also covers the databases and message log.
+1. **Take a full backup.** The upgrade migrates configuration and signer state in place. A pre-upgrade backup is your safety net. Use the standard Security Server backup tooling (see the [Security Server User Guide](#references)) and copy the archive off the host. The wizard additionally writes a timestamped `xroad-pre-v8-backup-*.tar.gz` to `/var/lib/xroad/` before mutating any files, but that snapshot only covers `/etc/xroad` — your full backup also covers the databases and message log.
 
 2. **Notify users and pause inbound traffic.** Services will be stopped for the duration of the upgrade.
 
@@ -211,7 +211,7 @@ The wizard runs thirteen ordered steps and four sub-steps, 6a, 6b, 11a and 11b. 
 |-----|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1   | **Version gate**                      | Reads installed `xroad-proxy` version; aborts unless it matches `^7\.8\.`. In interactive mode it asks for confirmation; in unattended mode it relies on `XROAD_UPGRADE_CONFIRMED=yes`.                                                                                                                               |
 | 2   | **Download migration CLI**            | Fetches `migration-cli.jar` (and `migration-cli.jar.sha256`) from `XROAD_MIGRATION_CLI_URL`, verifies the SHA-256, writes the JAR to `/var/tmp/migration-cli.jar` (mode 600).                                                                                                                                         |
-| 3   | **Back up /etc/xroad**                | Snapshots `/etc/xroad` to `/etc/xroad/xroad-pre-v8-backup-<timestamp>.tar.gz` (mode 600). On a resumed run an existing snapshot is preserved.                                                                                                                                                                         |
+| 3   | **Back up /etc/xroad**                | Snapshots `/etc/xroad` to `/var/lib/xroad/xroad-pre-v8-backup-<timestamp>.tar.gz` (mode 600). On a resumed run an existing snapshot is preserved.                                                                                                                                                                      |
 | 4   | **Migrate db.properties**             | Rewrites `/etc/xroad/db.properties` in place to the V8 `xroad.db.*` key prefix. Original is preserved at `/etc/xroad/db.properties.bak`.                                                                                                                                                                              |
 | 5   | **PostgreSQL pre-flight**             | Parses the migrated `db.properties`, connects to the `serverconf` database, verifies PostgreSQL major version ≥ 15.                                                                                                                                                                                                   |
 | 6   | **OpenBao repository setup**          | Adds the OpenBao apt/yum repository so the 8.0 packages can pull in OpenBao dependencies.                                                                                                                                                                                                                             |
@@ -410,7 +410,7 @@ chmod 600 /var/tmp/migration-cli.jar
 TS=$(date +%Y-%m-%d_%H%M%S)
 tar -czf "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz" -C /etc xroad
 chmod 600 "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz"
-mv "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz" /etc/xroad/
+mv "/var/tmp/xroad-pre-v8-backup-${TS}.tar.gz" /var/lib/xroad/
 ```
 
 **4. Migrate db.properties to V8 format.** Prefix every `key = value` line with `xroad.db.` (comments, blank lines, and already-prefixed lines pass through). Keep a `.bak` of the original.
@@ -672,7 +672,7 @@ lxc restore <container> <pre-upgrade-snapshot-name>
 lxc start <container>
 ```
 
-**Restore `/etc/xroad` and the databases from backup.** If no snapshot is available, restore the pre-upgrade Security Server backup (configuration, databases, signer keys) on top of a freshly-reinstalled X-Road 7.8 host, then downgrade or reinstall the V7 packages from a known-good 7.8.x repository. The wizard's automatic `/etc/xroad/xroad-pre-v8-backup-*.tar.gz` covers `/etc/xroad` only — the databases and message log must come from your own backup.
+**Restore `/etc/xroad` and the databases from backup.** If no snapshot is available, restore the pre-upgrade Security Server backup (configuration, databases, signer keys) on top of a freshly-reinstalled X-Road 7.8 host, then downgrade or reinstall the V7 packages from a known-good 7.8.x repository. The wizard's automatic `/var/lib/xroad/xroad-pre-v8-backup-*.tar.gz` covers `/etc/xroad` only — the databases and message log must come from your own backup.
 
 **The wizard halts before destructive change when preflight fails.** Steps 1–7 (version gate, migration-CLI download, /etc/xroad backup, db.properties migration, PostgreSQL preflight, OpenBao repo setup, op-monitor state and country package recording, service stop) all run before the V8 repository switch and package upgrade. If any of them fails, the host can be returned to its pre-upgrade state without a rollback procedure:
 

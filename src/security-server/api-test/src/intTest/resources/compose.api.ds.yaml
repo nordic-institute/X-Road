@@ -243,6 +243,7 @@ services:
     networks:
       - xrd-ss-network
     ports:
+      - "0:4099"
       - "0:6183"
       - "0:6185"
       - "0:6187"

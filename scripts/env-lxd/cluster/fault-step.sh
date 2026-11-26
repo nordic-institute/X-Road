@@ -1,29 +1,32 @@
 #!/bin/bash
 # Fault steps for the Central Server cluster on the lxd backend: stop, start, freeze and thaw a node,
 # stop and start one service on a node, hand the database leadership to the replica (planned
-# switchover or forced failover). The one sanctioned way to change a running cluster.
+# switchover or forced failover), stop the active OpenBao so a standby takes over. The one sanctioned way to
+# change a running cluster.
 #
-# Usage: fault-step.sh [--dry-run] <action> <host> [<service>]
+# Usage: fault-step.sh [--dry-run] [--start-again] <action> <host> [<service>]
 #
-# Exit codes: 0 state reached (or already there, except db-*), 1 action failed or state not reached in time,
-# 2 unknown action, host or service, or wrong arguments (nothing was changed).
+# Exit codes: 0 state reached (or already there, except db-* and openbao-failover), 1 action failed or state not
+# reached in time, 2 unknown action, host or service, or wrong arguments (nothing was changed).
 #
 # Each action has one function per backend, named <backend>_<action with _ for ->. A backend
 # is selected with FAULT_STEP_BACKEND (lxd, the default); another backend comes from CLUSTER_BACKEND_FILE and
 # defines the same functions, plus <backend>_pause and <backend>_resume for node-freeze and node-thaw.
 # Common code holds no backend commands; the transport primitives and the inventory path are in
 # cluster-transport.sh. Flows that differ between backends only in how a command reaches the host
-# (service_stop, service_start, node_freeze, node_thaw, db_switchover, db_promote) are written once here;
+# (service_stop, service_start, node_freeze, node_thaw, db_switchover, db_promote, openbao_failover) are written once here;
 # the <backend>_ functions call them. An action a backend has no function for exits 2.
 #
 # A node is started when its container runs, systemd has finished booting and the units of its role
 # (role_unit_patterns in cluster-transport.sh) are active; a Central Server node also needs
-# xroad-center enabled and an answer to an HTTPS request on the first lb_tcp_ports port other than 80. A node
-# with xroad_cs_openbao_db_stop_expected counts as started once it has booted.
+# xroad-center enabled and an answer to an HTTPS request on the first lb_tcp_ports port other than 80.
 # node-freeze checks that a request to the first lb_tcp_ports port other than 80 of a node that answered it
 # before times out (curl exit 28). service-start also starts the units bound to the service; they stop with it.
-# Repeating a node or service action that reached its state is a no-op; db-* on the current leader
-# exits 1 and changes nothing. A request that cannot apply (node-start on a frozen
+# openbao-failover <host> makes the OpenBao of the Central Server node <host>, a running standby, the active one:
+# it finds the active OpenBao through the leader endpoint (/v1/sys/leader, is_self), stops its openbao unit and waits
+# until <host> is active. With --start-again it then starts the stopped unit and waits until it is a standby.
+# Repeating a node or service action that reached its state is a no-op; db-* and openbao-failover on the current
+# leader exit 1 and change nothing. A request that cannot apply (node-start on a frozen
 # node, node-freeze on a stopped node, a service action on a node that is not running) fails.
 #
 # --dry-run prints the commands of a real run as lines that start with "+ " and changes nothing; it reads
@@ -45,13 +48,15 @@ source ./cluster-transport.sh
 TIMEOUT="${FAULT_STEP_TIMEOUT:-$DEFAULT_TIMEOUT}"
 REQUEST_TIMEOUT=5
 CS_MAIN_UNIT="xroad-center.service"
-ACTIONS="node-stop node-start service-stop service-start node-freeze node-thaw db-switchover db-promote"
+ACTIONS="node-stop node-start service-stop service-start node-freeze node-thaw db-switchover db-promote openbao-failover"
+START_AGAIN=false
+OPENBAO_API="https://127.0.0.1:8200"
 STATE=""
 WAIT_REASON=""
 
 usage() {
   cat <<EOF
-Usage: $0 [--dry-run] <action> <host> [<service>]
+Usage: $0 [--dry-run] [--start-again] <action> <host> [<service>]
 
 Actions:
   node-stop <host>               stop the node
@@ -62,8 +67,10 @@ Actions:
   node-thaw <host>               resume a frozen node
   db-switchover <replica-host>   planned handover of the database leadership to the streaming replica
   db-promote <replica-host>      forced failover of the database leadership to the replica
+  openbao-failover <node>        stop the active OpenBao so the OpenBao of the standby <node> becomes active
 
 --dry-run prints the commands a real run performs and changes nothing.
+--start-again (openbao-failover only) starts the stopped OpenBao again and waits until it is a standby.
 Hosts are the ${NODE_NOUN}s in $INVENTORY. FAULT_STEP_TIMEOUT (seconds, default $DEFAULT_TIMEOUT) bounds each wait.
 EOF
 }
@@ -94,10 +101,6 @@ group_first_host() {
 
 cluster_hosts() {
   jq -r '.cluster_containers.children[] as $g | .[$g].hosts[]?' <<<"$INVENTORY_JSON"
-}
-
-node_requires_services() {
-  [[ "$(jq -r --arg h "$1" '._meta.hostvars[$h].xroad_cs_openbao_db_stop_expected // false' <<<"$INVENTORY_JSON")" != "true" ]]
 }
 
 probe_port() {
@@ -151,7 +154,6 @@ node_ready() {
     running | degraded) ;;
     *) WAIT_REASON="boot not finished (systemd state '${state:-unreachable}')"; return 1 ;;
   esac
-  node_requires_services "$host" || return 0
   units=$(enabled_units "$host")
   [[ -n "$units" ]] || { WAIT_REASON="no enabled services found"; return 1; }
   if [[ "$(host_group "$host")" == "cs_nodes" ]] && ! grep -qx "$CS_MAIN_UNIT" <<<"$units"; then
@@ -209,11 +211,7 @@ await_node_ready() {
   local host=$1
   $DRY_RUN && return 0
   wait_for node_ready "$host" || fail "$host is not started after ${TIMEOUT}s: $WAIT_REASON"
-  if node_requires_services "$host"; then
-    info "$host is running, its services are active and its Issuer Service port answers"
-  else
-    info "$host is running; its install stops at OpenBao database creation, so no Central Server services are required"
-  fi
+  info "$host is running, its services are active and its Issuer Service port answers"
 }
 
 lxd_node_start() {
@@ -327,7 +325,7 @@ node_thaw() {
   wait_for host_state_is "$host" RUNNING || fail "$host did not reach RUNNING within ${TIMEOUT}s"
   port=$(probe_port "$host")
   peer=$(running_peer "$host")
-  if [[ -n "$port" && -n "$peer" ]] && node_requires_services "$host"; then
+  if [[ -n "$port" && -n "$peer" ]]; then
     wait_for request_answers "$peer" "$host" "$port" || fail "$host:$port does not answer a request from $peer after ${TIMEOUT}s"
     info "$host is running; a request to $host:$port from $peer is answered"
   else
@@ -398,12 +396,63 @@ db_promote() {
   db_handover failover "$1"
 }
 
+cs_node_hosts() {
+  jq -r '.cs_nodes.hosts[]?' <<<"$INVENTORY_JSON"
+}
+
+# Prints the leader endpoint answer of the OpenBao on HOST as JSON; fails when it does not answer.
+openbao_leader() {
+  host_exec "$1" curl -sk -m "$REQUEST_TIMEOUT" "$OPENBAO_API/v1/sys/leader" </dev/null 2>/dev/null
+}
+
+openbao_is_active() {
+  [[ "$(openbao_leader "$1" | jq -r '.is_self // empty' 2>/dev/null)" == true ]]
+}
+
+# A standby is unsealed, is not the active node and knows the address of the active one.
+openbao_is_standby() {
+  openbao_leader "$1" | jq -e '.is_self == false and ((.leader_address // "") | length > 0)' >/dev/null 2>&1
+}
+
+# Prints the only Central Server node whose OpenBao is active; fails when there is none or several.
+active_openbao() {
+  local node active=()
+  for node in $(cs_node_hosts); do
+    host_state_is "$node" RUNNING || continue
+    ! openbao_is_active "$node" || active+=("$node")
+  done
+  [[ ${#active[@]} -eq 1 ]] || return 1
+  echo "${active[0]}"
+}
+
+openbao_failover() {
+  local candidate=$1 active
+  [[ "$(host_group "$candidate")" == cs_nodes ]] || usage_error "openbao-failover needs a host of the cs_nodes group, '$candidate' is not one"
+  read_state "$candidate"
+  [[ "$STATE" == RUNNING ]] || fail "$candidate is $STATE; only a running standby can become active"
+  active=$(active_openbao) || fail "no single active OpenBao found on the running Central Server nodes; nothing changed"
+  [[ "$active" != "$candidate" ]] || fail "the OpenBao of $candidate is already active; nothing changed"
+  openbao_is_standby "$candidate" || fail "the OpenBao of $candidate is not a standby; nothing changed"
+  service_stop "$active" openbao
+  if ! $DRY_RUN; then
+    wait_for openbao_is_active "$candidate" || fail "the OpenBao of $candidate is not active after ${TIMEOUT}s; $active stays stopped: start it again with '$0 service-start $active openbao'"
+    info "the OpenBao of $candidate is active"
+  fi
+  $START_AGAIN || return 0
+  service_start "$active" openbao
+  $DRY_RUN && return 0
+  wait_for openbao_is_standby "$active" || fail "the OpenBao of $active is not a standby after ${TIMEOUT}s"
+  openbao_is_active "$candidate" || fail "the OpenBao of $candidate is no longer active"
+  info "the OpenBao of $active is a standby of $candidate"
+}
+
 lxd_service_stop() { service_stop "$@"; }
 lxd_service_start() { service_start "$@"; }
 lxd_node_freeze() { node_freeze "$@"; }
 lxd_node_thaw() { node_thaw "$@"; }
 lxd_db_switchover() { db_switchover "$@"; }
 lxd_db_promote() { db_promote "$@"; }
+lxd_openbao_failover() { openbao_failover "$@"; }
 
 main() {
   local arguments=() argument ACTION HOST SERVICE=""
@@ -411,6 +460,7 @@ main() {
     case "$argument" in
       -h | --help) usage; exit 0 ;;
       --dry-run) DRY_RUN=true ;;
+      --start-again) START_AGAIN=true ;;
       -*) usage_error "unknown option '$argument'" ;;
       *) arguments+=("$argument") ;;
     esac
@@ -421,6 +471,7 @@ main() {
   [[ -n "$ACTION" ]] || { usage >&2; exit 2; }
   [[ " $ACTIONS " == *" $ACTION "* ]] || usage_error "unknown action '$ACTION'; actions: $ACTIONS"
   [[ -n "$HOST" ]] || usage_error "action $ACTION needs a host"
+  ! $START_AGAIN || [[ "$ACTION" == openbao-failover ]] || usage_error "--start-again applies to openbao-failover only"
   case "$ACTION" in
     service-*)
       [[ -n "$SERVICE" ]] || usage_error "action $ACTION needs a service name"

@@ -110,15 +110,15 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
      * {@code SpringConditionConfig} resolves {@code xroad.*} values from the DSL (stored overrides
      * plus packaged defaults), never from the Spring {@code Environment} — so, like
      * {@code DsTlsAcmeCertificateRenewalSchedulingConfigTest}, the switch's effect is exercised
-     * directly against the shared pure decision, {@link DataspaceParticipantProvisioningTrigger#isActive},
+     * directly against the shared pure decision, {@link DataspaceParticipantProvisioningTrigger#shouldBeActive},
      * with no environment setup at all: the node type is one of its two plain parameters here, not
      * resolved from {@link #variables}.
      */
     @Test
-    void isActiveIsTrueOnlyOnAPrimaryOrStandaloneNodeWithTheSwitchOn() {
-        assertThat(DataspaceParticipantProvisioningTrigger.isActive(false, true)).isTrue();
-        assertThat(DataspaceParticipantProvisioningTrigger.isActive(false, false)).isFalse();
-        assertThat(DataspaceParticipantProvisioningTrigger.isActive(true, true)).isFalse();
-        assertThat(DataspaceParticipantProvisioningTrigger.isActive(true, false)).isFalse();
+    void shouldBeActiveIsTrueOnlyOnAPrimaryOrStandaloneNodeWithTheSwitchOn() {
+        assertThat(DataspaceParticipantProvisioningTrigger.shouldBeActive(false, true)).isTrue();
+        assertThat(DataspaceParticipantProvisioningTrigger.shouldBeActive(false, false)).isFalse();
+        assertThat(DataspaceParticipantProvisioningTrigger.shouldBeActive(true, true)).isFalse();
+        assertThat(DataspaceParticipantProvisioningTrigger.shouldBeActive(true, false)).isFalse();
     }
 }

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.keyconf.dto.AuthKeyStatus;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -55,6 +56,13 @@ public interface KeyConfProvider {
      * @return the current key and certificate for SSL authentication.
      */
     AuthKey getAuthKey();
+
+    /**
+     * Reaches the signer directly on every call, bypassing any cache.
+     *
+     * @return the current status of the authentication key, as reported by the signer.
+     */
+    AuthKeyStatus getAuthKeyStatus();
 
     /**
      * @param cert the certificate

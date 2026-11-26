@@ -53,8 +53,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * Guards the cross-module part of the system-parameters catalogue: the signer, environmental
- * monitoring, message log archiver and message log encryption keys reach the Security Server
- * catalogue from their own modules, with the scope names the {@code configuration_properties}
+ * monitoring, message log archiver, message log encryption and dataspace issuer data keys reach the
+ * Security Server catalogue from their own modules, with the scope names the {@code configuration_properties}
  * table and the UI expect. Also covers the effective value and source reported for the active country
  * profile and the deployment mode.
  */
@@ -62,8 +62,9 @@ import static org.mockito.Mockito.when;
 class ConfigurablePropertiesCatalogueTest {
 
     /**
-     * key | scope | default — the keys that were reachable only through {@code configurable-properties.yaml}
-     * before the registries moved into shared modules.
+     * key | scope | default — the keys that reach the catalogue from registries in shared modules: the signer,
+     * monitoring, archiver and message log encryption keys, which were once reachable only through
+     * {@code configurable-properties.yaml}, and the dataspace issuer data keys.
      * Duration defaults render in ISO-8601 form ({@code PT1M}), not the yaml's {@code 60s}.
      */
     private static final String CROSS_MODULE_KEYS = """
@@ -119,6 +120,15 @@ class ConfigurablePropertiesCatalogueTest {
             xroad.message-log-encryption.archive.grouping-strategy||NONE
             xroad.message-log-encryption.db.encryption-enabled||false
             xroad.message-log-encryption.db.key-id||default
+            xroad.dsp.issuer-data.download-wait||PT2S
+            xroad.dsp.issuer-data.download-retry-seconds||5,10,15,20,30,60
+            xroad.dsp.issuer-data.download-expire-after||PT10M
+            xroad.dsp.issuer-data.download-timeout||PT30S
+            xroad.dsp.issuer-data.cache.statuslist.size||1000
+            xroad.dsp.issuer-data.cache.statuslist-download.size||10000
+            xroad.dsp.issuer-data.cache.did-download.size||10000
+            xroad.dsp.issuer-data.cleanup.interval||PT10M
+            xroad.dsp.issuer-data.cleanup.enabled||true
             """;
 
     /** {@code application.name} of every Security Server process whose keys the UI edits. */

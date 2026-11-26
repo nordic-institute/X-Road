@@ -4,3 +4,4 @@ org.niis.xroad.ds.issuance.web.XRoadIssuerRequestHeaderSizeExtension
 org.niis.xroad.ds.issuance.identity.XRoadIssuerHostnameExtension
 org.niis.xroad.ds.issuance.identity.XRoadStatusListCredentialPublisherExtension
 org.niis.xroad.ds.issuance.identity.XRoadIssuanceGateExtension
+org.niis.xroad.ds.issuance.health.DatabaseReadinessExtension

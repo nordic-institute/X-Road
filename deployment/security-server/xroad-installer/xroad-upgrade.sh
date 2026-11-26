@@ -226,10 +226,10 @@ main() {
     "Migration-CLI downloaded" \
     "Migration CLI download failed. No services stopped yet. Check XROAD_MIGRATION_CLI_URL and network connectivity."
 
-  # Step 3: Snapshot /etc/xroad to a timestamped tar.gz inside /etc/xroad — must run before the first on-disk mutation (Step 4).
+  # Step 3: Snapshot /etc/xroad to a timestamped tar.gz in /var/lib/xroad — must run before the first on-disk mutation (Step 4).
   run_step "backup_etc_xroad.sh" \
     "/etc/xroad backup created" \
-    "Backup of /etc/xroad failed. No further changes have been made. Free up disk space or fix permissions on /etc/xroad and re-run the wizard."
+    "Backup of /etc/xroad failed. No further changes have been made. Free up disk space or fix permissions on /etc/xroad and /var/lib/xroad and re-run the wizard."
 
   # Step 4: Migrate db.properties to V8 format — add xroad.db.* prefix, backup original.
   run_step "migrate_db_properties.sh" \

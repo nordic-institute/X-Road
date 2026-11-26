@@ -37,6 +37,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -55,7 +57,8 @@ import static java.net.HttpURLConnection.HTTP_OK;
  * Minimal OpenBao stand-in served over real HTTP, for one secret mount ({@code xrd-secret} unless given).
  * Every KV v1 secret holds the payload {@code v} and every listing the single key {@code k1}. A KV v2 mount
  * keeps a value per key in the field {@code content}: a read of a missing key answers 404 and a delete on
- * {@code metadata/} removes the key. It keeps the body of every write it accepts. A listening socket in
+ * {@code metadata/} removes the key. The opt-in {@link KvVersion#V1_STATEFUL} mode instead keeps the raw body
+ * of every KV v1 secret by path. It keeps the body of every write it accepts. A listening socket in
  * front of the HTTP server owns the port and decides per connection whether to reset or relay it.
  */
 public final class FakeOpenBao implements AutoCloseable {
@@ -74,6 +77,8 @@ public final class FakeOpenBao implements AutoCloseable {
      */
     public enum KvVersion {
         V1,
+        /** KV v1 that remembers each written secret by path: a read answers what was written, 404 if nothing was. */
+        V1_STATEFUL,
         V2
     }
 
@@ -103,6 +108,8 @@ public final class FakeOpenBao implements AutoCloseable {
     private final List<String> rawHits = new CopyOnWriteArrayList<>();
     private final List<String> storedBodies = new CopyOnWriteArrayList<>();
     private final Map<String, String> secrets = new ConcurrentHashMap<>();
+    private final Map<String, String> bodiesByPath = new ConcurrentHashMap<>();
+    private final Set<String> rejectedWrites = ConcurrentHashMap.newKeySet();
     private final AtomicInteger failuresLeft = new AtomicInteger();
     private final AtomicInteger connectionAttempts = new AtomicInteger();
     private volatile boolean serving;
@@ -180,6 +187,14 @@ public final class FakeOpenBao implements AutoCloseable {
         failuresLeft.set(count);
     }
 
+    /**
+     * Makes every later write to {@code path} answer 500 in {@link KvVersion#V1_STATEFUL} mode, until the fake
+     * closes. Reads are not affected.
+     */
+    public void rejectWritesTo(String path) {
+        rejectedWrites.add(path);
+    }
+
     public List<String> secretHits() {
         return hits.stream().filter(h -> h.contains(" " + secretPath + "/")).toList();
     }
@@ -197,6 +212,13 @@ public final class FakeOpenBao implements AutoCloseable {
 
     public List<String> storedBodies() {
         return List.copyOf(storedBodies);
+    }
+
+    /**
+     * A live, read-only view of the raw body stored under each path in {@link KvVersion#V1_STATEFUL} mode.
+     */
+    public Map<String, String> storedByPath() {
+        return Collections.unmodifiableMap(bodiesByPath);
     }
 
     @Override
@@ -326,6 +348,8 @@ public final class FakeOpenBao implements AutoCloseable {
             send(ex, HTTP_OK, "{\"data\":{\"keys\":[\"k1\"]}}");
         } else if (kvVersion == KvVersion.V2) {
             succeedV2(ex, method, uri, body);
+        } else if (kvVersion == KvVersion.V1_STATEFUL) {
+            succeedStatefulV1(ex, method, uri, body);
         } else if ("GET".equals(method)) {
             send(ex, HTTP_OK, "{\"data\":{\"payload\":\"v\"}}");
         } else if ("DELETE".equals(method)) {
@@ -333,6 +357,34 @@ public final class FakeOpenBao implements AutoCloseable {
         } else {
             storedBodies.add(body);
             ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
+        }
+    }
+
+    private void succeedStatefulV1(HttpExchange ex, String method, URI uri, String body) throws IOException {
+        var kvPath = uri.getPath().substring(secretPath.length() + 1);
+        switch (method) {
+            case "GET" -> {
+                var stored = bodiesByPath.get(kvPath);
+                if (stored == null) {
+                    send(ex, HTTP_NOT_FOUND, "{\"errors\":[]}");
+                } else {
+                    send(ex, HTTP_OK, "{\"data\":" + stored + "}");
+                }
+            }
+            case "PUT", "POST" -> {
+                if (rejectedWrites.contains(kvPath)) {
+                    send(ex, HTTP_INTERNAL_ERROR, "{\"errors\":[\"fake write rejected\"]}");
+                } else {
+                    storedBodies.add(body);
+                    bodiesByPath.put(kvPath, body);
+                    ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
+                }
+            }
+            case "DELETE" -> {
+                bodiesByPath.remove(kvPath);
+                ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
+            }
+            default -> ex.sendResponseHeaders(HTTP_NO_CONTENT, -1);
         }
     }
 

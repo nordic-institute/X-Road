@@ -51,6 +51,7 @@ public class ConsoleE2ETestRunner extends AbstractConsoleApiTestRunner {
                 "compose.ss-opmonitor.e2e.yaml",
                 "compose.ss-agreement-token-key-pruning.e2e.yaml",
                 "compose.ss-country-profile.e2e.yaml",
+                "compose.ss-issuer-outage.e2e.yaml",
                 "compose.ss0-sidecar.e2e.yaml",
                 ".env",
                 "container-files/",

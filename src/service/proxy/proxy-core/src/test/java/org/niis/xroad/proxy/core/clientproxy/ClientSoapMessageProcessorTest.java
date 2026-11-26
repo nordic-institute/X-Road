@@ -818,6 +818,21 @@ class ClientSoapMessageProcessorTest {
     }
 
     @Test
+    void anAcquisitionFailureIsThrownUnchangedAndNotFailedOver() throws Exception {
+        var harness = createRefusalHarness(true, false);
+        var failure = XrdRuntimeException.systemException(IO_ERROR, new ConnectException("control plane unreachable"));
+        when(harness.consumerSideDspProcessor().execute(any())).thenThrow(failure);
+        var request = newCompletedRequest();
+
+        assertThatThrownBy(() -> send(harness, request)).isSameAs(failure);
+
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verifyNoInteractions(harness.httpSenderProvider());
+        verifyNoInteractions(harness.legacyCallRefusalPolicy());
+        verifyNoInteractions(harness.dspSendFailureHandler());
+    }
+
+    @Test
     void aFailedNewAcquisitionAfterATransportFaultReachesTheCallerAndTheFaultIsLogged() throws Exception {
         var harness = createRefusalHarness(true, false);
         var fault = new ConnectException("refused");
