@@ -60,6 +60,8 @@ public class SignerRepository {
     private static final String FIND_CERTIFICATE_REQUEST_ID =
             "SELECT id FROM signer_certificate_requests WHERE ha_node_name = ? AND external_id = ?";
 
+    private static final String PIN_EMPTY = "pin IS NULL OR length(pin) = 0";
+
     private final Connection connection;
     private final String nodeName;
 
@@ -98,7 +100,7 @@ public class SignerRepository {
     }
 
     boolean isTokenPinEmpty(long tokenId) throws SQLException {
-        String sql = "SELECT pin IS NULL OR length(pin) = 0 AS pin_empty FROM signer_tokens WHERE id = ?";
+        String sql = "SELECT " + PIN_EMPTY + " AS pin_empty FROM signer_tokens WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, tokenId);
             try (ResultSet rs = statement.executeQuery()) {
@@ -107,12 +109,22 @@ public class SignerRepository {
         }
     }
 
-    void setTokenPin(long tokenId, byte[] pinHash) throws SQLException {
-        String sql = "UPDATE signer_tokens SET pin = ? WHERE id = ? AND (pin IS NULL OR length(pin) = 0)";
+    Optional<byte[]> getTokenPin(long tokenId) throws SQLException {
+        String sql = "SELECT pin FROM signer_tokens WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setObject(1, pinHash, Types.BINARY); // pin hash
-            statement.setLong(2, tokenId); // id
-            statement.executeUpdate();
+            statement.setLong(1, tokenId);
+            try (ResultSet rs = statement.executeQuery()) {
+                return rs.next() ? Optional.ofNullable(rs.getBytes("pin")) : Optional.empty();
+            }
+        }
+    }
+
+    boolean setTokenPin(long tokenId, byte[] pinHash) throws SQLException {
+        String sql = "UPDATE signer_tokens SET pin = ? WHERE id = ? AND (" + PIN_EMPTY + ")";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setObject(1, pinHash, Types.BINARY);
+            statement.setLong(2, tokenId);
+            return statement.executeUpdate() > 0;
         }
     }
 
