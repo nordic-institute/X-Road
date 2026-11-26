@@ -28,7 +28,10 @@ package org.niis.xroad.e2e.parity.acl;
 
 /** How the Security Servers decide to call: the value of the {@code e2e.acl-mode} Gradle property. */
 public enum AclMode {
-    /** Outgoing calls skip data space negotiation, so the provider decides by its access rights alone. */
+    /**
+     * The run has no Issuer Service, so nothing is published and every call is unnegotiated: the provider
+     * decides by its access rights alone.
+     */
     LEGACY,
     /** Outgoing calls negotiate through the data space protocol; the scenarios use their data space expectations. */
     DSP,

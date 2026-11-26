@@ -44,6 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -52,7 +53,7 @@ import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.addRestServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.awaitClientRegistered;
-import static org.niis.xroad.e2e.AdminApi.awaitMemberCredentialIssued;
+import static org.niis.xroad.e2e.AdminApi.awaitMemberContext;
 import static org.niis.xroad.e2e.AdminApi.discoverBackendUrl;
 import static org.niis.xroad.e2e.AdminApi.dspBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
@@ -90,10 +91,11 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * <p><b>Which participant context the exchange actually rides.</b> The new client's service is published
  * only under its own {@code DEV:COM:4321} context, once that context is provisioned — a service whose
  * owning member has no provisioned context yet is not published anywhere at all (XRDADR-41's full
- * pre-provisioning discoverability remains a deferred follow-up). The consumer proxy derives the
- * counter-party coordinates from the provider member id, so it dials {@code DEV:COM:4321} directly;
- * {@link AdminApi#awaitMemberCredentialIssued} confirms that context and its membership credential are already
- * provisioned before any traffic flows, so this scenario never exercises the pre-provisioning gap. The
+ * pre-provisioning discoverability remains a deferred follow-up). The consumer proxy reads the provider
+ * member's published DID from global configuration, so it dials {@code DEV:COM:4321} directly;
+ * {@link AdminApi#awaitMemberContext} confirms that context's membership credential is ISSUED and its DID
+ * PUBLISHED before any traffic flows. Without a published DID the call would go out unnegotiated, so this
+ * scenario never exercises the pre-provisioning gap. The
  * exchange rides two member contexts: the consumer side negotiates on the sender member's context
  * ({@code DEV:COM:1234}), the provider side serves the offer on the new member's <b>own</b> context
  * ({@code DEV:COM:4321}), and each side persists its own per-context copy of the one wire agreement. The
@@ -150,6 +152,11 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for {@code DEV:COM:4321}. */
     private static final String NEW_MEMBER_CTX_ID = "DEV:COM:4321";
+
+    private static final String CREDENTIAL_STATUS_ISSUED = "ISSUED";
+    private static final String CREDENTIAL_STATUS_ERROR = "ERROR";
+    private static final String PUBLICATION_STATE_PUBLISHED = "PUBLISHED";
+    private static final String PUBLICATION_STATE_REJECTED = "REJECTED";
 
     private static final String DID_WEB_PREFIX = "did:web:";
     private static final ClientId.Conf NEW_MEMBER = ClientId.Conf.create(X_ROAD_INSTANCE, NEW_MEMBER_CLASS, NEW_MEMBER_CODE);
@@ -230,9 +237,9 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         and("the established consumer TestService is granted access to the new client's service", () ->
                 grantConsumerAccessRights(ss0BaseUrl, ss0Session, clientId, CONSUMER_CLIENT_ID, REST_SERVICE_CODE));
 
-        then("the new member's own participant context and membership credential are provisioned, independent of "
-                + "which context the transfer below ends up riding, with no restart", () ->
-                awaitMemberCredentialIssued(ss0BaseUrl, ss0Session, NEW_MEMBER_CTX_ID));
+        then("the new member's own participant context has its membership credential ISSUED and its DID PUBLISHED, "
+                + "independent of which context the transfer below ends up riding, with no restart", () ->
+                awaitMemberCredentialIssuedAndDidPublished(ss0BaseUrl, ss0Session));
 
         and("the new member's DID now resolves with verification keys", () ->
                 awaitKeyedDidDocument(env, didResolution));
@@ -257,6 +264,33 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
         and("the transfer over that agreement succeeds", () ->
                 dspAssertions.awaitTransferSucceeded(wireAgreementId));
+    }
+
+    /**
+     * Waits for the new member context's membership credential to be ISSUED and its member DID to be PUBLISHED
+     * (the context's {@code publication_state}), as ss0's provisioning status reports them. The consumer and the
+     * provider are both on ss0, so this is the server whose global configuration the call mode is chosen from.
+     * Stops at once on a credential {@code ERROR} or a {@code REJECTED} publication.
+     */
+    private void awaitMemberCredentialIssuedAndDidPublished(String ss0BaseUrl, AdminSession ss0) {
+        var context = awaitMemberContext(ss0BaseUrl, ss0, NEW_MEMBER_CTX_ID,
+                "credential of %s is ISSUED and its DID is PUBLISHED".formatted(NEW_MEMBER_CTX_ID),
+                member -> isFailed(member) || isIssuedAndPublished(member));
+        assertThat(isFailed(context))
+                .as("member context %s reached a terminal failure state: credential_status=%s, publication_state=%s, "
+                                + "publication_reason=%s", NEW_MEMBER_CTX_ID, context.get("credential_status"),
+                        context.get("publication_state"), context.get("publication_reason"))
+                .isFalse();
+    }
+
+    private static boolean isFailed(Map<String, Object> member) {
+        return CREDENTIAL_STATUS_ERROR.equals(member.get("credential_status"))
+                || PUBLICATION_STATE_REJECTED.equals(member.get("publication_state"));
+    }
+
+    private static boolean isIssuedAndPublished(Map<String, Object> member) {
+        return CREDENTIAL_STATUS_ISSUED.equals(member.get("credential_status"))
+                && PUBLICATION_STATE_PUBLISHED.equals(member.get("publication_state"));
     }
 
     private String newMemberDid(E2eEnvironment env) {

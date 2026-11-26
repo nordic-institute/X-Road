@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>The asserted shape: the consumer side negotiates as the sender member's derived participant context
  * ({@code consumerMemberCtxId}) and dials the provider member's derived context
- * ({@code providerMemberCtxId}) — counter-party coordinates are derived per XRDADR-41, so no host-context
+ * ({@code providerMemberCtxId}) — the context ids come from the member ids, so no host-context
  * literal ever appears in a query. Each side persists its agreement copy scoped to its own context, and the
  * pair is grouped by the wire agreement id ({@code agr_agreement_id}) the copies share: two per-context
  * copies when the contexts differ, one converged row (the store's composite-key upsert) when a same-member

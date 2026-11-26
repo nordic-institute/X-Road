@@ -190,8 +190,8 @@ services:
 
   # Owns this Security Server's GlobalConf-registered address (xrd-ssN) on the shared
   # network and fans its ports out per backend: 5500/5577 to the proxy, 7183 to the
-  # identity hub (DID resolution), 8183 to the control plane (DSP). Counterparties derive
-  # all of these from the one registered address (XRDADR-41), so they must be served there.
+  # identity hub (DID resolution), 8183 to the control plane (DSP). Counterparties dial the
+  # DID and DSP base URL this server publishes, which name this address, so they must be served there.
   ds-gateway:
     image: ${DS_GATEWAY_IMG}
     environment:

@@ -48,7 +48,7 @@ public interface DspRequestProcessor {
     DspAcquisition execute(DspRequest request);
 
     /**
-     * Tells whether the request goes to the provider over the X-Road 7 path instead of through DSP. A request
+     * Tells whether the request is a metaservice request that bypasses DSP. A request
      * that bypasses DSP is not passed to {@link #execute}, and no agreement token is attached to it.
      *
      * @param request the request to route
