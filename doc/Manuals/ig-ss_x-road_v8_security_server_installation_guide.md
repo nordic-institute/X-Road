@@ -9,14 +9,14 @@ Doc. ID: IG-SS-8
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                                          | Author            |
-|------------|---------|----------------------------------------------------------------------|-------------------|
-| 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis   |
-| 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets     |
-| 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets     |
-| 17.11.2026 | 1.3     | Documented country profile selection and precedence                  | Ričardas Bučiūnas |
-| 18.11.2026 | 1.4     | Added the DID and DSP port choice at installation                    | Justas Samuolis   |
-| 26.11.2026 | 1.5     | Update network diagram and port listings                             | Petteri Kivimäki  |
+| Date       | Version | Description                                                                        | Author            |
+|------------|---------|------------------------------------------------------------------------------------|-------------------|
+| 20.10.2025 | 1.0     | Initial version                                                                    | Justas Samuolis   |
+| 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666)               | Eneli Reimets     |
+| 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)                      | Eneli Reimets     |
+| 17.11.2026 | 1.3     | Documented country profile selection and precedence                                | Ričardas Bučiūnas |
+| 18.11.2026 | 1.4     | Added the DID and DSP port choice at installation                                  | Justas Samuolis   |
+| 26.11.2026 | 1.5     | Update network diagram and port listings, add the table of network interface ports | Petteri Kivimäki  |
 
 ## License
 
@@ -122,9 +122,10 @@ The software can be installed both on physical and virtualized hardware.
 | 1.7     | **Inbound ports from internal network**                                                                              | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
 | &nbsp;  | TCP 4000                                                                                                             | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
 | &nbsp;  | TCP 8080, 8443                                                                                                       | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
+| &nbsp;  | TCP *other*                                                                                                          | Health check interface for monitoring systems (in the local network). Disabled by default; the default port is 5588 when it is enabled                                                                                                                                                     |
 | 1.8     | **Outbound ports to internal network**                                                                               | Ports for outbound connections from the Security Server to the internal network                                                                                                                                                                                                            |
 | &nbsp;  | TCP 80, 443, *other*                                                                                                 | Producer information system endpoints                                                                                                                                                                                                                                                      |
-| &nbsp;  | TCP 2081                                                                                                             | gRPC connection between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
+| &nbsp;  | TCP 2081                                                                                                             | gRPC connection between Security Server and operational data monitoring daemon, only when the daemon runs on another host. By default it runs on the Security Server and uses the loopback interface |
 | 1.9     |                                                                                                                      | Security Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
 | 1.10     |                                                                                                                      | Security Server public IP address, NAT address                                                                                                                                                                                                                                             |
 | 1.11    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
@@ -193,14 +194,14 @@ The table below lists the open ports for Security Server components utilizing th
 | Configuration Client          | 5665      | tcp          | Configuration Client gRPC server port                      |
 | Auxiliary service             | 5666      | tcp          | Auxiliary service gRPC server port                         |
 | Dataspace control plane       | 8181      | tcp          | Control plane default API port                             |
-| Dataspace control plane       | 8185      | tcp          | Control plane data plane signalling port \*                |
-| Dataspace control plane       | 5461      | tcp          | Control plane gRPC provisioning port \*                    |
+| Dataspace control plane       | 8185      | tcp          | Control plane data plane signalling port \*\*              |
+| Dataspace control plane       | 5461      | tcp          | Control plane gRPC provisioning port \*\*                  |
 | Dataspace identity hub        | 7181      | tcp          | Identity hub default API port                              |
-| Dataspace identity hub        | 5460      | tcp          | Identity hub gRPC provisioning port \*                     |
+| Dataspace identity hub        | 5460      | tcp          | Identity hub gRPC provisioning port \*\*                   |
 | Secret Store                  | 8200      | tcp          | Local Secret Store (OpenBao) port                          |
 | Audit Log                     | 514       | udp          |                                                            |
 
-\* These ports listen on all network interfaces by default, although only local components use them. Block them from external networks with a firewall.
+\*\* These ports listen on all network interfaces by default, although only local components use them. Block them from external networks with a firewall.
 
 ### 2.3 Requirements for the Security Server
 
@@ -216,7 +217,7 @@ Requirements to software and settings:
 
 * an installed and configured 24.04 or 26.04 LTS x86-64 operating system;
 * if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.5; 1.6; 1.7; 1.8**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
-* the DID port (default 7183) and the DSP port (default 8183) are allowed for inbound connections (**reference data: 1.5**). The ports are chosen at installation, see [2.6.3 DID and DSP ports](#263-did-and-dsp-ports);
+* the DID port (default 7183), the credentials port 7185, the Security Token Service port 7184 and the DSP port (default 8183) are allowed for inbound connections (**reference data: 1.5**). The DID and DSP ports are chosen at installation, see [2.6.3 DID and DSP ports](#263-did-and-dsp-ports);
 * if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.10**).
 
 ### 2.4 Preparing OS

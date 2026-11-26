@@ -6,13 +6,12 @@ Doc. ID: IG-CS-8
 ---
 
 ## Version history <!-- omit in toc -->
-| Date       | Version | Description                                                                                                                                                 | Author          |
-|------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
-| 07.10.2025 | 1.0     | Initial version                                                                                                                                             | Justas Samuolis |
+| Date       | Version | Description                                                                                                                                                   | Author          |
+|------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| 07.10.2025 | 1.0     | Initial version                                                                                                                                               | Justas Samuolis |
 | 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check, the default node name, the shared rows of a standalone server and the signer rows | Ričardas Bučiūnas |
-| 12.11.2026 | 1.2     | Describe the root token file that every node of a cluster keeps                                                                                             | Ričardas Bučiūnas |
-| 26.11.2026 | 1.3     | Update network diagram and port listings                                                                                            | Ričardas Bučiūnas |
-| 26.11.2026 | 1.4     | Fix port listings, add the table of network interface ports                                                                         | Petteri Kivimäki |
+| 12.11.2026 | 1.2     | Describe the root token file that every node of a cluster keeps                                                                                               | Ričardas Bučiūnas |
+| 26.11.2026 | 1.3     | Update network diagram and port listings, add the table of network interface ports                                                                            | Petteri Kivimäki |
 
 ## Table of Contents <!-- omit in toc -->
 
