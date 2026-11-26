@@ -80,7 +80,16 @@ while getopts ":s:f:SbhE:k:" opt ; do
       USE_BASE_64=true
       ;;
     E)
-      ENCRYPT_MODE=$OPTARG
+      case $OPTARG in
+        signonly|encrypt)
+          ENCRYPT_MODE=$OPTARG
+          ;;
+        *)
+          echo "Invalid backup encryption mode $OPTARG"
+          usage
+          exit 2
+          ;;
+      esac
       ;;
     k)
       GPG_KEYIDS=$OPTARG
