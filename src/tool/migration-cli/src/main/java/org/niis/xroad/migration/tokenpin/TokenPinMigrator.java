@@ -52,38 +52,46 @@ public class TokenPinMigrator {
     private final AutoLoginScriptExecutor scriptExecutor;
 
     /**
-     * Migrates PINs from autologin scripts to OpenBao.
+     * Migrates PINs from an autologin script to OpenBao.
      *
      * @param scriptPath Path to fetch-pin script (custom-fetch-pin.sh or default-fetch-pin.sh)
      * @return Migration result with status and details
      * @throws IOException If script execution fails critically
      */
     public TokenPinMigrationResult migrateFromScript(Path scriptPath) throws IOException {
-        log.info("Starting PIN migration from autologin script: {}", scriptPath);
-
         validateScript(scriptPath);
 
-        ScriptExecutionResult scriptResult = scriptExecutor.execute(scriptPath);
+        return migrate(new PinSource("script " + scriptPath, scriptExecutor.execute(scriptPath)));
+    }
 
-        TokenPinMigrationResult earlyResult = handleScriptResult(scriptResult);
+    /**
+     * Migrates the PINs a {@link PinSourceLookup} found to OpenBao.
+     *
+     * @param source The chosen PIN source
+     * @return Migration result with status and details
+     */
+    public TokenPinMigrationResult migrate(PinSource source) {
+        log.info("Starting PIN migration from {}", source.description());
+
+        TokenPinMigrationResult earlyResult = handleScriptResult(source.result());
         if (earlyResult != null) {
             return earlyResult;
         }
 
         List<TokenPin> tokenPins;
         try {
-            tokenPins = parsePinOutput(scriptResult.output());
+            tokenPins = parsePinOutput(source.result().output());
         } catch (IllegalArgumentException e) {
-            log.error("Failed to parse script output: {}", e.getMessage());
+            log.error("Failed to parse PIN source content: {}", e.getMessage());
             return TokenPinMigrationResult.failed("Parse error: " + e.getMessage());
         }
 
         if (tokenPins.isEmpty()) {
-            log.info("No PINs found in script output, skipping migration");
-            return TokenPinMigrationResult.skipped("No PINs in script output");
+            log.info("No PINs found in PIN source, skipping migration");
+            return TokenPinMigrationResult.skipped("No PINs in the PIN source");
         }
 
-        log.info("Parsed {} token PIN(s) from script output", tokenPins.size());
+        log.info("Parsed {} token PIN(s) from PIN source", tokenPins.size());
 
         return migrateTokenPins(tokenPins);
     }
@@ -100,13 +108,13 @@ public class TokenPinMigrator {
     private TokenPinMigrationResult handleScriptResult(ScriptExecutionResult scriptResult) {
         if (scriptResult.isPinUnavailable()) {
             log.info("No PINs available (exit code 127), skipping migration");
-            return TokenPinMigrationResult.skipped("No PINs available from script");
+            return TokenPinMigrationResult.skipped("No PINs available from the PIN source");
         }
         if (!scriptResult.success()) {
             log.error("Script execution failed with exit code {}: {}",
                     scriptResult.exitCode(), scriptResult.errorOutput());
             return TokenPinMigrationResult.failed(
-                    "Script failed with exit code " + scriptResult.exitCode() + ": " + scriptResult.errorOutput());
+                    "PIN source failed with exit code " + scriptResult.exitCode() + ": " + scriptResult.errorOutput());
         }
         return null;
     }
@@ -189,10 +197,10 @@ public class TokenPinMigrator {
     }
 
     /**
-     * Parse fetch-pin script output into TokenPin objects.
+     * Parse fetch-pin script output or PIN file content into TokenPin objects.
      * Supports both single-PIN format (default token "0") and multi-token format (tokenId:pin per line).
      */
-    private List<TokenPin> parsePinOutput(String output) {
+    static List<TokenPin> parsePinOutput(String output) {
         List<TokenPin> result = new ArrayList<>();
         Set<String> seenTokenIds = new HashSet<>();
         String[] lines = output.split("\\R"); // Handles \n, \r\n, \r
@@ -219,7 +227,7 @@ public class TokenPinMigrator {
 
             // Validate (avoid logging sensitive line content)
             if (tokenId.isEmpty()) {
-                throw new IllegalArgumentException("Empty token ID found in script output");
+                throw new IllegalArgumentException("Empty token ID found in PIN source");
             }
             if (pin.isEmpty()) {
                 throw new IllegalArgumentException("Empty PIN for token: " + tokenId);
@@ -227,7 +235,7 @@ public class TokenPinMigrator {
 
             // Check for duplicates
             if (!seenTokenIds.add(tokenId)) {
-                throw new IllegalArgumentException("Duplicate token ID in script output: " + tokenId);
+                throw new IllegalArgumentException("Duplicate token ID in PIN source: " + tokenId);
             }
 
             result.add(new TokenPin(tokenId, pin));

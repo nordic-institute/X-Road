@@ -37,6 +37,7 @@ import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
@@ -66,6 +67,7 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
             CommonRpcConfigKeys.instance(),
             ProxyConfigKeys.instance(),
             ConfClientConfigKeys.instance(),
+            DspConfigKeys.instance(),
             OpMonitorConfigKeys.instance(),
             AuxiliaryServiceConfigKeys.instance(),
             AdminServiceConfigKeys.instance(),

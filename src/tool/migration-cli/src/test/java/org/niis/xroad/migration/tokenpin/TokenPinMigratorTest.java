@@ -37,10 +37,12 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -183,7 +185,7 @@ class TokenPinMigratorTest {
 
         // Then
         assertEquals(MigrationStatus.FAILED, result.status());
-        assertTrue(result.message().contains("Script failed"));
+        assertTrue(result.message().contains("PIN source failed"));
     }
 
     @Test
@@ -261,6 +263,33 @@ class TokenPinMigratorTest {
 
         // Then
         assertEquals(false, result);
+    }
+
+    @Test
+    void shouldBeSuccessfulWhenEveryTokenIsAlreadyStored() {
+        when(mockVaultClient.getTokenPin(anyString())).thenReturn(Optional.of("existing".toCharArray()));
+        PinSource source = new PinSource("PIN file", new ScriptExecutionResult(true, "0:a\n1:b\n", "", 0));
+
+        TokenPinMigrationResult result = migrator.migrate(source);
+
+        assertEquals(List.of("0", "1"), result.skippedTokens());
+        assertTrue(result.successfulTokens().isEmpty());
+        assertTrue(result.isSuccessful());
+        verify(mockVaultClient, never()).setTokenPin(anyString(), any());
+    }
+
+    @Test
+    void shouldNotBeSuccessfulWhenATokenFailedNextToASkippedOne() {
+        when(mockVaultClient.getTokenPin("0")).thenReturn(Optional.of("existing".toCharArray()));
+        when(mockVaultClient.getTokenPin("1")).thenReturn(Optional.empty());
+        doThrow(new IllegalStateException("vault down")).when(mockVaultClient).setTokenPin(eq("1"), any(char[].class));
+        PinSource source = new PinSource("PIN file", new ScriptExecutionResult(true, "0:a\n1:b\n", "", 0));
+
+        TokenPinMigrationResult result = migrator.migrate(source);
+
+        assertEquals(List.of("0"), result.skippedTokens());
+        assertTrue(result.failedTokens().containsKey("1"));
+        assertFalse(result.isSuccessful());
     }
 
     private Path createExecutableScript() throws IOException {

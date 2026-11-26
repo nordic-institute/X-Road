@@ -15,9 +15,19 @@ quarkus:
     category:
       "EDC-MONITOR":
         level: TRACE
+  http:
+    host: ${xroad.dataspace.issuer.health-check-listen-address}
+    host-enabled: true
+    port: ${xroad.dataspace.issuer.health-check-port}
   arc:
     unremovable-types:
       - org.niis.xroad.globalconf.GlobalConfProvider
+
+"%containerized":
+  quarkus:
+    http:
+      host: 0.0.0.0
+      port: 4099
 
 "%native":
   quarkus:

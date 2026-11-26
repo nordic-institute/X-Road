@@ -305,6 +305,60 @@ class AdminApi {
                 "set connection type of %s to %s".formatted(clientId, connectionType));
     }
 
+    /** Reads the client's internal connection type ({@code HTTP}, {@code HTTPS} or {@code HTTPS_NO_AUTH}). */
+    static String getConnectionType(String baseUrl, AdminSession session, String clientId) {
+        var response = authed(session).get(baseUrl + "/api/v1/clients/" + clientId);
+        assertThat(response.getStatusCode()).as("GET /clients/%s", clientId).isEqualTo(HTTP_OK);
+        return response.jsonPath().getString("connection_type");
+    }
+
+    /**
+     * Runs the diagnostics connection test from {@code clientId} to {@code targetClientId} on the Security
+     * Server {@code securityServerId}, for the {@code SOAP} or {@code REST} protocol, and returns the reply.
+     */
+    static Response getOtherSecurityServerStatus(String baseUrl, AdminSession session, String protocolType,
+                                                 String clientId, String targetClientId, String securityServerId) {
+        return authed(session)
+                .queryParam("protocol_type", protocolType)
+                .queryParam("client_id", clientId)
+                .queryParam("target_client_id", targetClientId)
+                .queryParam("security_server_id", securityServerId)
+                .get(baseUrl + "/api/v1/diagnostics/other-security-server-status");
+    }
+
+    /** Downloads the internal TLS certificate as a gzip-compressed tar archive. */
+    static byte[] exportInternalTlsCertificate(String baseUrl, AdminSession session) {
+        var response = authed(session).get(baseUrl + "/api/v1/system/certificate/export");
+        assertThat(response.getStatusCode()).as("export internal TLS certificate").isEqualTo(HTTP_OK);
+        return response.asByteArray();
+    }
+
+    /** Generates a PEM certificate request for the internal TLS key and returns its bytes. */
+    static byte[] generateInternalTlsCsr(String baseUrl, AdminSession session, String distinguishedName) {
+        var response = sendJson(session, Method.POST, baseUrl + "/api/v1/system/certificate/csr",
+                "{\"name\": \"%s\"}".formatted(distinguishedName), HTTP_OK, "generate internal TLS CSR");
+        return response.asByteArray();
+    }
+
+    /** Reads the common name of the issuer of the stored internal TLS certificate. */
+    static String getInternalTlsCertificateIssuerCommonName(String baseUrl, AdminSession session) {
+        var response = authed(session).get(baseUrl + "/api/v1/system/certificate");
+        assertThat(response.getStatusCode()).as("GET /system/certificate").isEqualTo(HTTP_OK);
+        return response.jsonPath().getString("issuer_common_name");
+    }
+
+    /** Imports a signed certificate (PEM or DER bytes) as the internal TLS certificate; the status is left to the caller. */
+    static Response importInternalTlsCertificate(String baseUrl, AdminSession session, byte[] certificate) {
+        return authed(session)
+                .multiPart("certificate", "certificate.pem", certificate, "application/octet-stream")
+                .post(baseUrl + "/api/v1/system/certificate/import");
+    }
+
+    /** Regenerates the internal TLS key and certificate; the status is left to the caller. */
+    static Response regenerateInternalTlsCertificate(String baseUrl, AdminSession session) {
+        return authed(session).post(baseUrl + "/api/v1/system/certificate");
+    }
+
     /**
      * Submits the client registration request, tolerating a warm rerun where the client is already past
      * {@code SAVED} status: {@code ClientService.registerClient} rejects that with

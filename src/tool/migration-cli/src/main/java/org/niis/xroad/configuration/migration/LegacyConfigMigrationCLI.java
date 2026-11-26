@@ -37,6 +37,9 @@ import org.niis.xroad.migration.messagelog.MessageLogKeyMigrator;
 import org.niis.xroad.migration.pgp.PgpKeyMigrator;
 import org.niis.xroad.migration.signer.KeyConfMigrator;
 import org.niis.xroad.migration.tokenpin.AutoLoginScriptExecutor;
+import org.niis.xroad.migration.tokenpin.PinSource;
+import org.niis.xroad.migration.tokenpin.PinSourceLocations;
+import org.niis.xroad.migration.tokenpin.PinSourceLookup;
 import org.niis.xroad.migration.tokenpin.TokenPinMigrator;
 import org.niis.xroad.migration.utils.DbPropertiesReader;
 import org.niis.xroad.migration.utils.InstallationType;
@@ -72,7 +75,7 @@ public class LegacyConfigMigrationCLI {
         MESSAGELOG_KEY_MAPPINGS("messagelog-key-mappings", "Migrate message log key-mapping INI file to DB"),
         ACME_ACCOUNT_KEYS("acme-account-keys", "Migrate ACME account key pairs from P12 keystore to Vault"),
         KEYCONF("keyconf", "Migrate signer key configuration to DB"),
-        SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs from autologin scripts to Vault"),
+        SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs to Vault"),
         NODE_NAME("node-name", "Carry the X-Road 7 Central Server node name into node.ini"),
         SIGNER_DEVICES("signer-devices", "Migrate signer devices.ini to DB"),
         CONFIGURATION_ANCHOR("configuration-anchor", "Migrate configuration anchor file to DB"),
@@ -112,6 +115,8 @@ public class LegacyConfigMigrationCLI {
             };
         }
     }
+
+    static final String SIGNER_AUTOLOGIN_ENABLED_KEY = "xroad.signer.autologin.enabled";
 
     private static final Set<Command> CENTRAL_SERVER_COMMANDS = EnumSet.of(
             Command.NODE_NAME, Command.VALIDATE, Command.SIGNER_DEVICES, Command.INI_TO_DB, Command.KEYCONF,
@@ -178,7 +183,9 @@ public class LegacyConfigMigrationCLI {
                 }
                 case SIGNER_TOKEN_PINS -> {
                     NodeOption nodeOption = NodeOption.extract(args);
-                    migrateSignerTokenPins(nodeOption.remainingArgs().toArray(new String[0]), nodeOption.nodeIdentity());
+                    DbPropertiesOption dbOption = DbPropertiesOption.extract(nodeOption.remainingArgs().toArray(new String[0]));
+                    migrateSignerTokenPins(dbOption.remainingArgs().toArray(new String[0]), nodeOption.nodeIdentity(),
+                            installation, dbOption.path());
                 }
                 case NODE_NAME -> migrateNodeName(args);
                 case SIGNER_DEVICES -> migrateSignerDevices(args, installation);
@@ -226,7 +233,7 @@ public class LegacyConfigMigrationCLI {
                   messagelog-key-mappings        Migrate message log key-mapping INI file to DB
                   acme-account-keys              Migrate ACME account key pairs from P12 keystore to Vault
                   keyconf                        Migrate signer key configuration to DB
-                  signer-token-pins              Migrate signer token PINs from autologin scripts to Vault
+                  signer-token-pins              Migrate signer token PINs to Vault
                   node-name                      Carry the X-Road 7 Central Server node name into node.ini
                   signer-devices                 Migrate signer devices.ini to DB
                   configuration-anchor           Migrate configuration anchor file to DB
@@ -347,18 +354,26 @@ public class LegacyConfigMigrationCLI {
                       <property value>     Property value to store
 
                 Signer Token PINs Migration:
-                  migration-cli signer-token-pins [--node <name>] [<script-path>]
-                    Migrates token PINs from autologin scripts to Vault, under signer/token-pins/<node>/<tokenId>.
+                  migration-cli signer-token-pins [--node <name>] [--db-properties <path>] [<script-path>]
+                    Migrates token PINs to Vault, under signer/token-pins/<node>/<tokenId>, and enables
+                    signer autologin (xroad.signer.autologin.enabled) once a PIN has been stored.
                     Arguments:
-                      --node <name>    Node name (default: node_0); an invalid name stops the tool before any write
-                      <script-path>    Optional path to fetch-pin script
-                                      If not provided, auto-selects:
-                                        1. /usr/share/xroad/autologin/custom-fetch-pin.sh (preferred)
-                                        2. /usr/share/xroad/autologin/default-fetch-pin.sh (fallback)
+                      --node <name>            Node name (default: node_0); an invalid name stops the tool before any write
+                      --db-properties <path>   db.properties of the configuration database
+                                               (default: /etc/xroad/db.properties); checked before any PIN is written
+                      <script-path>            Optional path to a fetch-pin script
+                    PIN source, the first that exists is used:
+                      1. <script-path>, if given (a missing script is an error; no other source is tried)
+                      2. /usr/share/xroad/autologin/custom-fetch-pin.sh
+                      3. /usr/share/xroad/autologin/default-fetch-pin.sh
+                      4. /etc/xroad/autologin (the PIN file, read directly)
+                    A script prints, and the PIN file holds, either one PIN (token 0) or tokenId:pin lines.
                     Notes:
                       - Requires Vault to be configured and accessible
-                      - Existing PINs in Vault are preserved (not overwritten)
-                      - Exit code 127 from script is treated as non-fatal (no PINs to migrate)
+                      - Existing PINs in Vault are preserved (not overwritten); a run where every PIN is already
+                        stored succeeds and leaves autologin unchanged
+                      - Exit code 127 from a script is treated as non-fatal (no PINs to migrate)
+                      - No PIN source at all stops the tool with exit code 1
 
                 Examples:
                   migration-cli config /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/local.yaml
@@ -380,6 +395,7 @@ public class LegacyConfigMigrationCLI {
                   migration-cli set-property /etc/xroad/db.properties xroad.proxy.batch-signing-enabled true
                   migration-cli signer-token-pins
                   migration-cli signer-token-pins --node node_1
+                  migration-cli signer-token-pins --installation=cs --db-properties /etc/xroad/db.properties
                   migration-cli signer-token-pins /usr/share/xroad/autologin/custom-fetch-pin.sh
                 """);
     }
@@ -714,30 +730,21 @@ public class LegacyConfigMigrationCLI {
         new PropertiesToDbMigrator().migrate(inputFilePath, dbPropertiesPath);
     }
 
-    private static void migrateSignerTokenPins(String[] args, NodeIdentity nodeIdentity) throws IOException {
-        // Determine script path
-        Path scriptPath;
-        if (args.length > 0) {
-            scriptPath = Path.of(args[0]);
-        } else {
-            Path customScript = Path.of("/usr/share/xroad/autologin/custom-fetch-pin.sh");
-            Path defaultScript = Path.of("/usr/share/xroad/autologin/default-fetch-pin.sh");
-            scriptPath = Files.exists(customScript) ? customScript : defaultScript;
-        }
+    private static void migrateSignerTokenPins(String[] args, NodeIdentity nodeIdentity, InstallationType installation,
+                                               String dbPropertiesPath) throws IOException {
+        Path explicitScript = args.length > 0 ? Path.of(args[0]) : null;
+        migrateSignerTokenPins(nodeIdentity, installation, dbPropertiesPath, PinSourceLocations.product(explicitScript));
+    }
 
-        log.info("Using fetch-pin script: {}", scriptPath);
-
-        if (!Files.exists(scriptPath)) {
-            log.error("Fetch-pin script not found: {}", scriptPath);
-            log.error("Ensure xroad-autologin package is installed or provide an explicit script path");
-            System.exit(1);
-        }
-
-        log.info("Starting signer token PIN migration for node {} from script: {}", nodeIdentity.name(), scriptPath);
+    static void migrateSignerTokenPins(NodeIdentity nodeIdentity, InstallationType installation,
+                                       String dbPropertiesPath, PinSourceLocations locations) throws IOException {
         var vaultClient = MigrationVaultClient.createAndPreflight(nodeIdentity);
+        requireUsableDbProperties(dbPropertiesPath, installation);
+
+        log.info("Starting signer token PIN migration for node {}", nodeIdentity.name());
         var executor = new AutoLoginScriptExecutor();
-        var migrator = new TokenPinMigrator(vaultClient, executor);
-        var result = migrator.migrateFromScript(scriptPath);
+        PinSource source = new PinSourceLookup(executor).find(locations);
+        var result = new TokenPinMigrator(vaultClient, executor).migrate(source);
         log.info("Token PIN migration status: {}", result.status());
         log.info("Message: {}", result.message());
         if (!result.successfulTokens().isEmpty()) {
@@ -749,11 +756,39 @@ public class LegacyConfigMigrationCLI {
         if (!result.failedTokens().isEmpty()) {
             log.warn("Failed tokens: {}", result.failedTokens());
         }
+        if (!result.successfulTokens().isEmpty()) {
+            log.info("A PIN was stored; enabling signer autologin");
+            enableSignerAutologin(dbPropertiesPath, installation);
+        } else if (!result.skippedTokens().isEmpty() && result.failedTokens().isEmpty()) {
+            enableSignerAutologinWhenUnset(dbPropertiesPath, installation);
+        }
         if (!result.isSuccessful()) {
             throw XrdRuntimeException.systemException(INTERNAL_ERROR,
                     "Signer token PIN migration did not succeed (status=%s, failed=%s)",
                     result.status(), result.failedTokens());
         }
+    }
+
+    private static void requireUsableDbProperties(String dbPropertiesPath, InstallationType installation) {
+        if (!Files.isRegularFile(Path.of(dbPropertiesPath))) {
+            throw new MigrationException("Database properties file not found: %s; give its path with %s"
+                    .formatted(dbPropertiesPath, DbPropertiesOption.OPTION));
+        }
+        DbPropertiesReader.readForInstallation(Path.of(dbPropertiesPath), installation);
+    }
+
+    private static void enableSignerAutologinWhenUnset(String dbPropertiesPath, InstallationType installation) {
+        if (new SinglePropertySetter(SIGNER_AUTOLOGIN_ENABLED_KEY, "true").hasStoredValue(dbPropertiesPath, installation)) {
+            log.info("No PIN was stored and {} already has a value; leaving it unchanged", SIGNER_AUTOLOGIN_ENABLED_KEY);
+            return;
+        }
+        log.info("Every PIN was already stored and {} was never set; enabling signer autologin", SIGNER_AUTOLOGIN_ENABLED_KEY);
+        enableSignerAutologin(dbPropertiesPath, installation);
+    }
+
+    private static void enableSignerAutologin(String dbPropertiesPath, InstallationType installation) {
+        log.info("Enabling signer autologin ({} = true)", SIGNER_AUTOLOGIN_ENABLED_KEY);
+        new SinglePropertySetter(SIGNER_AUTOLOGIN_ENABLED_KEY, "true").store(dbPropertiesPath, installation);
     }
 
     private static void migrateConfiguration(String[] args) {

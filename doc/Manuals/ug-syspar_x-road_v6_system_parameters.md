@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.113
+Version: 2.114
 Doc. ID: UG-SYSPAR
 
 
@@ -124,6 +124,7 @@ Doc. ID: UG-SYSPAR
 | 16.11.2026 | 2.111   | Documented that the dataspace services are covered by the secret store retry, and the daily secret store token renewal                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas          |
 | 16.11.2026 | 2.112   | Added the configurable secret store token renewal interval *xroad.common.vault-token-renewal.interval*                                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas          |
 | 20.11.2026 | 2.113   | Added the *management-requests.address-change-expiry* parameter                                                                                                                                                                                                                                                                                                                                                | Justas Samuolis            |
+| 25.11.2026 | 2.114   | Added the Security Server issuer data parameters `xroad.dsp.issuer-data.*`, documented where to set the stock EDC settings for issuer data, the effect of setting *issuerDataFreshnessSeconds* to 0 and the limits `xroad.dsp.issuer-data.cache.statuslist-download.size` and `xroad.dsp.issuer-data.cache.did-download.size`                                                                                  | Stefan Cvetkovski          |
 
 ## Table of Contents
 
@@ -141,6 +142,7 @@ Doc. ID: UG-SYSPAR
     - [3 Security Server System Parameters](#3-security-server-system-parameters)
         - [3.1 Common parameters : `[common]`](#31-common-parameters--common)
             - [3.1.1 Internal gRPC connections: `xroad.common-rpc`](#311-internal-grpc-connections-xroadcommon-rpc)
+            - [3.1.2 Issuer data outage tolerance: `xroad.dsp.issuer-data`](#312-issuer-data-outage-tolerance-xroaddspissuer-data)
         - [3.2 Proxy parameters: `[proxy]`](#32-proxy-parameters-proxy)
         - [3.3 Proxy User Interface parameters: `[proxy-ui]`](#33-proxy-user-interface-parameters-proxy-ui)
         - [3.4 Signer parameters: `[signer]`](#34-signer-parameters-signer)
@@ -294,6 +296,64 @@ An external operational monitoring daemon host has no System Parameters view. Th
 | **Parameter**              | **Default value** | **Description** |
 |----------------------------|-------------------|-----------------|
 | `xroad.common-rpc.use-tls` | true              | Production requires *true*. When enabled, mutual TLS is used for all gRPC communication between the internal services of the server, including the connection to the operational monitoring daemon. When *false*, every internal gRPC connection is unencrypted. |
+
+#### 3.1.2 Issuer data outage tolerance: `xroad.dsp.issuer-data`
+
+The parameters in this section are X-Road 8 configuration properties, not INI file parameters. They control how the dataspace connector (`xroad-ds-control-plane`) and the identity hub (`xroad-ds-identity-hub`) keep and refresh the statuslists and issuer DID documents that they download from an Issuer Service, and the cleanup of expired issuer data. They are shown in the Common panel of the System Parameters view of the user interface. They can also be set with the script `/usr/share/xroad/scripts/db_property.sh`, for example:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.dsp.issuer-data.cache.statuslist.size 2000
+```
+
+Both services use the same value of each parameter. The value comes from the shared row in the database. When there is no row, the value in the country profile applies (the configuration layers are database row, then country profile, then default value). Environment variables and `-D` Java properties have no effect. The services read the values once when they start. After a change restart `xroad-ds-control-plane` and `xroad-ds-identity-hub`.
+
+A stored value that cannot be parsed or is outside the allowed range stops the service from starting, and the error names the parameter. The user interface refuses to save such a value. The script `db_property.sh` does not check the value.
+
+| **Parameter**                                              | **Default value** | **Description** |
+|------------------------------------------------------------|-------------------|-----------------|
+| `xroad.dsp.issuer-data.download-wait`                      | PT2S              | When no fresh copy of a statuslist or an issuer DID document is in memory, a check starts a download from the Issuer Service and waits for it up to this time. Checks that need the same data at the same time share one download. When the download does not finish in this time, the check uses the copy stored in the database until the copy expires (see *issuerDataFreshnessSeconds* in section [4.2](#42-system-parameters-in-the-database)). A longer wait gives a slow Issuer Service more time to answer, but a check that needs a download can take this long. The value must be above 0. Reasonable values are from 1 to 10 seconds. Accepted formats are an ISO-8601 duration (for example `PT2S`), a number with the unit `ms`, `s`, `m`, `h` or `d` (for example `2s`) and a bare number of seconds (for example `2`). |
+| `xroad.dsp.issuer-data.download-retry-seconds`             | 5,10,15,20,30,60  | After a failed download, the service waits this number of seconds before it downloads the same data again. During the wait, checks use the stored copy and do not call the Issuer Service, so an outage does not cause a download for each check. Entry n of the comma-separated list is the wait after failure n in a row. The last entry repeats for all later failures. With the default value, the waits are 5, 10, 15, 20 and 30 seconds, and then 60 seconds after each later failure. Every entry is a positive whole number. An entry longer than `download-expire-after` has no effect. When *issuerDataFreshnessSeconds* is 0, this wait also decides how long the checks fail after a failed download (see section [4.2](#42-system-parameters-in-the-database)). |
+| `xroad.dsp.issuer-data.download-expire-after`              | PT10M             | The longest time that the service remembers the failed downloads of the same data. The time starts at the check that started the first of these downloads. After this time the failures expire: the next check starts a new download, and the wait starts again from the first entry of `download-retry-seconds`. A download that still runs at that time does not stop, but the next check starts another download. The value must be above 0. Reasonable values are from PT5M to PT10M. Accepted formats are an ISO-8601 duration (for example `PT10M`), a number with the unit `ms`, `s`, `m`, `h` or `d` (for example `10m`) and a bare number of seconds (for example `600`). |
+| `xroad.dsp.issuer-data.download-timeout`                   | PT30S             | The longest time that one download of a statuslist or an issuer DID document takes, from the start of the request to the end of the response. The limit covers the whole download, also when the Issuer Service sends the answer slowly. A download that takes longer stops and counts as a failed download. The service does not repeat a download within the limit; the wait in `download-retry-seconds` applies after it. The value must be above 0. Reasonable values are from PT10S to PT30S. A DID document of a participant is not affected by this limit. Accepted formats are an ISO-8601 duration (for example `PT30S`), a number with the unit `ms`, `s`, `m`, `h` or `d` (for example `30s`) and a bare number of seconds (for example `30`). |
+| `xroad.dsp.issuer-data.cache.statuslist.size`              | 1000              | The most statuslists that the service keeps in memory. A statuslist in memory is used without a new download for the time `edc.iam.credential.revocation.cache.validity` (see the second table below). When memory holds this number of statuslists, the service removes one from memory to add a new one. The removed statuslist stays in the database. With the value 0, the service keeps no statuslist in memory. Outage tolerance still works: every check needs a download, but checks that run at the same time share one download, after a failed download the checks use the stored copy, and the wait of `download-retry-seconds` still limits the calls to the Issuer Service. Allowed values are whole numbers of 0 or more. |
+| `xroad.dsp.issuer-data.cache.statuslist-download.size`     | 10000             | The most statuslists whose download runs or waits for a retry at one time. The service remembers each download for the time `download-expire-after`. When the limit is full, the service pushes out an entry: the checks that wait for it fail with a retryable error unless a usable copy is in the database, its retry wait is forgotten, its finished copy goes only to the database, and the next check starts a new download. A pushed-out download is not stopped. Reasonable values are at least double `xroad.dsp.issuer-data.cache.statuslist.size`; a lower value causes more retryable errors and more calls to the Issuer Service. Allowed values are whole numbers of 1 or more. |
+| `xroad.dsp.issuer-data.cache.did-download.size`            | 10000             | The most issuer DID documents whose download runs or waits for a retry at one time. The service downloads only the issuer DIDs listed in global configuration. The service remembers each download for the time `download-expire-after`. When the limit is full, the service pushes out an entry: the checks that wait for it fail with a retryable error unless a usable copy is in the database, its retry wait is forgotten, its finished copy goes only to the database, and the next check starts a new download. A pushed-out download is not stopped. Reasonable values are at least double `edc.did.resolver.cache.size` (see the second table below); a lower value causes more retryable errors and more calls to the Issuer Service. Allowed values are whole numbers of 1 or more. |
+| `xroad.dsp.issuer-data.cleanup.interval`                   | PT10M             | The time between runs of the cleanup. The cleanup removes the expired statuslists and issuer DID documents from the database, so that the table does not grow. Allowed values are 5 minutes or more. Accepted formats are an ISO-8601 duration (for example `PT10M`), a number with the unit `ms`, `s`, `m`, `h` or `d` (for example `10m`) and a bare number of seconds (for example `600`). |
+| `xroad.dsp.issuer-data.cleanup.enabled`                    | true              | When *false*, the cleanup does not run, and expired statuslists and issuer DID documents stay in the database. A check never uses an expired copy. |
+
+The issuer data mechanism also uses the following stock EDC settings. They are not X-Road parameters and they are not rows in the database, so `db_property.sh` and the user interface do not change them. Each service reads them once, when it starts. The packaged configuration does not set them, so the default values apply.
+
+To change a setting, add it to the configuration file of each service:
+
+* dataspace connector (`xroad-ds-control-plane`): `/etc/xroad/conf.d/local-ds-control-plane.yaml`
+* identity hub (`xroad-ds-identity-hub`): `/etc/xroad/conf.d/local-ds-identity-hub.yaml`
+
+Each service uses the value in its own file. Both services download from the same Issuer Service, so we recommend the same value in both files. Keep these settings out of `/etc/xroad/conf.d/local.yaml`: both services and most other X-Road services on the host read that file.
+
+Write each setting as nested YAML keys, as in the example below. A dotted name on one line is ignored. Times are in milliseconds, as whole numbers without a unit. When a value cannot be parsed, the service does not start.
+
+```yaml
+edc:
+  did:
+    resolver:
+      cache:
+        expiry: 300000
+```
+
+After a change, restart both services:
+
+```bash
+sudo systemctl restart xroad-ds-control-plane xroad-ds-identity-hub
+```
+
+| **EDC setting**                                | **Default value**        | **What it controls for issuer data** |
+|------------------------------------------------|--------------------------|--------------------------------------|
+| `edc.iam.credential.revocation.cache.validity` | 900000 (15 minutes)      | The time after a download during which a statuslist in memory is used without a new download, in milliseconds. |
+| `edc.iam.credential.revocation.mimetype`       | `*/*`                    | The content types accepted for a downloaded statuslist. Use a comma-separated list. |
+| `edc.iam.did.web.use.https`                    | true                     | When *false*, the address of an issuer DID document uses `http` instead of `https`. |
+| `edc.webdid.doh.url`                           | not set                  | The DNS over HTTPS server that the service uses to download issuer DID documents. When not set, the service uses normal DNS. |
+| `edc.did.resolver.cache.expiry`                | 300000 (5 minutes)       | The DID cache time, in milliseconds. The stock DID cache reuses a resolved DID document for this time. For an issuer DID document, this is also the time after a download during which the copy is used without a new download, and it is part of the expiry of the copy (see *issuerDataFreshnessSeconds* in section [4.2](#42-system-parameters-in-the-database)). |
+| `edc.did.resolver.cache.size`                  | 50                       | The most DID documents that the stock DID cache keeps. The cache holds every DID that the service resolves, not only issuer DIDs. With the value 0, the cache is off. This value also sets the most issuer DID documents that the service keeps in memory. With the value 0, outage tolerance for issuer DID documents still works, as described for the value 0 of `xroad.dsp.issuer-data.cache.statuslist.size`. |
 
 ### 3.2 Proxy parameters: `[proxy]`
 
@@ -714,7 +774,7 @@ This section describes the system parameters used by the X-Road central server. 
 | confSignCertHashAlgoUri     | string         | http://www.w3.org/2001/04/xmlenc#sha512 | URI of the algorithm used for calculating the hash value of the certificate used to sign the global configuration.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512.            |
 | ocspFreshnessSeconds        | integer        | 3600                                    | Defines the validity period (in seconds) for the OCSP responses retrieved from the OCSP responders. OCSP responses older than the validity period are considered expired and cannot be used for certificate verification.                       |
 | timeStampingIntervalSeconds | integer        | 60                                      | Defines the interval of time-stamping service calls. Interval in seconds after which message log records must be timestamped. The interval must be between 60 and 86400 seconds. **Note: this value must be less than *ocspFreshnessSeconds.*** |
-| issuerDataFreshnessSeconds  | integer        | 600                                     | How long security servers keep using the last good Issuer Service data after it should have been refreshed, when the Issuer Service cannot be reached. 0 = the data is not used once a refresh fails. |
+| issuerDataFreshnessSeconds  | integer        | 600                                     | How long security servers keep using the last good Issuer Service data after it should have been refreshed, when the Issuer Service cannot be reached. 0 = a stored copy is not used after the cache time ends. The value 0 does not give the stock EDC behaviour: after a failed download, the checks fail until the next download, which starts after the wait in `xroad.dsp.issuer-data.download-retry-seconds`, also when the Issuer Service is back. A negative value is treated as 0. A stored copy has a latest end time (`valid_until` in the database), set when the copy is stored from the maximum age at that time. The security server never uses a copy after this time. A lower value in global configuration ends the use of the copy earlier, so a copy with a `valid_until` in the future can be unusable. |
 
 ## 5 Configuration Proxy System Parameters
 

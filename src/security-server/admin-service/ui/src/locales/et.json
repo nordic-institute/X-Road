@@ -1464,6 +1464,29 @@
           },
           "common": {
             "temp-files-path": "Absoluutne tee kaustani, kuhu ajutised failid salvestatakse."
+          },
+          "dsp": {
+            "issuer-data": {
+              "download-wait": "Pikim aeg, mille jooksul kontroll ootab värsket allalaadimist, kui Issuer Service vastab. Väärtus peab olema suurem kui 0. Mõistlikud väärtused: 1 kuni 10 sekundit. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+              "download-retry-seconds": "Ooteaeg sekundites enne järgmist allalaadimist pärast ebaõnnestunud allalaadimist. Komadega eraldatud loendi kirje n on ooteaeg pärast ebaõnnestumist n ja viimane kirje kordub. Iga kirje on positiivne täisarv. download-expire-after väärtusest pikem kirje ei mõjuta midagi. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+              "download-expire-after": "Selle aja möödudes ebaõnnestunud või vastuseta allalaadimine aegub ja unustatakse. Järgmine kontroll, mis vajab andmeid, alustab uut allalaadimist ja taaskatse viivitus algab uuesti esimesest kirjest. Sellest väärtusest pikem taaskatse viivitus ei mõjuta midagi. Lubatud väärtused: suuremad kui 0. Mõistlikud väärtused: 5 kuni 10 minutit. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+              "download-timeout": "Pikim aeg, mille võib võtta ühe olekuloendi või väljastaja DID-dokumendi allalaadimine, päringu algusest vastuse lõpuni. Sellest kauem kestev allalaadimine katkestatakse ja loetakse ebaõnnestunuks. Lubatud väärtused: suuremad kui 0. Mõistlikud väärtused: 10 kuni 30 sekundit. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+              "cache": {
+                "statuslist": {
+                  "size": "Mälus hoitavate statuslistide maksimaarv. Lubatud väärtused: täisarvud alates 0. Väärtuse 0 korral ei hoita mälus ühtegi koopiat, samal ajal töötavad kontrollid jagavad endiselt ühte allalaadimist ja salvestatud koopiat kasutatakse katkestuse ajal endiselt. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub."
+                },
+                "statuslist-download": {
+                  "size": "Statuslistide maksimaarv, mille allalaadimine töötab või ootab taaskatset samal ajal. Lubatud väärtused: täisarvud alates 1. Mõistlikud väärtused: vähemalt kaks korda suurem kui xroad.dsp.issuer-data.cache.statuslist.size väärtus. Kui piir on täis, tõrjutakse üks kirje välja, seda ootavad kontrollid ebaõnnestuvad taaskatset lubava veaga, kui nad ei saa kasutada andmebaasi koopiat, ja järgmine kontroll alustab uut allalaadimist. Väiksem väärtus tekitab Issuer Service'i poole rohkem päringuid. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub."
+                },
+                "did-download": {
+                  "size": "Väljaandja DID-dokumentide maksimaarv, mille allalaadimine töötab või ootab taaskatset samal ajal. Alla laaditakse ainult globaalses konfiguratsioonis loetletud väljaandja DID-d. Lubatud väärtused: täisarvud alates 1. Mõistlikud väärtused: vähemalt kaks korda suurem kui edc.did.resolver.cache.size väärtus. Kui piir on täis, tõrjutakse üks kirje välja, seda ootavad kontrollid ebaõnnestuvad taaskatset lubava veaga, kui nad ei saa kasutada andmebaasi koopiat, ja järgmine kontroll alustab uut allalaadimist. Väiksem väärtus tekitab Issuer Service'i poole rohkem päringuid. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub."
+                }
+              },
+              "cleanup": {
+                "interval": "Aegunud väljaandjate andmete puhastuse käivituste vaheline aeg. Lubatud väärtused: 5 minutit või rohkem. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub.",
+                "enabled": "Kui väärtus on false, aegunud väljaandjate andmete puhastust ei käivitata. Pärast muutmist taaskäivitage xroad-ds-control-plane ja xroad-ds-identity-hub."
+              }
+            }
           }
         }
       }

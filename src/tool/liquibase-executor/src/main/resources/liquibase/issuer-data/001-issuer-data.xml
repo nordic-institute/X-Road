@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="issuer-data/001-issuer-data.xml">
+
+    <changeSet author="niis" id="001-issuer-data">
+        <comment>X-Road table, not taken from EDC: the last good copy of each document the Issuer Service publishes</comment>
+        <createTable tableName="xroad_issuer_data">
+            <column name="kind" type="VARCHAR(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key" type="VARCHAR(2048)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fetched_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valid_until" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="xroad_issuer_data" columnNames="kind, key" constraintName="xroad_issuer_data_pkey"/>
+    </changeSet>
+
+</databaseChangeLog>
