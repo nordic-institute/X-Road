@@ -15,7 +15,7 @@ Doc. ID: IG-CS-8-UPGRADE
 | 11.11.2026 | 1.1     | Carry the node name before the package upgrade | Ričardas Bučiūnas  |
 | 12.11.2026 | 1.2     | Keep db.properties; add `--installation=cs`    | Ričardas Bučiūnas  |
 | 24.11.2026 | 1.3     | Close the gaps found on a test upgrade         | Andres Rosenthal   |
-| 26.11.2026 | 1.4     | Set the soft token PIN hash on a token the signer created first; add recovery for an uninitialized token; run the confirmation-prompting migration-CLI commands in step 11 without a prompt | Andres Rosenthal   |
+| 26.11.2026 | 1.4     | Set the soft token PIN hash on a token the signer created first; add recovery for an uninitialized token; run the confirmation-prompting migration-CLI commands in step 11 without a prompt; delete only the X-Road 7 logback files in step 13 | Andres Rosenthal   |
 
 ## License
 
@@ -300,13 +300,17 @@ for s in xroad-signer xroad-center xroad-center-management-service xroad-center-
 done
 ```
 
-**13. Clean up obsolete V7 config files** once you have verified the upgrade (see [Post-upgrade verification](#post-upgrade-verification)). Keep `/etc/xroad/conf.d/node.ini`; it holds the node name:
+**13. Clean up obsolete V7 config files** once you have verified the upgrade (see [Post-upgrade verification](#post-upgrade-verification)). Keep `/etc/xroad/conf.d/node.ini`, which holds the node name, and `/etc/xroad/conf.d/centralserver-*-service-logback.xml`, which X-Road 8 uses:
 
 ```
 /etc/xroad/conf.d/*.ini      (all except node.ini)
 /etc/xroad/devices.ini
 /etc/xroad/signer            (directory)
-/etc/xroad/conf.d/*-logback*.xml
+/etc/xroad/conf.d/signer-logback.xml
+/etc/xroad/conf.d/signer-console-logback.xml
+/etc/xroad/conf.d/confclient-logback.xml
+/etc/xroad/conf.d/confclient-logback-service.xml
+/etc/xroad/conf.d/confproxy-logback.xml              (if it is present)
 /etc/xroad/db.properties.bak
 /etc/xroad/autologin                                 (plaintext token PIN file)
 /usr/share/xroad/autologin/custom-fetch-pin.sh       (if it is still present)
