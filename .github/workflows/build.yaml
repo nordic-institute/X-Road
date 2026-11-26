@@ -78,6 +78,9 @@ jobs:
         uses: ./.github/actions/setup-mirrors
         with:
           token: ${{ secrets.XROAD_MIRROR_TOKEN }}
+          base-url: ${{ vars.XROAD_MIRROR_BASE_URL }}
+          username: ${{ vars.XROAD_MIRROR_USERNAME }}
+          disabled: ${{ vars.XROAD_MIRRORS_DISABLED }}
 
       - name: Setup build environment
         uses: ./.github/actions/setup-build-env

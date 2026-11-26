@@ -59,7 +59,7 @@ docker login artifactory.niis.org -u <your-username> -p <your-artifactory-token>
 
 ## GitHub Actions
 
-CI jobs use the same mirrors. The `setup-mirrors` action (`.github/actions/setup-mirrors/`) sets the `XROAD_MIRROR_*` variables for the rest of the job. Workflows pass only the token to the action: `token: ${{ secrets.XROAD_MIRROR_TOKEN }}`. The action reads the repository variables itself.
+CI jobs use the same mirrors. The `setup-mirrors` action (`.github/actions/setup-mirrors/`) sets the `XROAD_MIRROR_*` variables for the rest of the job. Workflows pass the secret and the three repository variables below to the action as the inputs `token`, `base-url`, `username` and `disabled`.
 
 ### Repository secret and variables
 

@@ -1,8 +1,20 @@
 name: 'Setup Mirrors'
-description: 'Use the Artifactory mirrors for the rest of the job when the mirror token, user name and base URL are present and the off switch is not set. Reads the repository variables XROAD_MIRROR_BASE_URL, XROAD_MIRROR_USERNAME and XROAD_MIRRORS_DISABLED itself'
+description: 'Use the Artifactory mirrors for the rest of the job when the mirror token, user name and base URL are present and the off switch is not set'
 inputs:
   token:
-    description: 'Mirror access token (repository secret XROAD_MIRROR_TOKEN). A composite action cannot read secrets, so the caller passes it'
+    description: 'Mirror access token (repository secret XROAD_MIRROR_TOKEN)'
+    required: false
+    default: ''
+  base-url:
+    description: 'Artifactory base URL (repository variable XROAD_MIRROR_BASE_URL); the per-tool mirror URLs are derived from it'
+    required: false
+    default: ''
+  username:
+    description: 'Mirror user name (repository variable XROAD_MIRROR_USERNAME)'
+    required: false
+    default: ''
+  disabled:
+    description: 'Off switch (repository variable XROAD_MIRRORS_DISABLED); "true" turns the mirrors off'
     required: false
     default: ''
 outputs:
@@ -18,7 +30,7 @@ runs:
       shell: bash
       env:
         MIRROR_TOKEN: ${{ inputs.token }}
-        MIRROR_URL: ${{ vars.XROAD_MIRROR_BASE_URL }}
-        MIRROR_USERNAME: ${{ vars.XROAD_MIRROR_USERNAME }}
-        MIRRORS_DISABLED: ${{ vars.XROAD_MIRRORS_DISABLED }}
+        MIRROR_URL: ${{ inputs.base-url }}
+        MIRROR_USERNAME: ${{ inputs.username }}
+        MIRRORS_DISABLED: ${{ inputs.disabled }}
       run: bash "${{ github.action_path }}/setup-mirrors.sh"
