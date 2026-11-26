@@ -57,6 +57,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -128,6 +129,19 @@ class SpringVaultClientConfigTest {
             client.dsIssuerServiceKeypairSecretExists("issuer-key");
 
             verify(dsIssuerServiceMetadataOperations).get(VaultClient.DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER + "/issuer-key");
+        });
+    }
+
+    @Test
+    void shouldNotCallTheMetadataOperationsWhenBuildingTheBean() {
+        var freshVersionedOperations = mock(VaultVersionedKeyValueOperations.class);
+        when(vaultTemplate.opsForVersionedKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT))
+                .thenReturn(freshVersionedOperations);
+
+        contextRunner.withUserConfiguration(SpringVaultClientConfig.class).run(context -> {
+            assertThat(context).hasSingleBean(SpringVaultClient.class);
+
+            verify(freshVersionedOperations, never()).opsForKeyValueMetadata();
         });
     }
 

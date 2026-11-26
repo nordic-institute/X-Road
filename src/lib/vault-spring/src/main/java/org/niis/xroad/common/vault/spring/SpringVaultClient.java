@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_RESPONSE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 @Slf4j
@@ -294,6 +295,11 @@ public class SpringVaultClient implements VaultClient {
         deleteSecret(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
     }
 
+    /**
+     * Spring Vault's {@code Versioned.Metadata.isDeleted()} counts a version as deleted once it carries any
+     * deletion time, even one still in the future. The {@code xrd-ds-secret} mount and the issuer key path must
+     * therefore never set {@code delete_version_after}.
+     */
     @Override
     public boolean dsIssuerServiceKeypairSecretExists(String alias) {
         if (dsIssuerServiceVaultClient == null) {
@@ -302,14 +308,17 @@ public class SpringVaultClient implements VaultClient {
         var path = DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER + "/" + alias;
         VaultMetadataResponse metadata = resilientCall.execute("read metadata", path,
                 () -> dsIssuerServiceVaultClient.opsForKeyValueMetadata().get(path));
-        if (metadata == null) {
+        if (metadata == null || metadata.getCurrentVersion() == 0) {
             return false;
         }
         return metadata.getVersions().stream()
                 .filter(version -> version.getVersion().getVersion() == metadata.getCurrentVersion())
                 .findFirst()
                 .map(version -> !version.isDeleted() && !version.isDestroyed())
-                .orElse(false);
+                .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_RESPONSE)
+                        .details("Vault metadata for secret at path " + path
+                                + " has no entry for its current version " + metadata.getCurrentVersion())
+                        .build());
     }
 
     /**

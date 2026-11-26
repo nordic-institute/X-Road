@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
@@ -416,6 +417,7 @@ class SpringVaultClientTest {
         when(dsIssuerServiceVaultMetadataOperations.get("ds/issuer-key"))
                 .thenReturn(metadataResponse(1, versionMetadata(1, false, false)));
         when(dsIssuerServiceVaultMetadataOperations.get("ds/missing-key")).thenReturn(null);
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/metadata-only-key")).thenReturn(metadataResponse(0));
         when(dsIssuerServiceVaultMetadataOperations.get("ds/soft-deleted-key"))
                 .thenReturn(metadataResponse(1, versionMetadata(1, true, false)));
         when(dsIssuerServiceVaultMetadataOperations.get("ds/destroyed-key"))
@@ -425,6 +427,7 @@ class SpringVaultClientTest {
 
         assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).isTrue();
         assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("missing-key")).isFalse();
+        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("metadata-only-key")).isFalse();
         assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("soft-deleted-key")).isFalse();
         assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("destroyed-key")).isFalse();
         assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("older-version-deleted-key")).isTrue();
@@ -436,6 +439,15 @@ class SpringVaultClientTest {
 
         assertThatThrownBy(() -> vaultClient.dsIssuerServiceKeypairSecretExists("failing-key"))
                 .isInstanceOf(VaultException.class);
+    }
+
+    @Test
+    void shouldThrowWhenTheMetadataCurrentVersionHasNoEntryInTheVersionsList() {
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/orphaned-current-version"))
+                .thenReturn(metadataResponse(2, versionMetadata(1, false, false)));
+
+        assertThatThrownBy(() -> vaultClient.dsIssuerServiceKeypairSecretExists("orphaned-current-version"))
+                .isInstanceOf(XrdRuntimeException.class);
     }
 
     private static VaultMetadataResponse metadataResponse(int currentVersion, Versioned.Metadata... versions) {
