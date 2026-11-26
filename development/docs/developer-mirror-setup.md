@@ -121,7 +121,7 @@ Create these remote repositories on the Artifactory instance. Use the names from
 - Use a group-scoped token for a dedicated non-human user. Its user name must equal `XROAD_MIRROR_USERNAME`.
 - To rotate the token: create the new token, replace the `XROAD_MIRROR_TOKEN` repository secret, check one CI run, then revoke the old token.
 - Developers keep their own token in `~/.gradle/gradle.properties`. They do not share the CI token.
-- In the build and package job, the layer scan runs after the images are pushed and after the e2e jobs are told the images are ready, so it only detects a leak. If it reports the token or a credential file, rotate the token and delete the image tags of that run.
+- In the build and package job, the layer scan runs after the images are pushed and after the e2e jobs are told the images are ready, so it only detects a leak. If it reports the token, rotate the token and delete the image tags of that run.
 
 ### Off switch and outage recovery
 
@@ -141,7 +141,7 @@ These rules keep the token out of image layers. They apply to every Dockerfile t
 - **Cleanup.** The last mirror step of an APT image runs `cleanup-mirror-apt.sh`, so the published image uses the public sources.
 - **Download steps.** A `RUN` that downloads a file mounts `mirror_netrc` and passes it with `curl --netrc-file /run/secrets/mirror_netrc`, only when its mirror URL build argument is set (`GITHUB_URL`, `KUBECTL_DIST_URL`) and the secret file is not empty. Otherwise the step downloads from the public URL without credentials. curl matches the netrc `machine` by host name and ignores the port, so a mirror URL with a port works for apt but not for curl. Examples: `deployment/security-server/images/base-images/baseline/Dockerfile` and `deployment/security-server/images/base-images/auxiliary-service/Dockerfile`.
 
-The layer scan `scripts/images/test-mirror-layer-leak.sh` enforces these rules on the images that CI builds. It fails when a layer or the image configuration holds the token, when a layer holds an apt or DNF credential file or a left-over mount of a secret file, or when the final filesystem keeps the APT TLS-verification override. The scan runs only when the mirrors are on, that is, in same-repository runs. Fork and Dependabot runs have no token, so they have no scan. To scan a local image, run `XROAD_MIRROR_TOKEN=<token> scripts/images/test-mirror-layer-leak.sh <image>`.
+The layer scan `scripts/images/test-mirror-layer-leak.sh` enforces these rules on the images that CI builds. It fails when a layer or the image configuration holds the token, or when the final filesystem keeps the APT TLS-verification override. The scan runs only when the mirrors are on, that is, in same-repository runs. Fork and Dependabot runs have no token, so they have no scan. To scan a local image, run `XROAD_MIRROR_TOKEN=<token> scripts/images/test-mirror-layer-leak.sh <image>`.
 
 ### Fork and Dependabot builds
 

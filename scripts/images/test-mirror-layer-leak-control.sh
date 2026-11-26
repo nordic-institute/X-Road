@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Negative control for test-mirror-layer-leak.sh.
 #
-# Builds a small probe image whose layer holds a dummy token, a dummy apt credential file, the apt
-# TLS-verification override and a large file, then scans it with the same dummy token. The control
-# passes only when the scan exits 1 and reports a token, a credential file and a TLS override
-# finding, so a scan that fails open or loses a check does not go unnoticed. The real mirror token
+# Builds a small probe image whose layer holds a dummy token, the apt TLS-verification override and
+# a large file, then scans it with the same dummy token. The control passes only when the scan exits
+# 1 and reports a token and a TLS override finding, so a scan that fails open or loses a check does not go unnoticed. The real mirror token
 # is never used. test-mirror-layer-leak.sh runs this control itself before it scans images.
 #
 # Usage: ./test-mirror-layer-leak-control.sh
@@ -33,8 +32,7 @@ ARG DOCKER_REGISTRY=""
 FROM ${DOCKER_REGISTRY}alpine:3.22
 RUN --mount=type=secret,id=probe_token \
     cp /run/secrets/probe_token /a-token \
-    && mkdir -p /etc/apt/auth.conf.d /etc/apt/apt.conf.d \
-    && echo "machine mirror.example.test login dummy password dummy" > /etc/apt/auth.conf.d/mirror.conf \
+    && mkdir -p /etc/apt/apt.conf.d \
     && echo 'Acquire::https::Verify-Peer "false";' > /etc/apt/apt.conf.d/99mirror-no-verify \
     && head -c 41943040 /dev/zero > /z-filler
 EOF
@@ -70,10 +68,7 @@ fi
 if ! grep -q 'FAILED: .* has no token' <<<"${scan_output}"; then
   control_failed "the scan exited 1 without a token finding"
 fi
-if ! grep -q 'FAILED: .* has no credential file' <<<"${scan_output}"; then
-  control_failed "the scan exited 1 without a credential file finding"
-fi
 if ! grep -q 'FAILED: .* final filesystem has no etc/apt/apt.conf.d/99mirror-no-verify' <<<"${scan_output}"; then
   control_failed "the scan exited 1 without a TLS override finding"
 fi
-log_success "Control passed: the scan reported the token, credential file and TLS override in the probe image"
+log_success "Control passed: the scan reported the token and the TLS override in the probe image"

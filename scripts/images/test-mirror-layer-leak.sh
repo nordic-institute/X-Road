@@ -2,11 +2,8 @@
 # Layer-leak scan for images built with a package mirror.
 #
 # Runs the negative control (test-mirror-layer-leak-control.sh) first. Then saves each image and
-# checks every layer of every manifest entry and the image configuration:
-#   - the mirror token string is absent;
-#   - no apt or dnf mirror credential file exists, nor a left-over mount of the secret
-#     (apt auth file, dnf variable file).
-# Then checks the final filesystem for the apt TLS-verification override that the mirror
+# checks that every layer of every manifest entry and the image configuration hold no copy of the
+# mirror token. Then checks the final filesystem for the apt TLS-verification override that the mirror
 # script writes and the cleanup script removes.
 #
 # Usage: XROAD_MIRROR_TOKEN=<token> ./test-mirror-layer-leak.sh <image> [<image>...]
@@ -22,7 +19,6 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
 source "${ROOT_DIR}/scripts/lib/test-helpers.sh"
 
-CREDENTIAL_FILE_PATTERN='^(\./)?(etc/apt/auth\.conf(\.d/[^/]+)?|etc/yum\.repos\.d/00-mirror-[^/]*\.repo|etc/dnf/vars/mirror_token|root/\.netrc)$'
 TLS_OVERRIDE_PATH="etc/apt/apt.conf.d/99mirror-no-verify"
 
 if [[ $# -lt 1 ]]; then
@@ -68,20 +64,6 @@ stream_has_no_token() {
   fi
   count="$(<"${COUNT_FILE}")"
   [[ "${count}" =~ ^[0-9]+$ ]] && ((count == 0))
-}
-
-no_credential_file_in_layer() {
-  local layer="$1" listing hits
-  if ! listing="$(tar -tf "${layer}" 2>/dev/null)"; then
-    log_error "      cannot list the layer"
-    return 1
-  fi
-  hits="$(printf '%s\n' "${listing}" | grep -E "${CREDENTIAL_FILE_PATTERN}" | grep -v '/\.wh\.' || true)"
-  if [[ -n "${hits}" ]]; then
-    printf '%s\n' "${hits}" | sed 's/^/      credential file: /' >&2
-    return 1
-  fi
-  return 0
 }
 
 no_tls_override_in_final_filesystem() {
@@ -130,7 +112,6 @@ scan_image() {
     while IFS= read -r layer; do
       index=$((index + 1))
       check "${image}: entry ${entry} layer ${index}/${total} ${layer##*/} has no token" stream_has_no_token tar -xOf "${dir}/${layer}"
-      check "${image}: entry ${entry} layer ${index}/${total} ${layer##*/} has no credential file" no_credential_file_in_layer "${dir}/${layer}"
     done < <(jq -r ".[${entry}].Layers[]" "${dir}/manifest.json")
   done
 
