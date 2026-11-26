@@ -62,10 +62,10 @@ class IssuerServiceHealthcheckTest extends SsSharedStackDestructiveTest {
     private static final String LIVENESS_PATH = "/q/health/live";
     private static final String CHECK_NAME = "EDC_READINESS_CHECK";
     private static final String DATABASE_COMPONENT = "database";
-    private static final String CONNECTOR_TLS_COMPONENT = "connector-tls";
+    private static final String CONNECTOR_TLS_COMPONENT = "dataspace-tls";
     private static final String DATABASE_HOST = SsApiTestContainerSetup.DB_DS_ISSUER_SERVICE;
     private static final String DATABASE_USER = "ds_issuer_service";
-    private static final String CONNECTOR_TLS_CAUSE = "Connector TLS is not served";
+    private static final String CONNECTOR_TLS_CAUSE = "Dataspace TLS is not served";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(120);
 
