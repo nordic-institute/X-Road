@@ -193,7 +193,7 @@ An existing configuration can already have a host list in `spring.datasource.url
 
 - The version check still refuses an unsupported PostgreSQL version.
 - The write check of the Central Server step checks only the first host. If the first host does not accept writes, the check writes a warning that names the host and does not stop the installation. The check of a single-host address still refuses a database that does not accept writes.
-- The secret store step and the Issuer Service step write to the first host. They still refuse a first host that does not accept writes.
+- The secret store step and the Issuer Service step write to the first host. They still refuse a first host that does not accept writes. On the first installation and on the upgrade from X-Road 7, the secret store step runs first and stops on a read-only first host, before the Central Server step can warn. On a later upgrade the secret store step runs no checks: the Central Server step warns, and then the Issuer Service step stops.
 
 Use one write address instead of a host list. You set the address at the first installation of the Central Server. As section [3.1.1](#311-database-requirements) says, the installation does not change the stored addresses later, and this guide has no procedure to change them.
 
