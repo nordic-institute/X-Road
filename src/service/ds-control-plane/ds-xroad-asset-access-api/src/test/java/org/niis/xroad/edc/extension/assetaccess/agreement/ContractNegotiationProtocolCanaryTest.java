@@ -27,14 +27,9 @@
 
 package org.niis.xroad.edc.extension.assetaccess.agreement;
 
-import com.sun.net.httpserver.HttpServer;
-import dev.failsafe.RetryPolicy;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.Response;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -48,58 +43,46 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractVa
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationProtocolServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
-import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.http.message.DspRequestHandlerImpl;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationErrorTransformer;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
-import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.validator.spi.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier;
 
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.assetaccess.agreement.DspProtocolCanarySupport.acceptingValidators;
+import static org.niis.xroad.edc.extension.assetaccess.agreement.DspProtocolCanarySupport.consumerDetail;
+import static org.niis.xroad.edc.extension.assetaccess.agreement.DspProtocolCanarySupport.dispatcher;
 
 /**
  * Drives EDC's own provider-side contract negotiation chain into the answer a consumer receives for a token it
  * cannot verify: the negotiation protocol service, the DSP request handler that maps the failure to an HTTP status
  * and error body, a real HTTP answer and the consumer's DSP dispatcher that builds the failure detail.
- * {@link ProviderFailureClassifier} then judges that detail, read the way
- * {@link org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller} reads it: prefixed with EDC's
- * own negotiation send-failure wording. A changed status mapping or a reworded message turns this test red.
+ * {@link ProviderFailureClassifier} then judges that detail. A changed status mapping or a reworded message turns
+ * this test red.
  */
 class ContractNegotiationProtocolCanaryTest {
 
     private static final String PROTOCOL = "dataspace-protocol-http:2025-1";
-    private static final String NEGOTIATION_FAILURE_PREFIX = "Failed to request contract to provider: ";
     private static final String OFFER_ID = "offer-1";
 
     private final ConsumerOfferResolver consumerOfferResolver = mock();
@@ -138,9 +121,19 @@ class ContractNegotiationProtocolCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(404);
-        var errorDetail = NEGOTIATION_FAILURE_PREFIX + consumerDetail(response);
-        assertThat(errorDetail).doesNotContainIgnoringCase(ProviderFailureClassifier.AGREEMENT_NOT_VALID);
-        assertThat(ProviderFailureClassifier.classify(errorDetail, ProviderFailureClassifier.Stage.NEGOTIATION))
+        verify(protocolTokenValidator).verify(eq(participantContext), any(), any(), any());
+        var detail = consumerDetail(response, dispatcher(ContractRequestMessage.class, "/negotiations/request"),
+                address -> ContractRequestMessage.Builder.newInstance()
+                        .protocol(PROTOCOL)
+                        .counterPartyAddress(address)
+                        .contractOffer(ContractOffer.Builder.newInstance()
+                                .id(OFFER_ID)
+                                .assetId("asset-1")
+                                .policy(Policy.Builder.newInstance().build())
+                                .build())
+                        .build());
+        assertThat(detail).doesNotContainIgnoringCase(ProviderFailureClassifier.AGREEMENT_NOT_VALID);
+        assertThat(ProviderFailureClassifier.classify(detail, ProviderFailureClassifier.Stage.NEGOTIATION))
                 .isEqualTo(ProviderFailureClassifier.Classification.IDENTITY_REJECTION);
     }
 
@@ -171,61 +164,6 @@ class ContractNegotiationProtocolCanaryTest {
                 .participantContextProvider(() -> ServiceResult.success(participantContext))
                 .build();
         return requestHandler.createResource(request);
-    }
-
-    private String consumerDetail(Response providerResponse) throws Exception {
-        var body = providerResponse.getEntity().toString().getBytes(StandardCharsets.UTF_8);
-        var server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
-        server.createContext("/", exchange -> {
-            exchange.getRequestBody().readAllBytes();
-            exchange.getResponseHeaders().add("Content-Type", "application/json");
-            exchange.sendResponseHeaders(providerResponse.getStatus(), body.length);
-            exchange.getResponseBody().write(body);
-            exchange.close();
-        });
-        server.start();
-        try {
-            var message = ContractRequestMessage.Builder.newInstance()
-                    .protocol(PROTOCOL)
-                    .counterPartyAddress("http://localhost:" + server.getAddress().getPort() + "/dsp")
-                    .contractOffer(ContractOffer.Builder.newInstance()
-                            .id(OFFER_ID)
-                            .assetId("asset-1")
-                            .policy(Policy.Builder.newInstance().build())
-                            .build())
-                    .build();
-            var result = dispatcher().dispatch("participant-1", Object.class, message).get(10, TimeUnit.SECONDS);
-            assertThat(result.failed()).isTrue();
-            return result.getFailureDetail();
-        } finally {
-            server.stop(0);
-        }
-    }
-
-    private static DspHttpRemoteMessageDispatcherImpl dispatcher() {
-        var okHttpClient = new OkHttpClient.Builder().readTimeout(Duration.ofSeconds(5)).build();
-        var retryPolicy = RetryPolicy.<okhttp3.Response>builder().withMaxRetries(0).build();
-        var httpClient = new EdcHttpClientImpl(okHttpClient, retryPolicy, mock(Monitor.class));
-        var identityService = mock(IdentityService.class);
-        when(identityService.obtainClientCredentials(anyString(), any()))
-                .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
-        var tokenDecorator = mock(TokenDecorator.class);
-        when(tokenDecorator.decorate(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        var scopeExtractors = mock(RequestScopeExtractorRegistry.class);
-        when(scopeExtractors.extractScopes(any(), any())).thenReturn(Result.success(Set.of()));
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator,
-                scopeExtractors, _ -> Result.success("provider-1"));
-        dispatcher.registerMessage(ContractRequestMessage.class,
-                message -> new Request.Builder().url(message.getCounterPartyAddress() + "/negotiations/request")
-                        .post(new FormBody.Builder().build()).build(),
-                (_, _) -> new Object());
-        return dispatcher;
-    }
-
-    private static JsonObjectValidatorRegistry acceptingValidators() {
-        var validators = mock(JsonObjectValidatorRegistry.class);
-        when(validators.validate(any(), any())).thenReturn(ValidationResult.success());
-        return validators;
     }
 
     private DspProtocolTypeTransformerRegistry protocolTransformers() {

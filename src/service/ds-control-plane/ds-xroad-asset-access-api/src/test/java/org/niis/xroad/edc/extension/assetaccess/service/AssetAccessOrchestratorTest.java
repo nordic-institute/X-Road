@@ -320,6 +320,32 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
     }
 
     @Test
+    void renegotiationCatalogFetch401FailsTheAcquisitionWithDspIdentityRejectedAndDoesNotLoop() throws Exception {
+        var request = requestFor(null);
+        stubReusableAgreement("agreement-1");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(terminatedTransfer("tp-1", providerAnswer(404, "Not found"))));
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR,
+                        "Counter Party responded with Response{protocol=h2, code=401, message=, "
+                                + "url=https://provider.example/dsp/catalog/request}. Body: Unauthorized..")));
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_identity_rejected"));
+        verify(transferProcessService, times(1)).initiateTransfer(any(), any());
+        verify(catalogService, times(1)).requestCatalog(any(), any(), any(), any(), any());
+        verify(contractNegotiationService, never()).initiateNegotiation(any(), any());
+    }
+
+    @Test
     void aFirstNegotiationRejectedWithABare404FailsTheAcquisitionWithTheIdentityRejection() {
         stubCatalogAndTransformChain("asset-1");
         stubNegotiationInitiation();

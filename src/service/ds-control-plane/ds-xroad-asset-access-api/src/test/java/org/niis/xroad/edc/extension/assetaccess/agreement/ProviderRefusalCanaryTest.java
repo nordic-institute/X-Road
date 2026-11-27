@@ -27,14 +27,9 @@
 
 package org.niis.xroad.edc.extension.assetaccess.agreement;
 
-import com.sun.net.httpserver.HttpServer;
-import dev.failsafe.RetryPolicy;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.Response;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
@@ -49,37 +44,25 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferError;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.controlplane.DataAddress;
-import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.http.message.DspRequestHandlerImpl;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferErrorTransformer;
-import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.validator.spi.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier;
 
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,6 +73,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.assetaccess.agreement.DspProtocolCanarySupport.acceptingValidators;
+import static org.niis.xroad.edc.extension.assetaccess.agreement.DspProtocolCanarySupport.consumerDetail;
+import static org.niis.xroad.edc.extension.assetaccess.agreement.DspProtocolCanarySupport.dispatcher;
 
 /**
  * Drives EDC's own provider-side transfer request chain into each answer a consumer can receive: the transfer
@@ -139,7 +125,9 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(404);
-        assertThat(ProviderFailureClassifier.classify(consumerDetail(response), ProviderFailureClassifier.Stage.TRANSFER))
+        assertThat(ProviderFailureClassifier.classify(
+                consumerDetail(response, dispatcher(TransferRequestMessage.class, "/transfers/request"), this::transferRequestFor),
+                ProviderFailureClassifier.Stage.TRANSFER))
                 .isEqualTo(ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL);
     }
 
@@ -152,7 +140,9 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(400);
-        assertThat(ProviderFailureClassifier.classify(consumerDetail(response), ProviderFailureClassifier.Stage.TRANSFER))
+        assertThat(ProviderFailureClassifier.classify(
+                consumerDetail(response, dispatcher(TransferRequestMessage.class, "/transfers/request"), this::transferRequestFor),
+                ProviderFailureClassifier.Stage.TRANSFER))
                 .isEqualTo(ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL);
     }
 
@@ -164,7 +154,9 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(400);
-        assertThat(ProviderFailureClassifier.classify(consumerDetail(response), ProviderFailureClassifier.Stage.TRANSFER))
+        assertThat(ProviderFailureClassifier.classify(
+                consumerDetail(response, dispatcher(TransferRequestMessage.class, "/transfers/request"), this::transferRequestFor),
+                ProviderFailureClassifier.Stage.TRANSFER))
                 .isEqualTo(ProviderFailureClassifier.Classification.NO_REFUSAL);
     }
 
@@ -177,7 +169,9 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(404);
-        assertThat(ProviderFailureClassifier.classify(consumerDetail(response), ProviderFailureClassifier.Stage.TRANSFER))
+        assertThat(ProviderFailureClassifier.classify(
+                consumerDetail(response, dispatcher(TransferRequestMessage.class, "/transfers/request"), this::transferRequestFor),
+                ProviderFailureClassifier.Stage.TRANSFER))
                 .isEqualTo(ProviderFailureClassifier.Classification.IDENTITY_REJECTION);
     }
 
@@ -202,59 +196,16 @@ class ProviderRefusalCanaryTest {
         return requestHandler.createResource(request);
     }
 
-    private String consumerDetail(Response providerResponse) throws Exception {
-        var body = providerResponse.getEntity().toString().getBytes(StandardCharsets.UTF_8);
-        var server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
-        server.createContext("/", exchange -> {
-            exchange.getRequestBody().readAllBytes();
-            exchange.getResponseHeaders().add("Content-Type", "application/json");
-            exchange.sendResponseHeaders(providerResponse.getStatus(), body.length);
-            exchange.getResponseBody().write(body);
-            exchange.close();
-        });
-        server.start();
-        try {
-            var message = TransferRequestMessage.Builder.newInstance()
-                    .consumerPid("consumerPid")
-                    .processId("consumerPid")
-                    .contractId("agreementId")
-                    .protocol(PROTOCOL)
-                    .callbackAddress("http://any")
-                    .counterPartyAddress("http://localhost:" + server.getAddress().getPort() + "/dsp")
-                    .transferType(TRANSFER_TYPE)
-                    .build();
-            var result = dispatcher().dispatch("participant-1", Object.class, message).get(10, TimeUnit.SECONDS);
-            assertThat(result.failed()).isTrue();
-            return result.getFailureDetail();
-        } finally {
-            server.stop(0);
-        }
-    }
-
-    private static DspHttpRemoteMessageDispatcherImpl dispatcher() {
-        var okHttpClient = new OkHttpClient.Builder().readTimeout(Duration.ofSeconds(5)).build();
-        var retryPolicy = RetryPolicy.<okhttp3.Response>builder().withMaxRetries(0).build();
-        var httpClient = new EdcHttpClientImpl(okHttpClient, retryPolicy, mock(Monitor.class));
-        var identityService = mock(IdentityService.class);
-        when(identityService.obtainClientCredentials(anyString(), any()))
-                .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
-        var tokenDecorator = mock(TokenDecorator.class);
-        when(tokenDecorator.decorate(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        var scopeExtractors = mock(RequestScopeExtractorRegistry.class);
-        when(scopeExtractors.extractScopes(any(), any())).thenReturn(Result.success(Set.of()));
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator,
-                scopeExtractors, _ -> Result.success("provider-1"));
-        dispatcher.registerMessage(TransferRequestMessage.class,
-                message -> new Request.Builder().url(message.getCounterPartyAddress() + "/transfers/request")
-                        .post(new FormBody.Builder().build()).build(),
-                (_, _) -> new Object());
-        return dispatcher;
-    }
-
-    private static JsonObjectValidatorRegistry acceptingValidators() {
-        var validators = mock(JsonObjectValidatorRegistry.class);
-        when(validators.validate(any(), any())).thenReturn(ValidationResult.success());
-        return validators;
+    private TransferRequestMessage transferRequestFor(String counterPartyAddress) {
+        return TransferRequestMessage.Builder.newInstance()
+                .consumerPid("consumerPid")
+                .processId("consumerPid")
+                .contractId("agreementId")
+                .protocol(PROTOCOL)
+                .callbackAddress("http://any")
+                .counterPartyAddress(counterPartyAddress)
+                .transferType(TRANSFER_TYPE)
+                .build();
     }
 
     private DspProtocolTypeTransformerRegistry protocolTransformers() {
