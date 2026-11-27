@@ -292,34 +292,18 @@ The `ini-to-db` sub-step migrates the X-Road 7.8 `[op-monitor]`, `[op-monitor-se
 
 `max-records-in-payload` keeps its X-Road 7.8 value. X-Road 8 also limits the size of a query response with `xroad.common-rpc.channel.op-monitor.max-inbound-message-size` (16 MiB by default); a larger response fails. The response size depends on the number and the size of the records, and a full response also includes all records of its last timestamp second, so neither the default nor a migrated value of `max-records-in-payload` guarantees that every response fits. A monitoring client that repeats a failed query from the same position does not progress until the response fits. The available settings and their limits are described in the [operational monitoring system parameters](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md).
 
-If the effective `host` value is a remote host, the daemon settings `xroad.op-monitor.rpc.port`, `xroad.op-monitor.keep-records-for-days`, `xroad.op-monitor.clean-interval`, `xroad.op-monitor.max-records-in-payload`, `xroad.op-monitor.records-available-timestamp-offset-seconds` and `xroad.op-monitor.health-statistics-period-seconds` are not migrated. Set them in `op-monitor-settings.yaml` on the external host.
-
 The effective 7.8 `host` value is the last one set in the `override-*.ini` files in name order, then `local.ini`. A value set only in the package file `op-monitor.ini` is not migrated. An IPv6 address in square brackets, such as `[::1]`, is migrated without the brackets.
 
-| `host` value                                                                                                     | Result                                                                                                                                                                                                    |
-|------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Absent                                                                                                           | Nothing is written. The X-Road 8 defaults apply: channel host and listener address `127.0.0.1`.                                                                                                           |
-| A wildcard address such as `0.0.0.0` or `::`                                                                     | `xroad.op-monitor.rpc.listen-address` is set to the value. The channel host keeps its default.                                                                                                            |
-| `127.0.0.1`                                                                                                      | `xroad.common-rpc.channel.op-monitor.host` is set to the value.                                                                                                                                           |
-| Another loopback IP address such as `::1`, or an IP address of this server                                       | The channel host and `xroad.op-monitor.rpc.listen-address` are set to the value. The IP SAN setting `xroad.common-rpc.certificate-provisioning.ip-subject-alt-names` is set to `127.0.0.1` and the value. |
-| A remote address                                                                                                 | Only the channel host is set. The listener address keeps its default and no certificate SAN setting is written.                                                                                           |
-| A name with at least one address of this server that is not a loopback address                                   | The channel host and `xroad.op-monitor.rpc.listen-address` are set to the value, and the DNS SAN setting `xroad.common-rpc.certificate-provisioning.alt-names` is set to the value.                       |
-| A name whose addresses are all loopback addresses, one of them `127.0.0.1`, such as `localhost`                  | The channel host is set to the value and the DNS SAN setting is set to the value. The listener address keeps its default.                                                                                 |
-| A name whose addresses are all loopback addresses other than `127.0.0.1`, such as only `127.0.1.1` or only `::1` | The channel host and `xroad.op-monitor.rpc.listen-address` are set to the value, and the DNS SAN setting is set to the value.                                                                             |
-| A name that resolves to this server and to a remote address                                                      | Ambiguous. Only the channel host is set and a warning is logged. The listener address keeps its default and no certificate SAN setting is written.                                                      |
-| A name that resolves to a loopback address and a remote address                                                  | Ambiguous. Only the channel host is set and a warning is logged. The listener address keeps its default and no certificate SAN setting is written.                                                      |
-| A name that resolves only to remote addresses                                                                    | Only the channel host is set. The listener address keeps its default and no certificate SAN setting is written.                                                                                           |
-| A name that cannot be resolved                                                                                   | Ambiguous. Only the channel host is set and a warning is logged. The listener address keeps its default and no certificate SAN setting is written.                                                      |
+| `host` value | Result |
+|---|---|
+| Absent, or `127.0.0.1` | The X-Road 8 defaults apply: channel host and listener address `127.0.0.1`. |
+| A wildcard address such as `0.0.0.0` or `::` | `xroad.op-monitor.rpc.listen-address` is set to the value. The channel host keeps its default. |
+| Another loopback address such as `::1`, or an address of this server | The channel host and `xroad.op-monitor.rpc.listen-address` are set to the value. The IP subject alternative name (SAN) setting `xroad.common-rpc.certificate-provisioning.ip-subject-alt-names` is set to `127.0.0.1` and the value. |
+| A name that resolves to an address of this server, or only to loopback addresses, such as `localhost` | The channel host and the DNS SAN setting `xroad.common-rpc.certificate-provisioning.alt-names` are set to the value. The listener address is set to the value too, except for a name that resolves only to loopback addresses of which one is `127.0.0.1`, such as `localhost`. |
+| A remote address, or a name that resolves only to remote addresses | Only the channel host is set. |
+| A name that cannot be resolved, or that resolves to a remote address and also to this server or to a loopback address | Ambiguous. Only the channel host is set and a `[WARN]` line is written to the wizard log. |
 
-For an ambiguous `host` value the wizard log file has a line of the form `[<timestamp>] [WARN] op-monitor host '<name>' …` and gives the reason: the name cannot be resolved, it resolves to this server and to another host, or it resolves to a loopback address and to another host. The channel host keeps the name, and no listener address or certificate name is written. If the operational monitoring daemon runs on this Security Server, set the channel host to the loopback address and restart the proxy and the admin-service:
-
-```bash
-/usr/share/xroad/scripts/db_property.sh set xroad.common-rpc.channel.op-monitor.host 127.0.0.1 --yes
-service xroad-proxy restart
-service xroad-proxy-ui-api restart
-```
-
-If the daemon runs on an external host, no change is needed.
+For an ambiguous `host` value, the wizard log file has a line of the form `[<timestamp>] [WARN] op-monitor host '<name>' …`. If the daemon runs on this Security Server, follow the instructions in the line: it names the command to run and the services to restart. If the daemon runs on an external host, no change is needed.
 
 The certificate SAN settings are configuration rows. The migration writes only these rows; it does not copy or modify certificate files. The internal gRPC services of the Security Server share these provisioning settings: each service requests its own certificate with them from the local secret store when it starts and when the certificate is refreshed. The IP SAN setting always contains `127.0.0.1`, which the internal services connect to by default. The migration does not change the common name of the certificates.
 
@@ -328,7 +312,7 @@ Operational monitoring on and off:
 - In X-Road 7.8 the add-on package `xroad-addon-opmonitoring` turns the monitoring on. In X-Road 8 the property `xroad.proxy.addon.op-monitor.enabled` (default `false`; the EE, FI, IS and FO country profiles set it to `true`) does. Step 6a records the 7.8 state and step 11a writes the property: `true` when the add-on was enabled, otherwise `false`. A value that already exists is kept.
 - Resetting `/var/lib/xroad-upgrade` removes the recorded state. A rerun then records the state again from the already upgraded server, where the 7.8 add-on is gone, so monitoring that was enabled in 7.8 is recorded as disabled. If the property was not written yet, set it by hand as in the [manual procedure](#manual-upgrade-procedure), step 11a.
 
-The op-monitor TLS files are not migrated. X-Road 7.8 used `/etc/xroad/ssl/opmonitor.crt` and its key for the HTTPS connection to the daemon. A daemon on the Security Server host uses the shared internal gRPC identity of the Security Server, so step 10 does not copy them to the secret store. An external daemon uses its own file identity, see [Upgrading External Operational Monitoring Daemon Host](#upgrading-external-operational-monitoring-daemon-host).
+The op-monitor TLS files of X-Road 7.8 are not migrated. A daemon on the Security Server host uses the shared internal gRPC identity of the Security Server, and an external daemon needs a new TLS identity, see [Upgrading External Operational Monitoring Daemon Host](#upgrading-external-operational-monitoring-daemon-host).
 
 ### Operator choices
 
@@ -699,20 +683,20 @@ Beta 2 does not support a package-level downgrade as a primary rollback strategy
 
 ## Upgrading External Operational Monitoring Daemon Host
 
-An external operational monitoring daemon runs on a host that is not the Security Server. This chapter describes how to upgrade an X-Road 7 external daemon host. To install a new external daemon host, see section 2.9 of the [Security Server Installation Guide](ig-ss_x-road_v8_security_server_installation_guide.md#29-installing-an-external-operational-monitoring-daemon) on Ubuntu or section 2.12 of the [Security Server Installation Guide for RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md#212-installing-an-external-operational-monitoring-daemon) on RHEL. The configuration of the daemon, its TLS identity and the exchange of CA certificates are in sections [15.3.1](ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon), [15.3.2](ug-ss_x-road_6_security_server_user_guide.md#1532-generating-the-tls-identity-of-an-external-operational-monitoring-daemon) and [15.3.3](ug-ss_x-road_6_security_server_user_guide.md#1533-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon) of the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md). This chapter does not repeat them.
+An external operational monitoring daemon runs on a host that is not the Security Server. This chapter describes how to upgrade an X-Road 7 external daemon host. The upgrade wizard does not upgrade this host. To install a new external host and to configure the daemon, see section [15.3](ug-ss_x-road_6_security_server_user_guide.md#153-external-operational-monitoring-daemon) of the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md).
 
 ### Upgrading from X-Road 7
 
-This section describes how to upgrade an X-Road 7.8 external operational monitoring daemon host and its Security Server together. The upgrade wizard does not upgrade the external host. X-Road 8 does not read `op-monitor.ini` or `local.ini`, and the daemon does not use the X-Road 7 REST connection and TLS certificates. The external host gets a settings file and a new TLS identity.
+This section describes how to upgrade an X-Road 7.8 external operational monitoring daemon host and its Security Server together. X-Road 8 does not read `op-monitor.ini` or `local.ini`: the external host gets a settings file and a new TLS identity.
 
-The monitoring gap starts in step 1 and ends in step 4. A Security Server that has no running daemon buffers the operational monitoring records in memory. When the buffer is full, the oldest records are dropped. Do steps 2 to 4 without a pause.
+The monitoring gap starts in step 1 and ends in step 4. Without a running daemon, the Security Server buffers the operational monitoring records in memory, drops the oldest records when the buffer is full, and loses the buffered records at the proxy restart. Do steps 2 to 4 without a pause.
 
 **Prerequisites**
 
 - The external host gets the same X-Road 8 version as the Security Server.
-- Java 25 is the default Java on the external host. The daemon starts `java` from the `PATH`.
+- Java 25 is the default Java on the external host.
 - The external host has PostgreSQL 15 or later on 127.0.0.1.
-- You have saved the effective `[op-monitor]` values of the X-Road 7 daemon. Take them from `/etc/xroad/conf.d/local.ini` and, if you edited it, from `/etc/xroad/conf.d/op-monitor.ini`. If a package manager backup copy of `op-monitor.ini` exists, for example `op-monitor.ini.rpmsave`, include its values. The package upgrade does not keep an edited `op-monitor.ini` in use.
+- You have saved the effective `[op-monitor]` values of the X-Road 7 daemon from `/etc/xroad/conf.d/local.ini` and `/etc/xroad/conf.d/op-monitor.ini`, including a package manager backup copy such as `op-monitor.ini.rpmsave`. The package upgrade does not keep an edited `op-monitor.ini` in use.
 
 **Steps**
 
@@ -729,7 +713,7 @@ The monitoring gap starts in step 1 and ends in step 4. A Security Server that h
    /usr/share/xroad/scripts/db_property.sh get xroad.common-rpc.channel.op-monitor.port
    ```
 
-   A command that exits with status 1 has no row: the default value (`127.0.0.1` or `2081`) applies. If the wizard log file has a `[WARN] op-monitor host` line, see [Operational monitoring](#operational-monitoring). The channel host must be an address that the external daemon listens on, and the channel port must be the listening port of the daemon.
+   A command that exits with status 1 has no row: the default value (`127.0.0.1` or `2081`) applies. If the wizard log file has a `[WARN] op-monitor host` line, see [Operational monitoring](#operational-monitoring). The channel host must be an address on which the external daemon listens, and the channel port must be the listening port of the daemon. If they are not, for example because the X-Road 7 `host` was absent or only in `op-monitor.ini` and the channel host is `127.0.0.1`, also do step 6 of section 15.3.1 in step 4.
 
 3. **External host.** Do these actions in this order:
 
@@ -742,9 +726,9 @@ The monitoring gap starts in step 1 and ends in step 4. A Security Server that h
       sed -E -i 's/^([[:space:]]*)op-monitor\.hibernate\./\1xroad.db.op-monitor.hibernate./' /etc/xroad/db.properties
       ```
 
-      Do this before the package upgrade. If you skip it, the upgrade of the `xroad-opmonitor` package on Ubuntu stops with an error. On RHEL the upgrade finishes, but the daemon has a wrong database password. The copy `/root/db.properties.x7` is for a rollback to X-Road 7: restore it over `/etc/xroad/db.properties`.
+      Do this before the package upgrade. If you skip it, the upgrade of the `xroad-opmonitor` package on Ubuntu stops with an error. On RHEL the upgrade finishes, but the daemon has a wrong database password. To roll back to X-Road 7, restore the copy `/root/db.properties.x7` over `/etc/xroad/db.properties`.
 
-   3. Upgrade the packages in one transaction that also removes the X-Road 7 `xroad-confclient`. The external host needs no configuration client. On Ubuntu:
+   3. Upgrade the packages in one transaction that also removes the X-Road 7 `xroad-confclient`, which the external host does not need. On Ubuntu:
 
       ```bash
       DEBIAN_FRONTEND=noninteractive apt-get install -y --purge xroad-opmonitor xroad-database-local xroad-confclient-
@@ -761,39 +745,19 @@ The monitoring gap starts in step 1 and ends in step 4. A Security Server that h
       dnf shell -y /root/opmonitor-upgrade.dnf
       ```
 
-      The upgraded daemon stays disabled and stopped. The transaction does not change `/etc/xroad/db.properties` and keeps the database and its data.
+      The upgraded daemon stays disabled and stopped. The transaction keeps `/etc/xroad/db.properties` and the database.
 
-   4. Write the settings file `/etc/xroad/conf.d/op-monitor-settings.yaml` as described in section [15.3.1](ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon). Use the saved X-Road 7 values as shown in **Settings carry-over** below.
+   4. Do steps 2 to 5 of section [15.3.1](ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon) of the Security Server User Guide. The certificate must carry the address that the Security Server uses to connect to this host: the channel host from step 2 if it is an address of this host, otherwise the address that step 4 sets. In the firewall rule, port 2081 replaces the X-Road 7 port 2080. Write the settings file from the saved X-Road 7 values, as shown in **Settings carry-over** below. The upload of the daemon CA to the Security Server, which is part of step 3 there, is step 4 here.
 
-   5. Generate a new TLS identity of the daemon and install the Security Server RPC CA on the external host, as described in sections [15.3.2](ug-ss_x-road_6_security_server_user_guide.md#1532-generating-the-tls-identity-of-an-external-operational-monitoring-daemon) and [15.3.3](ug-ss_x-road_6_security_server_user_guide.md#1533-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon). The X-Road 7 certificates of the daemon are obsolete. The certificate must carry the channel host from step 2 as a subject alternative name.
-
-   6. Open the firewall of the external host for port 2081 (or the port that you set) from the Security Server. Port 2081 replaces the X-Road 7 port 2080.
-
-   7. Enable and start the daemon:
+   5. Enable the daemon so that it starts after a reboot:
 
       ```bash
       systemctl enable --now xroad-opmonitor
-      systemctl is-active xroad-opmonitor
       ```
 
-      The second command must print `active`.
+4. **Security Server.** Do steps 3 (the upload of the daemon CA), 6, 7 and 8 of section [15.3.1](ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon) of the Security Server User Guide, in this order. Skip step 6 when the channel host and port from step 2 are already the address and the listening port of the external daemon: the wizard has set them and the add-on flag. The monitoring gap ends when the proxy has restarted.
 
-4. **Security Server.** Upload the CA of the daemon, as described in section [15.3.3](ug-ss_x-road_6_security_server_user_guide.md#1533-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon). Then restart the proxy and the admin-service:
-
-   ```bash
-   service xroad-proxy restart
-   service xroad-proxy-ui-api restart
-   ```
-
-   The wizard sets `xroad.proxy.addon.op-monitor.enabled` from the state that it recorded in step 6a. The monitoring gap ends when the proxy has restarted and can store records in the daemon.
-
-5. **Security Server.** The wizard may have started the local `xroad-opmonitor` service. Stop it and keep it from starting again:
-
-   ```bash
-   systemctl disable --now xroad-opmonitor
-   ```
-
-6. **Verify.** In the Security Server user interface, open **Diagnostics** > **Traffic** and run a query. The query must return the records of a test request sent after step 4. On the external host, check that `systemctl is-active xroad-opmonitor` prints `active`. Then delete the key copy:
+5. **Verify.** In the Security Server user interface, open **Diagnostics** > **Traffic** and run a query. The query must return the records of a test request sent after step 4. On the external host, check that `systemctl is-active xroad-opmonitor` prints `active`. Then delete the key copy:
 
    ```bash
    rm /root/db.properties.x7
@@ -809,28 +773,9 @@ Write these X-Road 7 `[op-monitor]` values in the settings file. Do not copy `op
 | `grpc-port` | `xroad.op-monitor.rpc.port` (2081 by default) |
 | `keep-records-for-days`, `clean-interval`, `max-records-in-payload`, `records-available-timestamp-offset-seconds`, `health-statistics-period-seconds` | The same names with the prefix `xroad.op-monitor.` |
 
-The daemon does not use these settings: `port`, `scheme`, `tls-certificate`, `client-tls-certificate` and `xroad-tls-ciphers` (the X-Road 7 REST connection and its TLS), and the `[op-monitor-service]` and `[op-monitor-buffer]` values `socket-timeout-seconds` and `connection-timeout-seconds` (the HTTP timeouts). These settings belong on the Security Server: the channel host and port, `grpc-client-timeout`, and the `[op-monitor-buffer]` values `size`, `max-records-in-message` and `sending-interval-seconds`. The wizard migrates them; `grpc-client-timeout` becomes `xroad.common-rpc.channel.op-monitor.deadline-after`. If you raised the X-Road 7 timeouts, raise `xroad.common-rpc.channel.op-monitor.deadline-after` on the Security Server instead.
+The daemon does not use the X-Road 7 REST, TLS and HTTP-timeout settings. If you raised the X-Road 7 timeouts, raise `xroad.common-rpc.channel.op-monitor.deadline-after` on the Security Server instead.
 
-**Leftover files**
-
-After the verify step, the X-Road 7 files in this list are no longer used. Remove them if they exist:
-
-```
-/etc/xroad/conf.d/*.ini
-/etc/xroad/devices.ini
-/etc/xroad/configuration-anchor.xml
-/etc/xroad/signer            (directory)
-/etc/xroad/conf.d/*-logback*.xml
-/etc/xroad/conf.d/acme.yml
-/etc/xroad/conf.d/mail.yml
-/etc/xroad/db.properties.bak
-/etc/xroad/ssl/opmonitor.crt
-/etc/xroad/ssl/opmonitor.p12
-```
-
-Never remove `/etc/xroad/db.properties`, the settings file `/etc/xroad/conf.d/op-monitor-settings.yaml`, `/etc/xroad-opmonitor/ssl` and the Security Server RPC CA file.
-
-The package `xroad-opmonitor` does not ask for and does not write `xroad.op-monitor.tls.certificate-provisioning.*`. A row of that name from an earlier installation is not used by the daemon.
+After the verify step, the X-Road 7 op-monitor key files and the `*.ini` files are no longer used.
 
 ## Troubleshooting
 

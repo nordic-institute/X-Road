@@ -59,7 +59,7 @@ This chapter describes the system parameters used by the X-Road 8 operational mo
 * To change the parameters `xroad.proxy.addon.op-monitor.*`, the service *xroad-proxy* must be restarted.
 * The parameter `xroad.common-rpc.use-tls` is described in section [3.1.1](../../Manuals/ug-syspar_x-road_v6_system_parameters.md#311-internal-grpc-connections-xroadcommon-rpc) of \[[UG-SYSPAR](#UG-SYSPAR)\], including the services to restart after a change.
 
-The column *Set on* of the table shows the host on which a parameter is set: *Security Server host* or *Op-monitor host*. On a Security Server with a local operational monitoring daemon, both are the same host. On an external operational monitoring daemon host, set the parameters of the operational monitoring daemon in its settings file, see section [15.3.1](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon) of \[[UG-SS](#UG-SS)\].
+The column *Set on* of the table shows the host on which a parameter is set: *Security Server host* or *Operational Monitoring host*. On a Security Server with a local operational monitoring daemon, both are the same host. On an external operational monitoring daemon host, set the parameters of the operational monitoring daemon in its settings file, see section [15.3.1](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon) of \[[UG-SS](#UG-SS)\].
 
 The security server and the operational monitoring daemon communicate over gRPC on port 2081 by default. Operational data is stored and queried over this connection.
 

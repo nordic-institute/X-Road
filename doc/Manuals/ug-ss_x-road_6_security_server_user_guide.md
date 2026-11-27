@@ -2800,20 +2800,16 @@ The owner of the Security Server and the central monitoring client are able to q
 
 **NOTE:** All the commands in the following sections must be carried out using root permissions.
 
+**NOTE:** The operational monitoring parameters are X-Road system parameters. Change them in the System Parameters view of the Security Server user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. The services to restart after a change are listed in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
+
 
 ### 15.1 Operational Monitoring Buffer
 
 In general, the operational monitoring buffer is an internal component of the Security Server and thus being not directly used by the end user.
 
-The parameters of the operational monitoring buffer are X-Road 8 system parameters. Their names start with `xroad.proxy.addon.op-monitor.`. They have been documented in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
+The parameters of the operational monitoring buffer are X-Road system parameters. Their names start with `xroad.proxy.addon.op-monitor.`. They have been documented in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
 
 The default values of the parameters have been chosen to be sufficient under expected average load using the minimum hardware recommended.
-
-To change a value, use the System Parameters view of the Security Server user interface or the script `/usr/share/xroad/scripts/db_property.sh`. After the change, restart the xroad-proxy service:
-
-```bash
-service xroad-proxy restart
-```
 
 
 #### 15.1.1 Stopping the Collecting of Operational Data
@@ -2830,7 +2826,7 @@ After the configuration change, the xroad-proxy service must be restarted:
 service xroad-proxy restart
 ```
 
-In addition, the operational monitoring daemon should be stopped and kept from starting again, also after a reboot:
+In addition, if the package `xroad-opmonitor` is installed, stop the operational monitoring daemon and keep it from starting again, also after a reboot:
 
 ```bash
 systemctl disable --now xroad-opmonitor
@@ -2839,9 +2835,7 @@ systemctl disable --now xroad-opmonitor
 
 #### 15.1.2 Enabling Operational Monitoring on a Security Server
 
-The Security Server sends operational data to the operational monitoring daemon only when the parameter `xroad.proxy.addon.op-monitor.enabled` is *true*. The default value is *false*. The country profiles EE, FI, IS and FO set the value to *true*, and a country package installs the package `xroad-opmonitor` (see section 2.6.2 of the [Security Server Installation Guide](ig-ss_x-road_v8_security_server_installation_guide.md#262-country-profile)). A value that is saved in the System Parameters view or with the script `db_property.sh` has priority over the country profile.
-
-A Security Server with a country package needs no step from this section. Use this section for a Security Server that has the package `xroad-securityserver` and no country package, and that uses a daemon on the same host. For a daemon on another host, see section [15.3.1](#1531-installing-and-configuring-an-external-operational-monitoring-daemon).
+The Security Server sends operational data to the operational monitoring daemon only when the parameter `xroad.proxy.addon.op-monitor.enabled` is *true*. The default value is *false*.
 
 1. Install the package `xroad-opmonitor`. On Ubuntu:
 
@@ -2854,8 +2848,6 @@ A Security Server with a country package needs no step from this section. Use th
    ```bash
    dnf install xroad-opmonitor
    ```
-
-   The installation creates the operational monitoring database.
 
 2. Set the parameter `xroad.proxy.addon.op-monitor.enabled` to *true*. Use the System Parameters view of the Security Server user interface (the user must have the System Administrator role), or run the script:
 
@@ -2877,22 +2869,14 @@ A Security Server with a country package needs no step from this section. Use th
 
    Then open the "Traffic" tab of the Diagnostics page (see section [14.2](#142-security-server-traffic)). The tab shows the requests that the Security Server handles after the restart.
 
-The daemon listens on 127.0.0.1 and port 2081 by default, and the proxy connects to the same address. Do not change the parameters `xroad.common-rpc.channel.op-monitor.host` and `xroad.common-rpc.channel.op-monitor.port`. The same-host connection needs no TLS setting, no CA exchange and no firewall rule.
-
-To stop the collecting of operational data again, see section [15.1.1](#1511-stopping-the-collecting-of-operational-data).
+Keep the default values of the parameters `xroad.common-rpc.channel.op-monitor.host` and `xroad.common-rpc.channel.op-monitor.port`.
 
 
 ### 15.2 Operational Monitoring Daemon
 
-The parameters of the operational monitoring daemon are X-Road 8 system parameters. Their names start with `xroad.op-monitor.`. They have been documented in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
+The parameters of the operational monitoring daemon are X-Road system parameters. Their names start with `xroad.op-monitor.`. They have been documented in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
 
 Similarly to the operational monitoring buffer, the default values of the parameters have been chosen to be sufficient under expected average load using the minimum recommended hardware.
-
-For a daemon on the Security Server host, change a value in the System Parameters view of the Security Server user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. After the change, restart the daemon:
-
-```bash
-service xroad-opmonitor restart
-```
 
 An external operational monitoring daemon reads its parameters from a settings file on its own host. See section [15.3.1](#1531-installing-and-configuring-an-external-operational-monitoring-daemon).
 
@@ -2902,15 +2886,13 @@ In the following sections, some parameters are described which may be required t
 
 By default, health statistics are provided for a period of 600 seconds (10 minutes). This means that if no request exchange has taken place for 10 minutes, all the statistical metrics are reset. Please refer to \[[PR-OPMON](#Ref_PR-OPMON)\] for a detailed overview of the health metrics available.
 
-To change the health statistics period, set the parameter `xroad.op-monitor.health-statistics-period-seconds` as described in section [15.2](#152-operational-monitoring-daemon).
+To change the health statistics period, set the parameter `xroad.op-monitor.health-statistics-period-seconds`.
 
 #### 15.2.2 Configuring the Parameters Related to Database Cleanup
 
 Depending on the load and resources of the system, it may be necessary to change the interval of the removal of old database records.
 
 The parameter `xroad.op-monitor.keep-records-for-days` should be edited, for instance if the disk fills up before cleanup occurs, or alternatively, if the default period of 7 days is too short. The parameter `xroad.op-monitor.clean-interval` (a Cron expression \[[CRON](#Ref_CRON)\]) defines how often the system checks whether cleanup should be done. If the default period of 12 hours is too long or short it should be edited according to your needs.
-
-Set the parameters as described in section [15.2](#152-operational-monitoring-daemon).
 
 #### 15.2.3 Connection and Trust Between the Security Server and the Operational Monitoring Daemon
 
@@ -2928,50 +2910,14 @@ In the configuration of the Security Server (the channel to the daemon):
 
 `xroad.common-rpc.channel.op-monitor.port` – port of the daemon (by default the value is set to *2081*).
 
-The values are changed in the System Parameters view of the Security Server user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. A changed value takes effect when the services that use it are restarted:
-
-- after changing the listening address or the port of the daemon, restart the operational monitoring daemon:
-
-```bash
-service xroad-opmonitor restart
-```
-
-- after changing the host or the port of the channel, restart the proxy and the user interface and API services:
-
-```bash
-service xroad-proxy restart
-service xroad-proxy-ui-api restart
-```
-
-**NOTE:** The listener parameters of an external operational monitoring daemon are set in the settings file of its host. For a daemon on a separate host, see section [15.3.1](#1531-installing-and-configuring-an-external-operational-monitoring-daemon).
-
 **How the trust is chosen**
 
-The proxy and the admin-service connect to the operational monitoring daemon. Both present the shared internal gRPC certificate of the Security Server. What they trust depends on the Operational Monitoring CA (see section [15.3.3](#1533-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon)):
+The proxy and the admin-service connect to the operational monitoring daemon and present the shared internal gRPC certificate of the Security Server. What they trust depends on the Operational Monitoring CA (see section [15.3.3](#1533-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon)):
 
-- When an Operational Monitoring CA is stored, the connections trust only this CA. The host name of the daemon is verified against its certificate.
+- When an Operational Monitoring CA is stored, the connections trust only this CA and verify the host name of the daemon against its certificate.
 - When no Operational Monitoring CA is stored, the connections trust the Security Server RPC CA.
 
-The trust is chosen when the connection is created, on its first use. Therefore, after the Operational Monitoring CA is uploaded, replaced or deleted, restart the proxy and the admin-service.
-
-There is no fallback. If the Operational Monitoring CA cannot be read from the secret store (OpenBao), or it is not a valid certificate, the connection is not created and the call fails with the error code `op_monitor_trust_failure` (*Could not establish a trusted connection to Operational Monitoring*). In the admin user interface only the traffic view of the Diagnostics fails. In the proxy the failure is not remembered, so the next call tries again.
-
-The operational monitoring daemon trusts the Security Server RPC CA installed on its own host.
-
-**Certificate names**
-
-The certificate of the operational monitoring daemon must contain the exact host that the Security Server connects to, which is the value of `xroad.common-rpc.channel.op-monitor.host`.
-
-- If the host is a name, the certificate needs a DNS subject alternative name.
-- If the host is an IP address, the certificate needs an IP subject alternative name.
-
-By default the host and the IP subject alternative name are *127.0.0.1*. For an external daemon, the tool described in section [15.3.2](#1532-generating-the-tls-identity-of-an-external-operational-monitoring-daemon) puts the names into the certificate.
-
-**The allowed client names**
-
-The parameter `xroad.op-monitor.rpc.allowed-client-names` is a comma-separated list of the names of the components that may connect to the operational monitoring daemon. It is a parameter of the operational monitoring daemon. For details, see [UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR).
-
-In package installations and the Security Server Sidecar, leave the list empty: every component presents the same name, `localhost`, so the list cannot distinguish them.
+The trust is chosen when a connection is created, on its first use. Therefore, after the Operational Monitoring CA is uploaded, replaced or deleted, restart the proxy and the admin-service. If the Operational Monitoring CA cannot be read from the secret store (OpenBao) or is not a valid certificate, the call fails with the error code `op_monitor_trust_failure`. Check the secret store and the stored CA.
 
 
 ### 15.3 External Operational Monitoring Daemon
@@ -2980,19 +2926,12 @@ By default, the operational monitoring daemon runs on the Security Server host. 
 
 One operational monitoring daemon serves one Security Server. Do not connect several Security Servers to the same daemon.
 
-Section [15.3.1](#1531-installing-and-configuring-an-external-operational-monitoring-daemon) describes how to install and configure an external daemon. Section [15.3.2](#1532-generating-the-tls-identity-of-an-external-operational-monitoring-daemon) describes its TLS identity, and section [15.3.3](#1533-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon) the exchange of CA certificates with the Security Server. Section [15.3.4](#1534-switching-back-to-a-local-operational-monitoring-daemon) describes how to go back to a daemon on the Security Server host.
-
 
 #### 15.3.1 Installing and Configuring an External Operational Monitoring Daemon
 
 Install the package `xroad-opmonitor` on the external host. On Ubuntu, follow section 2.9 of the [Security Server Installation Guide](ig-ss_x-road_v8_security_server_installation_guide.md#29-installing-an-external-operational-monitoring-daemon). On RHEL, follow section 2.12 of the [Security Server Installation Guide for RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md#212-installing-an-external-operational-monitoring-daemon).
 
-Before you start, note these rules:
-
-- The external host and the Security Server must run the same X-Road version.
-- The daemon needs a local PostgreSQL 15 or later on 127.0.0.1. A remote database is not covered by this guide.
-- The external host needs no configuration client and no configuration anchor.
-- The daemon does not read `op-monitor.ini` or `local.ini`. To upgrade an X-Road 7 external host, see the section [Upgrading from X-Road 7](ig-ss_x-road_v8_security_server_upgrade_guide.md#upgrading-from-x-road-7) of the Security Server Upgrade Guide.
+The external host and the Security Server must run the same X-Road version. The external host needs no configuration client and no configuration anchor.
 
 To make a Security Server use an external operational monitoring daemon, follow these steps. Steps 2 to 5 are on the external host, steps 6 to 8 on the Security Server host.
 
@@ -3034,8 +2973,6 @@ To make a Security Server use an external operational monitoring daemon, follow 
 
 - `xroad.common-rpc.channel.op-monitor.host` (Security Server) is an address on which the daemon listens (`xroad.op-monitor.rpc.listen-address`), and it is in the subject alternative names of the certificate of the daemon.
 - `xroad.common-rpc.channel.op-monitor.port` (Security Server) is the same as `xroad.op-monitor.rpc.port` (daemon).
-- `xroad.proxy.addon.op-monitor.buffer.max-message-size` (Security Server) is lower than `xroad.op-monitor.rpc.max-inbound-message-size` (daemon).
-- `xroad.common-rpc.channel.op-monitor.max-inbound-message-size` (Security Server) is large enough for a response of `xroad.op-monitor.max-records-in-payload` records (daemon). See \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
 
 **The settings file**
 
@@ -3054,64 +2991,23 @@ xroad.op-monitor.rpc.file-identity.trusted-ca-path: /etc/xroad-opmonitor/externa
 
 Other `xroad.op-monitor.*` parameters (see [UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)) are set in the same way. The daemon uses the default value of a parameter that is not in the file.
 
-- A file that is missing, empty or has only comments is valid. The daemon logs that it loaded no values from the file.
-- An unknown parameter name is ignored. The daemon logs a warning with the name and the file.
-- A file that is not valid stops the daemon at startup. The error names the file and the line (for a repeated parameter or a parameter without a value, the parameter). The file is not valid when it is not YAML, has more than one document, holds only a single value, has a nested map or a list, has a repeated parameter, or has a parameter without a value. An X-Road 7 `.ini` file is not valid.
-- A value that cannot be parsed or is not allowed stops the daemon at startup. The error names the parameter and the file.
+A file that is not valid or a value that cannot be parsed stops the daemon at startup, and the error names the file and the line, or the parameter. An unknown parameter name only produces a warning in the daemon log. An X-Road 7 `.ini` file is not valid.
 
 **Loading the identity**
 
-The daemon loads its identity from files when `xroad.op-monitor.rpc.identity-source` is `file`. The default value is `openbao`. In file mode, op-monitor does not use or connect to OpenBao for its TLS identity. The three file path parameters are:
-
-- `xroad.op-monitor.rpc.file-identity.private-key-path`: `/etc/xroad-opmonitor/ssl/server.key`, created by the tool described in section [15.3.2](#1532-generating-the-tls-identity-of-an-external-operational-monitoring-daemon);
-- `xroad.op-monitor.rpc.file-identity.certificate-path`: `/etc/xroad-opmonitor/ssl/server.crt`, created by the tool;
-- `xroad.op-monitor.rpc.file-identity.trusted-ca-path`: the Security Server RPC CA file `external-rpc-ca.pem`, downloaded as described in section [15.3.3](#1533-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon).
-
-The system user `xroad` must have permission to read the three files.
-
-The trusted CA file must hold exactly one certificate, and the certificate must be a CA certificate (basic constraint CA:TRUE). The daemon trusts exactly this Security Server RPC CA. A file with no certificate, with two or more certificates (a bundle), or with a certificate that is not a CA stops the daemon at startup. The file `external-rpc-ca.pem` downloaded from the Security Server meets this rule.
+The daemon loads its identity from files when `xroad.op-monitor.rpc.identity-source` is `file`. The default value is `openbao`. In file mode, op-monitor does not use or connect to OpenBao for its TLS identity. The files are the private key and the certificate that the tool described in section [15.3.2](#1532-generating-the-tls-identity-of-an-external-operational-monitoring-daemon) creates, and the trusted CA file, which is the Security Server RPC CA file `external-rpc-ca.pem` downloaded as described in section [15.3.3](#1533-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon). The system user `xroad` must have permission to read the three files.
 
 **Startup failures**
 
-With `xroad.op-monitor.rpc.identity-source` set to *file*, the daemon does not start, and does not fall back to OpenBao, when:
-
-- a path parameter is not set, or its file is missing, cannot be read or is empty;
-- the private key is not an unencrypted PKCS#8 key (a block starting with `-----BEGIN PRIVATE KEY-----`) or does not match the first certificate of the certificate file, or the certificate file holds no certificate;
-- the first certificate of the certificate file (the server certificate) has expired or is not yet valid, or is a CA certificate (basic constraint CA:TRUE);
-- the trusted CA file does not hold exactly one CA certificate, or that CA certificate has expired or is not yet valid.
-
-The error in the daemon log names the parameter that is not set, or the file and the reason.
-
-When the identity source is `openbao` (the default) and the host has no OpenBao token, the daemon stops at startup with an error that begins with `op-monitor is not configured:`. The error names the parameters to set in the settings file. This is the result of the first start after the installation. The system service manager stops the retries after a number of failed starts and leaves the service in the failed state.
+With `xroad.op-monitor.rpc.identity-source` set to *file*, the daemon does not start, and does not fall back to OpenBao, when a path parameter is not set or a file of the identity is missing, not readable or not valid. The error in the daemon log names the parameter, or the file and the reason. When the identity source is `openbao` (the default) and the host has no OpenBao token, the daemon stops with an error that begins with `op-monitor is not configured:`. This is the expected result of the first start after the installation.
 
 **Backup**
 
-A standalone external host has no X-Road backup tool. Include the following in the backup process of the host:
-
-- the settings file `/etc/xroad/conf.d/op-monitor-settings.yaml`;
-- `/etc/xroad/db.properties`;
-- the file with the database administrator credentials, `/etc/xroad.properties` (or `/etc/xroad/xroad.properties` if that file exists);
-- `/etc/xroad-opmonitor/ssl`;
-- the Security Server RPC CA file that `xroad.op-monitor.rpc.file-identity.trusted-ca-path` names;
-- the operational monitoring database.
-
-A backup that contains `ca.key` or `server.key` holds private keys: protect it as carefully as the keys themselves.
+A standalone external host has no X-Road backup tool. Include in its backup process the settings file `/etc/xroad/conf.d/op-monitor-settings.yaml`, `/etc/xroad/db.properties`, the file with the database administrator credentials `/etc/xroad.properties` (or `/etc/xroad/xroad.properties` if that file exists), the directory `/etc/xroad-opmonitor/ssl`, the Security Server RPC CA file and the operational monitoring database. The backup holds private keys: protect it as carefully as the keys themselves.
 
 **Clock**
 
 The daemon uses the clock of its own host for the time windows of the queries. Keep the clocks of the external host and the Security Server host synchronised, for example with NTP.
-
-**Upgrading the Security Server with the upgrade wizard**
-
-The upgrade wizard does not install `xroad-opmonitor`. If the package was installed in X-Road 7.8, the wizard upgrades it. In the last step, the wizard unmasks the service `xroad-opmonitor`, applies the preset, and starts it. This also happens when the Security Server uses an external daemon. After the wizard, stop and disable the local service:
-
-```bash
-systemctl disable --now xroad-opmonitor
-```
-
-To keep the local service from being started again, you can also mask it with `systemctl mask xroad-opmonitor`.
-
-For an X-Road 7 external host, see the section [Upgrading External Operational Monitoring Daemon Host](ig-ss_x-road_v8_security_server_upgrade_guide.md#upgrading-external-operational-monitoring-daemon-host) of the Security Server Upgrade Guide.
 
 #### 15.3.2 Generating the TLS Identity of an External Operational Monitoring Daemon
 
@@ -3136,7 +3032,7 @@ The package `xroad-opmonitor` contains the tool `/usr/share/xroad/scripts/genera
 
 Each value of `--days` and `--ca-days` must be a positive whole number of at most six digits. A server certificate must be shorter-lived than its CA: when the tool creates a CA, it refuses `--days` that is not smaller than `--ca-days`, and when it keeps the CA, it refuses `--days` that reaches past the end of the CA validity.
 
-The tool needs at least one DNS name or IP address (IPv4 or IPv6) and refuses to run without one. The names become the subject alternative names (SAN) of the server certificate. As in section [15.2.3](#1523-connection-and-trust-between-the-security-server-and-the-operational-monitoring-daemon), the SAN must contain the exact host that the Security Server connects to, which is the value of `xroad.common-rpc.channel.op-monitor.host`: a DNS name needs a DNS SAN, and an IP address needs an IP SAN. Give all names on every run. The new certificate holds only the names given in that run.
+The tool needs at least one DNS name or IP address (IPv4 or IPv6) and refuses to run without one. The names become the subject alternative names (SAN) of the server certificate. The SAN must contain the exact host that the Security Server connects to, which is the value of `xroad.common-rpc.channel.op-monitor.host`: a DNS name needs a DNS SAN, and an IP address needs an IP SAN. Give all names on every run. The new certificate holds only the names given in that run.
 
 Example of creating the identity for an external operational monitoring daemon host that the Security Server reaches by a name and by an address:
 
@@ -3351,7 +3247,7 @@ To make the Security Server use the operational monitoring daemon on its own hos
    service xroad-proxy-ui-api restart
    ```
 
-4. Enable and start the local service. If you masked the service, unmask it first with `systemctl unmask xroad-opmonitor`:
+4. Enable and start the local service:
 
    ```bash
    systemctl enable --now xroad-opmonitor

@@ -291,8 +291,6 @@ The time limit for retrying calls to the secret store is the X-Road 8 configurat
 
 The parameter in this section is an X-Road 8 configuration property, not an INI file parameter. Change it in the System Parameters view of the user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. All services of the server read the same value, once when they start. Services with different values cannot connect to each other, so after a change restart all the X-Road services together: `xroad-signer`, `xroad-confclient`, `xroad-proxy`, `xroad-monitor`, `xroad-auxiliary-service`, `xroad-proxy-ui-api`, `xroad-ds-control-plane`, `xroad-ds-identity-hub`, and `xroad-opmonitor` if installed.
 
-An external operational monitoring daemon host has no System Parameters view. The daemon reads this parameter from its settings file, see section [15.3.1](ug-ss_x-road_6_security_server_user_guide.md#1531-installing-and-configuring-an-external-operational-monitoring-daemon) of the Security Server User Guide.
-
 | **Parameter**              | **Default value** | **Description** |
 |----------------------------|-------------------|-----------------|
 | `xroad.common-rpc.use-tls` | true              | Production requires *true*. When enabled, mutual TLS is used for all gRPC communication between the internal services of the server, including the connection to the operational monitoring daemon. When *false*, every internal gRPC connection is unencrypted. |
