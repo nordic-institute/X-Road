@@ -35,6 +35,7 @@ import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.cs.admin.api.domain.CanSignCause;
 import org.niis.xroad.cs.admin.api.domain.CanSignResult;
 import org.niis.xroad.cs.admin.api.domain.IssuerServiceStatus;
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
@@ -83,7 +84,7 @@ class IssuerServiceStatusServiceImplTest {
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer(DID, false)));
         when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
                 .thenReturn(CanSignResult.canSign(DID));
 
@@ -106,7 +107,7 @@ class IssuerServiceStatusServiceImplTest {
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer(DID, false)));
         when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
                 .thenReturn(CanSignResult.canSign(DID));
 
@@ -122,13 +123,13 @@ class IssuerServiceStatusServiceImplTest {
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer(DID, false)));
         when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
                 .thenReturn(CanSignResult.canSign(DID));
 
         issuerServiceStatusService.getStatus();
 
-        verify(dataspaceIssuerDidService, times(1)).findAll();
+        verify(dataspaceIssuerDidService, times(1)).findAllBound();
     }
 
     @Test
@@ -138,7 +139,7 @@ class IssuerServiceStatusServiceImplTest {
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID, laterDid));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer(DID, false), new BoundIssuer(laterDid, false)));
         when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
                 .thenReturn(CanSignResult.canSign(laterDid));
 
@@ -189,7 +190,7 @@ class IssuerServiceStatusServiceImplTest {
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer(DID, false)));
         when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
                 .thenReturn(CanSignResult.cannotSign(CanSignCause.DID_NOT_PUBLISHED));
 
@@ -206,7 +207,7 @@ class IssuerServiceStatusServiceImplTest {
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
-        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID));
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer(DID, false)));
         when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
                 .thenThrow(new IllegalStateException("channel is not ready"));
 
@@ -215,6 +216,38 @@ class IssuerServiceStatusServiceImplTest {
         assertThat(status.canSign()).isFalse();
         assertThat(status.canSignCause()).isEqualTo(CanSignCause.ISSUER_SERVICE_UNREACHABLE);
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
+    }
+
+    @Test
+    void notRemovedWhenARemovedRowSortsBeforeALiveRowAndCanSignMatchesNeither() {
+        var removedDid = "did:web:removed.example.org%3A6183:issuer";
+        when(issuerHostService.getHost()).thenReturn(HOST);
+        when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
+        when(dataspaceIssuerDidService.findAllBound())
+                .thenReturn(List.of(new BoundIssuer(removedDid, true), new BoundIssuer(DID, false)));
+        when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.absent());
+
+        var status = issuerServiceStatusService.getStatus();
+
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
+    }
+
+    @Test
+    void removedWhenEveryBoundRowIsRemoved() {
+        when(issuerHostService.getHost()).thenReturn(HOST);
+        when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
+        when(dataspaceIssuerDidService.findAllBound()).thenReturn(List.of(new BoundIssuer(DID, true)));
+        when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.absent());
+
+        var status = issuerServiceStatusService.getStatus();
+
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.REMOVED);
     }
 
     @Test

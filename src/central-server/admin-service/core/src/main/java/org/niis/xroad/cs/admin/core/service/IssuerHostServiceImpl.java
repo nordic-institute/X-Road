@@ -79,6 +79,6 @@ public class IssuerHostServiceImpl implements IssuerHostService {
     }
 
     private boolean isBound() {
-        return !dataspaceIssuerDidService.findAll().isEmpty();
+        return !dataspaceIssuerDidService.findAllBound().isEmpty();
     }
 }

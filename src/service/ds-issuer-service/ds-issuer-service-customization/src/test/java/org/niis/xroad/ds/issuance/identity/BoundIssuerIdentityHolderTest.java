@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -51,62 +52,109 @@ class BoundIssuerIdentityHolderTest {
     private final Monitor monitor = mock();
 
     @Test
-    void stopsPollingAfterTheFirstBoundLoadAndALaterReaderCallChangesNothing() {
-        var bound = identity("DID-STOP");
-        var reads = new AtomicInteger();
-        BoundIssuerIdentityReader reader = () -> {
-            reads.incrementAndGet();
-            return Optional.of(bound);
-        };
-        var holder = new BoundIssuerIdentityHolder(() -> reader, monitor, CHECK_INTERVAL);
+    void clearsTheBoundIdentityOnceAPostBindRecheckFindsTheRowRemoved() {
+        var bound = identity("DID-REMOVED");
+        var removed = new AtomicBoolean(false);
+        BoundIssuerIdentityReader reader = () -> removed.get() ? Optional.empty() : Optional.of(bound);
+        var recordingMonitor = new RecordingMonitor();
+        var holder = new BoundIssuerIdentityHolder(() -> reader, recordingMonitor, CHECK_INTERVAL, CHECK_INTERVAL);
 
         holder.start();
         try {
-            await().atMost(Duration.ofSeconds(2)).until(() -> holder.identity().isPresent());
-            var readsWhenBound = reads.get();
+            assertThat(holder.identity()).contains(bound);
+
+            removed.set(true);
+
+            await().atMost(Duration.ofSeconds(2)).until(() -> holder.identity().isEmpty());
+            var severeCountOnceCleared = recordingMonitor.severeMessages.size();
+            assertThat(severeCountOnceCleared).isEqualTo(1);
 
             await().pollInterval(Duration.ofMillis(5))
                     .during(CHECK_INTERVAL.multipliedBy(5))
                     .atMost(Duration.ofSeconds(2))
-                    .until(() -> reads.get() == readsWhenBound);
-
-            assertThat(holder.identity()).contains(bound);
+                    .until(() -> recordingMonitor.severeMessages.size() == severeCountOnceCleared);
         } finally {
             holder.close();
         }
     }
 
-    /**
-     * A failing poll before the bound result logs a warning ({@link
-     * PeriodicMaterialReloader#logPendingFailure}); a reloader that keeps running after that bound result
-     * logs one on every further cycle too, since each one finds the reader already closed. Asserting on the
-     * warning count, not only on {@code reads}, is what makes this test fail if polling is not actually
-     * stopped: the closed-reader guard alone already keeps {@code reads} from growing further.
-     */
     @Test
-    void sequenceUnboundThenBoundThenAFurtherPollAttemptLeavesTheBoundIdentityUnchanged() {
-        var bound = identity("DID-SEQUENCE");
+    void aPostBindRecheckThatStillFindsTheRowKeepsTheBoundIdentityUnchanged() {
+        var bound = identity("DID-STILL-BOUND");
         var reads = new AtomicInteger();
-        BoundIssuerIdentityReader reader = () -> reads.incrementAndGet() <= 2 ? Optional.empty() : Optional.of(bound);
+        BoundIssuerIdentityReader reader = () -> {
+            reads.incrementAndGet();
+            return Optional.of(bound);
+        };
         var recordingMonitor = new RecordingMonitor();
-        var holder = new BoundIssuerIdentityHolder(() -> reader, recordingMonitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> reader, recordingMonitor, CHECK_INTERVAL, CHECK_INTERVAL);
 
         holder.start();
         try {
-            await().atMost(Duration.ofSeconds(2)).until(() -> holder.identity().isPresent());
-            assertThat(reads.get()).isGreaterThanOrEqualTo(3);
-            var readsWhenBound = reads.get();
-            var warningsWhenBound = recordingMonitor.warnings.size();
+            assertThat(holder.identity()).contains(bound);
+            var readsAtBind = reads.get();
 
-            await().pollInterval(Duration.ofMillis(5))
-                    .during(CHECK_INTERVAL.multipliedBy(5))
-                    .atMost(Duration.ofSeconds(2))
-                    .until(() -> reads.get() == readsWhenBound && recordingMonitor.warnings.size() == warningsWhenBound);
+            await().atMost(Duration.ofSeconds(2)).until(() -> reads.get() > readsAtBind);
 
             assertThat(holder.identity()).contains(bound);
+            assertThat(recordingMonitor.warnings).isEmpty();
+            assertThat(recordingMonitor.severeMessages).isEmpty();
         } finally {
             holder.close();
         }
+    }
+
+    @Test
+    void aFailedPostBindRecheckKeepsTheBoundIdentityAndLogsAWarning() {
+        var bound = identity("DID-RECHECK-FAILURE");
+        var failing = new AtomicBoolean(false);
+        BoundIssuerIdentityReader reader = () -> {
+            if (failing.get()) {
+                throw new IllegalStateException("could not read the bound issuer identity");
+            }
+            return Optional.of(bound);
+        };
+        var recordingMonitor = new RecordingMonitor();
+        var holder = new BoundIssuerIdentityHolder(() -> reader, recordingMonitor, CHECK_INTERVAL, CHECK_INTERVAL);
+
+        holder.start();
+        try {
+            assertThat(holder.identity()).contains(bound);
+
+            failing.set(true);
+
+            await().atMost(Duration.ofSeconds(2))
+                    .until(() -> recordingMonitor.warnings.stream().anyMatch(message -> message.contains("post-bind recheck failed")));
+
+            assertThat(holder.identity()).contains(bound);
+            assertThat(recordingMonitor.severeMessages).isEmpty();
+        } finally {
+            holder.close();
+        }
+    }
+
+    @Test
+    void closeAfterBindingStillClosesTheReaderAndStopsTheRecheck() throws InterruptedException {
+        var bound = identity("DID-CLOSE-AFTER-BIND");
+        var closedLatch = new CountDownLatch(1);
+        var reads = new AtomicInteger();
+        var closes = new AtomicInteger();
+        var reader = new ClosingReader(closedLatch, reads, closes, Optional.of(bound));
+        var holder = new BoundIssuerIdentityHolder(() -> reader, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
+
+        holder.start();
+        assertThat(holder.identity()).contains(bound);
+        var readsAtBind = reads.get();
+
+        holder.close();
+
+        assertThat(closedLatch.await(2, TimeUnit.SECONDS)).isTrue();
+        assertThat(closes.get()).isEqualTo(1);
+
+        await().pollInterval(Duration.ofMillis(5))
+                .during(CHECK_INTERVAL.multipliedBy(5))
+                .atMost(Duration.ofSeconds(2))
+                .until(() -> reads.get() == readsAtBind && closes.get() == 1);
     }
 
     @Test
@@ -118,7 +166,7 @@ class BoundIssuerIdentityHolderTest {
                 throw new IllegalStateException("the Central Server database is unreachable");
             }
             return () -> Optional.of(bound);
-        }, monitor, CHECK_INTERVAL);
+        }, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
 
         holder.start();
         try {
@@ -140,7 +188,7 @@ class BoundIssuerIdentityHolderTest {
             }
             return Optional.of(bound);
         };
-        var holder = new BoundIssuerIdentityHolder(() -> reader, monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> reader, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
 
         holder.start();
         try {
@@ -164,7 +212,7 @@ class BoundIssuerIdentityHolderTest {
             polls.countDown();
             return Optional.empty();
         };
-        var holder = new BoundIssuerIdentityHolder(() -> reader, recordingMonitor, Duration.ofMillis(5));
+        var holder = new BoundIssuerIdentityHolder(() -> reader, recordingMonitor, Duration.ofMillis(5), Duration.ofMillis(5));
 
         holder.start();
         try {
@@ -181,10 +229,16 @@ class BoundIssuerIdentityHolderTest {
 
     private static final class RecordingMonitor implements Monitor {
         private final List<String> warnings = new CopyOnWriteArrayList<>();
+        private final List<String> severeMessages = new CopyOnWriteArrayList<>();
 
         @Override
         public void warning(Supplier<String> supplier, Throwable... errors) {
             warnings.add(supplier.get());
+        }
+
+        @Override
+        public void severe(Supplier<String> supplier, Throwable... errors) {
+            severeMessages.add(supplier.get());
         }
     }
 
@@ -202,7 +256,8 @@ class BoundIssuerIdentityHolderTest {
         var bound = identity("DID-RACE");
         var reads = new AtomicInteger();
         BoundIssuerIdentityReader reader = () -> reads.incrementAndGet() == 1 ? Optional.empty() : Optional.of(bound);
-        var holder = new BoundIssuerIdentityHolder(() -> reader, monitor, Duration.ZERO);
+        var holder = new BoundIssuerIdentityHolder(() -> reader, monitor, Duration.ZERO,
+                BoundIssuerIdentityHolder.DEFAULT_POST_BIND_RECHECK_INTERVAL);
 
         holder.start();
         try {
@@ -234,8 +289,8 @@ class BoundIssuerIdentityHolderTest {
             } catch (InterruptedException _) {
                 Thread.currentThread().interrupt();
             }
-            return new ClosingReader(readerClosed);
-        }, monitor, CHECK_INTERVAL);
+            return new ClosingReader(readerClosed, new AtomicInteger(), new AtomicInteger(), Optional.empty());
+        }, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
 
         var starter = new Thread(holder::start, "holder-start-under-test");
         starter.start();
@@ -253,21 +308,77 @@ class BoundIssuerIdentityHolderTest {
         }
     }
 
-    private record ClosingReader(CountDownLatch closed) implements BoundIssuerIdentityReader, AutoCloseable {
+    /**
+     * {@link BoundIssuerIdentityHolder#start()} schedules the pending reloader and only then stores it in its
+     * own field; the pending reloader's first bound read can call {@code onFirstLoad} before that store
+     * happens, finding nothing there yet to close. The test seam holds {@code start()} right after the
+     * schedule call until that race has played out - the pending reloader's thread has run the first bound
+     * read and the recheck it started has run its own first cycle - so {@code start()} resumes only once
+     * {@code firstLoadDone} is already set and can close the pending reloader itself. A read on the pending
+     * reloader's thread beyond that first one means it was left running.
+     */
+    @Test
+    void thePendingReloaderIsClosedWhenTheFirstBoundLoadRunsBeforeStartStoresIt() {
+        var bound = identity("DID-EARLY-FIRST-LOAD");
+        var pendingInterval = Duration.ofMillis(50);
+        var postBindInterval = Duration.ofMillis(5);
+        var reads = new AtomicInteger();
+        var pendingReloaderReads = new AtomicInteger();
+        var firstRecheckRan = new CountDownLatch(1);
+        BoundIssuerIdentityReader reader = () -> {
+            if (reads.incrementAndGet() == 1) {
+                return Optional.empty();
+            }
+            var threadName = Thread.currentThread().getName();
+            if (threadName.startsWith("xrd-edc-reload-")) {
+                pendingReloaderReads.incrementAndGet();
+            } else if (threadName.contains("-recheck")) {
+                firstRecheckRan.countDown();
+            }
+            return Optional.of(bound);
+        };
+        var holder = new BoundIssuerIdentityHolder(() -> reader, monitor, pendingInterval, postBindInterval,
+                () -> awaitQuietly(firstRecheckRan));
+
+        holder.start();
+        try {
+            assertThat(holder.identity()).contains(bound);
+
+            await().pollInterval(Duration.ofMillis(5))
+                    .during(pendingInterval.multipliedBy(5))
+                    .atMost(Duration.ofSeconds(2))
+                    .until(() -> pendingReloaderReads.get() == 1);
+        } finally {
+            holder.close();
+        }
+    }
+
+    private static void awaitQuietly(CountDownLatch latch) {
+        try {
+            latch.await(2, TimeUnit.SECONDS);
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private record ClosingReader(CountDownLatch closed, AtomicInteger reads, AtomicInteger closes, Optional<BoundIssuerIdentity> result)
+            implements BoundIssuerIdentityReader, AutoCloseable {
         @Override
         public Optional<BoundIssuerIdentity> read() {
-            return Optional.empty();
+            reads.incrementAndGet();
+            return result;
         }
 
         @Override
         public void close() {
+            closes.incrementAndGet();
             closed.countDown();
         }
     }
 
     @Test
     void identityIsEmptyBeforeAnyBindingLoads() {
-        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL, CHECK_INTERVAL);
 
         assertThat(holder.identity()).isEmpty();
 
@@ -277,7 +388,7 @@ class BoundIssuerIdentityHolderTest {
     @Test
     void theHolderReturnsTheBoundIdentityAsSoonAsStartReturnsWhenABindingAlreadyExists() {
         var bound = identity("DID-SYNCHRONOUS");
-        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL);
+        var holder = new BoundIssuerIdentityHolder(() -> () -> Optional.of(bound), monitor, CHECK_INTERVAL, CHECK_INTERVAL);
 
         holder.start();
         try {
@@ -292,7 +403,7 @@ class BoundIssuerIdentityHolderTest {
         var failure = new IllegalStateException("the Central Server database is unreachable");
         try (var holder = new BoundIssuerIdentityHolder(() -> {
             throw failure;
-        }, monitor, CHECK_INTERVAL)) {
+        }, monitor, CHECK_INTERVAL, CHECK_INTERVAL)) {
             assertThat(holder.identity()).isEmpty();
             holder.start();
             assertThat(holder.identity()).isEmpty();
@@ -303,7 +414,7 @@ class BoundIssuerIdentityHolderTest {
 
     @Test
     void startLogsTheMissingBindingWarningWithoutAThrowableWhenTheFirstLoadFindsNoBinding() {
-        try (var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL)) {
+        try (var holder = new BoundIssuerIdentityHolder(() -> Optional::empty, monitor, CHECK_INTERVAL, CHECK_INTERVAL)) {
             assertThat(holder.identity()).isEmpty();
             holder.start();
             assertThat(holder.identity()).isEmpty();

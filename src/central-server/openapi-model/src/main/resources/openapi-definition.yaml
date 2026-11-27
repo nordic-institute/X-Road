@@ -36,6 +36,8 @@ tags:
     description: resources related to Configuration Source Anchors
   - name: trusted-anchors
     description: resources related to Trusted Anchors
+  - name: trusted-issuers
+    description: resources related to Trusted Issuers
   - name: configuration-parts
     description: resources related to Configuration Parts
   - name: global-groups
@@ -3548,6 +3550,52 @@ paths:
       summary: initialize the Issuer Service
       tags:
         - issuer-service
+  /trusted-issuers:
+    get:
+      description: <h3>CS administrator views the list of trusted issuers.</h3>
+      operationId: getTrustedIssuers
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of trusted issuer objects
+                items:
+                  $ref: '#/components/schemas/TrustedIssuer'
+                type: array
+                uniqueItems: false
+          description: list of trusted issuers
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get all trusted issuers
+      tags:
+        - trusted-issuers
+  /trusted-issuers/{trusted_issuer_id}:
+    parameters:
+      - $ref: '#/components/parameters/TrustedIssuerIdParam'
+    delete:
+      description: <h3>CS administrator removes a trusted issuer.</h3>
+      operationId: deleteTrustedIssuer
+      responses:
+        '204':
+          description: trusted issuer removal was successful
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: remove a trusted issuer
+      tags:
+        - trusted-issuers
   /openapi.yaml:
     get:
       tags:
@@ -4301,6 +4349,7 @@ components:
         - INITIALIZING
         - READY
         - FAILED
+        - REMOVED
       example: NOT_CONFIGURED
       type: string
     CanSignCause:
@@ -4564,6 +4613,31 @@ components:
           type: string
       required:
         - host
+      type: object
+    TrustedIssuer:
+      description: a credential issuer trusted by this instance
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        did:
+          description: the issuer's DID
+          format: text
+          type: string
+        created_at:
+          description: the trusted issuer's created at timestamp
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+      required:
+        - id
+        - did
+        - created_at
       type: object
     ConfigurationSigningKey:
       description: Signing context (key identifier used by the signer and signing certificate) for signing the global configuration. Also includes the possible actions that can be done to this object, e.g DELETE (only for key related operations and does not consider user authorization).
@@ -6152,5 +6226,14 @@ components:
         maxLength: 255
         minLength: 1
         type: string
+    TrustedIssuerIdParam:
+      in: path
+      name: trusted_issuer_id
+      description: unique identifier of the trusted issuer
+      required: true
+      schema:
+        format: int32
+        minimum: 1
+        type: integer
 security:
   - ApiKeyAuth: [ ]

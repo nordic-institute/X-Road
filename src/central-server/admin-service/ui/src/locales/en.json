@@ -383,7 +383,20 @@
     "service": "Issuer Service",
     "serviceCanSign": "Can sign",
     "serviceCannotSign": "Cannot sign",
+    "serviceRemoved": "Removed",
     "setUp": "Set up",
+    "trustedIssuers": {
+      "createdAt": "Created",
+      "did": "DID",
+      "removeConfirm": {
+        "alreadyRemoved": "This issuer was already removed.",
+        "lastText": "{did} is the last trusted issuer. Security Servers refuse new access with its credentials within a few minutes; once that happens, all Dataspace Protocol (DSP) traffic stops. Access already authorized can continue until its agreement token expires (60 seconds by default).",
+        "text": "Security Servers refuse new access with {did}'s credentials within a few minutes. Access already authorized can continue until its agreement token expires (60 seconds by default).",
+        "title": "Remove trusted issuer?"
+      },
+      "removeSuccess": "Trusted issuer removed successfully",
+      "title": "Trusted issuers"
+    },
     "viewCertificate": "View certificate",
     "viewStatus": "View status"
   },
@@ -630,6 +643,7 @@
     "issuer_service": {
       "key_missing": "Issuer Service signing key missing",
       "key_missing_check_failed": "Failed to check the Issuer Service signing key",
+      "removed": "Issuer Service identity removed",
       "setup_required": "Issuer Service not initialized",
       "status_check_failed": "Failed to check the Issuer Service set-up status"
     },

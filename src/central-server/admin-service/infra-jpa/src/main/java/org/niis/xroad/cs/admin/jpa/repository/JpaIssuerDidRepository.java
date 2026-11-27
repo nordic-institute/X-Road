@@ -25,10 +25,16 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
+import jakarta.persistence.LockModeType;
 import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface JpaIssuerDidRepository extends JpaRepository<IssuerDidEntity, Integer>, IssuerDidRepository {
@@ -41,4 +47,23 @@ public interface JpaIssuerDidRepository extends JpaRepository<IssuerDidEntity, I
     default void insert(String did, String host, int didPort, String issuanceUrl, String statuslistBaseUrl) {
         saveAndFlush(new IssuerDidEntity(did, host, didPort, issuanceUrl, statuslistBaseUrl));
     }
+
+    @Override
+    @Query("SELECT e FROM IssuerDidEntity e WHERE e.removedAt IS NULL")
+    List<IssuerDidEntity> findAllTrusted();
+
+    @Override
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM IssuerDidEntity e WHERE e.removedAt IS NULL")
+    List<IssuerDidEntity> findAllTrustedForUpdate();
+
+    @Override
+    default boolean markRemoved(int id) {
+        return markRemovedRow(id) > 0;
+    }
+
+    @Modifying
+    @Query(value = "UPDATE " + IssuerDidEntity.TABLE_NAME + " SET removed_at = now() WHERE id = :id AND removed_at IS NULL",
+            nativeQuery = true)
+    int markRemovedRow(int id);
 }

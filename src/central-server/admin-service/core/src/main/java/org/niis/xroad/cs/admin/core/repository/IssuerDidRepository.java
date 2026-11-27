@@ -28,6 +28,8 @@ package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 
+import java.util.List;
+
 public interface IssuerDidRepository extends GenericRepository<IssuerDidEntity, Integer> {
 
     /**
@@ -35,4 +37,22 @@ public interface IssuerDidRepository extends GenericRepository<IssuerDidEntity, 
      * one identity is never silently ignored.
      */
     void insert(String did, String host, int didPort, String issuanceUrl, String statuslistBaseUrl);
+
+    /**
+     * Rows that are trusted, i.e. not removed.
+     */
+    List<IssuerDidEntity> findAllTrusted();
+
+    /**
+     * Rows that are trusted, locked against concurrent removal for the rest of the caller's transaction, so a
+     * count taken from the result stays accurate until the caller's own removal commits.
+     */
+    List<IssuerDidEntity> findAllTrustedForUpdate();
+
+    /**
+     * Marks the row as removed, unless it is already removed or missing.
+     *
+     * @return {@code true} if a row was updated
+     */
+    boolean markRemoved(int id);
 }

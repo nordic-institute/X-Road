@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.58  
+Version: 2.59  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -84,6 +84,7 @@ Doc. ID: UG-CS
 | 12.11.2026 | 2.56    | Added Issuer Service issuance settings and statuslist capacity paragraph                                                                                                                                                                                                                                                                                                                                                                | Ričardas Bučiūnas    |
 | 12.11.2026 | 2.57    | Replaced the Issuer Service host section's automatic-binding note with the operator-started initialization step                                                                                                                                                                                                                                                                                                                         | Ovidijus Narkevicius |
 | 17.11.2026 | 2.58    | Documented the Issuer Service tab, its rows, the set-up order and both alerts; kept the REST API as an alternative                                                                                                                                                                                                                                                                                                                      | Ovidijus Narkevicius |
+| 20.11.2026 | 2.59    | Added the Trusted Issuers section: the list, removal, the last-entry warning and the restore behaviour                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -121,6 +122,7 @@ Doc. ID: UG-CS
     - [4.5.4 Initializing the Issuer Service](#454-initializing-the-issuer-service)
     - [4.5.5 Issuer Service Alerts](#455-issuer-service-alerts)
     - [4.5.6 Configuring the Issuer Service Host via the REST API](#456-configuring-the-issuer-service-host-via-the-rest-api)
+    - [4.5.7 Trusted Issuers](#457-trusted-issuers)
   - [4.6 Issuer Service Issuance Settings and Statuslist Capacity](#46-issuer-service-issuance-settings-and-statuslist-capacity)
     - [4.6.1 Issuance Settings](#461-issuance-settings)
     - [4.6.2 Statuslist Capacity](#462-statuslist-capacity)
@@ -535,7 +537,7 @@ In the Navigation tabs, select Settings --> Issuer Service. The tab lists the se
 
 - **Issuer host** — green once a host is set, red as "Not set" otherwise. An Edit button opens a dialog to set it, shown while the host is still editable.
 - **Connector TLS certificate** — green once a certificate for the host is present, unexpired and valid; red as "Not ready" otherwise. A View certificate button goes to the Dataspace TLS certificate page, where the certificate is requested by CSR or ACME.
-- **Issuer Service** — green as "Can sign" when the Issuer Service on this node can currently sign; red with the cause otherwise: no active issuer key is configured, the issuer key's secret could not be read, the issuer DID has not yet been published, the bound DID does not match this node's active signing key, the Issuer Service could not be reached, or it did not answer in time.
+- **Issuer Service** — green as "Can sign" when the Issuer Service on this node can currently sign; red with the cause otherwise: no active issuer key is configured, the issuer key's secret could not be read, the issuer DID has not yet been published, the bound DID does not match this node's active signing key, the Issuer Service could not be reached, or it did not answer in time; red as "Removed" once the bound issuer identity has been removed from the trusted issuers list (see [4.5.7 Trusted Issuers](#457-trusted-issuers)).
 - **Issuer identity** — the DID (decentralised identifier) that initializing will bind, or, once bound, the bound DID. Green once bound. Before that, the row is red: it shows the DID to be bound once a host is set, and "Not yet bound" while no host is set.
 
 #### 4.5.2 Setting the Issuer Host
@@ -558,9 +560,10 @@ The tab shows "Initialization in progress" and keeps refreshing until the run en
 
 #### 4.5.5 Issuer Service Alerts
 
-Four alerts about the Issuer Service can appear on every page until they are resolved:
+Five alerts about the Issuer Service can appear on every page until they are resolved:
 
 - **"Issuer Service not initialized"** — shown while no issuer identity is bound. Its action, "Set up", opens the tab. Set the host, get a certificate, and initialize, as above.
+- **"Issuer Service identity removed"** — shown once every bound issuer has been removed (see [4.5.7 Trusted Issuers](#457-trusted-issuers)). Dataspace Protocol (DSP) traffic has stopped, because no Security Server has a trusted issuer left. This alert has no action.
 - **"Issuer Service signing key missing"** — shown while an identity is bound but the issuer's signing key has no secret in the secret store (OpenBao). The Issuer Service cannot sign until the secret is restored. Its action, "View status", opens the tab.
 - **"Failed to check the Issuer Service signing key"** — shown when the Central Server cannot read whether the issuer's signing key has a secret. Its action, "View status", opens the tab.
 - **"Failed to check the Issuer Service set-up status"** — shown when the Central Server cannot read the Issuer Service's set-up state. This alert has no action.
@@ -619,6 +622,23 @@ The call answers at once, without waiting for the run to finish:
 - `409` — refused, with the first failing cause: the issuer is already initialized, the host is not set, the connector TLS certificate is missing, expired or not valid for the issuer host, or an initialization run is already in progress.
 
 **ATTENTION!** Once the identity is bound, a valid new host, even the same one again, is refused, and the response names the bound host.
+
+#### 4.5.7 Trusted Issuers
+
+Below the set-up rows, the Issuer Service tab shows a Trusted issuers card. It lists every issuer that global configuration (globalconf) names as trusted, with its DID (decentralised identifier) and when it was added, in the DID and Created columns. A Security Server accepts a dataspace membership credential only if its issuer's DID is on this list. Only the Security Officer role sees the card and its Remove action; a user without that role sees neither.
+
+To remove a trusted issuer, click Remove on its row. A "Remove trusted issuer?" dialog opens. It warns that Security Servers refuse new access with the issuer's credentials within a few minutes (up to four refresh intervals of about 60 seconds each by default). Access already authorized before the Security Server refuses new access can continue until its agreement token expires (60 seconds by default, set on the providing Security Server). If the issuer is the last one left on the list, the dialog gives a stronger warning instead: removing it stops all Dataspace Protocol (DSP) traffic, because no Security Server would then have any trusted issuer left.
+
+Confirming the removal takes the issuer off the list at once. Security Servers refuse new access with the issuer's credentials within a few minutes. Access already authorized before the Security Server refuses new access can continue until its agreement token expires (60 seconds by default, set on the providing Security Server).
+
+**ATTENTION!** Removal cannot be undone, except by restoring an earlier configuration backup (see below). Once an issuer is removed:
+- its host stays locked, the same as for a bound issuer that was never removed;
+- a later set-up (initialize) call is refused, with a cause that says the issuer was removed;
+- the Issuer Service row on this tab (see [4.5.1 The Issuer Service Tab](#451-the-issuer-service-tab)) shows "Removed" instead of "Can sign" or a cause.
+
+Restoring a configuration backup taken before the removal (see [12. Configuration Backup and Restore](#12-configuration-backup-and-restore)) brings the issuer back as trusted: the restored database row carries no removal, so the next global configuration lists the issuer again. If the issuer must still be removed, repeat the removal after such a restore.
+
+Once every bound issuer has been removed, the "Issuer Service identity removed" alert (see [4.5.5 Issuer Service Alerts](#455-issuer-service-alerts)) appears on every page until a configuration backup taken before the removal is restored (see [12. Configuration Backup and Restore](#12-configuration-backup-and-restore)).
 
 ### 4.6 Issuer Service Issuance Settings and Statuslist Capacity
 

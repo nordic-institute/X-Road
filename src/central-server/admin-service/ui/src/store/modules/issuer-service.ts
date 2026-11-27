@@ -27,7 +27,7 @@
 
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
-import { IssuerServiceState, SetIssuerServiceHostData } from '@/openapi-types';
+import { IssuerServiceState, SetIssuerServiceHostData, TrustedIssuer } from '@/openapi-types';
 
 export const useIssuerService = defineStore('issuerService', {
   state: () => ({}),
@@ -43,6 +43,12 @@ export const useIssuerService = defineStore('issuerService', {
     },
     initialize() {
       return api.post<void>('/issuer-service/initialize', undefined).then(() => undefined);
+    },
+    listTrustedIssuers() {
+      return api.get<TrustedIssuer[]>('/trusted-issuers').then((res) => res.data);
+    },
+    removeTrustedIssuer(id: number) {
+      return api.remove<void>(`/trusted-issuers/${id}`).then(() => undefined);
     },
   },
 });

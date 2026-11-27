@@ -39,7 +39,10 @@ import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.spring.SpringVaultClient;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
+import org.niis.xroad.cs.admin.api.dto.TrustedIssuer;
+import org.niis.xroad.cs.admin.api.dto.TrustedIssuerRemoval;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
@@ -286,6 +289,21 @@ class IssuerKeyGuardPostgresOpenBaoTest {
         @Override
         public List<String> findAll() {
             return List.of("did:xrd:test");
+        }
+
+        @Override
+        public List<BoundIssuer> findAllBound() {
+            return List.of(new BoundIssuer("did:xrd:test", false));
+        }
+
+        @Override
+        public List<TrustedIssuer> findAllTrusted() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public TrustedIssuerRemoval remove(int id) {
+            throw new UnsupportedOperationException();
         }
     }
 

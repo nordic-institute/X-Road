@@ -85,7 +85,7 @@
             </XrdCardTableRow>
             <XrdCardTableRow data-test="issuer-service-can-sign-row" label="issuerService.service">
               <template #value>
-                <XrdStatusChip :type="state.can_sign ? 'success' : 'error'" :text="canSignText" />
+                <XrdStatusChip :type="canSignStatus.type" :text="canSignStatus.text" />
               </template>
             </XrdCardTableRow>
             <XrdCardTableRow data-test="issuer-service-identity-row" label="issuerService.identity">
@@ -100,6 +100,7 @@
           </XrdCardTable>
         </template>
       </XrdCard>
+      <TrustedIssuersCard v-if="canViewTrustedIssuers" ref="trustedIssuersCard" class="mt-4" @removed="refreshStatus" />
     </XrdSubView>
     <EditIssuerServiceHostDialog
       v-if="showEditHostDialog"
@@ -121,7 +122,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   useNotifications,
@@ -136,6 +137,7 @@ import {
 } from '@niis/shared-ui';
 import SettingsViewTabs from '@/views/Settings/SettingsViewTabs.vue';
 import EditIssuerServiceHostDialog from '@/views/Settings/IssuerService/EditIssuerServiceHostDialog.vue';
+import TrustedIssuersCard from '@/views/Settings/IssuerService/TrustedIssuersCard.vue';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useIssuerService } from '@/store/modules/issuer-service';
@@ -146,11 +148,15 @@ import { usePolling } from '@/composables/use-polling';
 
 const POLL_INTERVAL_MS = 5_000;
 
+type TrustedIssuersCardType = InstanceType<typeof TrustedIssuersCard>;
+
 const router = useRouter();
 const { hasPermission } = useUser();
 const { getStatus, initialize } = useIssuerService();
 const { checkAlerts } = useAlerts();
 const { addError, addSuccessMessage } = useNotifications();
+
+const trustedIssuersCard = useTemplateRef<TrustedIssuersCardType>('trustedIssuersCard');
 
 const state = ref<IssuerServiceState>();
 const loading = ref(true);
@@ -169,6 +175,7 @@ const polling = usePolling<IssuerServiceState>({
     loadFailed.value = false;
     if (wasRunning && !result.run_in_progress) {
       checkAlerts();
+      trustedIssuersCard.value?.fetchIssuers();
     }
   },
   onError: (error) => {
@@ -182,24 +189,32 @@ const polling = usePolling<IssuerServiceState>({
 const hasPermissionToViewDsTlsCertificate = computed(() => hasPermission(Permissions.VIEW_DS_TLS_CERT));
 const canEditHost = computed(() => hasPermission(Permissions.EDIT_ISSUER_SERVICE_HOST) && !state.value?.bound);
 const canInitialize = computed(() => hasPermission(Permissions.INITIALIZE_ISSUER_SERVICE));
+const canViewTrustedIssuers = computed(() => hasPermission(Permissions.VIEW_TRUSTED_ISSUERS));
 const initializeEnabled = computed(
   () => !state.value?.bound && !!state.value?.host_set && !!state.value?.certificate_ready && !state.value?.run_in_progress,
 );
 
 const identityDid = computed(() => state.value?.bound_did ?? state.value?.did_to_bind);
 
-const canSignText = computed(() => {
+const canSignStatus = computed(() => {
+  if (state.value?.status === 'REMOVED') {
+    return { type: 'error' as const, text: 'issuerService.serviceRemoved' };
+  }
   if (state.value?.can_sign) {
-    return 'issuerService.serviceCanSign';
+    return { type: 'success' as const, text: 'issuerService.serviceCanSign' };
   }
   const cause = state.value?.can_sign_cause;
-  return (cause && CAN_SIGN_CAUSE_TEXT[cause]) || 'issuerService.serviceCannotSign';
+  return { type: 'error' as const, text: (cause && CAN_SIGN_CAUSE_TEXT[cause]) || 'issuerService.serviceCannotSign' };
 });
 
 function loadStatus() {
   loading.value = true;
   loadFailed.value = false;
   return polling.refresh().finally(() => (loading.value = false));
+}
+
+function refreshStatus() {
+  return polling.refresh();
 }
 
 function onHostSaved(result?: IssuerServiceState) {

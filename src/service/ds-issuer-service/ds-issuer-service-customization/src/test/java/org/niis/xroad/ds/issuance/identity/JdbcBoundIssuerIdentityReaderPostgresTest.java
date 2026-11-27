@@ -189,6 +189,18 @@ class JdbcBoundIssuerIdentityReaderPostgresTest {
         }
     }
 
+    @Test
+    void unboundWhenTheOnlyMatchingRowIsRemoved() throws Exception {
+        setHost(HOST);
+        var did = IssuerDidFormat.didFor(HOST, LISTEN_DID_PORT);
+        insertIssuerDid(did, HOST, LISTEN_DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL);
+        markIssuerDidRemoved(did);
+
+        try (var reader = reader()) {
+            assertThat(reader.read()).isEmpty();
+        }
+    }
+
     private JdbcBoundIssuerIdentityReader reader() {
         return new JdbcBoundIssuerIdentityReader(POSTGRES.getJdbcUrl(), ROLE, ROLE_PASSWORD, SCHEMA, monitor);
     }
@@ -236,6 +248,15 @@ class JdbcBoundIssuerIdentityReaderPostgresTest {
             statement.setInt(3, didPort);
             statement.setString(4, issuanceUrl);
             statement.setString(5, statuslistBaseUrl);
+            statement.executeUpdate();
+        }
+    }
+
+    private static void markIssuerDidRemoved(String did) throws SQLException {
+        try (var connection = superuserConnection();
+                var statement = connection.prepareStatement(
+                        "UPDATE issuer_dids SET removed_at = now() WHERE did = ?")) {
+            statement.setString(1, did);
             statement.executeUpdate();
         }
     }

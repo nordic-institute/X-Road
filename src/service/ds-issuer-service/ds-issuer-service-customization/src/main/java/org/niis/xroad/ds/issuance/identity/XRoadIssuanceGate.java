@@ -50,7 +50,7 @@ public class XRoadIssuanceGate implements DcpIssuerService {
     public ServiceResult<CredentialRequestMessage.Response> initiateCredentialsIssuance(
             String participantContextId, CredentialRequestMessage message, DcpRequestContext context) {
         if (holder.identity().isEmpty()) {
-            return ServiceResult.conflict(NAME + ": the issuer identity is not bound yet");
+            return ServiceResult.conflict(NAME + ": the issuer identity is not bound");
         }
         return delegate.initiateCredentialsIssuance(participantContextId, message, context);
     }

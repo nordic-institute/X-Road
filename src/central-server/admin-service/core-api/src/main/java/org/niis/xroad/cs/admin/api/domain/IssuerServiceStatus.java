@@ -68,7 +68,8 @@ public record IssuerServiceStatus(
         READY_TO_INITIALIZE,
         INITIALIZING,
         READY,
-        FAILED
+        FAILED,
+        REMOVED
     }
 
     /**
@@ -80,12 +81,14 @@ public record IssuerServiceStatus(
      * @param host          the issuer host the other facts were read for, or {@code null} when not set;
      *                      {@code hostSet} follows from this
      * @param boundDid      the bound issuer DID, or {@code null} when none is bound yet
+     * @param boundRemoved  whether the bound issuer has been removed; ignored when {@code boundDid} is
+     *                      {@code null}
      * @param canSignResult the "can sign" probe result, or {@code null} when the probe was skipped (no issuer
      *                      host is set, so there is nothing to probe); {@code canSign} is then {@code false}
      *                      and {@code canSignCause} is {@code null}
      */
     public static IssuerServiceStatus derive(@Nullable String host, boolean certificateReady, boolean runInProgress,
-            String didToBind, String boundDid, @Nullable CanSignResult canSignResult) {
+            String didToBind, String boundDid, boolean boundRemoved, @Nullable CanSignResult canSignResult) {
         boolean hostSet = host != null;
         boolean didBound = boundDid != null;
         String expectedDid = didBound ? boundDid : didToBind;
@@ -101,22 +104,29 @@ public record IssuerServiceStatus(
                     case CANNOT_SIGN -> canSignResult.cause();
                 };
 
-        Overall overall;
-        if (didBound) {
-            overall = matches ? Overall.READY : Overall.FAILED;
-        } else if (!hostSet) {
-            overall = Overall.NOT_CONFIGURED;
-        } else if (!certificateReady) {
-            overall = Overall.WAITING_FOR_CERTIFICATE;
-        } else if (runInProgress) {
-            overall = Overall.INITIALIZING;
-        } else if (probed && (canSignResult.outcome() == CanSignOutcome.ABSENT || matches)) {
-            overall = Overall.READY_TO_INITIALIZE;
-        } else {
-            overall = Overall.FAILED;
-        }
+        boolean absentOnProbe = probed && canSignResult.outcome() == CanSignOutcome.ABSENT;
+        Overall overall = overall(didBound, boundRemoved, hostSet, certificateReady, runInProgress, probed, matches, absentOnProbe);
 
         return new IssuerServiceStatus(host, hostSet, certificateReady, runInProgress, didToBind, didBound, boundDid, canSign,
                 canSignCause, overall);
+    }
+
+    private static Overall overall(boolean didBound, boolean boundRemoved, boolean hostSet, boolean certificateReady,
+            boolean runInProgress, boolean probed, boolean matches, boolean absentOnProbe) {
+        if (didBound && boundRemoved) {
+            return Overall.REMOVED;
+        } else if (didBound) {
+            return matches ? Overall.READY : Overall.FAILED;
+        } else if (!hostSet) {
+            return Overall.NOT_CONFIGURED;
+        } else if (!certificateReady) {
+            return Overall.WAITING_FOR_CERTIFICATE;
+        } else if (runInProgress) {
+            return Overall.INITIALIZING;
+        } else if (probed && (absentOnProbe || matches)) {
+            return Overall.READY_TO_INITIALIZE;
+        } else {
+            return Overall.FAILED;
+        }
     }
 }

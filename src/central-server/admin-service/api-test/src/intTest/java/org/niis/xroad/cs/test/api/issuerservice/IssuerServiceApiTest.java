@@ -43,6 +43,7 @@ import org.junit.jupiter.api.parallel.ResourceLocks;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.IssuerServiceAdminClient;
+import org.niis.xroad.cs.test.api.admin.TrustedIssuersAdminClient;
 
 import java.io.StringWriter;
 import java.math.BigInteger;
@@ -53,6 +54,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -323,6 +326,13 @@ class IssuerServiceApiTest extends CsApiTest {
 
         seeder.bindIssuerIdentity();
 
+        var statusAfterBinding = given("the current issuer service status", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .extract().jsonPath().getString("status"));
+        assumeFalse("REMOVED".equals(statusAfterBinding),
+                "another destructive test already removed the seeded issuer");
+
         var start = Instant.now();
         then("the status reports cannot-sign with a cause and the overall state as failed, "
                 + "within the can-sign deadline", () ->
@@ -336,6 +346,55 @@ class IssuerServiceApiTest extends CsApiTest {
 
         assertTrue(elapsed.compareTo(CAN_SIGN_PROBE_MARGIN) < 0,
                 "status read took " + elapsed + ", expected it to return within the can-sign deadline");
+    }
+
+    /**
+     * Runs in the destructive phase: binds the issuer identity if it is not already bound or removed
+     * (idempotent, see {@link #aHostChangeIsRefusedOnceTheIssuerIdentityIsBound} for why), then removes
+     * it through the trusted-issuers admin API, unless an earlier destructive test already removed it.
+     * A removed issuer stays removed: the trusted-issuers list no longer holds its DID, the issuer
+     * service state reports bound and {@code REMOVED}, a host change is refused with the already-bound
+     * cause, and initialization is refused with the removed cause.
+     */
+    @Test
+    @Tag("destructive")
+    @ResourceLock(value = "issuer-service-host", mode = ResourceAccessMode.READ_WRITE)
+    void aRemovedIssuerStaysRemovedAcrossSetUpAndHostChange(CsBaselineSeeder seeder) {
+        var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
+        var trustedIssuers = new TrustedIssuersAdminClient(seeder.newSecurityOfficerSession());
+
+        given("the bound issuer identity is seeded", seeder::bindIssuerIdentity);
+
+        var trustedIssuerList = when("the trusted-issuers list is read", () ->
+                trustedIssuers.list().statusCode(200).extract().jsonPath());
+
+        if (trustedIssuerList.getList("did", String.class).contains(CsBaselineSeeder.BOUND_ISSUER_DID)) {
+            var boundId = trustedIssuerList.getInt("find { it.did == '" + CsBaselineSeeder.BOUND_ISSUER_DID + "' }.id");
+
+            and("the bound issuer is removed", () ->
+                    trustedIssuers.delete(boundId).statusCode(204));
+        }
+
+        then("the trusted-issuers list no longer holds the bound DID", () ->
+                trustedIssuers.list()
+                        .statusCode(200)
+                        .body("did", not(hasItem(CsBaselineSeeder.BOUND_ISSUER_DID))));
+
+        and("the issuer service state reports bound and removed", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .body("bound", equalTo(true))
+                        .body("status", equalTo("REMOVED")));
+
+        and("a host change is refused because the issuer is already bound", () ->
+                issuerService.setIssuerServiceHost("other-removed-issuer.example.org")
+                        .statusCode(409)
+                        .body("error.code", equalTo("issuer_service_already_bound")));
+
+        and("initialization is refused because the issuer has been removed", () ->
+                issuerService.initialize()
+                        .statusCode(409)
+                        .body("error.code", equalTo("issuer_service_removed")));
     }
 
     /**

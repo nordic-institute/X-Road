@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
@@ -125,15 +126,18 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private Set<AlertInfo> checkIssuerServiceStatus() {
-        final List<String> boundDids;
+        final List<BoundIssuer> boundIssuers;
         try {
-            boundDids = dataspaceIssuerDidService.findAll();
+            boundIssuers = dataspaceIssuerDidService.findAllBound();
         } catch (Exception e) {
             log.error("Failed to check the Issuer Service set-up state", e);
             return Set.of(new AlertInfo("status.issuer_service.status_check_failed"));
         }
-        if (boundDids.isEmpty()) {
+        if (boundIssuers.isEmpty()) {
             return Set.of(new AlertInfo("status.issuer_service.setup_required"));
+        }
+        if (boundIssuers.stream().allMatch(BoundIssuer::removed)) {
+            return Set.of(new AlertInfo("status.issuer_service.removed"));
         }
         return checkIssuerServiceKeyMissing();
     }

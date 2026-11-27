@@ -45,7 +45,7 @@ import static org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys.I
  * connection held as the {@code ds-issuer-service} role: the issuer host from {@code system_parameters},
  * the published DID port from {@code configuration_properties} (or its packaged default when no row
  * exists), the DID rebuilt from both with {@link IssuerDidFormat}, and the matching {@code issuer_dids}
- * row.
+ * row. A row the Security Officer removed reads as no match, the same as no row ever having existed.
  */
 public class JdbcBoundIssuerIdentityReader implements BoundIssuerIdentityReader, AutoCloseable {
 
@@ -105,7 +105,7 @@ public class JdbcBoundIssuerIdentityReader implements BoundIssuerIdentityReader,
     private void warnOnceAboutUnmatchedDid(String did) {
         if (!did.equals(lastUnmatchedDid.getAndSet(did))) {
             monitor.warning(NAME + ": the issuer host is set but no issuer_dids row matches the rebuilt DID " + did
-                    + "; the binding may use a different published DID port");
+                    + "; the issuer may have been removed, or the binding may use a different published DID port");
         }
     }
 
@@ -138,7 +138,8 @@ public class JdbcBoundIssuerIdentityReader implements BoundIssuerIdentityReader,
 
     private static Optional<BoundIssuerIdentity> readIssuerDid(Connection connection, String did) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT did, host, did_port, issuance_url, statuslist_base_url FROM issuer_dids WHERE did = ?")) {
+                "SELECT did, host, did_port, issuance_url, statuslist_base_url FROM issuer_dids "
+                        + "WHERE did = ? AND removed_at IS NULL")) {
             statement.setString(1, did);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {

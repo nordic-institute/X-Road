@@ -44,6 +44,7 @@ import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.DsTlsCertificationAuthority;
 import org.niis.xroad.cs.admin.api.dto.DsTlsIntermediateCertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.TrustedIssuer;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
@@ -209,7 +210,9 @@ class SharedParametersLoader {
     }
 
     private List<String> getCredentialIssuerDids() {
-        return dataspaceIssuerDidService.findAll();
+        return dataspaceIssuerDidService.findAllTrusted().stream()
+                .map(TrustedIssuer::did)
+                .toList();
     }
 
     private Integer getIssuerDataFreshnessSeconds() {

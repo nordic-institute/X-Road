@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.CanSignCause;
 import org.niis.xroad.cs.admin.api.domain.CanSignResult;
 import org.niis.xroad.cs.admin.api.domain.IssuerServiceStatus;
+import org.niis.xroad.cs.admin.api.dto.BoundIssuer;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerServiceStatusService;
@@ -39,6 +40,7 @@ import org.niis.xroad.ds.identity.IssuerDidFormat;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Gathers the Issuer Service status's six source facts and hands them to {@link IssuerServiceStatus#derive}.
@@ -62,17 +64,23 @@ public class IssuerServiceStatusServiceImpl implements IssuerServiceStatusServic
         boolean certificateReady = hostSet && isCertificateReady(host);
         boolean runInProgress = issuerSetUpLeaseService.currentHolder().isPresent();
         String didToBind = hostSet ? IssuerDidFormat.didFor(host, dataspaceIssuerProperties.getDidPort()) : null;
-        var boundDids = dataspaceIssuerDidService.findAll();
+        var boundIssuers = dataspaceIssuerDidService.findAllBound();
         var canSign = hostSet ? canSign() : null;
+        var bound = bound(boundIssuers, canSign);
 
-        return IssuerServiceStatus.derive(host, certificateReady, runInProgress, didToBind, boundDid(boundDids, canSign), canSign);
+        return IssuerServiceStatus.derive(host, certificateReady, runInProgress, didToBind,
+                bound.map(BoundIssuer::did).orElse(null), bound.map(BoundIssuer::removed).orElse(false), canSign);
     }
 
-    private String boundDid(List<String> boundDids, CanSignResult canSign) {
-        if (canSign != null && canSign.did() != null && boundDids.contains(canSign.did())) {
-            return canSign.did();
+    private Optional<BoundIssuer> bound(List<BoundIssuer> boundIssuers, CanSignResult canSign) {
+        if (canSign != null && canSign.did() != null) {
+            var matching = boundIssuers.stream().filter(issuer -> issuer.did().equals(canSign.did())).findFirst();
+            if (matching.isPresent()) {
+                return matching;
+            }
         }
-        return boundDids.stream().findFirst().orElse(null);
+        return boundIssuers.stream().filter(issuer -> !issuer.removed()).findFirst()
+                .or(() -> boundIssuers.stream().findFirst());
     }
 
     /**

@@ -245,4 +245,14 @@ class IssuerServiceApiControllerTest {
                 .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
                         .isEqualTo(ErrorMessage.ISSUER_SERVICE_ALREADY_RUNNING.code()));
     }
+
+    @Test
+    void initializeIssuerServicePropagatesTheRemovedCauseAsConflict() {
+        when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ISSUER_SERVICE_REMOVED));
+
+        assertThatThrownBy(issuerServiceApiController::initializeIssuerService)
+                .isInstanceOf(ConflictException.class)
+                .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
+                        .isEqualTo(ErrorMessage.ISSUER_SERVICE_REMOVED.code()));
+    }
 }
