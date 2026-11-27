@@ -30,6 +30,7 @@ package org.niis.xroad.auxiliaryservice.core;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +71,7 @@ class FileSystemBackupHandlerTest {
     private static final String BACKUP_FILE_NAME = "conf_backup_20250515-010203.gpg";
     private static final String BACKUP_FILE_PATH = "/var/tmp/backup/" + BACKUP_FILE_NAME;
     private static final Instant BACKUP_TIMESTAMP = Instant.parse("2025-05-15T01:02:03Z");
+    private static final String ENCRYPTION_KEY_IDS = "KEY1,KEY2";
 
     @Mock
     private ExternalProcessRunner externalProcessRunner;
@@ -94,6 +96,11 @@ class FileSystemBackupHandlerTest {
                 backupRepository, backupMetadataService);
     }
 
+    @AfterEach
+    void resetClock() {
+        TimeUtils.setClock(Clock.systemUTC());
+    }
+
     @Captor
     private ArgumentCaptor<String[]> argsCaptor;
 
@@ -102,25 +109,53 @@ class FileSystemBackupHandlerTest {
 
     @Test
     void performBackup() throws Exception {
-        TimeUtils.setClock(Clock.fixed(BACKUP_TIMESTAMP, ZoneOffset.UTC));
+        assertManualBackupArgs(backupProperties, "-s", SECURITY_SERVER_ID, "-f", BACKUP_FILE_PATH);
+    }
 
-        when(backupRepository.getAbsoluteBackupFilePath(BACKUP_FILE_NAME))
-                .thenReturn(Path.of(BACKUP_FILE_PATH));
+    @Test
+    void performBackupWithEncryptionEnabled() throws Exception {
+        BackupProperties encryptingBackupProperties = encryptingBackupProperties();
+        assertManualBackupArgs(encryptingBackupProperties, "-s", SECURITY_SERVER_ID,
+                "-f", BACKUP_FILE_PATH, "-E", "encrypt", "-k", ENCRYPTION_KEY_IDS);
+    }
+
+    @Test
+    void performBackupWithEncryptionEnabledAndNoKeyIds() throws Exception {
+        BackupProperties encryptingBackupProperties = encryptingBackupPropertiesWithoutKeyIds();
+        assertManualBackupArgs(encryptingBackupProperties, "-s", SECURITY_SERVER_ID,
+                "-f", BACKUP_FILE_PATH, "-E", "encrypt");
+    }
+
+    @Test
+    void createAutomaticBackupPassesEncryptionOptions() throws Exception {
+        BackupProperties encryptingBackupProperties = encryptingBackupProperties();
+        FileSystemBackupHandler encryptingHandler = new FileSystemBackupHandler(externalProcessRunner,
+                encryptingBackupProperties, backupRepository, backupMetadataService);
 
         when(externalProcessRunner.executeAndThrowOnFailure(anyString(), any(String[].class)))
                 .thenReturn(new ExternalProcessRunner.ProcessResult("", 0, List.of("output")));
-        when(backupRepository.listBackups()).thenReturn(List.of(
-                new BackupItem(BACKUP_FILE_NAME, BACKUP_TIMESTAMP, true)));
 
-        BackupItem backupItem = fileSystemBackupHandler.performBackup(SECURITY_SERVER_ID);
-        assertEquals(BACKUP_FILE_NAME, backupItem.name());
+        encryptingHandler.createAutomaticBackup();
 
         verify(externalProcessRunner).
                 executeAndThrowOnFailure(cmdCaptor.capture(), argsCaptor.capture());
 
-        assertThat(cmdCaptor.getValue()).isEqualTo(backupProperties.scriptPath());
-        assertThat(argsCaptor.getValue()).containsExactly("-s", SECURITY_SERVER_ID,
-                "-f", BACKUP_FILE_PATH);
+        assertThat(cmdCaptor.getValue()).isEqualTo(encryptingBackupProperties.autoBackupScriptPath());
+        assertThat(argsCaptor.getValue()).containsExactly("-E", "encrypt", "-k", ENCRYPTION_KEY_IDS);
+    }
+
+    @Test
+    void createAutomaticBackupWithEncryptionDisabledPassesNoArguments() throws Exception {
+        when(externalProcessRunner.executeAndThrowOnFailure(anyString(), any(String[].class)))
+                .thenReturn(new ExternalProcessRunner.ProcessResult("", 0, List.of("output")));
+
+        fileSystemBackupHandler.createAutomaticBackup();
+
+        verify(externalProcessRunner).
+                executeAndThrowOnFailure(cmdCaptor.capture(), argsCaptor.capture());
+
+        assertThat(cmdCaptor.getValue()).isEqualTo(backupProperties.autoBackupScriptPath());
+        assertThat(argsCaptor.getValue()).isEmpty();
     }
 
     @Test
@@ -185,4 +220,47 @@ class FileSystemBackupHandlerTest {
         verify(backupRepository).storeBackup(BACKUP_FILE_NAME, content);
     }
 
+
+    private void assertManualBackupArgs(BackupProperties properties, String... expectedArgs) throws Exception {
+        TimeUtils.setClock(Clock.fixed(BACKUP_TIMESTAMP, ZoneOffset.UTC));
+
+        FileSystemBackupHandler handler = new FileSystemBackupHandler(externalProcessRunner, properties,
+                backupRepository, backupMetadataService);
+
+        when(backupRepository.getAbsoluteBackupFilePath(BACKUP_FILE_NAME))
+                .thenReturn(Path.of(BACKUP_FILE_PATH));
+
+        when(externalProcessRunner.executeAndThrowOnFailure(anyString(), any(String[].class)))
+                .thenReturn(new ExternalProcessRunner.ProcessResult("", 0, List.of("output")));
+        when(backupRepository.listBackups()).thenReturn(List.of(
+                new BackupItem(BACKUP_FILE_NAME, BACKUP_TIMESTAMP, true)));
+
+        BackupItem backupItem = handler.performBackup(SECURITY_SERVER_ID);
+        assertEquals(BACKUP_FILE_NAME, backupItem.name());
+
+        verify(externalProcessRunner).
+                executeAndThrowOnFailure(cmdCaptor.capture(), argsCaptor.capture());
+
+        assertThat(cmdCaptor.getValue()).isEqualTo(properties.scriptPath());
+        assertThat(argsCaptor.getValue()).containsExactly(expectedArgs);
+    }
+
+    private static BackupProperties encryptingBackupProperties() {
+        return new BackupProperties(XRoadConfigBuilder.create()
+                .register(AuxiliaryServiceConfigKeys.instance())
+                .overrides(Map.of(
+                        "xroad.auxiliary-service.backup.script-path", "/var/backup-script.sh",
+                        "xroad.auxiliary-service.backup.encryption-enabled", "true",
+                        "xroad.auxiliary-service.backup.encryption-keyids", ENCRYPTION_KEY_IDS))
+                .build());
+    }
+
+    private static BackupProperties encryptingBackupPropertiesWithoutKeyIds() {
+        return new BackupProperties(XRoadConfigBuilder.create()
+                .register(AuxiliaryServiceConfigKeys.instance())
+                .overrides(Map.of(
+                        "xroad.auxiliary-service.backup.script-path", "/var/backup-script.sh",
+                        "xroad.auxiliary-service.backup.encryption-enabled", "true"))
+                .build());
+    }
 }

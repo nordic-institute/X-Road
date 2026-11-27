@@ -139,12 +139,4 @@ write_backup_metadata_json () {
   echo "{\"version\":\"${version}\",\"server_type\":\"${server_type}\"}" > "${metadata_file}"
 }
 
-get_server_prop () {
-  local value
-  if ! value=$(crudini --get /etc/xroad/conf.d/local.ini "$2" "$3" 2>/dev/null); then
-    value=$(crudini --get /etc/xroad/conf.d/"$1" "$2" "$3" 2>/dev/null || echo "$4")
-  fi
-  echo "$value"
-}
-
 # vim: ts=2 sw=2 sts=2 et filetype=sh
