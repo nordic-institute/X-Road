@@ -57,15 +57,15 @@ This document applies to X-Road 8 Beta 2. Pre-release software may behave differ
 
 ## Prerequisites
 
-| Requirement | Notes |
-|---|---|
-| Operating system | Ubuntu Server 22.04 / 24.04 LTS |
-| Current X-Road version | 7.8.x (any patch level). Earlier versions must first be upgraded to 7.8.x. |
-| PostgreSQL major version | 15 or newer for the `centerui` database |
+| Requirement | Notes                                                                                                                                                                                   |
+|---|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Operating system | Ubuntu Server 24.04 / 26.04 LTS                                                                                                                                                         |
+| Current X-Road version | 7.8.x (any patch level). Earlier versions must first be upgraded to 7.8.x.                                                                                                              |
+| PostgreSQL major version | 15 or newer for the `centerui` database                                                                                                                                                 |
 | Java | Java 25 must be installable from the OS package repositories (the X-Road 8 packages depend on it). Step 8 installs it before the package upgrade, because `migration-cli.jar` needs it. |
-| Network reachability | Outbound HTTPS to `https://artifactory.niis.org` (X-Road 8 packages, GPG key, migration CLI) and `https://pkgs.openbao.org` (OpenBao packages) |
-| Root / sudo access | Required for all steps |
-| Backup | A current backup of the Central Server (configuration, `centerui` database, signer keys) is **mandatory** |
+| Network reachability | Outbound HTTPS to `https://artifactory.niis.org` (X-Road 8 packages, GPG key, migration CLI) and `https://pkgs.openbao.org` (OpenBao packages)                                          |
+| Root / sudo access | Required for all steps                                                                                                                                                                  |
+| Backup | A current backup of the Central Server (configuration, `centerui` database, signer keys) is **mandatory**                                                                               |
 
 Verify the current version:
 
