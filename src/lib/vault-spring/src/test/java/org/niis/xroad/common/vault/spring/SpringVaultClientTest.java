@@ -39,14 +39,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.vault.VaultException;
+import org.springframework.vault.core.VaultKeyValueMetadataOperations;
 import org.springframework.vault.core.VaultKeyValueOperations;
+import org.springframework.vault.core.VaultVersionedKeyValueOperations;
+import org.springframework.vault.support.VaultMetadataResponse;
 import org.springframework.vault.support.VaultResponse;
+import org.springframework.vault.support.Versioned;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -77,7 +82,10 @@ class SpringVaultClientTest {
     private VaultKeyValueOperations vaultKeyValueOperations;
 
     @Mock
-    private VaultKeyValueOperations dsIssuerServiceVaultKeyValueOperations;
+    private VaultVersionedKeyValueOperations dsIssuerServiceVaultVersionedOperations;
+
+    @Mock
+    private VaultKeyValueMetadataOperations dsIssuerServiceVaultMetadataOperations;
 
     private final Map<String, Map<String, Object>> secretsByPath = new HashMap<>();
 
@@ -85,7 +93,8 @@ class SpringVaultClientTest {
 
     @BeforeEach
     void setUp() {
-        vaultClient = new SpringVaultClient(vaultKeyValueOperations, dsIssuerServiceVaultKeyValueOperations, null, Duration.ZERO);
+        lenient().when(dsIssuerServiceVaultVersionedOperations.opsForKeyValueMetadata()).thenReturn(dsIssuerServiceVaultMetadataOperations);
+        vaultClient = new SpringVaultClient(vaultKeyValueOperations, dsIssuerServiceVaultVersionedOperations, null, Duration.ZERO);
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);
@@ -375,9 +384,9 @@ class SpringVaultClientTest {
 
     @Test
     void shouldKeepAdminAndManagementTlsKeysOfTwoNodesOnSeparatePaths() throws Exception {
-        var nodeA = new SpringVaultClient(vaultKeyValueOperations, dsIssuerServiceVaultKeyValueOperations,
+        var nodeA = new SpringVaultClient(vaultKeyValueOperations, dsIssuerServiceVaultVersionedOperations,
                 NodeIdentity.resolve("node_a"), Duration.ZERO);
-        var nodeB = new SpringVaultClient(vaultKeyValueOperations, dsIssuerServiceVaultKeyValueOperations,
+        var nodeB = new SpringVaultClient(vaultKeyValueOperations, dsIssuerServiceVaultVersionedOperations,
                 NodeIdentity.resolve("node_b"), Duration.ZERO);
         var keyA = tlsKey("CN=node-a");
         var keyB = tlsKey("CN=node-b");
@@ -404,16 +413,61 @@ class SpringVaultClientTest {
     }
 
     @Test
-    void shouldReportDsIssuerServiceKeypairSecretExistsOnlyWhenTheSecretIsThere() {
-        var presentResponse = new VaultResponse();
-        presentResponse.setData(Map.of("private_key", "value"));
-        when(dsIssuerServiceVaultKeyValueOperations.get("ds/issuer-key")).thenReturn(presentResponse);
-        when(dsIssuerServiceVaultKeyValueOperations.get("ds/null-data-key")).thenReturn(new VaultResponse());
-        when(dsIssuerServiceVaultKeyValueOperations.get("ds/missing-key")).thenReturn(null);
+    void shouldReportDsIssuerServiceKeypairSecretExistsOnlyWhenTheCurrentVersionIsLive() {
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/issuer-key"))
+                .thenReturn(metadataResponse(1, versionMetadata(1, false, false)));
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/missing-key")).thenReturn(null);
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/metadata-only-key")).thenReturn(metadataResponse(0));
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/soft-deleted-key"))
+                .thenReturn(metadataResponse(1, versionMetadata(1, true, false)));
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/destroyed-key"))
+                .thenReturn(metadataResponse(1, versionMetadata(1, false, true)));
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/older-version-deleted-key"))
+                .thenReturn(metadataResponse(2, versionMetadata(1, true, false), versionMetadata(2, false, false)));
 
         assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("issuer-key")).isTrue();
-        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("null-data-key")).isFalse();
         assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("missing-key")).isFalse();
+        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("metadata-only-key")).isFalse();
+        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("soft-deleted-key")).isFalse();
+        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("destroyed-key")).isFalse();
+        assertThat(vaultClient.dsIssuerServiceKeypairSecretExists("older-version-deleted-key")).isTrue();
+    }
+
+    @Test
+    void shouldPropagateADsIssuerServiceMetadataReadFailureRatherThanReportingAbsent() {
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/failing-key")).thenThrow(new VaultException("permission denied"));
+
+        assertThatThrownBy(() -> vaultClient.dsIssuerServiceKeypairSecretExists("failing-key"))
+                .isInstanceOf(VaultException.class);
+    }
+
+    @Test
+    void shouldThrowWhenTheMetadataCurrentVersionHasNoEntryInTheVersionsList() {
+        when(dsIssuerServiceVaultMetadataOperations.get("ds/orphaned-current-version"))
+                .thenReturn(metadataResponse(2, versionMetadata(1, false, false)));
+
+        assertThatThrownBy(() -> vaultClient.dsIssuerServiceKeypairSecretExists("orphaned-current-version"))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    private static VaultMetadataResponse metadataResponse(int currentVersion, Versioned.Metadata... versions) {
+        return VaultMetadataResponse.builder()
+                .createdTime(Instant.now())
+                .updatedTime(Instant.now())
+                .currentVersion(currentVersion)
+                .versions(List.of(versions))
+                .build();
+    }
+
+    private static Versioned.Metadata versionMetadata(int version, boolean deleted, boolean destroyed) {
+        var builder = Versioned.Metadata.builder()
+                .createdAt(Instant.now())
+                .version(Versioned.Version.from(version))
+                .destroyed(destroyed);
+        if (deleted) {
+            builder.deletedAt(Instant.now());
+        }
+        return builder.build();
     }
 
     private static InternalSSLKey tlsKey(String subjectName) throws Exception {

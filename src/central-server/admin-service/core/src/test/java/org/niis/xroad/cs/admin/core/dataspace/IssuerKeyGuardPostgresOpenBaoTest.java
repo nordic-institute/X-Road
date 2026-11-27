@@ -51,11 +51,14 @@ import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
+import org.springframework.vault.VaultException;
 import org.springframework.vault.authentication.TokenAuthentication;
 import org.springframework.vault.client.VaultEndpoint;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
 import org.springframework.vault.core.VaultTemplate;
+import org.springframework.vault.core.VaultVersionedKeyValueOperations;
+import org.springframework.vault.support.VaultTokenRequest;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -71,6 +74,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -109,6 +113,7 @@ class IssuerKeyGuardPostgresOpenBaoTest {
             .waitingFor(Wait.forHttp("/v1/sys/health").forPort(OPENBAO_PORT).withStartupTimeout(Duration.ofSeconds(60)));
 
     private static SessionFactory sessionFactory;
+    private static VaultEndpoint vaultEndpoint;
     private static VaultTemplate vaultTemplate;
 
     private EntityManager entityManager;
@@ -127,9 +132,8 @@ class IssuerKeyGuardPostgresOpenBaoTest {
         sessionFactory = buildSessionFactory();
 
         OPENBAO.start();
-        vaultTemplate = new VaultTemplate(
-                VaultEndpoint.from(URI.create("http://" + OPENBAO.getHost() + ":" + OPENBAO.getMappedPort(OPENBAO_PORT))),
-                new TokenAuthentication(OPENBAO_ROOT_TOKEN));
+        vaultEndpoint = VaultEndpoint.from(URI.create("http://" + OPENBAO.getHost() + ":" + OPENBAO.getMappedPort(OPENBAO_PORT)));
+        vaultTemplate = new VaultTemplate(vaultEndpoint, new TokenAuthentication(OPENBAO_ROOT_TOKEN));
         vaultTemplate.write("sys/mounts/" + VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT,
                 Map.of("type", "kv", "options", Map.of("version", "2")));
     }
@@ -151,7 +155,7 @@ class IssuerKeyGuardPostgresOpenBaoTest {
     void wireRealCollaboratorsAndClearTheTable() throws Exception {
         entityManager = sessionFactory.createEntityManager();
         reader = new IssuerKeyPairReaderImpl(entityManager);
-        var vaultClient = new SpringVaultClient(null, dsIssuerServiceVaultOperations(), null, Duration.ZERO);
+        var vaultClient = new SpringVaultClient(null, dsIssuerServiceVaultVersionedOperations(), null, Duration.ZERO);
         guard = new IssuerKeyGuardImpl(reader, vaultClient);
 
         try (var connection = DriverManager.getConnection(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
@@ -214,6 +218,78 @@ class IssuerKeyGuardPostgresOpenBaoTest {
         dsIssuerServiceVaultOperations().put(secretPath, Map.of("payload", "irrelevant"));
         assertThat(withTransaction(notificationService::getAlerts))
                 .noneMatch(alert -> alert.getErrorCode().equals("status.issuer_service.key_missing"));
+    }
+
+    @Test
+    void guardAnswersNoWhenTheCurrentVersionOfTheSigningKeysSecretIsSoftDeleted() {
+        insertKeypairRow("soft-deleted-signing-key", SIGNING_STATE, true);
+        var path = "ds/soft-deleted-signing-key";
+        dsIssuerServiceVaultOperations().put(path, Map.of("payload", "irrelevant"));
+        dsIssuerServiceVaultOperations().delete(path);
+
+        var answer = withTransaction(() -> guard.signingKeySecretPresent());
+
+        assertThat(answer).isFalse();
+    }
+
+    @Test
+    void guardAnswersNoWhenTheCurrentVersionOfTheSigningKeysSecretIsDestroyed() {
+        insertKeypairRow("destroyed-signing-key", SIGNING_STATE, true);
+        var path = "ds/destroyed-signing-key";
+        var versionedOps = dsIssuerServiceVaultVersionedOperations();
+        var version = versionedOps.put(path, Map.of("payload", "irrelevant")).getVersion();
+        versionedOps.destroy(path, version);
+
+        var answer = withTransaction(() -> guard.signingKeySecretPresent());
+
+        assertThat(answer).isFalse();
+    }
+
+    @Test
+    void guardAnswersYesWhenOnlyAnOlderVersionOfTheSigningKeysSecretIsDeleted() {
+        insertKeypairRow("older-version-deleted-signing-key", SIGNING_STATE, true);
+        var path = "ds/older-version-deleted-signing-key";
+        var versionedOps = dsIssuerServiceVaultVersionedOperations();
+        var firstVersion = versionedOps.put(path, Map.of("payload", "first")).getVersion();
+        versionedOps.put(path, Map.of("payload", "second"));
+        versionedOps.delete(path, firstVersion);
+
+        var answer = withTransaction(() -> guard.signingKeySecretPresent());
+
+        assertThat(answer).isTrue();
+    }
+
+    @Test
+    void aTokenRestrictedToReadingOnlyTheMetadataPathGetsCorrectAnswersAndIsDeniedADataRead() {
+        var path = "ds/metadata-only-policy-key";
+        dsIssuerServiceVaultOperations().put(path, Map.of("payload", "irrelevant"));
+
+        var policyName = "issuer-metadata-read-only";
+        createPolicy(policyName, """
+                path "xrd-ds-secret/metadata/ds/*" {
+                  capabilities = ["read"]
+                }
+                """);
+        var scopedToken = createTokenWithPolicy(policyName);
+        var scopedClient = clientFor(scopedToken);
+
+        assertThat(scopedClient.dsIssuerServiceKeypairSecretExists("metadata-only-policy-key")).isTrue();
+        assertThat(scopedClient.dsIssuerServiceKeypairSecretExists("metadata-only-policy-key-missing")).isFalse();
+
+        var deniedRead = keyValueOperationsFor(scopedToken);
+        assertThatThrownBy(() -> deniedRead.get(path)).isInstanceOf(VaultException.class);
+    }
+
+    @Test
+    void aFailedMetadataReadPropagatesAsAnErrorRatherThanReportingAbsent() {
+        insertKeypairRow("unreadable-signing-key", SIGNING_STATE, true);
+        dsIssuerServiceVaultOperations().put("ds/unreadable-signing-key", Map.of("payload", "irrelevant"));
+        var tokenWithoutMetadataAccess = createTokenWithPolicy("default");
+        var clientWithoutMetadataAccess = clientFor(tokenWithoutMetadataAccess);
+        var guardWithoutMetadataAccess = new IssuerKeyGuardImpl(reader, clientWithoutMetadataAccess);
+
+        assertThatThrownBy(() -> withTransaction(guardWithoutMetadataAccess::signingKeySecretPresent))
+                .isInstanceOf(VaultException.class);
     }
 
     /**
@@ -291,6 +367,35 @@ class IssuerKeyGuardPostgresOpenBaoTest {
 
     private VaultKeyValueOperations dsIssuerServiceVaultOperations() {
         return vaultTemplate.opsForKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT, KeyValueBackend.KV_2);
+    }
+
+    private VaultVersionedKeyValueOperations dsIssuerServiceVaultVersionedOperations() {
+        return vaultTemplate.opsForVersionedKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT);
+    }
+
+    private void createPolicy(String name, String hclRules) {
+        vaultTemplate.write("sys/policies/acl/" + name, Map.of("policy", hclRules));
+    }
+
+    private String createTokenWithPolicy(String policyName) {
+        var request = VaultTokenRequest.builder().policies(List.of(policyName)).build();
+        return vaultTemplate.opsForToken().create(request).getToken().getToken();
+    }
+
+    private VaultVersionedKeyValueOperations versionedOperationsFor(String token) {
+        return vaultTemplateFor(token).opsForVersionedKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT);
+    }
+
+    private VaultKeyValueOperations keyValueOperationsFor(String token) {
+        return vaultTemplateFor(token).opsForKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT, KeyValueBackend.KV_2);
+    }
+
+    private SpringVaultClient clientFor(String token) {
+        return new SpringVaultClient(null, versionedOperationsFor(token), null, Duration.ZERO);
+    }
+
+    private VaultTemplate vaultTemplateFor(String token) {
+        return new VaultTemplate(vaultEndpoint, new TokenAuthentication(token));
     }
 
     private <T> T withTransaction(Supplier<T> action) {

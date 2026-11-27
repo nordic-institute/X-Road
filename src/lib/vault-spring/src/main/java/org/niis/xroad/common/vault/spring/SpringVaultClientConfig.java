@@ -56,9 +56,8 @@ public class SpringVaultClientConfig {
                                         ObjectProvider<NodeIdentity> nodeIdentity,
                                         ObjectProvider<XRoadConfig> xRoadConfig) {
         var vaultKvClient = vaultTemplate.opsForKeyValue(rootPath, getKeyValueBackendVersion(version));
-        var dsIssuerServiceVaultKvClient = vaultTemplate.opsForKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT,
-                VaultKeyValueOperationsSupport.KeyValueBackend.KV_2);
-        return new SpringVaultClient(vaultKvClient, dsIssuerServiceVaultKvClient, nodeIdentity.getIfAvailable(),
+        var dsIssuerServiceVaultClient = vaultTemplate.opsForVersionedKeyValue(VaultClient.DS_ISSUER_SERVICE_SECRET_MOUNT);
+        return new SpringVaultClient(vaultKvClient, dsIssuerServiceVaultClient, nodeIdentity.getIfAvailable(),
                 retryBudget(xRoadConfig));
     }
 

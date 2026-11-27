@@ -44,6 +44,8 @@ import org.niis.xroad.common.vault.NodeScopedSecretPaths;
 import org.niis.xroad.common.vault.ResilientVaultCall;
 import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.vault.core.VaultKeyValueOperations;
+import org.springframework.vault.core.VaultVersionedKeyValueOperations;
+import org.springframework.vault.support.VaultMetadataResponse;
 import org.springframework.vault.support.VaultResponse;
 
 import java.io.ByteArrayInputStream;
@@ -61,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_RESPONSE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 @Slf4j
@@ -68,21 +71,21 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 public class SpringVaultClient implements VaultClient {
 
     private final VaultKeyValueOperations vaultClient;
-    private final VaultKeyValueOperations dsIssuerServiceVaultClient;
+    private final VaultVersionedKeyValueOperations dsIssuerServiceVaultClient;
     private final String adminServiceTlsPath;
     private final String managementServiceTlsPath;
     private final ResilientVaultCall resilientCall;
 
     /**
      * @param vaultClient  the key-value operations of this client's own secret store mount
-     * @param dsIssuerServiceVaultClient the key-value operations of the Data Space secret store mount that
-     *                     holds the Issuer Service's key-pair secrets, or {@code null} if this client has no
-     *                     need to read it
+     * @param dsIssuerServiceVaultClient the versioned key-value operations of the Data Space secret store mount
+     *                     that holds the Issuer Service's key-pair secrets, or {@code null} if this client has
+     *                     no need to read it
      * @param nodeIdentity the identity of the node whose name scopes the admin and management service TLS keys,
      *                     or {@code null} to keep them at the plain, node-independent paths
      * @param retryBudget  the total time a failing secret store call is retried
      */
-    public SpringVaultClient(VaultKeyValueOperations vaultClient, @Nullable VaultKeyValueOperations dsIssuerServiceVaultClient,
+    public SpringVaultClient(VaultKeyValueOperations vaultClient, @Nullable VaultVersionedKeyValueOperations dsIssuerServiceVaultClient,
                               @Nullable NodeIdentity nodeIdentity, Duration retryBudget) {
         this.vaultClient = vaultClient;
         this.dsIssuerServiceVaultClient = dsIssuerServiceVaultClient;
@@ -292,14 +295,30 @@ public class SpringVaultClient implements VaultClient {
         deleteSecret(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
     }
 
+    /**
+     * Spring Vault's {@code Versioned.Metadata.isDeleted()} counts a version as deleted once it carries any
+     * deletion time, even one still in the future. The {@code xrd-ds-secret} mount and the issuer key path must
+     * therefore never set {@code delete_version_after}.
+     */
     @Override
     public boolean dsIssuerServiceKeypairSecretExists(String alias) {
         if (dsIssuerServiceVaultClient == null) {
             throw new IllegalStateException("Data Space secret store mount is not configured for this client");
         }
         var path = DS_ISSUER_SERVICE_KEYPAIR_SECRET_FOLDER + "/" + alias;
-        VaultResponse vaultResponse = resilientCall.execute("read", path, () -> dsIssuerServiceVaultClient.get(path));
-        return vaultResponse != null && vaultResponse.getData() != null;
+        VaultMetadataResponse metadata = resilientCall.execute("read metadata", path,
+                () -> dsIssuerServiceVaultClient.opsForKeyValueMetadata().get(path));
+        if (metadata == null || metadata.getCurrentVersion() == 0) {
+            return false;
+        }
+        return metadata.getVersions().stream()
+                .filter(version -> version.getVersion().getVersion() == metadata.getCurrentVersion())
+                .findFirst()
+                .map(version -> !version.isDeleted() && !version.isDestroyed())
+                .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_RESPONSE)
+                        .details("Vault metadata for secret at path " + path
+                                + " has no entry for its current version " + metadata.getCurrentVersion())
+                        .build());
     }
 
     /**
