@@ -19,8 +19,8 @@
     method: POST
     body_format: form-urlencoded
     body:
-      username: "{{ opmon_ss_installer.xroad_admin_username }}"
-      password: "{{ opmon_ss_installer.xroad_admin_password }}"
+      username: "{{ hostvars[xroad_opmon_ss_host].xroad_admin_username | default(opmon_ss_installer.xroad_admin_username) }}"
+      password: "{{ hostvars[xroad_opmon_ss_host].xroad_admin_password | default(opmon_ss_installer.xroad_admin_password) }}"
     validate_certs: false
     status_code: 200
   delegate_to: "{{ xroad_opmon_ss_host }}"
