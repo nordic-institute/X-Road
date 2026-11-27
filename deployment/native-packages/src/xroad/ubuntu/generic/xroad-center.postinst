@@ -57,7 +57,11 @@ setup_database() {
       db_url="jdbc:postgresql://$db_host/$db_database"
     else
       local url_hosts_pat='^jdbc:postgresql://([^/?]*)'
-      [[ "$db_url" =~ $url_hosts_pat ]] && check_db_host_answer "${BASH_REMATCH[1]}" existing
+      if [[ "$db_url" =~ $url_hosts_pat ]]; then
+        local stored_hosts="${BASH_REMATCH[1]}"
+        check_db_host_answer "$stored_hosts" existing
+        [[ -z "$new_db_host" || "$new_db_host" == "$stored_hosts" ]] || check_db_host_answer "$new_db_host" existing
+      fi
     fi
     pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
     if [[ "$db_url" =~ $pat ]]; then
@@ -121,6 +125,10 @@ setup_database() {
     fi
 
     check_pg_version "$check_psql"
+    if [[ "$runtime_login" != true ]] && PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+        runtime_login=true
+        check_psql=psql_dbuser
+    fi
     check_db_writable "$check_psql" "$db_host" "$db_state"
 
     if [[ "$db_state" == fresh ]]; then

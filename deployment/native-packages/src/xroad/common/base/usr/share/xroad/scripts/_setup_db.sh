@@ -29,7 +29,7 @@ check_pg_version() {
   done
 
   if [[ -z "$pg_version_num" ]]; then
-    die "Unable to determine PostgreSQL version. Minimum required version is $MIN_PG_VERSION."
+    die "Unable to determine PostgreSQL version. Check the address, the port, the firewall and the credentials of the database role. Minimum required version is $MIN_PG_VERSION."
   fi
 
   local pg_major_version=$((pg_version_num / 10000))
