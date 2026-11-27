@@ -36,6 +36,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
+import org.niis.xroad.signer.core.config.SoftwarePinHasherProperties;
+import org.niis.xroad.signer.core.tokenmanager.token.SoftwarePinHasher;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -48,6 +52,7 @@ import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,10 +69,14 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class KeyConfNodePostgresTest {
 
     private static final String TEMPLATE_DATABASE = "keyconf_template";
+    private static final String SOFT_TOKEN_PIN = "Secret1234";
     private static final String SOFT_TOKEN_PIN_ENV = "XROAD_MIGRATION_SOFTTOKEN_PIN";
     private static final int PIN_HASH_LENGTH = 48;
     private static final List<String> SIGNER_TABLES = List.of(
             "signer_tokens", "signer_keys", "signer_certificates", "signer_certificate_requests");
+
+    private static final SoftwarePinHasher PIN_HASHER = new SoftwarePinHasher(new SoftwarePinHasherProperties(
+            XRoadConfigBuilder.create().register(SignerConfigKeys.instance()).build()));
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
     private static final AtomicInteger DATABASE_COUNTER = new AtomicInteger();
@@ -100,7 +109,7 @@ class KeyConfNodePostgresTest {
 
     @BeforeEach
     void createFreshDatabase() throws Exception {
-        envVars.set(SOFT_TOKEN_PIN_ENV, "Secret1234");
+        envVars.set(SOFT_TOKEN_PIN_ENV, SOFT_TOKEN_PIN);
         database = "keyconf_" + DATABASE_COUNTER.incrementAndGet();
         execute(POSTGRES.getDatabaseName(), "CREATE DATABASE " + database + " TEMPLATE " + TEMPLATE_DATABASE);
 
@@ -120,6 +129,13 @@ class KeyConfNodePostgresTest {
 
         assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
         assertThat(rowCountsByNode("node_0")).containsExactly(0, 0, 0, 0);
+    }
+
+    @Test
+    void shouldStorePinHashThatTheSignerVerifiesOnNewSoftTokenRow() {
+        runKeyconf("--node", "node_b");
+
+        assertThat(PIN_HASHER.verifyPin(SOFT_TOKEN_PIN.toCharArray(), tokenPin("node_b", "0"))).isTrue();
     }
 
     @Test
@@ -161,6 +177,7 @@ class KeyConfNodePostgresTest {
 
         assertThat(tokenHasPin("node_b", "0")).isTrue();
         assertThat(pinLength("node_b", "0")).isEqualTo(PIN_HASH_LENGTH);
+        assertThat(PIN_HASHER.verifyPin(SOFT_TOKEN_PIN.toCharArray(), tokenPin("node_b", "0"))).isTrue();
         assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
         assertThat(queryInt("SELECT count(*) FROM signer_keys WHERE token_id = " + tokenId)).isEqualTo(2);
         assertThat(queryStrings("SELECT friendly_name FROM signer_tokens WHERE id = " + tokenId))
@@ -257,6 +274,11 @@ class KeyConfNodePostgresTest {
     private int pinLength(String node, String externalId) {
         return queryInt("SELECT length(pin) FROM signer_tokens WHERE ha_node_name = '" + node
                 + "' AND external_id = '" + externalId + "'");
+    }
+
+    private byte[] tokenPin(String node, String externalId) {
+        return HexFormat.of().parseHex(queryStrings("SELECT encode(pin, 'hex') FROM signer_tokens "
+                + "WHERE ha_node_name = '" + node + "' AND external_id = '" + externalId + "'").get(0));
     }
 
     private String copyKeyconfWithoutSoftTokenKeystore() throws Exception {

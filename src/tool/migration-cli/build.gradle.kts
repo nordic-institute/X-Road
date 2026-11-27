@@ -32,6 +32,8 @@ dependencies {
   testImplementation(project(":lib:messagelog-core"))
   testImplementation(testFixtures(project(":lib:vault-core")))
   testImplementation(project(":service:signer:signer-common"))
+  testImplementation(project(":service:signer:signer-core"))
+  testImplementation(project(":lib:properties-core"))
   testImplementation(libs.springBoot.starterTest)
   testImplementation(libs.systemStubs)
   testImplementation(project(":tool:liquibase-executor"))
