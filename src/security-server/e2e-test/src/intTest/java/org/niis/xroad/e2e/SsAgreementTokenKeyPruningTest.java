@@ -83,6 +83,8 @@ class SsAgreementTokenKeyPruningTest extends E2eTest {
         Assumptions.assumeTrue(env instanceof E2eEnvSetup
                         && !SIDECAR_STACK.equalsIgnoreCase(System.getProperty(SS0_STACK_PROPERTY)),
                 "only the multi-container Compose stack runs ss0 with the short agreement-token key settings");
+        Assumptions.assumeFalse(AclParityProperties.isLegacyRun(),
+                "automatic pruning runs only on a dataspace-ready server, and a legacy run has no Issuer Service");
         var baseUrl = adminBaseUrl(env, PROVIDER_ENV);
         var session = login(baseUrl);
 

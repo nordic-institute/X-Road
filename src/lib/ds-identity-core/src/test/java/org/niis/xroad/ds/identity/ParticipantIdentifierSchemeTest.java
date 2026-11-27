@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -280,10 +281,31 @@ class ParticipantIdentifierSchemeTest {
                 .isInstanceOf(XrdRuntimeException.class);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "did:web:ss0.example.org:v2:DEV:COM:222",
+            "did:web:ss0.example.org:v2:system",
+            "did:web:ss0.example.org:V1:DEV:COM:222",
+    })
+    void decodeDidShouldRejectOtherSchemeVersionWithItsOwnErrorCode(String did) {
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.decodeDid(did))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code()))
+                .hasMessageContaining(did);
+    }
+
     @Test
-    void decodeDidShouldRejectWrongVersionPrefix() {
+    void decodeDidShouldReportFoundAndSupportedVersionInErrorMetadata() {
         assertThatThrownBy(() -> ParticipantIdentifierScheme.decodeDid("did:web:ss0.example.org:v2:DEV:COM:222"))
-                .isInstanceOf(XrdRuntimeException.class);
+                .isInstanceOfSatisfying(XrdRuntimeException.class, ex ->
+                        assertThat(ex.getErrorCodeMetadata()).containsExactly("v2", ParticipantIdentifierScheme.SCHEME_VERSION));
+    }
+
+    @Test
+    void decodeDidShouldKeepGenericErrorCodeForMalformedDidOfSupportedVersion() {
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.decodeDid("did:web:ss0.example.org:v1:DEV:COM"))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorCode.INVALID_ENCODED_ID.code()));
     }
 
     @ParameterizedTest

@@ -27,58 +27,59 @@
 package org.niis.xroad.e2e.parity.acl;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.e2e.parity.acl.AclModeProbe.DataspaceState;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AclModeProbeTest {
 
+    private static final DataspaceState NO_DATASPACE = new DataspaceState(false, false, false);
+    private static final DataspaceState FULL_DATASPACE = new DataspaceState(true, true, true);
+
     @Test
-    void storedFalseIsLegacy() {
-        assertThat(AclModeProbe.modeOf("false")).isEqualTo(AclMode.LEGACY);
-        assertThat(AclModeProbe.modeOf(" FALSE\n")).isEqualTo(AclMode.LEGACY);
+    void legacyModeAcceptsAnEnvironmentWithoutDataspace() {
+        assertThat(AclModeProbe.verify(AclMode.LEGACY, NO_DATASPACE)).contains("LEGACY");
     }
 
     @Test
-    void storedTrueOrNoValueIsDsp() {
-        assertThat(AclModeProbe.modeOf("true")).isEqualTo(AclMode.DSP);
-        assertThat(AclModeProbe.modeOf("")).isEqualTo(AclMode.DSP);
-        assertThat(AclModeProbe.modeOf(null)).isEqualTo(AclMode.DSP);
-    }
+    void legacyModeFailsWhenTheIssuerServiceIsBound() {
+        var issuerBound = new DataspaceState(true, false, false);
 
-    @Test
-    void anyOtherStoredValueIsRejected() {
-        assertThatThrownBy(() -> AclModeProbe.modeOf("maybe")).isInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
-    void matchingModeReportsWhichModeRuns() {
-        assertThat(AclModeProbe.verify(AclMode.LEGACY, "false")).contains("LEGACY").contains("false");
-        assertThat(AclModeProbe.verify(AclMode.DSP, "")).contains("DSP").contains("none (default)");
-    }
-
-    @Test
-    void legacyRequestedButDspRunningFails() {
-        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, "true"))
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, issuerBound))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("LEGACY").hasMessageContaining("DSP");
-        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, ""))
-                .isInstanceOf(IllegalStateException.class);
+                .hasMessageContaining("LEGACY").hasMessageContaining("Issuer Service bound: true");
     }
 
     @Test
-    void dspRequestedButLegacyRunningFails() {
-        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.DSP, "false"))
+    void legacyModeFailsWhenOneSecurityServerIsDataspaceReady() {
+        var ss0Ready = new DataspaceState(false, true, false);
+        var ss1Ready = new DataspaceState(false, false, true);
+
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, ss0Ready))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("DSP").hasMessageContaining("LEGACY");
+                .hasMessageContaining("ss0 dataspace_ready: true");
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.LEGACY, ss1Ready))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("ss1 dataspace_ready: true");
     }
 
     @Test
-    void refusalModeNeedsTheConsumerToNegotiate() {
-        assertThat(AclModeProbe.verify(AclMode.DSP_REFUSAL, "")).contains("DSP");
-        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.DSP_REFUSAL, "false"))
+    void dataspaceModesAcceptAFullDataspace() {
+        assertThat(AclModeProbe.verify(AclMode.DSP, FULL_DATASPACE)).contains("DSP");
+        assertThat(AclModeProbe.verify(AclMode.DSP_REFUSAL, FULL_DATASPACE)).contains("DSP");
+    }
+
+    @Test
+    void dataspaceModesFailWithoutDataspace() {
+        var ss1NotReady = new DataspaceState(true, true, false);
+
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.DSP, NO_DATASPACE))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("DSP_REFUSAL").hasMessageContaining("LEGACY");
+                .hasMessageContaining("DSP").hasMessageContaining("Issuer Service bound: false");
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.DSP_REFUSAL, ss1NotReady))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("DSP_REFUSAL").hasMessageContaining("ss1 dataspace_ready: false");
     }
 
     @Test

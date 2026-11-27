@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.authed;
 import static org.niis.xroad.e2e.AdminApi.login;
@@ -82,6 +83,7 @@ class SsMemberValuesPublishedTest extends E2eTest {
     @Test
     @DisplayName("ss1 and ss0 report every hosted member DID as PUBLISHED")
     void memberDidsReachPublishedOnEveryServer(E2eEnvironment env) {
+        assumeFalse(AclParityProperties.isLegacyRun(), "a legacy run has no Issuer Service, so nothing is published");
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
         for (var envName : List.of("ss1", "ss0")) {

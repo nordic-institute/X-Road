@@ -44,7 +44,6 @@ import org.niis.xroad.proxy.core.util.ProxyRequestContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,25 +70,25 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
     }
 
     /**
-     * Resolves the provider's candidate servers, leaving out those in maintenance mode.
+     * Resolves the provider's candidate servers, split into those available and those in maintenance mode.
      *
      * @param serviceProvider the target service
      * @param serverId        the target security server, or null if not specified
-     * @return candidates not in maintenance mode
+     * @return the candidates; at least one is available
      * @throws XrdRuntimeException {@code MAINTENANCE_MODE} when the targeted server, or every server, is in maintenance mode;
      *                             {@code UNKNOWN_MEMBER} or {@code INVALID_SECURITY_SERVER} when the provider or the
      *                             targeted server cannot be resolved
      */
-    public List<ProviderAddress> resolveCandidates(ServiceId serviceProvider, @Nullable SecurityServerId serverId) {
-        var filter = filterMaintenance(serviceProvider, serverId);
+    public ProviderCandidates resolveCandidates(ServiceId serviceProvider, @Nullable SecurityServerId serverId) {
+        var candidates = filterMaintenance(serviceProvider, serverId);
 
-        if (filter.available().isEmpty()) {
-            filter.firstMaintenanceError().ifPresent(error -> {
+        if (candidates.available().isEmpty()) {
+            candidates.firstMaintenanceError().ifPresent(error -> {
                 throw error;
             });
         }
 
-        return filter.available();
+        return candidates;
     }
 
     private List<URI> resolveFromGlobalConf(ServiceId serviceProvider, SecurityServerId serverId) {
@@ -113,13 +112,13 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
         return addresses;
     }
 
-    private MaintenanceFilter filterMaintenance(ServiceId serviceProvider, @Nullable SecurityServerId serverId) {
+    private ProviderCandidates filterMaintenance(ServiceId serviceProvider, @Nullable SecurityServerId serverId) {
         var candidates = providerSecurityServerResolver.resolve(serviceProvider, serverId);
 
         // ProviderSecurityServerResolver is intentionally maintenance-unaware, so the hinted server
         // is checked here by its id and every candidate by its host address below.
         if (serverId != null) {
-            var hintHost = candidates.get(0).hostAddress();
+            var hintHost = candidates.getFirst().hostAddress();
             globalConfProvider.getMaintenanceMode(serverId)
                     .filter(SharedParameters.MaintenanceMode::enabled)
                     .ifPresent(maintenanceMode -> {
@@ -128,21 +127,21 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
         }
 
         var available = new ArrayList<ProviderAddress>(candidates.size());
-        var maintenanceModeErrors = new LinkedList<XrdRuntimeException>();
+        var inMaintenance = new ArrayList<ServerInMaintenance>();
 
         for (var candidate : candidates) {
             var host = candidate.hostAddress();
-            var inMaintenance = globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
+            var maintenanceError = globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
                     .filter(SharedParameters.MaintenanceMode::enabled)
-                    .map(mode -> buildMaintenanceModeException(null, host, mode.message()))
-                    .map(maintenanceModeErrors::add)
-                    .orElse(Boolean.FALSE);
-            if (!inMaintenance) {
+                    .map(mode -> buildMaintenanceModeException(null, host, mode.message()));
+            if (maintenanceError.isPresent()) {
+                inMaintenance.add(new ServerInMaintenance(candidate, maintenanceError.get()));
+            } else {
                 available.add(candidate);
             }
         }
 
-        return new MaintenanceFilter(available, maintenanceModeErrors.stream().findFirst());
+        return new ProviderCandidates(available, inMaintenance);
     }
 
     private Optional<URI> buildUri(String protocol, String host, int port) {
@@ -182,7 +181,25 @@ public class DefaultServiceAddressResolver implements ServiceAddressResolver {
         return XrdRuntimeException.systemException(MAINTENANCE_MODE, message.toString());
     }
 
-    private record MaintenanceFilter(List<ProviderAddress> available,
-                                     Optional<XrdRuntimeException> firstMaintenanceError) {
+    /**
+     * The candidate servers of a provider.
+     *
+     * @param available     the servers that are not in maintenance mode
+     * @param inMaintenance the servers in maintenance mode, each with the error that reports it
+     */
+    public record ProviderCandidates(List<ProviderAddress> available, List<ServerInMaintenance> inMaintenance) {
+
+        Optional<XrdRuntimeException> firstMaintenanceError() {
+            return inMaintenance.stream().findFirst().map(ServerInMaintenance::error);
+        }
+    }
+
+    /**
+     * A candidate server in maintenance mode.
+     *
+     * @param address the candidate server
+     * @param error   the maintenance mode error for it
+     */
+    public record ServerInMaintenance(ProviderAddress address, XrdRuntimeException error) {
     }
 }

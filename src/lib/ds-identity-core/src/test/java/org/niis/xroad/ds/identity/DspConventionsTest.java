@@ -33,13 +33,13 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DspConventionsTest {
+
+    private static final int DID_PORT = 7183;
+    private static final String DID_AUTHORITY = "ss0.example.org:" + DID_PORT;
 
     private static final ClientId MEMBER = ClientId.Conf.create("DEV", "COM", "222");
 
@@ -68,64 +68,10 @@ class DspConventionsTest {
     }
 
     @Test
-    void shouldDeriveDidAuthorityFromRegisteredAddress() {
-        assertThat(DspConventions.didAuthority("ss0.example.org")).isEqualTo("ss0.example.org:7183");
-    }
-
-    @Test
     void shouldDeriveDidAuthorityUnderConfiguredDidPort() {
         assertThat(DspConventions.didAuthority("ss0.example.org", 9183)).isEqualTo("ss0.example.org:9183");
         assertThat(DspConventions.didAuthority("2001:db8::8", 9183)).isEqualTo("[2001:db8::8]:9183");
-    }
-
-    @Test
-    void shouldDeriveMemberCounterPartyId() {
-        assertThat(DspConventions.memberCounterPartyId(MEMBER, "ss0.example.org"))
-                .hasToString("did:web:ss0.example.org%3A7183:v1:DEV:COM:222");
-    }
-
-    @Test
-    void shouldDeriveMemberCounterPartyAddress() {
-        assertThat(DspConventions.memberCounterPartyAddress(MEMBER, "ss0.example.org"))
-                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "xrd-ss0,     did:web:xrd-ss0%3A7183:v1:DEV:COM:222,     https://xrd-ss0:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1",
-            "xrd-ss0.lxd, did:web:xrd-ss0.lxd%3A7183:v1:DEV:COM:222, https://xrd-ss0.lxd:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1",
-            "ss0,         did:web:ss0%3A7183:v1:DEV:COM:222,         https://ss0:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1",
-            "proxy.ss0,   did:web:proxy.ss0%3A7183:v1:DEV:COM:222,   https://proxy.ss0:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1"
-    })
-    void shouldDeriveCoordinatesForEachDevSubstrateAddress(String ssAddress, String expectedDid, String expectedAddress) {
-        assertThat(DspConventions.memberCounterPartyId(MEMBER, ssAddress)).hasToString(expectedDid);
-        assertThat(DspConventions.memberCounterPartyAddress(MEMBER, ssAddress)).isEqualTo(expectedAddress);
-    }
-
-    @Test
-    void shouldBracketIpv6RegisteredAddress() {
-        assertThat(DspConventions.didAuthority("2001:db8::8")).isEqualTo("[2001:db8::8]:7183");
-        assertThat(DspConventions.memberCounterPartyId(MEMBER, "2001:db8::8"))
-                .hasToString("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:v1:DEV:COM:222");
-        assertThat(DspConventions.memberCounterPartyAddress(MEMBER, "2001:db8::8"))
-                .isEqualTo("https://[2001:db8::8]:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
-    }
-
-    @Test
-    void shouldNotDoubleBracketAlreadyBracketedIpv6Address() {
-        assertThat(DspConventions.didAuthority("[2001:db8::8]")).isEqualTo("[2001:db8::8]:7183");
-        assertThat(DspConventions.memberCounterPartyAddress(MEMBER, "[2001:db8::8]"))
-                .isEqualTo("https://[2001:db8::8]:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
-    }
-
-    @Test
-    void shouldEncodeMemberSegmentsInCounterPartyCoordinates() {
-        var member = ClientId.Conf.create("DEV", "COM", "A+B");
-
-        assertThat(DspConventions.memberCounterPartyId(member, "ss0.example.org"))
-                .hasToString("did:web:ss0.example.org%3A7183:v1:DEV:COM:A%2BB");
-        assertThat(DspConventions.memberCounterPartyAddress(member, "ss0.example.org"))
-                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:A%252BB/http-dsp-profile-2025-1");
+        assertThat(DspConventions.didAuthority("[2001:db8::8]", DID_PORT)).isEqualTo("[2001:db8::8]:7183");
     }
 
     @Test
@@ -142,65 +88,6 @@ class DspConventionsTest {
         var url = DspConventions.credentialServiceUrl("ss0.example.org", 7185, ctxId);
 
         assertThat(url).endsWith("/api/credentials/v1/participants/" + DspConventions.participantPathSegment(ctxId));
-    }
-
-    @Test
-    void counterPartyAddressContextSegmentDecodesBackToTheRegisteredCtxId() {
-        var member = ClientId.Conf.create("DEV", "COM", "A+B");
-
-        var address = DspConventions.memberCounterPartyAddress(member, "ss0.example.org");
-        var ctxIdSegment = address.split("/api/dsp/")[1].split("/")[0];
-
-        assertThat(URLDecoder.decode(ctxIdSegment, StandardCharsets.UTF_8))
-                .isEqualTo(ParticipantIdentifierScheme.memberCtxId(member));
-    }
-
-    @Test
-    void shouldRejectSubsystemIdentifier() {
-        var subsystem = ClientId.Conf.create("DEV", "COM", "222", "SUB");
-
-        assertThatThrownBy(() -> DspConventions.memberCounterPartyId(subsystem, "ss0.example.org"))
-                .isInstanceOf(XrdRuntimeException.class);
-        assertThatThrownBy(() -> DspConventions.memberCounterPartyAddress(subsystem, "ss0.example.org"))
-                .isInstanceOf(XrdRuntimeException.class);
-    }
-
-    @Test
-    void shouldDeriveSystemCounterPartyId() {
-        assertThat(DspConventions.systemCounterPartyId("ss0.example.org"))
-                .hasToString("did:web:ss0.example.org%3A7183:v1:system");
-    }
-
-    @Test
-    void shouldDeriveSystemCounterPartyAddress() {
-        assertThat(DspConventions.systemCounterPartyAddress("ss0.example.org"))
-                .isEqualTo("https://ss0.example.org:8183/api/dsp/system/http-dsp-profile-2025-1");
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "xrd-ss0,     did:web:xrd-ss0%3A7183:v1:system,     https://xrd-ss0:8183/api/dsp/system/http-dsp-profile-2025-1",
-            "xrd-ss0.lxd, did:web:xrd-ss0.lxd%3A7183:v1:system, https://xrd-ss0.lxd:8183/api/dsp/system/http-dsp-profile-2025-1",
-            "ss0,         did:web:ss0%3A7183:v1:system,         https://ss0:8183/api/dsp/system/http-dsp-profile-2025-1",
-            "proxy.ss0,   did:web:proxy.ss0%3A7183:v1:system,   https://proxy.ss0:8183/api/dsp/system/http-dsp-profile-2025-1"
-    })
-    void shouldDeriveSystemCoordinatesForEachDevSubstrateAddress(String ssAddress, String expectedDid, String expectedAddress) {
-        assertThat(DspConventions.systemCounterPartyId(ssAddress)).hasToString(expectedDid);
-        assertThat(DspConventions.systemCounterPartyAddress(ssAddress)).isEqualTo(expectedAddress);
-    }
-
-    @Test
-    void shouldBracketIpv6RegisteredAddressForSystemCoordinates() {
-        assertThat(DspConventions.systemCounterPartyId("2001:db8::8"))
-                .hasToString("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:v1:system");
-        assertThat(DspConventions.systemCounterPartyAddress("2001:db8::8"))
-                .isEqualTo("https://[2001:db8::8]:8183/api/dsp/system/http-dsp-profile-2025-1");
-    }
-
-    @Test
-    void shouldNotDoubleBracketAlreadyBracketedIpv6AddressForSystemCoordinates() {
-        assertThat(DspConventions.systemCounterPartyAddress("[2001:db8::8]"))
-                .isEqualTo("https://[2001:db8::8]:8183/api/dsp/system/http-dsp-profile-2025-1");
     }
 
     @ParameterizedTest
@@ -241,5 +128,41 @@ class DspConventionsTest {
     void shouldRefuseBlankDspAddress(String ssAddress) {
         assertThatThrownBy(() -> DspConventions.dspBaseUrl(ssAddress, 8183))
                 .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void shouldBuildDspTargetFromPublishedBaseUrlAndMemberDid() {
+        assertThat(dspTarget("https://ss0.example.org:8183/api/dsp", memberDid(MEMBER)))
+                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void shouldEscapePercentSignInDspTargetContextSegment() {
+        var member = ClientId.Conf.create("DEV", "COM", "A+B");
+
+        assertThat(dspTarget("https://ss0.example.org:8183/api/dsp", memberDid(member)))
+                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:A%252BB/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void shouldBuildDspTargetFromPublishedSystemDid() {
+        var systemDid = ParticipantIdentifierScheme.systemDid(DID_AUTHORITY).toString();
+
+        assertThat(dspTarget("https://ss0.example.org:9183/custom", systemDid))
+                .isEqualTo("https://ss0.example.org:9183/custom/system/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void shouldStripTrailingSlashOfPublishedBaseUrlFromDspTarget() {
+        assertThat(dspTarget("https://ss0.example.org:8183/api/dsp/", memberDid(MEMBER)))
+                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
+    }
+
+    private static String dspTarget(String dspBaseUrl, String did) {
+        return DspConventions.dspTarget(dspBaseUrl, ParticipantIdentifierScheme.decodeDid(did));
+    }
+
+    private static String memberDid(ClientId member) {
+        return ParticipantIdentifierScheme.memberDid(member, DID_AUTHORITY).toString();
     }
 }

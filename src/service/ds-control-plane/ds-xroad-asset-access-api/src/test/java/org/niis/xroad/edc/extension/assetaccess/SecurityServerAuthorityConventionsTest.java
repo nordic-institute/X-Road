@@ -29,11 +29,14 @@ package org.niis.xroad.edc.extension.assetaccess;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.DspConventions;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.edc.protocol.assetaccess.SecurityServerAuthority;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,22 +44,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SecurityServerAuthorityConventionsTest {
 
     private static final ClientId MEMBER = ClientId.Conf.create("DEV", "COM", "222");
+    private static final int DID_PORT = Integer.parseInt(DspConfigKeys.DID_PORT.defaultValue());
+    private static final int DSP_PORT = Integer.parseInt(DspConfigKeys.DSP_PORT.defaultValue());
 
     @ParameterizedTest
     @ValueSource(strings = {"SS0.Example.ORG", "xn--bcher-kva.example", "10.0.0.1", "xrd-ss0.lxd", "2001:DB8::8", "[2001:db8::8]"})
     void theKeyOfAConventionAddressIsTheCanonicalHostAndTheDspPort(String host) {
-        var expected = DidAuthority.canonicalHost(host) + ":" + DspConventions.DSP_PORT;
+        var expected = DidAuthority.canonicalHost(host) + ":" + DSP_PORT;
 
-        assertThat(SecurityServerAuthority.of(DspConventions.memberCounterPartyAddress(MEMBER, host)))
+        assertThat(SecurityServerAuthority.of(dspTarget(host, ParticipantIdentifierScheme.memberDid(MEMBER, didAuthority(host)))))
                 .isEqualTo(expected);
-        assertThat(SecurityServerAuthority.of(DspConventions.systemCounterPartyAddress(host)))
+        assertThat(SecurityServerAuthority.of(dspTarget(host, ParticipantIdentifierScheme.systemDid(didAuthority(host)))))
                 .isEqualTo(expected);
     }
 
     @Test
     void theKeyOfAnInternationalHostIsItsCanonicalAsciiHostAndPort() {
-        assertThat(SecurityServerAuthority.of("https://bücher.example:" + DspConventions.DSP_PORT + "/api/dsp"))
-                .isEqualTo(DidAuthority.canonicalHost("bücher.example") + ":" + DspConventions.DSP_PORT);
+        assertThat(SecurityServerAuthority.of("https://bücher.example:" + DSP_PORT + "/api/dsp"))
+                .isEqualTo(DidAuthority.canonicalHost("bücher.example") + ":" + DSP_PORT);
     }
 
     @Test
@@ -64,7 +69,15 @@ class SecurityServerAuthorityConventionsTest {
         var uncompressed = "2001:db8:0:0:0:0:0:1";
 
         assertThat(DidAuthority.canonicalHost(uncompressed)).isEqualTo("[" + uncompressed + "]");
-        assertThat(SecurityServerAuthority.of(DspConventions.systemCounterPartyAddress(uncompressed)))
-                .isEqualTo("[2001:db8::1]:" + DspConventions.DSP_PORT);
+        assertThat(SecurityServerAuthority.of(dspTarget(uncompressed, ParticipantIdentifierScheme.systemDid(didAuthority(uncompressed)))))
+                .isEqualTo("[2001:db8::1]:" + DSP_PORT);
+    }
+
+    private static String didAuthority(String host) {
+        return DspConventions.didAuthority(host, DID_PORT);
+    }
+
+    private static String dspTarget(String host, Did did) {
+        return DspConventions.dspTarget(DspConventions.dspBaseUrl(host, DSP_PORT), ParticipantIdentifierScheme.decodeDid(did.toString()));
     }
 }

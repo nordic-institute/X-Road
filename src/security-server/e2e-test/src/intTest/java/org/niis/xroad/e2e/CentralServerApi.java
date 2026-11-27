@@ -56,6 +56,13 @@ class CentralServerApi {
         return AdminApi.adminBaseUrl(env, CS_ENV);
     }
 
+    /** Whether the Central Server reports its Issuer Service identity as bound. */
+    static boolean issuerServiceBound(String csBaseUrl, AdminSession cs) {
+        var response = authed(cs).get(csBaseUrl + "/api/v1/issuer-service");
+        assertThat(response.getStatusCode()).as("GET /issuer-service").isEqualTo(HTTP_OK);
+        return response.jsonPath().getBoolean("bound");
+    }
+
     /**
      * Approves the WAITING client registration requests of {@code clientIds}, matched by request type and
      * the client's encoded id, so a warm shared environment's unrelated pending requests are never touched.

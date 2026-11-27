@@ -92,8 +92,9 @@ class SsMessagelogArchiveTest extends E2eTest {
         and("messagelog archives are downloaded from ss0", () ->
                 archiveOps.downloadMessageLogArchives("ss0", resourceDir() + "ss0"));
 
-        then("ss0 has 28 messagelogs present in the archives and all are cryptographically valid", () ->
-                assertMessagelogArchivePresent("ss0", 28));
+        var ss0Count = expectedCount(28, 20);
+        then("ss0 has %d messagelogs present in the archives and all are cryptographically valid".formatted(ss0Count), () ->
+                assertMessagelogArchivePresent("ss0", ss0Count));
 
         when("message log 'cleanup' is triggered on ss0", () -> archiveOps.triggerMessageLogCommand("ss0", "cleanup"));
         then("ss0 contains 0 messagelog entries", () -> assertMessagelogEntryCount(dbOps, "ss0", 0));
@@ -119,8 +120,9 @@ class SsMessagelogArchiveTest extends E2eTest {
     void dev4321MessagelogsCanBeDecryptedWithKey1(MessagelogArchiveOps archiveOps) {
         then("ss1 messagelog archives 'mlog-DEV_COM_4321' can be decrypted using key '8A4BB80EEE081BDE'", () ->
                 assertArchivesCanBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_4321", "8A4BB80EEE081BDE"));
-        and("ss1/8A4BB80EEE081BDE has 14 messagelogs present in the archives and all are cryptographically valid", () ->
-                assertMessagelogArchivePresent("ss1/8A4BB80EEE081BDE", 14));
+        var count = expectedCount(14, 10);
+        and("ss1/8A4BB80EEE081BDE has %d messagelogs present in the archives and all are cryptographically valid".formatted(count),
+                () -> assertMessagelogArchivePresent("ss1/8A4BB80EEE081BDE", count));
     }
 
     @Test
@@ -129,8 +131,9 @@ class SsMessagelogArchiveTest extends E2eTest {
     void dev4321MessagelogsCanBeDecryptedWithKey2(MessagelogArchiveOps archiveOps) {
         then("ss1 messagelog archives 'mlog-DEV_COM_4321' can be decrypted using key 'E93952B01C2D2EA5'", () ->
                 assertArchivesCanBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_4321", "E93952B01C2D2EA5"));
-        and("ss1/E93952B01C2D2EA5 has 14 messagelogs present in the archives and all are cryptographically valid", () ->
-                assertMessagelogArchivePresent("ss1/E93952B01C2D2EA5", 14));
+        var count = expectedCount(14, 10);
+        and("ss1/E93952B01C2D2EA5 has %d messagelogs present in the archives and all are cryptographically valid".formatted(count),
+                () -> assertMessagelogArchivePresent("ss1/E93952B01C2D2EA5", count));
     }
 
     @Test
@@ -153,6 +156,10 @@ class SsMessagelogArchiveTest extends E2eTest {
                 assertArchivesCannotBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_1234_test-consumer", "E93952B01C2D2EA5"));
         and("ss1 messagelog archives 'mlog-DEV_COM_1234_test-consumer' can not be decrypted using key '8A4BB80EEE081BDE'", () ->
                 assertArchivesCannotBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_1234_test-consumer", "8A4BB80EEE081BDE"));
+    }
+
+    private static int expectedCount(int dspCount, int legacyCount) {
+        return AclParityProperties.isLegacyRun() ? legacyCount : dspCount;
     }
 
     @SneakyThrows

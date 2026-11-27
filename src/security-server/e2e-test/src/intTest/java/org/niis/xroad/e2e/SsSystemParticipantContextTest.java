@@ -39,8 +39,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
-import static org.niis.xroad.e2e.AdminApi.authed;
 import static org.niis.xroad.e2e.AdminApi.login;
+import static org.niis.xroad.e2e.AdminApi.provisioningStatus;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
@@ -110,11 +110,7 @@ class SsSystemParticipantContextTest extends E2eTest {
                     .timeout(PROVISIONING_POLL_TIMEOUT)
                     .ignoreExceptions()
                     .until(() -> {
-                        var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
-                        if (response.getStatusCode() != 200) {
-                            return false;
-                        }
-                        Map<String, ?> systemContext = response.jsonPath().getMap(
+                        Map<String, ?> systemContext = provisioningStatus(baseUrl, session).getMap(
                                 "participant_contexts.find { it.kind == '" + SYSTEM_KIND + "' }");
                         lastSeen.set(systemContext);
                         return systemContext != null

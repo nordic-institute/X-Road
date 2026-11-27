@@ -121,6 +121,7 @@ class FederatedLegacyCallRefusalTest {
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, ownInstanceRefuses);
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(CALLER_INSTANCE, callerInstanceRefuses);
         ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
+        ctx.bypassCallModeSelection();
 
         var request = new FederatedProbe();
         request.execute(ctx);

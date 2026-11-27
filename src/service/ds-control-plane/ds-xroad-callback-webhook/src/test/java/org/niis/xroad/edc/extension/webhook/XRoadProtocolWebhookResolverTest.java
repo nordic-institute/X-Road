@@ -38,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -57,7 +58,10 @@ import static org.mockito.Mockito.when;
 class XRoadProtocolWebhookResolverTest {
 
     private static final String PROFILE = "http-dsp-profile-2025-1";
-    private static final String BASE_URL = "https://ss0.example.org:8183/api/dsp";
+    private static final int DID_PORT = Integer.parseInt(DspConfigKeys.DID_PORT.defaultValue());
+    private static final int DSP_PORT = Integer.parseInt(DspConfigKeys.DSP_PORT.defaultValue());
+    private static final String BASE_URL = DspConventions.dspBaseUrl("ss0.example.org", DSP_PORT);
+    private static final String DID_AUTHORITY = DspConventions.didAuthority("ss0.example.org", DID_PORT);
     private static final SecurityServerId.Conf SERVER_ID = SecurityServerId.Conf.create("DEV", "COM", "222", "ss0");
 
     private final GlobalConfProvider globalConfProvider = mock();
@@ -104,12 +108,13 @@ class XRoadProtocolWebhookResolverTest {
     @Test
     void encodedMemberCallbackEqualsThePeerAddressOfTheSameMember() {
         var member = ClientId.Conf.create("DEV", "COM", "A+B");
-        publish(DspConventions.dspBaseUrl("ss0.example.org", DspConventions.DSP_PORT));
+        publish(BASE_URL);
 
         var webhook = resolver.getWebhook(ParticipantIdentifierScheme.memberCtxId(member), PROFILE);
 
         assertThat(webhook).isNotNull();
-        assertThat(webhook.url()).isEqualTo(DspConventions.memberCounterPartyAddress(member, "ss0.example.org"));
+        assertThat(webhook.url()).isEqualTo(DspConventions.dspTarget(BASE_URL,
+                ParticipantIdentifierScheme.decodeDid(ParticipantIdentifierScheme.memberDid(member, DID_AUTHORITY).toString())));
     }
 
     @Test
@@ -203,6 +208,7 @@ class XRoadProtocolWebhookResolverTest {
 
     private void publish(String dspBaseUrl) {
         when(globalConfProvider.getServerSystemValues(SERVER_ID))
-                .thenReturn(Optional.of(new ServerSystemValues("did:web:ss0.example.org%3A7183:v1:system", dspBaseUrl)));
+                .thenReturn(Optional.of(new ServerSystemValues(
+                        ParticipantIdentifierScheme.systemDid(DID_AUTHORITY).toString(), dspBaseUrl)));
     }
 }

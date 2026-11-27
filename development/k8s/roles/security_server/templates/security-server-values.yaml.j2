@@ -4,8 +4,8 @@
    through the admin API (the ds-* pods boot without it, stay not ready and open HTTPS once it lands). #}
 {% set ds_tls = e2e_fixtures_enabled | default(false) | bool %}
 {# DS hostnames. The externally advertised DSP surface (DID resolution 7183, DSP 8183)
-   lives on the GlobalConf-registered address — the proxy Service — per XRDADR-41:
-   counterparties derive it from that one address. An nginx sidecar in the proxy pod
+   lives on the GlobalConf-registered address — the proxy Service — and the DID and DSP base URL
+   the server publishes name that address. An nginx sidecar in the proxy pod
    forwards those ports to the ds-* Services. ds_ih_host remains the internal
    reach-the-hub URL for the admin-service provisioning client. #}
 {% set ds_ih_host = 'ds-identity-hub.' ~ security_server_namespace %}
@@ -141,8 +141,8 @@ services:
 
 {% if ds_tls %}
   # The GlobalConf-registered address is the proxy Service, so the DSP surface
-  # counterparties derive from it (7183 DID resolution, 8183 DSP) must be served
-  # there too: the ds-gateway-dev stream sidecar in the proxy pod forwards those
+  # that the published DID and DSP base URL name (7183 DID resolution, 8183 DSP) must be
+  # served there too: the ds-gateway-dev stream sidecar in the proxy pod forwards those
   # ports to the ds-* Services (development/docker/ds-gateway). Dev-only stand-in
   # for the Gateway API TLS passthrough XRDADR-42 targets. The proxy's own ports
   # need no forwarding here: the sidecar shares the pod's network namespace.

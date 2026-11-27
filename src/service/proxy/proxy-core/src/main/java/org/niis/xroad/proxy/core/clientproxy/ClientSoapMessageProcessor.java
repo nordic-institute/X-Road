@@ -56,6 +56,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.CallModeSelector;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -65,7 +66,6 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
-import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
@@ -129,8 +129,8 @@ public class ClientSoapMessageProcessor {
     private final ClientRequestPreparationService clientRequestPreparationService;
     private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
-    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
     private final DspFailover dspFailover;
+    private final CallModeSelector callModeSelector;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
@@ -272,8 +272,8 @@ public class ClientSoapMessageProcessor {
 
     void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, DspRequest dspRequest, AssetAccessResponse assetAccess) {
         var tokenPresented = assetAccess != null && StringUtils.isNotBlank(assetAccess.authorization());
-        if (proxyProperties.dspEnabled() && (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
-                || tokenPresented && failure.isCausedBy(ACCESS_DENIED))) {
+        if (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
+                || tokenPresented && failure.isCausedBy(ACCESS_DENIED)) {
             consumerSideDspProcessor.invalidateAssetAccess(dspRequest);
         }
     }
@@ -286,8 +286,9 @@ public class ClientSoapMessageProcessor {
      */
     SentRequest send(DspRequest dspRequest, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                      String xRequestId, OpMonitoringData opMonitoringData) throws Exception {
-        if (proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)) {
-            return sendWithDspFailover(dspRequest, ctx, decoder, xRequestId, opMonitoringData);
+        var dspCall = callModeSelector.overDsp(dspRequest);
+        if (dspCall.isPresent()) {
+            return sendWithDspFailover(dspCall.get(), ctx, decoder, xRequestId, opMonitoringData);
         }
         return new SentRequest(executeWithRetry(ctx, decoder, xRequestId, opMonitoringData), null);
     }
@@ -380,10 +381,6 @@ public class ClientSoapMessageProcessor {
         }
     }
 
-    void checkUnnegotiatedCallAllowed(ServiceId requestServiceId) {
-        legacyCallRefusalPolicy.checkConsumerCallAllowed(requestServiceId);
-    }
-
     void sendRequest(HttpSender httpSender, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                              String xRequestId, OpMonitoringData opMonitoringData, AssetAccessResponse assetAccess,
                              ReplaySoapProxyMessageEntity replayEntity) throws Exception {
@@ -399,9 +396,6 @@ public class ClientSoapMessageProcessor {
                 addresses = clientRequestPreparationService.prepareRequest(
                         httpSender, decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
                         ctx, opMonitoringData, decoder.getOriginalSoapAction());
-                if (!proxyProperties.dspEnabled()) {
-                    checkUnnegotiatedCallAllowed(decoder.getServiceId());
-                }
             }
 
             // Add unique id to distinguish request/response pairs

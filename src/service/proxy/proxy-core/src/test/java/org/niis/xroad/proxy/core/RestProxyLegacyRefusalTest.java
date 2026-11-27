@@ -26,34 +26,39 @@
 package org.niis.xroad.proxy.core;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 
 import io.restassured.response.ValidatableResponse;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.agreementtoken.AgreementTokenGrant;
 import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.test.InMemoryAgreementTokenKeyProvider;
+import org.niis.xroad.proxy.core.test.PublishedDspValues;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
  * Proves, through a real client proxy and server proxy, that a provider whose instance refuses legacy calls rejects a
- * REST request without an agreement token and still serves one that carries a valid token.
+ * REST request without an agreement token and still serves one that carries a valid token. When the instance does not
+ * refuse, a provider that publishes no DSP values is called unnegotiated and serves the request without a token.
  */
 class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
@@ -67,12 +72,6 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
     private final InMemoryAgreementTokenKeyProvider keyProvider = InMemoryAgreementTokenKeyProvider.withGeneratedKey("1");
 
-    @BeforeAll
-    static void enableDspAndRestartProxies() throws Exception {
-        ADDITIONAL_PROPERTIES.put("xroad.proxy.dsp-enabled", "true");
-        restartProxies();
-    }
-
     @BeforeEach
     void provideTokenKeyMaterialAndTokenlessAssetAccess() {
         when(AGREEMENT_TOKEN_KEY_MATERIAL.provider()).thenReturn(Optional.of(keyProvider));
@@ -85,7 +84,7 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
     @Test
     void shouldRefuseTokenlessRequestWhenTheInstanceRefuses() {
-        refuseLegacyCallsOnTheInstance();
+        refuseLegacyCallsOnTheInstanceWhileTheProviderPublishesDspValues();
 
         postEcho()
                 .statusCode(500)
@@ -94,7 +93,7 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
     @Test
     void shouldServeRequestWithAValidTokenWhenTheInstanceRefuses() {
-        refuseLegacyCallsOnTheInstance();
+        refuseLegacyCallsOnTheInstanceWhileTheProviderPublishesDspValues();
         stubAssetAccess(mintToken());
 
         postEcho()
@@ -103,24 +102,44 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    void shouldServeTokenlessRequestWhenNothingRefuses() {
+    void shouldServeUnnegotiatedRequestWhenNothingRefuses() {
         postEcho()
                 .statusCode(200)
                 .body("value", Matchers.equalTo(42));
     }
 
-    private void refuseLegacyCallsOnTheInstance() {
+    private void refuseLegacyCallsOnTheInstanceWhileTheProviderPublishesDspValues() {
         TEST_GLOBAL_CONF.setGlobalConfProvider(new TestGlobalConf() {
             @Override
             public boolean isLegacyProtocolDisabled(String instanceIdentifier) {
                 return true;
+            }
+
+            @Override
+            public Set<SecurityServerId> getClientSecurityServers(ClientId clientId) {
+                return PublishedDspValues.serversOf(clientId);
+            }
+
+            @Override
+            public String getSecurityServerAddress(SecurityServerId serverId) {
+                return getProviderAddress(serverId.getOwner()).iterator().next();
+            }
+
+            @Override
+            public Optional<ServerSystemValues> getServerSystemValues(SecurityServerId serverId) {
+                return PublishedDspValues.systemValues();
+            }
+
+            @Override
+            public Optional<String> getMemberDid(ClientId memberId, SecurityServerId serverId) {
+                return PublishedDspValues.memberDid(memberId);
             }
         });
     }
 
     private static void stubAssetAccess(String token) {
         var response = new AssetAccessResponse("https://127.0.0.1:" + proxyServerPort + "/", token, WINNER);
-        when(CONSUMER_SIDE_DSP_PROCESSOR.execute(any())).thenReturn(new DspAcquisition(response, 1));
+        doReturn(new DspAcquisition(response, 1)).when(CONSUMER_SIDE_DSP_PROCESSOR).execute(any());
     }
 
     private String mintToken() {

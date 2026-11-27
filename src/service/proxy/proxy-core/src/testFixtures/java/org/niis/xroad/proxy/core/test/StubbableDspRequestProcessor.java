@@ -24,27 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.controlplane;
+package org.niis.xroad.proxy.core.test;
 
-import com.apicatalog.did.Did;
+import jakarta.annotation.Nonnull;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
+import org.niis.xroad.proxy.core.dsp.DspAcquisition;
+import org.niis.xroad.proxy.core.dsp.DspRequest;
+import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 
 /**
- * Provider DSP endpoint metadata used by the consumer-side asset-access flow.
- *
- * <p>{@code counterPartyId} is the URL-encoded {@code did:web} of the provider's
- * EDC participant identity (see EDC DR {@code 2023-12-19-token-handling-refactor}:
- * {@code IdentityAndTrustService} maps {@code counterPartyId} → DID → JWT audience).
- * The {@code %3A} in place of {@code :} between host and port is required by
- * {@code did:web} resolution semantics.
- *
- * <p>{@code counterPartyAddress} is the whole DSP base URL of the provider's Control Plane.
- * EDC appends the protocol version path and per-message subpath at dispatch time.
- *
- * <p>Both member and SYSTEM targets are derived from GlobalConf data and ecosystem-wide DSP
- * conventions; no map lookup is involved.
- *
- * @param counterPartyId      URL-encoded participant DID (e.g. {@code did:web:xrd-ss0%3A7183:v1:system})
- * @param counterPartyAddress full DSP base URL (e.g. {@code https://xrd-ss0:8183/api/dsp/system/http-dsp-profile-2025-1})
+ * Consumer-side DSP processor for tests that stub {@link #execute} per case. Create it with
+ * {@code mock(StubbableDspRequestProcessor.class, CALLS_REAL_METHODS)}, so that {@link #bypassesDsp} applies the
+ * metaservice rule of the production processor until a test stubs it. A test stubs {@link #execute} and
+ * {@link #bypassesDsp} with {@code doReturn(...).when(processor).method(...)}: the unstubbed {@link #execute}
+ * fails, and so does a {@code when(processor.execute(...))} call.
  */
-public record CounterPartyTarget(Did counterPartyId, String counterPartyAddress) {
+public abstract class StubbableDspRequestProcessor implements DspRequestProcessor {
+
+    @Nonnull
+    @Override
+    public DspAcquisition execute(DspRequest request) {
+        throw new IllegalStateException("DspRequestProcessor.execute is not stubbed");
+    }
+
+    @Override
+    public boolean bypassesDsp(DspRequest request) {
+        var serviceId = request.serviceId();
+        return serviceId != null && BuiltinServiceCodes.METASERVICES.contains(serviceId.getServiceCode());
+    }
 }

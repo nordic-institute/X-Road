@@ -33,8 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
@@ -52,14 +50,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DataspaceReadinessPredicatesTest {
-
-    private static final String INSTANCE = "DEV";
 
     @Mock
     private GlobalConfProvider globalConfProvider;
@@ -80,58 +74,11 @@ class DataspaceReadinessPredicatesTest {
     }
 
     @Test
-    void isDataspaceReadyWhenOwnInstanceListsACredentialIssuer() {
-        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
-        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of("did:web:issuer.example"));
+    void globalConfIsUsableOnlyWhileItIsValid() {
+        assertThat(predicates.isGlobalConfUsable()).isTrue();
 
-        assertThat(predicates.isDataspaceReady()).isTrue();
-    }
-
-    @Test
-    void isDataspaceNotReadyWhenOwnInstanceListsNoCredentialIssuer() {
-        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
-        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of());
-
-        assertThat(predicates.isDataspaceReady()).isFalse();
-        verify(globalConfProvider, never()).isValid();
-    }
-
-    @Test
-    void isDataspaceNotReadyWhenInstanceIdentifierIsUnavailable() {
-        when(globalConfProvider.getInstanceIdentifier()).thenThrow(new IllegalStateException("no anchor"));
-
-        assertThat(predicates.isDataspaceReady()).isFalse();
-    }
-
-    @Test
-    void isDataspaceNotReadyWhenSharedParametersAreUnavailable() {
-        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
-        when(globalConfProvider.getCredentialIssuerDids(INSTANCE))
-                .thenThrow(XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR).build());
-
-        assertThat(predicates.isDataspaceReady()).isFalse();
-    }
-
-    @Test
-    void isDataspaceReadyFollowsGlobalConfWithoutRestart() {
-        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
-        when(globalConfProvider.getCredentialIssuerDids(INSTANCE))
-                .thenReturn(List.of("did:web:issuer.example"))
-                .thenReturn(List.of())
-                .thenReturn(List.of("did:web:issuer.example"));
-
-        assertThat(predicates.isDataspaceReady()).isTrue();
-        assertThat(predicates.isDataspaceReady()).isFalse();
-        assertThat(predicates.isDataspaceReady()).isTrue();
-    }
-
-    @Test
-    void isDataspaceNotReadyAndGlobalConfNotUsableWhenGlobalConfIsExpired() {
-        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
-        when(globalConfProvider.getCredentialIssuerDids(INSTANCE)).thenReturn(List.of("did:web:issuer.example"));
         when(globalConfProvider.isValid()).thenReturn(false);
 
-        assertThat(predicates.isDataspaceReady()).isFalse();
         assertThat(predicates.isGlobalConfUsable()).isFalse();
     }
 

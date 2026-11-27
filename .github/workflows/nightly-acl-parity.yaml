@@ -2,6 +2,7 @@ name: Nightly ACL Parity
 
 # Runs the compose e2e suite in the ACL parity modes kept off pull requests; `dsp` runs in
 # Build and Test. Builds only what the compose legs consume, then runs one leg per mode.
+# The `legacy` leg runs without the Issuer Service, so every call is unnegotiated.
 on:
   schedule:
     - cron: '0 1 * * *'

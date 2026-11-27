@@ -62,6 +62,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.CallModeSelector;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -70,7 +71,6 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
-import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.CachingStream;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
@@ -125,8 +125,8 @@ public class ClientRestMessageProcessor {
     private final ClientRequestPreparationService clientRequestPreparationService;
     private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
-    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
     private final DspFailover dspFailover;
+    private final CallModeSelector callModeSelector;
 
     /**
      * Processes a REST message exchange described by the given request context.
@@ -216,8 +216,8 @@ public class ClientRestMessageProcessor {
 
     void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, RestRequest restRequest, ServiceId requestServiceId,
                                          boolean tokenPresented) {
-        if (proxyProperties.dspEnabled() && (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
-                || tokenPresented && failure.isCausedBy(ACCESS_DENIED))) {
+        if (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
+                || tokenPresented && failure.isCausedBy(ACCESS_DENIED)) {
             consumerSideDspProcessor.invalidateAssetAccess(new DspRequest(requestServiceId, restRequest.getClientId(),
                     restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
         }
@@ -233,8 +233,9 @@ public class ClientRestMessageProcessor {
             throws Exception {
         var dspRequest = new DspRequest(requestServiceId, restRequest.getClientId(),
                 restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId));
-        if (proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)) {
-            return sendWithDspFailover(dspRequest, jRequest, opMonitoringData, restRequest, senderId,
+        var dspCall = callModeSelector.overDsp(dspRequest);
+        if (dspCall.isPresent()) {
+            return sendWithDspFailover(dspCall.get(), jRequest, opMonitoringData, restRequest, senderId,
                     requestServiceId, xRequestId, ctx);
         }
         return sendWithHandshakeRetry(jRequest, opMonitoringData, restRequest, senderId, requestServiceId, xRequestId, ctx);
@@ -257,9 +258,6 @@ public class ClientRestMessageProcessor {
                 try {
                     var addresses = clientRequestPreparationService.prepareRequest(httpSender, requestServiceId,
                             restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);
-                    if (!proxyProperties.dspEnabled()) {
-                        checkUnnegotiatedCallAllowed(requestServiceId);
-                    }
                     addRequestHeaders(httpSender, xRequestId, null);
                     post(httpSender, addresses, entity, opMonitoringData);
                     return new SentRequest(httpSender, entity.getRestBodyDigest(), false);
@@ -320,10 +318,6 @@ public class ClientRestMessageProcessor {
      */
     private boolean canRetry(Exception exception, SigningProxyMessageEntity entity, Object targets, int attempt) {
         return clientRequestPreparationService.shouldRetry(exception, targets, attempt) && entity.isReplayable();
-    }
-
-    void checkUnnegotiatedCallAllowed(ServiceId requestServiceId) {
-        legacyCallRefusalPolicy.checkConsumerCallAllowed(requestServiceId);
     }
 
     private URI[] prepareDspSender(HttpSender httpSender, AssetAccessResponse access, ServiceId requestServiceId,

@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.DataspaceReadiness;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -138,20 +139,11 @@ public class DataspaceReadinessPredicates {
     }
 
     /**
-     * Returns {@code true} if the global configuration is usable and lists at least one credential issuer
-     * for this instance.
-     * Read on every call so the answer follows globalconf additions and removals.
-     * Treats any globalconf failure (no anchor yet, no shared parameters yet) as "not ready".
+     * Returns {@code true} if the instance is dataspace-ready, see
+     * {@link DataspaceReadiness#isReady(GlobalConfProvider)}.
      */
     public boolean isDataspaceReady() {
-        try {
-            return !globalConfProvider.getCredentialIssuerDids(globalConfProvider.getInstanceIdentifier()).isEmpty()
-                    && isGlobalConfUsable();
-        } catch (RuntimeException e) {
-            log.debug("Data space: readiness check failed, treating the instance as not ready: {}",
-                    e.getMessage());
-            return false;
-        }
+        return DataspaceReadiness.isReady(globalConfProvider);
     }
 
     /**

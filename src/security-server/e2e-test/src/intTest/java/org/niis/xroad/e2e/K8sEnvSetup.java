@@ -128,7 +128,7 @@ public class K8sEnvSetup extends BaseComposeSetup
 
     /**
      * Fetched from the auxiliary-service pod, whose image ships curl: an in-cluster peer that dials
-     * the proxy Service's DID port exactly as a counter-party derives it from the registered address.
+     * the proxy Service's DID port exactly as a counter-party dials the published DID.
      */
     @Override
     public DidDocumentResponse resolveDidDocument(String env, String url) {

@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CLIENT_IDENTIFIER;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ENCODED_ID;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
@@ -204,7 +205,9 @@ public class ParticipantIdentifierScheme {
      *
      * @param did a DID previously derived with {@link #memberDid(ClientId, String)} or {@link #systemDid(String)}
      * @return the decoded participant
-     * @throws XrdRuntimeException if the DID is malformed
+     * @throws XrdRuntimeException {@code DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED} if the DID has a scheme version
+     *                             other than {@link #SCHEME_VERSION}; {@code INVALID_ENCODED_ID} if it is otherwise
+     *                             malformed
      */
     public static DecodedParticipant decodeDid(Did did) {
         if (!DID_METHOD.equals(did.method())) {
@@ -217,8 +220,11 @@ public class ParticipantIdentifierScheme {
                     did, MIN_DID_SEGMENT_COUNT, segments.length);
         }
         if (!SCHEME_VERSION.equals(segments[DID_VERSION_INDEX])) {
-            throw malformed("DID '%s' has unsupported scheme version '%s', expected '%s'",
-                    did, segments[DID_VERSION_INDEX], SCHEME_VERSION);
+            throw XrdRuntimeException.systemException(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED)
+                    .metadataItems(segments[DID_VERSION_INDEX], SCHEME_VERSION)
+                    .details("DID '%s' has unsupported scheme version '%s', expected '%s'"
+                            .formatted(did, segments[DID_VERSION_INDEX], SCHEME_VERSION))
+                    .build();
         }
 
         String ssHost = decodeHost(segments[DID_HOST_INDEX]);

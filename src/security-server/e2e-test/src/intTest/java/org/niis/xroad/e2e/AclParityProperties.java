@@ -40,6 +40,8 @@ import java.util.Optional;
 @ConfigMapping(prefix = "test-framework")
 public interface AclParityProperties {
 
+    String COMPOSE_ENV_MODE = "compose";
+
     @WithName("acl-mode")
     Optional<AclMode> aclMode();
 
@@ -49,6 +51,15 @@ public interface AclParityProperties {
     /** The configured mode, or empty when the run is not an ACL parity run. */
     static Optional<AclMode> configuredMode() {
         return ApiTestConfigSource.getInstance().buildConfigMapping(AclParityProperties.class).aclMode();
+    }
+
+    /**
+     * Whether this is a legacy ACL parity run: no Issuer Service, so every call is unnegotiated. Only the Compose
+     * stack applies the mode, so a run on another environment is never a legacy run.
+     */
+    static boolean isLegacyRun() {
+        return configuredMode().orElse(null) == AclMode.LEGACY
+                && COMPOSE_ENV_MODE.equals(ApiTestConfigSource.getInstance().getCoreProperties().envMode());
     }
 
     /** The file the verdict of every row is written to, or empty when none is configured. */

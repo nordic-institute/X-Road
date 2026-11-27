@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,11 +41,9 @@ import java.util.stream.Stream;
 /**
  * DSP request. Carries the per-request context that {@link DspRequestProcessor} needs to resolve
  * asset access from the control plane. {@code managementSubsystem} marks a request whose service is
- * addressed to the federation's management subsystem client id. Whether that routes to the provider's
- * SYSTEM-context identity, rather than the provider member's context, additionally depends on the
- * service code being one the provider's SYSTEM catalog actually publishes — a decision the request
- * processor makes together with its monitoring-service check. The consumer's own participant context is
- * always the sender's derived member context, independent of this flag.
+ * addressed to the federation's management subsystem client id. Whether that targets the provider's
+ * SYSTEM context, rather than the provider member's context, is decided by {@link CalledTarget}. The
+ * consumer's own participant context is always the sender's derived member context, independent of this flag.
  *
  * @param serviceId            the target service's identifier (non-null after SOAP/REST decoding)
  * @param sender               the consumer client that initiated the request; its member part
@@ -55,19 +54,33 @@ import java.util.stream.Stream;
  *                             management subsystem client id
  * @param triedServers         the counter-party addresses of the Security Servers the call already tried; the
  *                             request processor leaves their candidates out
+ * @param candidates           the provider servers that published the called DID, each with its DSP target; the
+ *                             request processor negotiates with these only
  */
 public record DspRequest(ServiceId serviceId, @Nonnull ClientId sender, @Nullable SecurityServerId targetSecurityServer,
-                         boolean managementSubsystem, @Nonnull Set<String> triedServers) {
+                         boolean managementSubsystem, @Nonnull Set<String> triedServers,
+                         @Nonnull List<AcquisitionCandidate> candidates) {
     public DspRequest {
         triedServers = Set.copyOf(triedServers);
+        candidates = List.copyOf(candidates);
     }
 
     /**
-     * A request that has tried no server yet.
+     * A request that has tried no server yet and has no candidates.
      */
     public DspRequest(ServiceId serviceId, ClientId sender, @Nullable SecurityServerId targetSecurityServer,
                       boolean managementSubsystem) {
-        this(serviceId, sender, targetSecurityServer, managementSubsystem, Set.of());
+        this(serviceId, sender, targetSecurityServer, managementSubsystem, Set.of(), List.of());
+    }
+
+    /**
+     * Returns a copy of this request that negotiates with the given candidates.
+     *
+     * @param publishedCandidates the provider servers that published the called DID
+     */
+    public DspRequest withCandidates(List<AcquisitionCandidate> publishedCandidates) {
+        return new DspRequest(serviceId, sender, targetSecurityServer, managementSubsystem, triedServers,
+                publishedCandidates);
     }
 
     /**
@@ -77,6 +90,6 @@ public record DspRequest(ServiceId serviceId, @Nonnull ClientId sender, @Nullabl
      */
     public DspRequest withTriedServer(String counterPartyAddress) {
         return new DspRequest(serviceId, sender, targetSecurityServer, managementSubsystem,
-                Stream.concat(triedServers.stream(), Stream.of(counterPartyAddress)).collect(Collectors.toSet()));
+                Stream.concat(triedServers.stream(), Stream.of(counterPartyAddress)).collect(Collectors.toSet()), candidates);
     }
 }

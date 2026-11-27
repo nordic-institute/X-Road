@@ -61,7 +61,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
  * Decides what a consumer may see when a boundary-crossing exception reaches them. A code present in
  * {@link #RULES} is surfaced as the rule's generic code and message, keeping the original code and
  * details in the logs only; an absent code is passed through untouched (opt-in). Only Dataspace
- * Protocol (DSP) codes are flagged today; the class sits beside {@link ErrorCode} so the mechanism can
+ * Protocol (DSP) codes are flagged in {@link #RULES}. A failure to use the identity a provider Security
+ * Server published is surfaced as {@code INTERNAL_ERROR} whatever its code, see
+ * {@link #sanitizeProviderTargetFailure}. The class sits beside {@link ErrorCode} so the mechanism can
  * later be reused at other boundaries.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -73,6 +75,9 @@ public final class ClientFacingErrorPolicy {
     // leak its raw code and details; this narrows it to a safe generic. Non-DSP codes are never touched.
     private static final ClientFacingRule FALLBACK_RULE =
             new ClientFacingRule(IO_ERROR, "The dataspace request could not be completed.");
+
+    private static final String PROVIDER_IDENTITY_UNUSABLE =
+            "The identity that the provider security server published for the called participant cannot be used for a dataspace call.";
 
     private static final String NOT_ALLOWED_BY_PROVIDER = "The request is not allowed by the provider security server.";
 
@@ -123,13 +128,29 @@ public final class ClientFacingErrorPolicy {
         var dspErrorCode = ErrorCode.fromCode(dspCode);
         var rule = dspErrorCode == null ? FALLBACK_RULE : resolve(dspErrorCode).orElse(FALLBACK_RULE);
 
+        return rebuild(ex, dspCode, rule.clientFacingCode(), rule.genericMessage());
+    }
+
+    /**
+     * Rebuilds a failure to build the DSP target of a called provider as {@code internal_error}. The failure is
+     * caused by the identity the provider published, so the generic message names the provider and not the
+     * identity on the consumer's own server. The cause of the original exception is passed on, as in
+     * {@link #sanitizeForConsumer}, and the original is not, so its message does not reach the client; its code is
+     * kept as {@code originalCode=} metadata. {@link ErrorOrigin} stays unset.
+     */
+    public static XrdRuntimeException sanitizeProviderTargetFailure(XrdRuntimeException ex) {
+        return rebuild(ex, ex.getErrorCode(), INTERNAL_ERROR, PROVIDER_IDENTITY_UNUSABLE);
+    }
+
+    private static XrdRuntimeException rebuild(XrdRuntimeException ex, String originalCode, ErrorCode clientFacingCode,
+                                               String genericMessage) {
         var metadata = Stream.concat(
-                Stream.of("originalCode=" + dspCode),
+                Stream.of("originalCode=" + originalCode),
                 ex.getErrorCodeMetadata().stream()).toArray();
-        return new XrdRuntimeExceptionBuilder<>(rule.clientFacingCode())
+        return new XrdRuntimeExceptionBuilder<>(clientFacingCode)
                 .identifier(ex.getIdentifier())
                 .cause(ex.getCause())
-                .details(rule.genericMessage())
+                .details(genericMessage)
                 .metadataItems(metadata)
                 .build();
     }

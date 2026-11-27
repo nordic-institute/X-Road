@@ -36,6 +36,8 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver.ServerInMaintenance;
+import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 import org.niis.xroad.proxy.core.util.RestRequestContext;
 
 import java.util.List;
@@ -48,6 +50,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SECURITY_SERVER;
 import static org.niis.xroad.common.core.exception.ErrorCode.MAINTENANCE_MODE;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
@@ -191,5 +194,87 @@ class DefaultServiceAddressResolverTest {
         assertThatThrownBy(() -> resolver.resolve(serviceProvider, hint, ctx))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).getCode()).isEqualTo(MAINTENANCE_MODE.code()));
+    }
+
+    @Test
+    void resolveCandidatesDropsServerInMaintenanceMode() {
+        var other = "192.168.1.11";
+        when(globalConfProvider.getProviderAddress(serviceProvider.getClientId())).thenReturn(Set.of(HOST, other));
+        when(globalConfProvider.getMaintenanceMode(INSTANCE, HOST))
+                .thenReturn(Optional.of(new SharedParameters.MaintenanceMode(true, "draining")));
+
+        var result = resolver.resolveCandidates(serviceProvider, null);
+
+        assertThat(result.available()).containsExactly(new ProviderAddress(null, other));
+        assertThat(result.inMaintenance()).extracting(ServerInMaintenance::address)
+                .containsExactly(new ProviderAddress(null, HOST));
+    }
+
+    @Test
+    void resolveCandidatesKeepsServerWithMaintenanceModeSwitchedOff() {
+        when(globalConfProvider.getProviderAddress(serviceProvider.getClientId())).thenReturn(Set.of(HOST, "192.168.1.11"));
+        when(globalConfProvider.getMaintenanceMode(INSTANCE, HOST))
+                .thenReturn(Optional.of(new SharedParameters.MaintenanceMode(false, null)));
+
+        var result = resolver.resolveCandidates(serviceProvider, null);
+
+        assertThat(result.available()).hasSize(2);
+        assertThat(result.inMaintenance()).isEmpty();
+    }
+
+    @Test
+    void resolveCandidatesThrowsMaintenanceModeWhenEveryServerIsInMaintenanceMode() {
+        when(globalConfProvider.getProviderAddress(serviceProvider.getClientId())).thenReturn(Set.of(HOST, "192.168.1.11"));
+        when(globalConfProvider.getMaintenanceMode(any(String.class), any(String.class)))
+                .thenReturn(Optional.of(new SharedParameters.MaintenanceMode(true, "draining")));
+
+        assertThatThrownBy(() -> resolver.resolveCandidates(serviceProvider, null))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getCode()).isEqualTo(MAINTENANCE_MODE.code()));
+    }
+
+    @Test
+    void resolveCandidatesReturnsTheTargetedServer() {
+        var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss1");
+        when(globalConfProvider.getProviderAddress(serviceProvider.getClientId())).thenReturn(Set.of(HOST, "192.168.1.11"));
+        when(globalConfProvider.getSecurityServerAddress(hint)).thenReturn(HOST);
+        when(globalConfProvider.getMaintenanceMode(hint)).thenReturn(Optional.empty());
+
+        var result = resolver.resolveCandidates(serviceProvider, hint);
+
+        assertThat(result.available()).containsExactly(new ProviderAddress(hint, HOST));
+    }
+
+    @Test
+    void resolveCandidatesThrowsMaintenanceModeWhenTargetedServerIsInMaintenanceMode() {
+        var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss-maint");
+        when(globalConfProvider.getProviderAddress(serviceProvider.getClientId())).thenReturn(Set.of(HOST));
+        when(globalConfProvider.getSecurityServerAddress(hint)).thenReturn(HOST);
+        when(globalConfProvider.getMaintenanceMode(hint))
+                .thenReturn(Optional.of(new SharedParameters.MaintenanceMode(true, "draining")));
+
+        assertThatThrownBy(() -> resolver.resolveCandidates(serviceProvider, hint))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getCode()).isEqualTo(MAINTENANCE_MODE.code()));
+    }
+
+    @Test
+    void resolveCandidatesThrowsInvalidSecurityServerWhenHintIsNotAmongProviderServers() {
+        var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss-x");
+        when(globalConfProvider.getProviderAddress(serviceProvider.getClientId())).thenReturn(Set.of(HOST));
+        when(globalConfProvider.getSecurityServerAddress(hint)).thenReturn("192.168.1.99");
+
+        assertThatThrownBy(() -> resolver.resolveCandidates(serviceProvider, hint))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getCode()).isEqualTo(INVALID_SECURITY_SERVER.code()));
+    }
+
+    @Test
+    void resolveCandidatesThrowsUnknownMemberWhenProviderHasNoAddresses() {
+        when(globalConfProvider.getProviderAddress(any())).thenReturn(List.of());
+
+        assertThatThrownBy(() -> resolver.resolveCandidates(serviceProvider, null))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getCode()).isEqualTo(UNKNOWN_MEMBER.code()));
     }
 }

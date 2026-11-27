@@ -54,6 +54,7 @@ import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.CallModeSelector;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
@@ -92,6 +93,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -112,7 +115,10 @@ public class TestContext {
     final AgreementTokenKeyProvider agreementTokenKeyProvider = InMemoryAgreementTokenKeyProvider.withGeneratedKey("1");
     @Getter
     final ProxyAgreementTokenProperties agreementTokenProperties = mockAgreementTokenProperties();
-    /** The consumer-side DSP dependency of the client proxy, stubbable per test case. Requests bypass DSP unless stubbed. */
+    /**
+     * The consumer-side DSP dependency of the client proxy, stubbable per test case. The client proxy selects the call
+     * mode of every request, bypassing DSP only for metaservices, until {@link #bypassCallModeSelection()} is called.
+     */
     @Getter
     final DspRequestProcessor consumerSideDspProcessor = mockConsumerSideDspProcessor();
 
@@ -196,10 +202,11 @@ public class TestContext {
                     new OwnSecurityServerResolver(new ServerConfProviderIdentitySource(serverConfProvider), globalConfProvider));
             var httpSenderProvider = new HttpSenderProvider(httpClient, httpClientCreator.getHttpClient(), proxyProperties);
             var messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider);
-            var serviceAddressResolver = serviceAddressResolverOverride != null
+            var defaultServiceAddressResolver = new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
+                    new ProviderSecurityServerResolver(globalConfProvider));
+            ServiceAddressResolver serviceAddressResolver = serviceAddressResolverOverride != null
                     ? serviceAddressResolverOverride
-                    : new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
-                            new ProviderSecurityServerResolver(globalConfProvider));
+                    : defaultServiceAddressResolver;
             var clientVerificationService = new ClientVerificationService(serverConfProvider, clientAuthenticationService,
                     globalConfProvider, proxyProperties, certHelper);
 
@@ -211,14 +218,16 @@ public class TestContext {
             var clientRequestPreparationService = new ClientRequestPreparationService(
                     serviceAddressResolver, proxyProperties, opMonitoringDataHelper, unusableAddressTracker);
             clientRequestPreparationService.init();
+            var clientLegacyCallRefusalPolicy = new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider);
             var clientSoapMessageProcessor = new ClientSoapMessageProcessor(
                     messageSigningService, httpSenderProvider,
                     clientVerificationService, opMonitoringDataHelper,
                     globalConfProvider, proxyProperties, commonProperties,
                     ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService,
-                    new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider),
                     new DspFailover(consumerSideDspProcessor, httpSenderProvider,
-                            new DspSendFailureHandler(consumerSideDspProcessor)));
+                            new DspSendFailureHandler(consumerSideDspProcessor)),
+                    new CallModeSelector(globalConfProvider, defaultServiceAddressResolver,
+                            consumerSideDspProcessor, clientLegacyCallRefusalPolicy));
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);
@@ -274,9 +283,12 @@ public class TestContext {
     }
 
     private static DspRequestProcessor mockConsumerSideDspProcessor() {
-        var processor = mock(DspRequestProcessor.class);
-        when(processor.bypassesDsp(any())).thenReturn(true);
-        return processor;
+        return mock(StubbableDspRequestProcessor.class, CALLS_REAL_METHODS);
+    }
+
+    /** Makes the client proxy bypass DSP and the call-mode selection for every request. */
+    public void bypassCallModeSelection() {
+        doReturn(true).when(consumerSideDspProcessor).bypassesDsp(any());
     }
 
     private static ProxyAgreementTokenProperties mockAgreementTokenProperties() {

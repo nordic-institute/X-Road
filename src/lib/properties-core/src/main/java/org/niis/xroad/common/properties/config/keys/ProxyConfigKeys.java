@@ -101,12 +101,6 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
-    /** {@code xroad.proxy.dsp-enabled}. */
-    public static final ConfigKey<Boolean> DSP_ENABLED = PROXY
-            .bool("dsp-enabled")
-            .withDefaultValue(true)
-            .build();
-
     /** {@code xroad.proxy.legacy-protocol-disabled}. */
     public static final ConfigKey<Boolean> LEGACY_PROTOCOL_DISABLED = PROXY
             .bool("legacy-protocol-disabled")

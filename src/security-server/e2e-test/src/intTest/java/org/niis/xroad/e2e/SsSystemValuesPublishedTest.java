@@ -37,11 +37,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
-import static org.niis.xroad.e2e.AdminApi.authed;
 import static org.niis.xroad.e2e.AdminApi.login;
+import static org.niis.xroad.e2e.AdminApi.provisioningStatus;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
@@ -69,6 +69,7 @@ class SsSystemValuesPublishedTest extends E2eTest {
     @Test
     @DisplayName("ss1 and ss0 each report their SYSTEM values as PUBLISHED")
     void systemValuesReachPublishedOnEveryServer(E2eEnvironment env) {
+        assumeFalse(AclParityProperties.isLegacyRun(), "a legacy run has no Issuer Service, so nothing is published");
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
         for (var envName : List.of("ss1", "ss0")) {
@@ -88,11 +89,7 @@ class SsSystemValuesPublishedTest extends E2eTest {
                     .timeout(PUBLICATION_POLL_TIMEOUT)
                     .ignoreExceptions()
                     .until(() -> {
-                        var response = authed(session).get(baseUrl + "/api/v1/dataspace/provisioning-status");
-                        if (response.getStatusCode() != HTTP_OK) {
-                            return false;
-                        }
-                        Map<String, ?> server = response.jsonPath().getMap("server");
+                        Map<String, ?> server = provisioningStatus(baseUrl, session).getMap("server");
                         lastSeen.set(server);
                         return server != null && PUBLISHED_STATE.equals(server.get("publication_state"));
                     });

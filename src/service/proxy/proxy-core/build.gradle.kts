@@ -20,6 +20,7 @@ dependencies {
 
   implementation(project(":lib:asic-core"))
   implementation(project(":lib:agreement-token-core"))
+  implementation(project(":lib:ds-identity-core"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:properties-core"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
@@ -54,6 +55,7 @@ dependencies {
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))
   testFixturesImplementation(project(":lib:agreement-token-core"))
+  testFixturesImplementation(project(":lib:ds-identity-core"))
   testFixturesImplementation(project(":lib:properties-core"))
   testFixturesImplementation(project(":lib:rpc-core"))
   testFixturesImplementation(project(":lib:messagelog-core"))
