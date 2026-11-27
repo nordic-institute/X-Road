@@ -54,7 +54,23 @@
       "skipConcluded": true,
       "skipExcluded": true
     },
-    "evaluator": {},
+    "evaluator": {
+      "packageConfigurationProviders": [
+        {
+          "type": "DOS",
+          "id": "DOS",
+          "enabled": true,
+          "secrets": {
+            "token": "dosToken"
+          }
+        },
+        {
+          "type": "ORTConfig",
+          "id": "ORTConfig",
+          "enabled": true
+        }
+      ]
+    },
     "reporter": {
       "formats": [
         "CycloneDX",
