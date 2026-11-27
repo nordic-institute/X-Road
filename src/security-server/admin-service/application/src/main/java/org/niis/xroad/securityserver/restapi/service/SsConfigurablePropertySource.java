@@ -120,7 +120,8 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
     @Override
     public RestartTarget restartTarget(Category category) {
         return switch (deploymentMode) {
-            case NATIVE, CONTAINERIZED -> nativeRestartTarget(category);
+            case NATIVE -> nativeRestartTarget(category);
+            case CONTAINERIZED -> containerizedRestartTarget(category);
         };
     }
 
@@ -133,6 +134,22 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
             case MONITOR -> RestartTarget.services("xroad-monitor");
             case CONFIGURATION_CLIENT -> RestartTarget.services("xroad-confclient");
             case AUXILIARY_SERVICE -> RestartTarget.services("xroad-auxiliary-service");
+            case MESSAGE_LOG_ARCHIVER -> RestartTarget.noneArchiver();
+            case COMMON -> RestartTarget.allServices();
+            default -> throw XrdRuntimeException.systemInternalError(
+                    "Unmapped category for configurable properties catalogue: " + category);
+        };
+    }
+
+    private static RestartTarget containerizedRestartTarget(Category category) {
+        return switch (category) {
+            case PROXY -> RestartTarget.services("proxy");
+            case SIGNER -> RestartTarget.services("signer");
+            case PROXY_UI_API -> RestartTarget.services("proxy-ui-api");
+            case OP_MONITOR_DAEMON -> RestartTarget.services("op-monitor");
+            case MONITOR -> RestartTarget.services("monitor");
+            case CONFIGURATION_CLIENT -> RestartTarget.services("configuration-client");
+            case AUXILIARY_SERVICE -> RestartTarget.services("auxiliary-service");
             case MESSAGE_LOG_ARCHIVER -> RestartTarget.noneArchiver();
             case COMMON -> RestartTarget.allServices();
             default -> throw XrdRuntimeException.systemInternalError(

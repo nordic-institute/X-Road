@@ -200,6 +200,27 @@ class ConfigurablePropertiesCatalogueTest {
     }
 
     @Test
+    void everyScopeResolvesToItsHelmDeploymentNameInContainerizedMode() {
+        var containerizedService = new ConfigurablePropertiesService(auditDataHelper, repository,
+                new SsConfigurablePropertySource(DeploymentMode.CONTAINERIZED, ActiveCountryProfile.NONE));
+
+        assertThat(restartByScope(containerizedService))
+                .containsOnlyKeys(
+                        "proxy", "signer", "proxy-ui-api", "op-monitor-daemon", "monitor", "configuration-client",
+                        "auxiliary-service", "message-log-archiver", COMMON_SCOPE)
+                .containsEntry("proxy", services("proxy"))
+                .containsEntry("signer", services("signer"))
+                .containsEntry("proxy-ui-api", services("proxy-ui-api"))
+                .containsEntry("op-monitor-daemon", services("op-monitor"))
+                .containsEntry("monitor", services("monitor"))
+                .containsEntry("configuration-client", services("configuration-client"))
+                .containsEntry("auxiliary-service", services("auxiliary-service"))
+                .containsEntry("message-log-archiver",
+                        new Restart(ConfigurablePropertyRestartPolicy.NONE_ARCHIVER, List.of()))
+                .containsEntry(COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of()));
+    }
+
+    @Test
     void everyExposedPropertyHasRestartPolicyConsistentWithItsServiceNames() {
         var properties = service.getConfigurationProperties();
 
@@ -358,7 +379,11 @@ class ConfigurablePropertiesCatalogueTest {
     }
 
     private Map<String, Restart> restartByScope() {
-        return service.getConfigurationProperties().stream()
+        return restartByScope(service);
+    }
+
+    private Map<String, Restart> restartByScope(ConfigurablePropertiesService propertiesService) {
+        return propertiesService.getConfigurationProperties().stream()
                 .collect(Collectors.toMap(
                         dto -> dto.getScope() == null ? COMMON_SCOPE : dto.getScope(),
                         dto -> new Restart(dto.getRestartPolicy(), dto.getRestartServices()),
