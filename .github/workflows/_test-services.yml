@@ -445,4 +445,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run secret-store-init-test
+        env:
+          CS_IMAGE: ${{ inputs.image_registry }}/central-server-dev:${{ inputs.service_image_tag }}
         run: ./scripts/images/test-secret-store-init.sh "${{ inputs.image_registry }}/openbao-dev:${{ inputs.service_image_tag }}"

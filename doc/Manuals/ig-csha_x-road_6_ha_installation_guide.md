@@ -189,15 +189,17 @@ The installation of the Central Server packages checks the database address befo
 
 The write check asks the database for the value of `transaction_read_only`. It therefore refuses a standby server, and it also refuses a database or a role that is set read-only.
 
+On an existing installation, the Central Server step checks the address that `spring.datasource.url` in `/etc/xroad/db.properties` holds, and ignores the answer to the database address question. On the upgrade from X-Road 7, the secret store step uses the answer for the OpenBao database.
+
 An existing configuration can already have a host list in `spring.datasource.url` in `/etc/xroad/db.properties`. An upgrade from an old format of `db.properties` that listed secondary database hosts gets such a list. The upgrade continues, and the installer writes a warning that OpenBao uses only the first host and so does not follow a failover. The checks of an existing host list work as follows:
 
 - The version check still refuses an unsupported PostgreSQL version.
 - The write check of the Central Server step checks only the first host. If the first host does not accept writes, the check writes a warning that names the host and does not stop the installation. The check of a single-host address still refuses a database that does not accept writes.
-- The secret store step and the Issuer Service step write to the first host. They still refuse a first host that does not accept writes. On the first installation and on the upgrade from X-Road 7, the secret store step runs first and stops on a read-only first host, before the Central Server step can warn. On a later upgrade the secret store step runs no checks: the Central Server step warns, and then the Issuer Service step stops.
+- The secret store step and the Issuer Service step write to the first host. They still refuse a first host that does not accept writes. On the first node, at the first installation or the upgrade from X-Road 7, the secret store step runs first and stops on a read-only first host, before the Central Server step can warn. On a node that joins the OpenBao cluster and on a later upgrade, the secret store step runs no checks: the Central Server step warns, and then the Issuer Service step stops.
 
 Use one write address instead of a host list. You set the address at the first installation of the Central Server. As section [3.1.1](#311-database-requirements) says, the installation does not change the stored addresses later, and this guide has no procedure to change them.
 
-The checks run in the packages in this order: the secret store (`xroad-secret-store-local`), the Central Server (`xroad-center`) and the Issuer Service (`xroad-ds-issuer-service`). A read-only address therefore shows first in the secret store step. The steps log in with these credentials:
+The checks run in the packages in this order: the secret store (`xroad-secret-store-local`), the Central Server (`xroad-center`) and the Issuer Service (`xroad-ds-issuer-service`). On the first installation of node 1 and on the upgrade from X-Road 7, a read-only address therefore shows first in the secret store step. The steps log in with these credentials:
 
 - The secret store step runs the three checks on the first installation of a Central Server, as the database master user (`postgres.connection.user` and `postgres.connection.password` in `/etc/xroad.properties`). It does not run on a node that joins the OpenBao cluster, because that node creates no OpenBao database.
 - The Central Server step runs the version check and the write check as the Central Server database role from `/etc/xroad/db.properties` when that role can log in. This is the case on a node that you prepared as in step 4 of section [4](#4-general-installation-of-ha-support). Otherwise it uses the database master user. It runs the host list check before it uses any credentials.

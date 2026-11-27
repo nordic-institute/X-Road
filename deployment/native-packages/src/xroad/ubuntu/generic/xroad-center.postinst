@@ -60,12 +60,15 @@ setup_database() {
       if [[ "$db_url" =~ $url_hosts_pat ]]; then
         local stored_hosts="${BASH_REMATCH[1]}"
         check_db_host_answer "$stored_hosts" existing
-        [[ -z "$new_db_host" || "$new_db_host" == "$stored_hosts" ]] || check_db_host_answer "$new_db_host" existing
       fi
     fi
     pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
     if [[ "$db_url" =~ $pat ]]; then
-      db_host=${new_db_host:-${BASH_REMATCH[1]}}
+      if [[ "$db_state" == existing ]]; then
+        db_host=${BASH_REMATCH[1]}
+      else
+        db_host=${new_db_host:-${BASH_REMATCH[1]}}
+      fi
       db_database=${BASH_REMATCH[3]:-$db_database}
     else
       log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database'"
