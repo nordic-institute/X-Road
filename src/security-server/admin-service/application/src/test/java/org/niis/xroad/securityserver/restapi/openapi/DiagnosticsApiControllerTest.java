@@ -46,6 +46,7 @@ import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
@@ -81,6 +82,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import javax.net.ssl.KeyManager;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -163,6 +166,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     DiagnosticsApiController diagnosticsApiController;
     @MockitoBean
     private DiagnosticReportService diagnosticReportService;
+    @MockitoBean
+    private VaultKeyProvider vaultKeyProvider;
 
     @Test
     public void getAddOnDiagnostics() {
@@ -673,6 +678,9 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getOtherSecurityServerStatus() {
+        KeyManager keyManager = mock(KeyManager.class);
+        when(vaultKeyProvider.getKeyManager()).thenReturn(keyManager);
+
         ResponseEntity<ConnectionStatusDto> response = diagnosticsApiController.getOtherSecurityServerStatus("REST",
                 "DEV:COM:4321", "DEV:COM:1234:MANAGEMENT", "DEV:COM:1234:SS0");
 

@@ -264,13 +264,13 @@ extract_to_tmp_restore_dir () {
     if [[ -f /etc/openbao/unseal-keys ]]; then
         cp /etc/openbao/unseal-keys ${RESTORE_DIR}/etc/openbao/unseal-keys
     fi
-    if [[ -f /etc/openbao/openbao.env ]]; then
-        mv ${RESTORE_DIR}/etc/openbao/openbao.env ${RESTORE_DIR}/etc/openbao/openbao.env.restored
-        cp /etc/openbao/openbao.env ${RESTORE_DIR}/etc/openbao/openbao.env
+    if [[ -f /etc/openbao/xroad-openbao.env ]]; then
+        mv ${RESTORE_DIR}/etc/openbao/xroad-openbao.env ${RESTORE_DIR}/etc/openbao/xroad-openbao.env.restored
+        cp /etc/openbao/xroad-openbao.env ${RESTORE_DIR}/etc/openbao/xroad-openbao.env
     fi
 
-    chown openbao:xroad ${RESTORE_DIR}/etc/openbao/openbao.env
-    chmod 640 ${RESTORE_DIR}/etc/openbao/openbao.env
+    chown openbao:xroad ${RESTORE_DIR}/etc/openbao/xroad-openbao.env
+    chmod 640 ${RESTORE_DIR}/etc/openbao/xroad-openbao.env
   fi
 
   # reset permissions of all files to fixed, "safe" values
@@ -355,23 +355,12 @@ restart_services () {
       # Unseal OpenBao after it has been started
       if [[ "$servicename" == "openbao" ]]; then
         BAO_ADDR=${BAO_ADDR:-https://127.0.0.1:8200}
-        UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
-        if ! wait_until_ready; then
-          echo "Timed out waiting for OpenBao service to become ready"
+        /usr/share/xroad/scripts/secret-store-unseal.sh
+        if is_sealed "$BAO_ADDR"; then sealed_rc=0; else sealed_rc=$?; fi
+        if [[ "$sealed_rc" -ne 1 ]]; then
+          echo "OpenBao is still sealed or its seal status is unknown after the restore" >&2
           exit 1
         fi
-
-        while IFS= read -r key || [ -n "$key" ]; do
-          if ! unseal "$BAO_ADDR" "$key"; then
-            echo "Failed to unseal OpenBao" >&2
-            exit 1
-          fi
-
-          if ! is_sealed; then
-            echo "Successfully unsealed OpenBao"
-            break
-          fi
-        done < "$UNSEAL_KEYS_FILE"
       fi
     fi
   done

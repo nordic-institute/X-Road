@@ -49,6 +49,7 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
     public static final String TESTCA = "testca";
     public static final String DB_SERVERCONF = "db-serverconf";
     public static final String DB_MESSAGELOG = "db-messagelog";
+    public static final String DB_DS_ISSUER_SERVICE = "db-ds-issuer-service";
     public static final String OP_MONITOR = "op-monitor";
     public static final String NGINX = "nginx";
     public static final String OPENBAO = "openbao";
@@ -86,6 +87,7 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_SERVERCONF, Port.DB, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
+                .withExposedService(DS_ISSUER_SERVICE, Port.QUARKUS_HEALTH, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))

@@ -48,8 +48,11 @@ final class ProxyHealthcheckSupport {
     }
 
     static String healthcheckUrl(SsApiTestContainerSetup stack) {
-        var mapping = stack.getContainerMapping(SsApiTestContainerSetup.PROXY, Port.PROXY_HEALTHCHECK);
-        return "http://%s:%d%s".formatted(mapping.host(), mapping.port(), HEALTHCHECK_PATH);
+        return healthUrl(stack, SsApiTestContainerSetup.PROXY, Port.PROXY_HEALTHCHECK, HEALTHCHECK_PATH);
+    }
+    static String healthUrl(SsApiTestContainerSetup stack, String service, int port, String path) {
+        var mapping = stack.getContainerMapping(service, port);
+        return "http://%s:%d%s".formatted(mapping.host(), mapping.port(), path);
     }
 
     static void assertHealthcheckNoErrors(String url, Duration pollInterval, Duration pollTimeout) {

@@ -470,6 +470,11 @@
     "pin_incorrect": "PIN incorrecto. Por favor intente de nuevo.",
     "process_failed": "Falló el proceso",
     "process_not_executable": "El proceso no es ejecutable",
+    "re_identification_address_unknown": "La dirección registrada del servidor de seguridad no es conocida; no es posible volver a identificar a los participantes",
+    "re_identification_cannot_bind": "Los participantes no pueden vincularse de nuevo ahora: el espacio de datos no está listo, el certificado de autenticación no está registrado o la configuración global no es utilizable",
+    "re_identification_cannot_mint": "No se puede crear un DID de participante en la dirección registrada: la dirección incluye un puerto o genera un DID demasiado largo",
+    "re_identification_not_needed": "Ningún participante tiene un DID en una dirección distinta de la dirección registrada",
+    "re_identification_provisioning_inactive": "El aprovisionamiento de participantes no está activo en este nodo, por lo que no se pueden vincular nuevos DID: está desactivado o este es un nodo secundario",
     "server_already_fully_initialized": "El servidor ya está completamente inicializado",
     "server_code_exists": "El código del servidor ya existe",
     "server_code_not_provided": "No se ha proporcionado el código del servidor",
@@ -1344,6 +1349,29 @@
           },
           "common": {
             "temp-files-path": "Ruta absoluta al directorio donde se almacenan los archivos temporales."
+          },
+          "dsp": {
+            "issuer-data": {
+              "download-wait": "El tiempo máximo que una comprobación espera una descarga nueva mientras el Issuer Service responde. El valor debe ser mayor que 0. Valores razonables: de 1 a 10 segundos. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+              "download-retry-seconds": "La espera en segundos antes de la siguiente descarga tras una descarga fallida. La entrada n de la lista separada por comas es la espera tras el fallo n, y la última entrada se repite. Cada entrada es un número entero positivo. Una entrada mayor que download-expire-after no tiene efecto. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+              "download-expire-after": "Pasado este tiempo, una descarga fallida o sin respuesta caduca y se olvida. La siguiente comprobación que necesite los datos inicia una descarga nueva, y el retraso de reintento vuelve a empezar desde la primera entrada. Un retraso de reintento mayor que este valor no tiene efecto. Valores permitidos: mayores que 0. Valores razonables: de 5 a 10 minutos. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+              "download-timeout": "El tiempo máximo que tarda una descarga de una lista de estado o de un documento DID del emisor, desde el inicio de la solicitud hasta el final de la respuesta. Una descarga que tarda más se detiene y cuenta como fallida. Valores permitidos: mayores que 0. Valores razonables: de 10 a 30 segundos. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+              "cache": {
+                "statuslist": {
+                  "size": "El máximo de statuslists que se mantienen en memoria. Valores permitidos: números enteros de 0 o más. Con 0 no se mantiene ninguna copia en memoria, las comprobaciones simultáneas siguen compartiendo una descarga y una copia almacenada se sigue usando durante una interrupción. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio."
+                },
+                "statuslist-download": {
+                  "size": "El máximo de statuslists cuya descarga está en curso o espera un reintento al mismo tiempo. Valores permitidos: números enteros de 1 o más. Valores razonables: al menos el doble del valor de xroad.dsp.issuer-data.cache.statuslist.size. Cuando se alcanza el límite, se expulsa una entrada, las comprobaciones que la esperan fallan con un error reintentable, salvo que puedan usar una copia de la base de datos, y la siguiente comprobación inicia una descarga nueva. Un valor menor causa más llamadas al Issuer Service. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio."
+                },
+                "did-download": {
+                  "size": "El máximo de documentos DID del emisor cuya descarga está en curso o espera un reintento al mismo tiempo. Solo se descargan los DID de emisor que figuran en la configuración global. Valores permitidos: números enteros de 1 o más. Valores razonables: al menos el doble del valor de edc.did.resolver.cache.size. Cuando se alcanza el límite, se expulsa una entrada, las comprobaciones que la esperan fallan con un error reintentable, salvo que puedan usar una copia de la base de datos, y la siguiente comprobación inicia una descarga nueva. Un valor menor causa más llamadas al Issuer Service. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio."
+                }
+              },
+              "cleanup": {
+                "interval": "El tiempo entre ejecuciones de la limpieza de datos de emisores caducados. Valores permitidos: 5 minutos o más. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio.",
+                "enabled": "Cuando es false, la limpieza de datos de emisores caducados no se ejecuta. Reinicie xroad-ds-control-plane y xroad-ds-identity-hub tras un cambio."
+              }
+            }
           }
         }
       }

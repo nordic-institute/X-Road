@@ -72,20 +72,27 @@
         </v-row>
         <v-row density="compact">
           <v-col class="py-0">
-            <span data-test="app-footer-server-version" class="body-regular font-weight-regular">
-              {{ $t('footer.copyright.company') }}
-            </span>
-          </v-col>
-        </v-row>
-        <v-row density="compact">
-          <v-col>
             <a
+              data-test="app-footer-company-link"
               rel="noopener"
               class="basic-link body-regular font-weight-medium text-accent text-decoration-none"
               href="https://niis.org/"
               target="_blank"
             >
-              {{ $t('footer.copyright.domain') }}
+              {{ $t('footer.copyright.company') }}
+            </a>
+          </v-col>
+        </v-row>
+        <v-row density="compact">
+          <v-col>
+            <a
+              data-test="app-footer-licence-link"
+              rel="noopener"
+              class="basic-link body-regular font-weight-medium text-accent text-decoration-none"
+              href="https://x-road.global/xroad-licence-info"
+              target="_blank"
+            >
+              {{ $t('footer.copyright.licenceInfo') }}
             </a>
           </v-col>
         </v-row>

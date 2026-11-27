@@ -50,6 +50,11 @@ public final class NoopDataspaceParticipantProvisioningTrigger implements Datasp
         log.debug("Dataspace participant provisioning requested while disabled, ignoring");
     }
 
+    @Override
+    public boolean isActive() {
+        return false;
+    }
+
     @Slf4j
     static class IsActive implements Condition {
         @Override
@@ -62,7 +67,7 @@ public final class NoopDataspaceParticipantProvisioningTrigger implements Datasp
             } else if (!enabled) {
                 log.info("Dataspace participant provisioning is switched off, dataspace participant provisioning is disabled");
             }
-            return !DataspaceParticipantProvisioningTrigger.isActive(secondary, enabled);
+            return !DataspaceParticipantProvisioningTrigger.shouldBeActive(secondary, enabled);
         }
     }
 }

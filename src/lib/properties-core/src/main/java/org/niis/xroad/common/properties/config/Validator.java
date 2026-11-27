@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Validates a typed property value. Run on import, PATCH, and against the declared
@@ -261,6 +262,26 @@ public interface Validator<T> {
         };
     }
 
+    /**
+     * @param min inclusive lower bound
+     * @return validator accepting durations of at least {@code min}
+     */
+    static Validator<Duration> durationAtLeast(Duration min) {
+        return new Validator<>() {
+            @Override
+            public Result validate(Duration value) {
+                return value != null && value.compareTo(min) >= 0
+                        ? Result.ok()
+                        : Result.error("must be at least %s".formatted(min));
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("at least %s".formatted(min));
+            }
+        };
+    }
+
     /** @return validator rejecting null, zero, and negative integers */
     static Validator<Integer> positiveInt() {
         return new Validator<>() {
@@ -274,6 +295,31 @@ public interface Validator<T> {
             @Override
             public Optional<String> describe() {
                 return Optional.of("positive number");
+            }
+        };
+    }
+
+    /** @return validator rejecting null, an empty array and any entry that is not a positive whole number that fits an int */
+    static Validator<String[]> positiveInts() {
+        return new Validator<>() {
+            @Override
+            public Result validate(String[] value) {
+                return value != null && value.length > 0 && Stream.of(value).allMatch(this::isPositiveInt)
+                        ? Result.ok()
+                        : Result.error("must be a comma-separated list of positive whole numbers");
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("comma-separated positive whole numbers");
+            }
+
+            private boolean isPositiveInt(String entry) {
+                try {
+                    return Integer.parseInt(entry) > 0;
+                } catch (NumberFormatException _) {
+                    return false;
+                }
             }
         };
     }

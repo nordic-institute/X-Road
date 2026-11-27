@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.5
+Version: 1.6
 Doc. ID: IG-SS-8
 
 ---
@@ -16,7 +16,8 @@ Doc. ID: IG-SS-8
 | 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)                      | Eneli Reimets     |
 | 17.11.2026 | 1.3     | Documented country profile selection and precedence                                | Ričardas Bučiūnas |
 | 18.11.2026 | 1.4     | Added the DID and DSP port choice at installation                                  | Justas Samuolis   |
-| 26.11.2026 | 1.5     | Update network diagram and port listings, add the table of network interface ports | Petteri Kivimäki  |
+| 18.11.2026 | 1.5     | Name the OpenBao configuration files in Annex C                                    | Ričardas Bučiūnas |
+| 26.11.2026 | 1.6     | Update network diagram and port listings, add the table of network interface ports | Petteri Kivimäki  |
 
 ## License
 
@@ -480,9 +481,10 @@ The installer creates the database roles itself. If they already exist, on Postg
 
 ## Annex C `xroad-secret-store-local` default configuration
 
-Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`.<br/>
+Local Secret Store uses OpenBao for secrets storage. The default configuration files are located in `/etc/openbao/`, except the OpenBao configuration file.<br/>
 Files:<br/>
-`openbao.hcl` - OpenBao main configuration file. Contains DB credentials and other options.<br/>
+`/usr/share/xroad/openbao/xroad-openbao.hcl` - OpenBao configuration file, shipped by the package. Contains the loopback listener and the storage options. Owner `root:root`, mode `644`, in a directory with owner `root:root` and mode `755`. Do not edit it. A Security Server is a single node and has no node configuration file. `/usr/share/xroad/scripts/secret-store-cluster-config.sh --single-node` removes `/etc/xroad-secret-store/node.hcl` if it exists.<br/>
+`xroad-openbao.env` - OpenBao database connection and credentials. Owner `openbao:xroad`, mode `640`.<br/>
 `root-token` - root OpenBao token.<br/>
 `unseal-keys` - OpenBao unseal keys.
 

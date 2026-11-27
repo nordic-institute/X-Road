@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.serverconf.impl.dao.DsParticipantDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
@@ -45,8 +46,10 @@ import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -64,6 +67,7 @@ public class DsParticipantDAOImplTest {
     private static final String XROAD_INSTANCE = "XX";
     private static final String MEMBER_CLASS = "FooClass";
     private static final String SS_HOST = "ss0.example.org";
+    private static final String NEW_HOST = "ss0-new.example.org";
 
     private static final DatabaseCtx DATABASE_CTX = new ServerConfDatabaseCtx(TestUtil.serverConfDbProperties);
 
@@ -521,6 +525,237 @@ public class DsParticipantDAOImplTest {
         var ids = found.stream().map(DsParticipantEntity::getId).toList();
         assertThat(ids).contains(submitted, published).doesNotContain(unset, notSent, rejected, decommissioned);
         assertThat(found).allMatch(row -> row.getParticipantType() == ParticipantType.MEMBER);
+    }
+
+    @Test
+    public void retireBindingsFlipsSystemAndMemberRowsAtTheOldHostInEveryPublicationState() {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            clearParticipantRows(session);
+            Instant at = Instant.now();
+            var system = dao.save(session, systemParticipant());
+            var notSent = dao.save(session, memberParticipantAt(session, "retire-not-sent", SS_HOST));
+            var submitted = dao.save(session, memberParticipantAt(session, "retire-submitted", SS_HOST));
+            var published = dao.save(session, memberParticipantAt(session, "retire-published", SS_HOST));
+            var rejected = dao.save(session, memberParticipantAt(session, "retire-rejected", SS_HOST));
+            var atNewHost = dao.save(session, memberParticipantAt(session, "retire-at-new-host", NEW_HOST));
+            session.flush();
+            dao.transitionPublication(session, submitted.getId(), PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at);
+            dao.transitionPublication(session, published.getId(), PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at);
+            dao.transitionPublication(session, published.getId(), PublicationState.SUBMITTED, PublicationState.PUBLISHED, null, at);
+            dao.transitionPublication(session, rejected.getId(), PublicationState.NOT_SENT, PublicationState.REJECTED, "DID_TAKEN", at);
+
+            int retired = retireDiffering(session, RegisteredHostMatcher.of(NEW_HOST));
+
+            session.flush();
+            session.clear();
+            assertEquals(5, retired);
+            for (var retiredRow : List.of(system, notSent, submitted, published, rejected)) {
+                assertEquals(ParticipantState.DECOMMISSIONED, session.find(DsParticipantEntity.class, retiredRow.getId()).getState());
+            }
+            assertEquals(ParticipantState.ACTIVE, session.find(DsParticipantEntity.class, atNewHost.getId()).getState());
+            assertEquals(PublicationState.PUBLISHED,
+                    session.find(DsParticipantEntity.class, published.getId()).getPublicationState());
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
+    }
+
+    @Test
+    public void findDifferingBindingsSelectsNoRowForRetirementWhenTheRegisteredAddressIsUnusable() {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            clearParticipantRows(session);
+            var system = dao.save(session, systemParticipant());
+            var member = dao.save(session, memberParticipantAt(session, "retire-unusable-address", SS_HOST));
+            session.flush();
+
+            int retired = retireDiffering(session, RegisteredHostMatcher.of(null));
+
+            session.flush();
+            session.clear();
+            assertEquals(0, retired);
+            assertEquals(ParticipantState.ACTIVE, session.find(DsParticipantEntity.class, system.getId()).getState());
+            assertEquals(ParticipantState.ACTIVE, session.find(DsParticipantEntity.class, member.getId()).getState());
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
+    }
+
+    @Test
+    public void findDifferingBindingsSkipsRowsWithAnUndecodableDidOrAnUnsupportedSchemeVersion() {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            clearParticipantRows(session);
+            var undecodable = memberParticipantAt(session, "retire-undecodable", SS_HOST);
+            undecodable.setDid("not-a-did");
+            var unsupportedVersion = memberParticipantAt(session, "retire-unsupported-version", SS_HOST);
+            unsupportedVersion.setSchemeVersion("v9");
+            var differing = memberParticipantAt(session, "retire-differing", SS_HOST);
+            var undecodableId = dao.save(session, undecodable).getId();
+            var unsupportedVersionId = dao.save(session, unsupportedVersion).getId();
+            var differingId = dao.save(session, differing).getId();
+            session.flush();
+
+            int retired = retireDiffering(session, RegisteredHostMatcher.of(NEW_HOST));
+
+            session.flush();
+            session.clear();
+            assertEquals(1, retired);
+            assertEquals(ParticipantState.DECOMMISSIONED, session.find(DsParticipantEntity.class, differingId).getState());
+            assertEquals(ParticipantState.ACTIVE, session.find(DsParticipantEntity.class, undecodableId).getState());
+            assertEquals(ParticipantState.ACTIVE, session.find(DsParticipantEntity.class, unsupportedVersionId).getState());
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
+    }
+
+    @Test
+    public void aSecondRetireOverRowsThatAreAlreadyDecommissionedUpdatesNothing() {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            clearParticipantRows(session);
+            var matcher = RegisteredHostMatcher.of(NEW_HOST);
+            var system = dao.save(session, systemParticipant());
+            var member = dao.save(session, memberParticipantAt(session, "retire-twice", SS_HOST));
+            session.flush();
+
+            var ids = dao.findDifferingBindings(session, matcher).stream().map(DsParticipantEntity::getId).toList();
+
+            assertEquals(2, dao.retireBindings(session, ids));
+            assertEquals(0, dao.retireBindings(session, ids));
+
+            session.clear();
+            assertEquals(ParticipantState.DECOMMISSIONED, session.find(DsParticipantEntity.class, system.getId()).getState());
+            assertEquals(ParticipantState.DECOMMISSIONED, session.find(DsParticipantEntity.class, member.getId()).getState());
+            assertFalse(dao.hasDifferingBindings(session, matcher));
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
+    }
+
+    @Test
+    public void retireBindingsFlipsEveryRowWhenTheIdListNeedsMoreThanOneUpdate() {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            clearParticipantRows(session);
+            var matcher = RegisteredHostMatcher.of(NEW_HOST);
+            int rowCount = 1001;
+            for (int i = 0; i < rowCount; i++) {
+                dao.save(session, memberParticipantAt(session, "retire-many-" + i, SS_HOST));
+            }
+            session.flush();
+
+            assertEquals(rowCount, dao.findDifferingBindings(session, matcher).size());
+            assertEquals(rowCount, retireDiffering(session, matcher));
+
+            session.clear();
+            assertFalse(dao.hasDifferingBindings(session, matcher));
+            assertEquals(rowCount, dao.findDecommissioned(session).size());
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
+    }
+
+    @Test
+    public void findDifferingBindingsReturnsTheActiveRowsAtAnotherHostWithTheirMemberIdentifier() {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            clearParticipantRows(session);
+            var matcher = RegisteredHostMatcher.of(NEW_HOST);
+            var system = dao.save(session, systemParticipant());
+            var member = dao.save(session, memberParticipantAt(session, "find-differing", SS_HOST));
+            dao.save(session, memberParticipantAt(session, "find-at-new-host", NEW_HOST));
+            var decommissioned = memberParticipantAt(session, "find-decommissioned", SS_HOST);
+            decommissioned.setState(ParticipantState.DECOMMISSIONED);
+            dao.save(session, decommissioned);
+            session.flush();
+            session.clear();
+
+            var found = dao.findDifferingBindings(session, matcher);
+
+            assertEquals(Set.of(system.getId(), member.getId()),
+                    found.stream().map(DsParticipantEntity::getId).collect(Collectors.toSet()));
+            assertEquals(Set.of("find-differing"), found.stream()
+                    .map(DsParticipantEntity::getMemberIdentifier)
+                    .filter(Objects::nonNull)
+                    .map(ClientIdEntity::getMemberCode)
+                    .collect(Collectors.toSet()));
+            assertTrue(dao.findDifferingBindings(session, RegisteredHostMatcher.of(null)).isEmpty());
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
+    }
+
+    @Test
+    public void hasDifferingBindingsIsTrueOnlyForAnActiveRowWhoseDecodableDidHostDiffers() {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            clearParticipantRows(session);
+            var matcher = RegisteredHostMatcher.of(NEW_HOST);
+            var atNewHost = dao.save(session, memberParticipantAt(session, "has-differing-at-new-host", NEW_HOST));
+            var undecodable = memberParticipantAt(session, "has-differing-undecodable", SS_HOST);
+            undecodable.setDid("not-a-did");
+            dao.save(session, undecodable);
+            var unsupportedVersion = memberParticipantAt(session, "has-differing-unsupported-version", SS_HOST);
+            unsupportedVersion.setSchemeVersion("v9");
+            dao.save(session, unsupportedVersion);
+            var decommissionedAtOldHost = memberParticipantAt(session, "has-differing-decommissioned", SS_HOST);
+            decommissionedAtOldHost.setState(ParticipantState.DECOMMISSIONED);
+            dao.save(session, decommissionedAtOldHost);
+            session.flush();
+
+            assertFalse(dao.hasDifferingBindings(session, matcher));
+
+            atNewHost.setDid(ParticipantIdentifierScheme.memberDid(
+                    ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "has-differing-at-new-host"), SS_HOST).toString());
+            session.flush();
+
+            assertTrue(dao.hasDifferingBindings(session, matcher));
+            assertFalse(dao.hasDifferingBindings(session, RegisteredHostMatcher.of(null)));
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
+    }
+
+    @Test
+    public void retireBindingsFlipsOnlyTheGivenRowsThatAreStillActive() {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            clearParticipantRows(session);
+            var given = dao.save(session, memberParticipantAt(session, "retire-ids-given", SS_HOST));
+            var givenButDecommissioned = memberParticipantAt(session, "retire-ids-decommissioned", SS_HOST);
+            givenButDecommissioned.setState(ParticipantState.DECOMMISSIONED);
+            var givenButDecommissionedId = dao.save(session, givenButDecommissioned).getId();
+            var notGiven = dao.save(session, memberParticipantAt(session, "retire-ids-not-given", SS_HOST));
+            session.flush();
+
+            int retired = dao.retireBindings(session, List.of(given.getId(), givenButDecommissionedId));
+
+            session.flush();
+            session.clear();
+            assertEquals(1, retired);
+            assertEquals(ParticipantState.DECOMMISSIONED, session.find(DsParticipantEntity.class, given.getId()).getState());
+            assertEquals(ParticipantState.ACTIVE, session.find(DsParticipantEntity.class, notGiven.getId()).getState());
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
+    }
+
+    private int retireDiffering(Session session, RegisteredHostMatcher matcher) {
+        return dao.retireBindings(session,
+                dao.findDifferingBindings(session, matcher).stream().map(DsParticipantEntity::getId).toList());
+    }
+
+    private void clearParticipantRows(Session session) {
+        session.createMutationQuery("delete from DsParticipantEntity").executeUpdate();
+    }
+
+    private DsParticipantEntity memberParticipantAt(Session session, String memberCode, String host) {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode);
+        DsParticipantEntity participant = memberParticipant(session, member);
+        participant.setDid(ParticipantIdentifierScheme.memberDid(member, host).toString());
+        return participant;
     }
 
     private Long saveMember(String memberCode) {

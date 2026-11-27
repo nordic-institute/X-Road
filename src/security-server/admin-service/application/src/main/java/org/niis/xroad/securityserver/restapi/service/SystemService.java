@@ -28,7 +28,9 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.crypto.Digests;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
@@ -45,21 +47,24 @@ import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
-import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
+import org.niis.xroad.securityserver.restapi.repository.PendingAddressChangeRepository;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -98,12 +103,15 @@ public class SystemService {
     private final CurrentSecurityServerId currentSecurityServerId;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final AuditDataHelper auditDataHelper;
-    private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final PendingAddressChangeRepository pendingAddressChangeRepository;
     private final ConfClientRpcClient confClientRpcClient;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final GlobalConfProvider globalConfProvider;
     private final ProxyRpcClient proxyRpcClient;
     private final OwnSecurityServerResolver ownSecurityServerResolver;
+
+    @Setter(AccessLevel.PACKAGE)
+    private Clock clock = Clock.systemUTC();
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -304,17 +312,29 @@ public class SystemService {
     public Integer changeSecurityServerAddress(String newAddress) throws GlobalConfOutdatedException,
             ManagementRequestSendingFailedException {
         auditDataHelper.put(RestApiAuditProperty.ADDRESS, newAddress);
-        if (addressChangeStatus.getAddressChangeRequest().isPresent()) {
+        if (pendingAddressChange().isPresent()) {
             throw new ConflictException(DUPLICATE_ADDRESS_CHANGE_REQUEST.build());
         }
         var currentAddress = registeredAddress().orElseThrow(() -> new ConflictException(SERVER_NOT_REGISTERED.build()));
         if (currentAddress.equals(newAddress)) {
             throw new ConflictException(SAME_ADDRESS_CHANGE_REQUEST.build());
         }
-        Integer requestId = managementRequestSenderService.sendAddressChangeRequest(newAddress);
-        addressChangeStatus.setAddress(newAddress);
+        try {
+            pendingAddressChangeRepository.save(newAddress, Instant.now(clock));
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictException(e, DUPLICATE_ADDRESS_CHANGE_REQUEST.build());
+        }
 
-        return requestId;
+        return managementRequestSenderService.sendAddressChangeRequest(newAddress);
+    }
+
+    /**
+     * Returns the address the administrator requested and global configuration does not yet show.
+     *
+     * @return the requested address, or empty if no address change is pending
+     */
+    public Optional<String> pendingAddressChange() {
+        return pendingAddressChangeRepository.findRequestedAddress();
     }
 
     /**

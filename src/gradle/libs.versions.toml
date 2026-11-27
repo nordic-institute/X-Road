@@ -37,6 +37,7 @@ quarkus = "3.40.1.2"
 quarkus-vault = "4.10.0"
 smallryeConfig = "3.17.2"
 microprofile = "3.1.3"
+microprofileHealth = "4.0.1"
 feign = "13.17"
 testContainers = "2.0.5"
 testAllure = "2.34.0"
@@ -107,6 +108,7 @@ quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "qua
 quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
 quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit", version.ref = "quarkus" }
 quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
+microprofile-health-api = { group = "org.eclipse.microprofile.health", name = "microprofile-health-api", version.ref = "microprofileHealth" }
 microprofile-config-api = { group = "org.eclipse.microprofile.config", name = "microprofile-config-api", version.ref = "microprofile" }
 
 smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-core", version.ref = "smallryeConfig" }
@@ -328,6 +330,7 @@ edc-lib-controlplane = { module = "org.eclipse.edc:control-plane-lib", version.r
 
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
+edc-iam-dcp-service = { module = "org.eclipse.edc:decentralized-claims-service", version.ref = "edc" }
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 edc-iam-dcp-cel = { module = "org.eclipse.edc:decentralized-claims-cel", version.ref = "edc" }

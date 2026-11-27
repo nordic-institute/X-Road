@@ -42,14 +42,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.SigningInfo;
+import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.keyconf.dto.AuthKeyStatus;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 import org.niis.xroad.test.serverconf.EmptyServerConf;
 
+import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -67,6 +73,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -269,6 +278,30 @@ class CachingKeyConfImplTest {
                 UNCHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 1, 2, NO_DELAY);
         expectedCacheHits++;
         Assertions.assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+    }
+
+    @Test
+    void testAuthKeyStatusBypassesCache() {
+        PrivateKey validKey = TestCertUtil.getConsumer().key;
+        CertChain certChain = mock(CertChain.class);
+
+        CachingKeyConfImpl cachingKeyConf = new CachingKeyConfImpl(globalConfProvider, ocspVerifierFactory,
+                serverConfProvider, signerRpcClient) {
+            @Override
+            protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) {
+                return new AuthKeyInfo(validKey, certChain, new Date(0), new Date(Long.MAX_VALUE));
+            }
+        };
+
+        AuthKey cachedAuthKey = cachingKeyConf.getAuthKey();
+        assertThat(cachedAuthKey.key()).isEqualTo(validKey);
+
+        when(signerRpcClient.getAuthKey(any()))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.TOKEN_NOT_ACTIVE).build());
+
+        assertThat(cachingKeyConf.getAuthKeyStatus()).isInstanceOf(AuthKeyStatus.NotActive.class);
+
+        cachingKeyConf.destroy();
     }
 
     @Test

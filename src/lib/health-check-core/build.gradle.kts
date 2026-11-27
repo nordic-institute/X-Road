@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+  api(project(":lib:health-check-common"))
   api(libs.jakarta.cdiApi)
   api(libs.quarkus.health)
   api(libs.grpc.stub)

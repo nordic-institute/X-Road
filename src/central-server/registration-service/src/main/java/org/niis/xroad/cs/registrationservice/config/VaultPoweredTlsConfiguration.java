@@ -31,8 +31,8 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.managementservice.AbstractManagementServiceSslBundleRegistrar;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.spring.VaultSslBundleRegistrar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
 import org.springframework.context.annotation.Bean;
@@ -47,7 +47,7 @@ public class VaultPoweredTlsConfiguration {
     private static final String RETRY_INSTANCE_NAME = "registrationServiceVaultRetry";
 
     @Bean
-    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = AbstractManagementServiceSslBundleRegistrar.BUNDLE_NAME)
+    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = VaultSslBundleRegistrar.MANAGEMENT_SERVICE_BUNDLE)
     public SslBundleRegistrar vaultSslBundleRegistrar(VaultClient vaultClient, RegistrationServiceProperties properties) {
         return new RegistrationServiceSslBundleRegistrar(vaultClient, createRetryInstance(properties.getVaultRetry()));
     }
