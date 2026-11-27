@@ -309,7 +309,6 @@ function ensureCacheFilled() {
   if [[ -n "$XROAD_MIRROR_UBUNTU_URL" ]] && [[ -n "$XROAD_MIRROR_USERNAME" ]] && [[ -n "$XROAD_MIRROR_TOKEN" ]]; then
     extra_vars+=("-e" "package_mirror_url=$XROAD_MIRROR_UBUNTU_URL")
     extra_vars+=("-e" "package_mirror_user=$XROAD_MIRROR_USERNAME")
-    extra_vars+=("-e" "package_mirror_token=$XROAD_MIRROR_TOKEN")
   fi
 
   ANSIBLE_CONFIG="config/ansible.cfg" ansible-playbook -i "$INVENTORY_PATH" \
@@ -325,7 +324,6 @@ function handleAnsible() {
   if [[ -n "$XROAD_MIRROR_UBUNTU_URL" ]] && [[ -n "$XROAD_MIRROR_USERNAME" ]] && [[ -n "$XROAD_MIRROR_TOKEN" ]]; then
     extra_vars+=("-e" "package_mirror_url=$XROAD_MIRROR_UBUNTU_URL")
     extra_vars+=("-e" "package_mirror_user=$XROAD_MIRROR_USERNAME")
-    extra_vars+=("-e" "package_mirror_token=$XROAD_MIRROR_TOKEN")
   fi
 
   local become_flags=()

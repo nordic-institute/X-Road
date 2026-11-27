@@ -321,7 +321,7 @@ jobs:
         run: |
           mirror_args=""
           if [[ "$MIRRORS_ENABLED" == "true" ]]; then
-            mirror_args="-e \"package_mirror_url=\$XROAD_MIRROR_UBUNTU_URL\" -e \"package_mirror_user=\$XROAD_MIRROR_USERNAME\" -e \"package_mirror_token=\$XROAD_MIRROR_TOKEN\""
+            mirror_args="-e \"package_mirror_url=\$XROAD_MIRROR_UBUNTU_URL\" -e \"package_mirror_user=\$XROAD_MIRROR_USERNAME\""
           fi
           start=$(date +%s)
           sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_dev.yml --forks 5 --skip-tags compile,build-packages -e onMacOs=no -e enable_netdata=false${mirror_args:+ $mirror_args}"

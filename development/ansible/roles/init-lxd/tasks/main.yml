@@ -242,7 +242,7 @@
 
 - name: Configure package mirror (Ubuntu)
   include_tasks: package-mirror.yml
-  when: package_mirror_url is defined and package_mirror_user is defined and package_mirror_token is defined
+  when: package_mirror_url is defined and package_mirror_user is defined and (lookup('env', 'XROAD_MIRROR_TOKEN') | length > 0)
   with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
 
 - name: Disable unattended-upgrades
@@ -277,7 +277,7 @@
 
 - name: Configure package mirror (RedHat family)
   include_tasks: package-mirror.yml
-  when: package_mirror_url is defined and package_mirror_user is defined and package_mirror_token is defined
+  when: package_mirror_url is defined and package_mirror_user is defined and (lookup('env', 'XROAD_MIRROR_TOKEN') | length > 0)
   with_inventory_hostnames: rhel_ss
 
 - name: Configure Oracle Linux {{ rhel_releasever }} repositories and en_US locale
