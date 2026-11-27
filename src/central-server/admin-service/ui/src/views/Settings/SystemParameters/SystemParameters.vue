@@ -42,22 +42,7 @@
             @click="collapseAllScopes"
           />
         </template>
-        <v-alert
-          v-if="restartBanner.restartAll || restartBanner.services.length > 0"
-          class="ma-4"
-          type="warning"
-          variant="outlined"
-          border="start"
-          density="compact"
-          data-test="configurable-properties-restart-warning"
-        >
-          <div v-if="restartBanner.restartAll" data-test="configurable-properties-restart-all">
-            {{ $t('configurableProperties.restartAllWarning') }}
-          </div>
-          <div v-else data-test="configurable-properties-restart-services">
-            {{ $t('configurableProperties.restartWarning', { services: restartBanner.services.join(', ') }) }}
-          </div>
-        </v-alert>
+        <XrdRestartBanner class="ma-4" :saved-properties="savedProperties" />
 
         <div class="px-4">
           <XrdRoundedSearchField
@@ -106,12 +91,12 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
-  buildRestartBanner,
   useNotifications,
   XrdBtn,
   XrdCard,
   XrdEditConfigurablePropertyDialog,
   XrdEmptyPlaceholder,
+  XrdRestartBanner,
   XrdScopePropertiesExpandable,
   XrdSubView,
   XrdView,
@@ -132,9 +117,8 @@ const configurableProperties = ref<ConfigurablePropertyDto[]>([]);
 const loadingProperties = ref(false);
 const editingProperty = ref<ConfigurablePropertyDto | undefined>(undefined);
 const savedProperties = ref<ConfigurablePropertyDto[]>([]);
-const modifiedProperties = ref<Set<string>>(new Set());
 const openScopes = ref<Record<string, boolean>>({});
-const restartBanner = computed(() => buildRestartBanner(savedProperties.value));
+const modifiedProperties = computed(() => new Set(savedProperties.value.map((property) => property.property_name!)));
 const propertySearch = ref('');
 
 const propertiesByScope = computed<Record<string, ConfigurablePropertyDto[]>>(() => {
@@ -189,10 +173,8 @@ function collapseAllScopes(): void {
 }
 
 function onPropertySaved(property: ConfigurablePropertyDto): void {
-  const propertyName = editingProperty.value?.property_name;
   editingProperty.value = undefined;
   savedProperties.value.push(property);
-  if (propertyName) modifiedProperties.value.add(propertyName);
   fetchConfigurablePropertiesList();
 }
 

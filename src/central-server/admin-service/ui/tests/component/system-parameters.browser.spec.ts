@@ -29,7 +29,6 @@ import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
 import { submitDialogForm } from '../setup/dialog-helpers';
-import { http, HttpResponse } from 'msw';
 import { Permissions } from '@/global';
 import type { MemberClass } from '@/openapi-types';
 import type { ConfigurablePropertyDto } from '@niis/shared-ui';
@@ -108,7 +107,6 @@ const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
     default_value: '5',
     effective_value: '5',
     value_source: 'DEFAULT',
-    scope: 'common',
     restart_policy: 'ALL_SERVICES',
     restart_services: [],
   },
@@ -135,8 +133,10 @@ describe('CS System Parameters — restart warning lists service names (Browser 
     renderRoute('/settings/system-parameters', {
       permissions: [Permissions.CHANGE_CONFIGURATION_PROPERTY],
       msw: [
-        http.get('/api/v1/system/property', () => HttpResponse.json(configurablePropertiesFixture)),
-        http.patch('/api/v1/system/property', () => new HttpResponse(null, { status: 204 })),
+        specHttp.get('/system/property', ({ response }) =>
+          response(200).json(configurablePropertiesFixture),
+        ),
+        specHttp.patch('/system/property', ({ response }) => response(204).empty()),
       ],
     });
 

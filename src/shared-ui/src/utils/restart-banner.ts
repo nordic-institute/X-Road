@@ -48,6 +48,8 @@ export function buildRestartBanner(savedProperties: ConfigurablePropertyDto[]): 
       case 'SERVICES':
         property.restart_services.forEach((name) => services.add(name));
         break;
+      default:
+        property.restart_policy satisfies never;
     }
   }
   return { restartAll, services: restartAll ? [] : [...services], archiverNextRun };

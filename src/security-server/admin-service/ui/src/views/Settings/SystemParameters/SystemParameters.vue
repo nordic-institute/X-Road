@@ -280,25 +280,7 @@
             @click="collapseAllScopes"
           />
         </template>
-        <v-alert
-          v-if="restartBanner.restartAll || restartBanner.services.length > 0 || restartBanner.archiverNextRun"
-          class="ma-4"
-          type="warning"
-          variant="outlined"
-          border="start"
-          density="compact"
-          data-test="configurable-properties-restart-warning"
-        >
-          <div v-if="restartBanner.restartAll" data-test="configurable-properties-restart-all">
-            {{ $t('configurableProperties.restartAllWarning') }}
-          </div>
-          <div v-else-if="restartBanner.services.length > 0" data-test="configurable-properties-restart-services">
-            {{ $t('configurableProperties.restartWarning', { services: restartBanner.services.join(', ') }) }}
-          </div>
-          <div v-if="restartBanner.archiverNextRun" data-test="configurable-properties-archiver-note">
-            {{ $t('configurableProperties.archiverNextRun') }}
-          </div>
-        </v-alert>
+        <XrdRestartBanner class="ma-4" :saved-properties="savedProperties" />
 
         <div class="px-4">
           <XrdRoundedSearchField
@@ -353,7 +335,6 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
-  buildRestartBanner,
   saveResponseAsFile,
   useNotifications,
   XrdBtn,
@@ -364,6 +345,7 @@ import {
   XrdEmptyPlaceholder,
   XrdEmptyPlaceholderRow,
   XrdHashValue,
+  XrdRestartBanner,
   XrdScopePropertiesExpandable,
   XrdStatusChip,
   XrdStatusIcon,
@@ -419,9 +401,8 @@ const configurableProperties = ref<ConfigurablePropertyDto[]>([]);
 const loadingProperties = ref(false);
 const editingProperty = ref<ConfigurablePropertyDto | undefined>(undefined);
 const savedProperties = ref<ConfigurablePropertyDto[]>([]);
-const modifiedProperties = ref<Set<string>>(new Set());
 const openScopes = ref<Record<string, boolean>>({});
-const restartBanner = computed(() => buildRestartBanner(savedProperties.value));
+const modifiedProperties = computed(() => new Set(savedProperties.value.map((property) => property.property_name!)));
 const propertySearch = ref('');
 
 const orderedCertificateAuthorities = computed<CertificateAuthority[]>(() =>
@@ -553,10 +534,8 @@ function collapseAllScopes(): void {
 }
 
 function onPropertySaved(property: ConfigurablePropertyDto): void {
-  const propertyName = editingProperty.value?.property_name;
   editingProperty.value = undefined;
   savedProperties.value.push(property);
-  if (propertyName) modifiedProperties.value.add(propertyName);
   fetchConfigurablePropertiesList();
 }
 

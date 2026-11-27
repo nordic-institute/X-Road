@@ -133,7 +133,7 @@ const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
     restart_services: [],
   },
   {
-    property_name: 'xroad.message-log.archive-max-filesize',
+    property_name: 'xroad.message-log-archiver.max-filesize',
     default_value: '33554432',
     effective_value: '33554432',
     value_source: 'DEFAULT',
@@ -427,7 +427,7 @@ describe('System Parameters — restart warning lists service names (Browser Mod
 
   const editCommon = () => editProperty('common', 'xroad.common.some-other-param', '6');
   const editService = () => editProperty('proxy', 'xroad.proxy.some-proxy-param', '2');
-  const editArchiver = () => editProperty('message-log-archiver', 'xroad.message-log.archive-max-filesize', '1024');
+  const editArchiver = () => editProperty('message-log-archiver', 'xroad.message-log-archiver.max-filesize', '1024');
 
   it.each([
     ['common then service', [editCommon, editService]],
@@ -442,6 +442,18 @@ describe('System Parameters — restart warning lists service names (Browser Mod
     await expect.element(warning()).toMatchTextContent(/^(warning)?All X-Road services need to be restarted for the changes to take effect\.$/);
     expect(restartServices().query()).toBeNull();
     expect(archiverNote().query()).toBeNull();
+  });
+
+  it('a shared setting and an archiver setting show the restart-all line and the next-run note without a service list', async () => {
+    await renderPage();
+    await openPanels('common', 'message-log-archiver');
+
+    await editCommon();
+    await editArchiver();
+
+    await expect.element(restartAll()).toMatchTextContent(/^All X-Road services need to be restarted for the changes to take effect\.$/);
+    await expect.element(archiverNote()).toMatchTextContent(/next run of the message log archiver\.$/);
+    expect(restartServices().query()).toBeNull();
   });
 
   it('an archiver-only edit shows the next-run note and no restart sentence', async () => {
