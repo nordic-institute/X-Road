@@ -59,6 +59,7 @@ public class SignerRepository {
             "SELECT id FROM signer_certificates WHERE ha_node_name = ? AND external_id = ?";
     private static final String FIND_CERTIFICATE_REQUEST_ID =
             "SELECT id FROM signer_certificate_requests WHERE ha_node_name = ? AND external_id = ?";
+    private static final String PIN_IS_EMPTY = "(pin IS NULL OR length(pin) = 0)";
 
     private final Connection connection;
     private final String nodeName;
@@ -117,6 +118,27 @@ public class SignerRepository {
                     throw new SQLException("Failed to insert token.");
                 }
             }
+        }
+    }
+
+    boolean isTokenPinEmpty(long tokenId) throws SQLException {
+        String sql = "SELECT 1 FROM signer_tokens WHERE id = ? AND ha_node_name = ? AND " + PIN_IS_EMPTY;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, tokenId);
+            statement.setString(2, nodeName);
+            try (ResultSet rs = statement.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    boolean setTokenPinIfEmpty(long tokenId, byte[] pinHash) throws SQLException {
+        String sql = "UPDATE signer_tokens SET pin = ? WHERE id = ? AND ha_node_name = ? AND " + PIN_IS_EMPTY;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setObject(1, pinHash, Types.BINARY);
+            statement.setLong(2, tokenId);
+            statement.setString(3, nodeName);
+            return statement.executeUpdate() > 0;
         }
     }
 

@@ -132,13 +132,28 @@ public class KeyConfMigrator {
     private long handleToken(DeviceType deviceType, SignerRepository repo, boolean isSoftToken, String keyconfPath) throws SQLException {
         Optional<Long> dbId = repo.getTokenId(deviceType.getId());
         if (dbId.isPresent()) {
-            logWarn(1, "⚠ Token {} already exists", deviceType.getId());
+            handleExistingToken(deviceType, repo, dbId.get(), isSoftToken, keyconfPath);
             return dbId.get();
         }
         byte[] pinHash = isSoftToken ? getPinHashFromInput(keyconfPath) : null;
         long tokenId = repo.saveToken(deviceType, pinHash);
         logInfo(1, "✅ Token {} saved", deviceType.getId());
         return tokenId;
+    }
+
+    private void handleExistingToken(DeviceType deviceType, SignerRepository repo, long tokenId, boolean isSoftToken,
+                                     String keyconfPath) throws SQLException {
+        if (isSoftToken && repo.isTokenPinEmpty(tokenId)) {
+            if (!Files.exists(softTokenKeystorePath(keyconfPath))) {
+                logWarn(1, "⚠ Token {} was not initialized in 7.8, its PIN hash was not set", deviceType.getId());
+                return;
+            }
+            if (repo.setTokenPinIfEmpty(tokenId, getPinHashFromInput(keyconfPath))) {
+                logInfo(1, "✅ PIN hash set on existing token {}", deviceType.getId());
+                return;
+            }
+        }
+        logWarn(1, "⚠ Token {} already exists", deviceType.getId());
     }
 
     private Optional<Long> handleKey(KeyType keyType, SignerRepository repo, boolean isSoftToken, long tokenId,
@@ -167,8 +182,7 @@ public class KeyConfMigrator {
         char[] pin = readPin();
         try {
             KeyStore keystore = KeyStore.getInstance("pkcs12");
-            try (FileInputStream fis = new FileInputStream(Paths.get(
-                    keyconfPath, SOFT_TOKEN, ".softtoken.p12").toFile())) {
+            try (FileInputStream fis = new FileInputStream(softTokenKeystorePath(keyconfPath).toFile())) {
                 keystore.load(fis, pin);
             }
             PrivateKey privateKey = (PrivateKey) keystore.getKey("pin", pin);
@@ -185,6 +199,10 @@ public class KeyConfMigrator {
 
         logInfo(1, "pin ok");
         return hashPin(pin);
+    }
+
+    private static Path softTokenKeystorePath(String keyconfPath) {
+        return Paths.get(keyconfPath, SOFT_TOKEN, ".softtoken.p12");
     }
 
     private void logInfo(int indentLevel, String message, Object... args) {

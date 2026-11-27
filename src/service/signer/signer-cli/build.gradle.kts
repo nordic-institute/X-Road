@@ -19,6 +19,8 @@ dependencies {
 
   implementation(libs.logback.classic)
 
+  runtimeOnly(libs.postgresql)
+
   testImplementation(libs.quarkus.junit5)
   testImplementation(libs.mockito.jupiter)
 }
