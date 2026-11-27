@@ -132,10 +132,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * candidates without one by negotiation. Every other failure keeps the agreement and the note entry and fails the
  * acquisition: a provider-side termination without a refusal and a failed initiation. A marked data address is
  * never returned: after a reused agreement's renegotiation, or after a fresh negotiation, it fails the acquisition
- * with {@code DSP_ACCESS_REFUSED}. A DCP identity rejection of the negotiation or the transfer - the provider
- * could not verify the consumer's identity - fails the acquisition with {@code DSP_IDENTITY_REJECTED} instead of
- * {@code DSP_NEGOTIATION_FAILED} or {@code DSP_TRANSFER_FAILED}; the renegotiation that follows one on a reused
- * agreement's transfer is not itself retried if its own negotiation or transfer is rejected the same way.
+ * with {@code DSP_ACCESS_REFUSED}. A DCP identity rejection of the catalog fetch, the negotiation or the transfer -
+ * the provider could not verify the consumer's identity - fails the acquisition with {@code DSP_IDENTITY_REJECTED}
+ * instead of {@code DSP_CATALOG_FETCH_FAILED}, {@code DSP_NEGOTIATION_FAILED} or {@code DSP_TRANSFER_FAILED}; the
+ * renegotiation that follows one on a reused agreement's transfer is not itself retried if its own negotiation or
+ * transfer is rejected the same way.
  *
  * <p>An acquisition runs under the {@link CallBudget} its caller supplies. The catalog fetch, the negotiation wait
  * and the transfer wait each get the lesser of their own cap and the time left, so together they never outlast the
@@ -386,7 +387,7 @@ public class AssetAccessOrchestrator {
                 && (xrdException.isCausedBy(DSP_ACCESS_REFUSED)
                 || xrdException.isCausedBy(DSP_IDENTITY_REJECTED)
                 || xrdException.isCausedBy(DSP_TRANSFER_FAILED)
-                && ProviderFailureClassifier.classify(xrdException.getDetails())
+                && ProviderFailureClassifier.classify(xrdException.getDetails(), ProviderFailureClassifier.Stage.TRANSFER)
                 == ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL);
     }
 
@@ -467,6 +468,15 @@ public class AssetAccessOrchestrator {
 
     private StageOutcome<Catalog> catalogOutcome(String key, StatusResult<byte[]> result) {
         if (result.failed()) {
+            if (ProviderFailureClassifier.classify(result.getFailureDetail(), ProviderFailureClassifier.Stage.CATALOG)
+                    == ProviderFailureClassifier.Classification.IDENTITY_REJECTION) {
+                monitor.warning("%s provider rejected the consumer's identity: catalog fetch".formatted(key));
+                return new StageOutcome.Failed<>(FailureKind.OTHER,
+                        XrdRuntimeException.systemException(DSP_IDENTITY_REJECTED)
+                                .origin(ErrorOrigin.DATASPACE)
+                                .details(result.getFailureDetail())
+                                .build());
+            }
             monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));
             return new StageOutcome.Failed<>(FailureKind.OTHER,
                     XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
@@ -722,7 +732,7 @@ public class AssetAccessOrchestrator {
         if (!(outcome instanceof StageOutcome.Failed(var failureKind, var failure))
                 || !(failure instanceof XrdRuntimeException xrdException)
                 || !xrdException.isCausedBy(DSP_TRANSFER_FAILED)
-                || ProviderFailureClassifier.classify(xrdException.getDetails())
+                || ProviderFailureClassifier.classify(xrdException.getDetails(), ProviderFailureClassifier.Stage.TRANSFER)
                 != ProviderFailureClassifier.Classification.IDENTITY_REJECTION) {
             return outcome;
         }

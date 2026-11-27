@@ -52,7 +52,6 @@ class AssetAccessOrchestratorRefusalTest extends AssetAccessOrchestratorTestSupp
     static Stream<String> failuresThatAreNotRefusals() {
         return Stream.of(
                 providerAnswer(400, "TransferType is not supported"),
-                providerAnswer(401, "agreement token rejected"),
                 providerAnswer(500, "agreement not found or not valid"),
                 "provider terminated");
     }

@@ -139,7 +139,7 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(404);
-        assertThat(ProviderFailureClassifier.classify(consumerDetail(response)))
+        assertThat(ProviderFailureClassifier.classify(consumerDetail(response), ProviderFailureClassifier.Stage.TRANSFER))
                 .isEqualTo(ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL);
     }
 
@@ -152,7 +152,7 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(400);
-        assertThat(ProviderFailureClassifier.classify(consumerDetail(response)))
+        assertThat(ProviderFailureClassifier.classify(consumerDetail(response), ProviderFailureClassifier.Stage.TRANSFER))
                 .isEqualTo(ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL);
     }
 
@@ -164,7 +164,7 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(400);
-        assertThat(ProviderFailureClassifier.classify(consumerDetail(response)))
+        assertThat(ProviderFailureClassifier.classify(consumerDetail(response), ProviderFailureClassifier.Stage.TRANSFER))
                 .isEqualTo(ProviderFailureClassifier.Classification.NO_REFUSAL);
     }
 
@@ -177,7 +177,7 @@ class ProviderRefusalCanaryTest {
         var response = providerAnswer();
 
         assertThat(response.getStatus()).isEqualTo(404);
-        assertThat(ProviderFailureClassifier.classify(consumerDetail(response)))
+        assertThat(ProviderFailureClassifier.classify(consumerDetail(response), ProviderFailureClassifier.Stage.TRANSFER))
                 .isEqualTo(ProviderFailureClassifier.Classification.IDENTITY_REJECTION);
     }
 

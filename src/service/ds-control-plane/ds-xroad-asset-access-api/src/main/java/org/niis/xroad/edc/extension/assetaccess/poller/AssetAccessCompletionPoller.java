@@ -327,7 +327,8 @@ public class AssetAccessCompletionPoller {
             if (state == ContractNegotiationStates.TERMINATING || state == ContractNegotiationStates.TERMINATED) {
                 monitor.debug("Negotiation %s reached %s".formatted(id, state));
                 var detail = errorDetailOrDefault(negotiation.getErrorDetail());
-                var failure = ProviderFailureClassifier.classify(detail) == ProviderFailureClassifier.Classification.IDENTITY_REJECTION
+                var failure = ProviderFailureClassifier.classify(detail, ProviderFailureClassifier.Stage.NEGOTIATION)
+                        == ProviderFailureClassifier.Classification.IDENTITY_REJECTION
                         ? identityRejectedFailure(id, detail)
                         : negotiationFailure(id, detail);
                 var failureKind = FailureClassifier.classify(negotiation);

@@ -462,6 +462,50 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
     }
 
     @Test
+    void catalogFetch401FailsTheAcquisitionWithDspIdentityRejected() {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = requestFor(null);
+
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR,
+                        "Counter Party responded with Response{protocol=h2, code=401, message=, "
+                                + "url=https://provider.example/dsp/catalog/request}. Body: Unauthorized..")));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest, defaultBudget());
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_identity_rejected");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
+    }
+
+    @Test
+    void catalogFetchBare404FailsTheAcquisitionWithDspCatalogFetchFailed() {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = requestFor(null);
+
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR,
+                        "Counter Party responded with Response{protocol=h2, code=404, message=, "
+                                + "url=https://provider.example/dsp/catalog/request}. Body: Not Found.")));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest, defaultBudget());
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_catalog_fetch_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
+    }
+
+    @Test
     void catalogFetchEdcExceptionThrowsDspCatalogFetchFailed() {
         var participantContext = buildParticipantContext();
         var assetAccessRequest = requestFor(null);

@@ -35,14 +35,16 @@ import java.util.regex.Pattern;
 
 /**
  * Recognises a provider refusal, or a provider rejection of the consumer's DCP identity, in the free-text
- * failure detail the consumer's EDC records for a contract negotiation or a transfer.
+ * failure detail the consumer's EDC records for a catalog request, a contract negotiation or a transfer.
  *
  * <p>The consumer receives the provider's HTTP answer as one sentence, {@code Counter Party responded with
  * Response{protocol=.., code=NNN, ..}. Body: ..}, inside the failure detail. An agreement refusal is a 409,
  * or a 400 or 404 whose body says {@value #AGREEMENT_NOT_VALID}: the provider no longer holds the agreement
- * valid. A bare 404, without that wording, is the provider rejecting a request token it could not verify: an
- * identity rejection. A bare 400 (for example an unsupported transfer type) and every other status are
- * neither.
+ * valid. For a contract negotiation or a transfer, a bare 404, without that wording, is the provider rejecting
+ * a request token it could not verify: an identity rejection. A catalog request never answers an unverifiable
+ * token with a 404; there, only a 401, with any body, is an identity rejection, and a 404 is neither (a wrong
+ * DSP path or version, or a proxy). A bare 400 (for example an unsupported transfer type) and every other
+ * status are neither.
  *
  * <p>{@link #classify} returning {@link Classification#NO_REFUSAL} says nothing more than "neither". A
  * detail without a provider sentence is not the same as a failed connection: provider-side termination
@@ -55,6 +57,7 @@ public final class ProviderFailureClassifier {
     /** The wording EDC puts in the body of an answer naming an agreement it does not hold valid. */
     public static final String AGREEMENT_NOT_VALID = "agreement not found or not valid";
 
+    private static final int UNAUTHORIZED = 401;
     private static final int CONFLICT = 409;
     private static final int BAD_REQUEST = 400;
     private static final int NOT_FOUND = 404;
@@ -67,17 +70,27 @@ public final class ProviderFailureClassifier {
         NO_REFUSAL,
         /** A 409, or a 400 or 404 carrying {@value #AGREEMENT_NOT_VALID}: the agreement is no longer valid. */
         AGREEMENT_REFUSAL,
-        /** A bare 404: the provider could not verify the consumer's DCP identity. */
+        /**
+         * A bare 404 on a contract negotiation or a transfer, or a 401 on a catalog request: the provider
+         * could not verify the consumer's DCP identity.
+         */
         IDENTITY_REJECTION
     }
 
+    /** The stage of the asset access acquisition that produced the failure detail. */
+    public enum Stage {
+        CATALOG, NEGOTIATION, TRANSFER
+    }
+
     /**
-     * Classifies the provider's answer from the failure detail of a contract negotiation or a transfer.
+     * Classifies the provider's answer from the failure detail of a catalog request, a contract negotiation
+     * or a transfer.
      *
      * @param failureDetail the failure detail, may be {@code null}
+     * @param stage the stage of the acquisition the failure detail comes from
      * @return the classification of the provider's answer
      */
-    public static Classification classify(String failureDetail) {
+    public static Classification classify(String failureDetail, Stage stage) {
         if (failureDetail == null) {
             return Classification.NO_REFUSAL;
         }
@@ -86,11 +99,14 @@ public final class ProviderFailureClassifier {
             return Classification.NO_REFUSAL;
         }
         var code = Integer.parseInt(status.group(1));
+        if (stage == Stage.CATALOG) {
+            return code == UNAUTHORIZED ? Classification.IDENTITY_REJECTION : Classification.NO_REFUSAL;
+        }
         var namesInvalidAgreement = failureDetail.toLowerCase(Locale.ROOT).contains(AGREEMENT_NOT_VALID);
         if (code == CONFLICT || ((code == BAD_REQUEST || code == NOT_FOUND) && namesInvalidAgreement)) {
             return Classification.AGREEMENT_REFUSAL;
         }
-        if (code == NOT_FOUND) {
+        if (code == NOT_FOUND || code == UNAUTHORIZED) {
             return Classification.IDENTITY_REJECTION;
         }
         return Classification.NO_REFUSAL;
