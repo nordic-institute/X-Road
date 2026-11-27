@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 TIMESTAMP=$(date '+%Y-%m-%d_%H%M%S')
 
-XROAD_INSTALLER_LOG_FILE="xroad-upgrade-${TIMESTAMP}.log"
+XROAD_INSTALLER_LOG_FILE="${XROAD_INSTALLER_LOG_FILE:-xroad-upgrade-${TIMESTAMP}.log}"
 export XROAD_INSTALLER_LOG_FILE
 
 source "$SCRIPT_DIR/lib/common.sh"

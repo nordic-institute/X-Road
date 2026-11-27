@@ -43,6 +43,7 @@ granular single-image selection call `images/build-security-server.sh <service..
 | `images/build-dev-infra.sh` | Dev-infra images (openbao, testca, postgres-dev, nginx-cp) |
 | `images/build-builder.sh` | Package-builder toolchain images |
 | `images/test-secret-store-init.sh [image]` | Container test of the secret store scripts (init, config writer, unseal, cluster bundle) on the dev OpenBao image (default `localhost:5555/openbao-dev:latest`); runs in CI as `secret-store-init-test` |
+| `images/test-opmonitor-env.sh [image]` | Container test of op-monitor's native environment file `opmonitor.conf`: which `DB_CONFIG_SOURCE_*` variables it exports with and without the proxy launcher (default image `ubuntu:24.04`); runs in CI as `opmonitor-env-test` |
 
 ---
 

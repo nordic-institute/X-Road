@@ -28,6 +28,9 @@ xrd-ss0 ansible_connection=lxd variant=fo
 [is_servers]
 xrd-is ansible_connection=lxd
 
+[opmon_servers]
+xrd-opmon ansible_connection=lxd
+
 # On Linux/WSL2 LXD runs on localhost — no Lima SSH hop needed.
 [lxd_servers]
 localhost ansible_connection=local

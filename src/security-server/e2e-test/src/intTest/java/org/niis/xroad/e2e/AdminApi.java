@@ -36,7 +36,10 @@ import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -63,6 +66,7 @@ class AdminApi {
     private static final String ADMIN_PASSWORD = "secret123!";
     private static final int MEMBER_ID_PARTS = 3;
     private static final int CLIENT_ID_PARTS = 4;
+    private static final int MAX_TRAFFIC_INTERVAL_MINUTES = 35_791;
     private static final String REGISTERED_STATUS = "REGISTERED";
     private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
     private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
@@ -511,6 +515,63 @@ class AdminApi {
     /** Deletes the op-monitor CA; the API answers 204 also when none is stored. */
     static Response deleteOpMonitorCa(String baseUrl, AdminSession session) {
         return authed(session).delete(baseUrl + "/api/v1/system/op-monitor-ca");
+    }
+
+    /**
+     * Reads the op-monitor CA baseline: empty when none is stored (204), otherwise the stored certificate's
+     * lower-case SHA-256 hash (200).
+     */
+    static Optional<String> opMonitorCaHash(String baseUrl, AdminSession session) {
+        var response = getOpMonitorCa(baseUrl, session);
+        if (response.getStatusCode() == HTTP_NO_CONTENT) {
+            return Optional.empty();
+        }
+        assertThat(response.getStatusCode()).as("op-monitor CA details: %s", response.getBody().asString())
+                .isEqualTo(HTTP_OK);
+        return Optional.of(response.jsonPath().getString("hash").toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * Lists the configurable-property entries by name; the value is the stored row value, or null when the
+     * property has no row.
+     */
+    static Map<String, String> listConfigurableProperties(String baseUrl, AdminSession session) {
+        var response = authed(session).get(baseUrl + "/api/v1/system/property");
+        assertThat(response.getStatusCode()).as("list properties: %s", response.getBody().asString())
+                .isEqualTo(HTTP_OK);
+        var result = new LinkedHashMap<String, String>();
+        response.jsonPath().getList("$", Map.class)
+                .forEach(entry -> result.put((String) entry.get("property_name"), (String) entry.get("current_value")));
+        return result;
+    }
+
+    /** Updates the value of a configurable property and answers 204; the dev environment seeds the rows the tests update. */
+    static Response patchConfigurableProperty(String baseUrl, AdminSession session, String name, String value) {
+        return sendJson(session, Method.PATCH, baseUrl + "/api/v1/system/property",
+                "{\"property_name\":\"%s\",\"property_value\":\"%s\"}".formatted(name, value));
+    }
+
+    /**
+     * Sums the success and failure counts the Diagnostics operational-monitoring view reports for the
+     * Security Server's own records between {@code from} and {@code to}, in one interval.
+     */
+    static long operationalMonitoringTrafficTotal(String baseUrl, AdminSession session, Instant from,
+                                                  Instant to) {
+        var minutes = Math.max(1, Math.min(MAX_TRAFFIC_INTERVAL_MINUTES, Duration.between(from, to).toMinutes() + 1));
+        var response = authed(session)
+                .queryParam("records_from", from.toString())
+                .queryParam("records_to", to.toString())
+                .queryParam("interval", minutes)
+                .get(baseUrl + "/api/v1/diagnostics/operational-monitoring");
+        assertThat(response.getStatusCode()).as("operational monitoring traffic: %s", response.getBody().asString())
+                .isEqualTo(HTTP_OK);
+        return response.jsonPath().getList("$", Map.class).stream()
+                .mapToLong(entry -> number(entry.get("success_count")) + number(entry.get("failure_count")))
+                .sum();
+    }
+
+    private static long number(Object value) {
+        return value == null ? 0 : ((Number) value).longValue();
     }
 
     /** Reads the agreement-token signing key status of the proxy behind this admin API. */

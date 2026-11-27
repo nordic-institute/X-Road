@@ -18,6 +18,7 @@ dependencies {
   annotationProcessor(libs.mapstructProcessor)
   annotationProcessor(libs.lombokMapstructBinding)
 
+  implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
   implementation(libs.jakarta.validationApi)
   implementation(libs.bundles.metrics)
   implementation(libs.mapstruct)
@@ -36,6 +37,7 @@ dependencies {
   testImplementation(libs.commons.cli)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.logback.classic)
+  testImplementation(libs.systemStubs)
   testImplementation(testFixtures(project(":lib:rpc-core")))
   testImplementation(testFixtures(project(":lib:properties-core")))
 

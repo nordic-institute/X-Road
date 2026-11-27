@@ -1,35 +1,15 @@
 #!/bin/bash
 . /usr/share/debconf/confmodule
 
-. /usr/share/xroad/scripts/write_tls_config.sh
-
 abort() {
   local rc=$?
   echo "xroad-opmonitor: FATAL: $*" >&2
   exit $((rc == 0 ? 1 : rc))
 }
-log () { echo >&2 "$@"; }
-
-store_tls_identity() {
-  local mode=""
-  if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
-    mode="reconfigure"
-  fi
-
-  local subject altn
-  db_get xroad-common/service-subject
-  subject="$RET"
-  db_get xroad-common/service-altsubject
-  altn="$RET"
-  write_tls_identity_rows op-monitor "$subject" "$altn" "$mode" \
-    || abort "Failed to store op-monitor TLS identity. ABORTING."
-}
 
 configure() {
   chown xroad:xroad /etc/xroad/backup.d/??_xroad-opmonitor
   chmod 0440 /etc/xroad/backup.d/??_xroad-opmonitor
-
-  store_tls_identity "$1"
 
   RET=
   db_get xroad-common/database-host || RET=""

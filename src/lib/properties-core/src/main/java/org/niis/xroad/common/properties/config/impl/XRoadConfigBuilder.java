@@ -40,6 +40,7 @@ import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
 import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
 import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,6 +59,8 @@ public final class XRoadConfigBuilder {
 
     private final List<ConfigKeyProvider> providers = new ArrayList<>();
     private Map<String, String> overrides = Map.of();
+    private Path fileOrigin;
+    private Map<String, String> fileValues = Map.of();
     private DeploymentMode deploymentMode = DeploymentMode.NATIVE;
 
     private XRoadConfigBuilder() {
@@ -89,6 +92,24 @@ public final class XRoadConfigBuilder {
     }
 
     /**
+     * Enables the settings-file layer with values the caller has already read. A key set in both the
+     * DB-override layer and the file layer resolves to the DB value.
+     * @param origin path the values were read from, used in log messages
+     * @param values flat dotted key to raw text value
+     * @return this builder
+     */
+    public XRoadConfigBuilder fileOverrides(Path origin, Map<String, String> values) {
+        this.fileOrigin = origin;
+        this.fileValues = Map.copyOf(values);
+        if (fileValues.isEmpty()) {
+            log.info("No settings file values loaded from {}", origin);
+        } else {
+            log.info("Loaded {} settings file value(s) from {}", fileValues.size(), origin);
+        }
+        return this;
+    }
+
+    /**
      * Sets the deployment mode. In {@link DeploymentMode#CONTAINERIZED} a key resolves to its
      * container default (when declared) instead of the regular default; DB overrides still win.
      * Defaults to {@link DeploymentMode#NATIVE}. Apps derive the value from their framework profile.
@@ -102,8 +123,9 @@ public final class XRoadConfigBuilder {
 
     /**
      * Loads the DB-override layer from the {@code configuration_properties} table via the
-     * {@code DB_CONFIG_SOURCE_*} environment. No-op when the DB config source is disabled or
-     * its URL is unset, so callers fall back to the country profile and packaged defaults. Reuses the framework-neutral
+     * {@code DB_CONFIG_SOURCE_*} environment. No-op when no configuration database is configured
+     * (the URL is unset), so keys resolve from the other layers. Fails when the URL is set but blank.
+     * Reuses the framework-neutral
      * {@link CachedDbConfigSource}.
      * @param appName application name (drives the read-pool name)
      * @return this builder
@@ -130,8 +152,7 @@ public final class XRoadConfigBuilder {
             log.info("Loaded {} config override(s) from DB for '{}' ({})", dbProps.size(), appName,
                     nodeName == null ? "shared rows only" : "shared rows and rows of node '" + nodeName + "'");
         } else {
-            log.info("DB config source disabled; '{}' resolves from the country profile, when one is active, "
-                    + "and packaged defaults", appName);
+            log.info("No configuration database configured for '{}'", appName);
         }
         return this;
     }
@@ -148,18 +169,36 @@ public final class XRoadConfigBuilder {
 
     XRoadConfig build(Map<String, String> env) {
         warnIgnoredEnvVars(env);
+        warnUnknownFileKeys();
         var countryProfile = CountryProfileLoader.resolve(env).orElse(ActiveCountryProfile.NONE);
-        return new DefaultXRoadConfig(providers, overrides, countryProfile, deploymentMode);
+        return new DefaultXRoadConfig(providers, overrides, fileOrigin, fileValues, countryProfile, deploymentMode);
     }
 
     void warnIgnoredEnvVars(Map<String, String> env) {
         var ignored = ignoredEnvVars(env);
-        if (!ignored.isEmpty()) {
-            log.warn("Environment variable(s) [{}] match registered xroad.* config keys but are IGNORED: "
-                            + "XRoadConfig resolves DB overrides, the country profile and packaged defaults only. "
-                            + "Set the value(s) in the configuration_properties table instead.",
-                    String.join(", ", ignored));
+        if (ignored.isEmpty()) {
+            return;
         }
+        var layers = fileOrigin == null
+                ? "DB overrides, the country profile"
+                : "DB overrides, the settings file, the country profile";
+        var advice = fileOrigin == null
+                ? "the configuration_properties table"
+                : "the configuration_properties table or the settings file";
+        log.warn("Environment variable(s) [{}] match registered xroad.* config keys but are IGNORED: "
+                        + "XRoadConfig resolves {} and defaults only. Set the value(s) in {} instead.",
+                String.join(", ", ignored), layers, advice);
+    }
+
+    private void warnUnknownFileKeys() {
+        var registered = providers.stream()
+                .flatMap(provider -> provider.keys().stream())
+                .map(ConfigKey::key)
+                .collect(Collectors.toSet());
+        fileValues.keySet().stream()
+                .filter(key -> !registered.contains(key))
+                .sorted()
+                .forEach(key -> log.warn("Unknown key '{}' in settings file {} is ignored", key, fileOrigin));
     }
 
     List<String> ignoredEnvVars(Map<String, String> env) {
@@ -176,8 +215,8 @@ public final class XRoadConfigBuilder {
 
     /**
      * Eager resolver. Resolves every registered key at construction (DB override &rarr;
-     * country profile &rarr; packaged default) and caches the resulting {@link Value}s; v1 does not reread until
-     * a new instance is built.
+     * settings file &rarr; country profile &rarr; container or packaged default) and caches the resulting
+     * {@link Value}s; v1 does not reread until a new instance is built.
      */
     @Slf4j
     private static final class DefaultXRoadConfig implements XRoadConfig {
@@ -185,13 +224,16 @@ public final class XRoadConfigBuilder {
         private final Map<ConfigKey<?>, Value<?>> resolved;
         private final ActiveCountryProfile countryProfile;
 
-        DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides,
-                           ActiveCountryProfile countryProfile, DeploymentMode deploymentMode) {
+        DefaultXRoadConfig(List<ConfigKeyProvider> providers, Map<String, String> overrides, Path fileOrigin,
+                           Map<String, String> fileValues, ActiveCountryProfile countryProfile,
+                           DeploymentMode deploymentMode) {
             this.countryProfile = countryProfile;
             var map = new LinkedHashMap<ConfigKey<?>, Value<?>>();
             for (var provider : providers) {
                 for (var key : provider.keys()) {
-                    map.put(key, resolve(key, overrides, countryProfile, deploymentMode));
+                    var value = resolve(key, overrides, fileOrigin, fileValues, countryProfile, deploymentMode);
+                    logSource(value, fileOrigin);
+                    map.put(key, value);
                 }
             }
             log.debug("Loaded {} key(s):\n\t{}",
@@ -221,11 +263,27 @@ public final class XRoadConfigBuilder {
             return Optional.ofNullable((Value<T>) resolved.get(key));
         }
 
-        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides,
-                                            ActiveCountryProfile countryProfile, DeploymentMode mode) {
+        private static void logSource(Value<?> value, Path fileOrigin) {
+            if (value.source() == Source.FILE) {
+                log.info("Config key {} resolved from source {} ({})", value.key().key(), value.source(), fileOrigin);
+            } else if (value.isOverridden()) {
+                log.info("Config key {} resolved from source {}", value.key().key(), value.source());
+            } else {
+                log.debug("Config key {} resolved from source {}", value.key().key(), value.source());
+            }
+        }
+
+        private static <T> Value<T> resolve(ConfigKey<T> key, Map<String, String> overrides, Path fileOrigin,
+                                            Map<String, String> fileValues, ActiveCountryProfile countryProfile,
+                                            DeploymentMode mode) {
             var raw = overrides.get(key.key());
             if (raw != null) {
                 return new Value<>(key, converAndValidate(raw, key, ""), Source.DB);
+            }
+            var fileRaw = fileValues.get(key.key());
+            if (fileRaw != null) {
+                var origin = " (from settings file %s)".formatted(fileOrigin);
+                return new Value<>(key, converAndValidate(fileRaw, key, origin), Source.FILE);
             }
             var countryRaw = countryProfile.values().get(key.key());
             if (countryRaw != null) {

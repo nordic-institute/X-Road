@@ -141,7 +141,8 @@ Doc. ID: UG-SYSPAR
         - [2.2 Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database)
     - [3 Security Server System Parameters](#3-security-server-system-parameters)
         - [3.1 Common parameters : `[common]`](#31-common-parameters--common)
-            - [3.1.1 Issuer data outage tolerance: `xroad.dsp.issuer-data`](#311-issuer-data-outage-tolerance-xroaddspissuer-data)
+            - [3.1.1 Internal gRPC connections: `xroad.common-rpc`](#311-internal-grpc-connections-xroadcommon-rpc)
+            - [3.1.2 Issuer data outage tolerance: `xroad.dsp.issuer-data`](#312-issuer-data-outage-tolerance-xroaddspissuer-data)
         - [3.2 Proxy parameters: `[proxy]`](#32-proxy-parameters-proxy)
         - [3.3 Proxy User Interface parameters: `[proxy-ui]`](#33-proxy-user-interface-parameters-proxy-ui)
         - [3.4 Signer parameters: `[signer]`](#34-signer-parameters-signer)
@@ -283,16 +284,18 @@ This chapter describes the system parameters used by the components of the X-Roa
 |-----------------------------------|-------------------------------------------------|----------------------------------------------------------------------|
 | configuration-path                | /etc/xroad/globalconf/                          | Absolute path to the directory where global configuration is stored. |
 | temp-files-path                   | /var/tmp/xroad/                                 | Absolute path to the directory where temporary files are stored.     |
-| grpc-internal-host                | 127.0.0.1                                       | Bind gRPC servers to a specific host.                                |
-| grpc-internal-tls-enabled         | true                                            | Enables mTLS for gRPC services                                       |
-| grpc-internal-keystore            | /var/run/xroad/xroad-grpc-internal-keystore.p12 | gRPC keystore for mTLS configuration.                                |
-| grpc-internal-keystore-password   | \<generated-value>                               | gRPC keystore password.                                              |
-| grpc-internal-truststore          | /var/run/xroad/xroad-grpc-internal-keystore.p12 | gRPC truststore for mTLS configuration.                              |
-| grpc-internal-truststore-password | \<generated-value>                               | gRPC truststore password.                                            |
 
 The time limit for retrying calls to the secret store is the X-Road 8 configuration property `xroad.common.vault-retry.budget`. It has the same default value of 30 s on the Security Server and on the Central Server. The interval between renewals of the secret store token is the property `xroad.common.vault-token-renewal.interval`. See section [4.1.1.2](#4112-secret-store-retry-xroadcommonvault-retry).
 
-#### 3.1.1 Issuer data outage tolerance: `xroad.dsp.issuer-data`
+#### 3.1.1 Internal gRPC connections: `xroad.common-rpc`
+
+The parameter in this section is an X-Road 8 configuration property, not an INI file parameter. Change it in the System Parameters view of the user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. All services of the server read the same value, once when they start. Services with different values cannot connect to each other, so after a change restart all the X-Road services together: `xroad-signer`, `xroad-confclient`, `xroad-proxy`, `xroad-monitor`, `xroad-auxiliary-service`, `xroad-proxy-ui-api`, `xroad-ds-control-plane`, `xroad-ds-identity-hub`, and `xroad-opmonitor` if installed.
+
+| **Parameter**              | **Default value** | **Description** |
+|----------------------------|-------------------|-----------------|
+| `xroad.common-rpc.use-tls` | true              | Production requires *true*. When enabled, mutual TLS is used for all gRPC communication between the internal services of the server, including the connection to the operational monitoring daemon. When *false*, every internal gRPC connection is unencrypted. |
+
+#### 3.1.2 Issuer data outage tolerance: `xroad.dsp.issuer-data`
 
 The parameters in this section are X-Road 8 configuration properties, not INI file parameters. They control how the dataspace connector (`xroad-ds-control-plane`) and the identity hub (`xroad-ds-identity-hub`) keep and refresh the statuslists and issuer DID documents that they download from an Issuer Service, and the cleanup of expired issuer data. They are shown in the Common panel of the System Parameters view of the user interface. They can also be set with the script `/usr/share/xroad/scripts/db_property.sh`, for example:
 
@@ -633,14 +636,13 @@ For instructions on how to change the parameter values, see section [Changing th
 
 ##### 4.1.1.1 Internal gRPC connections: `xroad.common-rpc`
 
-The parameter in this section is an X-Road 8 configuration property, not an INI file parameter. Change it in the System Parameters view of the user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. All services of the server read the same value, once when they start. Services with different values cannot connect to each other, so after a change restart these services together:
+The parameter in this section is an X-Road 8 configuration property, not an INI file parameter. On the Central Server, change it in the System Parameters view of the user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. All services of the server read the same value, once when they start. Services with different values cannot connect to each other, so after a change restart these services together:
 
-* Security Server: all the X-Road services (`xroad-signer`, `xroad-confclient`, `xroad-proxy`, `xroad-monitor`, `xroad-auxiliary-service`, `xroad-proxy-ui-api`, `xroad-ds-control-plane`, `xroad-ds-identity-hub`, and `xroad-opmonitor` if installed).
 * Central Server: `xroad-center`, `xroad-signer`, `xroad-confclient` and `xroad-ds-issuer-service`. The services `xroad-center-management-service` and `xroad-center-registration-service` do not use gRPC.
 
 | **Parameter**              | **Default value** | **Description** |
 |----------------------------|-------------------|-----------------|
-| `xroad.common-rpc.use-tls` | true              | For testing only; do not set to *false* in production. When enabled, mutual TLS is used for all gRPC communication between the internal services of the server. On the Security Server this includes the connection to the operational monitoring daemon. When *false*, every internal gRPC connection is unencrypted. On the Security Server, the Operational Monitoring CA and `xroad.op-monitor.rpc.allowed-client-names` \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\] are then not applied, so traffic to an external operational monitoring daemon is neither encrypted nor authenticated. |
+| `xroad.common-rpc.use-tls` | true              | For testing only; do not set to *false* in production. When enabled, mutual TLS is used for all gRPC communication between the internal services of the server. When *false*, every internal gRPC connection is unencrypted. |
 
 ##### 4.1.1.2 Secret store retry: `xroad.common.vault-retry`
 

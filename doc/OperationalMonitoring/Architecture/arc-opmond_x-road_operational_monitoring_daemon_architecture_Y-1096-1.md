@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.11  
+Version: 1.12  
 Document ID: ARC-OPMOND
 
 | Date       | Version | Description                                                           | Author             |
@@ -22,6 +22,7 @@ Document ID: ARC-OPMOND
 | 15.01.2026 | 1.9     | Update schema file locations                                          | Mohamed Elbeltagy  |
 | 19.10.2026 | 1.10    | Store and query over gRPC                                             | Eneli Reimets      |
 | 22.10.2026 | 1.11    | Operational monitoring daemon needs no global configuration           | Eneli Reimets      |
+| 23.11.2026 | 1.12    | Corrected the TLS identity statement and added the external daemon to the deployment view | Eneli Reimets      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -122,7 +123,7 @@ The service listens on the address and port defined in the system parameters of 
 
 This protocol is used by the X-Road security server to store its cached operational monitoring data. The protocol is a synchronous RPC-style protocol based on gRPC: the security server calls the `StoreOperationalData` method of the operational monitoring gRPC service. The messages are defined in a protocol buffers file, see [Appendix A](#AppendixA).
 
-The connection is secured with TLS and both sides are authenticated. The security server and the monitoring daemon use the shared internal gRPC identity of the security server that all internal gRPC connections of the security server use; there are no separate operational monitoring TLS certificates.
+The connection is secured with TLS and both sides are authenticated. The daemon takes its TLS identity from the secret store of its host or, for an external daemon, from files (see [Section 4](#4-deployment-view)). For the trust rules, see [UG-SS section 15.2.3](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md#1523-connection-and-trust-between-the-security-server-and-the-operational-monitoring-daemon).
 
 The gRPC channel of the security server to the monitoring daemon waits for the connection to become ready (*wait-for-ready*) instead of failing when the daemon is not reachable, and does not send keepalive pings. Every call has a deadline: the call fails if the daemon has not answered within the time defined by the parameter `xroad.common-rpc.channel.op-monitor.deadline-after` of the channel (60 seconds by default), see [[UG-OPMONSYSPAR]](#UG-OPMONSYSPAR).
 
@@ -148,7 +149,9 @@ This query is used by the Security Server to retrieve operational monitoring dat
 
 ## 4 Deployment View
 
-The operational monitoring daemon is deployed as a single node that runs the operational monitoring daemon main.
+The operational monitoring daemon is deployed as a single node that runs the operational monitoring daemon main. One daemon serves one security server.
+
+By default the daemon runs on the host of the security server. It can run on a separate host instead. The external host needs the package `xroad-opmonitor` and a local PostgreSQL database. It needs no configuration client, no configuration anchor and no secret store. The daemon reads its parameters from a settings file and its TLS identity from files, and the security server connects to it over gRPC and TLS. See [UG-SS section 15.3](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md#153-external-operational-monitoring-daemon).
 
 
 <a name="AppendixA"/>

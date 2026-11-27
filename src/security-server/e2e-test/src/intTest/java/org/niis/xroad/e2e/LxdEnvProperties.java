@@ -56,6 +56,11 @@ public interface LxdEnvProperties {
     @WithName("ss1-host")
     String ss1Host();
 
+    /** Op-monitor host, the channel host Security Servers use for it (TEST_FRAMEWORK_LXD_OPMON_HOST). */
+    @WithDefault("xrd-opmon.lxd")
+    @WithName("opmon-host")
+    String opmonHost();
+
     /** Information System (IS) mock host (TEST_FRAMEWORK_LXD_IS_HOST). */
     @WithDefault("xrd-is.lxd")
     @WithName("is-host")

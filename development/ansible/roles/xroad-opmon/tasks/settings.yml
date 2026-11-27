@@ -1,0 +1,9 @@
+---
+- name: Write the op-monitor settings file
+  ansible.builtin.template:
+    src: op-monitor-settings.yaml.j2
+    dest: "{{ xroad_opmon_settings_file }}"
+    owner: xroad
+    group: xroad
+    mode: "0640"
+  register: opmon_settings

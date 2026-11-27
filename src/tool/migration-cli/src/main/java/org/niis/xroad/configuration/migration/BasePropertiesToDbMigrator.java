@@ -30,6 +30,7 @@ package org.niis.xroad.configuration.migration;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.migration.utils.InstallationType;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
@@ -38,6 +39,7 @@ import java.util.TreeMap;
 public abstract class BasePropertiesToDbMigrator {
 
     static final String AUTO_CONFIRM_ENV = "XROAD_MIGRATION_AUTO_CONFIRM";
+    static final String REDACTED = "***";
 
     abstract Map<String, String> loadProperties(String filePath);
 
@@ -50,7 +52,7 @@ public abstract class BasePropertiesToDbMigrator {
 
         if (log.isDebugEnabled()) {
             log.debug("Loaded properties from file {}:", filePath);
-            loadedProperties.forEach((k, v) -> log.debug("{}={}", k, v));
+            loadedProperties.forEach((k, v) -> log.debug("{}={}", k, loggable(k, v)));
         }
 
         LegacyConfigValueConverter.ConversionResult conversionResult = LegacyConfigValueConverter.convert(loadedProperties);
@@ -80,6 +82,10 @@ public abstract class BasePropertiesToDbMigrator {
         return "y".equalsIgnoreCase(input) || "yes".equalsIgnoreCase(input);
     }
 
+    static String loggable(String key, String value) {
+        return key.toLowerCase(Locale.ROOT).contains("password") ? REDACTED : value;
+    }
+
     String readEnv(String name) {
         return System.getenv(name);
     }
@@ -87,7 +93,7 @@ public abstract class BasePropertiesToDbMigrator {
     void saveToDb(Map<String, String> properties, String dbPropertiesPath, InstallationType installationType) {
         try (DbRepository dbRepo = new DbRepository(dbPropertiesPath, installationType)) {
             properties.forEach((key, value) -> {
-                log.debug("Saving property {}={}", key, value);
+                log.debug("Saving property {}={}", key, loggable(key, value));
                 dbRepo.saveProperty(String.valueOf(key), String.valueOf(value));
             });
         }

@@ -85,6 +85,22 @@ confirm_step() {
   fi
 }
 
+# Write every migration-CLI output line that starts with "WARNING:" to the upgrade log.
+# log_warn adds its own "WARNING:" marker, so the prefix is stripped first. A bare grep
+# fails the script under set -e when no line matches, hence the "|| true".
+forward_migration_warnings() {
+  local output_file="$1"
+  local warnings line
+  warnings=$(grep '^WARNING:' "$output_file" || true)
+  if [[ -z "$warnings" ]]; then
+    return 0
+  fi
+  while IFS= read -r line; do
+    line="${line#WARNING:}"
+    log_warn "${line# }"
+  done <<< "$warnings"
+}
+
 # Run a single migration-CLI step with sentinel-based idempotency and
 # per-step operator confirmation.
 #
@@ -138,9 +154,11 @@ run_migration_step() {
   local tmpout
   tmpout=$(mktemp)
   if ! java -jar "$MIGRATION_CLI_JAR" "$step" "${args[@]}" 2>&1 | tee "$tmpout"; then
+    forward_migration_warnings "$tmpout"
     rm -f "$tmpout"
     log_die "Migration CLI step '$sentinel' failed (non-zero exit). Sentinel not written."
   fi
+  forward_migration_warnings "$tmpout"
   # Migration-CLI sometimes returns 0 even after an internal exception. Scan
   # output for stack traces / error markers and fail if we see any.
   if grep -qE '^(Error |Caused by:|Exception in |[[:alpha:].]+Exception:)' "$tmpout"; then

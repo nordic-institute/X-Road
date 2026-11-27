@@ -27,6 +27,7 @@
 
 package org.niis.xroad.configuration.migration;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -47,6 +48,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+@Slf4j
 public class IniUtil {
 
     private static final String OP_MONITOR_SECTION = "op-monitor";
@@ -101,7 +103,7 @@ public class IniUtil {
                 }
             }
         }
-        deriveOpMonitorHostRows(filePath).forEach((key, value) ->
+        deriveOpMonitorHostRows(filePath).rows().forEach((key, value) ->
                 insertNestedProperty(properties, key.split("\\."), value));
 
         Map<String, Object> root = new HashMap<>();
@@ -144,8 +146,12 @@ public class IniUtil {
                 }
             }
         }
-        deriveOpMonitorHostRows(filePath).forEach((key, value) ->
+        var opMonitorHost = deriveOpMonitorHostRows(filePath);
+        opMonitorHost.rows().forEach((key, value) ->
                 properties.put(String.join(".", rootPrefix, key), value));
+        if (opMonitorHost.remote()) {
+            skipOpMonitorDaemonProperties(properties, rootPrefix);
+        }
 
         return properties;
     }
@@ -168,15 +174,26 @@ public class IniUtil {
         return keys;
     }
 
-    /**
-     * The rows are derived only for a file that sets {@code [op-monitor] host}. The host value used is the one
-     * that wins when the operator files are applied in order: {@code override-*.ini} alphabetically, then
-     * {@code local.ini}.
-     */
-    private Map<String, String> deriveOpMonitorHostRows(String filePath) {
-        if (readOpMonitorHost(load(filePath)) == null) {
-            return Map.of();
+    private static void skipOpMonitorDaemonProperties(Map<String, String> properties, String rootPrefix) {
+        var daemonPrefix = String.join(".", rootPrefix, OP_MONITOR_SECTION) + ".";
+        var skipped = properties.keySet().stream()
+                .filter(key -> key.startsWith(daemonPrefix))
+                .sorted()
+                .toList();
+        if (!skipped.isEmpty()) {
+            properties.keySet().removeAll(skipped);
+            log.info("The op-monitor host is a remote host. Not migrated, set on the external host: {}",
+                    String.join(", ", skipped));
         }
+    }
+
+    /**
+     * The host value used is the one that wins when the operator files are applied in order:
+     * {@code override-*.ini} alphabetically, then {@code local.ini}. Whether the host is remote is decided for
+     * every file of the chain. The rows and the warning are produced only for a file that sets
+     * {@code [op-monitor] host}.
+     */
+    private OpMonitorHostRule.Result deriveOpMonitorHostRows(String filePath) {
         String effectiveHost = null;
         for (Path file : operatorIniChain(Paths.get(filePath))) {
             var host = readOpMonitorHost(load(file.toString()));
@@ -184,7 +201,17 @@ public class IniUtil {
                 effectiveHost = host;
             }
         }
-        return opMonitorHostRule.derive(effectiveHost).rows();
+        if (effectiveHost == null) {
+            return new OpMonitorHostRule.Result(Map.of(), null, false);
+        }
+        var result = opMonitorHostRule.derive(effectiveHost);
+        if (readOpMonitorHost(load(filePath)) == null) {
+            return new OpMonitorHostRule.Result(Map.of(), null, result.remote());
+        }
+        if (result.warning() != null) {
+            log.warn(result.warning());
+        }
+        return result;
     }
 
     private static String readOpMonitorHost(LoadedIniFile ini) {

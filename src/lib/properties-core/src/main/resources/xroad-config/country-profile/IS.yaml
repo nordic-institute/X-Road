@@ -6,3 +6,6 @@ xroad:
   proxy:
     message-log:
       message-body-logging: false
+    addon:
+      op-monitor:
+        enabled: true

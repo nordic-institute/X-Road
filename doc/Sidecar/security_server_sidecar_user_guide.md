@@ -107,7 +107,7 @@ All images can act as a provider or consumer Security Server. The images with a 
 
 The `slim` image, which didn't include message logging or environmental and operational monitoring, was removed in X-Road 8. Instead, the additional modules can now be enabled and disabled using the Security Server admin UI or the management REST API.
 
-The trust settings of the operational monitoring connection are described in [UG-SS](#Ref_UG-SS) section [15.2.7](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#1527-trust-settings-of-the-operational-monitoring-connection).
+The trust settings of the operational monitoring connection are described in [UG-SS](#Ref_UG-SS) section [15.2.3](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#1523-connection-and-trust-between-the-security-server-and-the-operational-monitoring-daemon).
 
 ### 1.2 References
 

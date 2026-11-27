@@ -1,0 +1,50 @@
+---
+- name: Look for the op-monitor RPC identity files
+  ansible.builtin.stat:
+    path: "{{ xroad_opmon_identity_dir }}/{{ item }}"
+  loop:
+    - server.key
+    - server.crt
+  register: opmon_identity_files
+
+- name: Refuse a half identity
+  ansible.builtin.assert:
+    that:
+      - opmon_identity_files.results | selectattr('stat.exists') | list | length != 1
+    fail_msg: >-
+      Only one of server.key and server.crt exists in {{ xroad_opmon_identity_dir }}; nothing was replaced.
+      Restore the missing file or remove both.
+    quiet: true
+
+- name: Generate the op-monitor RPC identity
+  ansible.builtin.command:
+    argv:
+      - /usr/share/xroad/scripts/generate_opmonitor_rpc_identity.sh
+      - "{{ xroad_opmon_channel_host }}"
+  when: opmon_identity_files.results | selectattr('stat.exists') | list | length == 0
+  register: opmon_identity_generated
+
+- name: Read the subject alternative names of the identity certificate
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - x509
+      - -in
+      - "{{ xroad_opmon_identity_dir }}/server.crt"
+      - -noout
+      - -ext
+      - subjectAltName
+  register: opmon_identity_sans
+  changed_when: false
+
+- name: Require the channel host among the subject alternative names
+  vars:
+    opmon_channel_host_is_ip: "{{ xroad_opmon_channel_host is match('^[0-9.]+$') or ':' in xroad_opmon_channel_host }}"
+    opmon_channel_san: "{{ ('IP Address:' if opmon_channel_host_is_ip | bool else 'DNS:') ~ xroad_opmon_channel_host }}"
+  ansible.builtin.assert:
+    that:
+      - opmon_channel_san in (opmon_identity_sans.stdout | regex_findall('(?:DNS|IP Address):[^,\s]+'))
+    fail_msg: >-
+      The identity certificate {{ xroad_opmon_identity_dir }}/server.crt has no subject alternative name for the channel host
+      {{ xroad_opmon_channel_host }}. The existing key and certificate are kept; replace them deliberately or change the channel host.
+    quiet: true

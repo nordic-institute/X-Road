@@ -1,0 +1,101 @@
+---
+- name: Wait for the op-monitor unit to be active
+  ansible.builtin.command: systemctl is-active xroad-opmonitor
+  register: opmon_unit_active
+  changed_when: false
+  failed_when: false
+  until: opmon_unit_active.stdout == 'active'
+  retries: 12
+  delay: 5
+
+- name: Require an active op-monitor unit
+  ansible.builtin.assert:
+    that:
+      - opmon_unit_active.stdout == 'active'
+    fail_msg: "xroad-opmonitor is {{ opmon_unit_active.stdout }}, not active."
+    quiet: true
+
+- name: List the configuration database key names in the op-monitor environment
+  ansible.builtin.shell: |
+    set -o pipefail
+    pid=$(systemctl show --property=MainPID --value xroad-opmonitor)
+    test "$pid" -gt 0
+    tr '\0' '\n' < "/proc/$pid/environ" | sed -n 's/^\(DB_CONFIG_SOURCE_[A-Za-z0-9_]*\)=.*/\1/p'
+  args:
+    executable: /bin/bash
+  register: opmon_db_env_keys
+  changed_when: false
+
+- name: Require no configuration database key in the op-monitor environment
+  ansible.builtin.assert:
+    that:
+      - opmon_db_env_keys.stdout_lines | length == 0
+    fail_msg: "The op-monitor environment carries {{ opmon_db_env_keys.stdout_lines | join(', ') }}."
+    quiet: true
+
+- name: Wait for the file-based RPC identity to be loaded
+  ansible.builtin.shell: |
+    set -o pipefail
+    invocation=$(systemctl show --property=InvocationID --value xroad-opmonitor)
+    journalctl "_SYSTEMD_INVOCATION_ID=$invocation" --output cat --no-pager | grep -c 'Loaded the file-based RPC identity'
+  args:
+    executable: /bin/bash
+  register: opmon_identity_loaded
+  changed_when: false
+  failed_when: false
+  until: opmon_identity_loaded.stdout | default('0') | int > 0
+  retries: 12
+  delay: 5
+
+- name: Require the file-based RPC identity to be loaded
+  ansible.builtin.assert:
+    that:
+      - opmon_identity_loaded.stdout | default('0') | int > 0
+    fail_msg: "The xroad-opmonitor journal has no 'Loaded the file-based RPC identity' line."
+    quiet: true
+
+- name: Accept the listener in plain and IPv4-mapped form
+  ansible.builtin.set_fact:
+    opmon_expected_listeners:
+      - "{{ xroad_opmon_listen_address }}:{{ xroad_opmon_rpc_port }}"
+      - "[::ffff:{{ xroad_opmon_listen_address }}]:{{ xroad_opmon_rpc_port }}"
+
+- name: Read the listening TCP sockets
+  ansible.builtin.shell: |
+    set -o pipefail
+    ss -H -ltn | awk '{print $4}'
+  args:
+    executable: /bin/bash
+  register: opmon_listeners
+  changed_when: false
+  until: opmon_expected_listeners | intersect(opmon_listeners.stdout_lines) | length > 0
+  retries: 12
+  delay: 5
+  failed_when: false
+
+- name: Require op-monitor to listen on the listen address and the RPC port
+  ansible.builtin.assert:
+    that:
+      - opmon_expected_listeners | intersect(opmon_listeners.stdout_lines) | length > 0
+    fail_msg: "Nothing listens on {{ xroad_opmon_listen_address }}:{{ xroad_opmon_rpc_port }}."
+    quiet: true
+
+- name: List the installed packages op-monitor must not need
+  ansible.builtin.command:
+    argv:
+      - dpkg-query
+      - --show
+      - --showformat=${db:Status-Abbrev}${Package}\n
+      - xroad-confclient
+      - xroad-secret-store-*
+      - openbao
+  register: opmon_forbidden_packages
+  changed_when: false
+  failed_when: false
+
+- name: Require no configuration client, secret store or OpenBao package
+  ansible.builtin.assert:
+    that:
+      - opmon_forbidden_packages.stdout_lines | select('match', '^ii ') | list | length == 0
+    fail_msg: "Installed: {{ opmon_forbidden_packages.stdout_lines | select('match', '^ii ') | join(', ') }}."
+    quiet: true

@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.e2e.container.E2eEnvSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.testcontainers.containers.Container;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.jupiter.api.parallel.ResourceAccessMode.READ;
 import static org.niis.xroad.e2e.Mock1Fixture.MOCK1_SERVICE_PATH;
 import static org.niis.xroad.e2e.Mock1Fixture.callService;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
@@ -69,6 +71,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  */
 @DisplayName("SS op-monitor RPC client-name allow-list")
 @Order(395)
+@ResourceLock(value = "op-monitor-ca", mode = READ)
+@ResourceLock(value = "configurable-property", mode = READ)
 class SsOpMonitorAllowListTest extends E2eTest {
 
     private static final String PROVIDER_ENV = "ss0";

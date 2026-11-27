@@ -12,9 +12,8 @@
     name: xroad-opmonitor
     state: present
 
-# The proxy-side addon flag is seeded by msglog-encryption.yml, gated on the same
-# xroad_install_opmonitoring. Config goes into configuration_properties: the
-# XRoadConfig DSL resolves DB overrides and packaged defaults only, never conf.d yaml.
+# The op-monitor timestamp offset is stored in configuration_properties.
+# The local daemon on this Security Server gets this setting from the database.
 - name: seed op-monitor addon config
   become: true
   command:
@@ -24,6 +23,24 @@
       - xroad.op-monitor.records-available-timestamp-offset-seconds
       - "1"
       - --yes
+  notify: restart xroad-proxy
+
+# The three op-monitor channel rows hold the values the Security Server uses when no row exists.
+# The dev environment seeds them on xrd-ss1 so the LXD e2e tests start from stored rows.
+- name: seed op-monitor channel rows
+  become: true
+  when: inventory_hostname == 'xrd-ss1'
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - "{{ item.key }}"
+      - "{{ item.value }}"
+      - --yes
+  loop:
+    - { key: xroad.common-rpc.channel.op-monitor.host, value: "127.0.0.1" }
+    - { key: xroad.common-rpc.channel.op-monitor.port, value: "2081" }
+    - { key: xroad.common-rpc.channel.op-monitor.deadline-after, value: "60000" }
   notify: restart xroad-proxy
 
 # deb postinst auto-starts the daemon on Ubuntu; the RHEL package does not.

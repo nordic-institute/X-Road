@@ -27,13 +27,24 @@
 package org.niis.xroad.common.properties.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.properties.config.keys.ConfigKeyProviders;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ExtendWith(SystemStubsExtension.class)
 class FrameworkPublishedConfigTest {
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     /**
      * Every key the framework itself resolves — a packaged {@code application.yaml} interpolating it into
@@ -119,5 +130,22 @@ class FrameworkPublishedConfigTest {
     @Test
     void nothingIsPublishedWhenNoDatabaseIsConfigured() {
         assertThat(FrameworkPublishedConfig.storedOverrides("proxy", ConfigKeyProviders.allProviders())).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   ", "?currentSchema=serverconf"})
+    void blankConfigurationDatabaseUrlFailsInsteadOfPublishingNothing(String url) {
+        var prefix = Prefix.of(Category.PROXY, "xroad.framework-blank-url-test");
+        prefix.integer("published").withDefaultValue(1).publishedToFramework().build();
+        var provider = ConfigKeyProvider.forPrefix(prefix);
+        variables.set("DB_CONFIG_SOURCE_URL", url);
+        var providers = List.of(provider);
+
+        assertThatThrownBy(() -> FrameworkPublishedConfig.storedOverrides("proxy", providers))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Configuration database source")
+                .hasMessageContaining("DB_CONFIG_SOURCE_URL")
+                .hasMessageContaining("is set but has no base URL")
+                .hasMessageNotContaining("connection pool");
     }
 }

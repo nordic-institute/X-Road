@@ -1,0 +1,9 @@
+---
+# The xroad-base dependency has already configured the package repository.
+- ansible.builtin.import_tasks: channel.yml
+- ansible.builtin.import_tasks: install.yml
+- ansible.builtin.import_tasks: identity.yml
+- ansible.builtin.import_tasks: ss-rpc-ca.yml
+- ansible.builtin.import_tasks: settings.yml
+- ansible.builtin.import_tasks: start.yml
+- ansible.builtin.import_tasks: verify.yml

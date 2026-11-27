@@ -29,7 +29,11 @@ package org.niis.xroad.common.properties.dbsource;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable.Row;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -37,10 +41,15 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(SystemStubsExtension.class)
 class NodeAwareDbSourceTest {
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     private static Map<String, String> databaseEnvironment;
 
@@ -105,6 +114,16 @@ class NodeAwareDbSourceTest {
                 .isEqualTo("node_1");
         assertThat(DbSourceConfig.loadValues("test-app").getNodeName()).isNull();
         assertThat(DbSourceConfig.loadValues("test-app", NodeNameProvider.shared()).getNodeName()).isNull();
+    }
+
+    @Test
+    void blankUrlFailsEvenWhenTheNodeAndTheTableAreConfigured() {
+        databaseEnvironment.forEach(variables::set);
+        variables.set("DB_CONFIG_SOURCE_URL", "");
+
+        assertThatThrownBy(() -> DbSourceConfig.loadValues("test-app", () -> Optional.of("node_1")))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("DB_CONFIG_SOURCE_URL");
     }
 
     private static Map<String, String> load(String nodeName) {

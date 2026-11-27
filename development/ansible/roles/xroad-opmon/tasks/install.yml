@@ -1,0 +1,6 @@
+---
+- name: Install xroad-opmonitor
+  ansible.builtin.apt:
+    name: xroad-opmonitor
+    state: present
+    lock_timeout: 120

@@ -33,9 +33,13 @@ import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.SQLException;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -113,6 +117,73 @@ public class CachedDbConfigSourceTest {
         when(config.getTableName()).thenReturn("missing_table");
 
         assertThrows(IllegalStateException.class, () -> new CachedDbConfigSource(config));
+    }
+
+    @Test
+    void urlWithoutADriverFailsNamingTheSourceAndLeaksNoCredentials() {
+        DbSourceConfig config = mockConfig("test-app");
+        when(config.getUrl()).thenReturn("jdbc:nodriver://localhost/db?user=url-user&password=url-secret&ssl=true");
+        when(config.getUsername()).thenReturn("config-user");
+        when(config.getPassword()).thenReturn("config-secret".toCharArray());
+
+        var thrown = assertThrows(IllegalStateException.class, () -> new CachedDbConfigSource(config));
+
+        assertThat(thrown.getMessage()).contains("Configuration database source").contains("DB_CONFIG_SOURCE_URL")
+                .contains("(root cause: SQLException, SQLState 08001)");
+        assertNoCredentials(thrown);
+    }
+
+    @Test
+    void rejectedCredentialsFailNamingTheSourceAndLeakNoCredentials() {
+        DbSourceConfig config = mockConfig("test-app");
+        when(config.getUsername()).thenReturn("config-user");
+        when(config.getPassword()).thenReturn("config-secret".toCharArray());
+
+        var thrown = assertThrows(IllegalStateException.class, () -> new CachedDbConfigSource(config));
+
+        assertThat(thrown.getMessage()).contains("Configuration database source")
+                .contains("(root cause: JdbcSQLInvalidAuthorizationSpecException, SQLState 28000)");
+        assertNoCredentials(thrown);
+    }
+
+    @Test
+    void unreachableDatabaseFailsNamingTheSourceAndLeaksNoCredentials() {
+        DbSourceConfig config = mockConfig("test-app");
+        when(config.getUrl()).thenReturn("jdbc:h2:tcp://127.0.0.1:1/mem:url-secret");
+        when(config.getUsername()).thenReturn("config-user");
+        when(config.getPassword()).thenReturn("config-secret".toCharArray());
+
+        var thrown = assertThrows(IllegalStateException.class, () -> new CachedDbConfigSource(config));
+
+        assertThat(thrown.getMessage()).contains("Configuration database source")
+                .contains("(root cause: ConnectException, SQLState 90067)");
+        assertNoCredentials(thrown);
+    }
+
+    @Test
+    void diagnosticNamesTheRootCauseAndTheDeepestSqlStateWithoutAnyMessage() {
+        var failure = new IllegalStateException("outer jdbc:x://host?password=outer-secret",
+                new SQLException("middle user=middle-user", "28P01",
+                        new SQLException("inner without state", (String) null,
+                                new IOException("root password=root-secret"))));
+
+        assertThat(CachedDbConfigSource.diagnostic(failure))
+                .isEqualTo("root cause: IOException, SQLState 28P01");
+    }
+
+    @Test
+    void diagnosticWithoutSqlStateNamesOnlyTheRootCause() {
+        assertThat(CachedDbConfigSource.diagnostic(new IllegalArgumentException("url-secret")))
+                .isEqualTo("root cause: IllegalArgumentException");
+    }
+
+    private static void assertNoCredentials(Throwable thrown) {
+        var trace = new StringWriter();
+        thrown.printStackTrace(new PrintWriter(trace));
+        assertThat(trace.toString())
+                .doesNotContain("config-user").doesNotContain("config-secret")
+                .doesNotContain("url-user").doesNotContain("url-secret")
+                .doesNotContain("user=").doesNotContain("password=").doesNotContain("USER=").doesNotContain("PASSWORD=");
     }
 
     private DbSourceConfig mockConfig(String appName) {

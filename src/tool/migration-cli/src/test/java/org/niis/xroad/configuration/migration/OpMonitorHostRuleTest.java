@@ -36,6 +36,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -46,19 +47,19 @@ import static org.niis.xroad.configuration.migration.OpMonitorHostRule.LISTEN_AD
 
 class OpMonitorHostRuleTest {
 
-    private static final String LOCAL_IPV4 = "192.0.2.10";
+    static final String LOCAL_IPV4 = "192.0.2.10";
     private static final String LOCAL_IPV6 = "2001:db8::10";
-    private static final String REMOTE_IPV4 = "198.51.100.7";
-    private static final String LOCAL_NAME = "ss1.example";
-    private static final String REMOTE_NAME = "opmon.example";
-    private static final String MIXED_NAME = "ss-and-remote.example";
-    private static final String LOOPBACK_AND_REMOTE_NAME = "loopback-and-remote.example";
+    static final String REMOTE_IPV4 = "198.51.100.7";
+    static final String LOCAL_NAME = "ss1.example";
+    static final String REMOTE_NAME = "opmon.example";
+    static final String MIXED_NAME = "ss-and-remote.example";
+    static final String LOOPBACK_AND_REMOTE_NAME = "loopback-and-remote.example";
     private static final String DEBIAN_NAME = "debian-host.example";
     private static final String IPV4_LOOPBACK_NAME = "loopback-v4.example";
     private static final String IPV6_LOOPBACK_NAME = "loopback-v6.example";
     private static final String OTHER_AND_IPV6_LOOPBACK_NAME = "loopback-other-and-v6.example";
     private static final String IPV4_AND_OTHER_LOOPBACK_NAME = "loopback-v4-and-other.example";
-    private static final String UNRESOLVABLE_NAME = "missing.example";
+    static final String UNRESOLVABLE_NAME = "missing.example";
 
     private final OpMonitorHostRule rule = new OpMonitorHostRule(new FakeResolver());
 
@@ -154,17 +155,45 @@ class OpMonitorHostRuleTest {
     }
 
     @Test
-    void nameResolvingToLocalAndRemoteCountsAsLocal() {
-        assertThat(rule.derive(MIXED_NAME).rows())
-                .containsOnly(entry(CHANNEL_HOST, MIXED_NAME), entry(LISTEN_ADDRESS, MIXED_NAME),
-                        entry(ALT_NAMES, MIXED_NAME));
+    void nameResolvingToLocalAndRemoteWritesChannelOnlyAndWarns() {
+        var result = rule.derive(MIXED_NAME);
+
+        assertThat(result.rows()).containsExactlyEntriesOf(Map.of(CHANNEL_HOST, MIXED_NAME));
+        assertThat(result.warning()).contains("'" + MIXED_NAME + "' resolves to this server and to another host");
+        assertThat(result.remote()).isFalse();
     }
 
     @Test
-    void nameResolvingToLoopbackAndRemoteWritesChannelAndDnsSanOnly() {
-        assertThat(rule.derive(LOOPBACK_AND_REMOTE_NAME).rows())
-                .containsOnly(entry(CHANNEL_HOST, LOOPBACK_AND_REMOTE_NAME),
-                        entry(ALT_NAMES, LOOPBACK_AND_REMOTE_NAME));
+    void nameResolvingToLoopbackAndRemoteWritesChannelOnlyAndWarns() {
+        var result = rule.derive(LOOPBACK_AND_REMOTE_NAME);
+
+        assertThat(result.rows()).containsExactlyEntriesOf(Map.of(CHANNEL_HOST, LOOPBACK_AND_REMOTE_NAME));
+        assertThat(result.warning())
+                .contains("'" + LOOPBACK_AND_REMOTE_NAME + "' resolves to a loopback address and to another host");
+        assertThat(result.remote()).isFalse();
+    }
+
+    @Test
+    void ambiguousHostWarningCarriesTheLocalFix() {
+        assertThat(List.of(rule.derive(MIXED_NAME), rule.derive(LOOPBACK_AND_REMOTE_NAME),
+                rule.derive(UNRESOLVABLE_NAME))).allSatisfy(result -> assertThat(result.warning())
+                .startsWith("WARNING:")
+                .contains("xroad.common-rpc.channel.op-monitor.host was kept as")
+                .contains("/usr/share/xroad/scripts/db_property.sh set xroad.common-rpc.channel.op-monitor.host "
+                        + "127.0.0.1 --yes")
+                .contains("restart xroad-proxy and xroad-proxy-ui-api")
+                .contains("For an external op-monitor no change is needed here.")
+                .doesNotContain("\n")
+                .doesNotContain(REMOTE_IPV4));
+    }
+
+    @Test
+    void ambiguousHostWarningIsNotAFailureLineOfTheWizard() {
+        var wizardFailurePattern = Pattern.compile("^(Error |Caused by:|Exception in |[A-Za-z.]+Exception:)");
+
+        assertThat(List.of(rule.derive(MIXED_NAME), rule.derive(LOOPBACK_AND_REMOTE_NAME),
+                rule.derive(UNRESOLVABLE_NAME))).allSatisfy(result ->
+                assertThat(wizardFailurePattern.matcher(result.warning()).find()).isFalse());
     }
 
     @Test
@@ -203,11 +232,20 @@ class OpMonitorHostRuleTest {
     }
 
     @Test
-    void remoteIpv4AndHostnameWriteChannelOnly() {
+    void remoteIpv4AndHostnameWriteChannelOnlyAndAreRemote() {
         assertThat(rule.derive(REMOTE_IPV4).rows())
                 .containsExactlyEntriesOf(Map.of(CHANNEL_HOST, REMOTE_IPV4));
         assertThat(rule.derive(REMOTE_NAME).rows())
                 .containsExactlyEntriesOf(Map.of(CHANNEL_HOST, REMOTE_NAME));
+        assertThat(rule.derive(REMOTE_IPV4).remote()).isTrue();
+        assertThat(rule.derive(REMOTE_NAME).remote()).isTrue();
+        assertThat(rule.derive(REMOTE_NAME).warning()).isNull();
+    }
+
+    @Test
+    void localHostsAreNotRemote() {
+        assertThat(List.of(LOCAL_NAME, LOCAL_IPV4, "127.0.0.1", "localhost", "::1", "0.0.0.0"))
+                .allSatisfy(host -> assertThat(rule.derive(host).remote()).isFalse());
     }
 
     @Test
@@ -215,7 +253,8 @@ class OpMonitorHostRuleTest {
         var result = rule.derive(UNRESOLVABLE_NAME);
 
         assertThat(result.rows()).containsExactlyEntriesOf(Map.of(CHANNEL_HOST, UNRESOLVABLE_NAME));
-        assertThat(result.warning()).contains(UNRESOLVABLE_NAME);
+        assertThat(result.warning()).contains("'" + UNRESOLVABLE_NAME + "' cannot be resolved");
+        assertThat(result.remote()).isFalse();
     }
 
     @Test
