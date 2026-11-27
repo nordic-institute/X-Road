@@ -39,6 +39,7 @@ import static org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier.
 import static org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier.Classification.IDENTITY_REJECTION;
 import static org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier.Classification.NO_REFUSAL;
 import static org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier.Stage.CATALOG;
+import static org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier.Stage.NEGOTIATION;
 import static org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier.Stage.TRANSFER;
 
 class ProviderFailureClassifierTest {
@@ -60,6 +61,8 @@ class ProviderFailureClassifierTest {
                 arguments("the agreement wording in another case",
                         providerAnswer(404, "Agreement Not Found Or Not Valid"), TRANSFER, AGREEMENT_REFUSAL),
                 arguments("a bare not found", providerAnswer(404, "Not found"), TRANSFER, IDENTITY_REJECTION),
+                arguments("a negotiation unauthorized", providerAnswer(401, "Unauthorized."), NEGOTIATION, NO_REFUSAL),
+                arguments("a transfer unauthorized", providerAnswer(401, "Unauthorized."), TRANSFER, NO_REFUSAL),
                 arguments("a catalog unauthorized", providerAnswer(401, "Unauthorized."), CATALOG, IDENTITY_REJECTION),
                 arguments("a catalog unauthorized naming the agreement",
                         providerAnswer(401, "agreement not found or not valid"), CATALOG, IDENTITY_REJECTION),

@@ -760,6 +760,41 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
     }
 
     @Test
+    void transferInitiationFailureWithABareNotFoundThrowsDspIdentityRejected() throws Exception {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = requestFor(null);
+
+        stubCatalogAndTransformChain("asset-1");
+
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id("neg-1")
+                .protocol("http-dsp-profile-2025-1")
+                .counterPartyId("provider-1")
+                .counterPartyAddress("http://provider/dsp")
+                .build();
+        when(contractNegotiationService.initiateNegotiation(any(), any()))
+                .thenReturn(ServiceResult.success(negotiation));
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.unexpected(providerAnswer(404, "Not found")));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest, defaultBudget());
+
+        var agreement = buildAgreement("agreement-1");
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(finalizedNegotiation("neg-1", agreement)));
+        completionPoller.poll();
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_identity_rejected");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
+    }
+
+    @Test
     void acquireAssetAccessConcurrentIdenticalRequestsShareOneAcquisition() throws Exception {
         var participantContext = buildParticipantContext();
         var assetAccessRequest = requestFor(null);

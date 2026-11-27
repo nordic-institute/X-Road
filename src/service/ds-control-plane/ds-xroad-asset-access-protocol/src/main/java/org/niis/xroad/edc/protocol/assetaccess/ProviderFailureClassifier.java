@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.protocol.assetaccess;
 
+import jakarta.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -79,7 +80,12 @@ public final class ProviderFailureClassifier {
 
     /** The stage of the asset access acquisition that produced the failure detail. */
     public enum Stage {
-        CATALOG, NEGOTIATION, TRANSFER
+        /** A catalog request: a 401 is the identity rejection. */
+        CATALOG,
+        /** A contract negotiation: a bare 404 is the identity rejection. */
+        NEGOTIATION,
+        /** A transfer: a bare 404 is the identity rejection. */
+        TRANSFER
     }
 
     /**
@@ -90,7 +96,7 @@ public final class ProviderFailureClassifier {
      * @param stage the stage of the acquisition the failure detail comes from
      * @return the classification of the provider's answer
      */
-    public static Classification classify(String failureDetail, Stage stage) {
+    public static Classification classify(@Nullable String failureDetail, Stage stage) {
         if (failureDetail == null) {
             return Classification.NO_REFUSAL;
         }
@@ -106,7 +112,7 @@ public final class ProviderFailureClassifier {
         if (code == CONFLICT || ((code == BAD_REQUEST || code == NOT_FOUND) && namesInvalidAgreement)) {
             return Classification.AGREEMENT_REFUSAL;
         }
-        if (code == NOT_FOUND || code == UNAUTHORIZED) {
+        if (code == NOT_FOUND) {
             return Classification.IDENTITY_REJECTION;
         }
         return Classification.NO_REFUSAL;

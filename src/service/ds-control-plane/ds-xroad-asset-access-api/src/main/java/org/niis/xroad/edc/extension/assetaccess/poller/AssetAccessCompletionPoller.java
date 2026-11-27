@@ -41,6 +41,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureClassifier;
@@ -439,11 +440,7 @@ public class AssetAccessCompletionPoller {
     }
 
     private static XrdRuntimeException negotiationFailure(String negotiationId, String reason) {
-        return XrdRuntimeException.systemException(DSP_NEGOTIATION_FAILED)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(negotiationId)
-                .details(reason)
-                .build();
+        return buildFailure(DSP_NEGOTIATION_FAILED, negotiationId, reason);
     }
 
     /**
@@ -451,34 +448,26 @@ public class AssetAccessCompletionPoller {
      * agreement or failing for some other reason: a bare 404 on the contract negotiation.
      */
     private static XrdRuntimeException identityRejectedFailure(String negotiationId, String reason) {
-        return XrdRuntimeException.systemException(DSP_IDENTITY_REJECTED)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(negotiationId)
-                .details(reason)
-                .build();
+        return buildFailure(DSP_IDENTITY_REJECTED, negotiationId, reason);
     }
 
     private static XrdRuntimeException transferFailure(String transferProcessId, String reason) {
-        return XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(transferProcessId)
-                .details(reason)
-                .build();
+        return buildFailure(DSP_TRANSFER_FAILED, transferProcessId, reason);
     }
 
     private static XrdRuntimeException dataAddressResolutionFailure(String transferProcessId, String reason) {
-        return XrdRuntimeException.systemException(DSP_DATAADDRESS_INVALID)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(transferProcessId)
-                .details(reason)
-                .build();
+        return buildFailure(DSP_DATAADDRESS_INVALID, transferProcessId, reason);
     }
 
     private static XrdRuntimeException acquisitionStoppedFailure(String id) {
-        return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+        return buildFailure(DSP_ACQUISITION_FAILED, id, "Asset access completion poller stopped");
+    }
+
+    private static XrdRuntimeException buildFailure(ErrorCode errorCode, String id, String reason) {
+        return XrdRuntimeException.systemException(errorCode)
                 .origin(ErrorOrigin.DATASPACE)
                 .metadataItems(id)
-                .details("Asset access completion poller stopped")
+                .details(reason)
                 .build();
     }
 
