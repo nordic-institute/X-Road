@@ -53,13 +53,13 @@ import java.util.Optional;
 public class SignerRepository {
     private static final String FIND_TOKEN_ID =
             "SELECT id FROM signer_tokens WHERE ha_node_name = ? AND external_id = ?";
-    private static final String PIN_IS_EMPTY = "(pin IS NULL OR length(pin) = 0)";
     private static final String FIND_KEY_ID =
             "SELECT id FROM signer_keys WHERE ha_node_name = ? AND external_id = ?";
     private static final String FIND_CERTIFICATE_ID =
             "SELECT id FROM signer_certificates WHERE ha_node_name = ? AND external_id = ?";
     private static final String FIND_CERTIFICATE_REQUEST_ID =
             "SELECT id FROM signer_certificate_requests WHERE ha_node_name = ? AND external_id = ?";
+    private static final String PIN_IS_EMPTY = "(pin IS NULL OR length(pin) = 0)";
 
     private final Connection connection;
     private final String nodeName;
@@ -132,7 +132,7 @@ public class SignerRepository {
         }
     }
 
-    public boolean setTokenPinIfEmpty(long tokenId, byte[] pinHash) throws SQLException {
+    boolean setTokenPinIfEmpty(long tokenId, byte[] pinHash) throws SQLException {
         String sql = "UPDATE signer_tokens SET pin = ? WHERE id = ? AND ha_node_name = ? AND " + PIN_IS_EMPTY;
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setObject(1, pinHash, Types.BINARY);

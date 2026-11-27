@@ -34,6 +34,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.node.NodeIdentity;
@@ -42,6 +44,8 @@ import org.niis.xroad.signer.keyconf.KeyConfType;
 import org.niis.xroad.signer.keyconf.KeyType;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -55,6 +59,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -68,6 +73,10 @@ class KeyConfMigratorTest {
     private final KeyConfMigrator migrator = new KeyConfMigrator();
 
     private static final long EXISTING_TOKEN_ID = 5L;
+    private static final int PIN_HASH_LENGTH = 48;
+
+    @TempDir
+    Path tempDir;
 
     @Mock
     SignerRepository signerRepositoryMock;
@@ -140,10 +149,25 @@ class KeyConfMigratorTest {
 
         migrate("Secret1234");
 
-        verify(signerRepositoryMock).setTokenPinIfEmpty(eq(EXISTING_TOKEN_ID), any());
+        ArgumentCaptor<byte[]> pinHash = ArgumentCaptor.forClass(byte[].class);
+        verify(signerRepositoryMock).setTokenPinIfEmpty(eq(EXISTING_TOKEN_ID), pinHash.capture());
+        assertThat(pinHash.getValue()).hasSize(PIN_HASH_LENGTH);
         verify(signerRepositoryMock, times(1)).saveToken(any(), any());
         verify(signerRepositoryMock, times(2)).saveKey(any(), eq(EXISTING_TOKEN_ID), eq(true), any());
         assertThat(loggedMessages()).anyMatch(m -> m.contains("✅ PIN hash set on existing token 0"));
+    }
+
+    @Test
+    void shouldLogAlreadyExistsAndAttachKeysWhenAnotherRunSetTheHashFirst() throws Exception {
+        when(signerRepositoryMock.getTokenId("0")).thenReturn(Optional.of(EXISTING_TOKEN_ID));
+        when(signerRepositoryMock.isTokenPinEmpty(EXISTING_TOKEN_ID)).thenReturn(true);
+        when(signerRepositoryMock.setTokenPinIfEmpty(eq(EXISTING_TOKEN_ID), any())).thenReturn(false);
+
+        migrate("Secret1234");
+
+        verify(signerRepositoryMock, times(2)).saveKey(any(), eq(EXISTING_TOKEN_ID), eq(true), any());
+        assertThat(loggedMessages()).anyMatch(m -> m.contains("⚠ Token 0 already exists"));
+        assertThat(loggedMessages()).noneMatch(m -> m.contains("PIN hash set"));
     }
 
     @Test
@@ -159,7 +183,7 @@ class KeyConfMigratorTest {
     }
 
     @Test
-    void shouldFailAndWriteNoHashWhenPinIsWrongForHashlessRow() throws Exception {
+    void shouldFailAndWriteNoHashNorKeysWhenPinIsWrongForHashlessRow() throws Exception {
         when(signerRepositoryMock.getTokenId("0")).thenReturn(Optional.of(EXISTING_TOKEN_ID));
         when(signerRepositoryMock.isTokenPinEmpty(EXISTING_TOKEN_ID)).thenReturn(true);
 
@@ -167,6 +191,25 @@ class KeyConfMigratorTest {
 
         assertTrue(exception.getMessage().startsWith("Invalid soft token pin provided via"));
         verify(signerRepositoryMock, never()).setTokenPinIfEmpty(anyLong(), any());
+        verify(signerRepositoryMock, never()).saveKey(any(), anyLong(), anyBoolean(), any());
+    }
+
+    @Test
+    void shouldSkipTheRepairWithoutReadingThePinWhenTheSevenPointEightKeystoreIsAbsent() throws Exception {
+        String keyconfWithoutKeystore = copyKeyconfWithoutSoftTokenKeystore();
+        when(signerRepositoryMock.getTokenId("0")).thenReturn(Optional.of(EXISTING_TOKEN_ID));
+        when(signerRepositoryMock.getTokenId("2")).thenReturn(Optional.empty());
+        when(signerRepositoryMock.isTokenPinEmpty(EXISTING_TOKEN_ID)).thenReturn(true);
+        when(signerRepositoryMock.saveToken(any(), any())).thenReturn(EXISTING_TOKEN_ID + 1);
+
+        new TestKeyConfMigrator(signerRepositoryMock, null)
+                .migrate(keyconfWithoutKeystore, "not/used/in/test", NODE);
+
+        verify(signerRepositoryMock, never()).setTokenPinIfEmpty(anyLong(), any());
+        verify(signerRepositoryMock, times(2)).saveKey(any(), eq(EXISTING_TOKEN_ID), eq(true), any());
+        assertThat(loggedMessages())
+                .anyMatch(m -> m.equals("  ⚠ Token 0 was not initialized in 7.8, its PIN hash was not set"));
+        assertThat(loggedMessages()).noneMatch(m -> m.contains("already exists"));
     }
 
     @Test
@@ -174,11 +217,30 @@ class KeyConfMigratorTest {
         when(signerRepositoryMock.getTokenId("0")).thenReturn(Optional.empty());
         when(signerRepositoryMock.getTokenId("2")).thenReturn(Optional.of(EXISTING_TOKEN_ID + 1));
         when(signerRepositoryMock.saveToken(any(), any())).thenReturn(EXISTING_TOKEN_ID);
+        lenient().when(signerRepositoryMock.isTokenPinEmpty(EXISTING_TOKEN_ID + 1)).thenReturn(true);
 
         migrate("Secret1234");
 
-        verify(signerRepositoryMock, never()).isTokenPinEmpty(EXISTING_TOKEN_ID + 1);
-        verify(signerRepositoryMock, never()).setTokenPinIfEmpty(eq(EXISTING_TOKEN_ID + 1), any());
+        verify(signerRepositoryMock, never()).setTokenPinIfEmpty(anyLong(), any());
+    }
+
+    private String copyKeyconfWithoutSoftTokenKeystore() throws Exception {
+        Path source = Paths.get(getClass().getClassLoader().getResource("signer/").toURI());
+        Path target = tempDir.resolve("keyconf-without-keystore");
+        try (var paths = Files.walk(source)) {
+            for (Path path : paths.toList()) {
+                Path copy = target.resolve(source.relativize(path).toString());
+                if (Files.isDirectory(path)) {
+                    Files.createDirectories(copy);
+                } else {
+                    Files.copy(path, copy);
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+        Files.delete(target.resolve("softtoken").resolve(".softtoken.p12"));
+        return target.toString();
     }
 
     private void migrate(String pin) throws Exception {
@@ -216,6 +278,9 @@ class KeyConfMigratorTest {
 
         @Override
         protected char[] readPin() {
+            if (pin == null) {
+                throw new IllegalStateException("Soft token pin not provided");
+            }
             return pin.toCharArray();
         }
     }

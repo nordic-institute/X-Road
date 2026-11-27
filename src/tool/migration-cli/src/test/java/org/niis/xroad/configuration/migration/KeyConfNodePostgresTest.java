@@ -36,9 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.core.node.NodeIdentity;
-import org.niis.xroad.migration.signer.SignerRepository;
-import org.niis.xroad.migration.utils.DbCredentials;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -68,6 +65,7 @@ class KeyConfNodePostgresTest {
 
     private static final String TEMPLATE_DATABASE = "keyconf_template";
     private static final String SOFT_TOKEN_PIN_ENV = "XROAD_MIGRATION_SOFTTOKEN_PIN";
+    private static final int PIN_HASH_LENGTH = 48;
     private static final List<String> SIGNER_TABLES = List.of(
             "signer_tokens", "signer_keys", "signer_certificates", "signer_certificate_requests");
 
@@ -162,6 +160,7 @@ class KeyConfNodePostgresTest {
         runKeyconf("--node", "node_b");
 
         assertThat(tokenHasPin("node_b", "0")).isTrue();
+        assertThat(pinLength("node_b", "0")).isEqualTo(PIN_HASH_LENGTH);
         assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
         assertThat(queryInt("SELECT count(*) FROM signer_keys WHERE token_id = " + tokenId)).isEqualTo(2);
         assertThat(queryStrings("SELECT friendly_name FROM signer_tokens WHERE id = " + tokenId))
@@ -173,6 +172,7 @@ class KeyConfNodePostgresTest {
     void shouldChangeNothingWhenRunAgainAfterRepairingTheSignerCreatedToken() throws Exception {
         insertSignerCreatedSoftToken("node_b");
         runKeyconf("--node", "node_b");
+        assertThat(tokenHasPin("node_b", "0")).isTrue();
         List<String> afterRepair = snapshot();
 
         runKeyconf("--node", "node_b");
@@ -206,18 +206,27 @@ class KeyConfNodePostgresTest {
     }
 
     @Test
-    void shouldNotOverwriteAnExistingPinHashWhenTheRepositoryWriteIsCalledDirectly() throws Exception {
+    void shouldRepairARowWithAnEmptyPinLikeOneWithNoPin() throws Exception {
         execute(database, "INSERT INTO signer_tokens(ha_node_name, external_id, type, pin) "
-                + "VALUES ('node_b', '0', 'softToken', decode('abcdef', 'hex'))");
-        var credentials = new DbCredentials(url(database), POSTGRES.getUsername(),
-                POSTGRES.getPassword().toCharArray(), null);
-        var repository = new SignerRepository(credentials, NodeIdentity.resolve("node_b"));
+                + "VALUES ('node_b', '0', 'softToken', ''::bytea)");
 
-        boolean changed = repository.setTokenPinIfEmpty(tokenId("node_b", "0"), new byte[] {1, 2, 3});
+        runKeyconf("--node", "node_b");
 
-        assertThat(changed).isFalse();
-        assertThat(queryStrings("SELECT encode(pin, 'hex') FROM signer_tokens "
-                + "WHERE ha_node_name = 'node_b' AND external_id = '0'")).containsExactly("abcdef");
+        assertThat(pinLength("node_b", "0")).isEqualTo(PIN_HASH_LENGTH);
+    }
+
+    @Test
+    void shouldLeaveThePinEmptyAndAttachKeysWhenThereIsNoSevenPointEightKeystoreAndNoPin() throws Exception {
+        insertSignerCreatedSoftToken("node_b");
+        keyconfDir = copyKeyconfWithoutSoftTokenKeystore();
+        envVars.remove(SOFT_TOKEN_PIN_ENV);
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(tokenHasPin("node_b", "0")).isFalse();
+        assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
+        assertThat(queryInt("SELECT count(*) FROM signer_keys WHERE token_id = " + tokenId("node_b", "0")))
+                .isEqualTo(2);
     }
 
     @Test
@@ -243,6 +252,28 @@ class KeyConfNodePostgresTest {
     private boolean tokenHasPin(String node, String externalId) {
         return queryInt("SELECT count(*) FROM signer_tokens WHERE ha_node_name = '" + node
                 + "' AND external_id = '" + externalId + "' AND pin IS NOT NULL") == 1;
+    }
+
+    private int pinLength(String node, String externalId) {
+        return queryInt("SELECT length(pin) FROM signer_tokens WHERE ha_node_name = '" + node
+                + "' AND external_id = '" + externalId + "'");
+    }
+
+    private String copyKeyconfWithoutSoftTokenKeystore() throws Exception {
+        Path source = Paths.get(getClass().getClassLoader().getResource("signer/").toURI());
+        Path target = tempDir.resolve("keyconf-without-keystore");
+        try (var paths = Files.walk(source)) {
+            for (Path path : paths.toList()) {
+                Path copy = target.resolve(source.relativize(path).toString());
+                if (Files.isDirectory(path)) {
+                    Files.createDirectories(copy);
+                } else {
+                    Files.copy(path, copy);
+                }
+            }
+        }
+        Files.delete(target.resolve("softtoken").resolve(".softtoken.p12"));
+        return target.toString();
     }
 
     private void runKeyconf(String... nodeOption) {
