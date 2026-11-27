@@ -141,16 +141,16 @@ The table below lists the required connections between different components. Ple
 
 The table below lists the open ports for Central Server components, and explains how each port is used. Open these ports in the firewall only to the sources listed in the table above.
 
-| **Component**                  | **Ports** | **Protocol** | **Note**                                                                                                                                                       |
-|--------------------------------|-----------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Global configuration (nginx)   | 80        | tcp          | Serves the global configuration to Security Servers over HTTP, and forwards ACME challenge requests from the ACME server to the admin service.                 |
-| Global configuration (nginx)   | 443       | tcp          | Serves the global configuration to Security Servers over HTTPS.                                                                                                |
-| Admin service                  | 4000      | tcp          | User interface and management REST API. Internal network only.                                                                                                 |
-| Registration Service           | 4001      | tcp          | Receives authentication certificate registration requests from Security Servers.                                                                               |
-| Management Service             | 4002      | tcp          | Receives management service requests from the management Security Server. Do not open it to other Security Servers.                                           |
-| Issuer Service                 | 6183      | tcp          | Serves the Issuer Service's DID document, which Security Servers fetch to verify the signatures on membership credentials.                                     |
-| Issuer Service                 | 6185      | tcp          | Receives membership credential requests from Security Servers.                                                                                                 |
-| Issuer Service                 | 6187      | tcp          | Serves the credential status lists, which Security Servers check to see whether a membership credential has been revoked.                                      |
+| **Component**                  | **Ports** | **Protocol** | **Note**                                                                                                                                       |
+|--------------------------------|-----------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| Global configuration (nginx)   | 80        | tcp          | Serves the global configuration to Security Servers over HTTP, and forwards ACME challenge requests from the ACME server to the admin service. |
+| Global configuration (nginx)   | 443       | tcp          | Serves the global configuration to Security Servers over HTTPS.                                                                                |
+| Admin service                  | 4000      | tcp          | User interface and management REST API. Internal network only.                                                                                 |
+| Registration Service           | 4001      | tcp          | Receives authentication certificate registration requests from Security Servers.                                                               |
+| Management Service             | 4002      | tcp          | Receives management service requests from the management Security Server. Do not open it to other Security Servers. Internal network only.                            |
+| Issuer Service                 | 6183      | tcp          | Serves the Issuer Service's DID document, which Security Servers fetch to verify the signatures on membership credentials.                     |
+| Issuer Service                 | 6185      | tcp          | Receives membership credential requests from Security Servers.                                                                                 |
+| Issuer Service                 | 6187      | tcp          | Serves the credential status lists, which Security Servers check to see whether a membership credential has been revoked.                      |
 
 The table below lists the open ports for Central Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally. The OpenBao port is the exception on a node of a cluster: besides the loopback interface, it also listens on the address of the node, and it uses the port 8201 for cluster traffic (see the table above).
 
