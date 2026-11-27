@@ -132,13 +132,27 @@ public class KeyConfMigrator {
     private long handleToken(DeviceType deviceType, SignerRepository repo, boolean isSoftToken, String keyconfPath) throws SQLException {
         Optional<Long> dbId = repo.getTokenId(deviceType.getId());
         if (dbId.isPresent()) {
-            logWarn(1, "⚠ Token {} already exists", deviceType.getId());
+            if (isSoftToken && repo.isTokenPinEmpty(dbId.get())) {
+                setPinHashOnExistingToken(deviceType, repo, dbId.get(), keyconfPath);
+            } else {
+                logWarn(1, "⚠ Token {} already exists", deviceType.getId());
+            }
             return dbId.get();
         }
         byte[] pinHash = isSoftToken ? getPinHashFromInput(keyconfPath) : null;
         long tokenId = repo.saveToken(deviceType, pinHash);
         logInfo(1, "✅ Token {} saved", deviceType.getId());
         return tokenId;
+    }
+
+    private void setPinHashOnExistingToken(DeviceType deviceType, SignerRepository repo, long tokenId,
+                                           String keyconfPath) throws SQLException {
+        byte[] pinHash = getPinHashFromInput(keyconfPath);
+        if (repo.setTokenPinIfEmpty(tokenId, pinHash)) {
+            logInfo(1, "✅ PIN hash set on existing token {}", deviceType.getId());
+        } else {
+            logWarn(1, "⚠ Token {} already exists", deviceType.getId());
+        }
     }
 
     private Optional<Long> handleKey(KeyType keyType, SignerRepository repo, boolean isSoftToken, long tokenId,

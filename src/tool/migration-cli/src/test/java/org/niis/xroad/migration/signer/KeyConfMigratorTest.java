@@ -27,6 +27,11 @@
 
 package org.niis.xroad.migration.signer;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -35,17 +40,22 @@ import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.signer.keyconf.DeviceType;
 import org.niis.xroad.signer.keyconf.KeyConfType;
 import org.niis.xroad.signer.keyconf.KeyType;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,8 +67,26 @@ class KeyConfMigratorTest {
 
     private final KeyConfMigrator migrator = new KeyConfMigrator();
 
+    private static final long EXISTING_TOKEN_ID = 5L;
+
     @Mock
     SignerRepository signerRepositoryMock;
+
+    private ListAppender<ILoggingEvent> logAppender;
+    private Logger migratorLogger;
+
+    @BeforeEach
+    void attachLogAppender() {
+        migratorLogger = (Logger) LoggerFactory.getLogger(KeyConfMigrator.class);
+        logAppender = new ListAppender<>();
+        logAppender.start();
+        migratorLogger.addAppender(logAppender);
+    }
+
+    @AfterEach
+    void detachLogAppender() {
+        migratorLogger.detachAppender(logAppender);
+    }
 
     @Test
     void parseKeyConfShouldReturnDevicesAndKeysFromSignerResources() throws Exception {
@@ -102,6 +130,64 @@ class KeyConfMigratorTest {
         verify(signerRepositoryMock, times(3)).saveKey(any(), anyLong(), anyBoolean(), any());
         verify(signerRepositoryMock, times(3)).saveCertificate(any(), anyLong());
         verify(signerRepositoryMock).saveCertificateRequest(any(), anyLong());
+    }
+
+    @Test
+    void shouldSetPinHashAndAttachKeysWhenSoftTokenRowExistsWithoutHash() throws Exception {
+        when(signerRepositoryMock.getTokenId("0")).thenReturn(Optional.of(EXISTING_TOKEN_ID));
+        when(signerRepositoryMock.isTokenPinEmpty(EXISTING_TOKEN_ID)).thenReturn(true);
+        when(signerRepositoryMock.setTokenPinIfEmpty(eq(EXISTING_TOKEN_ID), any())).thenReturn(true);
+
+        migrate("Secret1234");
+
+        verify(signerRepositoryMock).setTokenPinIfEmpty(eq(EXISTING_TOKEN_ID), any());
+        verify(signerRepositoryMock, times(1)).saveToken(any(), any());
+        verify(signerRepositoryMock, times(2)).saveKey(any(), eq(EXISTING_TOKEN_ID), eq(true), any());
+        assertThat(loggedMessages()).anyMatch(m -> m.contains("✅ PIN hash set on existing token 0"));
+    }
+
+    @Test
+    void shouldLeaveTokenUntouchedWhenRowExistsWithHash() throws Exception {
+        when(signerRepositoryMock.getTokenId("0")).thenReturn(Optional.of(EXISTING_TOKEN_ID));
+        when(signerRepositoryMock.isTokenPinEmpty(EXISTING_TOKEN_ID)).thenReturn(false);
+
+        migrate("Secret1234");
+
+        verify(signerRepositoryMock, never()).setTokenPinIfEmpty(anyLong(), any());
+        verify(signerRepositoryMock, times(1)).saveToken(any(), any());
+        assertThat(loggedMessages()).anyMatch(m -> m.contains("⚠ Token 0 already exists"));
+    }
+
+    @Test
+    void shouldFailAndWriteNoHashWhenPinIsWrongForHashlessRow() throws Exception {
+        when(signerRepositoryMock.getTokenId("0")).thenReturn(Optional.of(EXISTING_TOKEN_ID));
+        when(signerRepositoryMock.isTokenPinEmpty(EXISTING_TOKEN_ID)).thenReturn(true);
+
+        var exception = assertThrows(IllegalStateException.class, () -> migrate("WrongPin1"));
+
+        assertTrue(exception.getMessage().startsWith("Invalid soft token pin provided via"));
+        verify(signerRepositoryMock, never()).setTokenPinIfEmpty(anyLong(), any());
+    }
+
+    @Test
+    void shouldNeverSetPinHashOnExistingHardwareTokenRow() throws Exception {
+        when(signerRepositoryMock.getTokenId("0")).thenReturn(Optional.empty());
+        when(signerRepositoryMock.getTokenId("2")).thenReturn(Optional.of(EXISTING_TOKEN_ID + 1));
+        when(signerRepositoryMock.saveToken(any(), any())).thenReturn(EXISTING_TOKEN_ID);
+
+        migrate("Secret1234");
+
+        verify(signerRepositoryMock, never()).isTokenPinEmpty(EXISTING_TOKEN_ID + 1);
+        verify(signerRepositoryMock, never()).setTokenPinIfEmpty(eq(EXISTING_TOKEN_ID + 1), any());
+    }
+
+    private void migrate(String pin) throws Exception {
+        String keyconfPath = Paths.get(getClass().getClassLoader().getResource("signer/").toURI()).toString();
+        new TestKeyConfMigrator(signerRepositoryMock, pin).migrate(keyconfPath, "not/used/in/test", NODE);
+    }
+
+    private List<String> loggedMessages() {
+        return logAppender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
     }
 
     @Test

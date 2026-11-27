@@ -36,6 +36,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.migration.signer.SignerRepository;
+import org.niis.xroad.migration.utils.DbCredentials;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -152,6 +155,72 @@ class KeyConfNodePostgresTest {
     }
 
     @Test
+    void shouldSetPinHashAndAttachKeysWhenSignerCreatedTheSoftTokenRow() throws Exception {
+        insertSignerCreatedSoftToken("node_b");
+        long tokenId = tokenId("node_b", "0");
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(tokenHasPin("node_b", "0")).isTrue();
+        assertThat(rowCountsByNode("node_b")).containsExactly(2, 3, 3, 1);
+        assertThat(queryInt("SELECT count(*) FROM signer_keys WHERE token_id = " + tokenId)).isEqualTo(2);
+        assertThat(queryStrings("SELECT friendly_name FROM signer_tokens WHERE id = " + tokenId))
+                .containsExactly("signer-default-name");
+        assertThat(tokenHasPin("node_b", "2")).isFalse();
+    }
+
+    @Test
+    void shouldChangeNothingWhenRunAgainAfterRepairingTheSignerCreatedToken() throws Exception {
+        insertSignerCreatedSoftToken("node_b");
+        runKeyconf("--node", "node_b");
+        List<String> afterRepair = snapshot();
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(afterRepair).hasSize(9);
+        assertThat(snapshot()).isEqualTo(afterRepair);
+    }
+
+    @Test
+    void shouldRepairOnlyTheGivenNodesTokenRow() throws Exception {
+        insertSignerCreatedSoftToken("node_a");
+        insertSignerCreatedSoftToken("node_b");
+        List<String> nodeARows = snapshotOf("node_a");
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(tokenHasPin("node_b", "0")).isTrue();
+        assertThat(tokenHasPin("node_a", "0")).isFalse();
+        assertThat(snapshotOf("node_a")).isEqualTo(nodeARows);
+    }
+
+    @Test
+    void shouldLeaveAnExistingPinHashUntouchedWhenTheRowAlreadyHasOne() throws Exception {
+        execute(database, "INSERT INTO signer_tokens(ha_node_name, external_id, type, pin) "
+                + "VALUES ('node_b', '0', 'softToken', decode('abcdef', 'hex'))");
+
+        runKeyconf("--node", "node_b");
+
+        assertThat(queryStrings("SELECT encode(pin, 'hex') FROM signer_tokens "
+                + "WHERE ha_node_name = 'node_b' AND external_id = '0'")).containsExactly("abcdef");
+    }
+
+    @Test
+    void shouldNotOverwriteAnExistingPinHashWhenTheRepositoryWriteIsCalledDirectly() throws Exception {
+        execute(database, "INSERT INTO signer_tokens(ha_node_name, external_id, type, pin) "
+                + "VALUES ('node_b', '0', 'softToken', decode('abcdef', 'hex'))");
+        var credentials = new DbCredentials(url(database), POSTGRES.getUsername(),
+                POSTGRES.getPassword().toCharArray(), null);
+        var repository = new SignerRepository(credentials, NodeIdentity.resolve("node_b"));
+
+        boolean changed = repository.setTokenPinIfEmpty(tokenId("node_b", "0"), new byte[] {1, 2, 3});
+
+        assertThat(changed).isFalse();
+        assertThat(queryStrings("SELECT encode(pin, 'hex') FROM signer_tokens "
+                + "WHERE ha_node_name = 'node_b' AND external_id = '0'")).containsExactly("abcdef");
+    }
+
+    @Test
     void shouldWriteNothingWhenTheNodeNameIsInvalid() {
         assertThatThrownBy(() -> runKeyconf("--node", "_bad"))
                 .isInstanceOf(MigrationException.class)
@@ -159,6 +228,21 @@ class KeyConfNodePostgresTest {
                 .isInstanceOf(XrdRuntimeException.class);
 
         assertThat(totalRowCount()).isZero();
+    }
+
+    private void insertSignerCreatedSoftToken(String node) throws SQLException {
+        execute(database, "INSERT INTO signer_tokens(ha_node_name, external_id, type, friendly_name) "
+                + "VALUES ('" + node + "', '0', 'softToken', 'signer-default-name')");
+    }
+
+    private long tokenId(String node, String externalId) {
+        return queryInt("SELECT id FROM signer_tokens WHERE ha_node_name = '" + node
+                + "' AND external_id = '" + externalId + "'");
+    }
+
+    private boolean tokenHasPin(String node, String externalId) {
+        return queryInt("SELECT count(*) FROM signer_tokens WHERE ha_node_name = '" + node
+                + "' AND external_id = '" + externalId + "' AND pin IS NOT NULL") == 1;
     }
 
     private void runKeyconf(String... nodeOption) {
