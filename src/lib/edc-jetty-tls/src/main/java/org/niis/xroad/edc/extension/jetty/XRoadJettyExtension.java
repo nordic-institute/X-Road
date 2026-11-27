@@ -51,7 +51,7 @@ import static org.niis.xroad.edc.extension.jetty.XRoadJettyExtension.NAME;
  * X-Road's replacement for EDC's {@code JettyExtension}. Sources the HTTPS keystore for every connector on
  * this JVM from OpenBao ({@code tls/ds-https}) instead of a file, and keeps checking it on a schedule so a
  * rotated certificate replaces the served one without a restart — capabilities stock's file-at-boot,
- * no-reload design does not expose. Boot never waits for the connector TLS certificate: one load attempt is
+ * no-reload design does not expose. Boot never waits for the Dataspace TLS certificate: one load attempt is
  * made, and when the slot is still empty the HTTPS endpoints stay closed while the rest of the runtime starts;
  * the reloader keeps polling and opens them as soon as the certificate is stored. Excluded from EDC's
  * own boot in favour of this one via
@@ -84,7 +84,7 @@ public class XRoadJettyExtension implements ServiceExtension {
     private String defaultPath;
 
     @Setting(key = "xroad.edc.web.https.keystore.reload-interval-seconds",
-            description = "How often the connector TLS keystore is re-read from OpenBao to detect rotation.",
+            description = "How often the Dataspace TLS keystore is re-read from OpenBao to detect rotation.",
             defaultValue = "60")
     private long reloadIntervalSeconds;
 
@@ -158,7 +158,7 @@ public class XRoadJettyExtension implements ServiceExtension {
             return load();
         } catch (RuntimeException e) {
             initialFailure = String.valueOf(e.getMessage());
-            monitor.warning("Connector TLS certificate is not available yet, the HTTPS endpoints stay closed until it is "
+            monitor.warning("Dataspace TLS certificate is not available yet, the HTTPS endpoints stay closed until it is "
                     + "stored in OpenBao: " + e.getMessage());
             return null;
         }
@@ -170,7 +170,7 @@ public class XRoadJettyExtension implements ServiceExtension {
             return true;
         } catch (RuntimeException e) {
             initialFailure = String.valueOf(e.getMessage());
-            monitor.warning("Connector TLS material could not be applied yet, the HTTPS endpoints stay closed until it can: "
+            monitor.warning("Dataspace TLS material could not be applied yet, the HTTPS endpoints stay closed until it can: "
                     + e.getMessage(), e);
             return false;
         }

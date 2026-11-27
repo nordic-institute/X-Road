@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.58  
+Version: 2.60  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -84,6 +84,8 @@ Doc. ID: UG-CS
 | 12.11.2026 | 2.56    | Added Issuer Service issuance settings and statuslist capacity paragraph                                                                                                                                                                                                                                                                                                                                                                | Ričardas Bučiūnas    |
 | 12.11.2026 | 2.57    | Replaced the Issuer Service host section's automatic-binding note with the operator-started initialization step                                                                                                                                                                                                                                                                                                                         | Ovidijus Narkevicius |
 | 17.11.2026 | 2.58    | Documented the Issuer Service tab, its rows, the set-up order and both alerts; kept the REST API as an alternative                                                                                                                                                                                                                                                                                                                      | Ovidijus Narkevicius |
+| 23.11.2026 | 2.59    | Added the setting of the enabled SOAP message protocol versions                                                                                                                                                                                                                                                                                                                                                                         | Egidijus Milierius   |
+| 24.11.2026 | 2.60    | Removed the access rights line from section 5.10                                                                                                                                                                                                                                                                                                                                                                                        | Egidijus Milierius   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -137,6 +139,7 @@ Doc. ID: UG-CS
   - [5.7 Viewing the Contents of a Trusted Anchor](#57-viewing-the-contents-of-a-trusted-anchor)
   - [5.8 Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
   - [5.9 Publishing global configuration over HTTPS](#59-publishing-global-configuration-over-https)
+  - [5.10 Enabled SOAP message protocol versions](#510-enabled-soap-message-protocol-versions)
 - [6. The Management Requests System](#6-the-management-requests-system)
   - [6.1 Registration Requests](#61-registration-requests)
     - [6.1.1 State Model for Registration Requests](#611-state-model-for-registration-requests)
@@ -796,6 +799,24 @@ Applying for a TLS certificate issued by a trusted CA is required, because the S
 > **NOTE**: When upgrading from a version < 7.4.0 to a version 7.4.*, the configuration anchor must be re-generated and imported to all the Security Servers to enable downloading global configuration over HTTPS.
 
 > **NOTE**: Starting from version 7.5.0, it's not required to re-generate and import the configuration anchor to all the Security Servers to enable downloading global configuration over HTTPS.
+
+### 5.10 Enabled SOAP message protocol versions
+
+The Central Server publishes in global configuration version 7 the major versions of the SOAP message protocol that the X-Road instance enables. By default only version 4 is enabled. The setting is independent of the refusal of legacy calls, and it does not apply to the REST message protocol.
+
+The setting is the system parameter *soapProtocolVersions*. Its value is a comma-separated list of major versions, for example `4,5`. There is no user interface for it. To change it:
+
+1. Insert or update the parameter in the *system_parameters* table of the Central Server database, as described in the System Parameters User Guide [UG-SYSPAR](#13-references), section "Changing the System Parameter Values in the Central Server Database". For example:
+
+    ```sql
+    INSERT INTO system_parameters (key, value, created_at, updated_at) VALUES ('soapProtocolVersions', '4,5', (now() at time zone 'utc'), (now() at time zone 'utc'));
+    ```
+
+2. Wait for the next global configuration generation. The new list is then published in global configuration version 7. Global configuration versions 2 to 6 never contain the setting.
+
+If the value is blank or not a list of integers, the Central Server uses the default value 4 and writes a warning to its log. To restore the default value, delete the parameter from the *system_parameters* table.
+
+> **NOTE**: Security Servers of X-Road 8.0 read the setting but accept only version 4 of the SOAP message protocol. Listing other versions does not make 8.0 Security Servers accept them.
 
 ## 6. The Management Requests System
 ### 6.1 Registration Requests

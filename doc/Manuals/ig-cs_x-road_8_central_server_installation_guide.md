@@ -250,7 +250,7 @@ If you changed the address or the port, use the new values in the URL.
 The body of the answer is JSON. The `status` field holds the overall answer, `UP` or `DOWN`.
 The `checks` array holds the checks behind it. For `/q/health/ready`, the check named
 `EDC_READINESS_CHECK` has a `data` object only when it is `DOWN`. That object has one field for
-each component that fails, `database` or `connector-tls`, with a short cause.
+each component that fails, `database` or `dataspace-tls`, with a short cause.
 
 The secret store (OpenBao) is not part of the readiness check. A short OpenBao outage keeps the
 nodes in rotation. A database outage or an OpenBao outage never makes `/q/health/live` answer

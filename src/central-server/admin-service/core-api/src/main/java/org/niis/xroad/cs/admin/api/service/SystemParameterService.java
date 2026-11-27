@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
 
+import java.util.Set;
+
 /**
  * Class for handling SystemParameter taking HA-setup into account
  */
@@ -71,6 +73,11 @@ public interface SystemParameterService {
     Integer getIssuerDataFreshnessSeconds();
 
     boolean isLegacyProtocolDisabled();
+
+    /**
+     * @return the enabled SOAP message protocol major versions. {4} when the parameter is absent, blank or malformed.
+     */
+    Set<Integer> getSoapProtocolVersions();
 
     SystemParameter updateOrCreateParameter(String lookupKey, String updateValue);
 

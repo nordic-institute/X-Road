@@ -41,23 +41,26 @@ import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.AcmeServer;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedCATypeV4;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedConnectorTlsCAType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedDataspaceTlsCAType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ConfigurationSourceType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ConnectorType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.CredentialIssuerType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalGroupType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalSettingsType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.MaintenanceMode;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberDidType;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ObjectFactory;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.SecurityServerType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ParticipantDidType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ParticipantType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.SharedParametersTypeV7;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.SoapProtocolVersionsType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.SubsystemType;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
@@ -72,17 +75,18 @@ abstract class SharedParametersV7ToXmlConverter {
     @Mapping(source = "sources", target = "source")
     @Mapping(source = "approvedCAs", target = "approvedCA")
     @Mapping(source = "approvedTSAs", target = "approvedTSA")
-    @Mapping(source = "approvedConnectorTlsCAs", target = "approvedConnectorTlsCA")
+    @Mapping(source = "approvedConnectorTlsCAs", target = "approvedDataspaceTlsCA")
     @Mapping(source = "credentialIssuerDids", target = "credentialIssuer")
-    @Mapping(source = "members", target = "member")
-    @Mapping(source = "securityServers", target = "securityServer")
+    @Mapping(source = "instanceIdentifier", target = "dataspaceIdentifier")
+    @Mapping(source = "members", target = "participant")
+    @Mapping(source = "securityServers", target = "connector")
     @Mapping(source = "globalGroups", target = "globalGroup")
-    @Mapping(target = "centralService", ignore = true)
     @Mapping(target = "any", ignore = true)
     abstract SharedParametersTypeV7 convert(SharedParameters sharedParameters, @Context ReferenceTargets targets);
 
-    @Mapping(source = "memberClasses", target = "memberClass")
+    @Mapping(source = "memberClasses", target = "participantClass")
     @Mapping(source = "legacyProtocolDisabled", target = "legacyProtocolDisabled", qualifiedByName = "trueOrNull")
+    @Mapping(source = "soapProtocolVersions", target = "soapProtocolVersions", qualifiedByName = "toSoapProtocolVersions")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
 
     @Mapping(source = "internalVerificationCerts", target = "internalVerificationCert")
@@ -93,36 +97,40 @@ abstract class SharedParametersV7ToXmlConverter {
     abstract ApprovedCATypeV4 convert(SharedParameters.ApprovedCA approvedCa);
 
     @Mapping(source = "intermediateCas", target = "intermediateCA")
-    abstract ApprovedConnectorTlsCAType convert(SharedParameters.ApprovedConnectorTlsCA approvedConnectorTlsCA);
+    abstract ApprovedDataspaceTlsCAType convert(SharedParameters.ApprovedConnectorTlsCA approvedConnectorTlsCA);
 
+    @Mapping(source = "connectorTlsCertificateProfileId", target = "dataspaceTlsCertificateProfileId")
     abstract AcmeServer convert(SharedParameters.AcmeServer acmeServer);
 
     @Mapping(source = "securityServer.authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
     @Mapping(source = "securityServer.clients", target = "client", qualifiedByName = "clientsById")
+    @Mapping(source = "securityServer.serverCode", target = "connectorCode")
     @Mapping(source = "securityServer.owner", target = "owner", qualifiedByName = "clientById")
     @Mapping(source = "securityServer.maintenanceMode", target = "inMaintenanceMode")
     @Mapping(source = "securityServer.systemValues.systemDid", target = "systemDid")
     @Mapping(source = "securityServer.systemValues.dspBaseUrl", target = "dspBaseUrl")
     @Mapping(source = "id", target = "id")
-    abstract SecurityServerType convertServer(SharedParameters.SecurityServer securityServer, String id,
-                                              @Context ReferenceTargets targets);
+    abstract ConnectorType convertServer(SharedParameters.SecurityServer securityServer, String id,
+                                         @Context ReferenceTargets targets);
 
     @Mapping(source = "groupMembers", target = "groupMember")
     abstract GlobalGroupType convert(SharedParameters.GlobalGroup globalGroup);
 
+    @Mapping(source = "member.memberClass", target = "participantClass")
+    @Mapping(source = "member.memberCode", target = "participantCode")
     @Mapping(target = "subsystem", ignore = true)
     @Mapping(target = "did", ignore = true)
     @Mapping(source = "id", target = "id")
-    abstract MemberType convertMember(SharedParameters.Member member, String id);
+    abstract ParticipantType convertMember(SharedParameters.Member member, String id);
 
     @Mapping(source = "id", target = "id")
     abstract SubsystemType convertSubsystem(SharedParameters.Subsystem subsystem, String id);
 
-    MemberType convertMember(SharedParameters.Member member, @Context ReferenceTargets targets) {
-        return (MemberType) targets.clients().get(member.getId());
+    ParticipantType convertMember(SharedParameters.Member member, @Context ReferenceTargets targets) {
+        return (ParticipantType) targets.clients().get(member.getId());
     }
 
-    SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context ReferenceTargets targets) {
+    ConnectorType convert(SharedParameters.SecurityServer securityServer, @Context ReferenceTargets targets) {
         return targets.servers().get(serverId(securityServer));
     }
 
@@ -147,6 +155,18 @@ abstract class SharedParametersV7ToXmlConverter {
         return value ? Boolean.TRUE : null;
     }
 
+    @Named("toSoapProtocolVersions")
+    SoapProtocolVersionsType toSoapProtocolVersions(Set<Integer> versions) {
+        if (versions == null) {
+            return null;
+        }
+        var soapProtocolVersions = OBJECT_FACTORY.createSoapProtocolVersionsType();
+        var enabledVersions = OBJECT_FACTORY.createSoapProtocolVersionsTypeEnabledVersions();
+        versions.stream().sorted().map(BigInteger::valueOf).forEach(enabledVersions.getVersion()::add);
+        soapProtocolVersions.setEnabledVersions(enabledVersions);
+        return soapProtocolVersions;
+    }
+
     @Named("clientById")
     Object xmlClientId(ClientId value, @Context ReferenceTargets targets) {
         return targets.clients().get(value);
@@ -158,7 +178,7 @@ abstract class SharedParametersV7ToXmlConverter {
             return List.of();
         }
         return clientIds.stream()
-                .map(clientId -> OBJECT_FACTORY.createOriginalSecurityServerTypeClient(xmlClientId(clientId, targets)))
+                .map(clientId -> OBJECT_FACTORY.createConnectorTypeClient(xmlClientId(clientId, targets)))
                 .toList();
     }
 
@@ -173,17 +193,17 @@ abstract class SharedParametersV7ToXmlConverter {
         return authCert.getHash(DigestAlgorithm.SHA256);
     }
 
-    private static Optional<MemberDidType> toMemberDid(ClientId memberId, SecurityServerId serverId, String did,
-                                                       ReferenceTargets targets) {
+    private static Optional<ParticipantDidType> toMemberDid(ClientId memberId, SecurityServerId serverId, String did,
+                                                            ReferenceTargets targets) {
         var server = targets.servers().get(serverId);
         if (server == null) {
             log.warn("Member {} has a did for security server {}, which is not in the server list, leaving it out",
                     memberId, serverId);
             return Optional.empty();
         }
-        var memberDidType = OBJECT_FACTORY.createMemberDidType();
+        var memberDidType = OBJECT_FACTORY.createParticipantDidType();
         memberDidType.setValue(did);
-        memberDidType.setSecurityServer(server);
+        memberDidType.setConnector(server);
         return Optional.of(memberDidType);
     }
 
@@ -214,7 +234,7 @@ abstract class SharedParametersV7ToXmlConverter {
         }
         if (sharedParameters.getMembers() != null) {
             for (SharedParameters.Member member : sharedParameters.getMembers()) {
-                var memberType = (MemberType) targets.clients().get(member.getId());
+                var memberType = (ParticipantType) targets.clients().get(member.getId());
                 member.getDids().entrySet().stream()
                         .map(entry -> toMemberDid(member.getId(), entry.getKey(), entry.getValue(), targets))
                         .flatMap(Optional::stream)
@@ -224,7 +244,7 @@ abstract class SharedParametersV7ToXmlConverter {
         return targets;
     }
 
-    record ReferenceTargets(Map<ClientId, Object> clients, Map<SecurityServerId, SecurityServerType> servers) {
+    record ReferenceTargets(Map<ClientId, Object> clients, Map<SecurityServerId, ConnectorType> servers) {
     }
 
     private static final class IdSequence {

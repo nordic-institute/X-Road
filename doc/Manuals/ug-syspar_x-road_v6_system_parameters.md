@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.114
+Version: 2.115
 Doc. ID: UG-SYSPAR
 
 
@@ -125,6 +125,7 @@ Doc. ID: UG-SYSPAR
 | 16.11.2026 | 2.112   | Added the configurable secret store token renewal interval *xroad.common.vault-token-renewal.interval*                                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas          |
 | 20.11.2026 | 2.113   | Added the *management-requests.address-change-expiry* parameter                                                                                                                                                                                                                                                                                                                                                | Justas Samuolis            |
 | 25.11.2026 | 2.114   | Added the Security Server issuer data parameters `xroad.dsp.issuer-data.*`, documented where to set the stock EDC settings for issuer data, the effect of setting *issuerDataFreshnessSeconds* to 0 and the limits `xroad.dsp.issuer-data.cache.statuslist-download.size` and `xroad.dsp.issuer-data.cache.did-download.size`                                                                                  | Stefan Cvetkovski          |
+| 26.11.2026 | 2.115   | Documented the *soapProtocolVersions* and *legacyProtocolDisabled* system parameters, distributed in global configuration version 7                                                                                                                                                                                                                                                                            | Egidijus Milierius         |
 
 ## Table of Contents
 
@@ -771,6 +772,8 @@ This section describes the system parameters used by the X-Road central server. 
 | ocspFreshnessSeconds        | integer        | 3600                                    | Defines the validity period (in seconds) for the OCSP responses retrieved from the OCSP responders. OCSP responses older than the validity period are considered expired and cannot be used for certificate verification.                       |
 | timeStampingIntervalSeconds | integer        | 60                                      | Defines the interval of time-stamping service calls. Interval in seconds after which message log records must be timestamped. The interval must be between 60 and 86400 seconds. **Note: this value must be less than *ocspFreshnessSeconds.*** |
 | issuerDataFreshnessSeconds  | integer        | 600                                     | How long security servers keep using the last good Issuer Service data after it should have been refreshed, when the Issuer Service cannot be reached. 0 = a stored copy is not used after the cache time ends. The value 0 does not give the stock EDC behaviour: after a failed download, the checks fail until the next download, which starts after the wait in `xroad.dsp.issuer-data.download-retry-seconds`, also when the Issuer Service is back. A negative value is treated as 0. A stored copy has a latest end time (`valid_until` in the database), set when the copy is stored from the maximum age at that time. The security server never uses a copy after this time. A lower value in global configuration ends the use of the copy earlier, so a copy with a `valid_until` in the future can be unusable. |
+| legacyProtocolDisabled      | boolean        | false                                   | If true, every Security Server of this X-Road instance refuses legacy calls, that is, calls that made an unnegotiated call. Distributed in global configuration version 7. |
+| soapProtocolVersions        | string         | 4                                       | Comma-separated list of the SOAP message protocol major versions that this X-Road instance enables, for example `4,5`. Distributed in global configuration version 7. A blank or invalid value is replaced by the default value 4 and a warning is written to the log. The value is changed in the database only (see section [Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database)). Security Servers of X-Road 8.0 accept only version 4 of the SOAP message protocol. |
 
 ## 5 Configuration Proxy System Parameters
 

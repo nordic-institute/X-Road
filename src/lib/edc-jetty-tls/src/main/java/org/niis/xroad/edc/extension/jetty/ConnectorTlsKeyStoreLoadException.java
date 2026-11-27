@@ -27,10 +27,10 @@
 package org.niis.xroad.edc.extension.jetty;
 
 /**
- * Signals that the connector TLS certificate could not be loaded from OpenBao into a servable keystore,
+ * Signals that the Dataspace TLS certificate could not be loaded from OpenBao into a servable keystore,
  * carrying a message that already tells the operator what to do (provision the vault slot, wait for the
  * certificate, or check vault connectivity) rather than leaving that to the caller. The short summary is what
- * readiness reports while connector TLS is not served.
+ * readiness reports while Dataspace TLS is not served.
  */
 public class ConnectorTlsKeyStoreLoadException extends RuntimeException {
     private final String summary;

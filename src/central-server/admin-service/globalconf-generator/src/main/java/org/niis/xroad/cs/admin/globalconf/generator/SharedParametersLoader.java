@@ -317,7 +317,7 @@ class SharedParametersLoader {
                 .toList();
 
         return new SharedParameters.GlobalSettings(memberClasses, systemParameterService.getOcspFreshnessSeconds(),
-                systemParameterService.isLegacyProtocolDisabled());
+                systemParameterService.isLegacyProtocolDisabled(), systemParameterService.getSoapProtocolVersions());
     }
 
     static class MemberMapper {

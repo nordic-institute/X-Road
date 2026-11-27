@@ -45,7 +45,7 @@ import java.util.HexFormat;
 import java.util.List;
 
 /**
- * Builds the DataSpace outbound trust manager from globalconf's {@code approvedConnectorTlsCA} list — the member
+ * Builds the DataSpace outbound trust manager from globalconf's {@code approvedDataspaceTlsCA} list — the member
  * {@code approvedCA} list is never consulted, so trust is separated by construction. Two outcomes are
  * deliberately distinguished: globalconf answering successfully with an empty list is a <em>successful</em>
  * load whose material is an explicit {@link RejectAllTrustManager} (a valid, running, fail-closed state);

@@ -44,7 +44,7 @@ import java.time.Duration;
 import java.util.HexFormat;
 
 /**
- * Builds the connector TLS keystore from the credentials OpenBao holds at {@code tls/ds-https}: a PKCS12
+ * Builds the Dataspace TLS keystore from the credentials OpenBao holds at {@code tls/ds-https}: a PKCS12
  * keystore with one entry, so it plugs directly into Jetty's {@code SslContextFactory}. The fingerprint used
  * to detect rotation is a hash of the certificate chain bytes — the manual CSR flow and ACME renewal both
  * always pair a certificate change with the key that was current when it was requested, so the chain alone
@@ -66,7 +66,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
         var credentials = readCredentials();
         if (credentials.getCertChain().length == 0) {
             throw new ConnectorTlsKeyStoreLoadException(
-                    "Connector TLS key exists in OpenBao at tls/ds-https but has no certificate yet "
+                    "Dataspace TLS key exists in OpenBao at tls/ds-https but has no certificate yet "
                             + "(certificate pending). Complete ACME enrollment or upload the signed certificate "
                             + "chain through the admin API.",
                     "slot holds a key but no certificate yet", null);
@@ -81,8 +81,8 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
         } catch (XrdRuntimeException e) {
             if (e.isCausedBy(ErrorCode.MISSING_SECRET)) {
                 throw new ConnectorTlsKeyStoreLoadException(
-                        "No connector TLS certificate found in OpenBao at tls/ds-https. Enable ACME enrollment for the "
-                                + "connector TLS certificate or complete the manual CSR upload through the admin API.",
+                        "No Dataspace TLS certificate found in OpenBao at tls/ds-https. Enable ACME enrollment for the "
+                                + "Dataspace TLS certificate or complete the manual CSR upload through the admin API.",
                         "slot empty", e);
             }
             throw unreachable(e);
@@ -93,7 +93,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
 
     private static ConnectorTlsKeyStoreLoadException unreachable(Exception e) {
         return new ConnectorTlsKeyStoreLoadException(
-                "Could not reach OpenBao to load the connector TLS certificate from tls/ds-https: " + e.getMessage(),
+                "Could not reach OpenBao to load the Dataspace TLS certificate from tls/ds-https: " + e.getMessage(),
                 "OpenBao unreachable: " + e.getMessage(), e);
     }
 
@@ -106,7 +106,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
             return keyStore;
         } catch (GeneralSecurityException | IOException e) {
             throw new ConnectorTlsKeyStoreLoadException(
-                    "Failed to build the connector TLS keystore from the certificate stored in OpenBao", e);
+                    "Failed to build the Dataspace TLS keystore from the certificate stored in OpenBao", e);
         }
     }
 
@@ -118,7 +118,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
             }
             return HexFormat.of().formatHex(digest.digest());
         } catch (NoSuchAlgorithmException | CertificateEncodingException e) {
-            throw new ConnectorTlsKeyStoreLoadException("Failed to fingerprint the connector TLS certificate chain", e);
+            throw new ConnectorTlsKeyStoreLoadException("Failed to fingerprint the Dataspace TLS certificate chain", e);
         }
     }
 }

@@ -158,40 +158,40 @@ class RemoteGlobalConfSourceTest {
         return """
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <ns3:conf xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
-                    <instanceIdentifier>%s</instanceIdentifier>
+                    <dataspaceIdentifier>%s</dataspaceIdentifier>
                     <source>
                         <address>cs0</address>
                         <internalVerificationCert>dGVzdA==</internalVerificationCert>
                         <externalVerificationCert>dGVzdA==</externalVerificationCert>
                     </source>
                     <issuerDataFreshnessSeconds>600</issuerDataFreshnessSeconds>
-                    <member id="m0">
-                        <memberClass>
+                    <participant id="m0">
+                        <participantClass>
                             <code>COM</code>
                             <description>1</description>
-                        </memberClass>
-                        <memberCode>%s</memberCode>
+                        </participantClass>
+                        <participantCode>%s</participantCode>
                         <name>Member</name>
                         %s
-                    </member>
-                    <securityServer id="s0">
+                    </participant>
+                    <connector id="s0">
                         <owner>m0</owner>
-                        <serverCode>%s</serverCode>
+                        <connectorCode>%s</connectorCode>
                         <address>%s.example.org</address>
                         <authCertHash>xcuWTrx4uFeP5mNBXIhYITy+gUM72CJfL63MsWXffXM=</authCertHash>
                         %s
                         %s
-                    </securityServer>
+                    </connector>
                     <globalSettings>
-                        <memberClass>
+                        <participantClass>
                             <code>COM</code>
                             <description>Companies</description>
-                        </memberClass>
+                        </participantClass>
                         <ocspFreshnessSeconds>42</ocspFreshnessSeconds>
                     </globalSettings>
                 </ns3:conf>
                 """.formatted(instance, memberCode,
-                memberDid == null ? "" : "<did securityServer=\"s0\">" + memberDid + "</did>",
+                memberDid == null ? "" : "<did connector=\"s0\">" + memberDid + "</did>",
                 serverCode, serverCode,
                 dspBaseUrl == null ? "" : "<dspBaseUrl>" + dspBaseUrl + "</dspBaseUrl>",
                 systemDid == null ? "" : "<systemDid>" + systemDid + "</systemDid>");

@@ -26,9 +26,15 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -41,8 +47,10 @@ import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -57,6 +65,7 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.ISSUER_DATA_FRESHNESS_SECONDS;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.LEGACY_PROTOCOL_DISABLED;
+import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.SOAP_PROTOCOL_VERSIONS;
 
 @ExtendWith(MockitoExtension.class)
 class SystemParameterServiceImplTest {
@@ -136,6 +145,44 @@ class SystemParameterServiceImplTest {
 
         assertTrue(systemParameterService.isLegacyProtocolDisabled());
         verify(systemParameterRepository, never()).findByKeyAndHaNodeName(anyString(), any());
+    }
+
+    @Test
+    void soapProtocolVersionsDefaultToFour() {
+        when(systemParameterRepository.findByKey(SOAP_PROTOCOL_VERSIONS)).thenReturn(List.of());
+
+        assertEquals(Set.of(4), systemParameterService.getSoapProtocolVersions());
+    }
+
+    @Test
+    void soapProtocolVersionsReadsStoredList() {
+        when(systemParameterRepository.findByKey(SOAP_PROTOCOL_VERSIONS))
+                .thenReturn(List.of(parameter(SOAP_PROTOCOL_VERSIONS, "4, 5,12")));
+
+        assertEquals(Set.of(4, 5, 12), systemParameterService.getSoapProtocolVersions());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "  ", ",", ",,", "four", "4,x", "4,,5", "4;5", "5,", "5,,"})
+    void soapProtocolVersionsFallBackToFourWithWarningWhenValueIsBadOrBlank(String value) {
+        when(systemParameterRepository.findByKey(SOAP_PROTOCOL_VERSIONS))
+                .thenReturn(List.of(parameter(SOAP_PROTOCOL_VERSIONS, value)));
+        var logger = (Logger) LoggerFactory.getLogger(SystemParameterServiceImpl.class);
+        var previousLevel = logger.getLevel();
+        var logEvents = new ListAppender<ILoggingEvent>();
+        logEvents.start();
+        logger.addAppender(logEvents);
+        logger.setLevel(Level.WARN);
+
+        try {
+            assertEquals(Set.of(4), systemParameterService.getSoapProtocolVersions());
+        } finally {
+            logger.detachAppender(logEvents);
+            logger.setLevel(previousLevel);
+        }
+
+        assertTrue(logEvents.list.stream().anyMatch(event -> event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains(SOAP_PROTOCOL_VERSIONS)));
     }
 
     @Test

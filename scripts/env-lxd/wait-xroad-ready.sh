@@ -20,9 +20,9 @@ TIMEOUT="${1:-300}"
 SHARED_PARAMS=/etc/xroad/globalconf/DEV/shared-params.xml
 SUBSYSTEMS="TestService TestClient test-consumer"
 
-# stdin: shared-params.xml (pretty-printed, one element per line, members before
-# securityServers per the schema sequence). Exits 0 iff the given address is
-# present and every named subsystem is referenced as a securityServer <client>
+# stdin: shared-params.xml (pretty-printed, one element per line, participants before
+# connectors per the schema sequence). Exits 0 iff the given address is
+# present and every named subsystem is referenced as a connector <client>
 # via its subsystem id — the id-ref join is what registration approval adds.
 check_params() {
   awk -v addr="$1" -v subs="$2" '

@@ -88,11 +88,11 @@ class SharedParametersMarshallRoundTripTest {
     @Test
     void shouldReadVersion7WithoutPublishedValues() throws Exception {
         var withoutPublishedValues = FileUtils.readFileToString(Paths.get(V7_FIXTURE).toFile(), UTF_8)
-                .replaceAll("\\s*<did securityServer=\"[^\"]*\">[^<]*</did>", "")
+                .replaceAll("\\s*<did connector=\"[^\"]*\">[^<]*</did>", "")
                 .replaceAll("\\s*<dspBaseUrl>[^<]*</dspBaseUrl>", "")
                 .replaceAll("\\s*<systemDid>[^<]*</systemDid>", "")
-                .replaceAll("<securityServer id=\"[^\"]*\">", "<securityServer>");
-        assertThat(withoutPublishedValues).doesNotContain("<did securityServer", "dspBaseUrl", "systemDid", "<securityServer id");
+                .replaceAll("<connector id=\"[^\"]*\">", "<connector>");
+        assertThat(withoutPublishedValues).doesNotContain("<did connector", "dspBaseUrl", "systemDid", "<connector id");
 
         var parameters = readV7(withoutPublishedValues.getBytes(UTF_8));
 

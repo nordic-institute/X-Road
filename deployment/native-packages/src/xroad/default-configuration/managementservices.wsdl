@@ -359,7 +359,7 @@
                     </xsd:element>
                     <xsd:element name="did" type="string">
                         <xsd:annotation>
-                            <xsd:documentation>Dataspace identifier (DID) of the member.</xsd:documentation>
+                            <xsd:documentation>DID of the member.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
