@@ -41,11 +41,13 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureClassifier;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
 import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
+import org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -68,6 +70,7 @@ import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATAADDRESS_INVALID;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_IDENTITY_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 
@@ -153,7 +156,9 @@ public class AssetAccessCompletionPoller {
      * caller, and completes with a {@link StageOutcome}: succeeded with the contract
      * agreement once the negotiation reaches {@link ContractNegotiationStates#FINALIZED}; failed with the stored
      * error detail and the kind {@link FailureClassifier} derives from the record once it reaches
-     * {@link ContractNegotiationStates#TERMINATING} or {@link ContractNegotiationStates#TERMINATED}; failed with a
+     * {@link ContractNegotiationStates#TERMINATING} or {@link ContractNegotiationStates#TERMINATED} (a provider
+     * rejection of the consumer's DCP identity, as {@link ProviderFailureClassifier} recognises it in the error
+     * detail, is reported as such rather than a plain negotiation failure); failed with a
      * timeout and {@link FailureKind#TRANSPORT_FAULT} once {@code timeout} passes without a terminal state.
      */
     public CompletableFuture<StageOutcome<ContractAgreement>> awaitNegotiation(String negotiationId, Duration timeout) {
@@ -322,7 +327,11 @@ public class AssetAccessCompletionPoller {
             }
             if (state == ContractNegotiationStates.TERMINATING || state == ContractNegotiationStates.TERMINATED) {
                 monitor.debug("Negotiation %s reached %s".formatted(id, state));
-                var failure = negotiationFailure(id, errorDetailOrDefault(negotiation.getErrorDetail()));
+                var detail = errorDetailOrDefault(negotiation.getErrorDetail());
+                var failure = ProviderFailureClassifier.classify(detail, ProviderFailureClassifier.Stage.NEGOTIATION)
+                        == ProviderFailureClassifier.Classification.IDENTITY_REJECTION
+                        ? identityRejectedFailure(id, detail)
+                        : negotiationFailure(id, detail);
                 var failureKind = FailureClassifier.classify(negotiation);
                 completions.add(() -> failWaiter(negotiationWaiters, id, waiter, failureKind, failure));
                 return;
@@ -431,34 +440,34 @@ public class AssetAccessCompletionPoller {
     }
 
     private static XrdRuntimeException negotiationFailure(String negotiationId, String reason) {
-        return XrdRuntimeException.systemException(DSP_NEGOTIATION_FAILED)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(negotiationId)
-                .details(reason)
-                .build();
+        return buildFailure(DSP_NEGOTIATION_FAILED, negotiationId, reason);
+    }
+
+    /**
+     * Built when the provider's reply rejects the consumer's DCP identity rather than refusing the
+     * agreement or failing for some other reason: a bare 404 on the contract negotiation.
+     */
+    private static XrdRuntimeException identityRejectedFailure(String negotiationId, String reason) {
+        return buildFailure(DSP_IDENTITY_REJECTED, negotiationId, reason);
     }
 
     private static XrdRuntimeException transferFailure(String transferProcessId, String reason) {
-        return XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(transferProcessId)
-                .details(reason)
-                .build();
+        return buildFailure(DSP_TRANSFER_FAILED, transferProcessId, reason);
     }
 
     private static XrdRuntimeException dataAddressResolutionFailure(String transferProcessId, String reason) {
-        return XrdRuntimeException.systemException(DSP_DATAADDRESS_INVALID)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(transferProcessId)
-                .details(reason)
-                .build();
+        return buildFailure(DSP_DATAADDRESS_INVALID, transferProcessId, reason);
     }
 
     private static XrdRuntimeException acquisitionStoppedFailure(String id) {
-        return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+        return buildFailure(DSP_ACQUISITION_FAILED, id, "Asset access completion poller stopped");
+    }
+
+    private static XrdRuntimeException buildFailure(ErrorCode errorCode, String id, String reason) {
+        return XrdRuntimeException.systemException(errorCode)
                 .origin(ErrorOrigin.DATASPACE)
                 .metadataItems(id)
-                .details("Asset access completion poller stopped")
+                .details(reason)
                 .build();
     }
 

@@ -89,6 +89,8 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -101,6 +103,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIM
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_PARSE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_IDENTITY_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTION_MISSING;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
@@ -122,8 +125,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * negotiation entirely and transfers with the existing agreement. A successful transfer records its agreement in
  * the note.
  *
- * <p>Only a provider refusal ends an agreement's reuse: a refusal of the transfer, as recognised by
- * {@link ProviderFailureClassifier}, or a data address the provider marks refused
+ * <p>Only a provider refusal ends an agreement's reuse: an agreement refusal or a DCP identity rejection of the
+ * transfer, as recognised by {@link ProviderFailureClassifier}, or a data address the provider marks refused
  * ({@link DspConventions#ACCESS_REFUSED_PROPERTY}) because the caller's live ACL grants no endpoint. The note
  * entry is removed (unless a newer one replaced it) and the same candidate falls back to one full negotiation,
  * whose newer agreement wins reuse from then on. A transport fault is never a refusal: the candidate goes into
@@ -131,7 +134,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * candidates without one by negotiation. Every other failure keeps the agreement and the note entry and fails the
  * acquisition: a provider-side termination without a refusal and a failed initiation. A marked data address is
  * never returned: after a reused agreement's renegotiation, or after a fresh negotiation, it fails the acquisition
- * with {@code DSP_ACCESS_REFUSED}.
+ * with {@code DSP_ACCESS_REFUSED}. A DCP identity rejection of the catalog fetch, the negotiation or the transfer -
+ * the provider could not verify the consumer's identity - fails the acquisition with {@code DSP_IDENTITY_REJECTED}
+ * instead of {@code DSP_CATALOG_FETCH_FAILED}, {@code DSP_NEGOTIATION_FAILED} or {@code DSP_TRANSFER_FAILED}; the
+ * renegotiation that follows one on a reused agreement's transfer is not itself retried if its own negotiation or
+ * transfer is rejected the same way.
  *
  * <p>An acquisition runs under the {@link CallBudget} its caller supplies. The catalog fetch, the negotiation wait
  * and the transfer wait each get the lesser of their own cap and the time left, so together they never outlast the
@@ -347,14 +354,16 @@ public class AssetAccessOrchestrator {
             AssetAccessRequest.Candidate candidate, ContractAgreement agreement, CallContext call) {
         monitor.info("%s reusing agreement: agreementId=%s matchedByClientId=%s"
                 .formatted(key, agreement.getId(), request.clientId() != null));
+        var classification = new AtomicReference<ProviderFailureClassifier.Classification>();
         return startTransfer(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
-                candidate.counterPartyAddress(), request.protocolOrDefault(), call)
+                candidate.counterPartyAddress(), request.protocolOrDefault(), call, classification::set)
                 .thenCompose(outcome -> switch (outcome) {
                     case StageOutcome.Succeeded<DataAddress> _ -> CompletableFuture.completedFuture(
                             rememberOnSuccess(noteKey(participantContext, request, candidate), agreement, outcome));
-                    case StageOutcome.Failed(var failureKind, var failure) -> isTransferRefusal(failureKind, failure)
-                            ? negotiateAfterRefusal(key, participantContext, request, candidate, agreement, failure, call)
-                            : CompletableFuture.completedFuture(outcome);
+                    case StageOutcome.Failed(var failureKind, var failure) ->
+                            isTransferRefusal(failureKind, failure, classification.get())
+                                    ? negotiateAfterRefusal(key, participantContext, request, candidate, agreement, failure, call)
+                                    : CompletableFuture.completedFuture(outcome);
                 });
     }
 
@@ -376,11 +385,14 @@ public class AssetAccessOrchestrator {
         return outcome;
     }
 
-    private static boolean isTransferRefusal(FailureKind failureKind, Throwable failure) {
+    private static boolean isTransferRefusal(FailureKind failureKind, Throwable failure,
+                                              ProviderFailureClassifier.Classification classification) {
         return failureKind != FailureKind.TRANSPORT_FAULT
                 && unwrap(failure) instanceof XrdRuntimeException xrdException
                 && (xrdException.isCausedBy(DSP_ACCESS_REFUSED)
-                || xrdException.isCausedBy(DSP_TRANSFER_FAILED) && ProviderFailureClassifier.isRefusal(xrdException.getDetails()));
+                || xrdException.isCausedBy(DSP_IDENTITY_REJECTED)
+                || xrdException.isCausedBy(DSP_TRANSFER_FAILED)
+                && classification == ProviderFailureClassifier.Classification.AGREEMENT_REFUSAL);
     }
 
     private static Throwable unwrap(Throwable failure) {
@@ -460,6 +472,15 @@ public class AssetAccessOrchestrator {
 
     private StageOutcome<Catalog> catalogOutcome(String key, StatusResult<byte[]> result) {
         if (result.failed()) {
+            if (ProviderFailureClassifier.classify(result.getFailureDetail(), ProviderFailureClassifier.Stage.CATALOG)
+                    == ProviderFailureClassifier.Classification.IDENTITY_REJECTION) {
+                monitor.warning("%s provider rejected the consumer's identity: catalog fetch".formatted(key));
+                return new StageOutcome.Failed<>(FailureKind.OTHER,
+                        XrdRuntimeException.systemException(DSP_IDENTITY_REJECTED)
+                                .origin(ErrorOrigin.DATASPACE)
+                                .details(result.getFailureDetail())
+                                .build());
+            }
             monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));
             return new StageOutcome.Failed<>(FailureKind.OTHER,
                     XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
@@ -659,6 +680,14 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<StageOutcome<DataAddress>> startTransfer(
             String key, ParticipantContext participantContext, ContractAgreement agreement,
             String transferType, String counterPartyAddress, String protocol, CallContext call) {
+        return startTransfer(key, participantContext, agreement, transferType, counterPartyAddress, protocol, call,
+                classification -> { });
+    }
+
+    private CompletableFuture<StageOutcome<DataAddress>> startTransfer(
+            String key, ParticipantContext participantContext, ContractAgreement agreement,
+            String transferType, String counterPartyAddress, String protocol, CallContext call,
+            Consumer<ProviderFailureClassifier.Classification> classificationObserver) {
         Duration timeout;
         try {
             timeout = call.stageTimeout(transferTimeout);
@@ -677,21 +706,14 @@ public class AssetAccessOrchestrator {
             result = transferProcessService.initiateTransfer(participantContext, transferRequest);
         } catch (EdcException e) {
             monitor.warning("%s transfer initiate failed with EDC exception".formatted(key), e);
-            return CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureClassifier.classify(e),
-                    XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
-                            .origin(ErrorOrigin.DATASPACE)
-                            .cause(e)
-                            .details(e.getMessage())
-                            .build()));
+            return CompletableFuture.completedFuture(
+                    transferStartFailure(FailureClassifier.classify(e), e, e.getMessage(), classificationObserver));
         }
 
         if (result.failed()) {
             monitor.warning("%s transfer initiate failed: %s".formatted(key, result.getFailureDetail()));
-            return CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureKind.OTHER,
-                    XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
-                            .origin(ErrorOrigin.DATASPACE)
-                            .details(result.getFailureDetail())
-                            .build()));
+            return CompletableFuture.completedFuture(
+                    transferStartFailure(FailureKind.OTHER, null, result.getFailureDetail(), classificationObserver));
         }
 
         var transferProcessId = result.getContent().getId();
@@ -701,7 +723,58 @@ public class AssetAccessOrchestrator {
         return transfer
                 .whenComplete((outcome, throwable) -> onTransferComplete(key, transferProcessId, outcome, throwable))
                 .thenApply(outcome -> call.classifyTimeout(outcome, timeout, transferTimeout))
-                .thenApply(outcome -> refuseMarkedAddress(key, transferProcessId, outcome));
+                .thenApply(outcome -> refuseMarkedAddress(key, transferProcessId, outcome))
+                .thenApply(outcome -> reclassifyIdentityRejection(key, transferProcessId, outcome, classificationObserver));
+    }
+
+    /**
+     * Built when a transfer fails to start, synchronously, before any provider answer is awaited: the EDC
+     * exception catch and the failed {@link ServiceResult} branches of {@link #startTransfer}. Classifies the
+     * detail the same way the asynchronous await path does, so a bare 404 reads as a DCP identity rejection
+     * whichever path surfaces it, and reports the classification to {@code classificationObserver} for the
+     * same reason {@link #reclassifyIdentityRejection} does.
+     */
+    private static StageOutcome<DataAddress> transferStartFailure(
+            FailureKind failureKind, Throwable cause, String detail,
+            Consumer<ProviderFailureClassifier.Classification> classificationObserver) {
+        var classification = ProviderFailureClassifier.classify(detail, ProviderFailureClassifier.Stage.TRANSFER);
+        classificationObserver.accept(classification);
+        var errorCode = classification == ProviderFailureClassifier.Classification.IDENTITY_REJECTION
+                ? DSP_IDENTITY_REJECTED : DSP_TRANSFER_FAILED;
+        return new StageOutcome.Failed<>(failureKind, XrdRuntimeException.systemException(errorCode)
+                .origin(ErrorOrigin.DATASPACE)
+                .cause(cause)
+                .details(detail)
+                .build());
+    }
+
+    /**
+     * Reports a transfer failure that is a DCP identity rejection - a bare 404, as recognised by
+     * {@link ProviderFailureClassifier} - with {@code DSP_IDENTITY_REJECTED} instead of
+     * {@code DSP_TRANSFER_FAILED}. Every other failure, including an agreement refusal, is unchanged. Reports
+     * the classification to {@code classificationObserver} so a reused-agreement transfer need not reclassify
+     * the same detail to check for an agreement refusal.
+     */
+    private StageOutcome<DataAddress> reclassifyIdentityRejection(
+            String key, String transferProcessId, StageOutcome<DataAddress> outcome,
+            Consumer<ProviderFailureClassifier.Classification> classificationObserver) {
+        if (!(outcome instanceof StageOutcome.Failed(var failureKind, var failure))
+                || !(failure instanceof XrdRuntimeException xrdException)
+                || !xrdException.isCausedBy(DSP_TRANSFER_FAILED)) {
+            return outcome;
+        }
+        var classification =
+                ProviderFailureClassifier.classify(xrdException.getDetails(), ProviderFailureClassifier.Stage.TRANSFER);
+        classificationObserver.accept(classification);
+        if (classification != ProviderFailureClassifier.Classification.IDENTITY_REJECTION) {
+            return outcome;
+        }
+        monitor.warning("%s provider rejected the consumer's identity: transferProcessId=%s".formatted(key, transferProcessId));
+        return new StageOutcome.Failed<>(failureKind, XrdRuntimeException.systemException(DSP_IDENTITY_REJECTED)
+                .origin(ErrorOrigin.DATASPACE)
+                .metadataItems(transferProcessId)
+                .details(xrdException.getDetails())
+                .build());
     }
 
     private StageOutcome<DataAddress> refuseMarkedAddress(String key, String transferProcessId,

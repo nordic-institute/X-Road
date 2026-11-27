@@ -303,9 +303,9 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
         when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
-                Stream.of(terminatedTransfer("tp-1", PROVIDER_CONFLICT)));
+                Stream.of(terminatedTransfer("tp-1", providerAnswer(404, "Not found"))));
         when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
-                Stream.of(terminatedNegotiation("neg-1", "no offer for this client")));
+                Stream.of(terminatedNegotiation("neg-1", providerAnswer(404, "Not found"))));
 
         var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());
         pollUntilDone(future);
@@ -314,9 +314,48 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
                 .isInstanceOf(ExecutionException.class)
                 .hasCauseInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
-                        .isEqualTo("dataspace.dsp_negotiation_failed"));
+                        .isEqualTo("dataspace.dsp_identity_rejected"));
         verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
         verify(transferProcessService, times(1)).initiateTransfer(any(), any());
+    }
+
+    @Test
+    void renegotiationCatalogFetch401FailsTheAcquisitionWithDspIdentityRejectedAndDoesNotLoop() throws Exception {
+        var request = requestFor(null);
+        stubReusableAgreement("agreement-1");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(terminatedTransfer("tp-1", providerAnswer(404, "Not found"))));
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR,
+                        "Counter Party responded with Response{protocol=h2, code=401, message=, "
+                                + "url=https://provider.example/dsp/catalog/request}. Body: Unauthorized..")));
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_identity_rejected"));
+        verify(transferProcessService, times(1)).initiateTransfer(any(), any());
+        verify(catalogService, times(1)).requestCatalog(any(), any(), any(), any(), any());
+        verify(contractNegotiationService, never()).initiateNegotiation(any(), any());
+    }
+
+    @Test
+    void aFirstNegotiationRejectedWithABare404FailsTheAcquisitionWithTheIdentityRejection() {
+        stubCatalogAndTransformChain("asset-1");
+        stubNegotiationInitiation();
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(terminatedNegotiation("neg-1", providerAnswer(404, "Not found"))));
+
+        var failure = acquireExpectingFailure(null);
+
+        assertThat(((XrdRuntimeException) failure).getErrorCode()).isEqualTo("dataspace.dsp_identity_rejected");
+        verify(transferProcessService, never()).initiateTransfer(any(), any());
     }
 
     @Test
@@ -435,6 +474,50 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
         when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(
                         StatusResult.failure(ResponseStatus.FATAL_ERROR, "catalog unavailable")));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest, defaultBudget());
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_catalog_fetch_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
+    }
+
+    @Test
+    void catalogFetch401FailsTheAcquisitionWithDspIdentityRejected() {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = requestFor(null);
+
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR,
+                        "Counter Party responded with Response{protocol=h2, code=401, message=, "
+                                + "url=https://provider.example/dsp/catalog/request}. Body: Unauthorized..")));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest, defaultBudget());
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_identity_rejected");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
+    }
+
+    @Test
+    void catalogFetchBare404FailsTheAcquisitionWithDspCatalogFetchFailed() {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = requestFor(null);
+
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR,
+                        "Counter Party responded with Response{protocol=h2, code=404, message=, "
+                                + "url=https://provider.example/dsp/catalog/request}. Body: Not Found.")));
 
         var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest, defaultBudget());
 
@@ -698,6 +781,41 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
                 .satisfies(ex -> {
                     var cause = (XrdRuntimeException) ex.getCause();
                     assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
+    }
+
+    @Test
+    void transferInitiationFailureWithABareNotFoundThrowsDspIdentityRejected() throws Exception {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = requestFor(null);
+
+        stubCatalogAndTransformChain("asset-1");
+
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id("neg-1")
+                .protocol("http-dsp-profile-2025-1")
+                .counterPartyId("provider-1")
+                .counterPartyAddress("http://provider/dsp")
+                .build();
+        when(contractNegotiationService.initiateNegotiation(any(), any()))
+                .thenReturn(ServiceResult.success(negotiation));
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.unexpected(providerAnswer(404, "Not found")));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest, defaultBudget());
+
+        var agreement = buildAgreement("agreement-1");
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(finalizedNegotiation("neg-1", agreement)));
+        completionPoller.poll();
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_identity_rejected");
                     assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
                 });
     }

@@ -43,6 +43,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_PARSE_F
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATAADDRESS_INVALID;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATA_PLANE_UNREACHABLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_IDENTITY_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
@@ -88,6 +89,7 @@ public final class ClientFacingErrorPolicy {
         rule(DSP_DATASET_NOT_FOUND, ACCESS_DENIED, NOT_ALLOWED_BY_PROVIDER);
         rule(DSP_OFFERS_NOT_FOUND, ACCESS_DENIED, NOT_ALLOWED_BY_PROVIDER);
         rule(DSP_ACCESS_REFUSED, ACCESS_DENIED, NOT_ALLOWED_BY_PROVIDER);
+        rule(DSP_IDENTITY_REJECTED, ACCESS_DENIED, NOT_ALLOWED_BY_PROVIDER);
         rule(DSP_PULL_DISTRIBUTION_MISSING, SERVICE_FAILED, "The provider security server did not return a valid service access method.");
         rule(DSP_DATAADDRESS_INVALID, SERVICE_FAILED, "The provider security server returned an invalid service access address.");
         rule(DSP_NEGOTIATION_FAILED, SERVICE_FAILED, "Failed to negotiate access terms with the provider security server.");
