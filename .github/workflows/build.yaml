@@ -73,6 +73,15 @@ jobs:
           ref: ${{ github.ref }}
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
 
+      - name: Setup mirrors
+        id: mirrors
+        uses: ./.github/actions/setup-mirrors
+        with:
+          token: ${{ secrets.XROAD_MIRROR_TOKEN }}
+          base-url: ${{ vars.XROAD_MIRROR_BASE_URL }}
+          username: ${{ vars.XROAD_MIRROR_USERNAME }}
+          disabled: ${{ vars.XROAD_MIRRORS_DISABLED }}
+
       - name: Setup build environment
         uses: ./.github/actions/setup-build-env
         with:
@@ -92,6 +101,15 @@ jobs:
         run: |
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -x test --parallel -PsonarqubeHost=https://sonarcloud.io \
           -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute sonar
+
+      - name: Log out of the mirror Docker host
+        if: always() && steps.mirrors.outputs.enabled == 'true'
+        run: |
+          docker_host="${XROAD_MIRROR_DOCKER_URL#*://}"
+          docker_host="${docker_host%%/*}"
+          if [[ -n "${docker_host}" ]]; then
+            docker logout "${docker_host}"
+          fi
 
   test-central-server:
     name: cs-tests

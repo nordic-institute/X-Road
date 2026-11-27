@@ -23,6 +23,7 @@ ALL_RELEASES=(deb-resolute deb-noble rpm-el9 rpm-el10)
 # Parse arguments
 FORCE_BUILD=false
 NO_CACHE=false
+NO_PUSH=false
 RELEASE=""
 
 while [[ $# -gt 0 ]]; do
@@ -33,6 +34,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-cache)
       NO_CACHE=true
+      shift
+      ;;
+    --no-push)
+      NO_PUSH=true
       shift
       ;;
     -*)
@@ -60,18 +65,21 @@ if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
   MIRROR_BUILD_ARGS_RPM+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
 fi
 
-if [[ -n "$XROAD_MIRROR_UBUNTU_URL" ]] && [[ -n "$XROAD_MIRROR_USERNAME" ]] && [[ -n "$XROAD_MIRROR_TOKEN" ]]; then
+if [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+  XROAD_MIRROR_NETRC="$(mirror_netrc "$XROAD_MIRROR_USERNAME" "$XROAD_MIRROR_TOKEN" "$XROAD_MIRROR_UBUNTU_URL")"
+  export XROAD_MIRROR_NETRC
   # For APT-based builds
   MIRROR_BUILD_ARGS_APT+=(
     --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
     --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
-    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+    --secret "id=mirror_netrc,env=XROAD_MIRROR_NETRC"
   )
   # For DNF-based builds (uses BASE_URL - strip the specific mirror path)
   MIRROR_BASE_URL="${XROAD_MIRROR_UBUNTU_URL%/mirror-*}"
   MIRROR_BUILD_ARGS_RPM+=(
     --build-arg XROAD_MIRROR_BASE_URL="$MIRROR_BASE_URL"
     --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_netrc,env=XROAD_MIRROR_NETRC"
     --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
   )
 fi
@@ -84,6 +92,7 @@ if [[ -z "$RELEASE" ]]; then
   echo "Options:" >&2
   echo "  -f, --force     Force build without checking registry" >&2
   echo "  --no-cache      Build without using cache" >&2
+  echo "  --no-push       Build single-platform images locally and skip the push" >&2
   echo "" >&2
   echo "Examples:" >&2
   echo "  $0 deb-resolute              # Prepare single image (pull or build)" >&2
@@ -92,6 +101,11 @@ if [[ -z "$RELEASE" ]]; then
   echo "  $0 -f --no-cache rpm-el9  # Force rebuild without cache" >&2
   echo "" >&2
   echo "Available releases: ${ALL_RELEASES[*]}" >&2
+  exit 1
+fi
+
+if [[ "$NO_PUSH" == "true" ]] && [[ "$BUILD_PLATFORMS" == *","* ]]; then
+  echo "--no-push supports single-platform builds only" >&2
   exit 1
 fi
 
@@ -183,13 +197,24 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
     fi
 
     if docker build --progress=plain -t "$IMAGE_NAME" "${CACHE_FLAG[@]}" "${MIRROR_BUILD_ARGS[@]}" "$BUILDER_DOCKER_DIR/$release/"; then
-      log_info "  Pushing to registry..."
-      if docker push "$IMAGE_NAME" >/dev/null 2>&1; then
+      RESULT_TEXT="Built ${release}"
+      RESULT_SUFFIX=", push skipped"
+      PUSH_FAILED=false
+      if [[ "$NO_PUSH" != "true" ]]; then
+        log_info "  Pushing to registry..."
+        if docker push "$IMAGE_NAME" >/dev/null 2>&1; then
+          RESULT_TEXT="Built and pushed ${release}"
+          RESULT_SUFFIX=""
+        else
+          PUSH_FAILED=true
+        fi
+      fi
+      if [[ "$PUSH_FAILED" == "true" ]]; then
+        log_warn "Built ${release} but push failed (image available locally)"
+      else
         BUILD_END=$(date +%s)
         DURATION=$((BUILD_END - BUILD_START))
-        log_success "Built and pushed ${release} (${DURATION}s)"
-      else
-        log_warn "Built ${release} but push failed (image available locally)"
+        log_success "${RESULT_TEXT} (${DURATION}s)${RESULT_SUFFIX}"
       fi
     else
       log_error "Failed to build ${release}"

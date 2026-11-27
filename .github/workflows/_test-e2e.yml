@@ -89,6 +89,16 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
+      - name: Setup mirrors
+        id: mirrors
+        if: inputs.variant == 'lxd' || inputs.variant == 'sidecar'
+        uses: ./.github/actions/setup-mirrors
+        with:
+          token: ${{ secrets.XROAD_MIRROR_TOKEN }}
+          base-url: ${{ vars.XROAD_MIRROR_BASE_URL }}
+          username: ${{ vars.XROAD_MIRROR_USERNAME }}
+          disabled: ${{ vars.XROAD_MIRRORS_DISABLED }}
+
       # ---------------------------------------------------------------- lxd setup
 
       - name: Install Ansible and LXD tooling
@@ -306,9 +316,15 @@ jobs:
       - name: Provision containers
         if: inputs.variant == 'lxd'
         working-directory: ./scripts/env-lxd
+        env:
+          MIRRORS_ENABLED: ${{ steps.mirrors.outputs.enabled }}
         run: |
+          mirror_args=""
+          if [[ "$MIRRORS_ENABLED" == "true" ]]; then
+            mirror_args="-e \"package_mirror_url=\$XROAD_MIRROR_UBUNTU_URL\" -e \"package_mirror_user=\$XROAD_MIRROR_USERNAME\""
+          fi
           start=$(date +%s)
-          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_dev.yml --forks 5 --skip-tags compile,build-packages -e onMacOs=no -e enable_netdata=false"
+          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_dev.yml --forks 5 --skip-tags compile,build-packages -e onMacOs=no -e enable_netdata=false${mirror_args:+ $mirror_args}"
           echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Initialize X-Road (hurl)
@@ -371,6 +387,12 @@ jobs:
         run: |
           ./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04 \
             "${{ env.SERVICE_IMAGE_TAG }}" "${{ env.IMAGE_REGISTRY }}/xroad-security-server-sidecar"
+
+      - name: Scan sidecar image for mirror credentials
+        if: inputs.variant == 'sidecar' && steps.mirrors.outputs.enabled == 'true'
+        run: |
+          ./scripts/images/test-mirror-layer-leak.sh \
+            "${{ env.IMAGE_REGISTRY }}/xroad-security-server-sidecar:${{ env.SERVICE_IMAGE_TAG }}"
 
       # ------------------------------------------------------------------- shared
 
@@ -581,3 +603,12 @@ jobs:
           display-badge: false
           display-table: true
           pr-comment: false
+
+      - name: Log out of the mirror Docker host
+        if: always() && steps.mirrors.outputs.enabled == 'true'
+        run: |
+          docker_host="${XROAD_MIRROR_DOCKER_URL#*://}"
+          docker_host="${docker_host%%/*}"
+          if [[ -n "${docker_host}" ]]; then
+            docker logout "${docker_host}"
+          fi

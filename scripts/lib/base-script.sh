@@ -159,6 +159,22 @@ resolve_module_gradle_path() {
   return 1
 }
 
+# Print one netrc line per distinct host of the given mirror URLs:
+# "machine <host> login <user> password <token>". Empty URLs are skipped.
+# Usage: mirror_netrc <user> <token> <url>...
+mirror_netrc() {
+  local user="$1" token="$2" url host seen=" "
+  shift 2
+  for url in "$@"; do
+    [[ -n "${url}" ]] || continue
+    host="${url#*//}"
+    host="${host%%/*}"
+    [[ "${seen}" == *" ${host} "* ]] && continue
+    seen+="${host} "
+    printf 'machine %s login %s password %s\n' "${host}" "${user}" "${token}"
+  done
+}
+
 # Populate global MIRROR_BUILD_ARGS with Docker buildx --build-arg / --secret / --build-context
 # flags for the configured mirrors.
 #
@@ -204,18 +220,22 @@ build_mirror_args() {
 
   if [[ "${no_mirror}" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && \
      [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
-    MIRROR_BUILD_ARGS+=(--build-arg XROAD_MIRROR_URL="${XROAD_MIRROR_UBUNTU_URL}")
+    MIRROR_BUILD_ARGS+=(
+      --build-arg XROAD_MIRROR_URL="${XROAD_MIRROR_UBUNTU_URL}"
+      --build-arg XROAD_MIRROR_USER="${XROAD_MIRROR_USERNAME}"
+    )
     log_success "APT mirror ENABLED: ${XROAD_MIRROR_UBUNTU_URL}"
   else
     log_warn "APT mirror DISABLED (using public repos)"
   fi
 
-  if [[ "${no_mirror}" != "true" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && \
-     [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
-    MIRROR_BUILD_ARGS+=(
-      --build-arg XROAD_MIRROR_USER="${XROAD_MIRROR_USERNAME}"
-      --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
-    )
+  if [[ "${no_mirror}" != "true" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
+    XROAD_MIRROR_NETRC="$(mirror_netrc "${XROAD_MIRROR_USERNAME}" "${XROAD_MIRROR_TOKEN}" \
+      "${XROAD_MIRROR_UBUNTU_URL:-}" "${XROAD_MIRROR_GITHUB_URL:-}" "${XROAD_MIRROR_K8S_URL:-}")"
+    if [[ -n "${XROAD_MIRROR_NETRC}" ]]; then
+      export XROAD_MIRROR_NETRC
+      MIRROR_BUILD_ARGS+=(--secret "id=mirror_netrc,env=XROAD_MIRROR_NETRC")
+    fi
   fi
 
   log_info "MIRROR_BUILD_ARGS: ${MIRROR_BUILD_ARGS[*]}"

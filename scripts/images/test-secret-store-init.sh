@@ -14,6 +14,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
+source "${ROOT_DIR}/scripts/lib/test-helpers.sh"
 
 IMAGE="${1:-${IMAGE_REGISTRY:-localhost:5555}/openbao-dev:${IMAGE_TAG:-latest}}"
 PACKAGE_SOURCES="${ROOT_DIR}/deployment/native-packages/src/xroad/common"
@@ -98,14 +99,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-pass() { log_success "  ok: $1"; }
-fail() { log_error "  FAILED: $1"; FAILURES=$((FAILURES + 1)); dump_last_run; }
-
-check() {
-  local description="$1"
-  shift
-  if "$@"; then pass "${description}"; else fail "${description}"; fi
-}
+on_check_failure() { dump_last_run; }
 
 check_eq() {
   local description="$1" expected="$2" actual="$3"

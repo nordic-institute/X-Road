@@ -118,10 +118,14 @@ if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
 fi
 
 if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN-}" ]]; then
+  mirror_host="${XROAD_MIRROR_UBUNTU_URL#*//}"
+  mirror_host="${mirror_host%%/*}"
+  XROAD_MIRROR_NETRC="machine $mirror_host login $XROAD_MIRROR_USERNAME password $XROAD_MIRROR_TOKEN"
+  export XROAD_MIRROR_NETRC
   MIRROR_BUILD_ARGS+=(
     --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
     --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
-    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+    --secret "id=mirror_netrc,env=XROAD_MIRROR_NETRC"
   )
 fi
 

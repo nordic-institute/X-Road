@@ -6,7 +6,7 @@ ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
 
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
-    --mount=type=secret,id=mirror_token \
+    --mount=type=secret,id=mirror_netrc \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 # ACME
@@ -17,7 +17,8 @@ ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ORGANIZATION_NAME=Test
 
-RUN apt-get -qq update \
+RUN --mount=type=secret,id=mirror_netrc,target=/etc/apt/auth.conf.d/mirror.conf \
+    apt-get -qq update \
   && apt-get -qq install --no-install-recommends  \
     python3 nginx supervisor bash openssl curl python3-pip uwsgi uwsgi-plugin-python3 \
   && apt -y install --no-install-recommends /tmp/acme2certifier_${A2C_VER}-${A2C_DEB_RELEASE}_all.deb \

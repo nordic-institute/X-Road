@@ -1,0 +1,48 @@
+name: Test setup-mirrors action
+
+on:
+  pull_request:
+    paths:
+      - '.github/actions/setup-mirrors/**'
+      - 'scripts/lib/test-helpers.sh'
+      - '.github/workflows/test-setup-mirrors.yaml'
+  push:
+    branches:
+      - develop
+    paths:
+      - '.github/actions/setup-mirrors/**'
+      - 'scripts/lib/test-helpers.sh'
+      - '.github/workflows/test-setup-mirrors.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-setup-mirrors:
+    name: setup-mirrors
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install fake docker
+        run: |
+          stub_dir="${RUNNER_TEMP}/docker-stub"
+          ./.github/actions/setup-mirrors/test-setup-mirrors.sh install-stub "${stub_dir}"
+          echo "${stub_dir}" >> "${GITHUB_PATH}"
+          echo "DOCKER_STUB_LOG=${RUNNER_TEMP}/docker-calls.log" >> "${GITHUB_ENV}"
+
+      - name: Run setup-mirrors with an empty token
+        id: mirrors
+        uses: ./.github/actions/setup-mirrors
+        with:
+          token: ''
+
+      - name: Check job environment
+        env:
+          ENABLED: ${{ steps.mirrors.outputs.enabled }}
+        run: ./.github/actions/setup-mirrors/test-setup-mirrors.sh assert no-token
+
+      - name: Run local mode
+        run: ./.github/actions/setup-mirrors/test-setup-mirrors.sh

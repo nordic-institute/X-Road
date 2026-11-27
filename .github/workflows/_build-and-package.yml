@@ -45,6 +45,15 @@ jobs:
           ref: ${{ inputs.ref }}
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
 
+      - name: Setup mirrors
+        id: mirrors
+        uses: ./.github/actions/setup-mirrors
+        with:
+          token: ${{ secrets.XROAD_MIRROR_TOKEN }}
+          base-url: ${{ vars.XROAD_MIRROR_BASE_URL }}
+          username: ${{ vars.XROAD_MIRROR_USERNAME }}
+          disabled: ${{ vars.XROAD_MIRRORS_DISABLED }}
+
       - name: Setup build environment
         uses: ./.github/actions/setup-build-env
         with:
@@ -340,6 +349,22 @@ jobs:
           IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
             ./build-dev-infra.sh --push
 
+      - name: Scan images for mirror credentials
+        if: steps.mirrors.outputs.enabled == 'true'
+        working-directory: ./scripts/images
+        run: |
+          images=(
+            "${IMAGE_REGISTRY}/base-images/ss-baseline-runtime:${SERVICE_IMAGE_TAG}"
+            "${IMAGE_REGISTRY}/base-images/ss-baseline-auxiliary-service-runtime:${SERVICE_IMAGE_TAG}"
+            "${IMAGE_REGISTRY}/base-images/ss-baseline-message-log-archiver-runtime:${SERVICE_IMAGE_TAG}"
+            "${IMAGE_REGISTRY}/central-server-dev:${SERVICE_IMAGE_TAG}"
+            "${IMAGE_REGISTRY}/testca-dev:${SERVICE_IMAGE_TAG}"
+          )
+          for image in "${images[@]}"; do
+            docker pull "${image}"
+          done
+          ./test-mirror-layer-leak.sh "${images[@]}"
+
       - name: Write images-ready marker
         run: |
           mkdir -p ci-markers
@@ -410,3 +435,12 @@ jobs:
         uses: ./.github/actions/log-storage
         with:
           label: 'Final Storage Utilization'
+
+      - name: Log out of the mirror Docker host
+        if: always() && steps.mirrors.outputs.enabled == 'true'
+        run: |
+          docker_host="${XROAD_MIRROR_DOCKER_URL#*://}"
+          docker_host="${docker_host%%/*}"
+          if [[ -n "${docker_host}" ]]; then
+            docker logout "${docker_host}"
+          fi

@@ -11,11 +11,12 @@ ARG XROAD_MIRROR_URL
 ARG XROAD_MIRROR_USER
 
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
-    --mount=type=secret,id=mirror_token \
+    --mount=type=secret,id=mirror_netrc \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
 
 # Install dependencies
-RUN apt-get -qq update && \
+RUN --mount=type=secret,id=mirror_netrc,target=/etc/apt/auth.conf.d/mirror.conf \
+    apt-get -qq update && \
     apt-get -qq install --no-install-recommends gnupg && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*

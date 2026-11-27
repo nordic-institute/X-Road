@@ -41,7 +41,9 @@ granular single-image selection call `images/build-security-server.sh <service..
 | `images/build-security-server.sh` | SS runtime images (`ss-*`); reads `lib/service-config.csv`. For granular single-image selection call this directly, e.g. `images/build-security-server.sh proxy signer` |
 | `images/build-central-server.sh` | Central Server dev image |
 | `images/build-dev-infra.sh` | Dev-infra images (openbao, testca, postgres-dev, nginx-cp) |
-| `images/build-builder.sh` | Package-builder toolchain images |
+| `images/build-builder.sh [-f] [--no-cache] [--no-push] <release\|all>` | Package-builder toolchain images (`deb-resolute`, `deb-noble`, `rpm-el9`, `rpm-el10`). `-f` skips the registry pull, `--no-cache` builds without cache, `--no-push` builds single-platform images locally and skips the push (used so CI can scan before it pushes) |
+| `XROAD_MIRROR_TOKEN=<token> images/test-mirror-layer-leak.sh <image>...` | Layer scan for images built with a package mirror: fails when a layer or the image configuration holds the mirror token, or when the final filesystem keeps the apt TLS override. It runs its negative control first and scans nothing when the control fails. Exit 0 clean, 1 finding or failed control, 2 usage error or a control probe that could not be built. Runs in CI after each image build when mirrors are on |
+| `images/test-mirror-layer-leak-control.sh` | Negative control for the layer scan: builds a probe image with a dummy token and the apt TLS override, and passes only when the scan reports both. The layer scan runs it first; it also runs alone. Exit 0 the scan caught the probe, 1 it did not, 2 the probe could not be built |
 | `images/test-secret-store-init.sh [image]` | Container test of the secret store scripts (init, config writer, unseal, cluster bundle) on the dev OpenBao image (default `localhost:5555/openbao-dev:latest`); runs in CI as `secret-store-init-test` |
 
 ---
