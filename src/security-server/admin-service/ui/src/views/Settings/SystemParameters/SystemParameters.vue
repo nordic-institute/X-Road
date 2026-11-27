@@ -281,7 +281,7 @@
           />
         </template>
         <v-alert
-          v-if="restartBanner.services.length > 0"
+          v-if="restartBanner.restartAll || restartBanner.services.length > 0 || restartBanner.archiverNextRun"
           class="ma-4"
           type="warning"
           variant="outlined"
@@ -289,7 +289,15 @@
           density="compact"
           data-test="configurable-properties-restart-warning"
         >
-          {{ $t('configurableProperties.restartWarning', { services: restartBanner.services.join(', ') }) }}
+          <div v-if="restartBanner.restartAll" data-test="configurable-properties-restart-all">
+            {{ $t('configurableProperties.restartAllWarning') }}
+          </div>
+          <div v-else-if="restartBanner.services.length > 0" data-test="configurable-properties-restart-services">
+            {{ $t('configurableProperties.restartWarning', { services: restartBanner.services.join(', ') }) }}
+          </div>
+          <div v-if="restartBanner.archiverNextRun" data-test="configurable-properties-archiver-note">
+            {{ $t('configurableProperties.archiverNextRun') }}
+          </div>
         </v-alert>
 
         <div class="px-4">

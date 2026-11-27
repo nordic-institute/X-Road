@@ -61,7 +61,13 @@
                     <template #activator="{ props: tooltipProps }">
                       <v-icon v-bind="tooltipProps" icon="warning" color="warning" class="mr-2" />
                     </template>
-                    {{ $t('configurableProperties.propertyRestartWarning') }}
+                    {{
+                      $t(
+                        prop.restart_policy === 'NONE_ARCHIVER'
+                          ? 'configurableProperties.archiverNextRun'
+                          : 'configurableProperties.propertyRestartWarning',
+                      )
+                    }}
                   </v-tooltip>
                   <XrdBtn
                     data-test="edit-configurable-property-button"

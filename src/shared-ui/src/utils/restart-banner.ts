@@ -28,15 +28,27 @@
 import type { ConfigurablePropertyDto } from '../openapi-types';
 
 export interface RestartBanner {
+  restartAll: boolean;
   services: string[];
+  archiverNextRun: boolean;
 }
 
 export function buildRestartBanner(savedProperties: ConfigurablePropertyDto[]): RestartBanner {
   const services = new Set<string>();
+  let restartAll = false;
+  let archiverNextRun = false;
   for (const property of savedProperties) {
-    if (property.restart_policy === 'SERVICES') {
-      property.restart_services.forEach((name) => services.add(name));
+    switch (property.restart_policy) {
+      case 'ALL_SERVICES':
+        restartAll = true;
+        break;
+      case 'NONE_ARCHIVER':
+        archiverNextRun = true;
+        break;
+      case 'SERVICES':
+        property.restart_services.forEach((name) => services.add(name));
+        break;
     }
   }
-  return { services: [...services] };
+  return { restartAll, services: restartAll ? [] : [...services], archiverNextRun };
 }

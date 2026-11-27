@@ -132,6 +132,15 @@ const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
     restart_policy: 'ALL_SERVICES',
     restart_services: [],
   },
+  {
+    property_name: 'xroad.message-log.archive-max-filesize',
+    default_value: '33554432',
+    effective_value: '33554432',
+    value_source: 'DEFAULT',
+    scope: 'message-log-archiver',
+    restart_policy: 'NONE_ARCHIVER',
+    restart_services: [],
+  },
 ];
 
 validateBody(maintenanceModeSchema, maintenanceModeDisabledFixture);
@@ -403,5 +412,60 @@ describe('System Parameters — restart warning lists service names (Browser Mod
     await expect
       .element(page.getByTestId('configurable-properties-restart-warning'))
       .toMatchTextContent(/: xroad-proxy-ui-api\.$/);
+  });
+
+  const warning = () => page.getByTestId('configurable-properties-restart-warning');
+  const restartAll = () => page.getByTestId('configurable-properties-restart-all');
+  const restartServices = () => page.getByTestId('configurable-properties-restart-services');
+  const archiverNote = () => page.getByTestId('configurable-properties-archiver-note');
+
+  const openPanels = async (...scopes: string[]) => {
+    for (const scope of scopes) {
+      await page.getByTestId(`configurable-properties-panel-title-${scope}`).click();
+    }
+  };
+
+  const editCommon = () => editProperty('common', 'xroad.common.some-other-param', '6');
+  const editService = () => editProperty('proxy', 'xroad.proxy.some-proxy-param', '2');
+  const editArchiver = () => editProperty('message-log-archiver', 'xroad.message-log.archive-max-filesize', '1024');
+
+  it.each([
+    ['common then service', [editCommon, editService]],
+    ['service then common', [editService, editCommon]],
+    ['common only', [editCommon]],
+  ])('a shared setting asks to restart all services without a list: %s', async (_name, edits) => {
+    await renderPage();
+    await openPanels('common', 'proxy');
+
+    for (const edit of edits) await edit();
+
+    await expect.element(warning()).toMatchTextContent(/^(warning)?All X-Road services need to be restarted for the changes to take effect\.$/);
+    expect(restartServices().query()).toBeNull();
+    expect(archiverNote().query()).toBeNull();
+  });
+
+  it('an archiver-only edit shows the next-run note and no restart sentence', async () => {
+    await renderPage();
+    await openPanels('message-log-archiver');
+
+    await editArchiver();
+
+    await expect.element(warning()).toMatchTextContent(/^(warning)?The change applies on the next run of the message log archiver\.$/);
+    expect(restartAll().query()).toBeNull();
+    expect(restartServices().query()).toBeNull();
+  });
+
+  it.each([
+    ['archiver then service', [editArchiver, editService]],
+    ['service then archiver', [editService, editArchiver]],
+  ])('an archiver edit and a service edit show both sentences: %s', async (_name, edits) => {
+    await renderPage();
+    await openPanels('message-log-archiver', 'proxy');
+
+    for (const edit of edits) await edit();
+
+    await expect.element(restartServices()).toMatchTextContent(/: xroad-proxy\.$/);
+    await expect.element(archiverNote()).toMatchTextContent(/next run of the message log archiver\.$/);
+    expect(restartAll().query()).toBeNull();
   });
 });
