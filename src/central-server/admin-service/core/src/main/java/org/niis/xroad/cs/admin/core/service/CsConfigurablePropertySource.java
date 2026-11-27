@@ -92,6 +92,14 @@ public class CsConfigurablePropertySource implements ConfigurablePropertySource 
 
     @Override
     public RestartTarget restartTarget(Category category) {
-        return RestartTarget.allServices();
+        return switch (category) {
+            case ADMIN_SERVICE -> RestartTarget.services("xroad-center");
+            case MANAGEMENT_SERVICE -> RestartTarget.services("xroad-center-management-service");
+            case REGISTRATION_SERVICE -> RestartTarget.services("xroad-center-registration-service");
+            case SIGNER -> RestartTarget.services("xroad-signer");
+            case COMMON -> RestartTarget.allServices();
+            default -> throw XrdRuntimeException.systemInternalError(
+                    "Unmapped category for configurable properties catalogue: " + category);
+        };
     }
 }

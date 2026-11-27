@@ -34,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyRestartPolicy;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
@@ -76,6 +77,8 @@ class CsConfigurablePropertiesCatalogueTest {
     /** Scope names the {@code configuration_properties} table and the UI restart-warning expect. */
     private static final Set<String> TARGET_SCOPES = Set.of(
             "admin-service", "management-service", "registration-service", "signer");
+
+    private static final String COMMON_SCOPE = "common";
 
     @Mock
     private ConfigurationPropertyRepository repository;
@@ -133,12 +136,48 @@ class CsConfigurablePropertiesCatalogueTest {
     }
 
     @Test
+    void everyScopeResolvesToItsRestartPolicyAndServiceNames() {
+        var restartByScope = service.getConfigurationProperties().stream()
+                .collect(Collectors.toMap(
+                        dto -> dto.getScope() == null ? COMMON_SCOPE : dto.getScope(),
+                        dto -> new Restart(dto.getRestartPolicy(), dto.getRestartServices()),
+                        (first, _) -> first));
+
+        assertThat(restartByScope).containsOnlyKeys(
+                "admin-service", "management-service", "registration-service", "signer", COMMON_SCOPE);
+        assertThat(restartByScope)
+                .containsEntry("admin-service", services("xroad-center"))
+                .containsEntry("management-service", services("xroad-center-management-service"))
+                .containsEntry("registration-service", services("xroad-center-registration-service"))
+                .containsEntry("signer", services("xroad-signer"))
+                .containsEntry(COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of()));
+    }
+
+    @Test
+    void everyExposedPropertyHasRestartPolicyConsistentWithItsServiceNames() {
+        var properties = service.getConfigurationProperties();
+
+        assertThat(properties).isNotEmpty().allSatisfy(dto -> {
+            assertThat(dto.getRestartPolicy()).as("policy of %s", dto.getPropertyName()).isNotNull();
+            if (dto.getRestartPolicy() == ConfigurablePropertyRestartPolicy.SERVICES) {
+                assertThat(dto.getRestartServices()).as("services of %s", dto.getPropertyName()).isNotEmpty();
+            } else {
+                assertThat(dto.getRestartServices()).as("services of %s", dto.getPropertyName()).isEmpty();
+            }
+        });
+    }
+
+    @Test
     void catalogueOmitsDataspaceKeysNotYetExposedInUi() {
         var keys = service.getConfigurationProperties().stream()
                 .map(ConfigurablePropertyDto::getPropertyName)
                 .collect(Collectors.toSet());
 
         assertThat(keys).noneMatch(key -> key.startsWith("xroad.dataspace."));
+    }
+
+    private static Restart services(String... names) {
+        return new Restart(ConfigurablePropertyRestartPolicy.SERVICES, List.of(names));
     }
 
     private static Map<String, ExpectedProperty> expectedCrossModuleProperties() {
@@ -153,5 +192,8 @@ class CsConfigurablePropertiesCatalogueTest {
     }
 
     private record ExpectedProperty(String scope, String defaultValue) {
+    }
+
+    private record Restart(ConfigurablePropertyRestartPolicy policy, List<String> services) {
     }
 }
