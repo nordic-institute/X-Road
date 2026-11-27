@@ -142,6 +142,9 @@ public class ConfigurablePropertiesService {
         dto.setPropertyName(key.key());
         dto.setDefaultValue(defaultValue(key));
         dto.setScope(categoryToScope(key.category()));
+        var restartTarget = configurablePropertySource.restartTarget(key.category());
+        dto.setRestartPolicy(restartTarget.policy());
+        dto.setRestartServices(restartTarget.services());
         dto.setCurrentValue(storedValue.orElse(null));
         dto.setEffectiveValue(resolved.value());
         dto.setValueSource(resolved.source());

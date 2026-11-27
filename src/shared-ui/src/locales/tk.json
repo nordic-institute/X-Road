@@ -161,7 +161,7 @@
   "configurableProperties": {
     "title": "Sazlanylýan ulgam häsiýetleri",
     "search": "Häsiýetleri gözle...",
-    "restartWarning": "Üýtgetmeleriň güýje girmegi üçin şu hyzmatlar täzeden başladylmaly: {scopes}.",
+    "restartWarning": "Üýtgetmeleriň güýje girmegi üçin şu hyzmatlar täzeden başladylmaly: {services}.",
     "propertyRestartWarning": "Üýtgetmeleriň güýje girmegi üçin täzeden başlatmak talap edilýär.",
     "collapseAll": "Hemmesini ýyg",
     "updateSuccess": "Häsiýet üstünlikli täzelendi",

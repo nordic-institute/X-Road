@@ -70,7 +70,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   cancel: [];
-  saved: [scope: string];
+  saved: [property: ConfigurablePropertyDto];
 }>();
 
 const { addError, addSuccessMessage } = useNotifications();
@@ -102,7 +102,7 @@ async function save() {
       scope: props.property.scope,
     });
     addSuccessMessage('configurableProperties.updateSuccess');
-    emit('saved', props.property.scope || 'common');
+    emit('saved', props.property);
   } catch (error) {
     return addError(error);
   } finally {

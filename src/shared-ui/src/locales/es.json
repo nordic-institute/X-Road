@@ -163,7 +163,7 @@
   "configurableProperties": {
     "title": "Propiedades del sistema configurables",
     "search": "Buscar propiedades...",
-    "restartWarning": "Es necesario reiniciar los siguientes servicios para que los cambios surtan efecto: {scopes}.",
+    "restartWarning": "Es necesario reiniciar los siguientes servicios para que los cambios surtan efecto: {services}.",
     "propertyRestartWarning": "Se requiere reinicio para que los cambios surtan efecto.",
     "collapseAll": "Contraer todo",
     "updateSuccess": "Propiedad actualizada correctamente",

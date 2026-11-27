@@ -58,6 +58,8 @@ const configurablePropertySchema = {
     value_source: { type: 'string', enum: ['DEFAULT', 'COUNTRY_PROFILE', 'DB'] },
     country_profile: { type: 'string' },
     scope: { type: 'string' },
+    restart_policy: { type: 'string', enum: ['SERVICES', 'ALL_SERVICES', 'NONE_ARCHIVER'] },
+    restart_services: { type: 'array', items: { type: 'string' } },
   },
 };
 
@@ -90,6 +92,8 @@ const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
     effective_value: '20',
     value_source: 'DB',
     scope: 'proxy-ui-api',
+    restart_policy: 'SERVICES',
+    restart_services: ['xroad-proxy-ui-api'],
   },
   {
     property_name: 'xroad.proxy-ui-api.rate-limit-delay-after-requests',
@@ -98,6 +102,8 @@ const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
     value_source: 'COUNTRY_PROFILE',
     country_profile: 'FI',
     scope: 'proxy-ui-api',
+    restart_policy: 'SERVICES',
+    restart_services: ['xroad-proxy-ui-api'],
   },
   {
     property_name: 'xroad.proxy-ui-api.empty-param',
@@ -105,6 +111,17 @@ const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
     effective_value: '',
     value_source: 'DEFAULT',
     scope: 'proxy-ui-api',
+    restart_policy: 'SERVICES',
+    restart_services: ['xroad-proxy-ui-api'],
+  },
+  {
+    property_name: 'xroad.proxy.some-proxy-param',
+    default_value: '1',
+    effective_value: '1',
+    value_source: 'DEFAULT',
+    scope: 'proxy',
+    restart_policy: 'SERVICES',
+    restart_services: ['xroad-proxy'],
   },
   {
     property_name: 'xroad.common.some-other-param',
@@ -112,6 +129,8 @@ const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
     effective_value: '5',
     value_source: 'DEFAULT',
     scope: 'common',
+    restart_policy: 'ALL_SERVICES',
+    restart_services: [],
   },
 ];
 
@@ -331,5 +350,58 @@ describe('System Parameters — property edited shows restart warning (Browser M
 
     await expect.element(page.getByTestId('configurable-property-value-field')).not.toBeInTheDocument();
     await expect.element(page.getByTestId('configurable-properties-restart-warning')).toBeVisible();
+  });
+});
+
+describe('System Parameters — restart warning lists service names (Browser Mode)', () => {
+  const rowOf = (scope: string, propertyName: string) =>
+    page
+      .getByTestId(`configurable-properties-table-body-${scope}`)
+      .getByTestId('configurable-property-row')
+      .filter({ hasText: propertyName });
+
+  const editProperty = async (scope: string, propertyName: string, value: string) => {
+    await rowOf(scope, propertyName).getByTestId('edit-configurable-property-button').click();
+    await expect.element(page.getByTestId('configurable-property-value-field')).toBeVisible();
+    const input = page.getByTestId('configurable-property-value-field').getByRole('textbox');
+    await input.clear();
+    await input.fill(value);
+    await page.getByRole('button', { name: /save/i }).click();
+    await expect.element(page.getByTestId('configurable-property-value-field')).not.toBeInTheDocument();
+  };
+
+  const renderPage = () =>
+    renderRoute('/settings/system-parameters', {
+      permissions: systemParamPermissions,
+      msw: [
+        maintenanceModeDisabledHandler,
+        propertiesHandler,
+        specHttp.patch('/system/property', ({ response }) => response(204).empty()),
+      ],
+    });
+
+  it('lists the service names of two edited categories', async () => {
+    await renderPage();
+    await page.getByTestId('configurable-properties-panel-title-proxy-ui-api').click();
+    await page.getByTestId('configurable-properties-panel-title-proxy').click();
+
+    await editProperty('proxy-ui-api', 'xroad.proxy-ui-api.rate-limit-requests-per-second', '25');
+    await editProperty('proxy', 'xroad.proxy.some-proxy-param', '2');
+
+    await expect
+      .element(page.getByTestId('configurable-properties-restart-warning'))
+      .toMatchTextContent(/: xroad-proxy-ui-api, xroad-proxy\.$/);
+  });
+
+  it('lists a service name once when two properties of one category are edited', async () => {
+    await renderPage();
+    await page.getByTestId('configurable-properties-panel-title-proxy-ui-api').click();
+
+    await editProperty('proxy-ui-api', 'xroad.proxy-ui-api.rate-limit-requests-per-second', '25');
+    await editProperty('proxy-ui-api', 'xroad.proxy-ui-api.rate-limit-delay-after-requests', '16');
+
+    await expect
+      .element(page.getByTestId('configurable-properties-restart-warning'))
+      .toMatchTextContent(/: xroad-proxy-ui-api\.$/);
   });
 });

@@ -51,7 +51,7 @@
           density="compact"
           data-test="configurable-properties-restart-warning"
         >
-          {{ $t('configurableProperties.restartWarning', { scopes: [...modifiedScopes].join(', ') }) }}
+          {{ $t('configurableProperties.restartWarning', { services: [...modifiedScopes].join(', ') }) }}
         </v-alert>
 
         <div class="px-4">
@@ -181,10 +181,10 @@ function collapseAllScopes(): void {
   }
 }
 
-function onPropertySaved(scope: string): void {
+function onPropertySaved(property: ConfigurablePropertyDto): void {
   const propertyName = editingProperty.value?.property_name;
   editingProperty.value = undefined;
-  modifiedScopes.value.add(scope);
+  modifiedScopes.value.add(property.scope || 'common');
   if (propertyName) modifiedProperties.value.add(propertyName);
   fetchConfigurablePropertiesList();
 }

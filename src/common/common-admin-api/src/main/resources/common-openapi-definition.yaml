@@ -758,6 +758,8 @@ components:
       description: A single configurable property, including metadata for UI rendering, the value stored in the database and the value in effect.
       required:
         - value_source
+        - restart_policy
+        - restart_services
       properties:
         property_name:
           type: string
@@ -793,6 +795,25 @@ components:
           type: string
           description: scope of the property
           example: proxy-ui-api
+        restart_policy:
+          $ref: '#/components/schemas/ConfigurablePropertyRestartPolicy'
+        restart_services:
+          type: array
+          description: names of the services to restart for a change of the property to take effect, non-empty only when restart_policy is SERVICES
+          items:
+            type: string
+            format: text
+            maxLength: 256
+          example:
+            - xroad-proxy-ui-api
+    ConfigurablePropertyRestartPolicy:
+      type: string
+      description: what an administrator restarts for a change of a configurable property to take effect; SERVICES the services named in restart_services, ALL_SERVICES every X-Road service, NONE_ARCHIVER nothing because the message log archiver reads the value on its next run
+      example: SERVICES
+      enum:
+        - SERVICES
+        - ALL_SERVICES
+        - NONE_ARCHIVER
     ConfigurablePropertyValueSource:
       type: string
       description: layer that supplies the effective value of a configurable property

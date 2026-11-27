@@ -48,6 +48,7 @@ import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.restapi.service.ConfigurablePropertySource;
+import org.niis.xroad.restapi.service.RestartTarget;
 import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.stereotype.Component;
@@ -111,6 +112,29 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
             case AUXILIARY_SERVICE -> "auxiliary-service";
             case MESSAGE_LOG_ARCHIVER -> "message-log-archiver";
             case COMMON -> null;
+            default -> throw XrdRuntimeException.systemInternalError(
+                    "Unmapped category for configurable properties catalogue: " + category);
+        };
+    }
+
+    @Override
+    public RestartTarget restartTarget(Category category) {
+        return switch (deploymentMode) {
+            case NATIVE, CONTAINERIZED -> nativeRestartTarget(category);
+        };
+    }
+
+    private static RestartTarget nativeRestartTarget(Category category) {
+        return switch (category) {
+            case PROXY -> RestartTarget.services("xroad-proxy");
+            case SIGNER -> RestartTarget.services("xroad-signer");
+            case PROXY_UI_API -> RestartTarget.services("xroad-proxy-ui-api");
+            case OP_MONITOR_DAEMON -> RestartTarget.services("xroad-opmonitor");
+            case MONITOR -> RestartTarget.services("xroad-monitor");
+            case CONFIGURATION_CLIENT -> RestartTarget.services("xroad-confclient");
+            case AUXILIARY_SERVICE -> RestartTarget.services("xroad-auxiliary-service");
+            case MESSAGE_LOG_ARCHIVER -> RestartTarget.noneArchiver();
+            case COMMON -> RestartTarget.allServices();
             default -> throw XrdRuntimeException.systemInternalError(
                     "Unmapped category for configurable properties catalogue: " + category);
         };

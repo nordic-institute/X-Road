@@ -163,7 +163,7 @@
   "configurableProperties": {
     "title": "Propriedades do sistema configuráveis",
     "search": "Pesquisar propriedades...",
-    "restartWarning": "Os seguintes serviços precisam ser reiniciados para que as alterações entrem em vigor: {scopes}.",
+    "restartWarning": "Os seguintes serviços precisam ser reiniciados para que as alterações entrem em vigor: {services}.",
     "propertyRestartWarning": "Reinicialização necessária para as alterações entrarem em vigor.",
     "collapseAll": "Recolher tudo",
     "updateSuccess": "Propriedade atualizada com sucesso",

@@ -115,6 +115,11 @@ class ConfigurablePropertiesServiceTest {
                     default -> throw new IllegalArgumentException("Unexpected category: " + category);
                 };
             }
+
+            @Override
+            public RestartTarget restartTarget(Category category) {
+                return RestartTarget.services(category.name());
+            }
         };
     }
 

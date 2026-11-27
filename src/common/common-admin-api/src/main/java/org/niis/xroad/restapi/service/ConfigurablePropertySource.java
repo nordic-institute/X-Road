@@ -35,8 +35,8 @@ import java.util.List;
 /**
  * Per-product plug-in point for {@link ConfigurablePropertiesService}: supplies the
  * {@link ConfigKeyProvider}s whose declared keys make up a product's configurable-properties
- * catalogue, and maps a key's {@link Category} to the scope string the REST contract and UI
- * grouping use.
+ * catalogue, maps a key's {@link Category} to the scope string the REST contract and UI
+ * grouping use, and to the {@link RestartTarget} a change of the key needs.
  */
 public interface ConfigurablePropertySource {
 
@@ -49,6 +49,13 @@ public interface ConfigurablePropertySource {
      *         shared/common category
      */
     String categoryToScope(Category category);
+
+    /**
+     * @param category UI grouping declared on a key
+     * @return what an administrator restarts for a change of a property of the category to take effect,
+     *         for the {@link #deploymentMode()} the product runs under
+     */
+    RestartTarget restartTarget(Category category);
 
     /**
      * @return the active country profile, {@link ActiveCountryProfile#NONE} when the product has none

@@ -37,6 +37,7 @@ import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyRestartPolicy;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
@@ -136,6 +137,8 @@ class ConfigurablePropertiesCatalogueTest {
             "proxy", "proxy-ui-api", "signer", "monitor", "op-monitor-daemon",
             "configuration-client", "auxiliary-service", "message-log-archiver");
 
+    private static final String COMMON_SCOPE = "common";
+
     @Mock
     private ConfigurationPropertyRepository repository;
 
@@ -174,6 +177,40 @@ class ConfigurablePropertiesCatalogueTest {
                 .collect(Collectors.toSet());
 
         assertThat(scopes).isEqualTo(TARGET_SCOPES);
+    }
+
+    @Test
+    void everyScopeResolvesToItsNativeRestartPolicyAndServiceNames() {
+        var restartByScope = restartByScope();
+
+        assertThat(restartByScope).containsOnlyKeys(
+                "proxy", "signer", "proxy-ui-api", "op-monitor-daemon", "monitor", "configuration-client",
+                "auxiliary-service", "message-log-archiver", COMMON_SCOPE);
+        assertThat(restartByScope)
+                .containsEntry("proxy", services("xroad-proxy"))
+                .containsEntry("signer", services("xroad-signer"))
+                .containsEntry("proxy-ui-api", services("xroad-proxy-ui-api"))
+                .containsEntry("op-monitor-daemon", services("xroad-opmonitor"))
+                .containsEntry("monitor", services("xroad-monitor"))
+                .containsEntry("configuration-client", services("xroad-confclient"))
+                .containsEntry("auxiliary-service", services("xroad-auxiliary-service"))
+                .containsEntry("message-log-archiver",
+                        new Restart(ConfigurablePropertyRestartPolicy.NONE_ARCHIVER, List.of()))
+                .containsEntry(COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of()));
+    }
+
+    @Test
+    void everyExposedPropertyHasRestartPolicyConsistentWithItsServiceNames() {
+        var properties = service.getConfigurationProperties();
+
+        assertThat(properties).isNotEmpty().allSatisfy(dto -> {
+            assertThat(dto.getRestartPolicy()).as("policy of %s", dto.getPropertyName()).isNotNull();
+            if (dto.getRestartPolicy() == ConfigurablePropertyRestartPolicy.SERVICES) {
+                assertThat(dto.getRestartServices()).as("services of %s", dto.getPropertyName()).isNotEmpty();
+            } else {
+                assertThat(dto.getRestartServices()).as("services of %s", dto.getPropertyName()).isEmpty();
+            }
+        });
     }
 
     @Test
@@ -320,6 +357,18 @@ class ConfigurablePropertiesCatalogueTest {
         assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
     }
 
+    private Map<String, Restart> restartByScope() {
+        return service.getConfigurationProperties().stream()
+                .collect(Collectors.toMap(
+                        dto -> dto.getScope() == null ? COMMON_SCOPE : dto.getScope(),
+                        dto -> new Restart(dto.getRestartPolicy(), dto.getRestartServices()),
+                        (first, _) -> first));
+    }
+
+    private static Restart services(String... names) {
+        return new Restart(ConfigurablePropertyRestartPolicy.SERVICES, List.of(names));
+    }
+
     private Map<String, ConfigurablePropertyDto> propertiesWithProfile(String profileName) {
         return propertiesWith(DeploymentMode.NATIVE,
                 Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profileName));
@@ -358,5 +407,8 @@ class ConfigurablePropertiesCatalogueTest {
     }
 
     private record ExpectedProperty(String scope, String defaultValue) {
+    }
+
+    private record Restart(ConfigurablePropertyRestartPolicy policy, List<String> services) {
     }
 }

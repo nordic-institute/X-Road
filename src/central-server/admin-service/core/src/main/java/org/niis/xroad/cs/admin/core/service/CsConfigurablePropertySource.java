@@ -39,6 +39,7 @@ import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.restapi.service.ConfigurablePropertySource;
+import org.niis.xroad.restapi.service.RestartTarget;
 import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.stereotype.Component;
@@ -87,5 +88,10 @@ public class CsConfigurablePropertySource implements ConfigurablePropertySource 
             default -> throw XrdRuntimeException.systemInternalError(
                     "Unmapped category for configurable properties catalogue: " + category);
         };
+    }
+
+    @Override
+    public RestartTarget restartTarget(Category category) {
+        return RestartTarget.allServices();
     }
 }
