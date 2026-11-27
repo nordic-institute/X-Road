@@ -1681,6 +1681,16 @@ check_psql_hostile_case() {
     check_psql_password_not_in_arguments "${description}" "${password}"
   fi
 }
+# install_crudini_shim: a crudini stand-in that prints the value of a key from an ini file.
+install_crudini_shim() {
+  cat >"${WORK_DIR}/crudini-shim" <<'SHIM'
+#!/bin/sh
+sed -n "s/^$4[[:space:]]*=[[:space:]]*//p" "$2" | { read -r value || exit 1; printf '%s' "${value}"; }
+SHIM
+  docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/crudini
+}
+
 # start_central_server_container: a bare container with the init scripts, a crudini shim and no database.
 start_central_server_container() {
   CONTAINER="${ENV_PARSE_CONTAINER}"
@@ -1689,12 +1699,7 @@ start_central_server_container() {
     -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
     --entrypoint sh "${IMAGE}" -c 'exec tail -f /dev/null' >/dev/null || exit 1
   in_container mkdir -p /etc/openbao /etc/xroad /usr/local/bin
-  cat >"${WORK_DIR}/crudini-shim" <<'SHIM'
-#!/bin/sh
-sed -n "s/^$4[[:space:]]*=[[:space:]]*//p" "$2" | { read -r value || exit 1; printf '%s' "${value}"; }
-SHIM
-  docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
-  in_container chmod +x /usr/local/bin/crudini
+  install_crudini_shim
 }
 
 scenario_central_server_host_list() {
@@ -1813,12 +1818,7 @@ scenario_psql_values_not_executed() {
   done
   in_container mkdir -p /etc/openbao /etc/xroad
   in_container sh -c 'getent group xroad >/dev/null || groupadd xroad; id openbao >/dev/null 2>&1 || useradd -g xroad openbao'
-  cat >"${WORK_DIR}/crudini-shim" <<'SHIM'
-#!/bin/sh
-sed -n "s/^$4[[:space:]]*=[[:space:]]*//p" "$2" | { read -r value || exit 1; printf '%s' "${value}"; }
-SHIM
-  docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
-  in_container chmod +x /usr/local/bin/crudini
+  install_crudini_shim
   install_psql_shim
 
   clear_hostile_markers

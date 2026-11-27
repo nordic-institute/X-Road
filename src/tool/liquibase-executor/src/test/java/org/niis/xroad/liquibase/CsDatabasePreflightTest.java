@@ -51,12 +51,12 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * against the real server, once as the master role and once as a runtime role.
  */
 @ParameterizedClass(name = "{0}")
-@ValueSource(strings = {"postgres:14", "postgres:15"})
+@ValueSource(strings = {CsDatabasePreflightTest.UNSUPPORTED_IMAGE, "postgres:15"})
 class CsDatabasePreflightTest {
 
+    static final String UNSUPPORTED_IMAGE = "postgres:14";
     private static final String SCRIPTS_DIR_PROPERTY = "base.scripts.dir";
     private static final String HELPER_IN_CONTAINER = "/tmp/_setup_db.sh";
-    private static final String UNSUPPORTED_IMAGE = "postgres:14";
     private static final String ADDRESS = "db-write.example.test:5432";
     private static final String HOST_LIST = "db1.example.test:5432,db2.example.test:5432";
     private static final String RUNTIME_PASSWORD = "runtime-pw";
