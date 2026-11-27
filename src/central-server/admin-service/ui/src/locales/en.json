@@ -581,6 +581,7 @@
         "title": "Edit Security Server address"
       }
     },
+    "declined": "Declined",
     "disabled": "Temporarily disabled",
     "dspBaseUrl": "DSP base URL",
     "maintenanceMode": "In maintenance mode",
@@ -589,6 +590,7 @@
     "ownerName": "Owner Name",
     "pending": "Pending approval",
     "registered": "Registered",
+    "revoked": "Revoked",
     "securityServer": {
       "certificationAuthority": "Certification Authority",
       "deleteSecurityServer": "Delete Security Server",

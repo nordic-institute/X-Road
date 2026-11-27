@@ -515,6 +515,7 @@
         "title": "Editar endereço do servidor seguro"
       }
     },
+    "declined": "Recusado",
     "disabled": "Temporariamente desativado",
     "dspBaseUrl": "URL base do DSP",
     "maintenanceMode": "Em modo de manutenção",
@@ -523,6 +524,7 @@
     "ownerName": "Nome do Proprietário",
     "pending": "Aguardando aprovação",
     "registered": "Registrado",
+    "revoked": "Revogado",
     "securityServer": {
       "certificationAuthority": "Autoridade Certificadora",
       "deleteSecurityServer": "Excluir Servidor Seguro",

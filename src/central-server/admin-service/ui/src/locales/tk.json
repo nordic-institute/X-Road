@@ -500,6 +500,7 @@
         "title": "Howpsuzlyk serweriň salgysyny üýtget"
       }
     },
+    "declined": "Ret edilen",
     "disabled": "Wagtlaýynça öçürilen",
     "dspBaseUrl": "DSP esasy URL-i",
     "ownerClass": "Eýesiniň klassy",
@@ -507,6 +508,7 @@
     "ownerName": "Eýesiniň kody",
     "pending": "Tassyklanmaga garaşýar",
     "registered": "Hasaba alnan",
+    "revoked": "Yatyrylan",
     "securityServer": {
       "certificationAuthority": "Şahadatnama berýän merkez",
       "deleteSecurityServer": "Howpsuzlyk serweri poz",
