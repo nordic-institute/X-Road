@@ -61,6 +61,7 @@ dependencies {
 
   runtimeOnly(project(":lib:edc-vault-quarkus"))
   runtimeOnly(project(":lib:edc-jetty-tls"))
+  runtimeOnly(project(":lib:edc-issuer-data"))
 
   runtimeOnly(project(":lib:rpc-quarkus"))
   implementation(project(":service:signer:signer-client"))

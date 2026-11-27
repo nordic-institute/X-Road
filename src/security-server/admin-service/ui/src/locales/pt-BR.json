@@ -1406,6 +1406,29 @@
           },
           "common": {
             "temp-files-path": "Caminho absoluto para o diretório onde os arquivos temporários são armazenados."
+          },
+          "dsp": {
+            "issuer-data": {
+              "download-wait": "O maior tempo que uma verificação espera por um download recente enquanto o Issuer Service responde. O valor deve ser maior que 0. Valores razoáveis: de 1 a 10 segundos. Reinicie xroad-ds-control-plane e xroad-ds-identity-hub após uma alteração.",
+              "download-retry-seconds": "A espera em segundos antes do próximo download após um download com falha. A entrada n da lista separada por vírgulas é a espera após a falha n, e a última entrada se repete. Cada entrada é um número inteiro positivo. Uma entrada maior que download-expire-after não tem efeito. Reinicie xroad-ds-control-plane e xroad-ds-identity-hub após uma alteração.",
+              "download-expire-after": "Após este tempo, um download com falha ou sem resposta expira e é esquecido. A próxima verificação que precisar dos dados inicia um novo download, e o atraso de nova tentativa recomeça da primeira entrada. Um atraso de nova tentativa maior que este valor não tem efeito. Valores permitidos: maiores que 0. Valores razoáveis: de 5 a 10 minutos. Reinicie xroad-ds-control-plane e xroad-ds-identity-hub após uma alteração.",
+              "download-timeout": "O maior tempo que um download de uma lista de status ou de um documento DID do emissor pode levar, do início da requisição ao fim da resposta. Um download que demora mais é interrompido e conta como falho. Valores permitidos: maiores que 0. Valores razoáveis: de 10 a 30 segundos. Reinicie xroad-ds-control-plane e xroad-ds-identity-hub após uma alteração.",
+              "cache": {
+                "statuslist": {
+                  "size": "O número máximo de statuslists mantidas na memória. Valores permitidos: números inteiros de 0 ou mais. Com 0, nenhuma cópia é mantida na memória, verificações simultâneas ainda compartilham um download e uma cópia armazenada ainda é usada durante uma interrupção. Reinicie xroad-ds-control-plane e xroad-ds-identity-hub após uma alteração."
+                },
+                "statuslist-download": {
+                  "size": "O número máximo de statuslists cujo download está em andamento ou aguarda uma nova tentativa ao mesmo tempo. Valores permitidos: números inteiros de 1 ou mais. Valores razoáveis: pelo menos o dobro do valor de xroad.dsp.issuer-data.cache.statuslist.size. Quando o limite é atingido, uma entrada é removida, as verificações que a aguardam falham com um erro que permite nova tentativa, a menos que possam usar uma cópia do banco de dados, e a próxima verificação inicia um novo download. Um valor menor causa mais chamadas ao Issuer Service. Reinicie xroad-ds-control-plane e xroad-ds-identity-hub após uma alteração."
+                },
+                "did-download": {
+                  "size": "O número máximo de documentos DID do emissor cujo download está em andamento ou aguarda uma nova tentativa ao mesmo tempo. Somente os DIDs de emissor listados na configuração global são baixados. Valores permitidos: números inteiros de 1 ou mais. Valores razoáveis: pelo menos o dobro do valor de edc.did.resolver.cache.size. Quando o limite é atingido, uma entrada é removida, as verificações que a aguardam falham com um erro que permite nova tentativa, a menos que possam usar uma cópia do banco de dados, e a próxima verificação inicia um novo download. Um valor menor causa mais chamadas ao Issuer Service. Reinicie xroad-ds-control-plane e xroad-ds-identity-hub após uma alteração."
+                }
+              },
+              "cleanup": {
+                "interval": "O tempo entre execuções da limpeza de dados de emissores expirados. Valores permitidos: 5 minutos ou mais. Reinicie xroad-ds-control-plane e xroad-ds-identity-hub após uma alteração.",
+                "enabled": "Quando false, a limpeza de dados de emissores expirados não é executada. Reinicie xroad-ds-control-plane e xroad-ds-identity-hub após uma alteração."
+              }
+            }
           }
         }
       }

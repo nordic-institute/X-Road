@@ -353,6 +353,22 @@ store_certificates_settings() {
   fi
 }
 
+# Removes what X-Road 7 installed for nginx in front of the registration and management services. Both
+# services now terminate TLS on ports 4001 and 4002 themselves, so nginx must release the ports and the
+# xroad user no longer reloads nginx. A site that links somewhere else is kept.
+remove_legacy_service_nginx_sites() {
+  local name site conf
+  for name in management registration; do
+    site="/etc/nginx/sites-enabled/xroad-${name}-service"
+    conf="/etc/xroad/nginx/${name}-service.conf"
+    if [[ -L "$site" && "$(readlink "$site")" == "$conf" ]]; then
+      rm -f "$site"
+    fi
+    rm -f "$conf"
+  done
+  rm -f /etc/sudoers.d/xroad-nginx-reload
+}
+
 case "$1" in
 configure | reconfigure)
     load_node_name
@@ -404,6 +420,8 @@ configure | reconfigure)
       # always fix gpghome ownership
       [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
     fi
+
+    remove_legacy_service_nginx_sites
 
     #create symlink to nginx config
     if [[ -d /etc/nginx/sites-enabled ]]; then

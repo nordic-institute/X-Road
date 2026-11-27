@@ -36,6 +36,14 @@ class ExtensionScanTest {
     private static final String XROAD_EDC_VAULT_EXTENSION =
             "org.niis.xroad.edc.extension.vault.XRoadEdcVaultExtension";
     private static final String STOCK_HASHICORP_VAULT_PACKAGE = "org.eclipse.edc.vault.hashicorp";
+    private static final String STOCK_WEB_DID_EXTENSION = "org.eclipse.edc.iam.did.web.WebDidExtension";
+    private static final String STOCK_IDENTITY_DID_CORE_EXTENSION = "org.eclipse.edc.iam.did.IdentityDidCoreExtension";
+    private static final String ISSUER_DATA_IDENTITY_DID_CORE_EXTENSION =
+            "org.niis.xroad.edc.issuerdata.IssuerDataIdentityDidCoreExtension";
+    private static final String ISSUER_DATA_EXTENSION = "org.niis.xroad.edc.issuerdata.IssuerDataExtension";
+    private static final String ISSUER_DATA_CLEANER_EXTENSION = "org.niis.xroad.edc.issuerdata.IssuerDataCleanerExtension";
+    private static final String ISSUER_STATUS_LIST_RULE_EXTENSION =
+            "org.niis.xroad.edc.extension.policy.controlplane.issuertrust.XRoadIssuerStatusListRuleExtension";
 
     @Test
     void everyNonExcludedExtensionOnTheRuntimeClasspathIsScannable() {
@@ -52,5 +60,23 @@ class ExtensionScanTest {
         assertThat(scanned)
                 .contains(XROAD_EDC_VAULT_EXTENSION)
                 .noneMatch(name -> name.startsWith(STOCK_HASHICORP_VAULT_PACKAGE));
+    }
+
+    @Test
+    void webDidResolverIsRegisteredByTheIssuerDataExtensionOnly() {
+        var scanned = ExtensionScanGuard.scanNonExcluded(ExtensionScanTest.class.getResource("/application.yaml"))
+                .stream().map(extension -> extension.getClass().getName()).toList();
+
+        assertThat(scanned)
+                .contains(ISSUER_DATA_IDENTITY_DID_CORE_EXTENSION, ISSUER_DATA_EXTENSION, ISSUER_STATUS_LIST_RULE_EXTENSION)
+                .doesNotContain(STOCK_IDENTITY_DID_CORE_EXTENSION, STOCK_WEB_DID_EXTENSION);
+    }
+
+    @Test
+    void issuerDataCleanupExtensionIsPresent() {
+        var scanned = ExtensionScanGuard.scanNonExcluded(ExtensionScanTest.class.getResource("/application.yaml"))
+                .stream().map(extension -> extension.getClass().getName()).toList();
+
+        assertThat(scanned).contains(ISSUER_DATA_CLEANER_EXTENSION);
     }
 }
