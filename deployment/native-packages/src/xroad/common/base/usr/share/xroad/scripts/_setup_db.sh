@@ -8,11 +8,28 @@ die() {
 
 MIN_PG_VERSION=15
 
+# Waits for the database to answer and refuses a PostgreSQL older than MIN_PG_VERSION.
+# Arguments: $1 - name of the psql function to query the database with, called as "$1 -tA -c <sql>"
 check_pg_version() {
-  local pg_version_num="$1"
+  local -r psql_fn="$1"
+  local pg_version_num=""
+  local i
+
+  log "Checking PostgreSQL readiness and version..."
+
+  for i in {1..30}; do
+    pg_version_num=$(PGCONNECT_TIMEOUT=5 "$psql_fn" -tA -c "SHOW server_version_num" 2>/dev/null | tr -d '[:space:]')
+
+    if [[ "$pg_version_num" =~ ^[0-9]+$ ]]; then
+      break
+    fi
+
+    log "PostgreSQL not ready yet (attempt $i)..."
+    sleep 1
+  done
 
   if [[ -z "$pg_version_num" ]]; then
-    die "Unable to determine PostgreSQL version. Minimum required version is $MIN_PG_VERSION."
+    die "Unable to determine PostgreSQL version. Check the address, the port, the firewall and the credentials of the database role. Minimum required version is $MIN_PG_VERSION."
   fi
 
   local pg_major_version=$((pg_version_num / 10000))
@@ -22,6 +39,42 @@ check_pg_version() {
   fi
 
   log "PostgreSQL version $pg_major_version OK"
+}
+
+# Refuses a database that does not accept writes, such as a standby or a read-only endpoint.
+# An existing configuration with a host list only gets a warning, because only the first host is checked.
+# Arguments: $1 - name of the psql function to query the database with, $2 - database address, named in the message,
+# $3 - optional, existing for an address that was configured before
+check_db_writable() {
+  local -r psql_fn="$1" address="$2" state="${3:-}"
+  local read_only
+
+  read_only=$(PGCONNECT_TIMEOUT=5 "$psql_fn" -tA -c "SHOW transaction_read_only" 2>/dev/null | tr -d '[:space:]')
+
+  if [[ "$read_only" != "off" ]]; then
+    if [[ "$state" == existing && "$address" == *,* ]]; then
+      log "Warning: the first host '${address%%,*}' of the database address '$address' does not accept writes. Only the first host was checked. Make sure that the address follows the primary, or use one write address instead."
+      return 0
+    fi
+    die "The database at '$address' does not accept writes. Use the write address of the database: the primary, a virtual IP, a connection pooler, a managed endpoint or a Kubernetes read-write service."
+  fi
+
+  log "Database at '$address' accepts writes"
+}
+
+# Refuses a host list in a new database address. OpenBao and the setup steps use only the first host, so they miss a failover.
+# An existing configuration with a host list only gets a warning.
+# Arguments: $1 - the host part of the address, host[:port][,host[:port]], $2 - fresh or existing
+check_db_host_answer() {
+  local -r hosts="$1" state="$2"
+
+  [[ "$hosts" == *,* ]] || return 0
+
+  if [[ "$state" == fresh ]]; then
+    die "The database address '$hosts' is a host list. Give one write address: a virtual IP, a connection pooler, a managed endpoint or a Kubernetes read-write service."
+  fi
+
+  log "Warning: the database address '$hosts' is a host list. OpenBao uses only the first host, so it does not follow a failover. Use one write address instead."
 }
 
 get_prop() {
@@ -144,7 +197,7 @@ setup_database() {
   local db_addr=${hosts[0]%%:*}
   local db_port=${hosts[0]##*:}
 
-  local_psql() { su -l -c "psql -qtA -p ${PGPORT:-$db_port} $*" postgres; }
+  local_psql() { su -l -c "psql -qtA -p ${PGPORT:-$db_port} ${*@Q}" postgres; }
   remote_psql() { psql -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA "$@"; }
 
   psql_dbuser() {
@@ -164,27 +217,7 @@ setup_database() {
     function psql_master() { local_psql "$@"; }
   fi
 
-  # Verify PostgreSQL version meets minimum requirement
-  log "Checking PostgreSQL readiness and version..."
-
-  local pg_version_num=""
-
-  for i in {1..30}; do
-    if [[ "$db_addr" == "127.0.0.1" || "$db_addr" == "localhost" ]]; then
-      pg_version_num=$(su - postgres -c "psql -tA -c 'SHOW server_version_num'" 2>/dev/null | tr -d '[:space:]')
-    else
-      pg_version_num=$(PGCONNECT_TIMEOUT=5 psql_master -tA -c "SHOW server_version_num" 2>/dev/null | tr -d '[:space:]')
-    fi
-
-    if [[ "$pg_version_num" =~ ^[0-9]+$ ]]; then
-      break
-    fi
-
-    log "PostgreSQL not ready yet (attempt $i)..."
-    sleep 1
-  done
-
-  check_pg_version "$pg_version_num"
+  check_pg_version psql_master
 
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
     log "Database and user exists, skipping database creation."

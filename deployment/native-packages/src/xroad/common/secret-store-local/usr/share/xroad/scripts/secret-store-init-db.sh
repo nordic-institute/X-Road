@@ -1,6 +1,18 @@
 #!/bin/bash
 
+# Usage: secret-store-init-db.sh [--central-server] [DATABASE_HOST]
+# --central-server adds the database address checks of the Central Server installer.
+central_server=false
+if [ "$1" = "--central-server" ]; then
+  central_server=true
+  shift
+fi
+
 . /usr/share/xroad/scripts/_openbao_env.sh
+# The helper has its own setup_database; the definition below replaces it, so the helper is sourced first.
+if [ "$central_server" = true ]; then
+  . /usr/share/xroad/scripts/_setup_db.sh
+fi
 
 die() {
   echo >&2 "$@"
@@ -122,8 +134,16 @@ psql_set_literal() {
 
 create_database_if_needed() {
   local db_host="$1"
+  local role_login="$2"
 
-  if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+  if [ "$role_login" != true ]; then
+    role_login=false
+    if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+      role_login=true
+    fi
+  fi
+
+  if [ "$role_login" = true ]; then
     echo "Database and user exists, skipping database creation."
     return 0
   fi
@@ -196,7 +216,16 @@ setup_database() {
   local db_properties=/etc/xroad/db.properties
   local root_properties=$(get_properties_files)
   local new_db_host="$1"
+  local central_server="$2"
   local db_host="${new_db_host:-127.0.0.1:5432}"
+
+  if [ "$central_server" = true ]; then
+    local host_state=fresh
+    if [ -n "$(get_prop "$db_properties" spring.datasource.url)" ]; then
+      host_state=existing
+    fi
+    check_db_host_answer "$db_host" "$host_state"
+  fi
 
   local db_master_conn_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
   local db_master_user=${db_master_conn_user%%@*}
@@ -216,8 +245,18 @@ setup_database() {
 
   parse_database_host "$db_host"
   setup_psql_functions "$root_properties" "$db_master_conn_user"
-  create_database_if_needed "$db_host"
+  local role_login=
+  if [ "$central_server" = true ]; then
+    local check_psql=psql_master
+    if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+      check_psql=psql_dbuser
+      role_login=true
+    fi
+    check_pg_version "$check_psql"
+    check_db_writable "$check_psql" "${db_addr}:${db_port}"
+  fi
+  create_database_if_needed "$db_host" "$role_login"
   create_env_file_if_needed
 }
 
-setup_database "$1"
+setup_database "$1" "$central_server"

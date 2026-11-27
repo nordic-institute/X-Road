@@ -4,10 +4,14 @@
 # Runs the real scripts (mounted read-only from this checkout) against a real OpenBao started from the
 # dev OpenBao image, once per scenario, and checks the resulting OpenBao state. It also runs the supervisor
 # unseal listener of the Central Server container and compares the policy in the HA guide with the one
-# the init script writes.
+# the init script writes. One scenario runs the real maintainer scripts of xroad-center and
+# xroad-secret-store-local under dpkg and debconf in a Central Server container, and checks which database
+# address the Central Server step probes.
 #
 # Usage: ./test-secret-store-init.sh [image]
 #   image defaults to ${IMAGE_REGISTRY:-localhost:5555}/openbao-dev:${IMAGE_TAG:-latest}
+#   CS_IMAGE (Central Server image with xroad-center installed) defaults to
+#   ${IMAGE_REGISTRY:-localhost:5555}/central-server-dev:${IMAGE_TAG:-latest}
 
 set -uo pipefail
 
@@ -34,6 +38,13 @@ WORK_DIR="$(mktemp -d)"
 SCRIPTS_DIR="${WORK_DIR}/scripts"
 BASE_ONLY_CONTAINER="${NODE1_CONTAINER}-base-only"
 ENV_PARSE_CONTAINER="${NODE1_CONTAINER}-env-parse"
+CS_IMAGE="${CS_IMAGE:-${IMAGE_REGISTRY:-localhost:5555}/central-server-dev:${IMAGE_TAG:-latest}}"
+CS_PKG_CONTAINER="${NODE1_CONTAINER}-cs-pkg"
+HL_DB1_CONTAINER="${NODE1_CONTAINER}-hl-db1"
+HL_DB2_CONTAINER="${NODE1_CONTAINER}-hl-db2"
+HL_NETWORK="${NODE1_CONTAINER}-hl-net"
+HL_DB_PASSWORD="test-hl-$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
+MAINTAINER_SCRIPTS_DIR="${ROOT_DIR}/deployment/native-packages/src/xroad/ubuntu/generic"
 ANSIBLE_ENV_TEMPLATE="${ROOT_DIR}/development/ansible/roles/xroad-ss/templates/xroad-openbao.env.j2"
 CONFIG_SCRIPT_SOURCE="${ROOT_DIR}/deployment/native-packages/src/xroad/ubuntu/generic/xroad-secret-store-local.config"
 ENV_HELPER_SCRIPT="/usr/share/xroad/scripts/_openbao_env.sh"
@@ -92,8 +103,9 @@ dump_last_run() {
 cleanup() {
   local rc=$?
   if [[ ${rc} -ne 0 && ${FAILURES} -eq 0 ]]; then dump_last_run; fi
-  docker rm -f "${NODE1_CONTAINER}" "${NODE2_CONTAINER}" "${BASE_ONLY_CONTAINER}" "${ENV_PARSE_CONTAINER}" "${PSQL_CONTAINER}" "${PG_CONTAINER}" >/dev/null 2>&1
-  docker network rm "${NETWORK}" >/dev/null 2>&1
+  docker rm -f "${NODE1_CONTAINER}" "${NODE2_CONTAINER}" "${BASE_ONLY_CONTAINER}" "${ENV_PARSE_CONTAINER}" "${PSQL_CONTAINER}" "${PG_CONTAINER}" \
+    "${CS_PKG_CONTAINER}" "${HL_DB1_CONTAINER}" "${HL_DB2_CONTAINER}" >/dev/null 2>&1
+  docker network rm "${NETWORK}" "${HL_NETWORK}" >/dev/null 2>&1
   rm -rf "${WORK_DIR}"
 }
 trap cleanup EXIT
@@ -121,7 +133,7 @@ in_container() { docker exec "${CONTAINER}" "$@"; }
 
 stage_scripts() {
   mkdir -p "${SCRIPTS_DIR}"
-  cp -p "${SECRET_STORE_SCRIPTS_DIR}"/* "${BASE_SCRIPTS_DIR}/secret-store-cluster-bundle.sh" "${BASE_SCRIPTS_DIR}/_restore_xroad.sh" "${SCRIPTS_DIR}/"
+  cp -p "${SECRET_STORE_SCRIPTS_DIR}"/* "${BASE_SCRIPTS_DIR}/secret-store-cluster-bundle.sh" "${BASE_SCRIPTS_DIR}/_restore_xroad.sh" "${BASE_SCRIPTS_DIR}/_setup_db.sh" "${SCRIPTS_DIR}/"
 }
 write_shim() {
   cat >"${WORK_DIR}/curl-shim" <<'SHIM'
@@ -1681,6 +1693,264 @@ check_psql_hostile_case() {
     check_psql_password_not_in_arguments "${description}" "${password}"
   fi
 }
+# install_crudini_shim: a crudini stand-in that prints the value of a key from an ini file.
+install_crudini_shim() {
+  cat >"${WORK_DIR}/crudini-shim" <<'SHIM'
+#!/bin/sh
+sed -n "s/^$4[[:space:]]*=[[:space:]]*//p" "$2" | { read -r value || exit 1; printf '%s' "${value}"; }
+SHIM
+  docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/crudini
+}
+
+# start_central_server_container: a bare container with the init scripts, a crudini shim and no database.
+start_central_server_container() {
+  CONTAINER="${ENV_PARSE_CONTAINER}"
+  docker rm -f "${CONTAINER}" >/dev/null 2>&1
+  docker run -d --init --name "${CONTAINER}" \
+    -v "${SCRIPTS_DIR}:/usr/share/xroad/scripts:ro" \
+    --entrypoint sh "${IMAGE}" -c 'exec tail -f /dev/null' >/dev/null || exit 1
+  in_container mkdir -p /etc/openbao /etc/xroad /usr/local/bin
+  install_crudini_shim
+}
+
+scenario_central_server_host_list() {
+  log_info "Scenario: the Central Server host-list rule in the OpenBao storage step"
+  local hosts="db1.example.test:5432,db2.example.test:5432"
+  start_central_server_container
+  cat >"${WORK_DIR}/psql-writable-stub" <<'SHIM'
+#!/bin/sh
+case "$*" in
+  *server_version_num*) echo 180000; exit 0 ;;
+  *transaction_read_only*) echo off; exit 0 ;;
+esac
+cat >/dev/null
+SHIM
+  docker cp "${WORK_DIR}/psql-writable-stub" "${CONTAINER}:/usr/local/bin/psql" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/psql
+
+  in_container sh -c "printf 'postgres.connection.password = master-pw-for-test\n' > /etc/xroad.properties"
+  in_container rm -f "${ENV_FILE}" /etc/xroad/db.properties
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${hosts}"
+  check_eq "no existing URL, host list: exit 1" 1 "${RC}"
+  check "no existing URL, host list: the message asks for one write address" grep -qF "is a host list. Give one write address" "${ERR_FILE}"
+  check_eq "no existing URL, host list: no OpenBao environment file is written" "" "$(in_container ls "${ENV_FILE}" 2>/dev/null)"
+
+  in_container sh -c "printf 'spring.datasource.url = jdbc:postgresql://%s/centerui_production\n' '${hosts}' > /etc/xroad/db.properties"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${hosts}"
+  check_eq "existing URL, host list: exit 0" 0 "${RC}"
+  check "existing URL, host list: the warning names the list" grep -qF "Warning: the database address '${hosts}' is a host list" "${ERR_FILE}"
+  check "existing URL, host list: the first host is probed for writes" grep -qF "Database at 'db1.example.test:5432' accepts writes" "${ERR_FILE}"
+  check "existing URL, host list: the OpenBao environment file is written" in_container test -s "${ENV_FILE}"
+}
+
+PSQL_ROLE_CALLS_FILE="/tmp/psql-role-calls"
+ROLE_LOGIN_OK_FILE="/tmp/stub-role-login-ok"
+ROLE_LOGIN_LATE_FILE="/tmp/stub-role-login-late"
+PSQL_ROLE_INPUT_FILE="/tmp/psql-role-input"
+# role_check_calls USER: the version and write checks the stub answered as USER.
+role_check_calls() { in_container sh -c "grep -c \"^$1 .*\\(server_version_num\\|transaction_read_only\\)\" ${PSQL_ROLE_CALLS_FILE} || true"; }
+
+scenario_central_server_check_role() {
+  log_info "Scenario: the Central Server checks in the OpenBao storage step run as the role that the step uses next"
+  start_central_server_container
+  cat >"${WORK_DIR}/psql-role-stub" <<'SHIM'
+#!/bin/sh
+echo "${PGUSER:-none} $*" >>/tmp/psql-role-calls
+case "$*" in
+  *'\q'*)
+    [ -e /tmp/stub-role-login-ok ] && [ "${PGUSER}" = openbao ] || exit 1
+    if [ -e /tmp/stub-role-login-late ] && [ "$(grep -cF '\q' /tmp/psql-role-calls)" -le 1 ]; then exit 1; fi
+    exit 0 ;;
+  *server_version_num*) echo 180000; exit 0 ;;
+  *transaction_read_only*) if [ -e "/tmp/stub-read-only-${PGUSER}" ]; then echo on; else echo off; fi; exit 0 ;;
+esac
+cat >>/tmp/psql-role-input
+SHIM
+  docker cp "${WORK_DIR}/psql-role-stub" "${CONTAINER}:/usr/local/bin/psql" >/dev/null || exit 1
+  in_container chmod +x /usr/local/bin/psql
+  in_container sh -c "printf 'postgres.connection.password = master-pw-for-test\n' > /etc/xroad.properties"
+  in_container sh -c "touch ${PSQL_ROLE_CALLS_FILE} ${PSQL_ROLE_INPUT_FILE} && chmod 666 ${PSQL_ROLE_CALLS_FILE} ${PSQL_ROLE_INPUT_FILE}"
+  local address="127.0.0.1:5432"
+
+  in_container sh -c "rm -f ${ENV_FILE} /etc/xroad/db.properties /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch ${ROLE_LOGIN_OK_FILE} /tmp/stub-read-only-postgres"
+  write_psql_env_file openbao role-pw-for-test 127.0.0.1 5432 openbao openbao
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "working role, writable for the role: exit 0" 0 "${RC}"
+  check "working role, writable for the role: the write check passes" grep -qF "Database at '${address}' accepts writes" "${ERR_FILE}"
+  check_ne "working role: the checks run as the OpenBao role" 0 "$(role_check_calls openbao)"
+  check_eq "working role: the master user runs no check" 0 "$(role_check_calls postgres)"
+
+  in_container sh -c "rm -f /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch /tmp/stub-read-only-openbao"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "working role, read-only for the role: exit 1" 1 "${RC}"
+  check "working role, read-only for the role: the message says the database does not accept writes" grep -qF "The database at '${address}' does not accept writes" "${ERR_FILE}"
+  check_eq "working role, read-only for the role: the master user runs no check" 0 "$(role_check_calls postgres)"
+
+  in_container sh -c "rm -f ${ROLE_LOGIN_OK_FILE} /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch /tmp/stub-read-only-openbao"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "role login fails, writable for the master user: exit 0" 0 "${RC}"
+  check "role login fails: the write check passes" grep -qF "Database at '${address}' accepts writes" "${ERR_FILE}"
+  check_ne "role login fails: the checks run as the master user" 0 "$(role_check_calls postgres)"
+  check_eq "role login fails: the OpenBao role runs no check" 0 "$(role_check_calls openbao)"
+
+  in_container sh -c "rm -f ${ROLE_LOGIN_LATE_FILE} /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; : > ${PSQL_ROLE_INPUT_FILE}; touch ${ROLE_LOGIN_OK_FILE} ${ROLE_LOGIN_LATE_FILE}"
+  write_psql_env_file openbao role-pw-for-test 127.0.0.1 5432 openbao openbao
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "first role login fails, a later one works: exit 0" 0 "${RC}"
+  check_eq "first role login fails, a later one works: the role is probed again" 2 "$(in_container sh -c "grep -cF '\\q' ${PSQL_ROLE_CALLS_FILE}")"
+  check "first role login fails, a later one works: the existing database is kept" grep -qF "Database and user exists, skipping database creation." "${OUT_FILE}"
+  check_eq "first role login fails, a later one works: no CREATE DATABASE is sent" 0 "$(in_container sh -c "grep -c 'CREATE DATABASE' ${PSQL_ROLE_INPUT_FILE} || true")"
+
+  in_container sh -c "rm -f ${ENV_FILE} /etc/xroad/db.properties ${ROLE_LOGIN_OK_FILE} ${ROLE_LOGIN_LATE_FILE} /tmp/stub-read-only-*; : > ${PSQL_ROLE_CALLS_FILE}; touch /tmp/stub-read-only-openbao"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "fresh install, writable for the master user: exit 0" 0 "${RC}"
+  check_ne "fresh install: the checks run as the master user" 0 "$(role_check_calls postgres)"
+  check "fresh install: the OpenBao environment file is written" in_container test -s "${ENV_FILE}"
+
+  in_container sh -c "rm -f ${ENV_FILE} /etc/xroad/db.properties /tmp/stub-read-only-*; touch /tmp/stub-read-only-postgres"
+  run_in_container -- bash "${INIT_DB_SCRIPT}" --central-server "${address}"
+  check_eq "fresh install, read-only for the master user: exit 1" 1 "${RC}"
+  check "fresh install, read-only for the master user: the message says the database does not accept writes" grep -qF "The database at '${address}' does not accept writes" "${ERR_FILE}"
+}
+
+# start_host_list_database CONTAINER ALIAS: a PostgreSQL with the xroad-center role and database, reachable as ALIAS.
+start_host_list_database() {
+  docker run -d --name "$1" --network "${HL_NETWORK}" --network-alias "$2" \
+    -e "POSTGRES_PASSWORD=${PG_PASSWORD}" "${PG_IMAGE}" >/dev/null || exit 1
+  local i
+  for i in $(seq 1 60); do
+    if docker exec "$1" pg_isready -U postgres -h 127.0.0.1 >/dev/null 2>&1; then break; fi
+    sleep 1
+  done
+  docker exec -i "$1" psql -q -U postgres -h 127.0.0.1 -v ON_ERROR_STOP=1 >/dev/null <<SQL || exit 1
+CREATE ROLE centerui LOGIN PASSWORD '${HL_DB_PASSWORD}';
+CREATE DATABASE centerui_production OWNER centerui;
+SQL
+}
+
+# overlay_maintainer_scripts: replaces the maintainer scripts and the shell libraries of the Central Server
+# container with the ones of this checkout, so that dpkg runs the code under test.
+overlay_maintainer_scripts() {
+  local name dir file
+  for name in xroad-secret-store-local.config xroad-secret-store-local.postinst xroad-center.config xroad-center.postinst; do
+    docker cp "${MAINTAINER_SCRIPTS_DIR}/${name}" "${CS_PKG_CONTAINER}:/var/lib/dpkg/info/${name}" >/dev/null || exit 1
+  done
+  for dir in base center secret-store-local; do
+    for file in "${PACKAGE_SOURCES}/${dir}/usr/share/xroad/scripts/"*; do
+      docker cp "${file}" "${CS_PKG_CONTAINER}:/usr/share/xroad/scripts/" >/dev/null || exit 1
+    done
+  done
+  in_container bash -c 'chmod 0755 /var/lib/dpkg/info/xroad-*.config /var/lib/dpkg/info/xroad-*.postinst /usr/share/xroad/scripts/*.sh'
+}
+
+# run_cs_case SNIPPET: runs SNIPPET with the case helpers in the Central Server container; sets RC, stdout in OUT_FILE.
+# stderr of dpkg and of the maintainer scripts is merged into stdout by the helpers.
+run_cs_case() {
+  run_in_container -e "DB_PW=${HL_DB_PASSWORD}" -e "PG_PW=${PG_PASSWORD}" -e "OLD_VERSION=${CS_OLD_VERSION}" -- bash -c ". /root/case-lib.sh; $1"
+}
+
+# case_output_has TEXT: the output of the last case holds TEXT.
+case_output_has() { grep -qF -- "$1" "${OUT_FILE}"; }
+
+scenario_central_server_stored_hosts() {
+  log_info "Scenario: the Central Server step probes the stored database hosts of an existing installation, and the debconf answer of a new one"
+  local list="db1:5432,db2:5432" reversed_list="db2:5432,db1:5432"
+  CONTAINER="${CS_PKG_CONTAINER}"
+  docker rm -f "${CS_PKG_CONTAINER}" "${HL_DB1_CONTAINER}" "${HL_DB2_CONTAINER}" >/dev/null 2>&1
+  docker network rm "${HL_NETWORK}" >/dev/null 2>&1
+  docker network create "${HL_NETWORK}" >/dev/null || exit 1
+  start_host_list_database "${HL_DB1_CONTAINER}" db1
+  start_host_list_database "${HL_DB2_CONTAINER}" db2
+  docker exec "${HL_DB1_CONTAINER}" psql -q -U postgres -h 127.0.0.1 -c "ALTER SYSTEM SET default_transaction_read_only = on" -c "SELECT pg_reload_conf()" >/dev/null || exit 1
+  check_eq "db1 is read-only" on "$(docker exec "${HL_DB1_CONTAINER}" psql -tA -U postgres -h 127.0.0.1 -c 'SHOW transaction_read_only')"
+  check_eq "db2 accepts writes" off "$(docker exec "${HL_DB2_CONTAINER}" psql -tA -U postgres -h 127.0.0.1 -c 'SHOW transaction_read_only')"
+
+  docker run -d --init --name "${CS_PKG_CONTAINER}" --network "${HL_NETWORK}" \
+    --entrypoint sh "${CS_IMAGE}" -c 'exec tail -f /dev/null' >/dev/null || exit 1
+  overlay_maintainer_scripts
+  CS_OLD_VERSION="$(in_container dpkg-query -W -f='${Version}' xroad-center)"
+  cat >"${WORK_DIR}/case-lib.sh" <<'LIB'
+answer() { echo "get xroad-common/database-host" | debconf-communicate | cut -d' ' -f2-; }
+set_answer() { echo "set xroad-common/database-host $1" | debconf-communicate >/dev/null; }
+reset_answer() { echo "reset xroad-common/database-host" | debconf-communicate >/dev/null; }
+# restore_case HOSTS: back to the saved package state; HOSTS is the host part of the stored database URL, empty for none.
+restore_case() {
+  cp -a /root/status.saved /var/lib/dpkg/status
+  cp -a /root/xroad-openbao.env.saved /etc/openbao/xroad-openbao.env
+  chown openbao:xroad /etc/openbao/xroad-openbao.env
+  cp -a /root/xroad.properties.saved /etc/xroad.properties
+  rm -f /etc/xroad/db.properties
+  if [ -n "$1" ]; then
+    printf '%s\n' "spring.datasource.url=jdbc:postgresql://$1/centerui_production" \
+      "spring.datasource.username=centerui" "spring.datasource.password=${DB_PW}" \
+      "spring.datasource.hikari.data-source-properties.currentSchema=centerui,public" \
+      "skip_migrations=true" >/etc/xroad/db.properties
+  fi
+  echo "set xroad-common/secret-store-join false" | debconf-communicate >/dev/null
+  reset_answer
+}
+# master_credentials: lets the step reach the database as the master user, as a new installation needs.
+master_credentials() { printf 'postgres.connection.password=%s\n' "$PG_PW" >>/etc/xroad.properties; }
+# prefill_answer ARGS: runs the secret store config script as apt does before the unpack, then prints the answer.
+prefill_answer() {
+  DEBIAN_FRONTEND=noninteractive timeout 60 /usr/share/debconf/frontend /var/lib/dpkg/info/xroad-secret-store-local.config "$@" 2>&1
+  echo "answer after the secret store config: $(answer)"
+}
+# mark_unpacked PACKAGE yes|no: dpkg state after the unpack; no keeps the installed version as Config-Version, an upgrade.
+mark_unpacked() {
+  awk -v pkg="$1" -v fresh="$2" -v old="$OLD_VERSION" 'BEGIN{RS="";ORS="\n\n"} {
+    if ($0 ~ ("(^|\n)Package: " pkg "\n")) {
+      sub(/Status: install ok installed/, "Status: install ok unpacked")
+      gsub(/\nConfig-Version: [^\n]*/, "")
+      if (fresh != "yes") sub(/\nVersion: [^\n]*/, "&\nConfig-Version: " old)
+    }
+    print }' /var/lib/dpkg/status >/tmp/status.new && cat /tmp/status.new >/var/lib/dpkg/status
+}
+configure_pkg() { DEBIAN_FRONTEND=noninteractive timeout 180 dpkg --configure "$@" 2>&1; }
+LIB
+  docker cp "${WORK_DIR}/case-lib.sh" "${CS_PKG_CONTAINER}:/root/case-lib.sh" >/dev/null || exit 1
+  run_in_container -e "DB_PW=${HL_DB_PASSWORD}" -- bash -c '
+    set -e
+    cp -a /var/lib/dpkg/status /root/status.saved
+    cp -a /etc/xroad.properties /root/xroad.properties.saved
+    mkdir -p /etc/openbao
+    printf "%s\n" BAO_PG_USER=openbao BAO_PG_PASSWORD=dummy BAO_PG_HOST=db1 BAO_PG_PORT=5432 BAO_PG_DATABASE=openbao BAO_PG_SCHEMA=openbao >/etc/openbao/xroad-openbao.env
+    cp -a /etc/openbao/xroad-openbao.env /root/xroad-openbao.env.saved
+    echo "set xroad-common/skip-cs-db-migrations true" | debconf-communicate >/dev/null'
+  check_eq "the Central Server container is ready for the dpkg cases" 0 "${RC}"
+
+  run_cs_case "restore_case ${list}; set_answer ${list}; prefill_answer configure; mark_unpacked xroad-center yes; configure_pkg xroad-center"
+  check_eq "joining node, read-only first host: dpkg exit 0" 0 "${RC}"
+  check "joining node: the secret store config sets the answer to the first host" case_output_has "answer after the secret store config: db1:5432"
+  check "joining node: the step warns about the read-only first host" case_output_has "Warning: the first host 'db1:5432' of the database address '${list}' does not accept writes"
+  check "joining node: the step does not stop" test "$(grep -cF 'does not accept writes. Use the write address' "${OUT_FILE}")" -eq 0
+
+  run_cs_case "restore_case ${reversed_list}; prefill_answer configure; mark_unpacked xroad-center yes; configure_pkg xroad-center"
+  check_eq "joining node, writable first host: dpkg exit 0" 0 "${RC}"
+  check "joining node, writable first host: the stored list is probed, not the answer" case_output_has "Database at '${reversed_list}' accepts writes"
+
+  run_cs_case "restore_case ${list}; set_answer ${list}; prefill_answer configure \"\$OLD_VERSION\"; mark_unpacked xroad-secret-store-local no; mark_unpacked xroad-center no; configure_pkg xroad-secret-store-local xroad-center"
+  check_eq "later upgrade, read-only first host: dpkg exit 0" 0 "${RC}"
+  check "later upgrade: the secret store config sets the answer to the first host" case_output_has "answer after the secret store config: db1:5432"
+  check "later upgrade: the step warns about the read-only first host" case_output_has "Warning: the first host 'db1:5432' of the database address '${list}' does not accept writes"
+
+  run_cs_case "restore_case db1:5432; prefill_answer configure \"\$OLD_VERSION\"; mark_unpacked xroad-secret-store-local no; mark_unpacked xroad-center no; configure_pkg xroad-secret-store-local xroad-center"
+  check_eq "later upgrade, stored single read-only host: dpkg exit 1" 1 "${RC}"
+  check "later upgrade, stored single read-only host: the message says the database does not accept writes" case_output_has "The database at 'db1:5432' does not accept writes"
+
+  run_cs_case "restore_case ''; master_credentials; set_answer db1:5432; mark_unpacked xroad-center yes; configure_pkg xroad-center"
+  check_eq "new installation, read-only answer: dpkg exit 1" 1 "${RC}"
+  check "new installation, read-only answer: the answer is probed" case_output_has "The database at 'db1:5432' does not accept writes"
+
+  run_cs_case "restore_case ''; master_credentials; set_answer db2:5432; mark_unpacked xroad-center yes; configure_pkg xroad-center"
+  check "new installation, writable answer: the answer is probed" case_output_has "Database at 'db2:5432' accepts writes"
+
+  docker rm -f "${CS_PKG_CONTAINER}" "${HL_DB1_CONTAINER}" "${HL_DB2_CONTAINER}" >/dev/null 2>&1
+  docker network rm "${HL_NETWORK}" >/dev/null 2>&1
+  CONTAINER="${NODE1_CONTAINER}"
+}
+
 scenario_psql_values_not_executed() {
   log_info "Scenario: values from the OpenBao environment file reach a real psql only as data"
   local mode marker user password dbname generated_user generated_password env_hash key value
@@ -1697,12 +1967,7 @@ scenario_psql_values_not_executed() {
   done
   in_container mkdir -p /etc/openbao /etc/xroad
   in_container sh -c 'getent group xroad >/dev/null || groupadd xroad; id openbao >/dev/null 2>&1 || useradd -g xroad openbao'
-  cat >"${WORK_DIR}/crudini-shim" <<'SHIM'
-#!/bin/sh
-sed -n "s/^$4[[:space:]]*=[[:space:]]*//p" "$2" | { read -r value || exit 1; printf '%s' "${value}"; }
-SHIM
-  docker cp "${WORK_DIR}/crudini-shim" "${CONTAINER}:/usr/local/bin/crudini" >/dev/null || exit 1
-  in_container chmod +x /usr/local/bin/crudini
+  install_crudini_shim
   install_psql_shim
 
   clear_hostile_markers
@@ -1834,6 +2099,9 @@ scenario_restore_keeps_node_config
 scenario_postrm_purge
 scenario_import_base_only
 scenario_env_file_parsing
+scenario_central_server_host_list
+scenario_central_server_check_role
+scenario_central_server_stored_hosts
 scenario_psql_values_not_executed
 scenario_supervisor_listener
 

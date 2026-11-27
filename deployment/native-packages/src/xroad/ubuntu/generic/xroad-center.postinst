@@ -50,13 +50,25 @@ setup_database() {
     local db_master_conn_user=postgres
 
     local db_url=$(get_prop ${db_properties} 'spring.datasource.url')
+    local db_state=existing
     if [[ -z "$db_url" ]]; then
+      db_state=fresh
+      check_db_host_answer "$db_host" fresh
       db_url="jdbc:postgresql://$db_host/$db_database"
-      crudini --set "${db_properties}" '' spring.datasource.url "${db_url}"
+    else
+      local url_hosts_pat='^jdbc:postgresql://([^/?]*)'
+      if [[ "$db_url" =~ $url_hosts_pat ]]; then
+        local stored_hosts="${BASH_REMATCH[1]}"
+        check_db_host_answer "$stored_hosts" existing
+      fi
     fi
     pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
     if [[ "$db_url" =~ $pat ]]; then
-      db_host=${new_db_host:-${BASH_REMATCH[1]}}
+      if [[ "$db_state" == existing ]]; then
+        db_host=${BASH_REMATCH[1]}
+      else
+        db_host=${new_db_host:-${BASH_REMATCH[1]}}
+      fi
       db_database=${BASH_REMATCH[3]:-$db_database}
     else
       log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database'"
@@ -108,7 +120,25 @@ setup_database() {
 
     local db_plain_user=${db_user%%@*}
 
+    local check_psql=psql_master
+    local runtime_login=false
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+        runtime_login=true
+        check_psql=psql_dbuser
+    fi
+
+    check_pg_version "$check_psql"
+    if [[ "$runtime_login" != true ]] && PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
+        runtime_login=true
+        check_psql=psql_dbuser
+    fi
+    check_db_writable "$check_psql" "$db_host" "$db_state"
+
+    if [[ "$db_state" == fresh ]]; then
+      crudini --set "${db_properties}" '' spring.datasource.url "${db_url}"
+    fi
+
+    if [[ "$runtime_login" == true ]]; then
         log "Database and user exists, skipping database creation."
     else
 
