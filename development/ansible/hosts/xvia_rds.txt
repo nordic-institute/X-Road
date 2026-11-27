@@ -1,0 +1,72 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# X-VIA: Inventário com Banco RDS/Aurora (AWS)
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Use este inventário quando o PostgreSQL é gerenciado pela AWS (RDS ou Aurora).
+# Neste cenário, NÃO há acesso SSH ao servidor de banco — apenas conexão SQL.
+#
+# EXECUÇÃO:
+#   ansible-playbook -i hosts/xvia_rds.txt xvia_install.yml \
+#     -e "admin_password=SenhaAdmin" \
+#     -e "database_admin_password=SenhaBanco"
+#
+# DIFERENÇAS DO ON-PREMISES:
+#   - [db_servers] fica VAZIO (sem SSH ao banco)
+#   - db_is_managed=true (pula instalação de pacotes no DB)
+#   - A extensão hstore é criada via CREATE EXTENSION (funciona em RDS)
+#   - postgresql-contrib já está disponível no RDS por padrão
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─── Central Server ───────────────────────────────────────────────────────────
+[cs_servers]
+cs.exemplo.gov.br ansible_host=10.0.1.10 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+
+# ─── Security Server(s) ──────────────────────────────────────────────────────
+[ss_servers]
+ss1.exemplo.gov.br ansible_host=10.0.1.20 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+
+# ─── CA Server ────────────────────────────────────────────────────────────────
+[ca_servers]
+ca.exemplo.gov.br ansible_host=10.0.1.5 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+
+# ─── Database Server ──────────────────────────────────────────────────────────
+# VAZIO — RDS/Aurora não aceita SSH. A conexão é feita via SQL pelo Central Server.
+[db_servers]
+
+# ─── Super grupo ──────────────────────────────────────────────────────────────
+[xvia:children]
+cs_servers
+ss_servers
+ca_servers
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VARIÁVEIS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[all:vars]
+ansible_become=yes
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+# ─── Admin da UI do X-Road ────────────────────────────────────────────────────
+xroad_ui_user=xvia-admin
+
+# ─── Banco de dados (RDS/Aurora) ─────────────────────────────────────────────
+use_remote_db=true
+# Endpoint do RDS (substituir pelo seu):
+database_host=xvia-db.abc123xyz.us-east-1.rds.amazonaws.com:5432
+database_admin_user=postgres
+# database_admin_password via -e na CLI
+
+# Banco gerenciado = true (RDS/Aurora, sem SSH)
+db_is_managed=true
+
+# ─── CA Server ────────────────────────────────────────────────────────────────
+[ca_servers:vars]
+ca_organization=Governo do Estado - X-VIA
+ca_cn=X-VIA Autoridade Certificadora
+
+# ─── Pacotes ──────────────────────────────────────────────────────────────────
+[xvia:vars]
+xvia_package_source=cdn

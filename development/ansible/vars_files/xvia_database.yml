@@ -1,0 +1,73 @@
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# X-VIA: Configuração de Banco de Dados PostgreSQL
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Suporta: RDS AWS, PostgreSQL on-premises, PostgreSQL local na mesma VM
+#
+# Para banco REMOTO (on-premises ou RDS):
+#   - use_remote_db: true
+#   - database_host: IP ou hostname do banco:porta
+#   - database_admin_user: usuário com permissão de CREATE DATABASE/ROLE
+#   - database_admin_password: senha do admin
+#
+# Para banco LOCAL (instalado na mesma VM):
+#   - use_remote_db: false
+#
+# SENHAS EM PRODUÇÃO: use Ansible Vault!
+#   ansible-vault encrypt_string 'minha-senha' --name 'database_admin_password'
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Tipo de banco (true = remoto, false = local na mesma VM)
+use_remote_db: true
+
+# Banco gerenciado (RDS/Aurora)?
+# true  = banco gerenciado (AWS RDS, Aurora) — SEM acesso SSH ao servidor de banco
+# false = banco on-premises — COM acesso SSH (permite instalar pacotes via Ansible)
+db_is_managed: false
+
+# ─── Conexão com o PostgreSQL ─────────────────────────────────────────────────
+# Formato: host:porta
+# Exemplos:
+#   - RDS:         postgres-rds.cgj2yoomuxp0.us-east-1.rds.amazonaws.com:5432
+#   - On-premises: 192.168.1.50:5432
+#   - Local:       127.0.0.1:5432
+database_host: "192.168.1.50:5432"
+
+# Usuário admin do PostgreSQL (precisa de CREATE DATABASE, CREATE ROLE)
+# Em RDS: geralmente 'postgres' com role 'rds_superuser'
+# Em on-premises: qualquer superuser ou user com CREATE DB/ROLE
+database_admin_user: "postgres"
+
+# Senha do admin do banco (OBRIGATÓRIO para remoto)
+database_admin_password: ""
+
+# Versão do PostgreSQL no servidor remoto (para instalar client compatível)
+xvia_pg_version: "16"
+
+# Mascarar PostgreSQL local quando usando remoto (evita conflito de porta)
+mask_local_postgresql: true
+
+# ─── Security Server: credenciais dos bancos ──────────────────────────────────
+# O cliente pode definir seus próprios usuários/senhas aqui
+serverconf_username: "serverconf"
+serverconf_password: "serverconf"
+serverconf_admin_username: "serverconf_admin"
+
+messagelog_username: "messagelog"
+messagelog_password: "messagelog"
+messagelog_admin_username: "messagelog_admin"
+
+opmonitor_username: "opmonitor"
+opmonitor_password: "opmonitor"
+opmonitor_admin_username: "opmonitor_admin"
+
+# ─── Central Server: credenciais do banco ─────────────────────────────────────
+# Nome do banco do Central Server
+cs_database_name: "centerui_production"
+
+# Usuários do Central Server
+centerui_username: "centerui"
+centerui_password: ""  # Gerada automaticamente se vazia
+centerui_admin_username: "centerui_admin"
+centerui_admin_password: ""  # Gerada automaticamente se vazia
