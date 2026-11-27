@@ -58,7 +58,7 @@ const configurablePropertySchema = {
     value_source: { type: 'string', enum: ['DEFAULT', 'COUNTRY_PROFILE', 'DB'] },
     country_profile: { type: 'string' },
     scope: { type: 'string' },
-    restart_policy: { type: 'string', enum: ['SERVICES', 'ALL_SERVICES', 'NONE_ARCHIVER'] },
+    restart_policy: { type: 'string', enum: ['SERVICES', 'ALL_SERVICES', 'NEXT_RUN'] },
     restart_services: { type: 'array', items: { type: 'string' } },
   },
 };
@@ -138,7 +138,7 @@ const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
     effective_value: '33554432',
     value_source: 'DEFAULT',
     scope: 'message-log-archiver',
-    restart_policy: 'NONE_ARCHIVER',
+    restart_policy: 'NEXT_RUN',
     restart_services: [],
   },
 ];

@@ -63,7 +63,7 @@
                     </template>
                     {{
                       $t(
-                        prop.restart_policy === 'NONE_ARCHIVER'
+                        prop.restart_policy === 'NEXT_RUN'
                           ? 'configurableProperties.archiverNextRun'
                           : 'configurableProperties.propertyRestartWarning',
                       )

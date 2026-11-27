@@ -44,6 +44,7 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyRestartPolicy;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 
@@ -118,7 +119,14 @@ class ConfigurablePropertiesServiceTest {
 
             @Override
             public RestartTarget restartTarget(Category category) {
-                return RestartTarget.services(category.name());
+                return RestartTarget.of(category.name());
+            }
+
+            @Override
+            public RestartTarget restartTarget(ConfigKey<?> key) {
+                return key == CONTAINER_KEY
+                        ? RestartTarget.allServices()
+                        : ConfigurablePropertySource.super.restartTarget(key);
             }
         };
     }
@@ -173,6 +181,26 @@ class ConfigurablePropertiesServiceTest {
         assertEquals(CATALOGUE_DEFAULT_VALUE, parameter.getDefaultValue());
         assertEquals(CATALOGUE_SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
+    }
+
+    @Test
+    void getConfigurationPropertiesReportsTheRestartTargetOfTheCategory() {
+        when(repository.findAll()).thenReturn(List.of());
+
+        ConfigurablePropertyDto parameter = findProperty(service.getConfigurationProperties(), PROPERTY_NAME);
+
+        assertEquals(ConfigurablePropertyRestartPolicy.SERVICES, parameter.getRestartPolicy());
+        assertEquals(List.of(Category.PROXY.name()), List.copyOf(parameter.getRestartServices()));
+    }
+
+    @Test
+    void getConfigurationPropertiesReportsTheRestartTargetOfTheKeyWhenTheSourceOverridesIt() {
+        when(repository.findAll()).thenReturn(List.of());
+
+        ConfigurablePropertyDto parameter = findProperty(service.getConfigurationProperties(), CONTAINER_KEY.key());
+
+        assertEquals(ConfigurablePropertyRestartPolicy.ALL_SERVICES, parameter.getRestartPolicy());
+        assertEquals(List.of(), List.copyOf(parameter.getRestartServices()));
     }
 
     @Test

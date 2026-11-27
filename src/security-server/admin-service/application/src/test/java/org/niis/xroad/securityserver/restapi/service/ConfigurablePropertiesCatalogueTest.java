@@ -139,6 +139,8 @@ class ConfigurablePropertiesCatalogueTest {
 
     private static final String COMMON_SCOPE = "common";
 
+    private static final String CLIENT_HTTPS_PORT = "xroad.proxy.client-proxy.client-https-port";
+
     @Mock
     private ConfigurationPropertyRepository repository;
 
@@ -180,44 +182,36 @@ class ConfigurablePropertiesCatalogueTest {
     }
 
     @Test
-    void everyScopeResolvesToItsNativeRestartPolicyAndServiceNames() {
-        var restartByScope = restartByScope();
-
-        assertThat(restartByScope).containsOnlyKeys(
-                "proxy", "signer", "proxy-ui-api", "op-monitor-daemon", "monitor", "configuration-client",
-                "auxiliary-service", "message-log-archiver", COMMON_SCOPE);
-        assertThat(restartByScope)
-                .containsEntry("proxy", services("xroad-proxy"))
-                .containsEntry("signer", services("xroad-signer"))
-                .containsEntry("proxy-ui-api", services("xroad-proxy-ui-api"))
-                .containsEntry("op-monitor-daemon", services("xroad-opmonitor"))
-                .containsEntry("monitor", services("xroad-monitor"))
-                .containsEntry("configuration-client", services("xroad-confclient"))
-                .containsEntry("auxiliary-service", services("xroad-auxiliary-service"))
-                .containsEntry("message-log-archiver",
-                        new Restart(ConfigurablePropertyRestartPolicy.NONE_ARCHIVER, List.of()))
-                .containsEntry(COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of()));
+    void everyExposedPropertyResolvesToItsNativeRestartTarget() {
+        assertRestartTargets(service, Map.of(
+                "proxy", services("xroad-proxy"),
+                "signer", services("xroad-signer"),
+                "proxy-ui-api", services("xroad-proxy-ui-api"),
+                "op-monitor-daemon", services("xroad-opmonitor"),
+                "monitor", services("xroad-monitor"),
+                "configuration-client", services("xroad-confclient"),
+                "auxiliary-service", services("xroad-auxiliary-service"),
+                "message-log-archiver", new Restart(ConfigurablePropertyRestartPolicy.NEXT_RUN, List.of()),
+                COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of())),
+                services("xroad-proxy", "xroad-proxy-ui-api"));
     }
 
     @Test
-    void everyScopeResolvesToItsHelmDeploymentNameInContainerizedMode() {
+    void everyExposedPropertyResolvesToItsHelmDeploymentNameInContainerizedMode() {
         var containerizedService = new ConfigurablePropertiesService(auditDataHelper, repository,
                 new SsConfigurablePropertySource(DeploymentMode.CONTAINERIZED, ActiveCountryProfile.NONE));
 
-        assertThat(restartByScope(containerizedService))
-                .containsOnlyKeys(
-                        "proxy", "signer", "proxy-ui-api", "op-monitor-daemon", "monitor", "configuration-client",
-                        "auxiliary-service", "message-log-archiver", COMMON_SCOPE)
-                .containsEntry("proxy", services("proxy"))
-                .containsEntry("signer", services("signer"))
-                .containsEntry("proxy-ui-api", services("proxy-ui-api"))
-                .containsEntry("op-monitor-daemon", services("op-monitor"))
-                .containsEntry("monitor", services("monitor"))
-                .containsEntry("configuration-client", services("configuration-client"))
-                .containsEntry("auxiliary-service", services("auxiliary-service"))
-                .containsEntry("message-log-archiver",
-                        new Restart(ConfigurablePropertyRestartPolicy.NONE_ARCHIVER, List.of()))
-                .containsEntry(COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of()));
+        assertRestartTargets(containerizedService, Map.of(
+                "proxy", services("proxy"),
+                "signer", services("signer"),
+                "proxy-ui-api", services("proxy-ui-api"),
+                "op-monitor-daemon", services("op-monitor"),
+                "monitor", services("monitor"),
+                "configuration-client", services("configuration-client"),
+                "auxiliary-service", services("auxiliary-service"),
+                "message-log-archiver", new Restart(ConfigurablePropertyRestartPolicy.NEXT_RUN, List.of()),
+                COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of())),
+                services("proxy", "proxy-ui-api"));
     }
 
     @Test
@@ -378,16 +372,16 @@ class ConfigurablePropertiesCatalogueTest {
         assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
     }
 
-    private Map<String, Restart> restartByScope() {
-        return restartByScope(service);
-    }
-
-    private Map<String, Restart> restartByScope(ConfigurablePropertiesService propertiesService) {
-        return propertiesService.getConfigurationProperties().stream()
-                .collect(Collectors.toMap(
-                        dto -> dto.getScope() == null ? COMMON_SCOPE : dto.getScope(),
-                        dto -> new Restart(dto.getRestartPolicy(), dto.getRestartServices()),
-                        (first, _) -> first));
+    private static void assertRestartTargets(ConfigurablePropertiesService propertiesService,
+                                             Map<String, Restart> restartByScope, Restart clientHttpsPortRestart) {
+        assertThat(propertiesService.getConfigurationProperties()).isNotEmpty().allSatisfy(dto -> {
+            var expected = CLIENT_HTTPS_PORT.equals(dto.getPropertyName())
+                    ? clientHttpsPortRestart
+                    : restartByScope.get(dto.getScope() == null ? COMMON_SCOPE : dto.getScope());
+            assertThat(new Restart(dto.getRestartPolicy(), List.copyOf(dto.getRestartServices())))
+                    .as("restart target of %s", dto.getPropertyName())
+                    .isEqualTo(expected);
+        });
     }
 
     private static Restart services(String... names) {

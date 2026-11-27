@@ -42,7 +42,7 @@ export function buildRestartBanner(savedProperties: ConfigurablePropertyDto[]): 
       case 'ALL_SERVICES':
         restartAll = true;
         break;
-      case 'NONE_ARCHIVER':
+      case 'NEXT_RUN':
         archiverNextRun = true;
         break;
       case 'SERVICES':

@@ -73,7 +73,7 @@ class ConfigurationPropertySharedRowsIntegrationTest extends AbstractSpringMvcTe
 
         @Override
         public RestartTarget restartTarget(Category category) {
-            return RestartTarget.services("proxy");
+            return RestartTarget.of("proxy");
         }
     };
 

@@ -48,7 +48,8 @@ import java.util.List;
 
 /**
  * Central Server's {@link ConfigurablePropertySource}: the providers whose exposed keys make up the
- * Central Server's system-parameters catalogue, and their category-to-scope mapping.
+ * Central Server's system-parameters catalogue, their category-to-scope mapping and the restart target of a
+ * category.
  */
 @Component
 @RequiredArgsConstructor
@@ -93,10 +94,10 @@ public class CsConfigurablePropertySource implements ConfigurablePropertySource 
     @Override
     public RestartTarget restartTarget(Category category) {
         return switch (category) {
-            case ADMIN_SERVICE -> RestartTarget.services("xroad-center");
-            case MANAGEMENT_SERVICE -> RestartTarget.services("xroad-center-management-service");
-            case REGISTRATION_SERVICE -> RestartTarget.services("xroad-center-registration-service");
-            case SIGNER -> RestartTarget.services("xroad-signer");
+            case ADMIN_SERVICE -> RestartTarget.of("xroad-center");
+            case MANAGEMENT_SERVICE -> RestartTarget.of("xroad-center-management-service");
+            case REGISTRATION_SERVICE -> RestartTarget.of("xroad-center-registration-service");
+            case SIGNER -> RestartTarget.of("xroad-signer");
             case COMMON -> RestartTarget.allServices();
             default -> throw XrdRuntimeException.systemInternalError(
                     "Unmapped category for configurable properties catalogue: " + category);

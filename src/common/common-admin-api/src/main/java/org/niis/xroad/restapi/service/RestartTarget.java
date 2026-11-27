@@ -37,7 +37,15 @@ import java.util.List;
  */
 public record RestartTarget(ConfigurablePropertyRestartPolicy policy, List<String> services) {
 
-    public static RestartTarget services(String... names) {
+    public RestartTarget {
+        var named = policy == ConfigurablePropertyRestartPolicy.SERVICES;
+        if (named == services.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Restart policy %s requires %s service names".formatted(policy, named ? "non-empty" : "no"));
+        }
+    }
+
+    public static RestartTarget of(String... names) {
         return new RestartTarget(ConfigurablePropertyRestartPolicy.SERVICES, List.of(names));
     }
 
@@ -45,7 +53,7 @@ public record RestartTarget(ConfigurablePropertyRestartPolicy policy, List<Strin
         return new RestartTarget(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of());
     }
 
-    public static RestartTarget noneArchiver() {
-        return new RestartTarget(ConfigurablePropertyRestartPolicy.NONE_ARCHIVER, List.of());
+    public static RestartTarget nextRun() {
+        return new RestartTarget(ConfigurablePropertyRestartPolicy.NEXT_RUN, List.of());
     }
 }

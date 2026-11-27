@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.Category;
+import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 
@@ -53,9 +54,19 @@ public interface ConfigurablePropertySource {
     /**
      * @param category UI grouping declared on a key
      * @return what an administrator restarts for a change of a property of the category to take effect,
-     *         for the {@link #deploymentMode()} the product runs under
+     *         for the {@link #deploymentMode()} the product runs under; the Central Server runs native only
+     *         and ignores the deployment mode
      */
     RestartTarget restartTarget(Category category);
+
+    /**
+     * @param key a declared configuration key
+     * @return what an administrator restarts for a change of the key to take effect; the target of the key's
+     *         category unless the product overrides it for a key that more than one service reads
+     */
+    default RestartTarget restartTarget(ConfigKey<?> key) {
+        return restartTarget(key.category());
+    }
 
     /**
      * @return the active country profile, {@link ActiveCountryProfile#NONE} when the product has none

@@ -136,21 +136,18 @@ class CsConfigurablePropertiesCatalogueTest {
     }
 
     @Test
-    void everyScopeResolvesToItsRestartPolicyAndServiceNames() {
-        var restartByScope = service.getConfigurationProperties().stream()
-                .collect(Collectors.toMap(
-                        dto -> dto.getScope() == null ? COMMON_SCOPE : dto.getScope(),
-                        dto -> new Restart(dto.getRestartPolicy(), dto.getRestartServices()),
-                        (first, _) -> first));
+    void everyExposedPropertyResolvesToItsRestartTarget() {
+        var restartByScope = Map.of(
+                "admin-service", services("xroad-center"),
+                "management-service", services("xroad-center-management-service"),
+                "registration-service", services("xroad-center-registration-service"),
+                "signer", services("xroad-signer"),
+                COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of()));
 
-        assertThat(restartByScope).containsOnlyKeys(
-                "admin-service", "management-service", "registration-service", "signer", COMMON_SCOPE);
-        assertThat(restartByScope)
-                .containsEntry("admin-service", services("xroad-center"))
-                .containsEntry("management-service", services("xroad-center-management-service"))
-                .containsEntry("registration-service", services("xroad-center-registration-service"))
-                .containsEntry("signer", services("xroad-signer"))
-                .containsEntry(COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of()));
+        assertThat(service.getConfigurationProperties()).isNotEmpty().allSatisfy(dto ->
+                assertThat(new Restart(dto.getRestartPolicy(), List.copyOf(dto.getRestartServices())))
+                        .as("restart target of %s", dto.getPropertyName())
+                        .isEqualTo(restartByScope.get(dto.getScope() == null ? COMMON_SCOPE : dto.getScope())));
     }
 
     @Test

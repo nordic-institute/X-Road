@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.Category;
+import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -54,10 +55,12 @@ import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Security Server's {@link ConfigurablePropertySource}: the providers whose exposed keys make up the
- * Security Server's system-parameters catalogue, and their category-to-scope mapping.
+ * Security Server's system-parameters catalogue, their category-to-scope mapping and the restart target of a
+ * category or key for the deployment mode.
  */
 @Component
 @RequiredArgsConstructor
@@ -119,41 +122,32 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
 
     @Override
     public RestartTarget restartTarget(Category category) {
-        return switch (deploymentMode) {
-            case NATIVE -> nativeRestartTarget(category);
-            case CONTAINERIZED -> containerizedRestartTarget(category);
-        };
-    }
-
-    private static RestartTarget nativeRestartTarget(Category category) {
         return switch (category) {
-            case PROXY -> RestartTarget.services("xroad-proxy");
-            case SIGNER -> RestartTarget.services("xroad-signer");
-            case PROXY_UI_API -> RestartTarget.services("xroad-proxy-ui-api");
-            case OP_MONITOR_DAEMON -> RestartTarget.services("xroad-opmonitor");
-            case MONITOR -> RestartTarget.services("xroad-monitor");
-            case CONFIGURATION_CLIENT -> RestartTarget.services("xroad-confclient");
-            case AUXILIARY_SERVICE -> RestartTarget.services("xroad-auxiliary-service");
-            case MESSAGE_LOG_ARCHIVER -> RestartTarget.noneArchiver();
+            case PROXY -> RestartTarget.of(serviceName("xroad-proxy", "proxy"));
+            case SIGNER -> RestartTarget.of(serviceName("xroad-signer", "signer"));
+            case PROXY_UI_API -> RestartTarget.of(serviceName("xroad-proxy-ui-api", "proxy-ui-api"));
+            case OP_MONITOR_DAEMON -> RestartTarget.of(serviceName("xroad-opmonitor", "op-monitor"));
+            case MONITOR -> RestartTarget.of(serviceName("xroad-monitor", "monitor"));
+            case CONFIGURATION_CLIENT -> RestartTarget.of(serviceName("xroad-confclient", "configuration-client"));
+            case AUXILIARY_SERVICE -> RestartTarget.of(serviceName("xroad-auxiliary-service", "auxiliary-service"));
+            case MESSAGE_LOG_ARCHIVER -> RestartTarget.nextRun();
             case COMMON -> RestartTarget.allServices();
             default -> throw XrdRuntimeException.systemInternalError(
                     "Unmapped category for configurable properties catalogue: " + category);
         };
     }
 
-    private static RestartTarget containerizedRestartTarget(Category category) {
-        return switch (category) {
-            case PROXY -> RestartTarget.services("proxy");
-            case SIGNER -> RestartTarget.services("signer");
-            case PROXY_UI_API -> RestartTarget.services("proxy-ui-api");
-            case OP_MONITOR_DAEMON -> RestartTarget.services("op-monitor");
-            case MONITOR -> RestartTarget.services("monitor");
-            case CONFIGURATION_CLIENT -> RestartTarget.services("configuration-client");
-            case AUXILIARY_SERVICE -> RestartTarget.services("auxiliary-service");
-            case MESSAGE_LOG_ARCHIVER -> RestartTarget.noneArchiver();
-            case COMMON -> RestartTarget.allServices();
-            default -> throw XrdRuntimeException.systemInternalError(
-                    "Unmapped category for configurable properties catalogue: " + category);
-        };
+    @Override
+    public RestartTarget restartTarget(ConfigKey<?> key) {
+        if (ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTPS_PORT.key().equals(key.key())) {
+            return RestartTarget.of(Stream.of(Category.PROXY, Category.PROXY_UI_API)
+                    .flatMap(category -> restartTarget(category).services().stream())
+                    .toArray(String[]::new));
+        }
+        return restartTarget(key.category());
+    }
+
+    private String serviceName(String nativeName, String containerizedName) {
+        return deploymentMode == DeploymentMode.CONTAINERIZED ? containerizedName : nativeName;
     }
 }
