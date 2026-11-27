@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.3
+Version: 1.4
 Doc. ID: IG-CS-8-UPGRADE
 
 ---
@@ -15,6 +15,7 @@ Doc. ID: IG-CS-8-UPGRADE
 | 11.11.2026 | 1.1     | Carry the node name before the package upgrade | Ričardas Bučiūnas  |
 | 12.11.2026 | 1.2     | Keep db.properties; add `--installation=cs`    | Ričardas Bučiūnas  |
 | 24.11.2026 | 1.3     | Close the gaps found on a test upgrade         | Andres Rosenthal   |
+| 27.11.2026 | 1.4     | Update supported Ubuntu versions               | Petteri Kivimäki   |
 
 ## License
 
