@@ -17,8 +17,7 @@ jobs:
         # Looks like they don't use releases, so not pinning this to a release commit for now
         uses: eclipse-apoapsis/actions/setup-osc@main
         with:
-          url: https://ort-api.scw.doubleopen.io
-          client-id: ${{ vars.OSC_CLIENT_ID }}
+          url: https://ort-api.doubleopen.io
           username: ${{ vars.OSC_USERNAME }}
           password: ${{ secrets.OSC_PASSWORD }}
 
