@@ -24,9 +24,9 @@ okhttp = "5.5.1"
 slf4j = "2.0.20"
 protoc = "4.36.2"
 grpc = "1.84.0"
-swaggerParser = "2.1.48"
-logback = "1.6.6"
-logbackAccess = "2.0.15"
+swaggerParser = "2.1.49"
+logback = "1.6.8"
+logbackAccess = "2.0.16"
 apacheCxf = "4.2.4"
 liquibase = "5.0.4"
 protobufPlugin = "0.9.6"
@@ -37,8 +37,8 @@ quarkus = "3.40.1.2"
 quarkus-vault = "4.10.0"
 smallryeConfig = "3.17.2"
 microprofile = "3.1.3"
-microprofileHealth = "4.0.1"
-feign = "13.17"
+microprofileHealth = "4.0.2"
+feign = "13.18"
 testContainers = "2.0.5"
 testAllure = "2.34.0"
 shadowPlugin = "9.6.1"
@@ -184,7 +184,7 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 
 apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.28.0" }
-apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.21.0" }
+apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.22.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.15.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.15.1" }
 apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "2.13.1" }
@@ -242,7 +242,7 @@ saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.6" 
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.2" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
-semver4j = { module = "org.semver4j:semver4j", version = "6.0.0" }
+semver4j = { module = "org.semver4j:semver4j", version = "6.1.0" }
 systemStubs = { module = "uk.org.webcompere:system-stubs-jupiter", version = "2.1.8" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "6.3.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
@@ -427,7 +427,7 @@ quarkus-containerized = [
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.27.0" }
-sonarqube = { id = "org.sonarqube", version = "7.3.1.8318" }
+sonarqube = { id = "org.sonarqube", version = "7.6.0.18749" }
 protobuf = { id = "com.google.protobuf", version = "protobufPlugin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }
