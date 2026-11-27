@@ -2,20 +2,21 @@
 
 **X-ROAD 8**
 
-Version: 1.3
+Version: 1.5
 Doc. ID: IG-SS-8-UPGRADE
 
 ---
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                                                | Author             |
-|------------|---------|----------------------------------------------------------------------------|--------------------|
-| 19.05.2026 | 1.0     | Initial version                                                            | Egidijus Milierius |
-| 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables | Marc David         |
+| Date       | Version | Description                                                                                                         | Author             |
+|------------|---------|---------------------------------------------------------------------------------------------------------------------|--------------------|
+| 19.05.2026 | 1.0     | Initial version                                                                                                     | Egidijus Milierius |
+| 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables                                          | Marc David         |
 | 19.10.2026 | 1.2     | Added the operational monitoring changes: settings migration, add-on flag, op-monitor package upgrade and TLS files | Eneli Reimets      |
-| 17.11.2026 | 1.3     | Country package settings edits, combined package upgrade command, batch signing prompt for country profiles | Ričardas Bučiūnas  |
-| 18.11.2026 | 1.4     | Added the DID and DSP port choice in the upgrade wizard                    | Justas Samuolis    |
+| 17.11.2026 | 1.3     | Country package settings edits, combined package upgrade command, batch signing prompt for country profiles         | Ričardas Bučiūnas  |
+| 18.11.2026 | 1.4     | Added the DID and DSP port choice in the upgrade wizard                                                             | Justas Samuolis    |
+| 27.11.2026 | 1.5     | Update supported Ubuntu versions                                                                                    | Petteri Kivimäki   |
 
 ## License
 
