@@ -422,6 +422,7 @@
     "invalid_dn_parameter": "Недопустимый параметр DN",
     "invalid_https_url": "URL не использует HTTPS",
     "invalid_init_params": "Недопустимые параметры инициализации",
+    "init_owner_unregistered": "Невозможно инициализировать сервер безопасности с незарегистрированным владельцем",
     "invalid_instance_identifier": "Недопустимый идентификатор экземпляра",
     "invalid_member_class": "Недопустимый класс участника",
     "invalid_pem_csr": "Недопустимый PEM CSR",

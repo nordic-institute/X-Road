@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.exceptions;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.DeviationBuilder;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INIT_UNREGISTERED_OWNER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_EXISTS;
@@ -181,6 +182,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_HTTPS_URL(ERROR_INVALID_HTTPS_URL),
     INVALID_CHARACTERS_PIN(ERROR_INVALID_CHARACTERS_PIN),
     INVALID_INIT_PARAMS(ERROR_INVALID_INIT_PARAMS),
+    INIT_UNREGISTERED_OWNER(ERROR_INIT_UNREGISTERED_OWNER),
     MISSING_PARAMETER(ERROR_MISSING_PARAMETER),
     SERVER_ALREADY_FULLY_INITIALIZED(ERROR_SERVER_ALREADY_FULLY_INITIALIZED),
     INITIAL_ADMIN_USER_NOT_ALLOWED("initial_admin_user_not_allowed"),

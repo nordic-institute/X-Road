@@ -422,6 +422,7 @@
     "invalid_dn_parameter": "DN parametri nädogry",
     "invalid_https_url": "URL HTTPS ulnamaýar",
     "invalid_init_params": "Işe taýýarlygyň parametrleri nädogry",
+    "init_owner_unregistered": "Hasaba alynmadyk eýe agzasy bilen howpsuzlyk serwerini başlap bolmaýar",
     "invalid_instance_identifier": "Nusganyň identifikatory nädogry",
     "invalid_member_class": "Agaznyň klassy nädogry",
     "invalid_pem_csr": "PEM CSR nädogry",

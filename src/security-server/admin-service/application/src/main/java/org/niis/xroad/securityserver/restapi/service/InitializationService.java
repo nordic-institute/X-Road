@@ -70,12 +70,12 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PI
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_SERVER_ID_EXISTS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_UNREGISTERED_MEMBER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SERVERCODE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SERVER_OWNER_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ANCHOR_NOT_FOUND;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_INIT_PARAMS;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INIT_UNREGISTERED_OWNER;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVER_ALREADY_FULLY_INITIALIZED;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SOFTWARE_TOKEN_INIT_FAILED;
 
@@ -191,6 +191,12 @@ public class InitializationService {
         }
         auditDataHelper.put(OWNER_IDENTIFIER, ownerClientId);
         auditDataHelper.put(SERVER_CODE, securityServerCode);
+                 if (!isServerOwnerInitialized && StringUtils.isEmpty(globalConfProvider.getMemberName(ownerClientId))) {
+            throw new BadRequestException(
+                    "Cannot initialize Security Server with an unregistered owner",
+                    INIT_UNREGISTERED_OWNER.build()
+            );
+        }
         if (!ignoreWarnings) {
             checkForWarnings(ownerClientId, securityServerCode);
         }
@@ -372,11 +378,6 @@ public class InitializationService {
         }
         if (isSoftwareTokenInitialized) {
             warnings.add(new WarningDeviation(WARNING_SOFTWARE_TOKEN_INITIALIZED));
-        }
-        if (!isServerOwnerInitialized && StringUtils.isEmpty(ownerMemberName)) {
-            WarningDeviation memberWarning = new WarningDeviation(WARNING_INIT_UNREGISTERED_MEMBER,
-                    ownerClientId.toShortString());
-            warnings.add(memberWarning);
         }
         if (!isServerCodeInitialized) {
             SecurityServerId.Conf serverId = SecurityServerId.Conf.create(ownerClientId, securityServerCode);

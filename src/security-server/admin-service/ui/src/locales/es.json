@@ -435,6 +435,7 @@
     "invalid_dn_parameter": "Parámetro DN no es válido",
     "invalid_https_url": "La URL no utiliza HTTPS",
     "invalid_init_params": "Los Parámetros de inicialización no son válidos",
+    "init_owner_unregistered": "No se puede inicializar el servidor de seguridad con un miembro propietario no registrado",
     "invalid_instance_identifier": "El identificador de instancia no es válido",
     "invalid_member_class": "La clase de miembro no es válida",
     "invalid_pem_csr": "El CSR PEM no es válido",

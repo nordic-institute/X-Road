@@ -550,6 +550,7 @@
     "invalid_dn_parameter": "Invalid DN parameter",
     "invalid_https_url": "URL does not use HTTPS",
     "invalid_init_params": "Invalid initialisation parameters",
+    "init_owner_unregistered": "Cannot initialize Security Server with an unregistered owner",
     "invalid_instance_identifier": "Invalid instance identifier",
     "invalid_member_class": "Invalid member class",
     "invalid_pem_csr": "Invalid PEM CSR",
