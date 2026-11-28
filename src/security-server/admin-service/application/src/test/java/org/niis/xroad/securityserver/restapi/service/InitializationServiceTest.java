@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -115,6 +116,7 @@ public class InitializationServiceTest {
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
+        when(globalConfProvider.getMemberName(any())).thenReturn("Test Owner");
         when(serverConfService.getOrCreateServerConfEntity()).thenReturn(new ServerConfEntity());
         when(serverConfService.getSecurityServerOwnerIdEntity()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
@@ -276,22 +278,29 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializeWarnUnknownMember() throws Exception {
+    public void initializeRejectsUnregisteredOwner() throws Exception {
         when(globalConfProvider.getMemberName(any())).thenReturn(null);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
+
         try {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_PIN, false, null);
-            fail("should have failed");
-        } catch (UnhandledWarningsException expected) {
-            DeviationTestUtils.assertWarning(DeviationCodes.WARNING_INIT_UNREGISTERED_MEMBER, expected,
-                    CLIENT.toShortString());
+            fail("Should reject unregistered owner");
+        } catch (BadRequestException expected) {
+            DeviationTestUtils.assertErrorWithoutMetadata(
+                    DeviationCodes.ERROR_INIT_UNREGISTERED_OWNER, expected);
         }
-        initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                SOFTWARE_TOKEN_PIN, true, null);
-        assertTrue(true);
+
+        try {
+            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                    SOFTWARE_TOKEN_PIN, true, null);
+            fail("Should reject unregistered owner even when warnings are ignored");
+        } catch (BadRequestException expected) {
+            DeviationTestUtils.assertErrorWithoutMetadata(
+                    DeviationCodes.ERROR_INIT_UNREGISTERED_OWNER, expected);
+        }
     }
 
     @Test

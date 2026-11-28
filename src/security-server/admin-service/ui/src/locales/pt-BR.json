@@ -486,6 +486,7 @@
     "invalid_dn_parameter": "Parâmetro DN inválido",
     "invalid_https_url": "A URL não utiliza HTTPS",
     "invalid_init_params": "Parâmetros de inicialização inválidos",
+    "init_owner_unregistered": "Não é possível inicializar o servidor de segurança com um membro proprietário não registrado",
     "invalid_instance_identifier": "Identificador de instância inválido",
     "invalid_member_class": "Classe de membro inválida",
     "invalid_pem_csr": "CSR PEM inválido",

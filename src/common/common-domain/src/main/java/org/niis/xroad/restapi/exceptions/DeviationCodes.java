@@ -123,6 +123,7 @@ public final class DeviationCodes {
     public static final String WARNING_FILE_ALREADY_EXISTS = "warning_file_already_exists";
     public static final String WARNING_INIT_SERVER_ID_EXISTS = "init_server_id_exists";
     public static final String WARNING_INIT_UNREGISTERED_MEMBER = "init_unregistered_member";
+    public static final String ERROR_INIT_UNREGISTERED_OWNER = "init_owner_unregistered";
     public static final String WARNING_INTERNAL_SERVER_SSL_ERROR = "internal_server_ssl_error";
     public static final String WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR = "internal_server_ssl_handshake_error";
     public static final String WARNING_OPENAPI_VALIDATION_WARNINGS = "openapi_validation_warnings";

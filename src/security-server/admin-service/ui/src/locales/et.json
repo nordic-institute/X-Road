@@ -516,6 +516,7 @@
     "invalid_dn_parameter": "Kehtetu DN parameeter",
     "invalid_https_url": "URL ei kasuta HTTPS-i",
     "invalid_init_params": "Kehtetud lähtestamisparameetrid",
+    "init_owner_unregistered": "Turvaserverit ei saa lähtestada registreerimata omanikliikmega",
     "invalid_instance_identifier": "Kehtetu juhtumi identifikaator",
     "invalid_member_class": "Kehtetu liikmeklass",
     "invalid_pem_csr": "Kehtetu PEM CSR",

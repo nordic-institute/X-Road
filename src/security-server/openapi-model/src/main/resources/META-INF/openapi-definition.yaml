@@ -2867,6 +2867,8 @@ paths:
                   $ref: '#/components/examples/ErrorExample'
                 error_invalid_init_params:
                   $ref: '#/components/examples/ErrorInvalidInitParamsMetadataExample'
+                error_unregistered_owner:
+                  $ref: '#/components/examples/ErrorUnregisteredOwnerExample'
                 error_weak_pin:
                   $ref: '#/components/examples/ErrorWeakPinMetadataExample'
                 warnings_response:
@@ -6331,6 +6333,12 @@ components:
             - "member_class_not_provided"
             - "member_code_not_provided"
             - "pin_code_not_provided"
+    ErrorUnregisteredOwnerExample:
+      summary: Initialization error because the owner member is not registered
+      value:
+        status: 400
+        error:
+          code: init_owner_unregistered
     ErrorWeakPinMetadataExample:
       summary: Initialization or pin change error with metadata when the provided pin is too weak
       value:
