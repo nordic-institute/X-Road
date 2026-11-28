@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 import org.niis.xroad.restapi.service.ConfigurablePropertySource;
+import org.niis.xroad.restapi.service.RestartTarget;
 import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,6 +69,11 @@ class ConfigurationPropertySharedRowsIntegrationTest extends AbstractSpringMvcTe
         @Override
         public String categoryToScope(Category category) {
             return "proxy";
+        }
+
+        @Override
+        public RestartTarget restartTarget(Category category) {
+            return RestartTarget.of("proxy");
         }
     };
 

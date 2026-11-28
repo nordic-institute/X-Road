@@ -32,3 +32,4 @@ export * from './msr-icon-set';
 export * from './axios-utils';
 export * from './router';
 export * from './constants';
+export * from './restart-banner';

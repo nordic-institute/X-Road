@@ -42,17 +42,7 @@
             @click="collapseAllScopes"
           />
         </template>
-        <v-alert
-          v-if="modifiedScopes.size > 0"
-          class="ma-4"
-          type="warning"
-          variant="outlined"
-          border="start"
-          density="compact"
-          data-test="configurable-properties-restart-warning"
-        >
-          {{ $t('configurableProperties.restartWarning', { scopes: [...modifiedScopes].join(', ') }) }}
-        </v-alert>
+        <XrdRestartBanner class="ma-4" :saved-properties="savedProperties" />
 
         <div class="px-4">
           <XrdRoundedSearchField
@@ -106,6 +96,7 @@ import {
   XrdCard,
   XrdEditConfigurablePropertyDialog,
   XrdEmptyPlaceholder,
+  XrdRestartBanner,
   XrdScopePropertiesExpandable,
   XrdSubView,
   XrdView,
@@ -125,9 +116,9 @@ const { hasPermission } = useUser();
 const configurableProperties = ref<ConfigurablePropertyDto[]>([]);
 const loadingProperties = ref(false);
 const editingProperty = ref<ConfigurablePropertyDto | undefined>(undefined);
-const modifiedScopes = ref<Set<string>>(new Set());
-const modifiedProperties = ref<Set<string>>(new Set());
+const savedProperties = ref<ConfigurablePropertyDto[]>([]);
 const openScopes = ref<Record<string, boolean>>({});
+const modifiedProperties = computed(() => new Set(savedProperties.value.map((property) => property.property_name!)));
 const propertySearch = ref('');
 
 const propertiesByScope = computed<Record<string, ConfigurablePropertyDto[]>>(() => {
@@ -181,11 +172,9 @@ function collapseAllScopes(): void {
   }
 }
 
-function onPropertySaved(scope: string): void {
-  const propertyName = editingProperty.value?.property_name;
+function onPropertySaved(property: ConfigurablePropertyDto): void {
   editingProperty.value = undefined;
-  modifiedScopes.value.add(scope);
-  if (propertyName) modifiedProperties.value.add(propertyName);
+  savedProperties.value.push(property);
   fetchConfigurablePropertiesList();
 }
 

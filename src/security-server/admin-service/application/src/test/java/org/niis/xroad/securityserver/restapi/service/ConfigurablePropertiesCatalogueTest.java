@@ -37,6 +37,7 @@ import org.niis.xroad.common.properties.config.impl.CountryProfileLoader;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyRestartPolicy;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyValueSource;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
@@ -136,6 +137,10 @@ class ConfigurablePropertiesCatalogueTest {
             "proxy", "proxy-ui-api", "signer", "monitor", "op-monitor-daemon",
             "configuration-client", "auxiliary-service", "message-log-archiver");
 
+    private static final String COMMON_SCOPE = "common";
+
+    private static final String CLIENT_HTTPS_PORT = "xroad.proxy.client-proxy.client-https-port";
+
     @Mock
     private ConfigurationPropertyRepository repository;
 
@@ -174,6 +179,53 @@ class ConfigurablePropertiesCatalogueTest {
                 .collect(Collectors.toSet());
 
         assertThat(scopes).isEqualTo(TARGET_SCOPES);
+    }
+
+    @Test
+    void everyExposedPropertyResolvesToItsNativeRestartTarget() {
+        assertRestartTargets(service, Map.of(
+                "proxy", services("xroad-proxy"),
+                "signer", services("xroad-signer"),
+                "proxy-ui-api", services("xroad-proxy-ui-api"),
+                "op-monitor-daemon", services("xroad-opmonitor"),
+                "monitor", services("xroad-monitor"),
+                "configuration-client", services("xroad-confclient"),
+                "auxiliary-service", services("xroad-auxiliary-service"),
+                "message-log-archiver", new Restart(ConfigurablePropertyRestartPolicy.NEXT_RUN, List.of()),
+                COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of())),
+                services("xroad-proxy", "xroad-proxy-ui-api"));
+    }
+
+    @Test
+    void everyExposedPropertyResolvesToItsHelmDeploymentNameInContainerizedMode() {
+        var containerizedService = new ConfigurablePropertiesService(auditDataHelper, repository,
+                new SsConfigurablePropertySource(DeploymentMode.CONTAINERIZED, ActiveCountryProfile.NONE));
+
+        assertRestartTargets(containerizedService, Map.of(
+                "proxy", services("proxy"),
+                "signer", services("signer"),
+                "proxy-ui-api", services("proxy-ui-api"),
+                "op-monitor-daemon", services("op-monitor"),
+                "monitor", services("monitor"),
+                "configuration-client", services("configuration-client"),
+                "auxiliary-service", services("auxiliary-service"),
+                "message-log-archiver", new Restart(ConfigurablePropertyRestartPolicy.NEXT_RUN, List.of()),
+                COMMON_SCOPE, new Restart(ConfigurablePropertyRestartPolicy.ALL_SERVICES, List.of())),
+                services("proxy", "proxy-ui-api"));
+    }
+
+    @Test
+    void everyExposedPropertyHasRestartPolicyConsistentWithItsServiceNames() {
+        var properties = service.getConfigurationProperties();
+
+        assertThat(properties).isNotEmpty().allSatisfy(dto -> {
+            assertThat(dto.getRestartPolicy()).as("policy of %s", dto.getPropertyName()).isNotNull();
+            if (dto.getRestartPolicy() == ConfigurablePropertyRestartPolicy.SERVICES) {
+                assertThat(dto.getRestartServices()).as("services of %s", dto.getPropertyName()).isNotEmpty();
+            } else {
+                assertThat(dto.getRestartServices()).as("services of %s", dto.getPropertyName()).isEmpty();
+            }
+        });
     }
 
     @Test
@@ -320,6 +372,22 @@ class ConfigurablePropertiesCatalogueTest {
         assertThat(dto.getValueSource()).isEqualTo(ConfigurablePropertyValueSource.DEFAULT);
     }
 
+    private static void assertRestartTargets(ConfigurablePropertiesService propertiesService,
+                                             Map<String, Restart> restartByScope, Restart clientHttpsPortRestart) {
+        assertThat(propertiesService.getConfigurationProperties()).isNotEmpty().allSatisfy(dto -> {
+            var expected = CLIENT_HTTPS_PORT.equals(dto.getPropertyName())
+                    ? clientHttpsPortRestart
+                    : restartByScope.get(dto.getScope() == null ? COMMON_SCOPE : dto.getScope());
+            assertThat(new Restart(dto.getRestartPolicy(), List.copyOf(dto.getRestartServices())))
+                    .as("restart target of %s", dto.getPropertyName())
+                    .isEqualTo(expected);
+        });
+    }
+
+    private static Restart services(String... names) {
+        return new Restart(ConfigurablePropertyRestartPolicy.SERVICES, List.of(names));
+    }
+
     private Map<String, ConfigurablePropertyDto> propertiesWithProfile(String profileName) {
         return propertiesWith(DeploymentMode.NATIVE,
                 Map.of(CountryProfileLoader.PROFILE_ENV_VARIABLE, profileName));
@@ -358,5 +426,8 @@ class ConfigurablePropertiesCatalogueTest {
     }
 
     private record ExpectedProperty(String scope, String defaultValue) {
+    }
+
+    private record Restart(ConfigurablePropertyRestartPolicy policy, List<String> services) {
     }
 }

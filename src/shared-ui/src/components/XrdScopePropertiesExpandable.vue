@@ -61,7 +61,7 @@
                     <template #activator="{ props: tooltipProps }">
                       <v-icon v-bind="tooltipProps" icon="warning" color="warning" class="mr-2" />
                     </template>
-                    {{ $t('configurableProperties.propertyRestartWarning') }}
+                    {{ $t(restartTooltipKey(prop)) }}
                   </v-tooltip>
                   <XrdBtn
                     data-test="edit-configurable-property-button"
@@ -97,6 +97,10 @@ function sourceLabel(prop: ConfigurablePropertyDto): string {
     case 'DEFAULT':
       return t('configurableProperties.source.default');
   }
+}
+
+function restartTooltipKey(prop: ConfigurablePropertyDto): string {
+  return prop.restart_policy === 'NEXT_RUN' ? 'configurableProperties.archiverNextRun' : 'configurableProperties.propertyRestartWarning';
 }
 
 defineProps<{

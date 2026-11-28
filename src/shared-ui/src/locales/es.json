@@ -163,8 +163,10 @@
   "configurableProperties": {
     "title": "Propiedades del sistema configurables",
     "search": "Buscar propiedades...",
-    "restartWarning": "Es necesario reiniciar los siguientes servicios para que los cambios surtan efecto: {scopes}.",
+    "restartWarning": "Es necesario reiniciar los siguientes servicios para que los cambios surtan efecto: {services}.",
     "propertyRestartWarning": "Se requiere reinicio para que los cambios surtan efecto.",
+    "restartAllWarning": "Es necesario reiniciar todos los servicios de X-Road para que los cambios surtan efecto.",
+    "archiverNextRun": "El cambio se aplica en la próxima ejecución del archivador de registros de mensajes.",
     "collapseAll": "Contraer todo",
     "updateSuccess": "Propiedad actualizada correctamente",
     "editDialog": {

@@ -42,6 +42,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -60,8 +61,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PR
  * Service that handles a product's configurable system parameters: merges the declared
  * configuration-key registry ({@link ConfigurablePropertySource}) with the values stored in
  * {@code configuration_properties}. Shared by Central Server and Security Server — each product
- * plugs in its own {@link ConfigurablePropertySource} to supply its own key providers and scope
- * mapping.
+ * plugs in its own {@link ConfigurablePropertySource} to supply its own key providers, scope
+ * mapping and restart target.
  */
 @Service
 @Transactional
@@ -142,6 +143,9 @@ public class ConfigurablePropertiesService {
         dto.setPropertyName(key.key());
         dto.setDefaultValue(defaultValue(key));
         dto.setScope(categoryToScope(key.category()));
+        var restartTarget = configurablePropertySource.restartTarget(key);
+        dto.setRestartPolicy(restartTarget.policy());
+        dto.setRestartServices(new LinkedHashSet<>(restartTarget.services()));
         dto.setCurrentValue(storedValue.orElse(null));
         dto.setEffectiveValue(resolved.value());
         dto.setValueSource(resolved.source());

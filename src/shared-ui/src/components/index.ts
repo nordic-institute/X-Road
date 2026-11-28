@@ -54,6 +54,7 @@ import XrdFormBlockRow from './XrdFormBlockRow.vue';
 import XrdBreadcrumbs from './XrdBreadcrumbs.vue';
 import XrdCertificateFileUpload from './XrdCertificateFileUpload.vue';
 import XrdThemeSwitcher from './XrdThemeSwitcher.vue';
+import XrdRestartBanner from './XrdRestartBanner.vue';
 import XrdScopePropertiesExpandable from './XrdScopePropertiesExpandable.vue';
 import XrdEditConfigurablePropertyDialog from './XrdEditConfigurablePropertyDialog.vue';
 
@@ -87,6 +88,7 @@ export {
   XrdBreadcrumbs,
   XrdCertificateFileUpload,
   XrdThemeSwitcher,
+  XrdRestartBanner,
   XrdScopePropertiesExpandable,
   XrdEditConfigurablePropertyDialog,
 };

@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.ActiveCountryProfile;
 import org.niis.xroad.common.properties.config.Category;
+import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -48,15 +49,18 @@ import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.restapi.service.ConfigurablePropertySource;
+import org.niis.xroad.restapi.service.RestartTarget;
 import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Security Server's {@link ConfigurablePropertySource}: the providers whose exposed keys make up the
- * Security Server's system-parameters catalogue, and their category-to-scope mapping.
+ * Security Server's system-parameters catalogue, their category-to-scope mapping and the restart target of a
+ * category or key for the deployment mode.
  */
 @Component
 @RequiredArgsConstructor
@@ -114,5 +118,36 @@ public class SsConfigurablePropertySource implements ConfigurablePropertySource 
             default -> throw XrdRuntimeException.systemInternalError(
                     "Unmapped category for configurable properties catalogue: " + category);
         };
+    }
+
+    @Override
+    public RestartTarget restartTarget(Category category) {
+        return switch (category) {
+            case PROXY -> RestartTarget.of(serviceName("xroad-proxy", "proxy"));
+            case SIGNER -> RestartTarget.of(serviceName("xroad-signer", "signer"));
+            case PROXY_UI_API -> RestartTarget.of(serviceName("xroad-proxy-ui-api", "proxy-ui-api"));
+            case OP_MONITOR_DAEMON -> RestartTarget.of(serviceName("xroad-opmonitor", "op-monitor"));
+            case MONITOR -> RestartTarget.of(serviceName("xroad-monitor", "monitor"));
+            case CONFIGURATION_CLIENT -> RestartTarget.of(serviceName("xroad-confclient", "configuration-client"));
+            case AUXILIARY_SERVICE -> RestartTarget.of(serviceName("xroad-auxiliary-service", "auxiliary-service"));
+            case MESSAGE_LOG_ARCHIVER -> RestartTarget.nextRun();
+            case COMMON -> RestartTarget.allServices();
+            default -> throw XrdRuntimeException.systemInternalError(
+                    "Unmapped category for configurable properties catalogue: " + category);
+        };
+    }
+
+    @Override
+    public RestartTarget restartTarget(ConfigKey<?> key) {
+        if (ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTPS_PORT.key().equals(key.key())) {
+            return RestartTarget.of(Stream.of(Category.PROXY, Category.PROXY_UI_API)
+                    .flatMap(category -> restartTarget(category).services().stream())
+                    .toArray(String[]::new));
+        }
+        return restartTarget(key.category());
+    }
+
+    private String serviceName(String nativeName, String containerizedName) {
+        return deploymentMode == DeploymentMode.CONTAINERIZED ? containerizedName : nativeName;
     }
 }

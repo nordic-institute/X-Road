@@ -168,8 +168,10 @@
   "configurableProperties": {
     "title": "Konfigureeritavad süsteemi omadused",
     "search": "Otsi omadusi...",
-    "restartWarning": "Muudatuste jõustumiseks tuleb järgmised teenused taaskäivitada: {scopes}.",
+    "restartWarning": "Muudatuste jõustumiseks tuleb järgmised teenused taaskäivitada: {services}.",
     "propertyRestartWarning": "Muudatuste jõustumiseks on vajalik taaskäivitamine.",
+    "restartAllWarning": "Muudatuste jõustumiseks tuleb kõik X-Roadi teenused taaskäivitada.",
+    "archiverNextRun": "Muudatus rakendub sõnumilogi arhiveerija järgmisel käivitamisel.",
     "collapseAll": "Ahenda kõik",
     "updateSuccess": "Omadus edukalt uuendatud",
     "editDialog": {

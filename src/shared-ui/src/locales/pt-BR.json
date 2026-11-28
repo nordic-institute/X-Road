@@ -163,8 +163,10 @@
   "configurableProperties": {
     "title": "Propriedades do sistema configuráveis",
     "search": "Pesquisar propriedades...",
-    "restartWarning": "Os seguintes serviços precisam ser reiniciados para que as alterações entrem em vigor: {scopes}.",
+    "restartWarning": "Os seguintes serviços precisam ser reiniciados para que as alterações entrem em vigor: {services}.",
     "propertyRestartWarning": "Reinicialização necessária para as alterações entrarem em vigor.",
+    "restartAllWarning": "Todos os serviços do X-Road precisam ser reiniciados para que as alterações entrem em vigor.",
+    "archiverNextRun": "A alteração é aplicada na próxima execução do arquivador de registros de mensagens.",
     "collapseAll": "Recolher tudo",
     "updateSuccess": "Propriedade atualizada com sucesso",
     "editDialog": {

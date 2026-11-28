@@ -31,6 +31,7 @@ import { specHttp } from '../setup/spec-http';
 import { submitDialogForm } from '../setup/dialog-helpers';
 import { Permissions } from '@/global';
 import type { MemberClass } from '@/openapi-types';
+import type { ConfigurablePropertyDto } from '@niis/shared-ui';
 
 const systemSettingsPermissions = [
   Permissions.VIEW_SYSTEM_SETTINGS,
@@ -79,5 +80,99 @@ describe('0350 — CS System Parameters — invalid address inline error (Browse
 
     // Client-side 'address' rule fires for chars outside [a-zA-Z0-9-.].
     await expect.element(page.getByText('The Central Server address field contains invalid characters')).toBeVisible();
+  });
+});
+
+const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
+  {
+    property_name: 'xroad.admin-service.some-param',
+    default_value: '10',
+    effective_value: '10',
+    value_source: 'DEFAULT',
+    scope: 'admin-service',
+    restart_policy: 'SERVICES',
+    restart_services: ['xroad-center'],
+  },
+  {
+    property_name: 'xroad.signer.some-param',
+    default_value: '1',
+    effective_value: '1',
+    value_source: 'DEFAULT',
+    scope: 'signer',
+    restart_policy: 'SERVICES',
+    restart_services: ['xroad-signer'],
+  },
+  {
+    property_name: 'xroad.common.some-param',
+    default_value: '5',
+    effective_value: '5',
+    value_source: 'DEFAULT',
+    restart_policy: 'ALL_SERVICES',
+    restart_services: [],
+  },
+];
+
+describe('CS System Parameters — restart warning lists service names (Browser Mode)', () => {
+  const rowOf = (scope: string, propertyName: string) =>
+    page
+      .getByTestId(`configurable-properties-table-body-${scope}`)
+      .getByTestId('configurable-property-row')
+      .filter({ hasText: propertyName });
+
+  const editProperty = async (scope: string, propertyName: string, value: string) => {
+    await rowOf(scope, propertyName).getByTestId('edit-configurable-property-button').click();
+    await expect.element(page.getByTestId('configurable-property-value-field')).toBeVisible();
+    const input = page.getByTestId('configurable-property-value-field').getByRole('textbox');
+    await input.clear();
+    await input.fill(value);
+    await page.getByRole('button', { name: /save/i }).click();
+    await expect.element(page.getByTestId('configurable-property-value-field')).not.toBeInTheDocument();
+  };
+
+  const renderPage = () =>
+    renderRoute('/settings/system-parameters', {
+      permissions: [Permissions.CHANGE_CONFIGURATION_PROPERTY],
+      msw: [
+        specHttp.get('/system/property', ({ response }) =>
+          response(200).json(configurablePropertiesFixture),
+        ),
+        specHttp.patch('/system/property', ({ response }) => response(204).empty()),
+      ],
+    });
+
+  it('shows xroad-center after an admin-service property is edited', async () => {
+    await renderPage();
+    await page.getByTestId('configurable-properties-panel-title-admin-service').click();
+
+    expect(page.getByTestId('configurable-properties-restart-warning').query()).toBeNull();
+
+    await editProperty('admin-service', 'xroad.admin-service.some-param', '20');
+
+    await expect
+      .element(page.getByTestId('configurable-properties-restart-services'))
+      .toMatchTextContent(/: xroad-center\.$/);
+  });
+
+  it('lists the service names of two edited categories', async () => {
+    await renderPage();
+    await page.getByTestId('configurable-properties-panel-title-admin-service').click();
+    await page.getByTestId('configurable-properties-panel-title-signer').click();
+
+    await editProperty('admin-service', 'xroad.admin-service.some-param', '20');
+    await editProperty('signer', 'xroad.signer.some-param', '2');
+
+    await expect
+      .element(page.getByTestId('configurable-properties-restart-services'))
+      .toMatchTextContent(/: xroad-center, xroad-signer\.$/);
+  });
+
+  it('shows the restart-all line for a shared property edit', async () => {
+    await renderPage();
+    await page.getByTestId('configurable-properties-panel-title-common').click();
+
+    await editProperty('common', 'xroad.common.some-param', '6');
+
+    await expect.element(page.getByTestId('configurable-properties-restart-all')).toBeVisible();
+    expect(page.getByTestId('configurable-properties-restart-services').query()).toBeNull();
   });
 });

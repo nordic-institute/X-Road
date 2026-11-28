@@ -39,6 +39,7 @@ import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.restapi.service.ConfigurablePropertySource;
+import org.niis.xroad.restapi.service.RestartTarget;
 import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.stereotype.Component;
@@ -47,7 +48,8 @@ import java.util.List;
 
 /**
  * Central Server's {@link ConfigurablePropertySource}: the providers whose exposed keys make up the
- * Central Server's system-parameters catalogue, and their category-to-scope mapping.
+ * Central Server's system-parameters catalogue, their category-to-scope mapping and the restart target of a
+ * category.
  */
 @Component
 @RequiredArgsConstructor
@@ -84,6 +86,19 @@ public class CsConfigurablePropertySource implements ConfigurablePropertySource 
             case REGISTRATION_SERVICE -> "registration-service";
             case SIGNER -> "signer";
             case COMMON -> null;
+            default -> throw XrdRuntimeException.systemInternalError(
+                    "Unmapped category for configurable properties catalogue: " + category);
+        };
+    }
+
+    @Override
+    public RestartTarget restartTarget(Category category) {
+        return switch (category) {
+            case ADMIN_SERVICE -> RestartTarget.of("xroad-center");
+            case MANAGEMENT_SERVICE -> RestartTarget.of("xroad-center-management-service");
+            case REGISTRATION_SERVICE -> RestartTarget.of("xroad-center-registration-service");
+            case SIGNER -> RestartTarget.of("xroad-signer");
+            case COMMON -> RestartTarget.allServices();
             default -> throw XrdRuntimeException.systemInternalError(
                     "Unmapped category for configurable properties catalogue: " + category);
         };
